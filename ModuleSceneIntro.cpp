@@ -17,6 +17,8 @@ bool ModuleSceneIntro::Start()
 	LOG("Loading Intro assets");
 	bool ret = true;
 
+	App->scene->LoadScene("Game/walk/Models/dwarf.x");
+
 	float road_width = 15.0f;
 	float road_height = 5.0f;
 

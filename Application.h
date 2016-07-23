@@ -13,18 +13,20 @@
 #include "ModuleSceneIntro.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleCamera3D.h"
+#include "ModuleScene.h"
 
 class Application
 {
 public:
-	ModuleWindow* window;
-	ModuleInput* input;
-	ModuleAudio* audio;
-	ModulePlayer* player;
-	ModuleSceneIntro* scene_intro;
-	ModulePhysics3D* physics3D;
-	ModuleRenderer3D* renderer3D;
-	ModuleCamera3D* camera;
+	ModuleWindow* window = nullptr;
+	ModuleInput* input = nullptr;
+	ModuleAudio* audio = nullptr;
+	ModulePlayer* player = nullptr;
+	ModuleSceneIntro* scene_intro = nullptr;
+	ModulePhysics3D* physics3D = nullptr;
+	ModuleRenderer3D* renderer3D = nullptr;
+	ModuleCamera3D* camera = nullptr;
+	ModuleScene* scene = nullptr;
 
 private:
 

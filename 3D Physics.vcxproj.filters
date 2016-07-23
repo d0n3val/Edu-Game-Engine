@@ -84,6 +84,9 @@
     <ClInclude Include="Point.h">
       <Filter>Containers</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleScene.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -138,6 +141,9 @@
       <Filter>Core Modules</Filter>
     </ClCompile>
     <ClCompile Include="ModuleWindow.cpp">
+      <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleScene.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>
