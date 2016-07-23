@@ -51,8 +51,10 @@ uint ModuleTextures::Load(const char* file, const char* path)
 
 	uint texId = ilutGLLoadImage((char*) (sPath + sFile).c_str());
 
-	if(texId > 0)
+	if (texId > 0)
 		textures[sFile] = texId;
+	else
+		LOG("Cannot load texture %s from path %s", file, path);
 
 	return (texId == 0) ? INVALID_TEXTURE : texId;
 }

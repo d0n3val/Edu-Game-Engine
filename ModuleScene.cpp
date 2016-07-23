@@ -40,22 +40,25 @@ bool ModuleScene::LoadScene(const char* file)
 	scene = aiImportFile(file, aiProcessPreset_TargetRealtime_MaxQuality);
 
 	// Load textures
-	for (uint i = 0; i < scene->mNumMaterials; ++i)
+	if (scene != nullptr)
 	{
-		aiMaterial* material = scene->mMaterials[i];
-		uint numTextures = material->GetTextureCount(aiTextureType_DIFFUSE);
-		aiString path;
-
-		for (uint k = 0; k < numTextures; ++k)
+		for (uint i = 0; i < scene->mNumMaterials; ++i)
 		{
-			material->GetTexture(aiTextureType_DIFFUSE, k, &path);
+			aiMaterial* material = scene->mMaterials[i];
+			uint numTextures = material->GetTextureCount(aiTextureType_DIFFUSE);
+			aiString path;
 
-			std::string texPath(file);
-			size_t pos = texPath.find_last_of("\\/");
-			if (pos != string::npos)
-				texPath.erase(pos+1, string::npos);
+			for (uint k = 0; k < numTextures; ++k)
+			{
+				material->GetTexture(aiTextureType_DIFFUSE, k, &path);
 
-			App->tex->Load(path.C_Str(), texPath.c_str());
+				std::string texPath(file);
+				size_t pos = texPath.find_last_of("\\/");
+				if (pos != string::npos)
+					texPath.erase(pos + 1, string::npos);
+
+				App->tex->Load(path.C_Str(), texPath.c_str());
+			}
 		}
 	}
 
@@ -64,7 +67,8 @@ bool ModuleScene::LoadScene(const char* file)
 
 void ModuleScene::Draw() const
 {
-	RecursiveDraw(scene->mRootNode);
+	if(scene != nullptr)
+		RecursiveDraw(scene->mRootNode);
 }
 
 void ModuleScene::RecursiveDraw(const struct aiNode* node) const
