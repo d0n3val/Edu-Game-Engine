@@ -1,12 +1,14 @@
-#ifndef __ModuleAudio_H__
-#define __ModuleAudio_H__
+#ifndef __MODULEAUDIO_H__
+#define __MODULEAUDIO_H__
 
+#include <vector>
 #include "Module.h"
-#include "p2List.h"
-#include "SDL_mixer/include/SDL_mixer.h"
 
 #define DEFAULT_MUSIC_FADE_TIME 2.0f
 
+struct _Mix_Music;
+struct Mix_Chunk;
+typedef struct _Mix_Music Mix_Music;
 
 class ModuleAudio : public Module
 {
@@ -29,8 +31,8 @@ public:
 
 private:
 
-	Mix_Music*			music = nullptr;
-	p2List<Mix_Chunk*>	fx;
+	Mix_Music*	music = nullptr;
+	std::vector<Mix_Chunk*>	fx;
 };
 
-#endif // __ModuleAudio_H__
+#endif // __MODULEAUDIO_H__

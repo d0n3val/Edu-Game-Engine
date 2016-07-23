@@ -1,11 +1,14 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleAudio.h"
-#include "SDL_mixer/include/SDL_mixer.h"
+#include "SDL/include/SDL.h"
 
+#include "SDL_mixer/include/SDL_mixer.h"
 #pragma comment( lib, "SDL_mixer/libx86/SDL2_mixer.lib" )
 
-ModuleAudio::ModuleAudio(bool start_enabled) : Module(start_enabled)
+using namespace std;
+
+ModuleAudio::ModuleAudio( bool start_enabled) : Module( start_enabled)
 {}
 
 // Destructor
@@ -55,12 +58,8 @@ bool ModuleAudio::CleanUp()
 		Mix_FreeMusic(music);
 	}
 
-	p2List_item<Mix_Chunk*>* item;
-
-	for(item = fx.getFirst(); item != nullptr; item = item->next)
-	{
-		Mix_FreeChunk(item->data);
-	}
+	for(vector<Mix_Chunk*>::iterator it = fx.begin(); it != fx.end(); ++it)
+		Mix_FreeChunk(*it);
 
 	fx.clear();
 	Mix_CloseAudio();
@@ -72,11 +71,8 @@ bool ModuleAudio::CleanUp()
 // Play a music file
 bool ModuleAudio::PlayMusic(const char* path, float fade_time)
 {
-	if(IsEnabled() == false)
-		return false;
-
 	bool ret = true;
-	
+
 	if(music != nullptr)
 	{
 		if(fade_time > 0.0f)
@@ -126,11 +122,7 @@ bool ModuleAudio::PlayMusic(const char* path, float fade_time)
 // Load WAV
 unsigned int ModuleAudio::LoadFx(const char* path)
 {
-	if(IsEnabled() == false)
-		return 0;
-
 	unsigned int ret = 0;
-
 	Mix_Chunk* chunk = Mix_LoadWAV(path);
 
 	if(chunk == nullptr)
@@ -139,8 +131,8 @@ unsigned int ModuleAudio::LoadFx(const char* path)
 	}
 	else
 	{
-		fx.add(chunk);
-		ret = fx.count();
+		fx.push_back(chunk);
+		ret = fx.size() - 1;
 	}
 
 	return ret;
@@ -149,16 +141,11 @@ unsigned int ModuleAudio::LoadFx(const char* path)
 // Play WAV
 bool ModuleAudio::PlayFx(unsigned int id, int repeat)
 {
-	if(IsEnabled() == false)
-		return false;
-
 	bool ret = false;
 
-	Mix_Chunk* chunk = nullptr;
-	
-	if(fx.at(id-1, chunk) == true)
+	if(id < fx.size())
 	{
-		Mix_PlayChannel(-1, chunk, repeat);
+		Mix_PlayChannel(-1, fx[id], repeat);
 		ret = true;
 	}
 
