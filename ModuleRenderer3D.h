@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __MODULE_RENDERER_3D_H__
+#define __MODULE_RENDERER_3D_H__
+
 #include "Module.h"
 #include "Globals.h"
 #include "glmath.h"
@@ -9,7 +11,7 @@
 class ModuleRenderer3D : public Module
 {
 public:
-	ModuleRenderer3D(Application* app, bool start_enabled = true);
+	ModuleRenderer3D(bool start_enabled = true);
 	~ModuleRenderer3D();
 
 	bool Init();
@@ -27,3 +29,5 @@ public:
 	mat3x3 NormalMatrix;
 	mat4x4 ModelMatrix, ViewMatrix, ProjectionMatrix;
 };
+
+#endif // __MODULE_RENDERER_3D_H__

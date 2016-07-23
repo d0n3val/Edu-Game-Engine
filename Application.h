@@ -1,7 +1,8 @@
-#pragma once
+#ifndef __APPLICATION_CPP__
+#define __APPLICATION_CPP__
 
-#include "p2List.h"
 #include "Globals.h"
+#include <list>
 #include "Timer.h"
 #include "Module.h"
 #include "ModuleWindow.h"
@@ -35,7 +36,8 @@ private:
 	int		last_frame_ms;
 	int		last_fps;
 	int		capped_ms;
-	p2List<Module*> list_modules;
+
+	std::list<Module*> modules;
 
 public:
 
@@ -48,7 +50,11 @@ public:
 
 private:
 
-	void AddModule(Module* mod);
 	void PrepareUpdate();
 	void FinishUpdate();
 };
+
+// Give App pointer access everywhere
+extern Application* App;
+
+#endif // __APPLICATION_CPP__

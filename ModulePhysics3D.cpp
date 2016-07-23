@@ -17,9 +17,8 @@
 	#pragma comment (lib, "Bullet/bin/LinearMath_vs2015.lib")
 #endif
 
-ModulePhysics3D::ModulePhysics3D(Application* app, bool start_enabled) : Module(app, start_enabled)
+ModulePhysics3D::ModulePhysics3D(bool start_enabled) : Module(start_enabled)
 {
-	debug = false;
 }
 
 // Destructor

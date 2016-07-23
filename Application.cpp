@@ -1,5 +1,8 @@
 #include "Application.h"
 
+using namespace std;
+
+// ---------------------------------------------
 Application::Application()
 {
 	frames = 0;
@@ -8,78 +11,71 @@ Application::Application()
 	capped_ms = 1000 / 60;
 	fps_counter = 0;
 
-	window = new ModuleWindow(this);
-	input = new ModuleInput(this);
-	audio = new ModuleAudio(this, true);
-	player = new ModulePlayer(this);
-	scene_intro = new ModuleSceneIntro(this);
-	physics3D = new ModulePhysics3D(this);
-	renderer3D = new ModuleRenderer3D(this);
-	camera = new ModuleCamera3D(this);
-
 	// The order of calls is very important!
 	// Modules will Init() Start() and Update in this order
 	// They will CleanUp() in reverse order
 
-	// Main Modules
-	AddModule(window);
-	AddModule(physics3D);
-	AddModule(renderer3D);
-	AddModule(camera);
-	AddModule(input);
-	AddModule(audio);
-	
-	// Scenes
-	AddModule(scene_intro);
-	
-	// Characters
-	AddModule(player);
+	modules.push_back(window = new ModuleWindow());
+	modules.push_back(physics3D = new ModulePhysics3D());
+	modules.push_back(renderer3D = new ModuleRenderer3D());
+	modules.push_back(camera = new ModuleCamera3D());
+	modules.push_back(input = new ModuleInput());
+	modules.push_back(audio = new ModuleAudio(true));
+	modules.push_back(scene_intro = new ModuleSceneIntro());
+	modules.push_back(player = new ModulePlayer());
 }
 
+// ---------------------------------------------
 Application::~Application()
 {
-	p2List_item<Module*>* item = list_modules.getLast();
-
-	while(item != NULL)
-	{
-		delete item->data;
-		item = item->prev;
-	}
+	for(list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
+		RELEASE(*it);
 }
 
+// ---------------------------------------------
 bool Application::Init()
 {
 	bool ret = true;
 
-	// Call Init() in all modules
-	p2List_item<Module*>* item = list_modules.getFirst();
+	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
+		ret = (*it)->Init(); // we init everything, even if not anabled
 
-	while(item != NULL && ret == true)
+	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
-		ret = item->data->Init();
-		item = item->next;
+		if((*it)->IsEnabled() == true)
+			ret = (*it)->Start();
 	}
 
-	// After all Init calls we call Start() in all modules
-	LOG("Application Start --------------");
-	item = list_modules.getFirst();
-
-	while(item != NULL && ret == true)
-	{
-		if(item->data->IsEnabled())
-			ret = item->data->Start();
-		item = item->next;
-	}
-	
 	return ret;
 }
-
 
 // ---------------------------------------------
 void Application::PrepareUpdate()
 {
 	dt = (float)ms_timer.Read() / 1000.0f;
 	ms_timer.Start();
+}
+
+// ---------------------------------------------
+update_status Application::Update()
+{
+	update_status ret = UPDATE_CONTINUE;
+	PrepareUpdate();
+
+	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret == UPDATE_CONTINUE; ++it)
+		if((*it)->IsEnabled() == true) 
+			ret = (*it)->PreUpdate(dt);
+
+	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret == UPDATE_CONTINUE; ++it)
+		if((*it)->IsEnabled() == true) 
+			ret = (*it)->Update(dt);
+
+	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret == UPDATE_CONTINUE; ++it)
+		if((*it)->IsEnabled() == true) 
+			ret = (*it)->PostUpdate(dt);
+
+	FinishUpdate();
+	return ret;
 }
 
 // ---------------------------------------------
@@ -104,62 +100,19 @@ void Application::FinishUpdate()
 		SDL_Delay(capped_ms - last_frame_ms);
 	}
 
-	//char t[50];
-	//sprintf_s(t, "FPS: %d", (int)last_fps);
-	//window->SetTitle(t);
+	char t[50];
+	sprintf_s(t, "FPS: %d", (int)last_fps);
+	window->SetTitle(t);
 }
 
-// Call PreUpdate, Update and PostUpdate on all modules
-update_status Application::Update()
-{
-	update_status ret = UPDATE_CONTINUE;
-	PrepareUpdate();
-	
-	p2List_item<Module*>* item = list_modules.getFirst();
-	
-	while(item != NULL && ret == UPDATE_CONTINUE)
-	{
-		if(item->data->IsEnabled())
-			ret = item->data->PreUpdate(dt);
-		item = item->next;
-	}
-
-	item = list_modules.getFirst();
-
-	while(item != NULL && ret == UPDATE_CONTINUE)
-	{
-		if(item->data->IsEnabled())
-  			ret = item->data->Update(dt);
-		item = item->next;
-	}
-
-	item = list_modules.getFirst();
-
-	while(item != NULL && ret == UPDATE_CONTINUE)
-	{
-		if(item->data->IsEnabled())
-			ret = item->data->PostUpdate(dt);
-		item = item->next;
-	}
-
-	FinishUpdate();
-	return ret;
-}
-
+// ---------------------------------------------
 bool Application::CleanUp()
 {
 	bool ret = true;
-	p2List_item<Module*>* item = list_modules.getLast();
 
-	while(item != NULL && ret == true)
-	{
-		ret = item->data->CleanUp();
-		item = item->prev;
-	}
+	for(list<Module*>::reverse_iterator it = modules.rbegin(); it != modules.rend() && ret; ++it)
+		if((*it)->IsEnabled() == true) 
+			ret = (*it)->CleanUp();
+
 	return ret;
-}
-
-void Application::AddModule(Module* mod)
-{
-	list_modules.add(mod);
 }

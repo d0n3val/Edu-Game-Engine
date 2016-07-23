@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __MODULE_PHYSICS_3D_H__
+#define __MODULE_PHYSICS_3D_H__
+
 #include "Module.h"
 #include "Globals.h"
 #include "p2List.h"
@@ -16,7 +18,7 @@ struct VehicleInfo;
 class ModulePhysics3D : public Module
 {
 public:
-	ModulePhysics3D(Application* app, bool start_enabled = true);
+	ModulePhysics3D(bool start_enabled = true);
 	~ModulePhysics3D();
 
 	bool Init();
@@ -37,15 +39,15 @@ public:
 
 private:
 
-	bool debug;
+	bool debug = false;
 
-	btDefaultCollisionConfiguration*	collision_conf;
-	btCollisionDispatcher*				dispatcher;
-	btBroadphaseInterface*				broad_phase;
-	btSequentialImpulseConstraintSolver* solver;
-	btDiscreteDynamicsWorld*			world;
-	btDefaultVehicleRaycaster*			vehicle_raycaster;
-	DebugDrawer*						debug_draw;
+	btDefaultCollisionConfiguration*	collision_conf = nullptr;
+	btCollisionDispatcher*				dispatcher = nullptr;
+	btBroadphaseInterface*				broad_phase = nullptr;
+	btSequentialImpulseConstraintSolver* solver = nullptr;
+	btDiscreteDynamicsWorld*			world = nullptr;
+	btDefaultVehicleRaycaster*			vehicle_raycaster = nullptr;
+	DebugDrawer*						debug_draw = nullptr;
 
 	p2List<btCollisionShape*> shapes;
 	p2List<PhysBody3D*> bodies;
@@ -69,3 +71,5 @@ public:
 	Line line;
 	Primitive point;
 };
+
+#endif __MODULE_PHYSICS_3D_H__
