@@ -81,6 +81,9 @@
     <ClInclude Include="ModuleWindow.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Point.h">
+      <Filter>Containers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">

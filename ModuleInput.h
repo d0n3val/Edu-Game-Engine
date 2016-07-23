@@ -1,12 +1,22 @@
-#ifndef __MODULE_INPUT_H__
-#define __MODULE_INPUT_H__
+#ifndef __MODULEINPUT_H__
+#define __MODULEINPUT_H__
 
 #include "Module.h"
-#include "Globals.h"
+#include "Point.h"
 
-#define MAX_MOUSE_BUTTONS 5
+#include "SDL/include/SDL_scancode.h"
 
-enum KEY_STATE
+#define NUM_MOUSE_BUTTONS 5
+
+enum EventWindow
+{
+	WE_QUIT = 0,
+	WE_HIDE = 1,
+	WE_SHOW = 2,
+	WE_COUNT
+};
+
+enum KeyState
 {
 	KEY_IDLE = 0,
 	KEY_DOWN,
@@ -16,59 +26,49 @@ enum KEY_STATE
 
 class ModuleInput : public Module
 {
-public:
-	
-	ModuleInput(bool start_enabled = true);
-	~ModuleInput();
 
+public:
+
+	ModuleInput();
+
+	// Destructor
+	virtual ~ModuleInput();
+
+	// Called before render is available
 	bool Init();
+
+	// Called each loop iteration
 	update_status PreUpdate(float dt);
+
+	// Called before quitting
 	bool CleanUp();
 
-	KEY_STATE GetKey(int id) const
+	// Check key states
+	KeyState GetKey(int id) const
 	{
 		return keyboard[id];
 	}
 
-	KEY_STATE GetMouseButton(int id) const
+	KeyState GetMouseButton(int id) const
 	{
-		return mouse_buttons[id];
+		return mouse_buttons[id - 1];
 	}
 
-	int GetMouseX() const
-	{
-		return mouse_x;
-	}
+	// Check for window events last frame
+	bool GetWindowEvent(EventWindow code) const;
 
-	int GetMouseY() const
-	{
-		return mouse_y;
-	}
-
-	int GetMouseZ() const
-	{
-		return mouse_z;
-	}
-
-	int GetMouseXMotion() const
-	{
-		return mouse_x_motion;
-	}
-
-	int GetMouseYMotion() const
-	{
-		return mouse_y_motion;
-	}
+	// Get mouse / axis position
+	const iPoint& GetMouseMotion() const;
+	const iPoint& GetMousePosition() const;
+	int GetMouseWheel() const;
 
 private:
-	KEY_STATE* keyboard;
-	KEY_STATE mouse_buttons[MAX_MOUSE_BUTTONS];
-	int mouse_x;
-	int mouse_y;
-	int mouse_z;
-	int mouse_x_motion;
-	int mouse_y_motion;
-	//int mouse_z_motion;
+	bool		windowEvents[WE_COUNT];
+	KeyState*	keyboard = nullptr;
+	KeyState	mouse_buttons[NUM_MOUSE_BUTTONS];
+	iPoint mouse_motion;
+	iPoint mouse;
+	int mouse_wheel;
 };
 
-#endif //__MODULE_INPUT_H__
+#endif // __MODULEINPUT_H__

@@ -99,8 +99,9 @@ update_status ModuleCamera3D::Update(float dt)
 	if(App->input->GetMouseButton(SDL_BUTTON_RIGHT) == KEY_REPEAT)
 	{
 
-		int dx = -App->input->GetMouseXMotion();
-		int dy = -App->input->GetMouseYMotion();
+		iPoint motion = App->input->GetMouseMotion();
+		int dx = -motion.x;
+		int dy = -motion.y;
 
 		float Sensitivity = 0.25f;
 
@@ -134,7 +135,7 @@ update_status ModuleCamera3D::Update(float dt)
 
 	// Mouse wheel -----------------------
 
-	float zDelta = (float) App->input->GetMouseZ();
+	float zDelta = (float) App->input->GetMouseWheel();
 
 	Position -= Reference;
 
