@@ -24,11 +24,11 @@ ModulePhysics3D::ModulePhysics3D(bool start_enabled) : Module(start_enabled)
 // Destructor
 ModulePhysics3D::~ModulePhysics3D()
 {
-	delete debug_draw;
-	delete solver;
-	delete broad_phase;
-	delete dispatcher;
-	delete collision_conf;
+	RELEASE(debug_draw);
+	RELEASE(solver);
+	RELEASE(broad_phase);
+	RELEASE(dispatcher);
+	RELEASE(collision_conf);
 }
 
 // Render not available yet----------------------------------
@@ -290,15 +290,15 @@ void ModulePhysics3D::DeleteBody(PhysBody3D* pbody)
 {
 	/*
 	if(pbody->body && pbody->body->getMotionState())
-		delete pbody->body->getMotionState();
+		RELEASE( pbody->body->getMotionState());
 
 	world->removeCollisionObject(pbody->body);
 
-	delete pbody->body;
-	pbody->body = NULL;
+	RELEASE( pbody->body);
+	pbody->body = nullptr;
 
-	delete pbody->collision_shape;
-	pbody->collision_shape = NULL;
+	RELEASE( pbody->collision_shape);
+	pbody->collision_shape = nullptr;
 	*/
 	// TODO: remove from the array "bodies"
 }
@@ -405,19 +405,20 @@ bool ModulePhysics3D::CleanUp()
 	{
 		btCollisionObject* obj = world->getCollisionObjectArray()[i];
 		btRigidBody* body = btRigidBody::upcast(obj);
-		if(body && body->getMotionState())
+		btMotionState* state;
+		if(body && (state = body->getMotionState()) != nullptr)
 		{
-			delete body->getMotionState();
+			RELEASE(state);
 		}
 		world->removeCollisionObject(obj);
-		delete obj;
+		RELEASE(obj);
 	}
 
 	// Free all collision shapes
 	p2List_item<btCollisionShape*>* s_item = shapes.getFirst();
 	while(s_item)
 	{
-		delete s_item->data;
+		RELEASE(s_item->data);
 		s_item = s_item->next;
 	}
 	shapes.clear();
@@ -425,7 +426,7 @@ bool ModulePhysics3D::CleanUp()
 	p2List_item<PhysBody3D*>* b_item = bodies.getFirst();
 	while(b_item)
 	{
-		delete b_item->data;
+		RELEASE(b_item->data);
 		b_item = b_item->next;
 	}
 	bodies.clear();
@@ -433,14 +434,14 @@ bool ModulePhysics3D::CleanUp()
 	p2List_item<PhysVehicle3D*>* v_item = vehicles.getFirst();
 	while(v_item)
 	{
-		delete v_item->data;
+		RELEASE(v_item->data);
 		v_item = v_item->next;
 	}
 	vehicles.clear();
 	
 	// Order matters !
-	delete vehicle_raycaster;
-	delete world;
+	RELEASE(vehicle_raycaster);
+	RELEASE(world);
 
 	return true;
 }

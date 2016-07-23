@@ -42,7 +42,7 @@ public:
 	// Destructor
 	~p2DynArray()
 	{
-		delete[] data;
+		RELEASE_ARRAY(data);
 	}
 
 	// Operators
@@ -170,7 +170,7 @@ private:
 			for(unsigned int i = 0; i < num_elements; ++i)
 				data[i] = tmp[i];
 
-			delete[] tmp;
+			RELEASE_ARRAY(tmp);
 		}
 	}
 };

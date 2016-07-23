@@ -39,7 +39,7 @@ bool ModuleCamera3D::CleanUp()
 update_status ModuleCamera3D::Update(float dt)
 {
 	// Follow code
-	if(following != NULL)
+	if(following != nullptr)
 	{
 		mat4x4 m;
 		following->GetTransform(&m);
@@ -209,5 +209,5 @@ void ModuleCamera3D::Follow(PhysBody3D* body, float min, float max, float height
 // -----------------------------------------------------------------
 void ModuleCamera3D::UnFollow()
 {
-	following = NULL;
+	following = nullptr;
 }

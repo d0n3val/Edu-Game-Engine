@@ -5,8 +5,8 @@
 // ----------------------------------------------------------------------------
 VehicleInfo::~VehicleInfo()
 {
-	//if(wheels != NULL)
-		//delete wheels;
+	//if(wheels != nullptr)
+		//RELEASE(wheels);
 }
 
 // ----------------------------------------------------------------------------
@@ -17,7 +17,7 @@ PhysVehicle3D::PhysVehicle3D(btRigidBody* body, btRaycastVehicle* vehicle, const
 // ----------------------------------------------------------------------------
 PhysVehicle3D::~PhysVehicle3D()
 {
-	delete vehicle;
+	RELEASE(vehicle);
 }
 
 // ----------------------------------------------------------------------------

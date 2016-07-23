@@ -153,7 +153,7 @@ public:
 			}
 		}
 
-		delete item;
+		RELEASE(item);
 		--size;
 		return(true);
 	}
@@ -170,7 +170,7 @@ public:
 		while(p_data != NULL)
 		{
 			p_next = p_data->next;
-			delete (p_data);
+			RELEASE(p_data);
 			p_data = p_next;
 		}
 
