@@ -3,6 +3,8 @@
 #include "ModuleSceneIntro.h"
 #include "Primitive.h"
 #include "PhysBody3D.h"
+#include "ModuleScene.h"
+#include "ModulePhysics3D.h"
 
 ModuleSceneIntro::ModuleSceneIntro(bool start_enabled) : Module(start_enabled)
 {
@@ -17,7 +19,7 @@ bool ModuleSceneIntro::Start()
 	LOG("Loading Intro assets");
 	bool ret = true;
 
-	App->scene->LoadScene("Game/walk/Models/dwarf.x");
+	App->scene->LoadScene("walk/Models/dwarf.x");
 
 	float road_width = 15.0f;
 	float road_height = 5.0f;
@@ -79,7 +81,7 @@ bool ModuleSceneIntro::Start()
 	s4.SetPos(-circuit_y + y1.height / 2, road_height - s1.radius*0.9, (circuit_x / 6) * 4);
 	App->physics3D->AddBody(s4, 0);
 
-	App->camera->Move(vec3(0, 30, -30));
+//	App->camera->Move(vec3(0, 30, -30));
 
 	return ret;
 }
@@ -95,8 +97,11 @@ bool ModuleSceneIntro::CleanUp()
 // Update: draw background
 update_status ModuleSceneIntro::Update(float dt)
 {
-	Plane(0, 1, 0, 0).Render();
-
+	Plane p = Plane(0, 1, 0, 0);
+	p.axis = true;
+	p.Render();
+	
+/*
 	c1.Render();
 	c2.Render();
 	c3.Render();
@@ -111,6 +116,9 @@ update_status ModuleSceneIntro::Update(float dt)
 	s2.Render();
 	s3.Render();
 	s4.Render();
+
+	*/
+	App->scene->Draw();
 
 	return UPDATE_CONTINUE;
 }

@@ -4,6 +4,7 @@
 #include "Module.h"
 #include "p2DynArray.h"
 #include "Globals.h"
+#include "Primitive.h"
 
 #define BOUNCER_TIME 200
 

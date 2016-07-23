@@ -4,6 +4,8 @@
 #include "Primitive.h"
 #include "PhysBody3D.h"
 #include "PhysVehicle3D.h"
+#include "ModuleInput.h"
+#include "ModuleCamera3D.h"
 #include "Bullet/src/btBulletDynamicsCommon.h"
 #include "Bullet\src\BulletCollision\CollisionShapes\btHeightfieldTerrainShape.h"
 

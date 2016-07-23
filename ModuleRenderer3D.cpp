@@ -1,5 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
+#include "ModuleWindow.h"
+#include "ModuleCamera3D.h"
 #include "ModuleRenderer3D.h"
 #include "SDL\include\SDL_opengl.h"
 #include <gl/GL.h>
@@ -98,6 +100,8 @@ bool ModuleRenderer3D::Init()
 		lights[0].Active(true);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_COLOR_MATERIAL);
+		glEnable(GL_TEXTURE_2D);
+		glShadeModel(GL_SMOOTH);		 // Enables Smooth Shading
 	}
 
 	// Projection matrix for

@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "PhysBody3D.h"
 #include "ModuleCamera3D.h"
+#include "ModuleInput.h"
 
 ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module(start_enabled)
 {
@@ -69,7 +70,7 @@ update_status ModuleCamera3D::Update(float dt)
 	// OnKeys WASD keys -----------------------------------
 	float Speed = 5.0f;
 
-	if(App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) Speed *= 2.0f;
+	if(App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) Speed *= 5.0f;
 	if(App->input->GetKey(SDL_SCANCODE_LALT) == KEY_REPEAT) Speed *= 0.5f;
 
 	float Distance = Speed * dt;
@@ -96,7 +97,7 @@ update_status ModuleCamera3D::Update(float dt)
 	
 	// Mouse motion ----------------
 
-	if(App->input->GetMouseButton(SDL_BUTTON_RIGHT) == KEY_REPEAT)
+	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT)
 	{
 
 		iPoint motion = App->input->GetMouseMotion();
@@ -134,7 +135,7 @@ update_status ModuleCamera3D::Update(float dt)
 	}
 
 	// Mouse wheel -----------------------
-
+	 /*
 	float zDelta = (float) App->input->GetMouseWheel();
 
 	Position -= Reference;
@@ -150,7 +151,7 @@ update_status ModuleCamera3D::Update(float dt)
 	}
 
 	Position += Reference;
-
+	*/
 	// Recalculate matrix -------------
 	CalculateViewMatrix();
 

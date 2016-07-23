@@ -5,6 +5,8 @@
 #include "Module.h"
 
 struct aiScene;
+struct aiNode;
+struct aiMaterial;
 
 class ModuleScene : public Module
 {
@@ -17,8 +19,12 @@ public:
 	bool CleanUp();
 
 	bool LoadScene(const char* file);
+	void Draw() const;
 
 private:
+
+	void PrepareMaterial(const aiMaterial* material) const;
+	void RecursiveDraw(const aiNode* node) const;
 
 	const struct aiScene* scene = nullptr;
 };

@@ -1,4 +1,14 @@
 #include "Application.h"
+#include "ModuleWindow.h"
+#include "ModuleInput.h"
+#include "ModuleAudio.h"
+#include "ModulePlayer.h"
+#include "ModulePhysics3D.h"
+#include "ModuleSceneIntro.h"
+#include "ModuleRenderer3D.h"
+#include "ModuleCamera3D.h"
+#include "ModuleScene.h"
+#include "ModuleTextures.h"
 
 using namespace std;
 
@@ -16,6 +26,7 @@ Application::Application()
 	// They will CleanUp() in reverse order
 
 	modules.push_back(window = new ModuleWindow());
+	modules.push_back(tex = new ModuleTextures());
 	modules.push_back(physics3D = new ModulePhysics3D());
 	modules.push_back(renderer3D = new ModuleRenderer3D());
 	modules.push_back(camera = new ModuleCamera3D());

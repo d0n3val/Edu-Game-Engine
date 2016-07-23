@@ -2,6 +2,8 @@
 #include "Application.h"
 #include "ModulePlayer.h"
 #include "Primitive.h"
+#include "ModulePhysics3D.h"
+#include "ModuleInput.h"
 #include "PhysVehicle3D.h"
 #include "PhysBody3D.h"
 
@@ -101,7 +103,7 @@ bool ModulePlayer::Start()
 	vehicle = App->physics3D->AddVehicle(car);
 	vehicle->SetPos(0, 12, 10);
 
-	App->camera->Follow(vehicle, 5, 15, 1.f);
+	//App->camera->Follow(vehicle, 5, 15, 1.f);
 	
 	return true;
 }
@@ -145,7 +147,7 @@ update_status ModulePlayer::Update(float dt)
 	vehicle->Turn(turn);
 	vehicle->Brake(brake);
 
-	vehicle->Render();
+	//vehicle->Render();
 
 	return UPDATE_CONTINUE;
 }
