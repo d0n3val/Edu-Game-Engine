@@ -1,12 +1,12 @@
 #ifndef __MODULE_SCENE_H__
 #define __MODULE_SCENE_H__
 
-#include <vector>
 #include "Module.h"
 
 struct aiScene;
 struct aiNode;
 struct aiMaterial;
+class GameObject;
 
 class ModuleScene : public Module
 {
@@ -25,8 +25,11 @@ private:
 
 	void PrepareMaterial(const aiMaterial* material) const;
 	void RecursiveDraw(const aiNode* node) const;
+	void RecursiveDrawGameObjects(const GameObject* go) const;
+	void RecursiveCreateGameObjects(const aiNode* node, GameObject* parent);
 
 	const struct aiScene* scene = nullptr;
+	GameObject* root = nullptr;
 };
 
 #endif // __MODULE_SCENE_H__

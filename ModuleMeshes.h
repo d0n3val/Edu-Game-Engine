@@ -53,7 +53,7 @@ public:
 	bool Init();
 	bool CleanUp();
 
-	uint Load(const aiMesh* mesh);
+	const mesh* Load(const aiMesh* mesh);
 
 private:
 	std::list<mesh*> meshes;

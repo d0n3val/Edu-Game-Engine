@@ -3,13 +3,19 @@
 
 // Base class for all possible components a GameObject could have
 
+enum ComponentTypes
+{
+	Invalid,
+	Mesh,
+};
+
 class GameObject;
 
 class Component
 {
 public:
 	Component(GameObject* container);
-	~Component();
+	virtual ~Component();
 
 	void Activate();
 	void DeActivate();
@@ -22,7 +28,8 @@ public:
 	virtual void OnUpdate() {};
 	virtual void OnFinish() {};
 
-private:
+protected:
+	ComponentTypes type = ComponentTypes::Invalid;
 	bool active = false;
 	GameObject* game_object = nullptr;
 };

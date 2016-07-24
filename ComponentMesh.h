@@ -5,6 +5,8 @@
 
 #include "Component.h"
 
+struct mesh;
+
 class ComponentMesh : public Component
 {
 public:
@@ -18,8 +20,8 @@ public:
 	void OnUpdate() override;
 	void OnFinish() override;
 
-private:
-	uint mesh_id;
+public:
+	const mesh* mesh_data = nullptr;
 };
 
 #endif // __COMPONENT_MESH_H__

@@ -35,7 +35,7 @@ bool ModuleMeshes::CleanUp()
 }
 
 // Load new texture from file path
-uint ModuleMeshes::Load(const aiMesh* new_mesh)
+const mesh* ModuleMeshes::Load(const aiMesh* new_mesh)
 {
 	if (new_mesh == nullptr)
 		return INVALID_MESH;
@@ -77,5 +77,5 @@ uint ModuleMeshes::Load(const aiMesh* new_mesh)
 	}
 
 	meshes.push_back(m);
-	return m->id;
+	return m;
 }
