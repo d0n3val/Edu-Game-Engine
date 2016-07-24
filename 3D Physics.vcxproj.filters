@@ -4,9 +4,6 @@
     <Filter Include="Core Modules">
       <UniqueIdentifier>{8b7ed093-66ce-4096-96d2-fbb9faa4bf52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Game Modules">
-      <UniqueIdentifier>{23af9d6b-a617-4edb-b32f-afdfef31771f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Main">
       <UniqueIdentifier>{b2cf1b56-826a-4450-94fb-847259a53560}</UniqueIdentifier>
     </Filter>
@@ -15,6 +12,12 @@
     </Filter>
     <Filter Include="Containers">
       <UniqueIdentifier>{afc36133-f401-499a-aa33-0da1e500fb52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game Objects">
+      <UniqueIdentifier>{23af9d6b-a617-4edb-b32f-afdfef31771f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game Objects\Components">
+      <UniqueIdentifier>{752d8af1-212b-48af-ab8e-4c2c21b0cd36}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -49,10 +52,10 @@
       <Filter>Helpers</Filter>
     </ClInclude>
     <ClInclude Include="ModulePlayer.h">
-      <Filter>Game Modules</Filter>
+      <Filter>Game Objects</Filter>
     </ClInclude>
     <ClInclude Include="ModuleSceneIntro.h">
-      <Filter>Game Modules</Filter>
+      <Filter>Game Objects</Filter>
     </ClInclude>
     <ClInclude Include="Application.h">
       <Filter>Main</Filter>
@@ -90,6 +93,15 @@
     <ClInclude Include="ModuleTextures.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Game Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentMesh.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -111,10 +123,10 @@
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="ModulePlayer.cpp">
-      <Filter>Game Modules</Filter>
+      <Filter>Game Objects</Filter>
     </ClCompile>
     <ClCompile Include="ModuleSceneIntro.cpp">
-      <Filter>Game Modules</Filter>
+      <Filter>Game Objects</Filter>
     </ClCompile>
     <ClCompile Include="Application.cpp">
       <Filter>Main</Filter>
@@ -151,6 +163,15 @@
     </ClCompile>
     <ClCompile Include="ModuleTextures.cpp">
       <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Game Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentMesh.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

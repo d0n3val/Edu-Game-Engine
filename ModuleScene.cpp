@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleTextures.h"
+#include "ModuleInput.h"
 #include <gl/GL.h>
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
@@ -125,11 +126,11 @@ void ModuleScene::RecursiveDraw(const struct aiNode* node) const
 	glPopMatrix();
 }
 
-void ModuleScene::PrepareMaterial(const aiMaterial* material) const
+void ModuleScene::PrepareMaterial(const aiMaterial* mtl) const
 {
-	aiString texPath;
+	aiString texPath;	//contains filename of texture
 
-	material->GetTexture(aiTextureType_DIFFUSE, 0, &texPath);
+	mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texPath);
 
 	GLuint id = App->tex->GetId(texPath.C_Str());
 	glBindTexture(GL_TEXTURE_2D, id);
