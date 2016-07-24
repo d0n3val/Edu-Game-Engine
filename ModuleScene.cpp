@@ -103,6 +103,9 @@ void ModuleScene::RecursiveDraw(const struct aiNode* node) const
 			{
 				int index = face->mIndices[j];
 
+				//if(mesh->mColors[0] != NULL)
+					//Color4f(&mesh->mColors[0][vertexIndex]);
+
 				if(mesh->HasTextureCoords(0))
 					glTexCoord2f(mesh->mTextureCoords[0][index].x, mesh->mTextureCoords[0][index].y);
 

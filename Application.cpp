@@ -9,6 +9,7 @@
 #include "ModuleCamera3D.h"
 #include "ModuleScene.h"
 #include "ModuleTextures.h"
+#include "ModuleMeshes.h"
 
 using namespace std;
 
@@ -27,6 +28,7 @@ Application::Application()
 
 	modules.push_back(window = new ModuleWindow());
 	modules.push_back(tex = new ModuleTextures());
+	modules.push_back(meshes = new ModuleMeshes());
 	modules.push_back(physics3D = new ModulePhysics3D());
 	modules.push_back(renderer3D = new ModuleRenderer3D());
 	modules.push_back(camera = new ModuleCamera3D());

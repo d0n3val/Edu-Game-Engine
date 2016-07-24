@@ -19,6 +19,7 @@ public:
 	void OnFinish() override;
 
 private:
+	uint mesh_id;
 };
 
 #endif // __COMPONENT_MESH_H__

@@ -16,6 +16,7 @@ class ModuleRenderer3D;
 class ModuleCamera3D;
 class ModuleScene;
 class ModuleTextures;
+class ModuleMeshes;
 
 class Application
 {
@@ -30,6 +31,7 @@ public:
 	ModuleCamera3D* camera = nullptr;
 	ModuleScene* scene = nullptr;
 	ModuleTextures* tex = nullptr;
+	ModuleMeshes* meshes = nullptr;
 
 private:
 
