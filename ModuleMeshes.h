@@ -7,25 +7,19 @@
 
 #define INVALID_MESH 0
 
-// Single face of the mesh (poly)
-struct Face
-{
-	uint num_indices = 0;
-	uint* indices = nullptr;
-
-	~Face()
-	{
-		RELEASE_ARRAY(indices);
-	}
-};
-
 // full mesh description
 struct Mesh
 {
 	uint id = INVALID_MESH;
-	uint num_faces = 0;
-	Face* faces = nullptr;
+	// ids of the VBO
+	uint vbo_vertices = 0;
+	uint vbo_normals = 0;
+	uint vbo_texture_coords = 0;
+	uint vbo_indices = 0;
+
+	uint num_indices = 0;
 	uint num_vertices = 0;
+	uint* indices = nullptr;
 	float* vertices = nullptr;
 	float* colors = nullptr;
 	float* normals = nullptr;
@@ -33,7 +27,7 @@ struct Mesh
 
 	~Mesh()
 	{
-		RELEASE_ARRAY(faces);
+		RELEASE_ARRAY(indices);
 		RELEASE_ARRAY(vertices);
 		RELEASE_ARRAY(colors);
 		RELEASE_ARRAY(normals);
@@ -54,6 +48,7 @@ public:
 	bool CleanUp();
 
 	const Mesh* Load(const aiMesh* mesh);
+	uint GenerateVertexBuffer(const Mesh* mesh);
 
 private:
 	std::list<Mesh*> meshes;

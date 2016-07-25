@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
+#include "Glew/include/glew.h"
 #include <gl/GL.h>
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
@@ -112,7 +113,10 @@ bool ModuleScene::LoadScene(const char* file)
 	if (scene != nullptr) // Unload all textures ?
 		aiReleaseImport(scene);
 
-	scene = aiImportFile(file, aiProcessPreset_TargetRealtime_Quality);
+	scene = aiImportFile(file, 
+		aiProcessPreset_TargetRealtime_MaxQuality 
+		| aiProcess_OptimizeGraph 
+	);
 
 	if (scene != nullptr)
 	{
@@ -160,35 +164,33 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 		if ((*it)->GetType() == ComponentTypes::Geometry)
 		{
 			ComponentMesh* cmesh = (ComponentMesh*) (*it);
-
 			const Mesh* mesh = cmesh->mesh_data;
 
-			// iterate all faces
-			for (uint k = 0; k < mesh->num_faces; ++k)
+			if (mesh->vbo_normals > 0)
 			{
-				const Face* face = &mesh->faces[k];
-
-				mesh->normals ? glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
-				mesh->colors ? glEnable(GL_COLOR_MATERIAL) : glDisable(GL_COLOR_MATERIAL);
-
-				glBegin(GL_POLYGON);
-
-				// iterate all indices
-				for (uint j = 0; j < face->num_indices; ++j)
-				{
-					int index = face->indices[j] * 3;
-
-					if(mesh->texture_coords != nullptr)
-						glTexCoord2f(mesh->texture_coords[index], mesh->texture_coords[index+1]);
-
-					if(mesh->normals != nullptr) 
-						glNormal3fv(&mesh->normals[index]);
-					  
-					glVertex3fv(&mesh->vertices[index]);
-				}
-
-				glEnd();
+				glEnable(GL_LIGHTING);
+				//glEnableClientState(GL_NORMAL_ARRAY);
+				
+				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_normals);
+				glNormalPointer(3, GL_FLOAT, NULL);
 			}
+			else
+				glDisable(GL_LIGHTING);
+			  
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_vertices);
+			glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_texture_coords);
+			glTexCoordPointer(3, GL_FLOAT, 0, NULL);
+			  
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vbo_indices);
+			glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, NULL);
+
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
+			glDisableClientState(GL_NORMAL_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY );
 		}
 	}
 
@@ -196,7 +198,6 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveDrawGameObjects(*it);
 
-	glPopMatrix();		
-
 	// pop this matrix before leaving this node
+	glPopMatrix();		
 }
