@@ -4,7 +4,7 @@
 // ---------------------------------------------------------
 ComponentMesh::ComponentMesh(GameObject* container) : Component(container)
 {
-	type = ComponentTypes::Mesh;
+	type = ComponentTypes::Geometry;
 }
 
 // ---------------------------------------------------------

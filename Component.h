@@ -6,7 +6,7 @@
 enum ComponentTypes
 {
 	Invalid,
-	Mesh,
+	Geometry,
 };
 
 class GameObject;
@@ -20,6 +20,7 @@ public:
 	void Activate();
 	void DeActivate();
 	bool IsActive() const;
+	ComponentTypes GetType() const;
 
 	virtual void OnActivate() {};
 	virtual void OnDeActivate() {};

@@ -24,7 +24,6 @@ public:
 private:
 
 	void PrepareMaterial(const aiMaterial* material) const;
-	void RecursiveDraw(const aiNode* node) const;
 	void RecursiveDrawGameObjects(const GameObject* go) const;
 	void RecursiveCreateGameObjects(const aiNode* node, GameObject* parent);
 

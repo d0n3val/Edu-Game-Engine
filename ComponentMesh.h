@@ -5,7 +5,7 @@
 
 #include "Component.h"
 
-struct mesh;
+struct Mesh;
 
 class ComponentMesh : public Component
 {
@@ -21,7 +21,7 @@ public:
 	void OnFinish() override;
 
 public:
-	const mesh* mesh_data = nullptr;
+	const Mesh* mesh_data = nullptr;
 };
 
 #endif // __COMPONENT_MESH_H__

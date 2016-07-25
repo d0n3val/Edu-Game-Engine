@@ -8,30 +8,30 @@
 #define INVALID_MESH 0
 
 // Single face of the mesh (poly)
-struct face
+struct Face
 {
 	uint num_indices = 0;
 	uint* indices = nullptr;
 
-	~face()
+	~Face()
 	{
 		RELEASE_ARRAY(indices);
 	}
 };
 
 // full mesh description
-struct mesh
+struct Mesh
 {
 	uint id = INVALID_MESH;
 	uint num_faces = 0;
-	face* faces = nullptr;
+	Face* faces = nullptr;
 	uint num_vertices = 0;
 	float* vertices = nullptr;
 	float* colors = nullptr;
 	float* normals = nullptr;
 	float* texture_coords = nullptr;
 
-	~mesh()
+	~Mesh()
 	{
 		RELEASE_ARRAY(faces);
 		RELEASE_ARRAY(vertices);
@@ -53,10 +53,10 @@ public:
 	bool Init();
 	bool CleanUp();
 
-	const mesh* Load(const aiMesh* mesh);
+	const Mesh* Load(const aiMesh* mesh);
 
 private:
-	std::list<mesh*> meshes;
+	std::list<Mesh*> meshes;
 };
 
 #endif // __MODULE_MESHES_H__

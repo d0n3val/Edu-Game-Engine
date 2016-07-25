@@ -23,6 +23,9 @@ void Primitive::Render() const
 	glPushMatrix();
 	glMultMatrixf(transform.M);
 
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+
 	if(axis == true)
 	{
 		// Draw Axis Grid
@@ -64,6 +67,8 @@ void Primitive::Render() const
 
 	InnerRender();
 
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 

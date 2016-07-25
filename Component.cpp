@@ -39,3 +39,9 @@ bool Component::IsActive() const
 {
 	return active;
 }
+
+// ---------------------------------------------------------
+ComponentTypes Component::GetType() const
+{
+	return type;
+}

@@ -152,6 +152,7 @@ update_status ModuleCamera3D::Update(float dt)
 
 	Position += Reference;
 	*/
+
 	// Recalculate matrix -------------
 	CalculateViewMatrix();
 

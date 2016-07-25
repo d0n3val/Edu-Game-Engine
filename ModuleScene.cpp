@@ -66,8 +66,8 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 	aiMatrix4x4 transform = node->mTransformation;
 	aiTransposeMatrix4(&transform);
 	memcpy(go->transform.M, &transform, sizeof(float) * 16);
-	
 
+	LOG("Created new Game Object");
 	// iterate all meshes in this node
 	for (uint i = 0; i < node->mNumMeshes; ++i)
 	{
@@ -77,6 +77,7 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 		ComponentMesh* c_mesh = new ComponentMesh(go);
 		go->components.push_back(c_mesh);
 		c_mesh->mesh_data = App->meshes->Load(mesh);
+		LOG("... Added mesh component");
 	}
 
 	// recursive call to generate the rest of the scene tree
@@ -124,67 +125,8 @@ bool ModuleScene::LoadScene(const char* file)
 
 void ModuleScene::Draw() const
 {
-	if(scene != nullptr)
-		RecursiveDraw(scene->mRootNode);
+	RecursiveDrawGameObjects(root);
 }
-
-void ModuleScene::RecursiveDraw(const struct aiNode* node) const
-{
-	aiMatrix4x4 transform = node->mTransformation;
-
-	// push this matrix before drawing
-	aiTransposeMatrix4(&transform);
-	glPushMatrix();
-	glMultMatrixf((float*)&transform);
-
-	// iterate all meches in this node
-	for (uint i = 0; i < node->mNumMeshes; ++i)
-	{
-		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-
-		//PrepareMaterial(scene->mMaterials[mesh->mMaterialIndex]);
-
-		// iterate all faces
-		for (uint k = 0; k < mesh->mNumFaces; ++k)
-		{
-			const aiFace* face = &mesh->mFaces[k];
-
-			mesh->mNormals ? glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
-			mesh->mColors[0] ? glEnable(GL_COLOR_MATERIAL) : glDisable(GL_COLOR_MATERIAL);
-
-			glBegin(GL_POLYGON);
-
-			// iterate all indices
-			for (uint j = 0; j < face->mNumIndices; ++j)
-			{
-				int index = face->mIndices[j];
-
-				//if(mesh->mColors[0] != NULL)
-					//Color4f(&mesh->mColors[0][vertexIndex]);
-
-				if(mesh->HasTextureCoords(0))
-					glTexCoord2f(mesh->mTextureCoords[0][index].x, mesh->mTextureCoords[0][index].y);
-
-				if(mesh->mNormals != NULL) 
-					glNormal3fv(&mesh->mNormals[index].x);
-
-				glVertex3fv(&mesh->mVertices[index].x);
-			}
-
-			glEnd();
-		}
-	}
-
-	// recursive call to draw the rest of the scene tree
-	for (uint i = 0; i < node->mNumChildren; ++i)
-	{
-		RecursiveDraw(node->mChildren[i]);
-	}
-
-	// pop this matrix before leaving this node
-	glPopMatrix();
-}
-
 
 void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 {
@@ -192,8 +134,42 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 	glPushMatrix();
 	glMultMatrixf((float*)&go->transform);
 
+	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
+	{
+		if ((*it)->GetType() == ComponentTypes::Geometry)
+		{
+			ComponentMesh* cmesh = (ComponentMesh*) (*it);
 
+			const Mesh* mesh = cmesh->mesh_data;
 
+			// iterate all faces
+			for (uint k = 0; k < mesh->num_faces; ++k)
+			{
+				const Face* face = &mesh->faces[k];
+
+				mesh->normals ? glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
+				mesh->colors ? glEnable(GL_COLOR_MATERIAL) : glDisable(GL_COLOR_MATERIAL);
+
+				glBegin(GL_POLYGON);
+
+				// iterate all indices
+				for (uint j = 0; j < face->num_indices; ++j)
+				{
+					int index = face->indices[j] * 3;
+
+					if(mesh->texture_coords != nullptr)
+						glTexCoord2f(mesh->texture_coords[index], mesh->texture_coords[index+1]);
+
+					if(mesh->normals != nullptr) 
+						glNormal3fv(&mesh->normals[index]);
+					  
+					glVertex3fv(&mesh->vertices[index]);
+				}
+
+				glEnd();
+			}
+		}
+	}
 
 	// Recursive call to all childs keeping matrices
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
@@ -201,51 +177,6 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 
 	glPopMatrix();		
 
-	/*
-	// iterate all meches in this node
-	for (uint i = 0; i < node->mNumMeshes; ++i)
-	{
-		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-
-		PrepareMaterial(scene->mMaterials[mesh->mMaterialIndex]);
-
-		// iterate all faces
-		for (uint k = 0; k < mesh->mNumFaces; ++k)
-		{
-			const aiFace* face = &mesh->mFaces[k];
-
-			mesh->mNormals ? glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
-			mesh->mColors[0] ? glEnable(GL_COLOR_MATERIAL) : glDisable(GL_COLOR_MATERIAL);
-
-			glBegin(GL_POLYGON);
-
-			// iterate all indices
-			for (uint j = 0; j < face->mNumIndices; ++j)
-			{
-				int index = face->mIndices[j];
-
-				//if(mesh->mColors[0] != NULL)
-					//Color4f(&mesh->mColors[0][vertexIndex]);
-
-				if(mesh->HasTextureCoords(0))
-					glTexCoord2f(mesh->mTextureCoords[0][index].x, mesh->mTextureCoords[0][index].y);
-
-				if(mesh->mNormals != NULL) 
-					glNormal3fv(&mesh->mNormals[index].x);
-
-				glVertex3fv(&mesh->mVertices[index].x);
-			}
-
-			glEnd();
-		}
-	}
-
-	// recursive call to draw the rest of the scene tree
-	for (uint i = 0; i < node->mNumChildren; ++i)
-	{
-		RecursiveDraw(node->mChildren[i]);
-	}
-*/
 	// pop this matrix before leaving this node
 }
 

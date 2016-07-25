@@ -114,8 +114,9 @@ void Application::FinishUpdate()
 		SDL_Delay(capped_ms - last_frame_ms);
 	}
 
-	char t[50];
-	sprintf_s(t, "FPS: %d", (int)last_fps);
+	char t[150];
+	sprintf_s(t, "FPS: %d Camera: %0.1f,%0.1f,%0.1f", (int)last_fps,
+		camera->Position.x, camera->Position.y, camera->Position.z);
 	window->SetTitle(t);
 }
 

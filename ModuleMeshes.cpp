@@ -27,7 +27,7 @@ bool ModuleMeshes::CleanUp()
 {
 	LOG("Freeing Mesh library");
 					  
-	for(list<mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
+	for(list<Mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
 		RELEASE(*it);
 
 	meshes.clear();
@@ -35,30 +35,30 @@ bool ModuleMeshes::CleanUp()
 }
 
 // Load new texture from file path
-const mesh* ModuleMeshes::Load(const aiMesh* new_mesh)
+const Mesh* ModuleMeshes::Load(const aiMesh* new_mesh)
 {
 	if (new_mesh == nullptr)
 		return INVALID_MESH;
 
-	mesh* m = new mesh;
+	Mesh* m = new Mesh;
 
 	// copy vertices
 	m->num_vertices = new_mesh->mNumVertices;
 	m->vertices = new float[m->num_vertices * 3];
-	memcpy(m->vertices, new_mesh->mVertices, m->num_vertices * 3);
+	memcpy(m->vertices, new_mesh->mVertices, sizeof(float) * m->num_vertices * 3);
 
 	// copy faces
 	if (new_mesh->HasFaces())
 	{
 		m->num_faces = new_mesh->mNumFaces;
-		m->faces = new face[m->num_faces];
+		m->faces = new Face[m->num_faces];
 		for (uint i = 0; i < m->num_faces; ++i)
 		{
-			uint num_faces = new_mesh->mFaces[i].mNumIndices; 
+			uint num_indices = new_mesh->mFaces[i].mNumIndices; 
 
-			m->faces[i].num_indices = num_faces;
-			m->faces[i].indices = new uint[num_faces];
-			memcpy(m->faces[i].indices, new_mesh->mFaces[i].mIndices, num_faces);
+			m->faces[i].num_indices = num_indices;
+			m->faces[i].indices = new uint[num_indices];
+			memcpy(m->faces[i].indices, new_mesh->mFaces[i].mIndices, sizeof(uint) * num_indices);
 		}
 	}
 
@@ -66,14 +66,14 @@ const mesh* ModuleMeshes::Load(const aiMesh* new_mesh)
 	if (new_mesh->HasNormals())
 	{
 		m->normals = new float[m->num_vertices * 3];
-		memcpy(m->normals, new_mesh->mNormals, m->num_vertices * 3);
+		memcpy(m->normals, new_mesh->mNormals, sizeof(float) * m->num_vertices * 3);
 	}
 
 	// texture coords (only one texture for now)
 	if (new_mesh->HasTextureCoords(0))
 	{
-		m->texture_coords = new float[m->num_vertices * 2];
-		memcpy(m->texture_coords, new_mesh->mTextureCoords, m->num_vertices * 3);
+		m->texture_coords = new float[m->num_vertices * 3];
+		memcpy(m->texture_coords, new_mesh->mTextureCoords[0], sizeof(float) * m->num_vertices * 3);
 	}
 
 	meshes.push_back(m);
