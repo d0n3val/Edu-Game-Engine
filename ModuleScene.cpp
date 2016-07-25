@@ -6,6 +6,7 @@
 #include "ModuleMeshes.h"
 #include "GameObject.h"
 #include "ComponentMesh.h"
+#include "ComponentMaterial.h"
 #include <gl/GL.h>
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
@@ -57,33 +58,52 @@ bool ModuleScene::CleanUp()
 	return true;
 }
 
-void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* parent)
+void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath)
 {
-	GameObject* go = new GameObject();
-	parent->childs.push_back(go);
-
-	// set GO transformation
 	aiMatrix4x4 transform = node->mTransformation;
 	aiTransposeMatrix4(&transform);
-	memcpy(go->transform.M, &transform, sizeof(float) * 16);
 
-	LOG("Created new Game Object");
+	GameObject* go = new GameObject(node->mName.C_Str());
+	parent->childs.push_back(go);
+	memcpy(go->transform.M, &transform, sizeof(float) * 16);
+	LOG("Created new Game Object %s", go->name.c_str());
+
 	// iterate all meshes in this node
 	for (uint i = 0; i < node->mNumMeshes; ++i)
 	{
 		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
+		// Create a single game object per mesh
+		GameObject* child_go = new GameObject(mesh->mName.C_Str());
+		go->childs.push_back(child_go);
+		LOG("-> Created new child Game Object %s", child_go->name.c_str());
+
+		// Add material component if needed
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		uint numTextures = material->GetTextureCount(aiTextureType_DIFFUSE);
+
+		if (numTextures >= 0)
+		{
+			aiString path;
+			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+
+			ComponentMaterial* c_material = new ComponentMaterial(child_go);
+			child_go->components.push_back(c_material);
+			c_material->material_id = App->tex->Load(path.C_Str(), basePath.c_str());
+			LOG("->-> Added material component");
+		}
+
 		// Add mesh component
-		ComponentMesh* c_mesh = new ComponentMesh(go);
-		go->components.push_back(c_mesh);
+		ComponentMesh* c_mesh = new ComponentMesh(child_go);
+		child_go->components.push_back(c_mesh);
 		c_mesh->mesh_data = App->meshes->Load(mesh);
-		LOG("... Added mesh component");
+		LOG("->-> Added mesh component");
 	}
 
 	// recursive call to generate the rest of the scene tree
 	for (uint i = 0; i < node->mNumChildren; ++i)
 	{
-		RecursiveCreateGameObjects(node->mChildren[i], go);
+		RecursiveCreateGameObjects(node->mChildren[i], go, basePath);
 	}
 }
 
@@ -92,33 +112,23 @@ bool ModuleScene::LoadScene(const char* file)
 	if (scene != nullptr) // Unload all textures ?
 		aiReleaseImport(scene);
 
-	scene = aiImportFile(file, aiProcessPreset_TargetRealtime_MaxQuality);
+	scene = aiImportFile(file, aiProcessPreset_TargetRealtime_Quality);
 
-	// generate GameObjects based on scene data
-	RecursiveCreateGameObjects(scene->mRootNode, root);
-
-	// Load textures
 	if (scene != nullptr)
 	{
-		for (uint i = 0; i < scene->mNumMaterials; ++i)
-		{
-			aiMaterial* material = scene->mMaterials[i];
-			uint numTextures = material->GetTextureCount(aiTextureType_DIFFUSE);
-			aiString path;
+		// Generate base path
+		std::string basePath(file);
+		size_t pos = basePath.find_last_of("\\/");
+		if (pos != string::npos)
+			basePath.erase(pos + 1, string::npos);
 
-			for (uint k = 0; k < numTextures; ++k)
-			{
-				material->GetTexture(aiTextureType_DIFFUSE, k, &path);
 
-				std::string texPath(file);
-				size_t pos = texPath.find_last_of("\\/");
-				if (pos != string::npos)
-					texPath.erase(pos + 1, string::npos);
-
-				App->tex->Load(path.C_Str(), texPath.c_str());
-			}
-		}
+		// generate GameObjects for each mesh 
+		RecursiveCreateGameObjects(scene->mRootNode, root, basePath);
 	}
+
+	aiReleaseImport(scene);
+	scene = nullptr;
 
 	return scene != nullptr;
 }
@@ -133,6 +143,17 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 	// push this matrix before drawing
 	glPushMatrix();
 	glMultMatrixf((float*)&go->transform);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
+	{
+		if ((*it)->GetType() == ComponentTypes::Material)
+		{
+			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
+			glBindTexture(GL_TEXTURE_2D, cmaterial->material_id);
+		}
+	}
 
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
@@ -178,14 +199,4 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 	glPopMatrix();		
 
 	// pop this matrix before leaving this node
-}
-
-void ModuleScene::PrepareMaterial(const aiMaterial* mtl) const
-{
-	aiString texPath;	//contains filename of texture
-
-	mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texPath);
-
-	GLuint id = App->tex->GetId(texPath.C_Str());
-	glBindTexture(GL_TEXTURE_2D, id);
 }

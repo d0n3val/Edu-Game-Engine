@@ -10,9 +10,11 @@ class GameObject
 {
 public:
 	GameObject();
+	GameObject(const char* name);
 	virtual ~GameObject();
 
 public:
+	std::string name;
 	mat4x4 transform;
 	std::list<Component*> components;
 	std::list<GameObject*> childs;

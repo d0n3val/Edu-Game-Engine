@@ -1,6 +1,7 @@
 #ifndef __MODULE_SCENE_H__
 #define __MODULE_SCENE_H__
 
+#include <string>
 #include "Module.h"
 
 struct aiScene;
@@ -23,9 +24,8 @@ public:
 
 private:
 
-	void PrepareMaterial(const aiMaterial* material) const;
 	void RecursiveDrawGameObjects(const GameObject* go) const;
-	void RecursiveCreateGameObjects(const aiNode* node, GameObject* parent);
+	void RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath);
 
 	const struct aiScene* scene = nullptr;
 	GameObject* root = nullptr;

@@ -7,6 +7,7 @@ enum ComponentTypes
 {
 	Invalid,
 	Geometry,
+	Material,
 };
 
 class GameObject;

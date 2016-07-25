@@ -105,6 +105,9 @@
     <ClInclude Include="ModuleMeshes.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentMaterial.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -178,6 +181,9 @@
     </ClCompile>
     <ClCompile Include="ModuleMeshes.cpp">
       <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentMaterial.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

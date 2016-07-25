@@ -5,9 +5,13 @@
 using namespace std;
 
 // ---------------------------------------------------------
-GameObject::GameObject()
+GameObject::GameObject() : name("Unnamed"), transform(IdentityMatrix)
 {
-	transform = IdentityMatrix;
+}
+
+// ---------------------------------------------------------
+GameObject::GameObject(const char* name) : name(name), transform(IdentityMatrix)
+{
 }
 
 // ---------------------------------------------------------
