@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleMeshes.h"
+#include "Glew/include/glew.h" // extensio lib
+#include "gl/GL.h"
 #include "Assimp/include/mesh.h"
 
 using namespace std;
@@ -47,6 +49,12 @@ const Mesh* ModuleMeshes::Load(const aiMesh* new_mesh)
 	m->vertices = new float[m->num_vertices * 3];
 	memcpy(m->vertices, new_mesh->mVertices, sizeof(float) * m->num_vertices * 3);
 
+/*	
+	GLuint vbo = 0;
+	glGenBuffers (1, &vbo);
+	glBindBuffer (GL_ARRAY_BUFFER, vbo);
+	glBufferData (GL_ARRAY_BUFFER, sizeof(float) * m->num_vertices * 3, m->vertices, GL_STATIC_DRAW);
+	*/  
 	// copy faces
 	if (new_mesh->HasFaces())
 	{

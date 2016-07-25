@@ -19,8 +19,9 @@ bool ModuleSceneIntro::Start()
 	LOG("Loading Intro assets");
 	bool ret = true;
 
-	//App->scene->LoadScene("walk/Models/street/Street environment_V01.fbx");
+	App->scene->LoadScene("walk/Models/street/Street environment_V01.fbx");
 	App->scene->LoadScene("walk/Models/Water World Scene/Water World scene.obj");
+	App->scene->LoadScene("walk/Models/Helena_Asia_RE6/Helena_Asia_RE6.obj");
 	
 
 	return ret;
