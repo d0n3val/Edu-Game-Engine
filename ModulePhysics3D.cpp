@@ -9,6 +9,8 @@
 #include "Bullet/src/btBulletDynamicsCommon.h"
 #include "Bullet\src\BulletCollision\CollisionShapes\btHeightfieldTerrainShape.h"
 
+using namespace std;
+
 #ifdef _DEBUG
 	#pragma comment (lib, "Bullet/bin/BulletDynamics_vs2015_debug.lib")
 	#pragma comment (lib, "Bullet/bin/BulletCollision_vs2015_debug.lib")
@@ -66,7 +68,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cube& cube, float mass)
 {
 	btCollisionShape* colShape = new btBoxShape(btVector3(cube.size.x*0.5f, cube.size.y*0.5f, cube.size.z*0.5f));
 
-	shapes.add(colShape);
+	shapes.push_back(colShape);
 
 	btTransform startTransform;
 	startTransform.setFromOpenGLMatrix(&cube.transform);
@@ -83,7 +85,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cube& cube, float mass)
 	
 	body->setUserPointer(pbody);
 	world->addRigidBody(body);
-	bodies.add(pbody);
+	bodies.push_back(pbody);
 
 	return pbody;
 }
@@ -92,7 +94,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cube& cube, float mass)
 PhysBody3D* ModulePhysics3D::AddBody(const Sphere& sphere, float mass)
 {
 	btCollisionShape* colShape = new btSphereShape(sphere.radius);
-	shapes.add(colShape);
+	shapes.push_back(colShape);
 
 	btTransform startTransform;
 	startTransform.setFromOpenGLMatrix(&sphere.transform);
@@ -109,7 +111,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Sphere& sphere, float mass)
 
 	body->setUserPointer(pbody);
 	world->addRigidBody(body);
-	bodies.add(pbody);
+	bodies.push_back(pbody);
 
 	return pbody;
 }
@@ -118,7 +120,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Sphere& sphere, float mass)
 PhysBody3D* ModulePhysics3D::AddBody(const Cylinder& cylinder, float mass)
 {
 	btCollisionShape* colShape = new btCylinderShapeX(btVector3(cylinder.height*0.5f, cylinder.radius*2, 0.0f));
-	shapes.add(colShape);
+	shapes.push_back(colShape);
 
 	btTransform startTransform;
 	startTransform.setFromOpenGLMatrix(&cylinder.transform);
@@ -135,7 +137,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cylinder& cylinder, float mass)
 
 	body->setUserPointer(pbody);
 	world->addRigidBody(body);
-	bodies.add(pbody);
+	bodies.push_back(pbody);
 
 	return pbody;
 }
@@ -144,7 +146,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cylinder& cylinder, float mass)
 PhysBody3D* ModulePhysics3D::AddBody(const Plane& plane)
 {
 	btCollisionShape* colShape = new btStaticPlaneShape(btVector3(plane.normal.x, plane.normal.y, plane.normal.z), plane.constant);
-	shapes.add(colShape);
+	shapes.push_back(colShape);
 
 	btTransform startTransform;
 	startTransform.setFromOpenGLMatrix(&plane.transform);
@@ -159,7 +161,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Plane& plane)
 
 	body->setUserPointer(pbody);
 	world->addRigidBody(body);
-	bodies.add(pbody);
+	bodies.push_back(pbody);
 
 	return pbody;
 }
@@ -205,7 +207,7 @@ PhysBody3D*	ModulePhysics3D::AddHeighField(const char* filename, int width, int 
 	btVector3 localScaling(10, 1, 10);
 	localScaling[upIndex] = 1.f;
 	groundShape->setLocalScaling(localScaling);
-	shapes.add(groundShape);
+	shapes.push_back(groundShape);
 
 	//create ground object
 
@@ -223,7 +225,7 @@ PhysBody3D*	ModulePhysics3D::AddHeighField(const char* filename, int width, int 
 
 	body->setUserPointer(pbody);
 	world->addRigidBody(body);
-	bodies.add(pbody);
+	bodies.push_back(pbody);
 
 	return pbody;
 }
@@ -232,10 +234,10 @@ PhysBody3D*	ModulePhysics3D::AddHeighField(const char* filename, int width, int 
 PhysVehicle3D* ModulePhysics3D::AddVehicle(const VehicleInfo& info)
 {
 	btCompoundShape* comShape = new btCompoundShape();
-	shapes.add(comShape);
+	shapes.push_back(comShape);
 
 	btCollisionShape* colShape = new btBoxShape(btVector3(info.chassis_size.x*0.5f, info.chassis_size.y*0.5f, info.chassis_size.z*0.5f));
-	shapes.add(colShape);
+	shapes.push_back(colShape);
 
 	btTransform trans;
 	trans.setIdentity();
@@ -282,7 +284,7 @@ PhysVehicle3D* ModulePhysics3D::AddVehicle(const VehicleInfo& info)
 
 	PhysVehicle3D* pvehicle = new PhysVehicle3D(body, vehicle, info);
 	world->addVehicle(vehicle);
-	vehicles.add(pvehicle);
+	vehicles.push_back(pvehicle);
 
 	return pvehicle;
 }
@@ -327,19 +329,11 @@ update_status ModulePhysics3D::PreUpdate(float dt)
 
 			if(pbodyA && pbodyB)
 			{
-				p2List_item<Module*>* item = pbodyA->collision_listeners.getFirst();
-				while(item)
-				{
-					item->data->OnCollision(pbodyA, pbodyB);
-					item = item->next;
-				}
+				for (list<Module*>::iterator it = pbodyA->collision_listeners.begin(); it != pbodyA->collision_listeners.end(); ++it)
+					(*it)->OnCollision(pbodyA, pbodyB);
 
-				item = pbodyB->collision_listeners.getFirst();
-				while(item)
-				{
-					item->data->OnCollision(pbodyB, pbodyA);
-					item = item->next;
-				}
+				for (list<Module*>::iterator it = pbodyB->collision_listeners.begin(); it != pbodyB->collision_listeners.end(); ++it)
+					(*it)->OnCollision(pbodyB, pbodyA);
 			}
 		}
 	}
@@ -358,12 +352,8 @@ update_status ModulePhysics3D::Update(float dt)
 		world->debugDrawWorld();
 
 		// Render vehicles
-		p2List_item<PhysVehicle3D*>* item = vehicles.getFirst();
-		while(item)
-		{
-			item->data->Render();
-			item = item->next;
-		}
+		for (list<PhysVehicle3D*>::iterator it = vehicles.begin(); it != vehicles.end(); ++it)
+			(*it)->Render();
 
 		// drop some primitives on 1,2,3
 		if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
@@ -417,30 +407,21 @@ bool ModulePhysics3D::CleanUp()
 	}
 
 	// Free all collision shapes
-	p2List_item<btCollisionShape*>* s_item = shapes.getFirst();
-	while(s_item)
-	{
-		RELEASE(s_item->data);
-		s_item = s_item->next;
-	}
+	for (list<btCollisionShape*>::iterator it = shapes.begin(); it != shapes.end(); ++it)
+		RELEASE(*it);
+
 	shapes.clear();
 	
-	p2List_item<PhysBody3D*>* b_item = bodies.getFirst();
-	while(b_item)
-	{
-		RELEASE(b_item->data);
-		b_item = b_item->next;
-	}
+	for (list<PhysBody3D*>::iterator it = bodies.begin(); it != bodies.end(); ++it)
+		RELEASE(*it);
+
 	bodies.clear();
 
-	p2List_item<PhysVehicle3D*>* v_item = vehicles.getFirst();
-	while(v_item)
-	{
-		RELEASE(v_item->data);
-		v_item = v_item->next;
-	}
+	for (list<PhysVehicle3D*>::iterator it = vehicles.begin(); it != vehicles.end(); ++it)
+		RELEASE(*it);
+
 	vehicles.clear();
-	
+
 	// Order matters !
 	RELEASE(vehicle_raycaster);
 	RELEASE(world);

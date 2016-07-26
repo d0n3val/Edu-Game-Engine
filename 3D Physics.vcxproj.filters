@@ -24,15 +24,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="p2DynArray.h">
-      <Filter>Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="p2List.h">
-      <Filter>Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="p2Point.h">
-      <Filter>Containers</Filter>
-    </ClInclude>
     <ClInclude Include="glmath.h">
       <Filter>Containers</Filter>
     </ClInclude>
@@ -114,6 +105,9 @@
     <ClInclude Include="MemLeaks.h">
       <Filter>Tools</Filter>
     </ClInclude>
+    <ClInclude Include="OpenGL.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -188,8 +182,8 @@
     <ClCompile Include="Timer.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
-    <ClCompile Include="log.cpp">
-      <Filter>Tools</Filter>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

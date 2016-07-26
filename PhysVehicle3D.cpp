@@ -1,3 +1,4 @@
+#include "Globals.h"
 #include "PhysVehicle3D.h"
 #include "Primitive.h"
 #include "Bullet\src\btBulletDynamicsCommon.h"

@@ -1,10 +1,9 @@
-#pragma once
-#include "p2List.h"
+#ifndef __PHYSBODY3D_H__
+#define __PHYSBODY3D_H__
 
-class btCollisionShape;
+#include <list>
+
 class btRigidBody;
-class mat4x4;
-class Primitive;
 class Module;
 
 struct PhysBody3D
@@ -21,5 +20,6 @@ private:
 	btRigidBody* body;
 
 public:
-	p2List<Module*> collision_listeners;
+	std::list<Module*> collision_listeners;
 };
+#endif // __PHYSBODY3D_H__

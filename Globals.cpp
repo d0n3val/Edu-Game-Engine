@@ -1,5 +1,9 @@
 #include "Globals.h"
 
+#define WIN32_MEAN_AND_LEAN
+#include <windows.h>   // we only really need this for OutDebugString :(
+#include <stdio.h>
+
 void log(const char file[], int line, const char* format, ...)
 {
 	static char tmp_string[4096];

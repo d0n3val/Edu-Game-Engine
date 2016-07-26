@@ -1,21 +1,6 @@
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
-#define WIN32_MEAN_AND_LEAN
-#include <windows.h>   // we only really need this for OutDebugString :(
-#include <stdio.h>
-
-#define LOG(format, ...) log(__FILE__, __LINE__, format, __VA_ARGS__);
-
-void log(const char file[], int line, const char* format, ...);
-
-#define DEGTORAD 0.0174532925199432957f
-#define RADTODEG 57.295779513082320876f
-#define HAVE_M_PI
-
-#include <windows.h>
-#include <stdio.h>
-
 #define LOG(format, ...) log(__FILE__, __LINE__, format, __VA_ARGS__);
 
 void log(const char file[], int line, const char* format, ...);

@@ -2,6 +2,8 @@
 #include "glmath.h"
 #include "Bullet\src\btBulletDynamicsCommon.h"
 
+using namespace std;
+
 // ---------------------------------------------------------
 PhysBody3D::PhysBody3D(btRigidBody* body) : body(body)
 {}

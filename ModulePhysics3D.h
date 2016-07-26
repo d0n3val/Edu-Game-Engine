@@ -3,7 +3,7 @@
 
 #include "Module.h"
 #include "Globals.h"
-#include "p2List.h"
+#include <list>
 #include "Primitive.h"
 #include "Bullet/src/btBulletDynamicsCommon.h"
 
@@ -49,9 +49,9 @@ private:
 	btDefaultVehicleRaycaster*			vehicle_raycaster = nullptr;
 	DebugDrawer*						debug_draw = nullptr;
 
-	p2List<btCollisionShape*> shapes;
-	p2List<PhysBody3D*> bodies;
-	p2List<PhysVehicle3D*> vehicles;
+	std::list<btCollisionShape*> shapes;
+	std::list<PhysBody3D*> bodies;
+	std::list<PhysVehicle3D*> vehicles;
 };
 
 class DebugDrawer : public btIDebugDraw

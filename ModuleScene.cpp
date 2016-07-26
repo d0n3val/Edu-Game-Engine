@@ -7,8 +7,7 @@
 #include "GameObject.h"
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
-#include "Glew/include/glew.h"
-#include <gl/GL.h>
+#include "OpenGL.h"
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
 #include "Assimp/include/postprocess.h"
