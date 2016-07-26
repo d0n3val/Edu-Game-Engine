@@ -2,19 +2,29 @@
 #define __MODULE_H__
 
 class Application;
+class Config;
 struct PhysBody3D;
 
+#define MODULE_NAME_LENGTH 25
 class Module
 {
 private :
 	bool enabled;
+	char name[MODULE_NAME_LENGTH];
 
 public:
-	Module(bool start_enabled = true) : enabled(start_enabled)
-	{}
+	Module(const char* name, bool start_enabled = true) : enabled(start_enabled)
+	{
+		strcpy_s(this->name, MODULE_NAME_LENGTH, name);
+	}
 
 	virtual ~Module()
 	{}
+
+	const char* GetName() const
+	{
+		return name;
+	}
 
 	bool IsEnabled() const
 	{
@@ -39,7 +49,7 @@ public:
 		}
 	}
 
-	virtual bool Init() 
+	virtual bool Init(Config* config = nullptr) 
 	{
 		return true; 
 	}

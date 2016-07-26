@@ -1,15 +1,17 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleWindow.h"
-#include "ModuleCamera3D.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleCamera3D.h"
+#include "ModuleScene.h"
 #include "OpenGL.h"
+#include "Primitive.h"
 
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "Glew/libx86/glew32.lib") /* link Microsoft OpenGL lib   */
 
-ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module(start_enabled)
+ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module("Renderer", start_enabled)
 {
 }
 
@@ -18,7 +20,7 @@ ModuleRenderer3D::~ModuleRenderer3D()
 {}
 
 // Called before render is available
-bool ModuleRenderer3D::Init()
+bool ModuleRenderer3D::Init(Config* config)
 {
 	LOG("Creating 3D Renderer context");
 	bool ret = true;
@@ -144,6 +146,13 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 // Update: debug camera
 update_status ModuleRenderer3D::Update(float dt)
 {
+	// debug draw ---
+	Plane p = Plane(0, 1, 0, 0);
+	p.axis = true;
+	p.Render();
+
+	App->scene->Draw();
+
 	return UPDATE_CONTINUE;
 }
 

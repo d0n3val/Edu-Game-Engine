@@ -29,13 +29,13 @@ class ModuleInput : public Module
 
 public:
 
-	ModuleInput();
+	ModuleInput(bool start_enabled = true);
 
 	// Destructor
 	virtual ~ModuleInput();
 
 	// Called before render is available
-	bool Init();
+	bool Init(Config* config = nullptr);
 
 	// Called each loop iteration
 	update_status PreUpdate(float dt);

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-ModuleMeshes::ModuleMeshes(bool start_enabled) : Module(start_enabled)
+ModuleMeshes::ModuleMeshes(bool start_enabled) : Module("Meshes", start_enabled)
 {
 }
 
@@ -17,7 +17,7 @@ ModuleMeshes::~ModuleMeshes()
 }
 
 // Called before render is available
-bool ModuleMeshes::Init()
+bool ModuleMeshes::Init(Config* config)
 {
 	LOG("Init Mesh library");
 

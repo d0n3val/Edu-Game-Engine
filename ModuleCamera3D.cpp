@@ -4,7 +4,7 @@
 #include "ModuleCamera3D.h"
 #include "ModuleInput.h"
 
-ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module(start_enabled)
+ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module("Camera", start_enabled)
 {
 	CalculateViewMatrix();
 
@@ -18,6 +18,12 @@ ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module(start_enabled)
 
 ModuleCamera3D::~ModuleCamera3D()
 {}
+
+// -----------------------------------------------------------------
+bool ModuleCamera3D::Init(Config* config)
+{
+	return true;
+}
 
 // -----------------------------------------------------------------
 bool ModuleCamera3D::Start()

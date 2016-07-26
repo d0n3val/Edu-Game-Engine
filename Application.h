@@ -3,14 +3,14 @@
 
 #include "Globals.h"
 #include <list>
+#include <string>
 #include "Timer.h"
-#include "Module.h"
 
+class Config;
+class Module;
 class ModuleWindow;
 class ModuleInput;
 class ModuleAudio;
-class ModulePlayer;
-class ModuleSceneIntro;
 class ModulePhysics3D;
 class ModuleRenderer3D;
 class ModuleCamera3D;
@@ -24,8 +24,6 @@ public:
 	ModuleWindow* window = nullptr;
 	ModuleInput* input = nullptr;
 	ModuleAudio* audio = nullptr;
-	ModulePlayer* player = nullptr;
-	ModuleSceneIntro* scene_intro = nullptr;
 	ModulePhysics3D* physics3D = nullptr;
 	ModuleRenderer3D* renderer3D = nullptr;
 	ModuleCamera3D* camera = nullptr;
@@ -45,13 +43,17 @@ private:
 	int		capped_ms;
 
 	std::list<Module*> modules;
+	std::string game_name;
+
 
 public:
 
 	Application();
 	~Application();
 
-	bool Init();
+	void ReadConfiguration(Config config);
+
+	bool Init(Config* config);
 	update_status Update();
 	bool CleanUp();
 

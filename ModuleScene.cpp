@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
+#include "Config.h"
 #include "OpenGL.h"
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
@@ -16,7 +17,7 @@
 
 using namespace std;
 
-ModuleScene::ModuleScene( bool start_enabled) : Module( start_enabled)
+ModuleScene::ModuleScene( bool start_enabled) : Module("Scene", start_enabled)
 {}
 
 // Destructor
@@ -24,7 +25,7 @@ ModuleScene::~ModuleScene()
 {}
 
 // Called before render is available
-bool ModuleScene::Init()
+bool ModuleScene::Init(Config* config)
 {
 	LOG("Loading Scene Manager");
 	bool ret = true;
@@ -36,6 +37,19 @@ bool ModuleScene::Init()
 
 	// create an empty game object to be the root of everything
 	root = new GameObject();
+
+	// Load conf
+	if (config != nullptr && config->IsValid() == true)
+	{
+		uint i = 0;
+		const char* str = config->GetString("ToLoad", i);
+
+		while (str != nullptr)
+		{
+			LoadScene(str);
+			str = config->GetString("ToLoad", ++i);
+		}
+	}
 
 	return ret;
 }

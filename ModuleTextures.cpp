@@ -9,7 +9,7 @@
 
 using namespace std;
 
-ModuleTextures::ModuleTextures(bool start_enabled) : Module(start_enabled)
+ModuleTextures::ModuleTextures(bool start_enabled) : Module("Textures", start_enabled)
 {
 }
 
@@ -19,7 +19,7 @@ ModuleTextures::~ModuleTextures()
 }
 
 // Called before render is available
-bool ModuleTextures::Init()
+bool ModuleTextures::Init(Config* config)
 {
 	LOG("Init Image library using DevIL lib version %d", IL_VERSION);
 

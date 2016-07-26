@@ -17,7 +17,7 @@ public:
 	ModuleAudio(bool start_enabled = true);
 	~ModuleAudio();
 
-	bool Init();
+	bool Init(Config* config = nullptr);
 	bool CleanUp();
 
 	// Play a music file

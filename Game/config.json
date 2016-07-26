@@ -1,0 +1,22 @@
+// Config file for the EDU Engine
+{
+	
+	"App" : {
+		"Name" : "EDU Engine",
+		"BaseDir" : "test"
+	},
+	
+	"Audio" : {
+		"Music_Volume": 100,
+		"FX_Volume": 100
+	},
+
+    "Scene": {
+        "ToLoad": [
+			"test/Models/street/Street environment_V01.fbx",
+			"test/Models/Water World Scene/Water World scene.obj",
+			"test/Models/Helena_Asia_RE6/Helena_Asia_RE6.obj"
+        ]
+    }
+
+}

@@ -42,12 +42,6 @@
     <ClInclude Include="PhysVehicle3D.h">
       <Filter>Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="ModulePlayer.h">
-      <Filter>Game Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleSceneIntro.h">
-      <Filter>Game Objects</Filter>
-    </ClInclude>
     <ClInclude Include="Application.h">
       <Filter>Main</Filter>
     </ClInclude>
@@ -108,6 +102,12 @@
     <ClInclude Include="OpenGL.h">
       <Filter>Tools</Filter>
     </ClInclude>
+    <ClInclude Include="parson.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -127,12 +127,6 @@
     </ClCompile>
     <ClCompile Include="PhysVehicle3D.cpp">
       <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="ModulePlayer.cpp">
-      <Filter>Game Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleSceneIntro.cpp">
-      <Filter>Game Objects</Filter>
     </ClCompile>
     <ClCompile Include="Application.cpp">
       <Filter>Main</Filter>
@@ -185,5 +179,16 @@
     <ClCompile Include="Globals.cpp">
       <Filter>Main</Filter>
     </ClCompile>
+    <ClCompile Include="parson.c">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Game\config.json">
+      <Filter>Main</Filter>
+    </Text>
   </ItemGroup>
 </Project>

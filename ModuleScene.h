@@ -16,7 +16,7 @@ public:
 	ModuleScene(bool start_enabled = true);
 	~ModuleScene();
 
-	bool Init();
+	bool Init(Config* config = nullptr);
 	bool CleanUp();
 
 	bool LoadScene(const char* file);

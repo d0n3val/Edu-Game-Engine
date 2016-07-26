@@ -45,7 +45,7 @@ public:
 	ModuleMeshes(bool start_enabled = true);
 	~ModuleMeshes();
 
-	bool Init();
+	bool Init(Config* config = nullptr);
 	bool CleanUp();
 
 	const Mesh* Load(const aiMesh* mesh);

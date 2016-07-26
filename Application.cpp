@@ -2,14 +2,13 @@
 #include "ModuleWindow.h"
 #include "ModuleInput.h"
 #include "ModuleAudio.h"
-#include "ModulePlayer.h"
 #include "ModulePhysics3D.h"
-#include "ModuleSceneIntro.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleCamera3D.h"
 #include "ModuleScene.h"
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
+#include "Config.h"
 
 using namespace std;
 
@@ -34,9 +33,7 @@ Application::Application()
 	modules.push_back(camera = new ModuleCamera3D());
 	modules.push_back(input = new ModuleInput());
 	modules.push_back(audio = new ModuleAudio(true));
-	modules.push_back(scene_intro = new ModuleSceneIntro());
 	modules.push_back(scene = new ModuleScene());
-	modules.push_back(player = new ModulePlayer());
 }
 
 // ---------------------------------------------
@@ -46,13 +43,23 @@ Application::~Application()
 		RELEASE(*it);
 }
 
+void Application::ReadConfiguration(Config config)
+{
+	game_name = config.GetString("Name");
+}
+
 // ---------------------------------------------
-bool Application::Init()
+bool Application::Init(Config* config)
 {
 	bool ret = true;
 
-	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
-		ret = (*it)->Init(); // we init everything, even if not anabled
+	ReadConfiguration(config->GetSection("App"));
+
+	for (list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
+	{
+		// We init everything, even if not anabled
+		ret = (*it)->Init(config ? &(config->GetSection((*it)->GetName())) : nullptr); 
+	}
 
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
@@ -115,7 +122,7 @@ void Application::FinishUpdate()
 	}
 
 	char t[150];
-	sprintf_s(t, "FPS: %d Camera: %0.1f,%0.1f,%0.1f", (int)last_fps,
+	sprintf_s(t, "%s FPS: %d Camera: %0.1f,%0.1f,%0.1f", game_name.c_str(), (int)last_fps,
 		camera->Position.x, camera->Position.y, camera->Position.z);
 	window->SetTitle(t);
 }

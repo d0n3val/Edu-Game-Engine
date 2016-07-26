@@ -5,7 +5,7 @@
 
 #define MAX_KEYS 300
 
-ModuleInput::ModuleInput() : Module(), mouse({0, 0}), mouse_motion({0,0})
+ModuleInput::ModuleInput(bool start_enabled) : Module("Input", start_enabled), mouse({0, 0}), mouse_motion({0,0})
 {
 	keyboard = new KeyState[MAX_KEYS];
 	memset(keyboard, KEY_IDLE, sizeof(KeyState) * MAX_KEYS);
@@ -19,7 +19,7 @@ ModuleInput::~ModuleInput()
 }
 
 // Called before render is available
-bool ModuleInput::Init()
+bool ModuleInput::Init(Config* config)
 {
 	LOG("Init SDL input event system");
 	bool ret = true;

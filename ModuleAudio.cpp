@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleAudio.h"
+#include "Config.h"
 #include "SDL/include/SDL.h"
 
 #include "SDL_mixer/include/SDL_mixer.h"
@@ -8,7 +9,7 @@
 
 using namespace std;
 
-ModuleAudio::ModuleAudio( bool start_enabled) : Module( start_enabled)
+ModuleAudio::ModuleAudio( bool start_enabled) : Module("Audio", start_enabled)
 {}
 
 // Destructor
@@ -16,7 +17,7 @@ ModuleAudio::~ModuleAudio()
 {}
 
 // Called before render is available
-bool ModuleAudio::Init()
+bool ModuleAudio::Init(Config* config)
 {
 	LOG("Loading Audio Mixer");
 	bool ret = true;
@@ -43,6 +44,13 @@ bool ModuleAudio::Init()
 	{
 		LOG("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
 		ret = false;
+	}
+
+	// Settings
+	if (config != nullptr && config->IsValid() == true)
+	{
+		uint music_volume = config->GetInt("Music_Volume");
+		LOG("Music Volume to %u", music_volume);
 	}
 
 	return ret;
