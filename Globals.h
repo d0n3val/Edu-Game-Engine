@@ -1,7 +1,8 @@
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
-#include <windows.h>
+#define WIN32_MEAN_AND_LEAN
+#include <windows.h>   // we only really need this for OutDebugString :(
 #include <stdio.h>
 
 #define LOG(format, ...) log(__FILE__, __LINE__, format, __VA_ARGS__);

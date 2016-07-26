@@ -32,6 +32,7 @@ struct Mesh
 		RELEASE_ARRAY(colors);
 		RELEASE_ARRAY(normals);
 		RELEASE_ARRAY(texture_coords);
+		// TODO: deallocate opengl buffers
 	}
 };
 

@@ -19,6 +19,9 @@
     <Filter Include="Game Objects\Components">
       <UniqueIdentifier>{752d8af1-212b-48af-ab8e-4c2c21b0cd36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tools">
+      <UniqueIdentifier>{ef1cd4b7-33d0-40c1-8e04-e0c019b5476c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="p2DynArray.h">
@@ -32,9 +35,6 @@
     </ClInclude>
     <ClInclude Include="glmath.h">
       <Filter>Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="Timer.h">
-      <Filter>Helpers</Filter>
     </ClInclude>
     <ClInclude Include="Primitive.h">
       <Filter>Helpers</Filter>
@@ -108,6 +108,12 @@
     <ClInclude Include="ComponentMaterial.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="MemLeaks.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -139,12 +145,6 @@
     </ClCompile>
     <ClCompile Include="Main.cpp">
       <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="log.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="ModuleAudio.cpp">
       <Filter>Core Modules</Filter>
@@ -184,6 +184,12 @@
     </ClCompile>
     <ClCompile Include="ComponentMaterial.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="log.cpp">
+      <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

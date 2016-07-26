@@ -1,6 +1,7 @@
+#include "Globals.h"
 #include <stdlib.h>
 #include "Application.h"
-#include "Globals.h"
+#include "MemLeaks.h"
 
 // We need to include this here beacuse SDL overwrites main()
 #include "SDL/include/SDL.h"
@@ -20,6 +21,7 @@ Application* App = nullptr;
 
 int main(int argc, char ** argv)
 {
+	ReportMemoryLeaks();
 	LOG("Starting game '%s'...", TITLE);
 
 	int main_return = EXIT_FAILURE;
@@ -86,6 +88,5 @@ int main(int argc, char ** argv)
 
 	LOG("Exiting game '%s'...\n", TITLE);
 	RELEASE(App);
-
 	return main_return;
 }

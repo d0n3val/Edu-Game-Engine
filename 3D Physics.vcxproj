@@ -82,6 +82,7 @@
     <ClInclude Include="glmath.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="MemLeaks.h" />
     <ClInclude Include="ModuleCamera3D.h" />
     <ClInclude Include="ModuleMeshes.h" />
     <ClInclude Include="ModulePhysics3D.h" />
