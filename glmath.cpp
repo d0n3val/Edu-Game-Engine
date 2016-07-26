@@ -9,7 +9,7 @@ float dot(const vec2 &u, const vec2 &v)
 
 float length(const vec2 &u)
 {
-	return sqrt(u.x * u.x + u.y * u.y);
+	return sqrtf(u.x * u.x + u.y * u.y);
 }
 
 float length2(const vec2 &u)
@@ -24,7 +24,7 @@ vec2 mix(const vec2 &u, const vec2 &v, float a)
 
 vec2 normalize(const vec2 &u)
 {
-	return u / sqrt(u.x * u.x + u.y * u.y);
+	return u / sqrtf(u.x * u.x + u.y * u.y);
 }
 
 vec2 reflect(const vec2 &i, const vec2 &n)
@@ -40,7 +40,7 @@ vec2 refract(const vec2 &i, const vec2 &n, float eta)
 
 	if(k >= 0.0f)
 	{
-		r = eta * i - n * (eta * ndoti + sqrt(k));
+		r = eta * i - n * (eta * ndoti + sqrtf(k));
 	}
 
 	return r;
@@ -50,7 +50,7 @@ vec2 rotate(const vec2 &u, float angle)
 {
 	angle = angle / 180.0f * (float)M_PI;
 
-	float c = cos(angle), s = sin(angle);
+	float c = cosf(angle), s = sinf(angle);
 
 	return vec2(u.x * c - u.y * s, u.x * s + u.y * c);
 }
@@ -69,7 +69,7 @@ float dot(const vec3 &u, const vec3 &v)
 
 float length(const vec3 &u)
 {
-	return sqrt(u.x * u.x + u.y * u.y + u.z * u.z);
+	return sqrtf(u.x * u.x + u.y * u.y + u.z * u.z);
 }
 
 float length2(const vec3 &u)
@@ -84,7 +84,7 @@ vec3 mix(const vec3 &u, const vec3 &v, float a)
 
 vec3 normalize(const vec3 &u)
 {
-	return u / sqrt(u.x * u.x + u.y * u.y + u.z * u.z);
+	return u / sqrtf(u.x * u.x + u.y * u.y + u.z * u.z);
 }
 
 vec3 reflect(const vec3 &i, const vec3 &n)
@@ -100,7 +100,7 @@ vec3 refract(const vec3 &i, const vec3 &n, float eta)
 
 	if(k >= 0.0f)
 	{
-		r = eta * i - n * (eta * ndoti + sqrt(k));
+		r = eta * i - n * (eta * ndoti + sqrtf(k));
 	}
 
 	return r;
@@ -597,7 +597,7 @@ mat4x4& mat4x4::ortho(float left, float right, float bottom, float top, float n,
 
 mat4x4& mat4x4::perspective(float fovy, float aspect, float n, float f)
 {
-	float coty = 1.0f / tan(fovy * (float)M_PI / 360.0f);
+	float coty = 1.0f / tanf(fovy * (float)M_PI / 360.0f);
 
 	M[0] = coty / aspect;
 	M[5] = coty;
@@ -615,7 +615,7 @@ mat4x4& mat4x4::rotate(float angle, const vec3 &u)
 
 	vec3 v = normalize(u);
 
-	float c = 1.0f - cos(angle), s = sin(angle);
+	float c = 1.0f - cosf(angle), s = sinf(angle);
 
 	M[0] = 1.0f + c * (v.x * v.x - 1.0f);
 	M[1] = c * v.x * v.y + v.z * s;
@@ -755,7 +755,7 @@ mat4x4 perspective(float fovy, float aspect, float n, float f)
 {
 	mat4x4 Perspective;
 
-	float coty = 1.0f / tan(fovy * (float)M_PI / 360.0f);
+	float coty = 1.0f / tanf(fovy * (float)M_PI / 360.0f);
 
 	Perspective.M[0] = coty / aspect;
 	Perspective.M[5] = coty;
@@ -775,7 +775,7 @@ mat4x4 rotate(float angle, const vec3 &u)
 
 	vec3 v = normalize(u);
 
-	float c = 1.0f - cos(angle), s = sin(angle);
+	float c = 1.0f - cosf(angle), s = sinf(angle);
 
 	Rotate.M[0] = 1.0f + c * (v.x * v.x - 1.0f);
 	Rotate.M[1] = c * v.x * v.y + v.z * s;

@@ -41,6 +41,11 @@ update_status ModuleSceneIntro::Update(float dt)
 	p.axis = true;
 	p.Render();
 	
+	Sphere s = Sphere(10.0f);
+	s.axis = true;
+	s.wire = true;
+	s.Render();
+
 	App->scene->Draw();
 
 	return UPDATE_CONTINUE;

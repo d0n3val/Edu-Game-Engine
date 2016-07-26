@@ -1,3 +1,4 @@
+#include "Globals.h"
 #include "PhysBody3D.h"
 #include "glmath.h"
 #include "Bullet\src\btBulletDynamicsCommon.h"

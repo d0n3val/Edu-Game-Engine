@@ -1,6 +1,6 @@
-#include <list>
 #include "Globals.h"
 #include "GameObject.h"
+#include "Component.h"
 
 using namespace std;
 

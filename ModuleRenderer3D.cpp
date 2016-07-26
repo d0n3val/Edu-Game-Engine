@@ -5,8 +5,8 @@
 #include "ModuleRenderer3D.h"
 #include "OpenGL.h"
 
-#pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
+#pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "Glew/libx86/glew32.lib") /* link Microsoft OpenGL lib   */
 
 ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module(start_enabled)
@@ -41,10 +41,10 @@ bool ModuleRenderer3D::Init()
 	else
 		LOG("Using Glew %s", glewGetString(GLEW_VERSION));
 
-	
 	if(ret == true)
 	{
 		// get version info
+		LOG("Vendor: %s\n", glGetString(GL_VENDOR));
 		LOG("Renderer: %s\n", glGetString(GL_RENDERER));
 		LOG("OpenGL version supported %s\n", glGetString(GL_VERSION));
 

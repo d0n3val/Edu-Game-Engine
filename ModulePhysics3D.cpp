@@ -213,7 +213,7 @@ PhysBody3D*	ModulePhysics3D::AddHeighField(const char* filename, int width, int 
 
 	btTransform startTransform;
 	startTransform.setIdentity();
-	startTransform.setOrigin(btVector3(0, 49.4, 0));
+	startTransform.setOrigin(btVector3(0.f, 49.4f, 0.f));
 
 	btVector3 localInertia(0, 0, 0);
 

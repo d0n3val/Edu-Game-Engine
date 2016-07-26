@@ -48,7 +48,7 @@ update_status ModuleCamera3D::Update(float dt)
 		Look(Position, m.translation(), true);
 
 		// Correct height
-		Position.y = (15.0*Position.y + Position.y + following_height) / 16.0;
+		Position.y = (15.0f*Position.y + Position.y + following_height) / 16.0f;
 
 		// Correct distance
 		vec3 cam_to_target = m.translation() - Position;
@@ -56,11 +56,11 @@ update_status ModuleCamera3D::Update(float dt)
 		float correctionFactor = 0.f;
 		if(dist < min_following_dist)
 		{
-			correctionFactor = 0.15*(min_following_dist - dist) / dist;
+			correctionFactor = 0.15f*(min_following_dist - dist) / dist;
 		}
 		if(dist > max_following_dist)
 		{
-			correctionFactor = 0.15*(max_following_dist - dist) / dist;
+			correctionFactor = 0.15f*(max_following_dist - dist) / dist;
 		}
 		Position -= correctionFactor * cam_to_target;
 	}

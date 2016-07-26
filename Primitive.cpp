@@ -1,9 +1,6 @@
 #include "Globals.h"
 #include "Primitive.h"
 #include "OpenGL.h"
-#include "glut/glut.h"
-
-#pragma comment (lib, "glut/glut32.lib")
 
 // ------------------------------------------------------------
 Primitive::Primitive() : transform(IdentityMatrix), color(White), wire(false), axis(false), type(PrimitiveTypes::Primitive_Point)
@@ -58,12 +55,17 @@ void Primitive::Render() const
 
 	glColor3f(color.r, color.g, color.b);
 
-	if(wire)
+	if (wire) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	else
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDisable(GL_CULL_FACE);
+	}
 
 	InnerRender();
+
+	if (wire) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
+	}
 
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
@@ -173,7 +175,35 @@ Sphere::Sphere(float radius) : Primitive(), radius(radius)
 
 void Sphere::InnerRender() const
 {
-	glutSolidSphere(radius, 25, 25);
+	int stacks = 50;
+	int slices = 50;
+
+    int i,j;
+    for (j = 0; j < stacks; j++) {
+        double latitude1 = (PI/stacks) * j - PI/2;
+        double latitude2 = (PI/stacks) * (j+1) - PI/2;
+        double sinLat1 = sin(latitude1);
+        double cosLat1 = cos(latitude1);
+        double sinLat2 = sin(latitude2);
+        double cosLat2 = cos(latitude2);
+        glBegin(GL_QUAD_STRIP);
+        for (i = 0; i <= slices; i++) {
+            double longitude = (2*PI/slices) * i;
+            double sinLong = sin(longitude);
+            double cosLong = cos(longitude);
+            double x1 = cosLong * cosLat1;
+            double y1 = sinLong * cosLat1;
+            double z1 = sinLat1;
+            double x2 = cosLong * cosLat2;
+            double y2 = sinLong * cosLat2;
+            double z2 = sinLat2;
+            glNormal3d(x2,y2,z2);
+            glVertex3d(radius*x2,radius*y2,radius*z2);
+            glNormal3d(x1,y1,z1);
+            glVertex3d(radius*x1,radius*y1,radius*z1);
+        }
+        glEnd();
+    }
 }
 
 
@@ -197,8 +227,8 @@ void Cylinder::InnerRender() const
 	
 	for(int i = 360; i >= 0; i -= (360 / n))
 	{
-		float a = i * M_PI / 180; // degrees to radians
-		glVertex3f(-height*0.5f, radius * cos(a), radius * sin(a));
+		float a = (float)i * PI / 180.f; // degrees to radians
+		glVertex3f(-height*0.5f, radius * cosf(a), radius * sinf(a));
 	}
 	glEnd();
 
@@ -207,8 +237,8 @@ void Cylinder::InnerRender() const
 	glNormal3f(0.0f, 0.0f, 1.0f);
 	for(int i = 0; i <= 360; i += (360 / n))
 	{
-		float a = i * M_PI / 180; // degrees to radians
-		glVertex3f(height * 0.5f, radius * cos(a), radius * sin(a));
+		float a = (float)i * PI / 180.f; // degrees to radians
+		glVertex3f(height * 0.5f, radius * cosf(a), radius * sinf(a));
 	}
 	glEnd();
 
@@ -216,10 +246,10 @@ void Cylinder::InnerRender() const
 	glBegin(GL_QUAD_STRIP);
 	for(int i = 0; i < 480; i += (360 / n))
 	{
-		float a = i * M_PI / 180; // degrees to radians
+		float a = (float)i * PI / 180.f; // degrees to radians
 
-		glVertex3f(height*0.5f,  radius * cos(a), radius * sin(a) );
-		glVertex3f(-height*0.5f, radius * cos(a), radius * sin(a) );
+		glVertex3f(height*0.5f,  radius * cosf(a), radius * sinf(a) );
+		glVertex3f(-height*0.5f, radius * cosf(a), radius * sinf(a) );
 	}
 	glEnd();
 }
