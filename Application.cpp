@@ -60,7 +60,7 @@ bool Application::Init()
 	fs->Load("config.json", &buffer);
 
 	Config config;
-	config.CreateFromString(buffer);
+	config.CreateFromString((const char*) buffer);
 
 	ReadConfiguration(config);
 

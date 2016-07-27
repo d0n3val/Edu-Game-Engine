@@ -6,8 +6,6 @@
 #include <string>
 #include <map>
 
-struct SDL_Texture;
-
 #define INVALID_TEXTURE 65535
 
 class ModuleTextures : public Module

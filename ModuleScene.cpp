@@ -130,7 +130,7 @@ bool ModuleScene::LoadScene(const char* file)
 
 	char* buffer = nullptr;
 	uint length = App->fs->Load(file, &buffer);
-	scene = aiImportFileFromMemory(buffer, length, aiProcessPreset_TargetRealtime_MaxQuality, file);
+	scene = aiImportFileFromMemory((const char*) buffer, length, aiProcessPreset_TargetRealtime_MaxQuality, file);
 
 	if (scene != nullptr)
 	{
