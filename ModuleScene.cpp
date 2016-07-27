@@ -42,12 +42,12 @@ bool ModuleScene::Init(Config* config)
 	if (config != nullptr && config->IsValid() == true)
 	{
 		uint i = 0;
-		const char* str = config->GetString("ToLoad", i);
+		const char* str = config->GetString("ToLoad", nullptr, i);
 
 		while (str != nullptr)
 		{
 			LoadScene(str);
-			str = config->GetString("ToLoad", ++i);
+			str = config->GetString("ToLoad", nullptr, ++i);
 		}
 	}
 

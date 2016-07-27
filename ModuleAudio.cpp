@@ -49,7 +49,7 @@ bool ModuleAudio::Init(Config* config)
 	// Settings
 	if (config != nullptr && config->IsValid() == true)
 	{
-		uint music_volume = config->GetInt("Music_Volume");
+		uint music_volume = config->GetInt("Music_Volume", 75);
 		LOG("Music Volume to %u", music_volume);
 	}
 

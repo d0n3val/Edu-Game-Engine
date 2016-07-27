@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "ModuleFileSystem.h"
 #include "ModuleWindow.h"
 #include "ModuleInput.h"
 #include "ModuleAudio.h"
@@ -25,6 +26,7 @@ Application::Application()
 	// Modules will Init() Start() and Update in this order
 	// They will CleanUp() in reverse order
 
+	modules.push_back(fs = new ModuleFileSystem());
 	modules.push_back(window = new ModuleWindow());
 	modules.push_back(tex = new ModuleTextures());
 	modules.push_back(meshes = new ModuleMeshes());
@@ -45,7 +47,8 @@ Application::~Application()
 
 void Application::ReadConfiguration(Config config)
 {
-	game_name = config.GetString("Name");
+	app_name = config.GetString("Name", "Edu Engine");
+	organization_name = config.GetString("Organization", "UPC CITM");
 }
 
 // ---------------------------------------------
@@ -124,7 +127,7 @@ void Application::FinishUpdate()
 	}
 
 	char t[150];
-	sprintf_s(t, "%s FPS: %d Camera: %0.1f,%0.1f,%0.1f", game_name.c_str(), (int)last_fps,
+	sprintf_s(t, "%s FPS: %d Camera: %0.1f,%0.1f,%0.1f", app_name.c_str(), (int)last_fps,
 		camera->Position.x, camera->Position.y, camera->Position.z);
 	window->SetTitle(t);
 }
@@ -139,4 +142,16 @@ bool Application::CleanUp()
 			ret = (*it)->CleanUp();
 
 	return ret;
+}
+
+// ---------------------------------------------
+const char* Application::GetAppName() const
+{
+	return app_name.c_str();
+}
+
+// ---------------------------------------------
+const char* Application::GetOrganizationName() const
+{
+	return organization_name.c_str();
 }

@@ -44,58 +44,54 @@ Config Config::GetSection(const char * section_name)
 	return Config(json_object_get_object(root, section_name));
 }
 
-bool Config::GetBool(const char * field, int index) const
+JSON_Value * Config::FindValue(const char * field, int index) const
 {
-	if (root == nullptr)
-		return false;
+	if (index < 0)
+		return json_object_get_value(root, field);
 
-	if(index < 0)
-		return json_object_get_boolean(root, field) != 0;
-	else
-	{
-		JSON_Array* array = json_object_get_array(root, field);
-		return (array) ? (json_array_get_boolean(array, index) != 0) : false;
-	}
+	JSON_Array* array = json_object_get_array(root, field);
+	if (array != nullptr)
+		return json_array_get_value(array, index);
+
+	return nullptr;
 }
 
-int Config::GetInt(const char * field, int index) const
+bool Config::GetBool(const char * field, bool default, int index) const
 {
-	if (root == nullptr)
-		return 0;
+	JSON_Value* value = FindValue(field, index);
 
-	if(index < 0)
-		return (int) json_object_get_number(root, field);
-	else
-	{
-		JSON_Array* array = json_object_get_array(root, field);
-		return (array) ? (int) json_array_get_number(array, index) : 0;
-	}
+	if (value && json_value_get_type(value) == JSONBoolean)
+		return json_value_get_boolean(value) != 0;
+
+	return default;
 }
 
-float Config::GetFloat(const char * field, int index) const
+int Config::GetInt(const char * field, int default, int index) const
 {
-	if (root == nullptr)
-		return 0.f;
+	JSON_Value* value = FindValue(field, index);
 
-	if(index < 0)
-		return (float) json_object_get_number(root, field);
-	else
-	{
-		JSON_Array* array = json_object_get_array(root, field);
-		return (array) ? (float) json_array_get_number(array, index) : 0.f;
-	}
+	if (value && json_value_get_type(value) == JSONNumber)
+		return (int) json_value_get_number(value);
+
+	return default;
 }
 
-const char* Config::GetString(const char * field, int index) const
+float Config::GetFloat(const char * field, float default, int index) const
 {
-	if (root == nullptr)
-		return nullptr;
+	JSON_Value* value = FindValue(field, index);
 
-	if(index < 0)
-		return json_object_get_string(root, field);
-	else
-	{
-		JSON_Array* array = json_object_get_array(root, field);
-		return (array) ? json_array_get_string(array, index) : nullptr;
-	}
+	if (value && json_value_get_type(value) == JSONNumber)
+		return (float) json_value_get_number(value);
+
+	return default;
+}
+
+const char* Config::GetString(const char * field, const char* default, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	if (value && json_value_get_type(value) == JSONString)
+		return json_value_get_string(value);
+
+	return default;
 }

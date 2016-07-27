@@ -21,10 +21,13 @@ public:
 	int Size() const;
 	Config GetSection(const char* section_name);
 
-	bool GetBool(const char * field, int index = -1) const;
-	int GetInt(const char* field, int index = -1) const;
-	float GetFloat(const char* field, int index = -1) const;
-	const char* GetString(const char* field, int index = -1) const;
+	bool GetBool(const char * field, bool default, int index = -1) const;
+	int GetInt(const char* field, int default, int index = -1) const;
+	float GetFloat(const char* field, float default, int index = -1) const;
+	const char* GetString(const char* field, const char* default, int index = -1) const;
+
+private:
+	JSON_Value* FindValue(const char* field, int index) const;
 
 private:
 	JSON_Value* vroot = nullptr;

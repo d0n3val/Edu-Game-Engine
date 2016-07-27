@@ -8,6 +8,7 @@
 
 class Config;
 class Module;
+class ModuleFileSystem;
 class ModuleWindow;
 class ModuleInput;
 class ModuleAudio;
@@ -21,6 +22,7 @@ class ModuleMeshes;
 class Application
 {
 public:
+	ModuleFileSystem* fs = nullptr;
 	ModuleWindow* window = nullptr;
 	ModuleInput* input = nullptr;
 	ModuleAudio* audio = nullptr;
@@ -43,8 +45,8 @@ private:
 	int		capped_ms;
 
 	std::list<Module*> modules;
-	std::string game_name;
-
+	std::string app_name;
+	std::string organization_name;
 
 public:
 
@@ -56,6 +58,8 @@ public:
 	bool Init(Config* config);
 	update_status Update();
 	bool CleanUp();
+	const char* GetAppName() const;
+	const char* GetOrganizationName() const;
 
 private:
 

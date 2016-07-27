@@ -108,6 +108,9 @@
     <ClInclude Include="Config.h">
       <Filter>Tools</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleFileSystem.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -184,6 +187,9 @@
     </ClCompile>
     <ClCompile Include="Config.cpp">
       <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleFileSystem.cpp">
+      <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
