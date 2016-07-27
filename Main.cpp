@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "Application.h"
 #include "MemLeaks.h"
-#include "Config.h"
 
 // We need to include this here beacuse SDL overwrites main()
 #include "SDL/include/SDL.h"
@@ -23,7 +22,7 @@ Application* App = nullptr;
 int main(int argc, char ** argv)
 {
 	ReportMemoryLeaks();
-	LOG("Starting game '%s'...", TITLE);
+	LOG("Starting engine from %s", argv[0]);
 
 	int main_return = EXIT_FAILURE;
 	main_states state = MAIN_CREATION;
@@ -43,10 +42,7 @@ int main(int argc, char ** argv)
 			case MAIN_START:
 			{
 				LOG("-------------- Application Init --------------");
-				Config config;
-				config.CreateFromFile("config.json");
-
-				if (App->Init(&config) == false)
+				if (App->Init() == false)
 				{
 					LOG("Application Init exits with ERROR");
 					state = MAIN_EXIT;

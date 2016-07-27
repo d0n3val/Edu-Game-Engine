@@ -7,10 +7,14 @@
 
 ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("filesystem", true)
 {
-	// need to be created before Awake so other modules can use it
+	// needs to be created before Init so other modules can use it
 	char* base_path = SDL_GetBasePath();
 	PHYSFS_init(base_path);
+	LOG("FileSystem Operations will be from [%s]", base_path);
 	SDL_free(base_path);
+
+	// workaround VS string directory mess
+	AddPath(".");
 
 	if(game_path != nullptr)
 		AddPath(game_path);
@@ -79,7 +83,7 @@ uint ModuleFileSystem::Load(const char* file, char** buffer) const
 
 	PHYSFS_file* fs_file = PHYSFS_openRead(file);
 
-	if(fs_file != NULL)
+	if(fs_file != nullptr)
 	{
 		PHYSFS_sint32 size = (PHYSFS_sint32) PHYSFS_fileLength(fs_file);
 
@@ -114,13 +118,13 @@ SDL_RWops* ModuleFileSystem::Load(const char* file) const
 	if(size > 0)
 	{
 		SDL_RWops* r = SDL_RWFromConstMem(buffer, size);
-		if(r != NULL)
+		if(r != nullptr)
 			r->close = close_sdl_rwops;
 
 		return r;
 	}
 	else
-		return NULL;
+		return nullptr;
 }
 
 int close_sdl_rwops(SDL_RWops *rw)
@@ -137,7 +141,7 @@ uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int s
 
 	PHYSFS_file* fs_file = PHYSFS_openWrite(file);
 
-	if(fs_file != NULL)
+	if(fs_file != nullptr)
 	{
 		uint written = (uint) PHYSFS_write(fs_file, (const void*)buffer, 1, size);
 		if(written != size)

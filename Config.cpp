@@ -17,13 +17,13 @@ bool Config::IsValid() const
 	return root != nullptr;
 }
 
-bool Config::CreateFromFile(const char * file_name)
+bool Config::CreateFromString(const char * string)
 {
 	bool ret = false;
 
-	if (file_name != nullptr)
+	if (string != nullptr)
 	{
-		vroot = json_parse_file_with_comments(file_name);
+		vroot = json_parse_string_with_comments(string);
 		if (vroot != nullptr) {
 			root = json_value_get_object(vroot);
 			ret = needs_removal = true;

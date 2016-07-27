@@ -16,7 +16,7 @@ public:
 	~Config();
 
 	bool IsValid() const;
-	bool CreateFromFile(const char* file_name);
+	bool CreateFromString(const char* string);
 
 	int Size() const;
 	Config GetSection(const char* section_name);

@@ -45,23 +45,29 @@ Application::~Application()
 		RELEASE(*it);
 }
 
-void Application::ReadConfiguration(Config config)
+void Application::ReadConfiguration(const Config& config)
 {
 	app_name = config.GetString("Name", "Edu Engine");
 	organization_name = config.GetString("Organization", "UPC CITM");
 }
 
 // ---------------------------------------------
-bool Application::Init(Config* config)
+bool Application::Init()
 {
 	bool ret = true;
+			
+	char* buffer = nullptr;
+	fs->Load("config.json", &buffer);
 
-	ReadConfiguration(config->GetSection("App"));
+	Config config;
+	config.CreateFromString(buffer);
+
+	ReadConfiguration(config);
 
 	// We init everything, even if not anabled
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
-		ret = (*it)->Init(config ? &(config->GetSection((*it)->GetName())) : nullptr); 
+		ret = (*it)->Init(config.IsValid() ? &(config.GetSection((*it)->GetName())) : nullptr); 
 	}
 
 	// Another round, just before starting the Updates. Only called for "active" modules
@@ -69,9 +75,10 @@ bool Application::Init(Config* config)
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
 		if((*it)->IsEnabled() == true)
-			ret = (*it)->Start(config ? &(config->GetSection((*it)->GetName())) : nullptr); 
+			ret = (*it)->Start(config.IsValid() ? &(config.GetSection((*it)->GetName())) : nullptr); 
 	}
 
+	RELEASE(buffer);
 	return ret;
 }
 

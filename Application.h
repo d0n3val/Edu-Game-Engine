@@ -53,9 +53,9 @@ public:
 	Application();
 	~Application();
 
-	void ReadConfiguration(Config config);
+	void ReadConfiguration(const Config& config);
 
-	bool Init(Config* config);
+	bool Init();
 	update_status Update();
 	bool CleanUp();
 	const char* GetAppName() const;
