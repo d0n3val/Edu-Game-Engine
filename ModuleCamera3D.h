@@ -12,7 +12,7 @@ public:
 	~ModuleCamera3D();
 
 	bool Init(Config* config = nullptr);
-	bool Start();
+	bool Start(Config* config = nullptr);
 	update_status Update(float dt);
 	bool CleanUp();
 

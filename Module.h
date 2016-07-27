@@ -54,7 +54,7 @@ public:
 		return true; 
 	}
 
-	virtual bool Start()
+	virtual bool Start(Config* config = nullptr)
 	{
 		return true;
 	}

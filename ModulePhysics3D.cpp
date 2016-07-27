@@ -51,7 +51,7 @@ bool ModulePhysics3D::Init(Config* config)
 }
 
 // ---------------------------------------------------------
-bool ModulePhysics3D::Start()
+bool ModulePhysics3D::Start(Config* config)
 {
 	LOG("Creating Physics environment");
 

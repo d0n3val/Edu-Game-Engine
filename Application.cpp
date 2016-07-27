@@ -55,16 +55,18 @@ bool Application::Init(Config* config)
 
 	ReadConfiguration(config->GetSection("App"));
 
+	// We init everything, even if not anabled
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
-		// We init everything, even if not anabled
 		ret = (*it)->Init(config ? &(config->GetSection((*it)->GetName())) : nullptr); 
 	}
 
+	// Another round, just before starting the Updates. Only called for "active" modules
+	// we send the configuration again in case a module needs it
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
 		if((*it)->IsEnabled() == true)
-			ret = (*it)->Start();
+			ret = (*it)->Start(config ? &(config->GetSection((*it)->GetName())) : nullptr); 
 	}
 
 	return ret;

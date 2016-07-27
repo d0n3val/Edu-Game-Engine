@@ -22,7 +22,7 @@ public:
 	~ModulePhysics3D();
 
 	bool Init(Config* config = nullptr);
-	bool Start();
+	bool Start(Config* config = nullptr);
 	update_status PreUpdate(float dt);
 	update_status Update(float dt);
 	update_status PostUpdate(float dt);
