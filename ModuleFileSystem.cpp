@@ -10,7 +10,6 @@ ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("filesystem",
 	// needs to be created before Init so other modules can use it
 	char* base_path = SDL_GetBasePath();
 	PHYSFS_init(base_path);
-	LOG("FileSystem Operations will be from [%s]", base_path);
 	SDL_free(base_path);
 
 	// workaround VS string directory mess
@@ -18,6 +17,12 @@ ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("filesystem",
 
 	if(game_path != nullptr)
 		AddPath(game_path);
+
+	char **i;
+
+	LOG("FileSystem Operations base is [%s] plus:", PHYSFS_getBaseDir());
+	for (i = PHYSFS_getSearchPath(); *i != nullptr; i++)
+		LOG("> %s", *i);
 }
 
 // Destructor

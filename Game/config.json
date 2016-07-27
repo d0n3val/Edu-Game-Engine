@@ -13,9 +13,7 @@
 
     "Scene": {
         "ToLoad": [
-			"test/Models/street/Street environment_V01.fbx",
-			"test/Models/Water World Scene/Water World scene.obj",
-			"test/Models/Helena_Asia_RE6/Helena_Asia_RE6.obj"
+			"test/Models/street/Street environment_V01.fbx"
         ]
     }
 

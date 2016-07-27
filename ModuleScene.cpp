@@ -4,6 +4,7 @@
 #include "ModuleTextures.h"
 #include "ModuleInput.h"
 #include "ModuleMeshes.h"
+#include "ModuleFileSystem.h"
 #include "GameObject.h"
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
@@ -12,6 +13,7 @@
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
 #include "Assimp/include/postprocess.h"
+#include "Assimp/include/cfileio.h"
 
 #pragma comment (lib, "Assimp/libx86/assimp-vc130-mt.lib")
 
@@ -126,10 +128,9 @@ bool ModuleScene::LoadScene(const char* file)
 	if (scene != nullptr) // Unload all textures ?
 		aiReleaseImport(scene);
 
-	scene = aiImportFile(file, 
-		aiProcessPreset_TargetRealtime_MaxQuality 
-		| aiProcess_OptimizeGraph 
-	);
+	char* buffer = nullptr;
+	uint length = App->fs->Load(file, &buffer);
+	scene = aiImportFileFromMemory(buffer, length, aiProcessPreset_TargetRealtime_MaxQuality, file);
 
 	if (scene != nullptr)
 	{
@@ -139,13 +140,13 @@ bool ModuleScene::LoadScene(const char* file)
 		if (pos != string::npos)
 			basePath.erase(pos + 1, string::npos);
 
-
 		// generate GameObjects for each mesh 
 		RecursiveCreateGameObjects(scene->mRootNode, root, basePath);
 	}
 
 	aiReleaseImport(scene);
 	scene = nullptr;
+	RELEASE(buffer);
 
 	return scene != nullptr;
 }
