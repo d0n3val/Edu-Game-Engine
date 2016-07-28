@@ -2,10 +2,12 @@
 #include "Application.h"
 #include "ModuleAudio.h"
 #include "Config.h"
+#include "Bass/include/bass.h"
 #include "SDL/include/SDL.h"
 
 #include "SDL_mixer/include/SDL_mixer.h"
 #pragma comment( lib, "SDL_mixer/libx86/SDL2_mixer.lib" )
+#pragma comment( lib, "Bass/libx86/bass.lib" )
 
 using namespace std;
 
@@ -20,6 +22,10 @@ ModuleAudio::~ModuleAudio()
 bool ModuleAudio::Init(Config* config)
 {
 	LOG("Loading Audio Mixer");
+	
+	BASS_Init(-1, 44100, 0, 0, NULL);
+	LOG("Using Bass %s", BASSVERSIONTEXT);
+
 	bool ret = true;
 	SDL_Init(0);
 
@@ -60,6 +66,8 @@ bool ModuleAudio::Init(Config* config)
 bool ModuleAudio::CleanUp()
 {
 	LOG("Freeing sound FX, closing Mixer and Audio subsystem");
+
+	BASS_Free();
 
 	if(music != nullptr)
 	{
