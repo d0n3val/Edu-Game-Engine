@@ -125,12 +125,9 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 
 bool ModuleScene::LoadScene(const char* file)
 {
-	if (scene != nullptr) // Unload all textures ?
-		aiReleaseImport(scene);
+	bool ret = false;
 
-	char* buffer = nullptr;
-	uint length = App->fs->Load(file, &buffer);
-	scene = aiImportFileFromMemory((const char*) buffer, length, aiProcessPreset_TargetRealtime_MaxQuality, file);
+	scene = aiImportFileEx(file, aiProcessPreset_TargetRealtime_MaxQuality, App->fs->GetAssimpIO());
 
 	if (scene != nullptr)
 	{
@@ -142,13 +139,15 @@ bool ModuleScene::LoadScene(const char* file)
 
 		// generate GameObjects for each mesh 
 		RecursiveCreateGameObjects(scene->mRootNode, root, basePath);
+
+		// Release all info from assimp
+		aiReleaseImport(scene);
+		scene = nullptr;
+
+		ret = true;
 	}
 
-	aiReleaseImport(scene);
-	scene = nullptr;
-	RELEASE(buffer);
-
-	return scene != nullptr;
+	return ret;
 }
 
 void ModuleScene::Draw() const

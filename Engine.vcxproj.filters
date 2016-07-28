@@ -193,8 +193,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Game\config.json">
-      <Filter>Main</Filter>
-    </Text>
+    <Text Include="Game\config.json" />
   </ItemGroup>
 </Project>

@@ -14,9 +14,9 @@
 
     "Scene": {
         "ToLoad": [
-			//"test/Models/bike/model.dae"
 			"test/Models/dwarf/dwarf.x",
-			"test/Models/street/Street environment_V01.fbx"
+			"test/Models/water/Water World Scene.obj",
+			"test/Models/street/scene.dae"
         ]
     }
 

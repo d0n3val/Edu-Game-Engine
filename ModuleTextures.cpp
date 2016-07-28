@@ -58,12 +58,13 @@ uint ModuleTextures::Load(const char* file, const char* path)
 	std::string sFile(file);
 
 	uint texId = ilutGLLoadImage((char*) (sPath + sFile).c_str());
+	//uint texId = ilutGLLoadImage((char*) sFile.c_str());
 
-	/*GLuint texId = SOIL_load_OGL_texture((char*) (sPath + sFile).c_str(), 
+	/*GLuint texId = SOIL_load_OGL_texture(sFile.c_str(), 
 		SOIL_LOAD_RGB,
 		SOIL_CREATE_NEW_ID,
-		SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT  );*/
-
+		SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT  );
+	  */
 	char* buffer = nullptr;
 	uint size = App->fs->Load((char*) (sPath + sFile).c_str(), &buffer);
 
@@ -73,7 +74,7 @@ uint ModuleTextures::Load(const char* file, const char* path)
 		size,
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
-		0//SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT
 	);*/
 
 	RELEASE(buffer);

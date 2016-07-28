@@ -6,6 +6,8 @@
 struct SDL_RWops;
 int close_sdl_rwops(SDL_RWops *rw);
 
+struct aiFileIO;
+
 class ModuleFileSystem : public Module
 {
 public:
@@ -30,10 +32,18 @@ public:
 	unsigned int Load(const char* file, char** buffer) const;
 	SDL_RWops* Load(const char* file) const;
 
+	// IO interfaces for other libs to handle files via PHYSfs
+	aiFileIO* GetAssimpIO();
+
 	unsigned int Save(const char* file, const char* buffer, unsigned int size) const;
 
 private:
 
+	void CreateAssimpIO();
+
+private:
+
+	aiFileIO* AssimpIO = nullptr;
 };
 
 #endif // __MODULEFILESYSTEM_H__
