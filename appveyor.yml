@@ -1,0 +1,6 @@
+version: 1.0.{build}
+configuration: Debug
+platform: x86
+build:
+  project: EDU Game Engine.sln
+  verbosity: normal
