@@ -1,13 +1,18 @@
 # EDU Game Engine
 Simple 3D game engine for educational purposes
 
+<a href="https://scan.coverity.com/projects/d0n3val-edu-game-engine">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/9706/badge.svg"/>
+</a>
+
 ## Usage
 
 Download the code and play with to learn, there is no formal installation process.
 
 ## Credits
 
-Carlos Fuentes
+Carlos Fuentes<br>
 Ricard Pillosu
 
 ## License
