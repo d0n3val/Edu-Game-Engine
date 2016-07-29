@@ -6,19 +6,19 @@
 #include "PhysVehicle3D.h"
 #include "ModuleInput.h"
 #include "ModuleCamera3D.h"
-#include "Bullet/src/btBulletDynamicsCommon.h"
-#include "Bullet\src\BulletCollision\CollisionShapes\btHeightfieldTerrainShape.h"
+#include "Bullet/include/btBulletDynamicsCommon.h"
+#include "Bullet/include/BulletCollision\CollisionShapes\btHeightfieldTerrainShape.h"
 
 using namespace std;
 
 #ifdef _DEBUG
-	#pragma comment (lib, "Bullet/bin/BulletDynamics_vs2015_debug.lib")
-	#pragma comment (lib, "Bullet/bin/BulletCollision_vs2015_debug.lib")
-	#pragma comment (lib, "Bullet/bin/LinearMath_vs2015_debug.lib")
+	#pragma comment (lib, "Bullet/libx86/BulletDynamics_vs2015_debug.lib")
+	#pragma comment (lib, "Bullet/libx86/BulletCollision_vs2015_debug.lib")
+	#pragma comment (lib, "Bullet/libx86/LinearMath_vs2015_debug.lib")
 #else
-	#pragma comment (lib, "Bullet/bin/BulletDynamics_vs2015.lib")
-	#pragma comment (lib, "Bullet/bin/BulletCollision_vs2015.lib")
-	#pragma comment (lib, "Bullet/bin/LinearMath_vs2015.lib")
+	#pragma comment (lib, "Bullet/libx86/BulletDynamics_vs2015.lib")
+	#pragma comment (lib, "Bullet/libx86/BulletCollision_vs2015.lib")
+	#pragma comment (lib, "Bullet/libx86/LinearMath_vs2015.lib")
 #endif
 
 ModulePhysics3D::ModulePhysics3D(bool start_enabled) : Module("Physics", start_enabled)

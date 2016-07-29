@@ -5,7 +5,7 @@
 #include "Globals.h"
 #include <list>
 #include "Primitive.h"
-#include "Bullet/src/btBulletDynamicsCommon.h"
+#include "Bullet/include/btBulletDynamicsCommon.h"
 
 // Recommended scale is 1.0f == 1 meter, no less than 0.2 objects
 #define GRAVITY btVector3(0.0f, -10.0f, 0.0f) 
