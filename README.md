@@ -5,6 +5,7 @@ Simple 3D game engine for educational purposes
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/9706/badge.svg"/>
 </a>
+[![Build status](https://ci.appveyor.com/api/projects/status/p6ihib1lnw7ulyq1?svg=true)](https://ci.appveyor.com/project/d0n3val/edu-game-engine)
 
 ## Usage
 
