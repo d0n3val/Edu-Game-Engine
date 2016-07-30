@@ -10,13 +10,13 @@ artifacts:
 - path: Game
   name: game_files
 before_deploy:
-- ps: Copy-Item C:\projects\edu-game-engine\Release\Engine.exe c:\EDU Game Engine\Game\.
+- ps: Copy-Item C:\projects\edu-game-engine\Release\Engine.exe C:\projects\edu-game-engine\Game\.
 deploy:
 - provider: GitHub
   description: Test release
   auth_token:
     secure: jQJuY3qrofMwGeeOI09t523try6rsIrOkdIIEpLQN6gHcn3ypWKa55gdEMPR1bik
   artifact: Game
-  draft: false
+  draft: true
   prerelease: true
   force_update: true
