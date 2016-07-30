@@ -14,7 +14,6 @@
 
     "Scene": {
         "ToLoad": [
-			"test/Models/dwarf/dwarf.x",
 			"test/Models/water/Water World Scene.obj",
 			"test/Models/street/scene.dae"
         ]

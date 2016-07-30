@@ -9,7 +9,7 @@ Simple 3D game engine for educational purposes
 
 ## Usage
 
-Download the code and play with to learn, there is no formal installation process.
+Download the code and play with it to learn, there is no formal installation process.
 
 ## Credits
 
