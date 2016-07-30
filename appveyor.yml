@@ -6,11 +6,17 @@ platform: x86
 build:
   project: EDU Game Engine.sln
   verbosity: normal
+artifacts:
+- path: Game
+  name: game_files
+before_deploy:
+- ps: Copy-Item C:\projects\edu-game-engine\Release\Engine.exe c:\EDU Game Engine\Game\.
 deploy:
 - provider: GitHub
   description: Test release
   auth_token:
     secure: jQJuY3qrofMwGeeOI09t523try6rsIrOkdIIEpLQN6gHcn3ypWKa55gdEMPR1bik
-  draft: true
+  artifact: Game
+  draft: false
   prerelease: true
   force_update: true
