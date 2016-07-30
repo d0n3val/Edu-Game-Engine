@@ -1,4 +1,4 @@
-version: Alpha.{build}
+version: v0.3-alpha.{build}
 configuration:
 - Debug
 - Release
@@ -6,18 +6,18 @@ platform: x86
 build:
   project: EDU Game Engine.sln
   verbosity: normal
+before_package:
+- ps: Copy-Item C:\projects\edu-game-engine\Release\Engine.exe C:\projects\edu-game-engine\Game\.
 artifacts:
 - path: Game
   name: game_files
-before_deploy:
-- ps: Copy-Item C:\projects\edu-game-engine\Release\Engine.exe C:\projects\edu-game-engine\Game\.
 deploy:
 - provider: GitHub
   description: Test release
   auth_token:
     secure: jQJuY3qrofMwGeeOI09t523try6rsIrOkdIIEpLQN6gHcn3ypWKa55gdEMPR1bik
   artifact: C:\projects\edu-game-engine\Game
-  draft: true
+  draft: false
   prerelease: true
   force_update: true
   on:
