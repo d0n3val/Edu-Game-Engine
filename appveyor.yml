@@ -1,6 +1,16 @@
-version: 1.0.{build}
-configuration: Debug
+version: Alpha.{build}
+configuration:
+- Debug
+- Release
 platform: x86
 build:
   project: EDU Game Engine.sln
   verbosity: normal
+deploy:
+- provider: GitHub
+  description: Test release
+  auth_token:
+    secure: jQJuY3qrofMwGeeOI09t523try6rsIrOkdIIEpLQN6gHcn3ypWKa55gdEMPR1bik
+  draft: true
+  prerelease: true
+  force_update: true
