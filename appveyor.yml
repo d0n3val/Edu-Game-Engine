@@ -9,7 +9,7 @@ build:
 before_package:
 - ps: Copy-Item C:\projects\edu-game-engine\Release\Engine.exe C:\projects\edu-game-engine\Game\.
 artifacts:
-- path: Game
+- path: C:\projects\edu-game-engine\Game\
   name: game_files
 deploy:
 - provider: GitHub
