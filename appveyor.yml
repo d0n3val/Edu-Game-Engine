@@ -7,9 +7,9 @@ build:
   project: EDU Game Engine.sln
   verbosity: normal
 before_package:
-- ps: Copy-Item C:\projects\edu-game-engine\Release\Engine.exe C:\projects\edu-game-engine\Game\.
+- ps: Copy-Item C:\projects\edu-game-engine\$env:CONFIGURATION\Engine.exe C:\projects\edu-game-engine\Game\.
 artifacts:
-- path: C:\projects\edu-game-engine\Game\
+- path: Game
   name: game_files
 deploy:
 - provider: GitHub
