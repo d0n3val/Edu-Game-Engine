@@ -16,7 +16,7 @@ deploy:
   description: Test release
   auth_token:
     secure: jQJuY3qrofMwGeeOI09t523try6rsIrOkdIIEpLQN6gHcn3ypWKa55gdEMPR1bik
-  artifact: C:\projects\edu-game-engine\Game
+  artifact: game_files
   draft: false
   prerelease: true
   force_update: true
