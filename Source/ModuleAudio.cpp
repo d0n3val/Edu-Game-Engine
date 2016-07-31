@@ -189,8 +189,16 @@ bool ModuleAudio::PlayFx(unsigned int id, int repeat)
 
 	if(id < fx.size())
 	{
-		BASS_ChannelPlay(fx[id], TRUE);
-		ret = true;
+		HCHANNEL channel = BASS_SampleGetChannel(fx[id], FALSE);
+		if(channel == 0)
+			LOG("BASS_SampleGetChannel() with id [%u] error: %s", id, BASS_GetErrorString());
+		else
+		{
+			if (BASS_ChannelPlay(channel, TRUE) == FALSE)
+				LOG("BASS_ChannelPlay() with id [%u] error: %s", id, BASS_GetErrorString());
+			else
+				ret = true;
+		}
 	}
 
 	return ret;
