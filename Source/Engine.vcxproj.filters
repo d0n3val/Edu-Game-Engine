@@ -120,6 +120,9 @@
     <ClInclude Include="ComponentAudioSource.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleEditor.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -205,6 +208,9 @@
     </ClCompile>
     <ClCompile Include="ComponentAudioSource.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleEditor.cpp">
+      <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

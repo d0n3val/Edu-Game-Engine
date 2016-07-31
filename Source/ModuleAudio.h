@@ -22,8 +22,9 @@ public:
 	ModuleAudio(bool start_enabled = true);
 	~ModuleAudio();
 
-	bool Init(Config* config = nullptr) final;
+	bool Init(Config* config = nullptr) override;
 	
+	bool Start(Config* config = nullptr) override;
 	update_status PostUpdate(float dt) override;
 	bool CleanUp() override;
 

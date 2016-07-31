@@ -9,6 +9,7 @@
 #include "ModuleScene.h"
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
+#include "ModuleEditor.h"
 #include "Config.h"
 
 using namespace std;
@@ -28,6 +29,7 @@ Application::Application()
 
 	modules.push_back(fs = new ModuleFileSystem(ASSETS_FOLDER));
 	modules.push_back(window = new ModuleWindow());
+	modules.push_back(editor = new ModuleEditor());
 	modules.push_back(tex = new ModuleTextures());
 	modules.push_back(meshes = new ModuleMeshes());
 	modules.push_back(physics3D = new ModulePhysics3D());

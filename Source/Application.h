@@ -18,6 +18,7 @@ class ModuleCamera3D;
 class ModuleScene;
 class ModuleTextures;
 class ModuleMeshes;
+class ModuleEditor;
 
 class Application
 {
@@ -32,6 +33,7 @@ public:
 	ModuleScene* scene = nullptr;
 	ModuleTextures* tex = nullptr;
 	ModuleMeshes* meshes = nullptr;
+	ModuleEditor* editor = nullptr;
 
 private:
 

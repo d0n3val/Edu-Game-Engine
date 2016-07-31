@@ -26,6 +26,8 @@ public:
 	const GameObject* GetRoot() const;
 	GameObject* GetRoot();
 
+	GameObject* CreateGameObject(GameObject* parent = nullptr);
+
 private:
 
 	void RecursiveDrawGameObjects(const GameObject* go) const;

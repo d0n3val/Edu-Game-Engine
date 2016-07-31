@@ -7,6 +7,7 @@
 #include "Component.h"
 #include "ComponentAudioListener.h"
 #include "ComponentAudioSource.h"
+#include "ModuleCamera3D.h"
 #include "Component.h"
 #include "Config.h"
 #include "Bass/include/bass.h"
@@ -107,9 +108,25 @@ bool ModuleAudio::Init(Config* config)
 	return ret;
 }
 
+bool ModuleAudio::Start(Config * config)
+{
+	GameObject* go = App->scene->CreateGameObject();
+	ComponentAudioSource* s = (ComponentAudioSource*) go->CreateComponent(ComponentTypes::AudioSource);
+	s->LoadFile("Assets/audio/music/music_sadpiano.ogg");
+	s->Play();
+	s->fade_in = 10.0f;
+	s->is_2d = false;
+	s->min_distance = 0.f;
+	s->max_distance = 5.0f;
+
+	return true;
+}
+
 update_status ModuleAudio::PostUpdate(float dt)
 {
 	// Update all 3D values
+	UpdateAudio();
+
 	BASS_Apply3D();
 
 	return UPDATE_CONTINUE;
@@ -176,13 +193,25 @@ void ModuleAudio::Unload(ulong id)
 {
 	if (id != 0)
 	{
-
+		BASS_CHANNELINFO info;
+		BASS_ChannelGetInfo(id, &info );
+		if (info.filename != nullptr)
+			BASS_SampleFree(id);
+		else
+			BASS_StreamFree(id);
 	}
 }
 
 void ModuleAudio::UpdateAudio()	const
 {
 	RecursiveUpdateAudio(App->scene->GetRoot());
+
+	// While in debug, make the debug camera the listener
+	BASS_Set3DPosition(
+		(BASS_3DVECTOR*)&App->camera->Position, // position
+		nullptr, // speed
+		(BASS_3DVECTOR*)&App->camera->Z, // front
+		(BASS_3DVECTOR*)&App->camera->Y); // up
 }
 
 void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
@@ -222,7 +251,6 @@ void ModuleAudio::UpdateListener(ComponentAudioListener * listener) const
 
 void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 {
-	bool do_update = false;
 	switch (source->current_state)
 	{
 		case ComponentAudioSource::state::playing:

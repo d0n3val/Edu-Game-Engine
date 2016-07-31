@@ -1,6 +1,10 @@
 #include "Globals.h"
 #include "GameObject.h"
 #include "Component.h"
+#include "ComponentMaterial.h"
+#include "ComponentAudioListener.h"
+#include "ComponentAudioSource.h"
+#include "ComponentMesh.h"
 
 using namespace std;
 
@@ -22,6 +26,40 @@ GameObject::~GameObject()
 
 	for(list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
 		RELEASE(*it);
+}
+
+// ---------------------------------------------------------
+void GameObject::AddChild(GameObject* go)
+{
+	if (std::find(childs.begin(), childs.end(), go) == childs.end())
+		childs.push_back(go);
+}
+
+// ---------------------------------------------------------
+Component* GameObject::CreateComponent(ComponentTypes type)
+{
+	Component* ret = nullptr;
+
+	switch (type)
+	{
+		case ComponentTypes::Material:
+			ret = new ComponentMaterial(this);
+		break;
+		case ComponentTypes::Geometry:
+			ret = new ComponentMesh(this);
+		break;
+		case ComponentTypes::AudioListener:
+			ret = new ComponentAudioListener(this);
+		break;
+		case ComponentTypes::AudioSource:
+			ret = new ComponentAudioSource(this);
+		break;
+	}
+
+	if (ret != nullptr)
+		components.push_back(ret);
+
+	return ret;
 }
 
 // ---------------------------------------------------------

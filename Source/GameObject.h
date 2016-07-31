@@ -4,6 +4,7 @@
 #include <list>
 #include "glmath.h"
 
+enum ComponentTypes;
 class Component;
 
 class GameObject
@@ -12,6 +13,9 @@ public:
 	GameObject();
 	GameObject(const char* name);
 	virtual ~GameObject();
+
+	void AddChild(GameObject* go);
+	Component* CreateComponent(ComponentTypes type);
 
 	vec3 GetLocalForwardVec() const;
 	vec3 GetGlobalForwardVec() const;
@@ -31,8 +35,8 @@ public:
 public:
 	std::string name;
 	mat4x4 transform;
-	std::list<Component*> components;
 	std::list<GameObject*> childs;
+	std::list<Component*> components;
 
 private:
 	mat4x4 global_transform;

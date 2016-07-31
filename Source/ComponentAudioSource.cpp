@@ -34,6 +34,7 @@ void ComponentAudioSource::Unload()
 	if (id != 0)
 	{
 		App->audio->Unload(id);
+		current_state = state::unloaded;
 	}
 }
 

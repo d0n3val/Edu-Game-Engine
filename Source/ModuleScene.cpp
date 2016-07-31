@@ -87,8 +87,8 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 	aiMatrix4x4 transform = node->mTransformation;
 	aiTransposeMatrix4(&transform);
 
-	GameObject* go = new GameObject(node->mName.C_Str());
-	parent->childs.push_back(go);
+	GameObject* go = CreateGameObject(parent);
+	go->name = node->mName.C_Str();
 	memcpy(go->transform.M, &transform, sizeof(float) * 16);
 	LOG("Created new Game Object %s", go->name.c_str());
 
@@ -98,8 +98,8 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
 		// Create a single game object per mesh
-		GameObject* child_go = new GameObject(mesh->mName.C_Str());
-		go->childs.push_back(child_go);
+		GameObject* child_go = CreateGameObject(go);
+		child_go->name = mesh->mName.C_Str();
 		LOG("-> Created new child Game Object %s", child_go->name.c_str());
 
 		// Add material component if needed
@@ -111,15 +111,13 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 			aiString path;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
 
-			ComponentMaterial* c_material = new ComponentMaterial(child_go);
-			child_go->components.push_back(c_material);
+			ComponentMaterial* c_material = (ComponentMaterial*) child_go->CreateComponent(ComponentTypes::Material);
 			c_material->material_id = App->tex->Load(path.C_Str(), basePath.c_str());
 			LOG("->-> Added material component");
 		}
 
 		// Add mesh component
-		ComponentMesh* c_mesh = new ComponentMesh(child_go);
-		child_go->components.push_back(c_mesh);
+		ComponentMesh* c_mesh = (ComponentMesh*) child_go->CreateComponent(ComponentTypes::Geometry);
 		c_mesh->mesh_data = App->meshes->Load(mesh);
 		LOG("->-> Added mesh component");
 	}
@@ -171,6 +169,17 @@ const GameObject * ModuleScene::GetRoot() const
 GameObject * ModuleScene::GetRoot()
 {
 	return root;
+}
+
+GameObject * ModuleScene::CreateGameObject(GameObject * parent)
+{
+	if (parent == nullptr)
+		parent = root;
+
+	GameObject* ret = new GameObject();
+	parent->AddChild(ret);
+
+	return ret;
 }
 
 void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
