@@ -25,6 +25,12 @@
     <Filter Include="_Docs">
       <UniqueIdentifier>{990ca2c3-a2e3-4cd6-9ed3-58a7bd50a7cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party">
+      <UniqueIdentifier>{79867c2e-884f-4982-b09b-78b4b4d77883}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd Party\imgui">
+      <UniqueIdentifier>{bd727b43-5472-4e5d-b42e-c1537af63619}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -123,6 +129,27 @@
     <ClInclude Include="ModuleEditor.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Imgui\imconfig.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui_impl_sdl_gl3.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui_internal.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\stb_rect_pack.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\stb_textedit.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\stb_truetype.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -211,6 +238,18 @@
     </ClCompile>
     <ClCompile Include="ModuleEditor.cpp">
       <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui_demo.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui_draw.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui_impl_sdl_gl3.cpp">
+      <Filter>3rd Party\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

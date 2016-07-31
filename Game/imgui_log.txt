@@ -1,0 +1,15 @@
+
+
+## Widgets #
+
+## Graphs widgets #
+
+## Layout #
+
+## Popups & Modal windows #
+
+## Columns #
+
+## Filtering #
+
+## Keyboard, Mouse & Focus #
