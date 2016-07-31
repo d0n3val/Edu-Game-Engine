@@ -89,7 +89,7 @@ typedef DWORD HPLUGIN;		// Plugin handle
 #define BASS_ERROR_DX		39	// a sufficient DirectX version is not installed
 #define BASS_ERROR_TIMEOUT	40	// connection timedout
 #define BASS_ERROR_FILEFORM	41	// unsupported file format
-#define BASS_ERROR_SPEAKER	42	// unavailable speaker
+#define BASS_ERROR_SPEAKER	42	// unavailable speaker																		   
 #define BASS_ERROR_VERSION	43	// invalid BASS version (used by add-ons)
 #define BASS_ERROR_CODEC	44	// codec is not available/supported
 #define BASS_ERROR_ENDED	45	// the channel/file has ended
@@ -1012,6 +1012,7 @@ BOOL BASSDEF(BASS_FXGetParameters)(HFX handle, void *params);
 BOOL BASSDEF(BASS_FXReset)(HFX handle);
 BOOL BASSDEF(BASS_FXSetPriority)(HFX handle, int priority);
 
+
 #ifdef __cplusplus
 }
 
@@ -1045,6 +1046,7 @@ static inline BOOL BASS_SetConfigPtr(DWORD option, const WCHAR *value)
 {
 	return BASS_SetConfigPtr(option|BASS_UNICODE, (const void*)value);
 }
+
 #endif
 #endif
 

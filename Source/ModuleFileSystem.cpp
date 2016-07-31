@@ -28,12 +28,14 @@ ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("filesystem",
 
 	// Generate IO interfaces
 	CreateAssimpIO();
+	CreateBassIO();
 }
 
 // Destructor
 ModuleFileSystem::~ModuleFileSystem()
 {
 	RELEASE(AssimpIO);
+	RELEASE(BassIO);
 	PHYSFS_deinit();
 }
 
@@ -138,6 +140,16 @@ SDL_RWops* ModuleFileSystem::Load(const char* file) const
 		return nullptr;
 }
 
+void * ModuleFileSystem::BassLoad(const char * file) const
+{
+	PHYSFS_file* fs_file = PHYSFS_openRead(file);
+
+	if(fs_file == nullptr)
+		LOG("File System error while opening file %s: %s\n", file, PHYSFS_getLastError());
+
+	return (void*) fs_file;
+}
+
 int close_sdl_rwops(SDL_RWops *rw)
 {
 	RELEASE(rw->hidden.mem.base);
@@ -177,7 +189,7 @@ size_t AssimpWrite(aiFile* file, const char* data, size_t size, size_t chunks)
 {
 	PHYSFS_sint64 ret = PHYSFS_write((PHYSFS_File*)file->UserData, (void*)data, size, chunks);
 	if(ret == -1)
-		LOG("File System error while WRITE via assimp:%s\n", PHYSFS_getLastError());
+		LOG("File System error while WRITE via assimp: %s", PHYSFS_getLastError());
 
 	return (size_t) ret;
 }
@@ -186,7 +198,7 @@ size_t AssimpRead(aiFile* file, char* data, size_t size, size_t chunks)
 {
 	PHYSFS_sint64 ret = PHYSFS_read((PHYSFS_File*)file->UserData, (void*)data, size, chunks);
 	if(ret == -1)
-		LOG("File System error while READ via assimp:%s\n", PHYSFS_getLastError());
+		LOG("File System error while READ via assimp: %s", PHYSFS_getLastError());
 
 	return (size_t) ret;
 }
@@ -195,7 +207,7 @@ size_t AssimpTell(aiFile* file)
 {
 	PHYSFS_sint64 ret = PHYSFS_tell((PHYSFS_File*)file->UserData);
 	if(ret == -1)
-		LOG("File System error while TELL via assimp:%s\n", PHYSFS_getLastError());
+		LOG("File System error while TELL via assimp: %s", PHYSFS_getLastError());
 
 	return (size_t) ret;
 }
@@ -204,7 +216,7 @@ size_t AssimpSize(aiFile* file)
 {
 	PHYSFS_sint64 ret = PHYSFS_fileLength((PHYSFS_File*)file->UserData);
 	if(ret == -1)
-		LOG("File System error while SIZE via assimp:%s\n", PHYSFS_getLastError());
+		LOG("File System error while SIZE via assimp: %s", PHYSFS_getLastError());
 
 	return (size_t) ret;
 }
@@ -212,7 +224,7 @@ size_t AssimpSize(aiFile* file)
 void AssimpFlush(aiFile* file)
 {
 	if(PHYSFS_flush((PHYSFS_File*)file->UserData) == 0)
-		LOG("File System error while FLUSH via assimp:%s\n", PHYSFS_getLastError());
+		LOG("File System error while FLUSH via assimp: %s", PHYSFS_getLastError());
 }
 
 aiReturn AssimpSeek(aiFile* file, size_t pos, aiOrigin from)
@@ -233,7 +245,7 @@ aiReturn AssimpSeek(aiFile* file, size_t pos, aiOrigin from)
 	}
 
 	if(res == 0)
-		LOG("File System error while SEEK via assimp:%s\n", PHYSFS_getLastError());
+		LOG("File System error while SEEK via assimp: %s", PHYSFS_getLastError());
 
 	return (res != 0) ? aiReturn_SUCCESS : aiReturn_FAILURE;
 }
@@ -255,7 +267,9 @@ aiFile* AssimpOpen(aiFileIO* io, const char* name, const char* format)
 
 void AssimpClose(aiFileIO* io, aiFile* file)
 {
-	PHYSFS_close((PHYSFS_File*) file->UserData);
+	if (PHYSFS_close((PHYSFS_File*)file->UserData) == 0)
+		LOG("File System error while CLOSE via assimp: %s", PHYSFS_getLastError());
+
 	RELEASE(file);
 }
 
@@ -268,8 +282,73 @@ void ModuleFileSystem::CreateAssimpIO()
 	AssimpIO->CloseProc = AssimpClose;
 }
 
-// -------------------------------------------
 aiFileIO * ModuleFileSystem::GetAssimpIO()
 {
 	return AssimpIO;
+}
+
+// -----------------------------------------------------
+// BASS IO
+// -----------------------------------------------------
+/*
+typedef void (CALLBACK FILECLOSEPROC)(void *user);
+typedef QWORD (CALLBACK FILELENPROC)(void *user);
+typedef DWORD (CALLBACK FILEREADPROC)(void *buffer, DWORD length, void *user);
+typedef BOOL (CALLBACK FILESEEKPROC)(QWORD offset, void *user);
+
+typedef struct {
+	FILECLOSEPROC *close;
+	FILELENPROC *length;
+	FILEREADPROC *read;
+	FILESEEKPROC *seek;
+} BASS_FILEPROCS;
+*/
+
+void CALLBACK BassClose(void* file)
+{
+	if (PHYSFS_close((PHYSFS_File*)file) == 0)
+		LOG("File System error while CLOSE via bass: %s", PHYSFS_getLastError());
+}
+
+QWORD CALLBACK BassLength(void* file)
+{
+	PHYSFS_sint64 ret = PHYSFS_fileLength((PHYSFS_File*)file);
+	if(ret == -1)
+		LOG("File System error while SIZE via bass: %s", PHYSFS_getLastError());
+
+	return (QWORD) ret;
+}
+
+DWORD CALLBACK BassRead(void *buffer, DWORD len, void* file)
+{
+	PHYSFS_sint64 ret = PHYSFS_read((PHYSFS_File*)file, buffer, 1, len);
+	if(ret == -1)
+		LOG("File System error while READ via bass: %s", PHYSFS_getLastError());
+
+	return (DWORD) ret;
+}
+
+BOOL CALLBACK BassSeek(QWORD offset, void* file)
+{
+	int res = PHYSFS_seek((PHYSFS_File*)file, offset);
+	if(res == 0)
+		LOG("File System error while SEEK via bass: %s", PHYSFS_getLastError());
+
+	return (BOOL) res;
+}
+
+void ModuleFileSystem::CreateBassIO()
+{
+	RELEASE(BassIO);
+
+	BassIO = new BASS_FILEPROCS;
+	BassIO->close = BassClose;
+	BassIO->length = BassLength;
+	BassIO->read = BassRead;
+	BassIO->seek = BassSeek;
+}
+
+BASS_FILEPROCS * ModuleFileSystem::GetBassIO()
+{
+	return BassIO;
 }

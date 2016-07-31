@@ -46,9 +46,9 @@ bool ModuleRenderer3D::Init(Config* config)
 	if(ret == true)
 	{
 		// get version info
-		LOG("Vendor: %s\n", glGetString(GL_VENDOR));
-		LOG("Renderer: %s\n", glGetString(GL_RENDERER));
-		LOG("OpenGL version supported %s\n", glGetString(GL_VERSION));
+		LOG("Vendor: %s", glGetString(GL_VENDOR));
+		LOG("Renderer: %s", glGetString(GL_RENDERER));
+		LOG("OpenGL version supported %s", glGetString(GL_VERSION));
 
 		//Use Vsync
 		if(VSYNC && SDL_GL_SetSwapInterval(1) < 0)

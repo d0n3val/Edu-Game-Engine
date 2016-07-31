@@ -8,14 +8,16 @@
 	},
 	
 	"Audio" : {
-		"Music_Volume": 100,
-		"FX_Volume": 100
+		"Volume" : 0.9, // global volume
+		"Music_Volume": 0.8, 
+		"Fx_Volume": 0.7,
+		"StartMusic" : "audio/music/music_sadpiano.ogg"
 	},
 
     "Scene": {
         "ToLoad": [
-			"test/Models/water/Water World Scene.obj",
-			"test/Models/street/scene.dae"
+			//"Models/water/Water World Scene.obj",
+			//"Models/street/scene.dae"
         ]
     }
 

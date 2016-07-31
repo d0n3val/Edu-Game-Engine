@@ -31,8 +31,8 @@ public:
 
 private:
 
-	Mix_Music*	music = nullptr;
-	std::vector<Mix_Chunk*>	fx;
+	unsigned long music = 0;
+	std::vector<unsigned long>	fx;
 };
 
 #endif // __MODULEAUDIO_H__
