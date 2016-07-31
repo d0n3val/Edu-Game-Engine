@@ -5,6 +5,8 @@
 
 union SDL_Event;
 
+struct EditorLog;
+
 class ModuleEditor : public Module
 {
 public:
@@ -19,10 +21,11 @@ public:
 	void HandleInput(SDL_Event* event);
 
 	void Draw();
-	bool IsHovered();
+	bool IsHoveringGui();
+	void Log(const char* entry);
 
 private:
-
+	EditorLog* panel_log = nullptr;
 };
 
 #endif // __MODULEEDITOR_H__

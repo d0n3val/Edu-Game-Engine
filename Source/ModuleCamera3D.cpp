@@ -104,7 +104,7 @@ update_status ModuleCamera3D::Update(float dt)
 	
 	// Mouse motion ----------------
 
-	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && App->editor->IsHovered() == false)
+	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && App->editor->IsHoveringGui() == false)
 	{
 
 		iPoint motion = App->input->GetMouseMotion();

@@ -168,15 +168,18 @@ uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int s
 	{
 		uint written = (uint) PHYSFS_write(fs_file, (const void*)buffer, 1, size);
 		if(written != size)
-			LOG("File System error while writing to file %s: %s\n", file, PHYSFS_getLastError());
+			LOG("File System error while writing to file %s: %s", file, PHYSFS_getLastError());
 		else
+		{
+			LOG("New file created [%s%s]", PHYSFS_getWriteDir(), file);
 			ret = written;
+		}
 
 		if(PHYSFS_close(fs_file) == 0)
-			LOG("File System error while closing file %s: %s\n", file, PHYSFS_getLastError());
+			LOG("File System error while closing file %s: %s", file, PHYSFS_getLastError());
 	}
 	else
-		LOG("File System error while opening file %s: %s\n", file, PHYSFS_getLastError());
+		LOG("File System error while opening file %s: %s", file, PHYSFS_getLastError());
 
 	return ret;
 }

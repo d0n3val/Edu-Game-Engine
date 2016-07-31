@@ -62,11 +62,15 @@ public:
 	bool CleanUp();
 	const char* GetAppName() const;
 	const char* GetOrganizationName() const;
+	void Log(const char* entry);
 
 private:
 
 	void PrepareUpdate();
 	void FinishUpdate();
+
+private:
+	std::string log;
 };
 
 // Give App pointer access everywhere

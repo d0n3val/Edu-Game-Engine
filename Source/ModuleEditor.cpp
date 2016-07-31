@@ -10,6 +10,32 @@
 
 #include "OpenGL.h"
 
+struct EditorLog
+{
+    ImGuiTextBuffer     Buf;
+    bool                ScrollToBottom;
+
+    void    Clear()     { Buf.clear(); }
+
+    void    AddLog(const char* fmt)
+    {
+        Buf.append(fmt);
+        ScrollToBottom = true;
+    }
+
+    void    Draw(const char* title, bool* p_opened = NULL)
+    {
+        ImGui::Begin(title, p_opened, ImGuiWindowFlags_NoFocusOnAppearing );
+        ImGui::TextUnformatted(Buf.begin());
+        if (ScrollToBottom)
+            ImGui::SetScrollHere(1.0f);
+        ScrollToBottom = false;
+        ImGui::End();
+    }
+};
+
+
+
 ModuleEditor::ModuleEditor(bool start_enabled) : Module("Editor", start_enabled)
 {
 }
@@ -26,6 +52,8 @@ bool ModuleEditor::Init(Config* config)
 
     ImGui_ImplSdlGL3_Init(App->window->window);
 
+	panel_log = new EditorLog();
+
 	return true;
 }
 
@@ -37,24 +65,8 @@ update_status ModuleEditor::PreUpdate(float dt)
 
 update_status ModuleEditor::Update(float dt)
 {
-    static bool show_test_window = true;
-    static bool show_another_window = false;
-    static  ImVec4 clear_color = ImColor(114, 144, 154);
-    {
-        static float f = 0.0f;
-        ImGui::Text("Hello, world!");
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-        ImGui::ColorEdit3("clear color", (float*)&clear_color);
-        if (ImGui::Button("Test Window")) show_test_window ^= 1;
-        if (ImGui::Button("Another Window")) show_another_window ^= 1;
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    }
-
-        if (show_test_window)
-        {
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-            ImGui::ShowTestWindow(&show_test_window);
-        }
+	// Console log
+	panel_log->Draw("Console");
 
 	return UPDATE_CONTINUE;
 }
@@ -64,6 +76,7 @@ bool ModuleEditor::CleanUp()
 {
 	LOG("Freeing editor gui");
 					  
+	RELEASE(panel_log);
     ImGui_ImplSdlGL3_Shutdown();
 
 	return true;
@@ -79,7 +92,13 @@ void ModuleEditor::Draw()
 	ImGui::Render();
 }
 
-bool ModuleEditor::IsHovered()
+bool ModuleEditor::IsHoveringGui()
 {
-	return ImGui::IsAnyItemHovered();
+	return ImGui::IsMouseHoveringAnyWindow();
+}
+
+void ModuleEditor::Log(const char * entry)
+{
+	if(panel_log != nullptr)
+		panel_log->AddLog(entry);
 }

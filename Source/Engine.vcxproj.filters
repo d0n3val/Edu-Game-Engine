@@ -31,6 +31,9 @@
     <Filter Include="3rd Party\imgui">
       <UniqueIdentifier>{bd727b43-5472-4e5d-b42e-c1537af63619}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\parson">
+      <UniqueIdentifier>{2ee087b3-a898-4607-991a-1f2d4fff4a41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -111,9 +114,6 @@
     <ClInclude Include="OpenGL.h">
       <Filter>Tools</Filter>
     </ClInclude>
-    <ClInclude Include="parson.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
     <ClInclude Include="Config.h">
       <Filter>Tools</Filter>
     </ClInclude>
@@ -149,6 +149,9 @@
     </ClInclude>
     <ClInclude Include="Imgui\stb_truetype.h">
       <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="parson.h">
+      <Filter>3rd Party\parson</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -221,9 +224,6 @@
     <ClCompile Include="Globals.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="parson.c">
-      <Filter>Tools</Filter>
-    </ClCompile>
     <ClCompile Include="Config.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
@@ -250,6 +250,9 @@
     </ClCompile>
     <ClCompile Include="Imgui\imgui_impl_sdl_gl3.cpp">
       <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="parson.c">
+      <Filter>3rd Party\parson</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

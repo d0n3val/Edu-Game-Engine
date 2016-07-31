@@ -146,6 +146,8 @@ bool Application::CleanUp()
 {
 	bool ret = true;
 
+	fs->Save("Engine.log", log.c_str(), log.size());
+
 	for(list<Module*>::reverse_iterator it = modules.rbegin(); it != modules.rend() && ret; ++it)
 		if((*it)->IsEnabled() == true) 
 			ret = (*it)->CleanUp();
@@ -163,4 +165,14 @@ const char* Application::GetAppName() const
 const char* Application::GetOrganizationName() const
 {
 	return organization_name.c_str();
+}
+
+// ---------------------------------------------
+void Application::Log(const char * entry)
+{
+	// save all logs, so we can dump all in a file upon close
+	log.append(entry);
+
+	// send to editor console
+	editor->Log(entry);
 }
