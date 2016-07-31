@@ -2,7 +2,12 @@
 #include "Application.h"
 #include "ModuleAudio.h"
 #include "ModuleFileSystem.h"
-#include "ModuleInput.h" // TODO: remove this after test
+#include "ModuleScene.h"
+#include "GameObject.h"
+#include "Component.h"
+#include "ComponentAudioListener.h"
+#include "ComponentAudioSource.h"
+#include "Component.h"
 #include "Config.h"
 #include "Bass/include/bass.h"
 
@@ -97,7 +102,6 @@ bool ModuleAudio::Init(Config* config)
 		BASS_SetConfig(BASS_CONFIG_GVOL_SAMPLE, (DWORD) (fx_volume * 10000.0f));
 
 		PlayMusic(config->GetString("StartMusic", ""), 10.0f);
-		LoadFx("Assets/audio/effects/ding.wav");
 	}
 
 	return ret;
@@ -105,9 +109,6 @@ bool ModuleAudio::Init(Config* config)
 
 update_status ModuleAudio::PostUpdate(float dt)
 {
-	if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
-		PlayFx(0);
-
 	// Update all 3D values
 	BASS_Apply3D();
 
@@ -197,24 +198,58 @@ unsigned int ModuleAudio::LoadFx(const char* path)
 	return ret;
 }
 
-// Play WAV
-bool ModuleAudio::PlayFx(unsigned int id, int repeat)
+void ModuleAudio::UpdateAudio() const
 {
-	bool ret = false;
+	RecursiveUpdateAudio(App->scene->GetRoot());
+}
 
-	if(id < fx.size())
+void ModuleAudio::RecursiveUpdateAudio(const GameObject* go) const
+{
+	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
-		HCHANNEL channel = BASS_SampleGetChannel(fx[id], FALSE);
-		if(channel == 0)
-			LOG("BASS_SampleGetChannel() with id [%u] error: %s", id, BASS_GetErrorString());
-		else
+		switch((*it)->GetType())
 		{
+		case ComponentTypes::AudioListener:
+		{
+			ComponentAudioListener* listener = (ComponentAudioListener*) (*it);
+			BASS_Set3DFactors(listener->distf, listener->rollf, listener->doppf);
+			BASS_Set3DPosition(
+				(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
+				nullptr, // speed
+				(BASS_3DVECTOR*)&go->GetGlobalForwardVec(), // front
+				(BASS_3DVECTOR*)&go->GetGlobalUpVec()); // up
+		} break;
+
+		case ComponentTypes::AudioSource:
+		{
+			ComponentAudioSource* source = (ComponentAudioSource*) (*it);
+
+			HCHANNEL channel = BASS_SampleGetChannel(source->fx_id, FALSE);
+
+			if(channel == 0)
+				LOG("BASS_SampleGetChannel() with id [%u] error: %s", source->fx_id, BASS_GetErrorString());
+
+			BASS_ChannelSet3DAttributes(channel,
+				source->is_2d ? BASS_3DMODE_OFF : BASS_3DMODE_NORMAL,
+				source->min_distance,
+				source->max_distance,
+				source->cone_angle_in,
+				source->cone_angle_out,
+				source->out_cone_vol);
+
+			BASS_ChannelSet3DPosition(channel,
+				(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
+				(BASS_3DVECTOR*)&go->GetGlobalForwardVec(), // front
+				nullptr); // velocity
+
 			if (BASS_ChannelPlay(channel, TRUE) == FALSE)
-				LOG("BASS_ChannelPlay() with id [%u] error: %s", id, BASS_GetErrorString());
-			else
-				ret = true;
+				LOG("BASS_ChannelPlay() with channel [%u] error: %s", channel, BASS_GetErrorString());
+
+		} break;
 		}
 	}
 
-	return ret;
+	// Recursive call to all childs keeping matrices
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		RecursiveUpdateAudio(*it);
 }

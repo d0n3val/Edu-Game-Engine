@@ -11,10 +11,10 @@ public:
 	ModuleCamera3D(bool start_enabled = true);
 	~ModuleCamera3D();
 
-	bool Init(Config* config = nullptr);
-	bool Start(Config* config = nullptr);
-	update_status Update(float dt);
-	bool CleanUp();
+	bool Init(Config* config = nullptr) override;
+	bool Start(Config* config = nullptr) override;
+	update_status Update(float dt) override;
+	bool CleanUp() override;
 
 	void Follow(PhysBody3D* body, float min, float max, float height);
 	void UnFollow();

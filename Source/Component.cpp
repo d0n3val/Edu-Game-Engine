@@ -45,3 +45,8 @@ ComponentTypes Component::GetType() const
 {
 	return type;
 }
+
+const GameObject * Component::GetGameObject() const
+{
+	return game_object;
+}

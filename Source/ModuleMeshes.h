@@ -45,8 +45,8 @@ public:
 	ModuleMeshes(bool start_enabled = true);
 	~ModuleMeshes();
 
-	bool Init(Config* config = nullptr);
-	bool CleanUp();
+	bool Init(Config* config = nullptr) override;
+	bool CleanUp() override;
 
 	const Mesh* Load(const aiMesh* mesh);
 	uint GenerateVertexBuffer(const Mesh* mesh);

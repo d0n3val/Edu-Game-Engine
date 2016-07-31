@@ -8,6 +8,8 @@ enum ComponentTypes
 	Invalid,
 	Geometry,
 	Material,
+	AudioListener,
+	AudioSource
 };
 
 class GameObject;
@@ -22,6 +24,7 @@ public:
 	void DeActivate();
 	bool IsActive() const;
 	ComponentTypes GetType() const;
+	const GameObject* GetGameObject() const;
 
 	virtual void OnActivate() {};
 	virtual void OnDeActivate() {};

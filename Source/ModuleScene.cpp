@@ -56,6 +56,14 @@ bool ModuleScene::Init(Config* config)
 	return ret;
 }
 
+update_status ModuleScene::PreUpdate(float dt)
+{
+	// Update transformations tree for this frame
+	root->RecursiveCalcGlobalTransform();
+
+	return UPDATE_CONTINUE;
+}
+
 // Called before quitting or switching levels
 bool ModuleScene::CleanUp()
 {
@@ -155,11 +163,16 @@ void ModuleScene::Draw() const
 	RecursiveDrawGameObjects(root);
 }
 
+const GameObject * ModuleScene::GetRoot() const
+{
+	return root;
+}
+
 void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 {
 	// push this matrix before drawing
 	glPushMatrix();
-	glMultMatrixf((float*)&go->transform);
+	glMultMatrixf(go->GetGlobalTranform());
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -207,10 +220,10 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 		}
 	}
 
+	// we no longer need this matrix (all global transforms are already calculated)
+	glPopMatrix();		
+
 	// Recursive call to all childs keeping matrices
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveDrawGameObjects(*it);
-
-	// pop this matrix before leaving this node
-	glPopMatrix();		
 }

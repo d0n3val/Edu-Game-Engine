@@ -21,11 +21,11 @@ public:
 	ModulePhysics3D(bool start_enabled = true);
 	~ModulePhysics3D();
 
-	bool Init(Config* config = nullptr);
-	bool Start(Config* config = nullptr);
-	update_status PreUpdate(float dt);
-	update_status Update(float dt);
-	update_status PostUpdate(float dt);
+	bool Init(Config* config = nullptr) override;
+	bool Start(Config* config = nullptr) override;
+	update_status PreUpdate(float dt) override;
+	update_status Update(float dt) override;
+	update_status PostUpdate(float dt) override;
 	bool CleanUp();
 
 	PhysBody3D*		AddBody(const Cube& cube, float mass = 1.0f);

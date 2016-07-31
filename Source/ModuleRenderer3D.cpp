@@ -146,6 +146,12 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 // Update: debug camera
 update_status ModuleRenderer3D::Update(float dt)
 {
+	return UPDATE_CONTINUE;
+}
+
+// PostUpdate present buffer to screen
+update_status ModuleRenderer3D::PostUpdate(float dt)
+{
 	// debug draw ---
 	Plane p = Plane(0, 1, 0, 0);
 	p.axis = true;
@@ -153,12 +159,6 @@ update_status ModuleRenderer3D::Update(float dt)
 
 	App->scene->Draw();
 
-	return UPDATE_CONTINUE;
-}
-
-// PostUpdate present buffer to screen
-update_status ModuleRenderer3D::PostUpdate(float dt)
-{
 	SDL_GL_SwapWindow(App->window->window);
 	return UPDATE_CONTINUE;
 }

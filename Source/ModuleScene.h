@@ -16,11 +16,14 @@ public:
 	ModuleScene(bool start_enabled = true);
 	~ModuleScene();
 
-	bool Init(Config* config = nullptr);
-	bool CleanUp();
+	bool Init(Config* config = nullptr) override;
+	update_status PreUpdate(float dt) override;
+	bool CleanUp() override;
 
 	bool LoadScene(const char* file);
 	void Draw() const;
+
+	const GameObject* GetRoot() const;
 
 private:
 

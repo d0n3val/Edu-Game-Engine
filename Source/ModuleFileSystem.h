@@ -20,10 +20,10 @@ public:
 	~ModuleFileSystem();
 
 	// Called before render is available
-	bool Init(Config* config);
+	bool Init(Config* config) override;
 
 	// Called before quitting
-	bool CleanUp();
+	bool CleanUp() override;
 
 	// Utility functions
 	bool AddPath(const char* path_or_zip);

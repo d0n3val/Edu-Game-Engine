@@ -14,8 +14,8 @@ public:
 	ModuleTextures(bool start_enabled = true);
 	~ModuleTextures();
 
-	bool Init(Config* config = nullptr);
-	bool CleanUp();
+	bool Init(Config* config = nullptr) override;
+	bool CleanUp() override;
 
 	uint Load(const char* file, const char* path);
 	uint GetId(const char* path);

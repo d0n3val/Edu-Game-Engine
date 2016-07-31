@@ -35,13 +35,13 @@ public:
 	virtual ~ModuleInput();
 
 	// Called before render is available
-	bool Init(Config* config = nullptr);
+	bool Init(Config* config = nullptr) override;
 
 	// Called each loop iteration
-	update_status PreUpdate(float dt);
+	update_status PreUpdate(float dt) override;
 
 	// Called before quitting
-	bool CleanUp();
+	bool CleanUp() override;
 
 	// Check key states
 	KeyState GetKey(int id) const

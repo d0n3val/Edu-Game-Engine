@@ -16,8 +16,8 @@ public:
 	// Destructor
 	virtual ~ModuleWindow();
 
-	bool Init(Config* config = nullptr);
-	bool CleanUp();
+	bool Init(Config* config = nullptr) override;
+	bool CleanUp() override;
 
 	void SetTitle(const char* title);
 
