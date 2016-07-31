@@ -168,6 +168,11 @@ const GameObject * ModuleScene::GetRoot() const
 	return root;
 }
 
+GameObject * ModuleScene::GetRoot()
+{
+	return root;
+}
+
 void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 {
 	// push this matrix before drawing

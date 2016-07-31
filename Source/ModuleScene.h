@@ -24,6 +24,7 @@ public:
 	void Draw() const;
 
 	const GameObject* GetRoot() const;
+	GameObject* GetRoot();
 
 private:
 

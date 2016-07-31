@@ -13,6 +13,7 @@ void log(const char file[], int line, const char* format, ...);
 // New useful types
 typedef unsigned int uint;
 typedef unsigned char uchar;
+typedef unsigned long ulong;
 
 enum update_status
 {

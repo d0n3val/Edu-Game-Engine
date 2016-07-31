@@ -2,7 +2,6 @@
 #define __MODULEAUDIO_H__
 
 #include <vector>
-#include "glmath.h"
 #include "Module.h"
 
 #define DEFAULT_MUSIC_FADE_TIME 2.0f
@@ -12,6 +11,9 @@ struct Mix_Chunk;
 typedef struct _Mix_Music Mix_Music;
 
 class GameObject;
+
+class ComponentAudioListener;
+class ComponentAudioSource;
 
 class ModuleAudio : public Module
 {
@@ -25,21 +27,17 @@ public:
 	update_status PostUpdate(float dt) override;
 	bool CleanUp() override;
 
-	// Play a music file
-	bool PlayMusic(const char* path, float fade_time = DEFAULT_MUSIC_FADE_TIME);
-
-	// Load a WAV in memory
-	unsigned int LoadFx(const char* path);
+	// Load audio assets
+	ulong Load(const char* file);
+	void Unload(ulong id);
 
 private:
 
 	void UpdateAudio() const;
-	void RecursiveUpdateAudio(const GameObject* go) const;
+	void RecursiveUpdateAudio(GameObject* go) const;
 
-private:
-
-	unsigned long music = 0;
-	std::vector<unsigned long>	fx;
+	void UpdateListener(ComponentAudioListener* listener) const;
+	void UpdateSource(ComponentAudioSource* source) const;
 };
 
 #endif // __MODULEAUDIO_H__

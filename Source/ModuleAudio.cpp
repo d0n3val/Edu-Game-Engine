@@ -101,7 +101,7 @@ bool ModuleAudio::Init(Config* config)
 		float fx_volume = config->GetFloat("Fx_Volume", 1.0f);
 		BASS_SetConfig(BASS_CONFIG_GVOL_SAMPLE, (DWORD) (fx_volume * 10000.0f));
 
-		PlayMusic(config->GetString("StartMusic", ""), 10.0f);
+		//PlayMusic(config->GetString("StartMusic", ""), 10.0f);
 	}
 
 	return ret;
@@ -120,116 +120,115 @@ bool ModuleAudio::CleanUp()
 {
 	LOG("Freeing sound FX, closing Mixer and Audio subsystem");
 
-	if (BASS_ChannelIsActive(music) == TRUE)
-		BASS_ChannelStop(music);
-
-	for (vector<unsigned long>::iterator it = fx.begin(); it != fx.end(); ++it)
-		BASS_SampleFree(*it);
-
-	fx.clear();
-
 	BASS_Free();
 	return true;
 }
 
-// Play a music file
-bool ModuleAudio::PlayMusic(const char* path, float fade_time)
+ulong ModuleAudio::Load(const char * file)
 {
-	bool ret = true;
+	ulong ret = 0;
 
-	if (BASS_ChannelIsActive(music) == TRUE)
+	if (file != nullptr)
 	{
-		if (fade_time <= 0.0f)
-			BASS_ChannelStop(music);
-		else
-			BASS_ChannelSlideAttribute(music, BASS_ATTRIB_VOL, 0.0f, DWORD(fade_time * 1000.0f));
-	}
+		int len = strlen(file);
 
-	music = BASS_StreamCreateFileUser( STREAMFILE_BUFFER, BASS_SAMPLE_LOOP | BASS_STREAM_AUTOFREE, App->fs->GetBassIO(), App->fs->BassLoad(path) );
-	if (music  == 0)
-	{
-		LOG("BASS_StreamCreateFile() error: %s", BASS_GetErrorString());
-		ret = false;
-	}
-	else
-	{
-		if (BASS_ChannelPlay(music , FALSE) == FALSE)
+		// OGG files will be streams
+		if (len > 4 && _strnicmp("ogg", &file[len - 3], 3) == 0)
 		{
-			LOG("BASS_ChannelPlay() error: %s", BASS_GetErrorString());
-			ret = false;
+			ret = BASS_StreamCreateFileUser( 
+				STREAMFILE_BUFFER, 
+				BASS_SAMPLE_LOOP | BASS_STREAM_AUTOFREE, 
+				App->fs->GetBassIO(), 
+				App->fs->BassLoad(file) );
+
+			if (ret  == 0)
+				LOG("BASS_StreamCreateFile() error: %s", BASS_GetErrorString());
 		}
-
-		if(ret == true && fade_time > 0.0f)
+		// WAV for samples
+		else if (len > 4 && _strnicmp("wav", &file[len - 3], 3) == 0)
 		{
-			BASS_ChannelSetAttribute(music, BASS_ATTRIB_VOL, 0.0f );
-			BASS_ChannelSlideAttribute(music, BASS_ATTRIB_VOL, 1.0f, DWORD(fade_time * 1000.0f));
-		}
-	}
+			char* buffer = nullptr;
+			uint size = App->fs->Load(file, &buffer);
 
-	return ret;
+			if (buffer != nullptr)
+			{
+				HSAMPLE sample = BASS_SampleLoad(TRUE, buffer, 0, size, 5, BASS_SAMPLE_OVER_VOL);
 
-	LOG("Successfully playing %s", path);
-	return ret;
-}
+				if (sample == 0)
+					LOG("BASS_SampleLoad() file [%s] error: %s", file, BASS_GetErrorString());
+				else
+				{
+					ret = BASS_SampleGetChannel(sample, FALSE);
 
-// Load WAV
-unsigned int ModuleAudio::LoadFx(const char* path)
-{
-	unsigned int ret = 0;
+					if (ret == 0)
+						LOG("BASS_SampleGetChannel() with id [%ul] error: %s", sample, BASS_GetErrorString());
+				}
+			}
 
-	char* buffer = nullptr;
-	uint size = App->fs->Load(path, &buffer);
-
-	if (buffer != nullptr)
-	{
-		HSAMPLE chunk = BASS_SampleLoad(TRUE, buffer, 0, size, 5, BASS_SAMPLE_OVER_VOL);
-
-		if (chunk == 0)
-			LOG("BASS_SampleLoad() file [%s] error: %s", path, BASS_GetErrorString());
-		else
-		{
-			fx.push_back(chunk);
-			ret = fx.size() - 1;
+			RELEASE(buffer); // since we are not buffering the file, we can safely remove it
 		}
 	}
-
-	RELEASE(buffer);
 
 	return ret;
 }
 
-void ModuleAudio::UpdateAudio() const
+void ModuleAudio::Unload(ulong id)
+{
+	if (id != 0)
+	{
+
+	}
+}
+
+void ModuleAudio::UpdateAudio()	const
 {
 	RecursiveUpdateAudio(App->scene->GetRoot());
 }
 
-void ModuleAudio::RecursiveUpdateAudio(const GameObject* go) const
+void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
 {
-	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
+	for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
 		switch((*it)->GetType())
 		{
-		case ComponentTypes::AudioListener:
+			case ComponentTypes::AudioListener:
+				UpdateListener((ComponentAudioListener*) *it);
+			 break;
+
+			case ComponentTypes::AudioSource:
+				UpdateSource((ComponentAudioSource*) *it);
+			break;
+		}
+	}
+
+	// Recursive call to all childs
+	for (list<GameObject*>::iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		RecursiveUpdateAudio(*it);
+}
+
+void ModuleAudio::UpdateListener(ComponentAudioListener * listener) const
+{
+	// Setup 3D factors
+	BASS_Set3DFactors(listener->distf, listener->rollf, listener->doppf);
+
+	// Update position and orientation
+	const GameObject* go = listener->GetGameObject();
+	BASS_Set3DPosition(
+		(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
+		nullptr, // speed
+		(BASS_3DVECTOR*)&go->GetGlobalForwardVec(), // front
+		(BASS_3DVECTOR*)&go->GetGlobalUpVec()); // up
+}
+
+void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
+{
+	bool do_update = false;
+	switch (source->current_state)
+	{
+		case ComponentAudioSource::state::playing:
 		{
-			ComponentAudioListener* listener = (ComponentAudioListener*) (*it);
-			BASS_Set3DFactors(listener->distf, listener->rollf, listener->doppf);
-			BASS_Set3DPosition(
-				(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
-				nullptr, // speed
-				(BASS_3DVECTOR*)&go->GetGlobalForwardVec(), // front
-				(BASS_3DVECTOR*)&go->GetGlobalUpVec()); // up
-		} break;
-
-		case ComponentTypes::AudioSource:
-		{
-			ComponentAudioSource* source = (ComponentAudioSource*) (*it);
-
-			HCHANNEL channel = BASS_SampleGetChannel(source->fx_id, FALSE);
-
-			if(channel == 0)
-				LOG("BASS_SampleGetChannel() with id [%u] error: %s", source->fx_id, BASS_GetErrorString());
-
-			BASS_ChannelSet3DAttributes(channel,
+			// Setup 3D attributes for this gameobject
+			BASS_ChannelSet3DAttributes(source->id,
 				source->is_2d ? BASS_3DMODE_OFF : BASS_3DMODE_NORMAL,
 				source->min_distance,
 				source->max_distance,
@@ -237,19 +236,52 @@ void ModuleAudio::RecursiveUpdateAudio(const GameObject* go) const
 				source->cone_angle_out,
 				source->out_cone_vol);
 
-			BASS_ChannelSet3DPosition(channel,
+			// Update 3D position
+			const GameObject* go = source->GetGameObject();
+			BASS_ChannelSet3DPosition(source->id,
 				(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
 				(BASS_3DVECTOR*)&go->GetGlobalForwardVec(), // front
 				nullptr); // velocity
-
-			if (BASS_ChannelPlay(channel, TRUE) == FALSE)
-				LOG("BASS_ChannelPlay() with channel [%u] error: %s", channel, BASS_GetErrorString());
-
 		} break;
-		}
-	}
 
-	// Recursive call to all childs keeping matrices
-	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-		RecursiveUpdateAudio(*it);
+		case ComponentAudioSource::state::waiting_to_play:
+		{
+			if (BASS_ChannelPlay(source->id, FALSE) == FALSE)
+				LOG("BASS_ChannelPlay() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			else
+			{
+				BASS_ChannelSetAttribute(source->id, BASS_ATTRIB_VOL, 0.0f );
+				BASS_ChannelSlideAttribute(source->id, BASS_ATTRIB_VOL, 1.0f, DWORD(source->fade_in * 1000.0f));
+				source->current_state = ComponentAudioSource::state::playing;
+			}
+		} break;
+
+		case ComponentAudioSource::state::waiting_to_stop:
+		{
+			if (BASS_ChannelStop(source->id) == FALSE)
+				LOG("BASS_ChannelStop() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			else
+			{
+				// TODO: test
+				BASS_ChannelSlideAttribute(source->id, BASS_ATTRIB_VOL, 0.0f, DWORD(source->fade_out * 1000.0f));
+				source->current_state = ComponentAudioSource::state::stopped;
+			}
+		} break;
+
+		case ComponentAudioSource::state::waiting_to_pause:
+		{
+			if (BASS_ChannelPause(source->id) == FALSE)
+				LOG("BASS_ChannelPause() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			else
+				source->current_state = ComponentAudioSource::state::paused;
+		} break;
+
+		case ComponentAudioSource::state::waiting_to_unpause:
+		{
+			if (BASS_ChannelPause(source->id) == FALSE)
+				LOG("BASS_ChannelPause() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			else
+				source->current_state = ComponentAudioSource::state::playing;
+		} break;
+	}
 }
