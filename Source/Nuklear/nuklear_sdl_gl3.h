@@ -13,8 +13,8 @@
 #ifndef NK_SDL_GL3_H_
 #define NK_SDL_GL3_H_
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
+#include "../SDL/include/SDL.h"
+#include "../SDL/include/SDL_opengl.h"
 
 NK_API struct nk_context*   nk_sdl_init(SDL_Window *win);
 NK_API void                 nk_sdl_font_stash_begin(struct nk_font_atlas **atlas);
@@ -269,6 +269,7 @@ nk_sdl_render(enum nk_anti_aliasing AA, int max_vertex_buffer, int max_element_b
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
     glDisable(GL_SCISSOR_TEST);
 }
 

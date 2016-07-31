@@ -4,6 +4,7 @@
 #include "ModuleRenderer3D.h"
 #include "ModuleCamera3D.h"
 #include "ModuleScene.h"
+#include "ModuleEditor.h"
 #include "OpenGL.h"
 #include "Primitive.h"
 
@@ -158,6 +159,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	p.Render();
 
 	App->scene->Draw();
+	App->editor->Draw();
 
 	SDL_GL_SwapWindow(App->window->window);
 	return UPDATE_CONTINUE;

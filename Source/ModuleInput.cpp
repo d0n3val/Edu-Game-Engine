@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleInput.h"
+#include "ModuleEditor.h"
 #include "SDL/include/SDL.h"
 
 #define MAX_KEYS 300
@@ -71,8 +72,10 @@ update_status ModuleInput::PreUpdate(float dt)
 			mouse_buttons[i] = KEY_IDLE;
 	}
 
+	App->editor->BeginInput();
 	while(SDL_PollEvent(&event) != 0)
 	{
+		App->editor->HandleInput(&event);
 		switch(event.type)
 		{
 			case SDL_QUIT:
@@ -119,6 +122,7 @@ update_status ModuleInput::PreUpdate(float dt)
 			break;
 		}
 	}
+	App->editor->EndInput();
 
 	if(GetWindowEvent(EventWindow::WE_QUIT) == true || GetKey(SDL_SCANCODE_ESCAPE) == KEY_DOWN)
 		return UPDATE_STOP;

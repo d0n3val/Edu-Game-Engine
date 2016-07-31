@@ -22,6 +22,10 @@
 			"Models/water/Water World Scene.obj",
 			"Models/street/scene.dae"
         ]
-    }
+    },
+
+	"Editor": {
+		"Font" : "fonts/Roboto-Regular.ttf"
+	}
 
 }

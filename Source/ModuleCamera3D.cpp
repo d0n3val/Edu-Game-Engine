@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "PhysBody3D.h"
 #include "ModuleCamera3D.h"
+#include "ModuleEditor.h"
 #include "ModuleInput.h"
 
 ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module("Camera", start_enabled)
@@ -103,7 +104,7 @@ update_status ModuleCamera3D::Update(float dt)
 	
 	// Mouse motion ----------------
 
-	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT)
+	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && App->editor->IsHovered() == false)
 	{
 
 		iPoint motion = App->input->GetMouseMotion();
