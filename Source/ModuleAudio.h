@@ -18,6 +18,8 @@ public:
 	~ModuleAudio();
 
 	bool Init(Config* config = nullptr);
+	
+	update_status PostUpdate(float dt);
 	bool CleanUp();
 
 	// Play a music file

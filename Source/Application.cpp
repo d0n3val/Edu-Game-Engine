@@ -78,7 +78,6 @@ bool Application::Init()
 			ret = (*it)->Start(config.IsValid() ? &(config.GetSection((*it)->GetName())) : nullptr); 
 	}
 
-	audio->LoadFx("Assets/audio/effects/23H.wav");
 	RELEASE(buffer);
 	return ret;
 }
@@ -96,8 +95,6 @@ update_status Application::Update()
 	update_status ret = UPDATE_CONTINUE;
 	PrepareUpdate();
 
-	if(input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
-		audio->PlayFx(0);
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret == UPDATE_CONTINUE; ++it)
 		if((*it)->IsEnabled() == true) 
 			ret = (*it)->PreUpdate(dt);

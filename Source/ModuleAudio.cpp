@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "ModuleAudio.h"
 #include "ModuleFileSystem.h"
+#include "ModuleInput.h" // TODO: remove this after test
 #include "Config.h"
 #include "Bass/include/bass.h"
 
@@ -96,9 +97,21 @@ bool ModuleAudio::Init(Config* config)
 		BASS_SetConfig(BASS_CONFIG_GVOL_SAMPLE, (DWORD) (fx_volume * 10000.0f));
 
 		PlayMusic(config->GetString("StartMusic", ""), 10.0f);
+		LoadFx("Assets/audio/effects/ding.wav");
 	}
 
 	return ret;
+}
+
+update_status ModuleAudio::PostUpdate(float dt)
+{
+	if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
+		PlayFx(0);
+
+	// Update all 3D values
+	BASS_Apply3D();
+
+	return UPDATE_CONTINUE;
 }
 
 // Called before quitting
@@ -166,15 +179,17 @@ unsigned int ModuleAudio::LoadFx(const char* path)
 	char* buffer = nullptr;
 	uint size = App->fs->Load(path, &buffer);
 
-	HSAMPLE chunk = BASS_SampleLoad(TRUE, buffer, 0, size, 5, BASS_SAMPLE_OVER_VOL);
-	//HSAMPLE chunk = BASS_SampleLoad(FALSE, path, 0, 0, 50, 0);
-
-	if(chunk == 0)
-		LOG("BASS_SampleLoad() file [%s] error: %s", path, BASS_GetErrorString());
-	else
+	if (buffer != nullptr)
 	{
-		fx.push_back(chunk);
-		ret = fx.size() - 1;
+		HSAMPLE chunk = BASS_SampleLoad(TRUE, buffer, 0, size, 5, BASS_SAMPLE_OVER_VOL);
+
+		if (chunk == 0)
+			LOG("BASS_SampleLoad() file [%s] error: %s", path, BASS_GetErrorString());
+		else
+		{
+			fx.push_back(chunk);
+			ret = fx.size() - 1;
+		}
 	}
 
 	RELEASE(buffer);
