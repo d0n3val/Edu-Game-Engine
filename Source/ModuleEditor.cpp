@@ -4,65 +4,30 @@
 #include "ModuleWindow.h"
 #include "ModuleFileSystem.h"
 #include "ModuleScene.h"
+#include "ModuleInput.h"
 #include "GameObject.h"
 #include "Config.h"
-
 #include "Imgui/imgui.h"
 #include "Imgui/imgui_impl_sdl_gl3.h"
-
 #include "OpenGL.h"
+
+#include "Panel.h"
+#include "PanelConsole.h"
+#include "PanelGOTree.h"
+#include "PanelProperties.h"
 
 using namespace std;
 
-struct EditorLog
+struct EditorGameObjectProperties
 {
-    ImGuiTextBuffer     Buf;
-    bool                ScrollToBottom;
+	bool opened = false;
 
-    void    Clear()     { Buf.clear(); }
-
-    void    AddLog(const char* fmt)
-    {
-        Buf.append(fmt);
-        ScrollToBottom = true;
-    }
-
-    void    Draw(const char* title, bool* p_opened = NULL)
-    {
-        ImGui::Begin(title, p_opened, ImGuiWindowFlags_NoFocusOnAppearing );
-        ImGui::TextUnformatted(Buf.begin());
-        if (ScrollToBottom)
-            ImGui::SetScrollHere(1.0f);
-        ScrollToBottom = false;
-        ImGui::End();
-    }
-};
-
-struct EditorGameObjects
-{
-	uint node = 0;
-	char name[80];
-
-    void    Draw(const char* title, bool* p_opened = NULL)
-    {
-		node = 0;
-        ImGui::Begin("GameObjects Hierarchy", p_opened, ImGuiWindowFlags_NoFocusOnAppearing );
-		RecursiveDraw(App->scene->GetRoot());
-        ImGui::End();
-    }
-
-	void RecursiveDraw(const GameObject* go)
+	void Draw()
 	{
-		sprintf_s(name, 80, "%s##node_%i", go->name.c_str(), node++);
-		if (ImGui::TreeNode(name))
-		{
-			for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-				RecursiveDraw(*it);
-			ImGui::TreePop();
-		}
+        ImGui::Begin("Properties", &opened, ImGuiWindowFlags_NoFocusOnAppearing );
+        ImGui::End();
 	}
 };
-
 
 
 ModuleEditor::ModuleEditor(bool start_enabled) : Module("Editor", start_enabled)
@@ -81,8 +46,10 @@ bool ModuleEditor::Init(Config* config)
 
     ImGui_ImplSdlGL3_Init(App->window->window);
 
-	panel_log = new EditorLog();
-	panel_gameObjects = new EditorGameObjects();
+	// create all panels
+	panels.push_back(console = new PanelConsole());
+	panels.push_back(tree = new PanelGOTree());
+	panels.push_back(props = new PanelProperties());
 
 	return true;
 }
@@ -97,10 +64,7 @@ update_status ModuleEditor::Update(float dt)
 {
 	update_status ret = UPDATE_CONTINUE;
 	
-	static bool show_console = false;
-	static bool show_gameobjects = false;
-
-	// Main Menu
+	// Main menu GUI
 	if (ImGui::BeginMainMenuBar())
 	{
 		bool selected = false;
@@ -118,10 +82,13 @@ update_status ModuleEditor::Update(float dt)
 		if (ImGui::BeginMenu("View"))
 		{
 			if (ImGui::MenuItem("Console", "F1"))
-				show_console = !show_console;
+				console->SwitchActive();
 
-			if (ImGui::MenuItem("Game Objects", "F2"))
-				show_gameobjects = !show_gameobjects;
+			if (ImGui::MenuItem("Hierarchy", "F2"))
+				tree->SwitchActive();
+
+			if (ImGui::MenuItem("Properties", "F3"))
+				props->SwitchActive();
 
 			ImGui::EndMenu();
 		}
@@ -143,11 +110,16 @@ update_status ModuleEditor::Update(float dt)
 	}
 
 	// Console log
-	if(show_console)
-		panel_log->Draw("Console");
+	for (vector<Panel*>::iterator it = panels.begin(); it != panels.end(); ++it)
+	{
+		Panel* panel = (*it);
 
-	if (show_gameobjects)
-		panel_gameObjects->Draw("");
+		if (App->input->GetKey(panel->GetShortCut()) == KEY_DOWN)
+			panel->SwitchActive();
+
+		if(panel->IsActive())
+			panel->Draw();
+	}
 
 	return ret;
 }
@@ -157,8 +129,15 @@ bool ModuleEditor::CleanUp()
 {
 	LOG("Freeing editor gui");
 					  
-	RELEASE(panel_gameObjects);
-	RELEASE(panel_log);
+	for (vector<Panel*>::iterator it = panels.begin(); it != panels.end(); ++it)
+		RELEASE(*it);
+
+	panels.clear();
+
+	console = nullptr;
+	tree = nullptr;
+	props = nullptr;
+
     ImGui_ImplSdlGL3_Shutdown();
 
 	return true;
@@ -181,6 +160,6 @@ bool ModuleEditor::IsHoveringGui()
 
 void ModuleEditor::Log(const char * entry)
 {
-	if(panel_log != nullptr)
-		panel_log->AddLog(entry);
+	if(console != nullptr)
+		console->AddLog(entry);
 }

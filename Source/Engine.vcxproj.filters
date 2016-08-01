@@ -34,6 +34,9 @@
     <Filter Include="3rd Party\parson">
       <UniqueIdentifier>{2ee087b3-a898-4607-991a-1f2d4fff4a41}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{0be074af-0286-40a2-951c-277ffde6a66b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -153,6 +156,18 @@
     <ClInclude Include="parson.h">
       <Filter>3rd Party\parson</Filter>
     </ClInclude>
+    <ClInclude Include="PanelConsole.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Panel.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelGOTree.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelProperties.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -253,6 +268,18 @@
     </ClCompile>
     <ClCompile Include="parson.c">
       <Filter>3rd Party\parson</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelConsole.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Panel.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelGOTree.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelProperties.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

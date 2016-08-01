@@ -2,11 +2,14 @@
 #define __MODULEEDITOR_H__
 
 #include "Module.h"
+#include <vector>
 
 union SDL_Event;
 
-struct EditorLog;
-struct EditorGameObjects;
+class Panel;
+class PanelConsole;
+class PanelGOTree;
+class PanelProperties;
 
 class ModuleEditor : public Module
 {
@@ -26,8 +29,11 @@ public:
 	void Log(const char* entry);
 
 private:
-	EditorLog* panel_log = nullptr;
-	EditorGameObjects* panel_gameObjects = nullptr;
+	std::vector<Panel *> panels;
+
+	PanelConsole* console = nullptr;
+	PanelGOTree* tree = nullptr;
+	PanelProperties* props = nullptr;
 };
 
 #endif // __MODULEEDITOR_H__
