@@ -18,8 +18,10 @@ public:
 	SDL_Scancode GetShortCut() const;
 	virtual void Draw() = 0;
 
-protected:
+public:
 	bool active = false;
+
+protected:
 	std::string name;
 	SDL_Scancode shortcut = SDL_SCANCODE_UNKNOWN;
 };

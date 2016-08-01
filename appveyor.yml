@@ -1,4 +1,4 @@
-version: v0.3-alpha.{build}
+version: v0.4-alpha.{build}
 configuration:
 - Debug
 - Release

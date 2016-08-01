@@ -168,6 +168,9 @@
     <ClInclude Include="PanelProperties.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="PanelAbout.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -279,6 +282,9 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="PanelProperties.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelAbout.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>

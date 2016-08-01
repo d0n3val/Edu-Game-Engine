@@ -110,10 +110,11 @@ bool ModuleAudio::Init(Config* config)
 
 bool ModuleAudio::Start(Config * config)
 {
+	
 	GameObject* go = App->scene->CreateGameObject();
 	ComponentAudioSource* s = (ComponentAudioSource*) go->CreateComponent(ComponentTypes::AudioSource);
 	s->LoadFile("Assets/audio/music/music_sadpiano.ogg");
-	s->Play();
+	//s->Play();
 	s->fade_in = 10.0f;
 	s->is_2d = false;
 	s->min_distance = 0.f;

@@ -15,20 +15,9 @@
 #include "PanelConsole.h"
 #include "PanelGOTree.h"
 #include "PanelProperties.h"
+#include "PanelAbout.h"
 
 using namespace std;
-
-struct EditorGameObjectProperties
-{
-	bool opened = false;
-
-	void Draw()
-	{
-        ImGui::Begin("Properties", &opened, ImGuiWindowFlags_NoFocusOnAppearing );
-        ImGui::End();
-	}
-};
-
 
 ModuleEditor::ModuleEditor(bool start_enabled) : Module("Editor", start_enabled)
 {
@@ -50,6 +39,7 @@ bool ModuleEditor::Init(Config* config)
 	panels.push_back(console = new PanelConsole());
 	panels.push_back(tree = new PanelGOTree());
 	panels.push_back(props = new PanelProperties());
+	panels.push_back(about = new PanelAbout());
 
 	return true;
 }
@@ -63,6 +53,8 @@ update_status ModuleEditor::PreUpdate(float dt)
 update_status ModuleEditor::Update(float dt)
 {
 	update_status ret = UPDATE_CONTINUE;
+
+	static bool showcase = false;
 	
 	// Main menu GUI
 	if (ImGui::BeginMainMenuBar())
@@ -81,22 +73,20 @@ update_status ModuleEditor::Update(float dt)
 
 		if (ImGui::BeginMenu("View"))
 		{
-			if (ImGui::MenuItem("Console", "F1"))
-				console->SwitchActive();
-
-			if (ImGui::MenuItem("Hierarchy", "F2"))
-				tree->SwitchActive();
-
-			if (ImGui::MenuItem("Properties", "F3"))
-				props->SwitchActive();
+            ImGui::MenuItem("Console", "F1", &console->active);
+            ImGui::MenuItem("Hierarchy", "F2", &tree->active);
+            ImGui::MenuItem("Properties", "F3", &props->active);
 
 			ImGui::EndMenu();
 		}
 
 		if (ImGui::BeginMenu("Help"))
 		{
+			if (ImGui::MenuItem("Gui Demo"))
+				showcase = !showcase;
+
 			if (ImGui::MenuItem("About"))
-				ImGui::OpenPopup("About");
+				about->SwitchActive();
 
 			ImGui::EndMenu();
 		}
@@ -121,6 +111,10 @@ update_status ModuleEditor::Update(float dt)
 			panel->Draw();
 	}
 
+	// Show showcase ? 
+	if(showcase)
+		ImGui::ShowTestWindow(&showcase);
+
 	return ret;
 }
 
@@ -134,9 +128,7 @@ bool ModuleEditor::CleanUp()
 
 	panels.clear();
 
-	console = nullptr;
-	tree = nullptr;
-	props = nullptr;
+	console = nullptr; // fix a but of log comming when we already freed the panel
 
     ImGui_ImplSdlGL3_Shutdown();
 

@@ -26,24 +26,23 @@ enum update_status
 #define CAP(n) ((n <= 0.0f) ? n=0.0f : (n >= 1.0f) ? n=1.0f : n=n)
 
 // Deletes a buffer
-#define RELEASE( x ) \
-    {									  \
-       if( x != nullptr )   \
-       {						      \
-         delete x;                  \
-	     x = nullptr;             \
-       }                      \
+#define RELEASE( x )\
+    {\
+       if( x != nullptr )\
+       {\
+         delete x;\
+	     x = nullptr;\
+       }\
     }
 
 // Deletes an array of buffers
-#define RELEASE_ARRAY( x ) \
-	{                              \
-       if( x != nullptr )              \
-       {                            \
-           delete[] x;                \
-	       x = nullptr;                    \
-		 }                            \
-                              \
+#define RELEASE_ARRAY( x )\
+	{\
+       if( x != nullptr )\
+       {\
+           delete[] x;\
+	       x = nullptr;\
+		 }\
 	 }
 
 // Configuration -----------
@@ -57,6 +56,7 @@ enum update_status
 #define VSYNC true
 #define TITLE "EDU Engine"
 #define ASSETS_FOLDER "Assets"
+#define VERSION "0.4-alpha"
 
 // Warning disabled ---
 #pragma warning( disable : 4577 ) // Warning that exceptions are disabled

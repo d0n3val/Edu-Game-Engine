@@ -10,6 +10,7 @@ class Panel;
 class PanelConsole;
 class PanelGOTree;
 class PanelProperties;
+class PanelAbout;
 
 class ModuleEditor : public Module
 {
@@ -34,6 +35,7 @@ private:
 	PanelConsole* console = nullptr;
 	PanelGOTree* tree = nullptr;
 	PanelProperties* props = nullptr;
+	PanelAbout* about = nullptr;
 };
 
 #endif // __MODULEEDITOR_H__
