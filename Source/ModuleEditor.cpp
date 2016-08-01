@@ -111,6 +111,9 @@ update_status ModuleEditor::Update(float dt)
 			panel->Draw();
 	}
 
+	// Link tree and property panel
+	props->selected = (GameObject*) tree->selected;
+
 	// Show showcase ? 
 	if(showcase)
 		ImGui::ShowTestWindow(&showcase);

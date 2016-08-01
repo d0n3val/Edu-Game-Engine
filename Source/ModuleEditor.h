@@ -29,13 +29,15 @@ public:
 	bool IsHoveringGui();
 	void Log(const char* entry);
 
-private:
-	std::vector<Panel *> panels;
-
+public:
 	PanelConsole* console = nullptr;
 	PanelGOTree* tree = nullptr;
 	PanelProperties* props = nullptr;
 	PanelAbout* about = nullptr;
+
+private:
+	std::vector<Panel *> panels;
+
 };
 
 #endif // __MODULEEDITOR_H__

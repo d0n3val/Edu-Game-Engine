@@ -32,6 +32,9 @@ public:
 	const float* GetGlobalTranform() const;
 	void RecursiveCalcGlobalTransform(const mat4x4& parent = IdentityMatrix);
 
+	bool IsActive() const;
+	void SetActive(bool active);
+
 public:
 	std::string name;
 	mat4x4 transform;
@@ -40,6 +43,7 @@ public:
 
 private:
 	mat4x4 global_transform;
+	bool active = true;
 };
 
 #endif // __GAMEOBJECT_H__

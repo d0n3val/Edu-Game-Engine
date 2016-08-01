@@ -124,3 +124,16 @@ void GameObject::RecursiveCalcGlobalTransform(const mat4x4& parent)
 	for(list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
 		(*it)->RecursiveCalcGlobalTransform(global_transform);
 }
+
+// ---------------------------------------------------------
+bool GameObject::IsActive() const
+{
+	return active;
+}
+
+// ---------------------------------------------------------
+void GameObject::SetActive(bool active)
+{
+	if (this->active != active)
+		this->active = active;
+}

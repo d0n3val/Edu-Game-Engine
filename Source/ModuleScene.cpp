@@ -184,6 +184,10 @@ GameObject * ModuleScene::CreateGameObject(GameObject * parent)
 
 void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 {
+	// Avoid inactive gameobjects
+	if (go->IsActive() == false)
+		return;
+
 	// push this matrix before drawing
 	glPushMatrix();
 	glMultMatrixf(go->GetGlobalTranform());

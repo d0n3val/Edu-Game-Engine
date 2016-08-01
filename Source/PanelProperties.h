@@ -4,6 +4,8 @@
 // Editor Panel to show the properties of a single GameObject and its components
 #include "Panel.h"
 
+class GameObject;
+
 class PanelProperties : public Panel
 {
 public:
@@ -12,7 +14,8 @@ public:
 
 	void Draw() override;
 
-private:
+public:
+	GameObject* selected = nullptr;
 
 };
 

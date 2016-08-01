@@ -15,6 +15,9 @@ public:
 	void Draw() override;
 	void RecursiveDraw(const GameObject* go);
 
+public:
+	const GameObject* selected = nullptr;
+
 private:
 
 	uint node = 0;

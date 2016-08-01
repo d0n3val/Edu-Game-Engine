@@ -73,6 +73,8 @@ update_status ModuleCamera3D::Update(float dt)
 	}
 
 	// Implement a debug camera with keys and mouse
+	if (App->editor->IsHoveringGui() == true)
+		return UPDATE_CONTINUE;
 
 	// OnKeys WASD keys -----------------------------------
 	float Speed = 5.0f;
@@ -104,7 +106,7 @@ update_status ModuleCamera3D::Update(float dt)
 	
 	// Mouse motion ----------------
 
-	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && App->editor->IsHoveringGui() == false)
+	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT)
 	{
 
 		iPoint motion = App->input->GetMouseMotion();
