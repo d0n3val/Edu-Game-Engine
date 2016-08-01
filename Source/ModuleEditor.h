@@ -6,6 +6,7 @@
 union SDL_Event;
 
 struct EditorLog;
+struct EditorGameObjects;
 
 class ModuleEditor : public Module
 {
@@ -26,6 +27,7 @@ public:
 
 private:
 	EditorLog* panel_log = nullptr;
+	EditorGameObjects* panel_gameObjects = nullptr;
 };
 
 #endif // __MODULEEDITOR_H__
