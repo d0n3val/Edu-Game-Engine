@@ -38,7 +38,7 @@ bool ModuleScene::Init(Config* config)
 	aiAttachLogStream(&stream);
 
 	// create an empty game object to be the root of everything
-	root = new GameObject();
+	root = new GameObject("root", aiMatrix4x4());
 
 	// Load conf
 	if (config != nullptr && config->IsValid() == true)
@@ -59,7 +59,7 @@ bool ModuleScene::Init(Config* config)
 update_status ModuleScene::PreUpdate(float dt)
 {
 	// Update transformations tree for this frame
-	root->RecursiveCalcGlobalTransform();
+	root->RecursiveCalcGlobalTransform(root->GetLocalTransformation());
 
 	return UPDATE_CONTINUE;
 }
@@ -87,9 +87,8 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 	aiMatrix4x4 transform = node->mTransformation;
 	aiTransposeMatrix4(&transform);
 
-	GameObject* go = CreateGameObject(parent);
-	go->name = node->mName.C_Str();
-	memcpy(go->transform.M, &transform, sizeof(float) * 16);
+	GameObject* go = CreateGameObject(parent, node->mTransformation, node->mName.C_Str());
+
 	LOG("Created new Game Object %s", go->name.c_str());
 
 	// iterate all meshes in this node
@@ -98,8 +97,7 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
 		// Create a single game object per mesh
-		GameObject* child_go = CreateGameObject(go);
-		child_go->name = mesh->mName.C_Str();
+		GameObject* child_go = CreateGameObject(go, aiMatrix4x4(), mesh->mName.C_Str());
 		LOG("-> Created new child Game Object %s", child_go->name.c_str());
 
 		// Add material component if needed
@@ -171,12 +169,12 @@ GameObject * ModuleScene::GetRoot()
 	return root;
 }
 
-GameObject * ModuleScene::CreateGameObject(GameObject * parent)
+GameObject * ModuleScene::CreateGameObject(GameObject * parent, const aiMatrix4x4& transformation, const char* name)
 {
 	if (parent == nullptr)
-		parent = root;
+		parent = App->scene->GetRoot();
 
-	GameObject* ret = new GameObject();
+	GameObject* ret = new GameObject(name, transformation);
 	parent->AddChild(ret);
 
 	return ret;
@@ -190,7 +188,7 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 
 	// push this matrix before drawing
 	glPushMatrix();
-	glMultMatrixf(go->GetGlobalTranform());
+	glMultMatrixf(go->GetOpenGLGlobalTranform());
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

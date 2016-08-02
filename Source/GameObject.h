@@ -2,7 +2,7 @@
 #define __GAMEOBJECT_H__
 
 #include <list>
-#include "glmath.h"
+#include "Math.h"
 
 enum ComponentTypes;
 class Component;
@@ -10,39 +10,46 @@ class Component;
 class GameObject
 {
 public:
-	GameObject();
-	GameObject(const char* name);
+	GameObject(const aiMatrix4x4& transformation);
+	GameObject(const char* name, const aiMatrix4x4& transformation);
 	virtual ~GameObject();
 
 	void AddChild(GameObject* go);
 	Component* CreateComponent(ComponentTypes type);
 
-	vec3 GetLocalForwardVec() const;
-	vec3 GetGlobalForwardVec() const;
+	aiVector3D GetLocalForwardVec() const;
+	aiVector3D GetGlobalForwardVec() const;
 
-	vec3 GetLocalRightVec() const;
-	vec3 GetGlobalRightVec() const;
+	aiVector3D GetLocalRightVec() const;
+	aiVector3D GetGlobalRightVec() const;
 
-	vec3 GetLocalUpVec() const;
-	vec3 GetGlobalUpVec() const;
+	aiVector3D GetLocalUpVec() const;
+	aiVector3D GetGlobalUpVec() const;
 
-	vec3 GetLocalPosition() const;
-	vec3 GetGlobalPosition() const;
+	aiVector3D GetLocalPosition() const;
+	aiVector3D GetGlobalPosition() const;
 
-	const float* GetGlobalTranform() const;
-	void RecursiveCalcGlobalTransform(const mat4x4& parent = IdentityMatrix);
+	const aiMatrix4x4 GetLocalTransformation() const;
+	const aiMatrix4x4 GetGlobalTransformation() const;
+
+	const float* GetOpenGLGlobalTranform() const;
+
+	void RecursiveCalcGlobalTransform(const aiMatrix4x4& parent);
 
 	bool IsActive() const;
 	void SetActive(bool active);
 
 public:
 	std::string name;
-	mat4x4 transform;
+	aiVector3D extra_translation;
+	aiVector3D extra_rotation;
+	aiVector3D extra_scale;
 	std::list<GameObject*> childs;
 	std::list<Component*> components;
 
 private:
-	mat4x4 global_transform;
+	aiMatrix4x4 local_trans;
+	aiMatrix4x4 global_trans;
 	bool active = true;
 };
 

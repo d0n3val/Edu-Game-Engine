@@ -405,6 +405,37 @@ inline aiMatrix4x4t<TReal>& aiMatrix4x4t<TReal>::FromEulerAnglesXYZ(TReal x, TRe
     return *this;
 }
 
+template<typename TReal>
+inline aiVector3D aiMatrix4x4t<TReal>::GetEuler() const
+{
+	aiVector3D euler;
+
+	if (a3 > 0.998) { // singularity at north pole
+		euler.z = std::atan2(-b1,b2);
+		euler.y = (PI/2);
+		euler.x = 0;
+	}
+	else if (a3 < -0.998) { // singularity at south pole
+		euler.z = std::atan2(-b1,b2);
+		euler.y = -(PI/2);
+		euler.x = 0;
+	}
+	else
+	{
+		// yaw or heading
+		euler.z = std::atan2(a2, a1);
+
+		// pitch or attitude
+		euler.y = std::asin(-a3);
+
+		// roll or bank
+		euler.x = std::atan2(b3, c3);
+	}
+
+	return euler;
+}
+
+
 // ----------------------------------------------------------------------------------------
 template <typename TReal>
 inline bool aiMatrix4x4t<TReal>::IsIdentity() const

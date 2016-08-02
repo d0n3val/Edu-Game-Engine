@@ -111,7 +111,7 @@ bool ModuleAudio::Init(Config* config)
 bool ModuleAudio::Start(Config * config)
 {
 	
-	GameObject* go = App->scene->CreateGameObject();
+	GameObject* go = App->scene->CreateGameObject(nullptr, aiMatrix4x4(), "Test Sound");
 	ComponentAudioSource* s = (ComponentAudioSource*) go->CreateComponent(ComponentTypes::AudioSource);
 	s->LoadFile("Assets/audio/music/music_sadpiano.ogg");
 	//s->Play();

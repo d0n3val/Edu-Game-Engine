@@ -3,6 +3,7 @@
 
 #include <string>
 #include "Module.h"
+#include "Math.h"
 
 struct aiScene;
 struct aiNode;
@@ -26,7 +27,7 @@ public:
 	const GameObject* GetRoot() const;
 	GameObject* GetRoot();
 
-	GameObject* CreateGameObject(GameObject* parent = nullptr);
+	GameObject* CreateGameObject(GameObject * parent, const aiMatrix4x4& transformation, const char* name = nullptr);
 
 private:
 

@@ -158,6 +158,8 @@ public:
     aiMatrix4x4t& FromEulerAnglesXYZ(TReal x, TReal y, TReal z);
     aiMatrix4x4t& FromEulerAnglesXYZ(const aiVector3t<TReal>& blubb);
 
+	aiVector3D GetEuler() const;
+
 public:
     // -------------------------------------------------------------------
     /** @brief Returns a rotation matrix for a rotation around the x axis

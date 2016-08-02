@@ -74,6 +74,9 @@ public:
     /** Returns a matrix representation of the quaternion */
     aiMatrix3x3t<TReal> GetMatrix() const;
 
+    /** Returns XYZ euler angles from the quaternion */
+    aiVector3t<TReal> GetEuler() const;
+
 public:
 
     bool operator== (const aiQuaterniont& o) const;

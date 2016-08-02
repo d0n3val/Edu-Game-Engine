@@ -32,12 +32,12 @@ void PanelProperties::Draw()
 			ImGuiInputTextFlags_EnterReturnsTrue))
 			selected->name = name;
 
-		// Transform section
+		// Transform section ============================================
 		if (ImGui::CollapsingHeader("Transform"))
 		{
-			// Position
-			float pos[3] = { 1.f,2.f,3.f };
-			ImGui::DragFloat3("Position", &selected->transform.M[12]);
+			ImGui::DragFloat3("Position", (float*)&selected->extra_translation, 0.25f);
+			ImGui::DragFloat3("Rotation", (float*)&selected->extra_rotation, 0.05f);
+			ImGui::DragFloat3("Scale", (float*)&selected->extra_scale, 0.05f);
 		}
 	}
 

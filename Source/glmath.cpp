@@ -630,6 +630,34 @@ mat4x4& mat4x4::rotate(float angle, const vec3 &u)
 	return *this;
 }
 
+mat4x4 & mat4x4::rotate_euler(const vec3 & angles)
+{
+	mat4x4 rot = IdentityMatrix;
+
+	float sin_yaw = sinf( angles.y );
+	float cos_yaw = cosf( angles.y );
+
+	float sin_pitch = sinf( angles.x );
+	float cos_pitch = cosf( angles.x );
+
+	float sin_roll = sinf( angles.z );
+	float cos_roll = cosf( angles.z );
+
+	rot.M[0] = cos_yaw * cos_roll + sin_yaw * sin_pitch * sin_roll;
+	rot.M[1] = ( -cos_yaw ) * sin_roll + sin_yaw * sin_pitch * cos_roll;
+	rot.M[2] = sin_yaw * cos_pitch;
+
+	rot.M[4] = sin_roll * cos_pitch;
+	rot.M[5] = cos_roll * cos_pitch;
+	rot.M[6] = ( -sin_pitch );
+
+	rot.M[8] = ( -sin_yaw ) * cos_roll + cos_yaw * sin_pitch * sin_roll;
+	rot.M[9] = sin_roll * sin_yaw + cos_yaw * sin_pitch * cos_roll;
+	rot.M[10] = cos_yaw * cos_pitch;
+
+	return *this;
+}
+
 mat4x4& mat4x4::scale(float x, float y, float z)
 {
 	M[0] = x;
@@ -677,6 +705,31 @@ mat4x4& mat4x4::transpose()
 vec3 mat4x4::translation() const
 {
 	return(vec3(M[12], M[13], M[14]));
+}
+
+vec3 mat4x4::euler_angles() const
+{
+	vec3 euler;
+
+	float sp = -M[6];  // this is sin(pitch);
+
+	// check for gimbal lock
+	if( fabsf(sp) > 9.99999f ) 
+	{
+		// we are in gimbal
+		euler.x = (float)M_PI_2 * sp;
+		euler.y = atan2f(-M[8], M[0]);
+		euler.z = 0.0f;
+	} 
+	else 
+	{
+		// not in gimbal
+		euler.y = atan2f(M[2], M[10]);
+		euler.x = asinf(sp);
+		euler.z = atan2f(M[4], M[5]);
+	}
+
+	return euler;
 }
 
 
@@ -788,6 +841,34 @@ mat4x4 rotate(float angle, const vec3 &u)
 	Rotate.M[10] = 1.0f + c * (v.z * v.z - 1.0f);
 
 	return Rotate;
+}
+
+mat4x4 rotate_euler(const vec3 & angles)
+{
+	mat4x4 rot = IdentityMatrix;
+
+	float sin_yaw = sinf( angles.y );
+	float cos_yaw = cosf( angles.y );
+
+	float sin_pitch = sinf( angles.x );
+	float cos_pitch = cosf( angles.x );
+
+	float sin_roll = sinf( angles.z );
+	float cos_roll = cosf( angles.z );
+
+	rot.M[0] = cos_yaw * cos_roll + sin_yaw * sin_pitch * sin_roll;
+	rot.M[1] = ( -cos_yaw ) * sin_roll + sin_yaw * sin_pitch * cos_roll;
+	rot.M[2] = sin_yaw * cos_pitch;
+
+	rot.M[4] = sin_roll * cos_pitch;
+	rot.M[5] = cos_roll * cos_pitch;
+	rot.M[6] = ( -sin_pitch );
+
+	rot.M[8] = ( -sin_yaw ) * cos_roll + cos_yaw * sin_pitch * sin_roll;
+	rot.M[9] = sin_roll * sin_yaw + cos_yaw * sin_pitch * cos_roll;
+	rot.M[10] = cos_yaw * cos_pitch;
+
+	return rot;
 }
 
 mat4x4 scale(float x, float y, float z)

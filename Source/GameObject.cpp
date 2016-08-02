@@ -9,12 +9,20 @@
 using namespace std;
 
 // ---------------------------------------------------------
-GameObject::GameObject() : name("Unnamed"), transform(IdentityMatrix), global_transform(IdentityMatrix)
+GameObject::GameObject(const aiMatrix4x4& transformation) : 
+	name("Unnamed"),
+	local_trans(transformation),
+	extra_rotation(0,0,0), 
+	extra_scale(1,1,1)
 {
 }
 
 // ---------------------------------------------------------
-GameObject::GameObject(const char* name) : name(name), transform(IdentityMatrix)
+GameObject::GameObject(const char* name, const aiMatrix4x4& transformation) : 
+	name(name),
+	local_trans(transformation),
+	extra_rotation(0,0,0), 
+	extra_scale(1,1,1)
 {
 }
 
@@ -63,68 +71,80 @@ Component* GameObject::CreateComponent(ComponentTypes type)
 }
 
 // ---------------------------------------------------------
-vec3 GameObject::GetLocalForwardVec() const
+aiVector3D GameObject::GetLocalForwardVec() const
 {
-	return vec3(transform.M[2], transform.M[6], transform.M[10]);
+	return aiVector3D(local_trans.c1, local_trans.c2, local_trans.c3);
 }
 
 // ---------------------------------------------------------
-vec3 GameObject::GetGlobalForwardVec() const
+aiVector3D GameObject::GetGlobalForwardVec() const
 {
-	return vec3(global_transform.M[2], global_transform.M[6], global_transform.M[10]);
+	return aiVector3D(global_trans.c1, global_trans.c2, global_trans.c3);
 }
 
 // ---------------------------------------------------------
-vec3 GameObject::GetLocalRightVec() const
+aiVector3D GameObject::GetLocalRightVec() const
 {
-	return vec3(transform.M[0], transform.M[4], transform.M[8]);
+	return aiVector3D(local_trans.a1, local_trans.a2, local_trans.a3);
 }
 
 // ---------------------------------------------------------
-vec3 GameObject::GetGlobalRightVec() const
+aiVector3D GameObject::GetGlobalRightVec() const
 {
-	return vec3(global_transform.M[0], global_transform.M[4], global_transform.M[8]);
+	return aiVector3D(global_trans.a1, global_trans.a2, global_trans.a3);
 }
 
 // ---------------------------------------------------------
-vec3 GameObject::GetLocalUpVec() const
+aiVector3D GameObject::GetLocalUpVec() const
 {
-	return vec3(transform.M[1], transform.M[5], transform.M[9]);
+	return aiVector3D(local_trans.b1, local_trans.b2, local_trans.b3);
 }
 
 // ---------------------------------------------------------
-vec3 GameObject::GetGlobalUpVec() const
+aiVector3D GameObject::GetGlobalUpVec() const
 {
-	return vec3(global_transform.M[1], global_transform.M[5], global_transform.M[9]);
+	return aiVector3D(global_trans.b1, global_trans.b2, global_trans.b3);
 }
 
 // ---------------------------------------------------------
-vec3 GameObject::GetLocalPosition() const
+aiVector3D GameObject::GetLocalPosition() const
 {
-	return transform.translation();
+	return aiVector3D(local_trans.a4, local_trans.b4, local_trans.c4);
 }
 
 // ---------------------------------------------------------
-vec3 GameObject::GetGlobalPosition() const
+aiVector3D GameObject::GetGlobalPosition() const
 {
-	return global_transform.translation();
+	return aiVector3D(global_trans.a4, global_trans.b4, global_trans.c4);
+}
+
+const aiMatrix4x4 GameObject::GetLocalTransformation() const
+{
+	aiQuaternion q(extra_rotation.y, extra_rotation.z, extra_rotation.x);
+	aiMatrix4x4 extra_trans(extra_scale, q, extra_translation);
+
+	return extra_trans * local_trans;
+}
+
+const aiMatrix4x4 GameObject::GetGlobalTransformation() const
+{
+	return global_trans;
 }
 
 // ---------------------------------------------------------
-const float* GameObject::GetGlobalTranform() const
+const float* GameObject::GetOpenGLGlobalTranform() const
 {
-	return &global_transform;
+	return (const float*)&(aiMatrix4x4(global_trans).Transpose().a1);
 }
 
 // ---------------------------------------------------------
-void GameObject::RecursiveCalcGlobalTransform(const mat4x4& parent)
+void GameObject::RecursiveCalcGlobalTransform(const aiMatrix4x4& parent)
 {
-	global_transform = parent * transform;
+	global_trans = parent * GetLocalTransformation();
 
 	for(list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
-		(*it)->RecursiveCalcGlobalTransform(global_transform);
+		(*it)->RecursiveCalcGlobalTransform(global_trans);
 }
-
 // ---------------------------------------------------------
 bool GameObject::IsActive() const
 {

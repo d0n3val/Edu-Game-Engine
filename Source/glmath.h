@@ -496,10 +496,12 @@ public:
 	mat4x4& ortho(float left, float right, float bottom, float top, float n, float f);
 	mat4x4& perspective(float fovy, float aspect, float n, float f);
 	mat4x4& rotate(float angle, const vec3 &u);
+	mat4x4& rotate_euler(const vec3& angles);
 	mat4x4& scale(float x, float y, float z);
 	mat4x4& translate(float x, float y, float z);
 	mat4x4& transpose();
 	vec3  translation() const;
+	vec3 euler_angles() const;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -515,6 +517,7 @@ mat4x4 look(const vec3 &eye, const vec3 &center, const vec3 &up);
 mat4x4 ortho(float left, float right, float bottom, float top, float n, float f);
 mat4x4 perspective(float fovy, float aspect, float n, float f);
 mat4x4 rotate(float angle, const vec3 &u);
+mat4x4 rotate_euler(const vec3 &angles);
 mat4x4 scale(float x, float y, float z);
 mat4x4 translate(float x, float y, float z);
 mat4x4 transpose(const mat4x4 &Matrix);

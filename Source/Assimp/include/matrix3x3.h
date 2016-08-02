@@ -94,6 +94,7 @@ public:
     bool operator!= (const aiMatrix4x4t<TReal>& m) const;
 
     bool Equal(const aiMatrix4x4t<TReal>& m, TReal epsilon = 1e-6) const;
+	aiVector3D GetEuler() const;
 
     template <typename TOther>
     operator aiMatrix3x3t<TOther> () const;
@@ -105,7 +106,7 @@ public:
      *  of the matrix are ignored.
      */
     explicit aiMatrix3x3t( const aiMatrix4x4t<TReal>& pMatrix);
-
+	
     // -------------------------------------------------------------------
     /** @brief Transpose the matrix
      */
