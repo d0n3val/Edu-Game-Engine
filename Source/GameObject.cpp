@@ -12,18 +12,20 @@ using namespace std;
 GameObject::GameObject(const aiMatrix4x4& transformation) : 
 	name("Unnamed"),
 	local_trans(transformation),
-	extra_rotation(0,0,0), 
-	extra_scale(1,1,1)
+	extra_scale(1,1,1),
+	extra_translation(transformation.a4, transformation.b4, transformation.c4)
 {
+	local_trans.a4 = local_trans.b4 = local_trans.c4 = 0.f;
 }
 
 // ---------------------------------------------------------
 GameObject::GameObject(const char* name, const aiMatrix4x4& transformation) : 
 	name(name),
 	local_trans(transformation),
-	extra_rotation(0,0,0), 
-	extra_scale(1,1,1)
+	extra_scale(1,1,1),
+	extra_translation(transformation.a4, transformation.b4, transformation.c4)
 {
+	local_trans.a4 = local_trans.b4 = local_trans.c4 = 0.f;
 }
 
 // ---------------------------------------------------------
@@ -109,7 +111,7 @@ aiVector3D GameObject::GetGlobalUpVec() const
 // ---------------------------------------------------------
 aiVector3D GameObject::GetLocalPosition() const
 {
-	return aiVector3D(local_trans.a4, local_trans.b4, local_trans.c4);
+	return extra_translation;
 }
 
 // ---------------------------------------------------------
@@ -118,14 +120,55 @@ aiVector3D GameObject::GetGlobalPosition() const
 	return aiVector3D(global_trans.a4, global_trans.b4, global_trans.c4);
 }
 
-const aiMatrix4x4 GameObject::GetLocalTransformation() const
+// ---------------------------------------------------------
+aiVector3D GameObject::GetLocalRotation() const
 {
-	aiQuaternion q(extra_rotation.y, extra_rotation.z, extra_rotation.x);
-	aiMatrix4x4 extra_trans(extra_scale, q, extra_translation);
-
-	return extra_trans * local_trans;
+	return extra_rotation;
 }
 
+// ---------------------------------------------------------
+aiVector3D GameObject::GetLocalScale() const
+{
+	return extra_scale;
+}
+
+// ---------------------------------------------------------
+void GameObject::SetLocalRotation(const aiVector3D & XYZ_euler_rotation)
+{
+	extra_rotation = XYZ_euler_rotation;
+	trans_dirty = true;
+}
+
+// ---------------------------------------------------------
+void GameObject::SetLocalScale(const aiVector3D & scale)
+{
+	extra_scale = scale;
+	trans_dirty = true;
+}
+
+// ---------------------------------------------------------
+void GameObject::SetLocalPosition(const aiVector3D & position)
+{
+	extra_translation = position;
+	trans_dirty = true;
+}
+
+// ---------------------------------------------------------
+const aiMatrix4x4 GameObject::GetLocalTransformation() const
+{
+	if (trans_dirty == true)
+	{
+		aiQuaternion q(extra_rotation.y, extra_rotation.z, extra_rotation.x);
+		aiMatrix4x4 extra(extra_scale, q, extra_translation);
+
+		cached_trans = extra * local_trans;
+		trans_dirty = false;
+	}
+
+	return cached_trans;
+}
+
+// ---------------------------------------------------------
 const aiMatrix4x4 GameObject::GetGlobalTransformation() const
 {
 	return global_trans;

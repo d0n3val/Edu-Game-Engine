@@ -29,6 +29,13 @@ public:
 	aiVector3D GetLocalPosition() const;
 	aiVector3D GetGlobalPosition() const;
 
+	aiVector3D GetLocalRotation() const;
+	aiVector3D GetLocalScale() const;
+
+	void SetLocalPosition(const aiVector3D& position);
+	void SetLocalRotation(const aiVector3D& XYZ_euler_rotation);
+	void SetLocalScale(const aiVector3D& scale);
+
 	const aiMatrix4x4 GetLocalTransformation() const;
 	const aiMatrix4x4 GetGlobalTransformation() const;
 
@@ -41,13 +48,15 @@ public:
 
 public:
 	std::string name;
-	aiVector3D extra_translation;
-	aiVector3D extra_rotation;
-	aiVector3D extra_scale;
 	std::list<GameObject*> childs;
 	std::list<Component*> components;
 
 private:
+	mutable bool trans_dirty = true;
+	mutable aiMatrix4x4 cached_trans;
+	aiVector3D extra_translation;
+	aiVector3D extra_rotation;
+	aiVector3D extra_scale;
 	aiMatrix4x4 local_trans;
 	aiMatrix4x4 global_trans;
 	bool active = true;

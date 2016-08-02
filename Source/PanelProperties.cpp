@@ -35,9 +35,18 @@ void PanelProperties::Draw()
 		// Transform section ============================================
 		if (ImGui::CollapsingHeader("Transform"))
 		{
-			ImGui::DragFloat3("Position", (float*)&selected->extra_translation, 0.25f);
-			ImGui::DragFloat3("Rotation", (float*)&selected->extra_rotation, 0.05f);
-			ImGui::DragFloat3("Scale", (float*)&selected->extra_scale, 0.05f);
+			aiVector3D pos = selected->GetLocalPosition();
+			aiVector3D rot = selected->GetLocalRotation();
+			aiVector3D scale = selected->GetLocalScale();;
+
+			if (ImGui::DragFloat3("Position", (float*)&pos, 0.25f))
+				selected->SetLocalPosition(pos);
+
+			if (ImGui::DragFloat3("Rotation", (float*)&rot, 0.05f))
+				selected->SetLocalRotation(rot);
+
+			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
+				selected->SetLocalScale(scale);
 		}
 	}
 
