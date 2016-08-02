@@ -410,18 +410,18 @@ inline aiVector3D aiMatrix4x4t<TReal>::GetEuler() const
 {
 	aiVector3D euler;
 
-	if (a3 > 0.998) { // singularity at north pole
+	if (a3 > static_cast<TReal>(0.998)) { // singularity at north pole
 		euler.z = std::atan2(-b1,b2);
-		euler.y = (PI/2);
-		euler.x = 0;
+		euler.y = -(static_cast<TReal>(PI)/static_cast<TReal>(2));
+		euler.x = static_cast<TReal>(0);
 	}
-	else if (a3 < -0.998) { // singularity at south pole
+	else if (a3 < static_cast<TReal>(-0.998)) { // singularity at south pole
 		euler.z = std::atan2(-b1,b2);
-		euler.y = -(PI/2);
-		euler.x = 0;
+		euler.y = (static_cast<TReal>(PI)/static_cast<TReal>(2));
+		euler.x = static_cast<TReal>(0);
 	}
 	else
-	{
+	{	  
 		// yaw or heading
 		euler.z = std::atan2(a2, a1);
 

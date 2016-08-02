@@ -33,7 +33,7 @@ void PanelProperties::Draw()
 			selected->name = name;
 
 		// Transform section ============================================
-		if (ImGui::CollapsingHeader("Transform"))
+		if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			aiVector3D pos = selected->GetLocalPosition();
 			aiVector3D rot = selected->GetLocalRotation();
@@ -42,7 +42,7 @@ void PanelProperties::Draw()
 			if (ImGui::DragFloat3("Position", (float*)&pos, 0.25f))
 				selected->SetLocalPosition(pos);
 
-			if (ImGui::DragFloat3("Rotation", (float*)&rot, 0.05f))
+			if(ImGui::SliderFloat3("Rotation", (float*)&rot, -PI, PI))
 				selected->SetLocalRotation(rot);
 
 			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))

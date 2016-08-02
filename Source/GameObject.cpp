@@ -9,23 +9,25 @@
 using namespace std;
 
 // ---------------------------------------------------------
-GameObject::GameObject(const aiMatrix4x4& transformation) : 
-	name("Unnamed"),
-	local_trans(transformation),
-	extra_scale(1,1,1),
-	extra_translation(transformation.a4, transformation.b4, transformation.c4)
+GameObject::GameObject(const aiMatrix4x4& transformation) : name("Unnamed")
 {
-	local_trans.a4 = local_trans.b4 = local_trans.c4 = 0.f;
+	aiQuaternion quat;
+	transformation.Decompose(extra_scale, quat, extra_translation);
+
+	local_trans = aiMatrix4x4(aiVector3D(), quat, aiVector3D());
 }
 
 // ---------------------------------------------------------
-GameObject::GameObject(const char* name, const aiMatrix4x4& transformation) : 
-	name(name),
-	local_trans(transformation),
-	extra_scale(1,1,1),
-	extra_translation(transformation.a4, transformation.b4, transformation.c4)
+GameObject::GameObject(const char* name, const aiMatrix4x4& transformation) : name(name)
 {
-	local_trans.a4 = local_trans.b4 = local_trans.c4 = 0.f;
+	aiQuaternion quat;
+	transformation.Decompose(extra_scale, quat, extra_translation);
+	aiMatrix4x4 m(quat.GetMatrix());
+	extra_rotation = m.GetEuler();
+
+	//extra_rotation = quat.GetMatrix().GetEuler();
+
+	//local_trans = aiMatrix4x4(quat.GetMatrix());
 }
 
 // ---------------------------------------------------------

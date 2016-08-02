@@ -143,30 +143,11 @@ inline bool aiMatrix3x3t<TReal>::Equal(const aiMatrix4x4t<TReal>& m, TReal epsil
         std::abs(c3 - m.c3) <= epsilon;
 }
 
+// ---------------------------------------------------------------------------
 template<typename TReal>
 inline aiVector3D aiMatrix3x3t<TReal>::GetEuler() const
 {
 	aiVector3D euler;
-
-
-	/*
-	heading = yaw
-	attitude = pitch
-	bank = roll
-
-	heading = atan2(-m20,m00)
-	attitude = asin(m10) 
-	bank = atan2(-m12,m11)
-
-	except when M10=1 (north pole)
-	which gives:
-	heading = atan2(M02,M22)
-	bank = 0
-	and when M10=-1 (south pole)
-	which gives:
-	heading = atan2(M02,M22)
-	bank = 0
-	*/
 
 	// yaw or heading
 	euler.y = std::atan2(a2, a1);
