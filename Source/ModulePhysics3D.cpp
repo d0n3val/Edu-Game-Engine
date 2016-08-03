@@ -143,7 +143,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cylinder& cylinder, float mass)
 }
 
 // ---------------------------------------------------------
-PhysBody3D* ModulePhysics3D::AddBody(const Plane& plane)
+PhysBody3D* ModulePhysics3D::AddBody(const PPlane& plane)
 {
 	btCollisionShape* colShape = new btStaticPlaneShape(btVector3(plane.normal.x, plane.normal.y, plane.normal.z), plane.constant);
 	shapes.push_back(colShape);

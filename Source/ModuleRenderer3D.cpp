@@ -154,7 +154,7 @@ update_status ModuleRenderer3D::Update(float dt)
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
 	// debug draw ---
-	Plane p = Plane(0, 1, 0, 0);
+	PPlane p(0, 1, 0, 0);
 	p.axis = true;
 	p.Render();
 

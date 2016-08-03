@@ -4,6 +4,7 @@
 // Component to hold a 3D Mesh
 
 #include "Component.h"
+#include "Math.h"
 
 struct Mesh;
 
@@ -11,17 +12,14 @@ class ComponentMesh : public Component
 {
 public:
 	ComponentMesh (GameObject* container);
-	~ComponentMesh ();
 
-	void OnActivate() override;
-	void OnDeActivate() override;
+	void SetMesh(const Mesh* data);
+	const Mesh* GetMesh() const;
+	const AABB* GetBoundingBox() const;
 
-	void OnStart() override;
-	void OnUpdate() override;
-	void OnFinish() override;
-
-public:
+private:
 	const Mesh* mesh_data = nullptr;
+	math::AABB	bounding_box;
 };
 
 #endif // __COMPONENT_MESH_H__

@@ -33,11 +33,11 @@ void PanelProperties::Draw()
 			selected->name = name;
 
 		// Transform section ============================================
-		if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("Local Transformation", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			aiVector3D pos = selected->GetLocalPosition();
-			aiVector3D rot = selected->GetLocalRotation();
-			aiVector3D scale = selected->GetLocalScale();;
+			float3 pos = selected->GetLocalPosition();
+			float3 rot = selected->GetLocalRotation();
+			float3 scale = selected->GetLocalScale();;
 
 			if (ImGui::DragFloat3("Position", (float*)&pos, 0.25f))
 				selected->SetLocalPosition(pos);

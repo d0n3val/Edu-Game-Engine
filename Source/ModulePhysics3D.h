@@ -31,7 +31,7 @@ public:
 	PhysBody3D*		AddBody(const Cube& cube, float mass = 1.0f);
 	PhysBody3D*		AddBody(const Sphere& sphere, float mass = 1.0f);
 	PhysBody3D*		AddBody(const Cylinder& cylinder, float mass = 1.0f);
-	PhysBody3D*		AddBody(const Plane& plane);
+	PhysBody3D*		AddBody(const PPlane& plane);
 	PhysBody3D*		AddHeighField(const char* filename, int width, int height);
 	PhysVehicle3D*	AddVehicle(const VehicleInfo& info);
 

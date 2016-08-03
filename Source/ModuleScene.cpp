@@ -10,6 +10,7 @@
 #include "ComponentMaterial.h"
 #include "Config.h"
 #include "OpenGL.h"
+#include "Primitive.h"
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
 #include "Assimp/include/postprocess.h"
@@ -38,7 +39,7 @@ bool ModuleScene::Init(Config* config)
 	aiAttachLogStream(&stream);
 
 	// create an empty game object to be the root of everything
-	root = new GameObject("root", aiMatrix4x4());
+	root = new GameObject("root");
 
 	// Load conf
 	if (config != nullptr && config->IsValid() == true)
@@ -59,7 +60,7 @@ bool ModuleScene::Init(Config* config)
 update_status ModuleScene::PreUpdate(float dt)
 {
 	// Update transformations tree for this frame
-	root->RecursiveCalcGlobalTransform(root->GetLocalTransformation());
+	root->RecursiveCalcGlobalTransform(root->GetLocalTransform());
 
 	return UPDATE_CONTINUE;
 }
@@ -84,10 +85,21 @@ bool ModuleScene::CleanUp()
 
 void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath)
 {
-	aiMatrix4x4 transform = node->mTransformation;
-	aiTransposeMatrix4(&transform);
+	aiVector3D translation;
+	aiVector3D scaling;
+	aiQuaternion rotation;
 
-	GameObject* go = CreateGameObject(parent, node->mTransformation, node->mName.C_Str());
+	node->mTransformation.Decompose(scaling, rotation, translation);
+
+	float3 pos(translation.x, translation.y, translation.z);
+	float3 scale(scaling.x, scaling.y, scaling.z);
+	Quat rot(rotation.x, rotation.y, rotation.z, rotation.w);
+
+	float4x4 m(rot, pos);
+	m.Scale(scale);
+
+	//GameObject* go = CreateGameObject(parent, node->mTransformation, node->mName.C_Str());
+	GameObject* go = CreateGameObject(parent, pos, scale, rot, node->mName.C_Str());
 
 	LOG("Created new Game Object %s", go->name.c_str());
 
@@ -97,7 +109,8 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
 		// Create a single game object per mesh
-		GameObject* child_go = CreateGameObject(go, aiMatrix4x4(), mesh->mName.C_Str());
+		//GameObject* child_go = CreateGameObject(go, aiMatrix4x4(), mesh->mName.C_Str());
+		GameObject* child_go = CreateGameObject(go, float3::zero, float3::one, Quat::identity, mesh->mName.C_Str());
 		LOG("-> Created new child Game Object %s", child_go->name.c_str());
 
 		// Add material component if needed
@@ -116,7 +129,7 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 
 		// Add mesh component
 		ComponentMesh* c_mesh = (ComponentMesh*) child_go->CreateComponent(ComponentTypes::Geometry);
-		c_mesh->mesh_data = App->meshes->Load(mesh);
+		c_mesh->SetMesh(App->meshes->Load(mesh));
 		LOG("->-> Added mesh component");
 	}
 
@@ -169,12 +182,12 @@ GameObject * ModuleScene::GetRoot()
 	return root;
 }
 
-GameObject * ModuleScene::CreateGameObject(GameObject * parent, const aiMatrix4x4& transformation, const char* name)
+GameObject * ModuleScene::CreateGameObject(GameObject * parent, const float3 & pos, const float3 & scale, const Quat & rot, const char * name)
 {
 	if (parent == nullptr)
 		parent = App->scene->GetRoot();
 
-	GameObject* ret = new GameObject(name, transformation);
+	GameObject* ret = new GameObject(name, pos, scale, rot);
 	parent->AddChild(ret);
 
 	return ret;
@@ -206,7 +219,7 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 		if ((*it)->GetType() == ComponentTypes::Geometry)
 		{
 			ComponentMesh* cmesh = (ComponentMesh*) (*it);
-			const Mesh* mesh = cmesh->mesh_data;
+			const Mesh* mesh = cmesh->GetMesh();
 
 			if (mesh->vbo_normals > 0)
 			{
@@ -233,6 +246,17 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
 			glDisableClientState(GL_NORMAL_ARRAY);
 			glDisableClientState(GL_VERTEX_ARRAY );
+
+			// Draw bounding box
+			const AABB* bbox = cmesh->GetBoundingBox();
+			float3 hsize = bbox->Size();
+			Cube c(hsize.x, hsize.y, hsize.z);
+			float3 center = bbox->CenterPoint() - go->GetLocalPosition();
+
+			c.SetPos(center.x, center.y, center.z);
+			c.wire = true;
+			c.axis = true;
+			c.Render();
 		}
 	}
 

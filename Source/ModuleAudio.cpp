@@ -111,7 +111,7 @@ bool ModuleAudio::Init(Config* config)
 bool ModuleAudio::Start(Config * config)
 {
 	
-	GameObject* go = App->scene->CreateGameObject(nullptr, aiMatrix4x4(), "Test Sound");
+	GameObject* go = App->scene->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Sound");
 	ComponentAudioSource* s = (ComponentAudioSource*) go->CreateComponent(ComponentTypes::AudioSource);
 	s->LoadFile("Assets/audio/music/music_sadpiano.ogg");
 	//s->Play();
@@ -244,10 +244,10 @@ void ModuleAudio::UpdateListener(ComponentAudioListener * listener) const
 	// Update position and orientation
 	const GameObject* go = listener->GetGameObject();
 	BASS_Set3DPosition(
-		(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
+		(BASS_3DVECTOR*)&go->GetGlobalTransformation().TranslatePart(), // position
 		nullptr, // speed
-		(BASS_3DVECTOR*)&go->GetGlobalForwardVec(), // front
-		(BASS_3DVECTOR*)&go->GetGlobalUpVec()); // up
+		(BASS_3DVECTOR*)&go->GetGlobalTransformation().WorldZ(), // front
+		(BASS_3DVECTOR*)&go->GetGlobalTransformation().WorldY()); // up
 }
 
 void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
@@ -269,7 +269,7 @@ void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 			const GameObject* go = source->GetGameObject();
 			BASS_ChannelSet3DPosition(source->id,
 				(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
-				(BASS_3DVECTOR*)&go->GetGlobalForwardVec(), // front
+				(BASS_3DVECTOR*)&go->GetGlobalTransformation().WorldZ(), // front
 				nullptr); // velocity
 		} break;
 

@@ -19,7 +19,7 @@
 
     "Scene": {
         "ToLoad": [
-			"Models/water/Water World Scene.obj",
+			//"Models/water/Water World Scene.obj",
 			"Models/street/scene.dae"
         ]
     },

@@ -27,7 +27,7 @@ public:
 	const GameObject* GetRoot() const;
 	GameObject* GetRoot();
 
-	GameObject* CreateGameObject(GameObject * parent, const aiMatrix4x4& transformation, const char* name = nullptr);
+	GameObject* CreateGameObject(GameObject * parent, const float3& pos, const float3& scale, const Quat& rot, const char* name = nullptr);
 
 private:
 

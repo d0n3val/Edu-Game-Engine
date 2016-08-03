@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ComponentMesh.h"
+#include "ModuleMeshes.h"
 
 // ---------------------------------------------------------
 ComponentMesh::ComponentMesh(GameObject* container) : Component(container)
@@ -8,30 +9,21 @@ ComponentMesh::ComponentMesh(GameObject* container) : Component(container)
 }
 
 // ---------------------------------------------------------
-ComponentMesh::~ComponentMesh()
-{}
-
-// ---------------------------------------------------------
-void ComponentMesh::OnActivate()
+void ComponentMesh::SetMesh(const Mesh * data)
 {
+	if (data != nullptr)
+	{
+		mesh_data = data;
+		bounding_box.SetFrom((float3*) mesh_data->vertices, data->num_indices / 3);
+	}
 }
 
-// ---------------------------------------------------------
-void ComponentMesh::OnDeActivate()
+const Mesh * ComponentMesh::GetMesh() const
 {
+	return mesh_data;
 }
 
-// ---------------------------------------------------------
-void ComponentMesh::OnStart()
+const AABB* ComponentMesh::GetBoundingBox() const
 {
-}
-
-// ---------------------------------------------------------
-void ComponentMesh::OnUpdate()
-{
-}
-
-// ---------------------------------------------------------
-void ComponentMesh::OnFinish()
-{
+	return &bounding_box;
 }
