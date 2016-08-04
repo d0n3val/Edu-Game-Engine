@@ -63,21 +63,31 @@ void PanelProperties::Draw()
 		{
 			switch ((*it)->GetType())
 			{
-			case ComponentTypes::Geometry:
-				DrawMeshComponent((ComponentMesh*)(*it));
-				break;
-			case ComponentTypes::Material:
-				DrawMaterialComponent((ComponentMaterial*)(*it));
-				break;
-			case ComponentTypes::AudioSource:
-				DrawAudioSourceComponent((ComponentAudioSource*)(*it));
-				break;
-			case ComponentTypes::AudioListener:
-				DrawAudioListenerComponent((ComponentAudioListener*)(*it));
-				break;
-			default:
-				DrawUnknownComponent(*it);
-			}
+				case ComponentTypes::Geometry:
+				{
+					if(InitComponentDraw(*it, "Geometry Mesh"))
+						DrawMeshComponent((ComponentMesh*)(*it));
+				}	break;
+				case ComponentTypes::Material:
+				{
+					if(InitComponentDraw(*it, "Material"))
+						DrawMaterialComponent((ComponentMaterial*)(*it));
+				}	break;
+				case ComponentTypes::AudioSource:
+				{
+					if(InitComponentDraw(*it, "Audio Source"))
+						DrawAudioSourceComponent((ComponentAudioSource*)(*it));
+				}	break;
+				case ComponentTypes::AudioListener:
+				{
+					if(InitComponentDraw(*it, "Audio Listener"))
+						DrawAudioListenerComponent((ComponentAudioListener*)(*it));
+				}	break;
+				default:
+				{
+					InitComponentDraw(*it, "Unknown");
+				}
+			};
 		}
 
 	}
@@ -85,52 +95,93 @@ void PanelProperties::Draw()
     ImGui::End();
 }
 
+bool PanelProperties::InitComponentDraw(Component* component, const char * name)
+{
+	bool ret = false;
+
+	if (ImGui::CollapsingHeader(name, ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		bool active = component->IsActive();
+		ImGui::Checkbox("Active", &active);
+		component->SetActive(active);
+		ret = true;
+	}
+
+	return ret;
+}
+
 void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 {
-	if (ImGui::CollapsingHeader("Geometry Mesh", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		const Mesh* mesh = component->GetMesh();
-        ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)",
-			mesh->num_indices / 3,
-			mesh->num_indices,
-			mesh->num_vertices);
+	const Mesh* mesh = component->GetMesh();
+    ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)",
+		mesh->num_indices / 3,
+		mesh->num_indices,
+		mesh->num_vertices);
 
-		bool uvs = mesh->texture_coords != nullptr;
-		bool normals = mesh->normals != nullptr;
-		bool colors = mesh->colors != nullptr;
+	bool uvs = mesh->texture_coords != nullptr;
+	bool normals = mesh->normals != nullptr;
+	bool colors = mesh->colors != nullptr;
 
-		ImGui::Checkbox("UVs", &uvs);
-		ImGui::SameLine();
-		ImGui::Checkbox("Normals", &normals);
-		ImGui::SameLine();
-		ImGui::Checkbox("Colors", &colors);
-	}
+	ImGui::Checkbox("UVs", &uvs);
+	ImGui::SameLine();
+	ImGui::Checkbox("Normals", &normals);
+	ImGui::SameLine();
+	ImGui::Checkbox("Colors", &colors);
 }
 
 void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)
 {
-	if (ImGui::CollapsingHeader("Audio Source", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-	}
+	const char* file = component->GetFile();
+
+	ImGui::Text("File: ");
+	ImGui::SameLine();
+	ImGui::TextColored(ImVec4(1, 1, 0, 1), (file) ? file : "No file loaded");
+	ImGui::SameLine();
+	ImGui::Checkbox("Is 2D", &component->is_2d);
+
+	ImGui::SliderFloat("Fade In", (float*)&component->fade_in, 0.0f, 10.0f);
+	ImGui::SliderFloat("Fade Out", (float*)&component->fade_out, 0.0f, 10.0f);
+	ImGui::DragFloat("Min Distance", (float*)&component->min_distance, 0.1f, 0.1f, 10000.0f);
+	ImGui::DragFloat("Max Distance", (float*)&component->max_distance, 0.1f, 0.1f, 10000.0f);
+	ImGui::SliderInt("Cone In", (int*)&component->cone_angle_in, 0, 360);
+	ImGui::SliderInt("Cone Out", (int*)&component->cone_angle_out, 0, 360);
+	ImGui::SliderFloat("Vol Out Cone", (float*)&component->out_cone_vol, 0.0f, 1.0f);
+	
+	static const char * states[] = { 
+		"Not Loaded", 
+		"Stopped",
+		"About to Play",
+		"Playing",
+		"About to Pause",
+		"Pause",
+		"About to Unpause",
+		"About to Stop"
+	};
+
+	ImGui::Text("Current State: ");
+	ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", states[component->GetCurrentState()]);
+
+	if (ImGui::Button("Play"))
+		component->Play();
+
+	ImGui::SameLine();
+	if (ImGui::Button("Pause"))
+		component->Pause();
+
+	ImGui::SameLine();
+	if (ImGui::Button("Unpause"))
+		component->UnPause();
+
+	ImGui::SameLine();
+	if (ImGui::Button("Stop"))
+		component->Stop();
 }
 
 void PanelProperties::DrawAudioListenerComponent(ComponentAudioListener * component)
 {
-	if (ImGui::CollapsingHeader("Audio Listener", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-	}
+
 }
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
-	if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-	}
-}
-
-void PanelProperties::DrawUnknownComponent(Component * component)
-{
-	if (ImGui::CollapsingHeader("Unknown", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-	}
 }

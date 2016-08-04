@@ -14,6 +14,7 @@ public:
 	~ComponentAudioSource ();
 
 	bool LoadFile(const char* file);
+	const char* GetFile() const;
 	void Unload();
 
 	bool Play();
@@ -23,6 +24,8 @@ public:
 
 	bool IsPlaying() const;
 	bool IsPaused() const;
+
+	int GetCurrentState() const;
 
 public:
 	ulong id = 0;

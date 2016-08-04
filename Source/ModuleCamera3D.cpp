@@ -73,7 +73,7 @@ update_status ModuleCamera3D::Update(float dt)
 	}
 
 	// Implement a debug camera with keys and mouse
-	if (App->editor->IsHoveringGui() == true)
+	if (App->editor->UsingInput() == true)
 		return UPDATE_CONTINUE;
 
 	// OnKeys WASD keys -----------------------------------

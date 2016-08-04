@@ -5,7 +5,7 @@
 Component::Component(GameObject* container) : game_object(container)
 {
 	if (game_object != nullptr)
-		Activate();
+		SetActive(true);
 	else
 		LOG("Component orphaned	since it's container Game Object is null");
 }
@@ -15,22 +15,15 @@ Component::~Component()
 {}
 
 // ---------------------------------------------------------
-void Component::Activate()
+void Component::SetActive(bool active)
 {
-	if (active == false)
+	if (this->active != active)
 	{
-		active = true;
-		OnActivate();
-	}
-}
-
-// ---------------------------------------------------------
-void Component::DeActivate()
-{
-	if (active == true)
-	{
-		active = false;
-		OnDeActivate();
+		this->active = active;
+		if (active)
+			OnActivate();
+		else
+			OnDeActivate();
 	}
 }
 

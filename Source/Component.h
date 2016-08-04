@@ -20,8 +20,7 @@ public:
 	Component(GameObject* container);
 	virtual ~Component();
 
-	void Activate();
-	void DeActivate();
+	void SetActive(bool active);
 	bool IsActive() const;
 	ComponentTypes GetType() const;
 	const GameObject* GetGameObject() const;

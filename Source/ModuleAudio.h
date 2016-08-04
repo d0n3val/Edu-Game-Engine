@@ -30,6 +30,7 @@ public:
 
 	// Load audio assets
 	ulong Load(const char* file);
+	const char* GetFile(uint id) const;
 	void Unload(ulong id);
 
 private:

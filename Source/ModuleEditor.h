@@ -26,7 +26,7 @@ public:
 	void HandleInput(SDL_Event* event);
 
 	void Draw();
-	bool IsHoveringGui();
+	bool UsingInput() const;
 	void Log(const char* entry);
 
 public:

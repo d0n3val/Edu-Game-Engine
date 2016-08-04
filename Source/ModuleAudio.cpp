@@ -190,6 +190,19 @@ ulong ModuleAudio::Load(const char * file)
 	return ret;
 }
 
+const char * ModuleAudio::GetFile(uint id) const
+{
+	const char* ret = nullptr;
+
+	if (id != 0)
+	{
+		BASS_CHANNELINFO info;
+		BASS_ChannelGetInfo(id, &info );
+		ret = info.filename;
+	}
+	return ret;
+}
+
 void ModuleAudio::Unload(ulong id)
 {
 	if (id != 0)
@@ -307,8 +320,8 @@ void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 
 		case ComponentAudioSource::state::waiting_to_unpause:
 		{
-			if (BASS_ChannelPause(source->id) == FALSE)
-				LOG("BASS_ChannelPause() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			if (BASS_ChannelPlay(source->id, FALSE) == FALSE)
+				LOG("BASS_ChannelPlay() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
 			else
 				source->current_state = ComponentAudioSource::state::playing;
 		} break;

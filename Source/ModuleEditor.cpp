@@ -148,9 +148,9 @@ void ModuleEditor::Draw()
 	ImGui::Render();
 }
 
-bool ModuleEditor::IsHoveringGui()
+bool ModuleEditor::UsingInput() const
 {
-	return ImGui::IsMouseHoveringAnyWindow();
+	return ImGui::IsMouseHoveringAnyWindow() || (ImGui::IsAnyItemActive() && ImGui::IsMouseDragging());
 }
 
 void ModuleEditor::Log(const char * entry)

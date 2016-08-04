@@ -29,6 +29,12 @@ bool ComponentAudioSource::LoadFile(const char * file)
 }
 
 // ---------------------------------------------------------
+const char * ComponentAudioSource::GetFile() const
+{
+	return App->audio->GetFile(id);
+}
+
+// ---------------------------------------------------------
 void ComponentAudioSource::Unload()
 {
 	if (id != 0)
@@ -91,4 +97,9 @@ bool ComponentAudioSource::IsPlaying() const
 bool ComponentAudioSource::IsPaused() const
 {
 	return current_state == state::paused;
+}
+
+int ComponentAudioSource::GetCurrentState() const
+{
+	return current_state;
 }

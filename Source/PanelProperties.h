@@ -5,7 +5,6 @@
 #include "Panel.h"
 
 class GameObject;
-
 class Component;
 class ComponentMesh;
 class ComponentAudioSource;
@@ -20,11 +19,12 @@ public:
 
 	void Draw() override;
 
+	bool InitComponentDraw(Component* component, const char * name);
 	void DrawMeshComponent(ComponentMesh* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
-	void DrawUnknownComponent(Component* component);
+
 
 public:
 	GameObject* selected = nullptr;
