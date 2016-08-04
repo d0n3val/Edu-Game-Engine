@@ -6,6 +6,12 @@
 
 class GameObject;
 
+class Component;
+class ComponentMesh;
+class ComponentAudioSource;
+class ComponentAudioListener;
+class ComponentMaterial;
+
 class PanelProperties : public Panel
 {
 public:
@@ -14,8 +20,16 @@ public:
 
 	void Draw() override;
 
+	void DrawMeshComponent(ComponentMesh* component);
+	void DrawAudioSourceComponent(ComponentAudioSource * component);
+	void DrawMaterialComponent(ComponentMaterial * component);
+	void DrawAudioListenerComponent(ComponentAudioListener * component);
+	void DrawUnknownComponent(Component* component);
+
 public:
 	GameObject* selected = nullptr;
+
+
 
 };
 

@@ -14,7 +14,7 @@ void ComponentMesh::SetMesh(const Mesh * data)
 	if (data != nullptr)
 	{
 		mesh_data = data;
-		bounding_box.SetFrom((float3*) mesh_data->vertices, data->num_indices / 3);
+		//bounding_box.SetFrom((float3*) mesh_data->vertices, data->num_indices / 3);
 	}
 }
 
