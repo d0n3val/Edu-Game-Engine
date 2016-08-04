@@ -29,7 +29,8 @@ public:
 	void Draw();
 	bool UsingInput() const;
 	void Log(const char* entry);
-	void LogKeyboardInput(uint key, uint state);
+	void LogInputEvent(uint key, uint state);
+	void LogFPS(float fps, float ms);
 
 public:
 	PanelConsole* console = nullptr;

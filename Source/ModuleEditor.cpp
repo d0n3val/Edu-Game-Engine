@@ -34,7 +34,7 @@ bool ModuleEditor::Init(Config* config)
 {
 	LOG("Init editor gui with imgui lib");
 
-    ImGui_ImplSdlGL3_Init(App->window->window);
+    ImGui_ImplSdlGL3_Init(App->window->GetWindow());
 
 	// create all panels
 	panels.push_back(console = new PanelConsole());
@@ -48,7 +48,7 @@ bool ModuleEditor::Init(Config* config)
 
 update_status ModuleEditor::PreUpdate(float dt)
 {
-    ImGui_ImplSdlGL3_NewFrame(App->window->window);
+    ImGui_ImplSdlGL3_NewFrame(App->window->GetWindow());
 	return UPDATE_CONTINUE;
 }
 
@@ -162,7 +162,7 @@ void ModuleEditor::Log(const char * entry)
 		console->AddLog(entry);
 }
 
-void ModuleEditor::LogKeyboardInput(uint key, uint state)
+void ModuleEditor::LogInputEvent(uint key, uint state)
 {
 	static char entry[512];
 	static const char* states[] = { "IDLE", "DOWN", "REPEAT", "UP" };
@@ -170,9 +170,15 @@ void ModuleEditor::LogKeyboardInput(uint key, uint state)
 	if (conf != nullptr)
 	{
 		if(key < 1000)
-			sprintf_s(entry, 512, "Key: %s: %u\n", states[state], key);
+			sprintf_s(entry, 512, "Keybr: %02u - %s\n", key, states[state]);
 		else
-			sprintf_s(entry, 512, "Mouse: %s: %u\n", states[state], key - 1000);
+			sprintf_s(entry, 512, "Mouse: %02u - %s\n", key - 1000, states[state]);
 		conf->AddInput(entry);
 	}
+}
+
+void ModuleEditor::LogFPS(float fps, float ms)
+{
+	if (conf != nullptr)
+		conf->AddFPS(fps, ms);
 }

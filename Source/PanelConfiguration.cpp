@@ -17,7 +17,9 @@
 using namespace std;
 
 // ---------------------------------------------------------
-PanelConfiguration::PanelConfiguration() : Panel("Configuration", SDL_SCANCODE_F4)
+PanelConfiguration::PanelConfiguration() : Panel("Configuration", SDL_SCANCODE_F4),
+	fps_log(FPS_LOG_SIZE),
+	ms_log(FPS_LOG_SIZE)
 {}
 
 // ---------------------------------------------------------
@@ -28,6 +30,8 @@ PanelConfiguration::~PanelConfiguration()
 void PanelConfiguration::Draw()
 {
     ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoFocusOnAppearing);
+
+	DrawApplication();
 
 	if (InitModuleDraw(App->audio))
 		DrawModuleAudio(App->audio);
@@ -54,6 +58,31 @@ bool PanelConfiguration::InitModuleDraw(Module* module)
 	}
 
 	return ret;
+}
+
+void PanelConfiguration::DrawApplication()
+{
+	if (ImGui::CollapsingHeader("Application"))
+	{
+		ImGui::Text("Name:");
+		ImGui::SameLine();
+		ImGui::TextColored(IMGUI_YELLOW, App->GetAppName());
+
+		ImGui::Text("Organization:");
+		ImGui::SameLine();
+		ImGui::TextColored(IMGUI_YELLOW, App->GetOrganizationName());
+
+		int max_fps = App->GetFramerateLimit();
+		if (ImGui::SliderInt("Max FPS", &max_fps, 10, 100))
+			App->SetFramerateLimit(max_fps);
+
+		ImGui::Text("Limit Framerate:");
+		ImGui::SameLine();
+		ImGui::TextColored(IMGUI_YELLOW, "%i", App->GetFramerateLimit());
+
+		ImGui::PlotHistogram("##framerate", &fps_log[0], fps_log.size(), 0, "Framerate", 0.0f, 120.0f, ImVec2(310, 100));
+		ImGui::PlotHistogram("##milliseconds", &ms_log[0], ms_log.size(), 0, "Milliseconds", 0.0f, 60.0f, ImVec2(310, 100));
+	}
 }
 
 void PanelConfiguration::DrawModuleAudio(ModuleAudio * module)
@@ -124,4 +153,23 @@ void PanelConfiguration::AddInput(const char * entry)
 {
 	input_buf.append(entry);
 	need_scroll = true;
+}
+
+void PanelConfiguration::AddFPS(float fps, float ms)
+{
+	static uint count = 0;
+
+	if (count == FPS_LOG_SIZE)
+	{
+		for (uint i = 0; i < FPS_LOG_SIZE - 1; ++i)
+		{
+			fps_log[i] = fps_log[i + 1];
+			ms_log[i] = ms_log[i + 1];
+		}
+	}
+	else
+		++count;
+
+	fps_log[count-1] = fps;
+	ms_log[count-1] = ms;
 }

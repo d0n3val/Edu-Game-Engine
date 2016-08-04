@@ -4,6 +4,9 @@
 // Editor Panel for all Module's configuration
 #include "Panel.h"
 #include "Imgui/imgui.h"
+#include <vector>
+
+#define FPS_LOG_SIZE 100
 
 class Module;
 class ModuleFileSystem;
@@ -27,14 +30,18 @@ public:
 	void Draw() override;
 
 	bool InitModuleDraw(Module* module);
+	void DrawApplication();
 	void DrawModuleAudio(ModuleAudio * module);
 	void DrawModuleFileSystem(ModuleFileSystem * module);
 	void DrawModuleInput(ModuleInput * module);
 	void AddInput(const char* entry);
+	void AddFPS(float fps, float ms);
 
 private:
     ImGuiTextBuffer input_buf;
     bool need_scroll = false;
+	std::vector<float> fps_log;
+	std::vector<float> ms_log;
 
 };
 

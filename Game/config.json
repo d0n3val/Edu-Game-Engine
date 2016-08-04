@@ -4,17 +4,27 @@
 	"App" : {
 		"App" : "EDU Engine",
 		"Organization" : "UPC CITM",
-		"BaseDir" : "test"
+		"MaxFramerate" : 0
+	},
+
+	"Window" : {
+		"Scale" : 1,
+		"Width" : 1280,
+		"Height" : 1024,
+		"Fullscreen" : false,
+		"Resizable" : false,
+		"Borderless" : false,
+		"Fullscreen Desktop" : false
+	},
+
+	"Renderer" : {
+		"Vertical Sync" : false
 	},
 	
 	"Audio" : {
 		"Volume" : 0.9, // global volume
 		"Music_Volume": 0.8, 
-		"Fx_Volume": 0.7,
-		"Distance_Factor": 1.0, // use meters as default
-		"RollOff_Factor": 1.0, // How fast sound quietens with distance, 1.0 real worl, max 10.0
-		"Doppler_Factor": 1.0, // Doppler 1.0 real world, max 10.0
-		"StartMusic" : "audio/music/music_sadpiano.ogg"
+		"Fx_Volume": 0.7
 	},
 
     "Scene": {

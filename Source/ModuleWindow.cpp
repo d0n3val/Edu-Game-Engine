@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleWindow.h"
+#include "Config.h"
 
 ModuleWindow::ModuleWindow(bool start_enabled) : Module("Window", start_enabled)
 {
@@ -25,35 +26,34 @@ bool ModuleWindow::Init(Config* config)
 	else
 	{
 		//Create window
-		int width = SCREEN_WIDTH * SCREEN_SIZE;
-		int height = SCREEN_HEIGHT * SCREEN_SIZE;
+		screen_scale = config->GetInt("Scale", 1);
+		screen_width = config->GetInt("Width", 1280) * screen_scale;
+		screen_height = config->GetInt("Height", 1024) * screen_scale;
+
 		Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 
-		//Use OpenGL 2.1
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+		//Use OpenGL 3.2
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
-		if(WIN_FULLSCREEN == true)
-		{
+		fullscreen = config->GetBool("Fullscreen", false);
+		resizable = config->GetBool("Resizable", false);
+		borderless = config->GetBool("Borderless", false);
+		fullscreen_desktop = config->GetBool("Fullscreen Desktop", false);
+
+		if(fullscreen == true)
 			flags |= SDL_WINDOW_FULLSCREEN;
-		}
 
-		if(WIN_RESIZABLE == true)
-		{
+		if(resizable == true)
 			flags |= SDL_WINDOW_RESIZABLE;
-		}
 
-		if(WIN_BORDERLESS == true)
-		{
+		if(borderless == true)
 			flags |= SDL_WINDOW_BORDERLESS;
-		}
 
-		if(WIN_FULLSCREEN_DESKTOP == true)
-		{
+		if(fullscreen_desktop == true)
 			flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-		}
 
-		window = SDL_CreateWindow(TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
+		window = SDL_CreateWindow(App->GetAppName(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, flags);
 
 		if(window == nullptr)
 		{
@@ -89,4 +89,24 @@ bool ModuleWindow::CleanUp()
 void ModuleWindow::SetTitle(const char* title)
 {
 	SDL_SetWindowTitle(window, title);
+}
+
+SDL_Window * ModuleWindow::GetWindow() const
+{
+	return window;
+}
+
+uint ModuleWindow::GetHeigth() const
+{
+	return screen_height;
+}
+
+uint ModuleWindow::GetScale() const
+{
+	return screen_scale;
+}
+
+uint ModuleWindow::GetWidth() const
+{
+	return screen_width;
 }

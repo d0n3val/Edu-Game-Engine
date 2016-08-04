@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleInput.h"
+#include "ModuleWindow.h"
 #include "ModuleEditor.h"
 #include "SDL/include/SDL.h"
 
@@ -52,12 +53,12 @@ update_status ModuleInput::PreUpdate(float dt)
 			if (keyboard[i] == KEY_IDLE)
 			{
 				keyboard[i] = KEY_DOWN;
-				App->editor->LogKeyboardInput(i, KEY_DOWN);
+				App->editor->LogInputEvent(i, KEY_DOWN);
 			}
 			else if(keyboard[i] != KEY_REPEAT)
 			{
 				
-				App->editor->LogKeyboardInput(i, KEY_REPEAT);
+				App->editor->LogInputEvent(i, KEY_REPEAT);
 				keyboard[i] = KEY_REPEAT;
 			}
 		}
@@ -66,7 +67,7 @@ update_status ModuleInput::PreUpdate(float dt)
 			if (keyboard[i] == KEY_REPEAT || keyboard[i] == KEY_DOWN)
 			{
 				keyboard[i] = KEY_UP;
-				App->editor->LogKeyboardInput(i, KEY_UP);
+				App->editor->LogInputEvent(i, KEY_UP);
 			}
 			else
 				keyboard[i] = KEY_IDLE;
@@ -77,15 +78,15 @@ update_status ModuleInput::PreUpdate(float dt)
 	{
 		if (mouse_buttons[i] == KEY_DOWN)
 		{
-			App->editor->LogKeyboardInput(1000 + i, KEY_DOWN);
-			App->editor->LogKeyboardInput(1000 + i, KEY_REPEAT);
+			App->editor->LogInputEvent(1000 + i, KEY_DOWN);
+			App->editor->LogInputEvent(1000 + i, KEY_REPEAT);
 			mouse_buttons[i] = KEY_REPEAT;
 		}
 
 		if (mouse_buttons[i] == KEY_UP)
 		{
 			mouse_buttons[i] = KEY_IDLE;
-			App->editor->LogKeyboardInput(1000 + i, KEY_UP);
+			App->editor->LogInputEvent(1000 + i, KEY_UP);
 		}
 	}
 
@@ -129,10 +130,10 @@ update_status ModuleInput::PreUpdate(float dt)
 			break;
 
 			case SDL_MOUSEMOTION:
-				mouse_motion.x = event.motion.xrel / SCREEN_SIZE;
-				mouse_motion.y = event.motion.yrel / SCREEN_SIZE;
-				mouse.x = event.motion.x / SCREEN_SIZE;
-				mouse.y = event.motion.y / SCREEN_SIZE;
+				mouse_motion.x = event.motion.xrel / App->window->GetScale();
+				mouse_motion.y = event.motion.yrel / App->window->GetScale();
+				mouse.x = event.motion.x / App->window->GetScale();
+				mouse.y = event.motion.y / App->window->GetScale();
 			break;
 			
 			case SDL_MOUSEWHEEL:

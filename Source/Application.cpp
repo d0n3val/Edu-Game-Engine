@@ -51,6 +51,7 @@ void Application::ReadConfiguration(const Config& config)
 {
 	app_name = config.GetString("Name", "Edu Engine");
 	organization_name = config.GetString("Organization", "UPC CITM");
+	SetFramerateLimit(config.GetInt("MaxFramerate", 0));
 }
 
 // ---------------------------------------------
@@ -130,15 +131,11 @@ void Application::FinishUpdate()
 	last_frame_ms = ms_timer.Read();
 
 	// cap fps
-	if(last_frame_ms < capped_ms)
-	{
+	if(capped_ms > 0 && (last_frame_ms < capped_ms))
 		SDL_Delay(capped_ms - last_frame_ms);
-	}
 
-	char t[150];
-	sprintf_s(t, "%s FPS: %d Camera: %0.1f,%0.1f,%0.1f", app_name.c_str(), (int)last_fps,
-		camera->Position.x, camera->Position.y, camera->Position.z);
-	window->SetTitle(t);
+	// notify the editor
+	editor->LogFPS((float) last_fps, (float) last_frame_ms);
 }
 
 // ---------------------------------------------
@@ -165,6 +162,24 @@ const char* Application::GetAppName() const
 const char* Application::GetOrganizationName() const
 {
 	return organization_name.c_str();
+}
+
+// ---------------------------------------------
+uint Application::GetFramerateLimit() const
+{
+	if(capped_ms > 0)
+		return (uint) ((1.0f/(float)capped_ms) * 1000.0f);
+	else
+		return 0;
+}
+
+// ---------------------------------------------
+void Application::SetFramerateLimit(uint max_framerate)
+{				  
+	if (max_framerate > 0)
+		capped_ms = 1000 / max_framerate;
+	else
+		capped_ms = 0;
 }
 
 // ---------------------------------------------

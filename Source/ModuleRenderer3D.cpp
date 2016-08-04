@@ -7,6 +7,7 @@
 #include "ModuleEditor.h"
 #include "OpenGL.h"
 #include "Primitive.h"
+#include "Config.h"
 
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
@@ -27,7 +28,7 @@ bool ModuleRenderer3D::Init(Config* config)
 	bool ret = true;
 	
 	//Create context
-	context = SDL_GL_CreateContext(App->window->window);
+	context = SDL_GL_CreateContext(App->window->GetWindow());
 	if(context == nullptr)
 	{
 		LOG("OpenGL context could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -52,7 +53,8 @@ bool ModuleRenderer3D::Init(Config* config)
 		LOG("OpenGL version supported %s", glGetString(GL_VERSION));
 
 		//Use Vsync
-		if(VSYNC && SDL_GL_SetSwapInterval(1) < 0)
+		bool vsync = config->GetBool("Vertical Sync", false);
+		if(SDL_GL_SetSwapInterval(vsync ? 1 : 0) < 0)
 			LOG("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
 
 		//Initialize Projection Matrix
@@ -119,7 +121,7 @@ bool ModuleRenderer3D::Init(Config* config)
 	}
 
 	// Projection matrix for
-	OnResize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	OnResize(App->window->GetWidth(), App->window->GetHeigth());
 	
 	App->camera->Look(vec3(1.75f, 1.75f, 5.0f), vec3(0.0f, 0.0f, 0.0f));
 
@@ -161,7 +163,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	App->scene->Draw();
 	App->editor->Draw();
 
-	SDL_GL_SwapWindow(App->window->window);
+	SDL_GL_SwapWindow(App->window->GetWindow());
 	return UPDATE_CONTINUE;
 }
 

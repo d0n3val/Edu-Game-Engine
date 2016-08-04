@@ -62,6 +62,8 @@ public:
 	bool CleanUp();
 	const char* GetAppName() const;
 	const char* GetOrganizationName() const;
+	uint GetFramerateLimit() const;
+	void SetFramerateLimit(uint max_framerate);
 	void Log(const char* entry);
 
 private:

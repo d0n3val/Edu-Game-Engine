@@ -85,7 +85,7 @@ int main(int argc, char ** argv)
 		}
 	}
 
-	LOG("Exiting game '%s'...\n", TITLE);
+	LOG("Exiting engine ...\n");
 	RELEASE(App);
 	return main_return;
 }
