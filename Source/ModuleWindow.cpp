@@ -106,6 +106,12 @@ uint ModuleWindow::GetScale() const
 	return screen_scale;
 }
 
+void ModuleWindow::OnResize(int width, int height)
+{
+	screen_width = width;
+	screen_height = height;
+}
+
 uint ModuleWindow::GetWidth() const
 {
 	return screen_width;

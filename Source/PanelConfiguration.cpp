@@ -33,6 +33,9 @@ void PanelConfiguration::Draw()
 
 	DrawApplication();
 
+	if (InitModuleDraw(App->window))
+		DrawModuleWindow(App->window);
+
 	if (InitModuleDraw(App->audio))
 		DrawModuleAudio(App->audio);
 
@@ -147,6 +150,10 @@ void PanelConfiguration::DrawModuleInput(ModuleInput * module)
         ImGui::SetScrollHere(1.0f);
     need_scroll = false;
 	ImGui::EndChild();
+}
+
+void PanelConfiguration::DrawModuleWindow(ModuleWindow * module)
+{
 }
 
 void PanelConfiguration::AddInput(const char * entry)

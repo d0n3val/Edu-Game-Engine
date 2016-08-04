@@ -191,3 +191,9 @@ void Application::Log(const char * entry)
 	// send to editor console
 	editor->Log(entry);
 }
+
+void Application::OnResize(uint width, uint height)
+{
+	window->OnResize(width, height);
+	renderer3D->OnResize(width, height);
+}

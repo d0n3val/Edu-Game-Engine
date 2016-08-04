@@ -34,6 +34,7 @@ public:
 	void DrawModuleAudio(ModuleAudio * module);
 	void DrawModuleFileSystem(ModuleFileSystem * module);
 	void DrawModuleInput(ModuleInput * module);
+	void DrawModuleWindow(ModuleWindow * module);
 	void AddInput(const char* entry);
 	void AddFPS(float fps, float ms);
 

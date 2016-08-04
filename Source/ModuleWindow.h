@@ -26,6 +26,7 @@ public:
 	uint GetWidth() const;
 	uint GetHeigth() const;
 	uint GetScale() const;
+	void OnResize(int width, int height);
 
 private:
 	//The window we'll be rendering to

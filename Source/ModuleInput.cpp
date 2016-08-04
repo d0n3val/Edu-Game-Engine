@@ -118,6 +118,12 @@ update_status ModuleInput::PreUpdate(float dt)
 					case SDL_WINDOWEVENT_RESTORED:
 					windowEvents[WE_SHOW] = true;
 					break;
+
+
+					case SDL_WINDOWEVENT_RESIZED:
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
+						App->OnResize(event.window.data1, event.window.data2);
+						break;
 				}
 			break;
 

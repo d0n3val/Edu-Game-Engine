@@ -12,7 +12,7 @@
 		"Width" : 1280,
 		"Height" : 1024,
 		"Fullscreen" : false,
-		"Resizable" : false,
+		"Resizable" : true,
 		"Borderless" : false,
 		"Fullscreen Desktop" : false
 	},

@@ -65,6 +65,7 @@ public:
 	uint GetFramerateLimit() const;
 	void SetFramerateLimit(uint max_framerate);
 	void Log(const char* entry);
+	void OnResize(uint width, uint height);
 
 private:
 
