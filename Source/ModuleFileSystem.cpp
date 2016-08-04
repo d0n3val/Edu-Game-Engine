@@ -7,7 +7,7 @@
 
 #pragma comment( lib, "PhysFS/libx86/physfs.lib" )
 
-ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("filesystem", true)
+ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("File System", true)
 {
 	// needs to be created before Init so other modules can use it
 	char* base_path = SDL_GetBasePath();
@@ -21,10 +21,8 @@ ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("filesystem",
 		AddPath(game_path);
 
 	// Dump list of paths
-	char **i;
-	LOG("FileSystem Operations base is [%s] plus:", PHYSFS_getBaseDir());
-	for (i = PHYSFS_getSearchPath(); *i != nullptr; i++)
-		LOG("> %s", *i);
+	LOG("FileSystem Operations base is [%s] plus:", GetBasePath());
+	LOG(GetReadPaths());
 
 	// Generate IO interfaces
 	CreateAssimpIO();
@@ -182,6 +180,32 @@ uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int s
 		LOG("File System error while opening file %s: %s", file, PHYSFS_getLastError());
 
 	return ret;
+}
+
+const char * ModuleFileSystem::GetBasePath() const
+{
+	return PHYSFS_getBaseDir();
+}
+
+const char * ModuleFileSystem::GetWritePath() const
+{
+	return PHYSFS_getWriteDir();
+}
+
+const char * ModuleFileSystem::GetReadPaths() const
+{
+	static char paths[512];
+
+	paths[0] = '\0';
+
+	char **path;
+	for (path = PHYSFS_getSearchPath(); *path != nullptr; path++)
+	{
+		strcat_s(paths, 512, *path);
+		strcat_s(paths, 512, "\n");
+	}
+
+	return paths;
 }
 
 // -----------------------------------------------------

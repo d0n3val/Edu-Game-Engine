@@ -44,6 +44,12 @@ void ComponentAudioSource::Unload()
 	}
 }
 
+void ComponentAudioSource::OnDeActivate()
+{
+	if (IsPlaying() == true)
+		Stop();
+}
+
 bool ComponentAudioSource::Play()
 {
 	bool ret = false;

@@ -4,7 +4,7 @@
 // ---------------------------------------------------------
 ComponentAudioListener::ComponentAudioListener(GameObject* container) : Component(container)
 {
-	type = ComponentTypes::Geometry;
+	type = ComponentTypes::AudioListener;
 }
 
 // ---------------------------------------------------------

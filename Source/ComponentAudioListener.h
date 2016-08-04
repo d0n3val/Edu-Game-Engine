@@ -20,9 +20,9 @@ public:
 
 public:
 
-	float distf; // use meters as default
-	float rollf; // How fast sound quietens with distance, 1.0 real worl, max 10.0
-	float doppf; // Doppler 1.0 real world, max 10.0
+	float distance = 100.0f; // use meters as default
+	float roll_off = 1.0f; // How fast sound quietens with distance, 1.0 real worl, max 10.0
+	float doppler = 1.0f; // Doppler 1.0 real world, max 10.0
 };
 
 #endif // __COMPONENT_AUDIOLISTENER_H__

@@ -49,15 +49,25 @@ update_status ModuleInput::PreUpdate(float dt)
 	{
 		if(keys[i] == 1)
 		{
-			if(keyboard[i] == KEY_IDLE)
+			if (keyboard[i] == KEY_IDLE)
+			{
 				keyboard[i] = KEY_DOWN;
-			else
+				App->editor->LogKeyboardInput(i, KEY_DOWN);
+			}
+			else if(keyboard[i] != KEY_REPEAT)
+			{
+				
+				App->editor->LogKeyboardInput(i, KEY_REPEAT);
 				keyboard[i] = KEY_REPEAT;
+			}
 		}
 		else
 		{
-			if(keyboard[i] == KEY_REPEAT || keyboard[i] == KEY_DOWN)
+			if (keyboard[i] == KEY_REPEAT || keyboard[i] == KEY_DOWN)
+			{
 				keyboard[i] = KEY_UP;
+				App->editor->LogKeyboardInput(i, KEY_UP);
+			}
 			else
 				keyboard[i] = KEY_IDLE;
 		}
@@ -65,12 +75,21 @@ update_status ModuleInput::PreUpdate(float dt)
 
 	for(int i = 0; i < NUM_MOUSE_BUTTONS; ++i)
 	{
-		if(mouse_buttons[i] == KEY_DOWN)
+		if (mouse_buttons[i] == KEY_DOWN)
+		{
+			App->editor->LogKeyboardInput(1000 + i, KEY_DOWN);
+			App->editor->LogKeyboardInput(1000 + i, KEY_REPEAT);
 			mouse_buttons[i] = KEY_REPEAT;
+		}
 
-		if(mouse_buttons[i] == KEY_UP)
+		if (mouse_buttons[i] == KEY_UP)
+		{
 			mouse_buttons[i] = KEY_IDLE;
+			App->editor->LogKeyboardInput(1000 + i, KEY_UP);
+		}
 	}
+
+	mouse_wheel = 0;
 
 	while(SDL_PollEvent(&event) != 0)
 	{

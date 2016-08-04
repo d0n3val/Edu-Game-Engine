@@ -33,6 +33,14 @@ public:
 	const char* GetFile(uint id) const;
 	void Unload(ulong id);
 
+	float GetVolume() const;
+	float GetMusicVolume() const;
+	float GetFXVolume() const;
+
+	void SetVolume(float new_volume);
+	void SetMusicVolume(float new_music_volume);
+	void SetFXVolume(float new_fx_volume);
+
 private:
 
 	void UpdateAudio() const;
@@ -40,6 +48,11 @@ private:
 
 	void UpdateListener(ComponentAudioListener* listener) const;
 	void UpdateSource(ComponentAudioSource* source) const;
+
+private:
+	float volume = 1.0f;
+	float music_volume = 1.0f;
+	float fx_volume = 1.0f;
 };
 
 #endif // __MODULEAUDIO_H__

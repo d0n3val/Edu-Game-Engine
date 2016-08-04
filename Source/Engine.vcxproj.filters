@@ -456,6 +456,9 @@
     <ClInclude Include="MathGeoLib\include\Time\Clock.h">
       <Filter>3rd Party\mathgeo\src</Filter>
     </ClInclude>
+    <ClInclude Include="PanelConfiguration.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -661,6 +664,9 @@
     </ClCompile>
     <ClCompile Include="MathGeoLib\include\Time\Clock.cpp">
       <Filter>3rd Party\mathgeo\src</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelConfiguration.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

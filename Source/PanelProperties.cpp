@@ -102,8 +102,8 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 	if (ImGui::CollapsingHeader(name, ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		bool active = component->IsActive();
-		ImGui::Checkbox("Active", &active);
-		component->SetActive(active);
+		if(ImGui::Checkbox("Active", &active))
+			component->SetActive(active);
 		ret = true;
 	}
 
@@ -179,7 +179,9 @@ void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)
 
 void PanelProperties::DrawAudioListenerComponent(ComponentAudioListener * component)
 {
-
+	ImGui::DragFloat("Distance", (float*)&component->distance, 0.1f, 0.1f, 10000.0f);
+	ImGui::SliderFloat("Roll Off", (float*)&component->roll_off, 0.0f, 10.0f);
+	ImGui::SliderFloat("Doppler", (float*)&component->doppler, 0.0f, 10.0f);
 }
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)

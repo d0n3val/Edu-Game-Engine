@@ -15,6 +15,7 @@
 #include "PanelConsole.h"
 #include "PanelGOTree.h"
 #include "PanelProperties.h"
+#include "PanelConfiguration.h"
 #include "PanelAbout.h"
 
 using namespace std;
@@ -39,6 +40,7 @@ bool ModuleEditor::Init(Config* config)
 	panels.push_back(console = new PanelConsole());
 	panels.push_back(tree = new PanelGOTree());
 	panels.push_back(props = new PanelProperties());
+	panels.push_back(conf = new PanelConfiguration());
 	panels.push_back(about = new PanelAbout());
 
 	return true;
@@ -76,6 +78,7 @@ update_status ModuleEditor::Update(float dt)
             ImGui::MenuItem("Console", "F1", &console->active);
             ImGui::MenuItem("Hierarchy", "F2", &tree->active);
             ImGui::MenuItem("Properties", "F3", &props->active);
+            ImGui::MenuItem("Configuration", "F4", &props->active);
 
 			ImGui::EndMenu();
 		}
@@ -157,4 +160,19 @@ void ModuleEditor::Log(const char * entry)
 {
 	if(console != nullptr)
 		console->AddLog(entry);
+}
+
+void ModuleEditor::LogKeyboardInput(uint key, uint state)
+{
+	static char entry[512];
+	static const char* states[] = { "IDLE", "DOWN", "REPEAT", "UP" };
+
+	if (conf != nullptr)
+	{
+		if(key < 1000)
+			sprintf_s(entry, 512, "Key: %s: %u\n", states[state], key);
+		else
+			sprintf_s(entry, 512, "Mouse: %s: %u\n", states[state], key - 1000);
+		conf->AddInput(entry);
+	}
 }

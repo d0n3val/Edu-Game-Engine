@@ -68,7 +68,7 @@ private:
 	KeyState	mouse_buttons[NUM_MOUSE_BUTTONS];
 	iPoint mouse_motion;
 	iPoint mouse;
-	int mouse_wheel;
+	int mouse_wheel = 0;
 };
 
 #endif // __MODULEINPUT_H__

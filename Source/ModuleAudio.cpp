@@ -93,16 +93,9 @@ bool ModuleAudio::Init(Config* config)
 	// Settings
 	if (config != nullptr && config->IsValid() == true)
 	{
-		float volume = config->GetFloat("Volume", 1.0f);
-		BASS_SetVolume(volume);
-
-		float music_volume = config->GetFloat("Music_Volume", 1.0f);
-		BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, (DWORD) (music_volume * 10000.0f));
-
-		float fx_volume = config->GetFloat("Fx_Volume", 1.0f);
-		BASS_SetConfig(BASS_CONFIG_GVOL_SAMPLE, (DWORD) (fx_volume * 10000.0f));
-
-		//PlayMusic(config->GetString("StartMusic", ""), 10.0f);
+		SetVolume(config->GetFloat("Volume", 1.0f));
+		SetMusicVolume(config->GetFloat("Music_Volume", 1.0f));
+		SetFXVolume(config->GetFloat("Fx_Volume", 1.0f));
 	}
 
 	return ret;
@@ -111,7 +104,7 @@ bool ModuleAudio::Init(Config* config)
 bool ModuleAudio::Start(Config * config)
 {
 	
-	GameObject* go = App->scene->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Sound");
+	GameObject* go = App->scene->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Audio");
 	ComponentAudioSource* s = (ComponentAudioSource*) go->CreateComponent(ComponentTypes::AudioSource);
 	s->LoadFile("Assets/audio/music/music_sadpiano.ogg");
 	//s->Play();
@@ -119,6 +112,9 @@ bool ModuleAudio::Start(Config * config)
 	s->is_2d = false;
 	s->min_distance = 0.f;
 	s->max_distance = 5.0f;
+
+	ComponentAudioListener* l = (ComponentAudioListener*)go->CreateComponent(ComponentTypes::AudioListener);
+	l->distance = 10.0f;
 
 	return true;
 }
@@ -216,22 +212,63 @@ void ModuleAudio::Unload(ulong id)
 	}
 }
 
+float ModuleAudio::GetVolume() const
+{
+	return volume;
+}
+
+float ModuleAudio::GetMusicVolume() const
+{
+	return music_volume;
+}
+
+float ModuleAudio::GetFXVolume() const
+{
+	return fx_volume;
+}
+
+void ModuleAudio::SetVolume(float new_volume)
+{
+	volume = new_volume;
+	CAP(volume);
+	BASS_SetVolume(volume);
+}
+
+void ModuleAudio::SetMusicVolume(float new_music_volume)
+{
+	music_volume = new_music_volume;
+	CAP(music_volume);
+	BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, (DWORD) (music_volume * 10000.0f));
+}
+
+void ModuleAudio::SetFXVolume(float new_fx_volume)
+{
+	fx_volume = new_fx_volume;
+	CAP(fx_volume);
+	BASS_SetConfig(BASS_CONFIG_GVOL_SAMPLE, (DWORD) (fx_volume * 10000.0f));
+}
+
 void ModuleAudio::UpdateAudio()	const
 {
 	RecursiveUpdateAudio(App->scene->GetRoot());
 
+	/*
 	// While in debug, make the debug camera the listener
 	BASS_Set3DPosition(
 		(BASS_3DVECTOR*)&App->camera->Position, // position
 		nullptr, // speed
 		(BASS_3DVECTOR*)&App->camera->Z, // front
 		(BASS_3DVECTOR*)&App->camera->Y); // up
+	*/
 }
 
 void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
 {
 	for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
+		if ((*it)->IsActive() == false)
+			continue;
+
 		switch((*it)->GetType())
 		{
 			case ComponentTypes::AudioListener:
@@ -252,7 +289,7 @@ void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
 void ModuleAudio::UpdateListener(ComponentAudioListener * listener) const
 {
 	// Setup 3D factors
-	BASS_Set3DFactors(listener->distf, listener->rollf, listener->doppf);
+	BASS_Set3DFactors(listener->distance, listener->roll_off, listener->doppler);
 
 	// Update position and orientation
 	const GameObject* go = listener->GetGameObject();

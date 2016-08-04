@@ -26,26 +26,20 @@ public:
 		return name;
 	}
 
-	bool IsEnabled() const
+	bool IsActive() const
 	{
 		return enabled;
 	}
 
-	void Enable()
+	void SetActive(bool active)
 	{
-		if(enabled == false)
+		if (enabled != active)
 		{
-			enabled = true;
-			Start();
-		}
-	}
-
-	void Disable()
-	{
-		if(enabled == true)
-		{
-			enabled = false;
-			CleanUp();
+			enabled = active;
+			if (active == true)
+				Start();
+			else
+				CleanUp();
 		}
 	}
 

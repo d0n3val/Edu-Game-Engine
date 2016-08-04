@@ -76,7 +76,7 @@ bool Application::Init()
 	// we send the configuration again in case a module needs it
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
-		if((*it)->IsEnabled() == true)
+		if((*it)->IsActive() == true)
 			ret = (*it)->Start(config.IsValid() ? &(config.GetSection((*it)->GetName())) : nullptr); 
 	}
 
@@ -98,15 +98,15 @@ update_status Application::Update()
 	PrepareUpdate();
 
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret == UPDATE_CONTINUE; ++it)
-		if((*it)->IsEnabled() == true) 
+		if((*it)->IsActive() == true) 
 			ret = (*it)->PreUpdate(dt);
 
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret == UPDATE_CONTINUE; ++it)
-		if((*it)->IsEnabled() == true) 
+		if((*it)->IsActive() == true) 
 			ret = (*it)->Update(dt);
 
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret == UPDATE_CONTINUE; ++it)
-		if((*it)->IsEnabled() == true) 
+		if((*it)->IsActive() == true) 
 			ret = (*it)->PostUpdate(dt);
 
 	FinishUpdate();
@@ -149,7 +149,7 @@ bool Application::CleanUp()
 	fs->Save("Engine.log", log.c_str(), log.size());
 
 	for(list<Module*>::reverse_iterator it = modules.rbegin(); it != modules.rend() && ret; ++it)
-		if((*it)->IsEnabled() == true) 
+		if((*it)->IsActive() == true) 
 			ret = (*it)->CleanUp();
 
 	return ret;

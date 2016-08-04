@@ -10,6 +10,7 @@ class Panel;
 class PanelConsole;
 class PanelGOTree;
 class PanelProperties;
+class PanelConfiguration;
 class PanelAbout;
 
 class ModuleEditor : public Module
@@ -28,16 +29,17 @@ public:
 	void Draw();
 	bool UsingInput() const;
 	void Log(const char* entry);
+	void LogKeyboardInput(uint key, uint state);
 
 public:
 	PanelConsole* console = nullptr;
 	PanelGOTree* tree = nullptr;
 	PanelProperties* props = nullptr;
 	PanelAbout* about = nullptr;
+	PanelConfiguration* conf = nullptr;
 
 private:
 	std::vector<Panel *> panels;
-
 };
 
 #endif // __MODULEEDITOR_H__

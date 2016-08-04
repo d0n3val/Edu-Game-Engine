@@ -46,9 +46,9 @@ private:
 	int		last_fps;
 	int		capped_ms;
 
-	std::list<Module*> modules;
 	std::string app_name;
 	std::string organization_name;
+	std::list<Module*> modules;
 
 public:
 

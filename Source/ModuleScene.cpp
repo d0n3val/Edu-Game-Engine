@@ -207,6 +207,9 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
+		if ((*it)->IsActive() == false)
+			continue;
+
 		if ((*it)->GetType() == ComponentTypes::Material)
 		{
 			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
@@ -216,6 +219,9 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
+		if ((*it)->IsActive() == false)
+			continue;
+
 		if ((*it)->GetType() == ComponentTypes::Geometry)
 		{
 			ComponentMesh* cmesh = (ComponentMesh*) (*it);

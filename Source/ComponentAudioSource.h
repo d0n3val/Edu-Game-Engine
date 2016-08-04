@@ -17,6 +17,8 @@ public:
 	const char* GetFile() const;
 	void Unload();
 
+	void OnDeActivate() override;
+
 	bool Play();
 	bool Pause();
 	bool UnPause();
