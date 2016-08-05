@@ -25,8 +25,13 @@ public:
 
 	uint GetWidth() const;
 	uint GetHeigth() const;
-	uint GetScale() const;
 	void OnResize(int width, int height);
+	void SetDefaultIcon();
+
+	bool IsFullscreen() const;
+	bool IsResizable() const;
+	bool IsBorderless() const;
+	bool IsFullscreenDesktop() const;
 
 private:
 	//The window we'll be rendering to
@@ -35,14 +40,12 @@ private:
 	//The surface contained by the window
 	SDL_Surface* screen_surface = nullptr;
 
-	uint screen_scale = 1;
 	uint screen_width = 1280;
 	uint screen_height = 1024;
 	bool fullscreen = false;
 	bool resizable = false;
 	bool borderless = false;
 	bool fullscreen_desktop = false;
-	bool vsync = false;
 
 };
 

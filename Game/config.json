@@ -8,11 +8,10 @@
 	},
 
 	"Window" : {
-		"Scale" : 1,
 		"Width" : 1280,
 		"Height" : 1024,
 		"Fullscreen" : false,
-		"Resizable" : true,
+		"Resizable" : false,
 		"Borderless" : false,
 		"Fullscreen Desktop" : false
 	},

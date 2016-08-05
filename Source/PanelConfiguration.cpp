@@ -154,6 +154,21 @@ void PanelConfiguration::DrawModuleInput(ModuleInput * module)
 
 void PanelConfiguration::DrawModuleWindow(ModuleWindow * module)
 {
+	ImGui::Text("Window Size:");
+	ImGui::SameLine();
+	ImGui::TextColored(IMGUI_YELLOW, "%i,%i", App->window->GetWidth(), App->window->GetHeigth());
+
+	bool fullscreen = App->window->IsFullscreen();
+	bool resizable = App->window->IsResizable();
+	bool borderless = App->window->IsBorderless();
+	bool full_desktop = App->window->IsFullscreenDesktop();
+
+	ImGui::Checkbox("Fullscreen", &fullscreen);
+	ImGui::SameLine();
+	ImGui::Checkbox("Resizable", &resizable);
+	ImGui::Checkbox("Borderless", &borderless);
+	ImGui::SameLine();
+	ImGui::Checkbox("Full Desktop", &full_desktop);
 }
 
 void PanelConfiguration::AddInput(const char * entry)

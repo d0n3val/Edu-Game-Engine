@@ -24,6 +24,9 @@ public:
 
 	void OnResize(int width, int height);
 
+	bool GetVSync() const;
+	void SetVSync(bool vsync);
+
 public:
 
 	Light lights[MAX_LIGHTS];
@@ -31,6 +34,7 @@ public:
 	mat3x3 NormalMatrix;
 	mat4x4 ModelMatrix, ViewMatrix, ProjectionMatrix;
 	DDRenderInterfaceLegacyGL* debug_draw_interface = nullptr;
+	bool vsync = false;
 };
 
 #endif // __MODULE_RENDERER_3D_H__

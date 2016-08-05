@@ -53,9 +53,7 @@ bool ModuleRenderer3D::Init(Config* config)
 		LOG("OpenGL version supported %s", glGetString(GL_VERSION));
 
 		//Use Vsync
-		bool vsync = config->GetBool("Vertical Sync", false);
-		if(SDL_GL_SetSwapInterval(vsync ? 1 : 0) < 0)
-			LOG("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
+		SetVSync(config->GetBool("Vertical Sync", false));
 
 		//Initialize Projection Matrix
 		glMatrixMode(GL_PROJECTION);
@@ -189,4 +187,19 @@ void ModuleRenderer3D::OnResize(int width, int height)
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+}
+
+bool ModuleRenderer3D::GetVSync() const
+{
+	return vsync;
+}
+
+void ModuleRenderer3D::SetVSync(bool vsync)
+{
+	if (this->vsync != vsync)
+	{
+		this->vsync = vsync;
+		if(SDL_GL_SetSwapInterval(vsync ? 1 : 0) < 0)
+			LOG("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
+	}
 }

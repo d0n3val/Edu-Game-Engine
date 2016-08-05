@@ -136,10 +136,10 @@ update_status ModuleInput::PreUpdate(float dt)
 			break;
 
 			case SDL_MOUSEMOTION:
-				mouse_motion.x = event.motion.xrel / App->window->GetScale();
-				mouse_motion.y = event.motion.yrel / App->window->GetScale();
-				mouse.x = event.motion.x / App->window->GetScale();
-				mouse.y = event.motion.y / App->window->GetScale();
+				mouse_motion.x = event.motion.xrel;
+				mouse_motion.y = event.motion.yrel;
+				mouse.x = event.motion.x;
+				mouse.y = event.motion.y;
 			break;
 			
 			case SDL_MOUSEWHEEL:
