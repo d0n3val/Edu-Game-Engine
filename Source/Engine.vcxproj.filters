@@ -459,6 +459,9 @@
     <ClInclude Include="PanelConfiguration.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="DebugDraw.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -667,6 +670,9 @@
     </ClCompile>
     <ClCompile Include="PanelConfiguration.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDraw.cpp">
+      <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

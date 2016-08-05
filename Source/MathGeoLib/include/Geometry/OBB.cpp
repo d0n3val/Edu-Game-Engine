@@ -807,7 +807,8 @@ void OBB::Triangulate(int x, int y, int z, float3 *outPos, float3 *outNormal, fl
 	float3x4 localToWorld = LocalToWorld();
 	assume(localToWorld.HasUnitaryScale()); // Transforming of normals will fail otherwise.
 	localToWorld.BatchTransformPos(outPos, NumVerticesInTriangulation(x,y,z), sizeof(float3));
-	localToWorld.BatchTransformDir(outNormal, NumVerticesInTriangulation(x,y,z), sizeof(float3));
+	if(outNormal != nullptr)
+		localToWorld.BatchTransformDir(outNormal, NumVerticesInTriangulation(x,y,z), sizeof(float3));
 }
 
 void OBB::ToEdgeList(float3 *outPos) const

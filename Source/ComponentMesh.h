@@ -15,11 +15,11 @@ public:
 
 	void SetMesh(const Mesh* data);
 	const Mesh* GetMesh() const;
-	const AABB* GetBoundingBox() const;
+	const AABB& GetBoundingBox() const;
 
 private:
 	const Mesh* mesh_data = nullptr;
-	math::AABB	bounding_box;
+	AABB bbox;
 };
 
 #endif // __COMPONENT_MESH_H__

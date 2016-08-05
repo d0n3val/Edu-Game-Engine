@@ -26,6 +26,7 @@ void Primitive::Render() const
 		// Draw Axis Grid
 		glLineWidth(2.0f);
 
+		glDisable(GL_DEPTH_TEST);
 		glBegin(GL_LINES);
 
 		glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
@@ -49,6 +50,7 @@ void Primitive::Render() const
 		glVertex3f(-0.05f, -0.1f, 1.05f); glVertex3f(0.05f, -0.1f, 1.05f);
 
 		glEnd();
+		glEnable(GL_DEPTH_TEST);
 
 		glLineWidth(1.0f);
 	}
@@ -163,20 +165,20 @@ void Cube::InnerRender() const
 }
 
 // SPHERE ============================================
-Sphere::Sphere() : Primitive(), radius(1.0f)
+PSphere::PSphere() : Primitive(), radius(1.0f)
 {
 	type = PrimitiveTypes::Primitive_Sphere;
 }
 
-Sphere::Sphere(float radius) : Primitive(), radius(radius)
+PSphere::PSphere(float radius) : Primitive(), radius(radius)
 {
 	type = PrimitiveTypes::Primitive_Sphere;
 }
 
-void Sphere::InnerRender() const
+void PSphere::InnerRender() const
 {
-	int stacks = 50;
-	int slices = 50;
+	int stacks = 10;
+	int slices = 10;
 
     int i,j;
     for (j = 0; j < stacks; j++) {

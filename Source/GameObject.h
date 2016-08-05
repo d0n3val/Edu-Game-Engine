@@ -9,6 +9,7 @@ class Component;
 
 class GameObject
 {
+	friend class Component;
 public:
 	GameObject(const char* name);
 	GameObject(const char* name, const float3& translation, const float3& scale, const Quat& rotation );
@@ -33,6 +34,7 @@ public:
 	const float* GetOpenGLGlobalTranform() const;
 
 	void RecursiveCalcGlobalTransform(const float4x4& parent);
+	const AABB& RecursiveCalcBoundingBoxes();
 
 	bool IsActive() const;
 	void SetActive(bool active);
@@ -41,6 +43,8 @@ public:
 	std::string name;
 	std::list<GameObject*> childs;
 	std::list<Component*> components;
+	AABB local_bbox;
+	OBB global_bbox;
 
 private:
 	mutable bool trans_dirty = true;

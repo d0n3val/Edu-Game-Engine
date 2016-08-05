@@ -49,11 +49,11 @@ public:
 };
 
 // ============================================
-class Sphere : public Primitive
+class PSphere : public Primitive
 {
 public:
-	Sphere();
-	Sphere(float radius);
+	PSphere();
+	PSphere(float radius);
 	void InnerRender() const;
 public:
 	float radius;

@@ -91,7 +91,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cube& cube, float mass)
 }
 
 // ---------------------------------------------------------
-PhysBody3D* ModulePhysics3D::AddBody(const Sphere& sphere, float mass)
+PhysBody3D* ModulePhysics3D::AddBody(const PSphere& sphere, float mass)
 {
 	btCollisionShape* colShape = new btSphereShape(sphere.radius);
 	shapes.push_back(colShape);
@@ -358,7 +358,7 @@ update_status ModulePhysics3D::Update(float dt)
 		// drop some primitives on 1,2,3
 		if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
 		{
-			Sphere s(1);
+			PSphere s(1);
 			s.SetPos(App->camera->Position.x, App->camera->Position.y, App->camera->Position.z);
 			App->physics3D->AddBody(s);
 		}

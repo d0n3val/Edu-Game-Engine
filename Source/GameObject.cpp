@@ -10,12 +10,14 @@ using namespace std;
 
 // ---------------------------------------------------------
 GameObject::GameObject(const char* name) : name(name)
-{}
+{
+}
 
 // ---------------------------------------------------------
 GameObject::GameObject(const char * name, const float3 & translation, const float3 & scale, const Quat & rotation) :
 	name(name), translation(translation), scale(scale), rotation(rotation)
-{}
+{
+}
 
 // ---------------------------------------------------------
 GameObject::~GameObject()
@@ -137,6 +139,38 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent)
 
 	for(list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
 		(*it)->RecursiveCalcGlobalTransform(transform_global);
+}
+
+// ---------------------------------------------------------
+const AABB& GameObject::RecursiveCalcBoundingBoxes()
+{
+	// Iterate all components and generate an ABB enclosing everything in local_bbox
+	local_bbox.SetNegativeInfinity();
+
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+	{
+		if ((*it)->GetType() == ComponentTypes::Geometry) {
+			AABB comp_box = ((ComponentMesh*)(*it))->GetBoundingBox();
+			if (comp_box.IsFinite())
+				local_bbox.Enclose(comp_box);
+		}
+	}
+
+	// Now generate a OBB global_bbox with world coordinates
+	global_bbox = local_bbox;
+
+	if (global_bbox.IsFinite() == true)
+		global_bbox.Transform(GetGlobalTransformation());
+
+	for (list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
+	{
+		(*it)->RecursiveCalcBoundingBoxes();
+		//const AABB& box = (*it)->RecursiveCalcBoundingBoxes();
+		//if (box.IsFinite() == true)
+		//	bounding_box.Enclose(box);
+	}
+
+	return local_bbox;
 }
 
 // ---------------------------------------------------------

@@ -61,6 +61,7 @@ update_status ModuleScene::PreUpdate(float dt)
 {
 	// Update transformations tree for this frame
 	root->RecursiveCalcGlobalTransform(root->GetLocalTransform());
+	root->RecursiveCalcBoundingBoxes();
 
 	return UPDATE_CONTINUE;
 }
@@ -97,6 +98,9 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 
 	float4x4 m(rot, pos);
 	m.Scale(scale);
+
+	if (!m.HasUniformScale())
+		LOG("Mesh [%s] with non-uniform scale %0.3f,%0.3f,%0.3f ***************************", node->mName.C_Str(), scale.x, scale.y, scale.z);
 
 	//GameObject* go = CreateGameObject(parent, node->mTransformation, node->mName.C_Str());
 	GameObject* go = CreateGameObject(parent, pos, scale, rot, node->mName.C_Str());
@@ -252,17 +256,6 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
 			glDisableClientState(GL_NORMAL_ARRAY);
 			glDisableClientState(GL_VERTEX_ARRAY );
-
-			// Draw bounding box
-			const AABB* bbox = cmesh->GetBoundingBox();
-			float3 hsize = bbox->Size();
-			Cube c(hsize.x, hsize.y, hsize.z);
-			float3 center = bbox->CenterPoint() - go->GetLocalPosition();
-
-			c.SetPos(center.x, center.y, center.z);
-			c.wire = true;
-			c.axis = true;
-			c.Render();
 		}
 	}
 

@@ -6,6 +6,7 @@
 #include "ModuleScene.h"
 #include "ModuleInput.h"
 #include "GameObject.h"
+#include "DebugDraw.h"
 #include "Config.h"
 #include "Imgui/imgui.h"
 #include "Imgui/imgui_impl_sdl_gl3.h"
@@ -148,6 +149,22 @@ void ModuleEditor::HandleInput(SDL_Event* event)
 
 void ModuleEditor::Draw()
 {
+	// Debug Draw on selected GameObject
+	BeginDebugDraw();
+	if (props->selected != nullptr)
+	{
+		GameObject* go = props->selected;
+
+		if (go->global_bbox.IsFinite() == true)
+			DebugDraw(go->global_bbox, Green);
+	}
+
+	OBB test;
+	test.SetFrom(Sphere(float3(0, 10, 0), 5));
+	DebugDraw(test, Green);
+
+	EndDebugDraw();
+
 	ImGui::Render();
 }
 

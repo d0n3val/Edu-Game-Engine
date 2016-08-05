@@ -56,6 +56,16 @@ void PanelProperties::Draw()
 
 			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
 				selected->SetLocalScale(scale);
+
+			ImGui::Text("Bounding Box:");
+			ImGui::SameLine();
+			if (selected->local_bbox.IsFinite())
+			{
+				float3 size = selected->local_bbox.Size();
+				ImGui::TextColored(IMGUI_YELLOW, "%.2f, %.2f %.2f", size.x, size.y, size.x);
+			}
+			else
+				ImGui::TextColored(IMGUI_YELLOW, "- not generated -");
 		}
 
 		// Iterate all components and draw
