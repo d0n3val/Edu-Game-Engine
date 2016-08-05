@@ -8,6 +8,7 @@
 	},
 
 	"Window" : {
+		"Icon" : "Icons/edu.bmp",
 		"Width" : 1280,
 		"Height" : 1024,
 		"Fullscreen" : false,

@@ -17,6 +17,7 @@ public:
 	virtual ~ModuleWindow();
 
 	bool Init(Config* config = nullptr) override;
+	bool Start(Config* config = nullptr) override;
 	bool CleanUp() override;
 
 	void SetTitle(const char* title);
@@ -26,7 +27,6 @@ public:
 	uint GetWidth() const;
 	uint GetHeigth() const;
 	void OnResize(int width, int height);
-	void SetDefaultIcon();
 
 	bool IsFullscreen() const;
 	bool IsResizable() const;
