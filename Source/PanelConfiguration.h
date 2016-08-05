@@ -35,6 +35,7 @@ public:
 	void DrawModuleFileSystem(ModuleFileSystem * module);
 	void DrawModuleInput(ModuleInput * module);
 	void DrawModuleWindow(ModuleWindow * module);
+	void DrawModuleRenderer(ModuleRenderer3D * module);
 	void AddInput(const char* entry);
 	void AddFPS(float fps, float ms);
 

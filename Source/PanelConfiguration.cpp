@@ -36,6 +36,9 @@ void PanelConfiguration::Draw()
 	if (InitModuleDraw(App->window))
 		DrawModuleWindow(App->window);
 
+	if (InitModuleDraw(App->renderer3D))
+		DrawModuleRenderer(App->renderer3D);
+
 	if (InitModuleDraw(App->audio))
 		DrawModuleAudio(App->audio);
 
@@ -169,6 +172,13 @@ void PanelConfiguration::DrawModuleWindow(ModuleWindow * module)
 	ImGui::Checkbox("Borderless", &borderless);
 	ImGui::SameLine();
 	ImGui::Checkbox("Full Desktop", &full_desktop);
+}
+
+void PanelConfiguration::DrawModuleRenderer(ModuleRenderer3D * module)
+{
+	bool vsync = App->renderer3D->GetVSync();
+	if (ImGui::Checkbox("Vertical Sync", &vsync))
+		App->renderer3D->SetVSync(vsync);
 }
 
 void PanelConfiguration::AddInput(const char * entry)
