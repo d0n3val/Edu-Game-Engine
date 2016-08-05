@@ -9,5 +9,6 @@ void EndDebugDraw();
 
 void DebugDraw(const AABB& aabb, Color color = White);
 void DebugDraw(const OBB& obb, Color color = White);
+void DebugDraw(const float4x4& transform);
 
 #endif // __DEBUGDRAW_H__

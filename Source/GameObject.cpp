@@ -142,7 +142,7 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent)
 }
 
 // ---------------------------------------------------------
-const AABB& GameObject::RecursiveCalcBoundingBoxes()
+const OBB& GameObject::RecursiveCalcBoundingBoxes()
 {
 	// Iterate all components and generate an ABB enclosing everything in local_bbox
 	local_bbox.SetNegativeInfinity();
@@ -162,15 +162,25 @@ const AABB& GameObject::RecursiveCalcBoundingBoxes()
 	if (global_bbox.IsFinite() == true)
 		global_bbox.Transform(GetGlobalTransformation());
 
+	// Enclose all childs in a AABB with world coordinates
+	AABB tmp;
+	tmp.SetNegativeInfinity();
+
 	for (list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
 	{
-		(*it)->RecursiveCalcBoundingBoxes();
-		//const AABB& box = (*it)->RecursiveCalcBoundingBoxes();
-		//if (box.IsFinite() == true)
-		//	bounding_box.Enclose(box);
+		const OBB& box = (*it)->RecursiveCalcBoundingBoxes();
+		if (box.IsFinite() == true)
+			tmp.Enclose(box);
 	}
 
-	return local_bbox;
+	// If we did not have a bbox so far, create an OBB with all childs
+	// No transformation since we already used world coordinates
+	if (global_bbox.IsFinite() == false)
+		global_bbox.SetFrom(tmp);
+
+	// TODO: game objects that have mesh components AND childs with bbox
+
+	return global_bbox;
 }
 
 // ---------------------------------------------------------

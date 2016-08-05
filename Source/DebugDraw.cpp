@@ -25,77 +25,15 @@ void EndDebugDraw()
 // ------------------------------------------------------------
 void DebugDraw(const AABB & aabb, Color color)
 {
-	float3 pos = aabb.CenterPoint();
-	glColor3f(color.r, color.g, color.b);
-
-	float3 size = aabb.HalfSize();
-	float sx = size.x;
-	float sy = size.y;
-	float sz = size.z;
-
-	glBegin(GL_QUADS);
-
-	glNormal3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(-sx, -sy, sz);
-	glVertex3f( sx, -sy, sz);
-	glVertex3f( sx,  sy, sz);
-	glVertex3f(-sx,  sy, sz);
-
-	glNormal3f(0.0f, 0.0f, -1.0f);
-	glVertex3f( sx, -sy, -sz);
-	glVertex3f(-sx, -sy, -sz);
-	glVertex3f(-sx,  sy, -sz);
-	glVertex3f( sx,  sy, -sz);
-
-	glNormal3f(1.0f, 0.0f, 0.0f);
-	glVertex3f(sx, -sy,  sz);
-	glVertex3f(sx, -sy, -sz);
-	glVertex3f(sx,  sy, -sz);
-	glVertex3f(sx,  sy,  sz);
-
-	glNormal3f(-1.0f, 0.0f, 0.0f);
-	glVertex3f(-sx, -sy, -sz);
-	glVertex3f(-sx, -sy,  sz);
-	glVertex3f(-sx,  sy,  sz);
-	glVertex3f(-sx,  sy, -sz);
-
-	glNormal3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(-sx, sy,  sz);
-	glVertex3f( sx, sy,  sz);
-	glVertex3f( sx, sy, -sz);
-	glVertex3f(-sx, sy, -sz);
-
-	glNormal3f(0.0f, -1.0f, 0.0f);
-	glVertex3f(-sx, -sy, -sz);
-	glVertex3f( sx, -sy, -sz);
-	glVertex3f( sx, -sy,  sz);
-	glVertex3f(-sx, -sy,  sz);
-
-	glEnd();
+	DebugDraw(OBB(aabb), color);
 }
 
+// ------------------------------------------------------------
 void DebugDraw(const OBB & obb, Color color)
 {
-	float3 pos = obb.CenterPoint();
 	glColor3f(color.r, color.g, color.b);
 
-	float3 vertex[36];
-	obb.Triangulate(1, 1, 1, vertex, nullptr, nullptr, true);
-
-	/*
-	glBegin(GL_TRIANGLES);
-
-	for (int i = 0; i < 36; ++i)
-		glVertex3fv((GLfloat *) &vertex[i]);
-
-	glEnd();
-	  */
-
-	/* The points are returned in the order 
-	0: ---, 1: --+, 2: -+-, 3: -++, 4: +--, 5: +-+, 6: ++-, 7: +++.
-	*/
-
-	float3 corners[8];
+	static float3 corners[8];
 	obb.GetCornerPoints(corners);
 
 	glBegin(GL_QUADS);
@@ -131,4 +69,44 @@ void DebugDraw(const OBB & obb, Color color)
 	glVertex3fv((GLfloat*) &corners[1]); //glVertex3f(-sx, -sy,  sz);
 
 	glEnd();
+}
+
+// Draw Axis
+void DebugDraw(const float4x4 & transform)
+{
+	static float4x4 m;
+	
+	m = transform.Transposed();
+
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) m.v);
+	glLineWidth(2.0f);
+
+	glDisable(GL_DEPTH_TEST);
+	glBegin(GL_LINES);
+
+	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+
+	glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(1.0f, 0.1f, 0.0f); glVertex3f(1.1f, -0.1f, 0.0f);
+	glVertex3f(1.1f, 0.1f, 0.0f); glVertex3f(1.0f, -0.1f, 0.0f);
+
+	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+
+	glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(-0.05f, 1.25f, 0.0f); glVertex3f(0.0f, 1.15f, 0.0f);
+	glVertex3f(0.05f, 1.25f, 0.0f); glVertex3f(0.0f, 1.15f, 0.0f);
+	glVertex3f(0.0f, 1.15f, 0.0f); glVertex3f(0.0f, 1.05f, 0.0f);
+
+	glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+
+	glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(-0.05f, 0.1f, 1.05f); glVertex3f(0.05f, 0.1f, 1.05f);
+	glVertex3f(0.05f, 0.1f, 1.05f); glVertex3f(-0.05f, -0.1f, 1.05f);
+	glVertex3f(-0.05f, -0.1f, 1.05f); glVertex3f(0.05f, -0.1f, 1.05f);
+
+	glEnd();
+	glEnable(GL_DEPTH_TEST);
+	glLineWidth(1.0f);
+	glPopMatrix();
 }

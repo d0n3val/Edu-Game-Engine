@@ -34,7 +34,7 @@ public:
 	const float* GetOpenGLGlobalTranform() const;
 
 	void RecursiveCalcGlobalTransform(const float4x4& parent);
-	const AABB& RecursiveCalcBoundingBoxes();
+	const OBB& RecursiveCalcBoundingBoxes();
 
 	bool IsActive() const;
 	void SetActive(bool active);

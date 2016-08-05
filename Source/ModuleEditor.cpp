@@ -155,13 +155,11 @@ void ModuleEditor::Draw()
 	{
 		GameObject* go = props->selected;
 
-		if (go->global_bbox.IsFinite() == true)
+		DebugDraw(go->GetGlobalTransformation());
+
+		if (go->global_bbox.IsFinite() == true) 
 			DebugDraw(go->global_bbox, Green);
 	}
-
-	OBB test;
-	test.SetFrom(Sphere(float3(0, 10, 0), 5));
-	DebugDraw(test, Green);
 
 	EndDebugDraw();
 

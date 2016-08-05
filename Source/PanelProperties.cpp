@@ -59,7 +59,7 @@ void PanelProperties::Draw()
 
 			ImGui::Text("Bounding Box:");
 			ImGui::SameLine();
-			if (selected->local_bbox.IsFinite())
+			if (selected->global_bbox.IsFinite())
 			{
 				float3 size = selected->local_bbox.Size();
 				ImGui::TextColored(IMGUI_YELLOW, "%.2f, %.2f %.2f", size.x, size.y, size.x);

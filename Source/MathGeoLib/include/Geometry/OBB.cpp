@@ -797,7 +797,7 @@ void OBB::Enclose(const float3 &point)
 		}
 	}
 	// Should now contain the point.
-	assume(Distance(point) <= 1e-3f);
+	//assume(Distance(point) <= 1e-3f);
 }
 
 void OBB::Triangulate(int x, int y, int z, float3 *outPos, float3 *outNormal, float2 *outUV, bool ccwIsFrontFacing) const
