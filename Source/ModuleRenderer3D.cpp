@@ -99,7 +99,7 @@ bool ModuleRenderer3D::Init(Config* config)
 		lights[0].ref = GL_LIGHT0;
 		lights[0].ambient.Set(0.25f, 0.25f, 0.25f, 1.0f);
 		lights[0].diffuse.Set(0.75f, 0.75f, 0.75f, 1.0f);
-		lights[0].SetPos(0.0f, 0.0f, 2.5f);
+		lights[0].position = float3::zero;
 		lights[0].Init();
 		
 		GLfloat MaterialAmbient[] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -121,7 +121,7 @@ bool ModuleRenderer3D::Init(Config* config)
 	// Projection matrix for
 	OnResize(App->window->GetWidth(), App->window->GetHeigth());
 	
-	App->camera->Look(vec3(1.75f, 1.75f, 5.0f), vec3(0.0f, 0.0f, 0.0f));
+	App->camera->Look(float3::zero);
 
 	return ret;
 }
@@ -137,7 +137,7 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	glLoadMatrixf(App->camera->GetOpenGLViewMatrix());
 
 	// light 0 on cam pos
-	lights[0].SetPos(App->camera->Position.x, App->camera->Position.y, App->camera->Position.z);
+	lights[0].position = App->camera->GetPosition();
 
 	for(uint i = 0; i < MAX_LIGHTS; ++i)
 		lights[i].Render();

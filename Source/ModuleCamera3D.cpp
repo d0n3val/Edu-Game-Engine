@@ -1,6 +1,5 @@
 #include "Globals.h"
 #include "Application.h"
-#include "PhysBody3D.h"
 #include "ModuleCamera3D.h"
 #include "ModuleEditor.h"
 #include "ModuleInput.h"
@@ -8,15 +7,6 @@
 
 ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module("Camera", start_enabled)
 {
-	CalculateViewMatrix();
-
-	X = vec3(1.0f, 0.0f, 0.0f);
-	Y = vec3(0.0f, 1.0f, 0.0f);
-	Z = vec3(0.0f, 0.0f, 1.0f);
-
-	Position = vec3(0.0f, 0.0f, 5.0f);
-	Reference = vec3(0.0f, 0.0f, 0.0f);
-	reference = float3::zero;
 }
 
 ModuleCamera3D::~ModuleCamera3D()
@@ -25,18 +15,18 @@ ModuleCamera3D::~ModuleCamera3D()
 // -----------------------------------------------------------------
 bool ModuleCamera3D::Init(Config* config)
 {
-	// More about FOV: http://twgljs.org/examples/fov-checker.html
 
 	float aspect_ratio = (float) App->window->GetWidth() / (float) App->window->GetHeigth();
 	float fov = 60.f; // degrees
 
 	frustum.type = FrustumType::OrthographicFrustum;
-	frustum.pos = float3(0.f, 0.0f, 0.0f);
+	frustum.pos = float3(-10.f, 5.0f, 3.0f);
 	frustum.front = float3(0.f, 0.f, 1.f);
 	frustum.up = float3(0.f, 1.f, 0.f);
 	frustum.nearPlaneDistance = 1.0f;
 	frustum.farPlaneDistance = 5000.0f;
 	frustum.verticalFov = DEGTORAD * fov;
+	// More about FOV: http://twgljs.org/examples/fov-checker.html
 	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
 	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
 
@@ -66,64 +56,32 @@ bool ModuleCamera3D::CleanUp()
 // -----------------------------------------------------------------
 update_status ModuleCamera3D::Update(float dt)
 {
-	// Follow code
-	if(following != nullptr)
-	{
-		mat4x4 m;
-		following->GetTransform(&m);
-
-		Look(Position, m.translation(), true);
-
-		// Correct height
-		Position.y = (15.0f*Position.y + Position.y + following_height) / 16.0f;
-
-		// Correct distance
-		vec3 cam_to_target = m.translation() - Position;
-		float dist = length(cam_to_target);
-		float correctionFactor = 0.f;
-		if(dist < min_following_dist)
-		{
-			correctionFactor = 0.15f*(min_following_dist - dist) / dist;
-		}
-		if(dist > max_following_dist)
-		{
-			correctionFactor = 0.15f*(max_following_dist - dist) / dist;
-		}
-		Position -= correctionFactor * cam_to_target;
-	}
-
-	// Implement a debug camera with keys and mouse
+	// Ignore camera movement if we are using the editor
 	if (App->editor->UsingInput() == true)
 		return UPDATE_CONTINUE;
 
 	// OnKeys WASD keys -----------------------------------
-	float Speed = 5.0f;
+	float speed = 5.0f;
 
-	if(App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) Speed *= 5.0f;
-	if(App->input->GetKey(SDL_SCANCODE_LALT) == KEY_REPEAT) Speed *= 0.5f;
+	if(App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) speed *= 5.0f;
+	if(App->input->GetKey(SDL_SCANCODE_LALT) == KEY_REPEAT) speed *= 0.5f;
 
-	float Distance = Speed * dt;
+	float3 right(frustum.WorldRight());
+	float3 forward(frustum.front);
 
-	float3 Up(0.f, 1.f, 0.f);
-	float3 Right(frustum.WorldRight());
-	float3 Forward(frustum.front);
+	float3 movement(float3::zero);
 
-	Up *= Distance;
-	Right *= Distance;
-	Forward *= Distance;
+	if(App->input->GetKey(SDL_SCANCODE_W) == KEY_REPEAT) movement += forward;
+	if(App->input->GetKey(SDL_SCANCODE_S) == KEY_REPEAT) movement -= forward;
+	if(App->input->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) movement -= right;
+	if(App->input->GetKey(SDL_SCANCODE_D) == KEY_REPEAT) movement += right;
+	if(App->input->GetKey(SDL_SCANCODE_R) == KEY_REPEAT) movement += float3::unitY;
+	if(App->input->GetKey(SDL_SCANCODE_F) == KEY_REPEAT) movement -= float3::unitY;
 
-	float3 Movement(float3::zero);
+	frustum.Translate(movement * (speed * dt));
 
-	if(App->input->GetKey(SDL_SCANCODE_W) == KEY_REPEAT) Movement += Forward;
-	if(App->input->GetKey(SDL_SCANCODE_S) == KEY_REPEAT) Movement -= Forward;
-	if(App->input->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) Movement -= Right;
-	if(App->input->GetKey(SDL_SCANCODE_D) == KEY_REPEAT) Movement += Right;
-	if(App->input->GetKey(SDL_SCANCODE_R) == KEY_REPEAT) Movement += Up;
-	if(App->input->GetKey(SDL_SCANCODE_F) == KEY_REPEAT) Movement -= Up;
-
-	frustum.pos += Movement;
-	//Position += Movement;
-	//Reference += Movement;
+	// look test
+	if (App->input->GetKey(SDL_SCANCODE_X) == KEY_DOWN) Look(float3::zero);
 	
 	// Mouse motion ----------------
 
@@ -134,72 +92,42 @@ update_status ModuleCamera3D::Update(float dt)
 		float dx = (float)-motion.x * sensitivity;
 		float dy = (float)-motion.y * sensitivity;
 
-		if(dx != 0.f)
-			frustum.Transform(Quat(float3::unitY, dx));
+		// x motion make the camera rotate in Y absolute axis (0,1,0) (not local)
+		if (dx != 0.f)
+		{
+			Quat q = Quat::RotateY(dx);
+			frustum.front = q.Mul(frustum.front).Normalized();
+			// would not need this is we were rotating in the local Y, but that is too disorienting
+			frustum.up = q.Mul(frustum.up).Normalized(); 
+		}
 
-		if (dy != 0.f) {
-			//frustum.Transform(Quat(frustum.WorldRight(), dy));
-			LOG("%.2f, %.2f,%.2f", frustum.WorldRight().x, frustum.WorldRight().y, frustum.WorldRight().z);
+		// y motion makes the camera rotate in X local axis 
+		if (dy != 0.f)
+		{
+			Quat q = Quat::RotateAxisAngle(frustum.WorldRight(), dy);
+
+			frustum.up = q.Mul(frustum.up).Normalized();
+			frustum.front = q.Mul(frustum.front).Normalized();
 		}
 	}
-
-	// Mouse wheel -----------------------
-	 /*
-	float zDelta = (float) App->input->GetMouseWheel();
-
-	Position -= Reference;
-
-	if(zDelta < 0 && length(Position) < 500.0f)
-	{
-		Position += Position * 0.1f;
-	}
-
-	if(zDelta > 0 && length(Position) > 0.05f)
-	{
-		Position -= Position * 0.1f;
-	}
-
-	Position += Reference;
-	*/
-
-	// Recalculate matrix -------------
-	CalculateViewMatrix();
 
 	return UPDATE_CONTINUE;
 }
 
-// -----------------------------------------------------------------
-void ModuleCamera3D::Look(const vec3 &Position, const vec3 &Reference, bool RotateAroundReference)
+float3 ModuleCamera3D::GetPosition() const
 {
-	this->Position = Position;
-	this->Reference = Reference;
-
-	Z = normalize(Position - Reference);
-	X = normalize(cross(vec3(0.0f, 1.0f, 0.0f), Z));
-	Y = cross(Z, X);
-
-	if(!RotateAroundReference)
-	{
-		this->Reference = this->Position;
-		this->Position += Z * 0.05f;
-	}
-
-	CalculateViewMatrix();
+	return frustum.pos;
 }
 
 // -----------------------------------------------------------------
-void ModuleCamera3D::Move(const vec3 &Movement)
+void ModuleCamera3D::Look(const float3& position)
 {
-	Position += Movement;
-	Reference += Movement;
+	float3 dir = position - frustum.pos;
 
-	CalculateViewMatrix();
-}
+	float3x3 m = float3x3::LookAt(frustum.front, dir.Normalized(), frustum.up, float3::unitY);
 
-// -----------------------------------------------------------------
-float* ModuleCamera3D::GetViewMatrix()
-{
-	return &ViewMatrix;
+	frustum.front = m.MulDir(frustum.front).Normalized();
+	frustum.up = m.MulDir(frustum.up).Normalized();
 }
 
 // -----------------------------------------------------------------
@@ -213,6 +141,7 @@ float * ModuleCamera3D::GetOpenGLViewMatrix()
 	return (float*) m.v;
 }
 
+// -----------------------------------------------------------------
 float * ModuleCamera3D::GetOpenGLProjectionMatrix()
 {
 	static float4x4 m;
@@ -221,26 +150,4 @@ float * ModuleCamera3D::GetOpenGLProjectionMatrix()
 	m.Transpose();
 
 	return (float*) m.v;
-}
-
-// -----------------------------------------------------------------
-void ModuleCamera3D::CalculateViewMatrix()
-{
-	ViewMatrix = mat4x4(X.x, Y.x, Z.x, 0.0f, X.y, Y.y, Z.y, 0.0f, X.z, Y.z, Z.z, 0.0f, -dot(X, Position), -dot(Y, Position), -dot(Z, Position), 1.0f);
-	//ViewMatrixInverse = inverse(ViewMatrix);
-}
-
-// -----------------------------------------------------------------
-void ModuleCamera3D::Follow(PhysBody3D* body, float min, float max, float height)
-{
-	min_following_dist = min;
-	max_following_dist = max;
-	following_height = height;
-	following = body;
-}
-
-// -----------------------------------------------------------------
-void ModuleCamera3D::UnFollow()
-{
-	following = nullptr;
 }

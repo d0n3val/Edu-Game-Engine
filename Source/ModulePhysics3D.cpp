@@ -356,24 +356,25 @@ update_status ModulePhysics3D::Update(float dt)
 			(*it)->Render();
 
 		// drop some primitives on 1,2,3
+		float3 pos = App->camera->GetPosition();
 		if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
 		{
 			PSphere s(1);
-			s.SetPos(App->camera->Position.x, App->camera->Position.y, App->camera->Position.z);
+			s.SetPos(pos.x, pos.y, pos.z);
 			App->physics3D->AddBody(s);
 		}
 
 		if(App->input->GetKey(SDL_SCANCODE_2) == KEY_DOWN)
 		{
 			Cube c(1, 1, 1);
-			c.SetPos(App->camera->Position.x, App->camera->Position.y, App->camera->Position.z);
+			c.SetPos(pos.x, pos.y, pos.z);
 			App->physics3D->AddBody(c);
 		}
 
 		if(App->input->GetKey(SDL_SCANCODE_3) == KEY_DOWN)
 		{
 			PCylinder c(0.5, 1);
-			c.SetPos(App->camera->Position.x, App->camera->Position.y, App->camera->Position.z);
+			c.SetPos(pos.x, pos.y, pos.z);
 			App->physics3D->AddBody(c);
 		}
 	}
