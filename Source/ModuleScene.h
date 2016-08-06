@@ -19,6 +19,7 @@ public:
 	~ModuleScene();
 
 	bool Init(Config* config = nullptr) override;
+	bool Start(Config* config = nullptr) override;
 	update_status PreUpdate(float dt) override;
 	bool CleanUp() override;
 

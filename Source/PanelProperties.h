@@ -10,6 +10,7 @@ class ComponentMesh;
 class ComponentAudioSource;
 class ComponentAudioListener;
 class ComponentMaterial;
+class ComponentCamera;
 
 class PanelProperties : public Panel
 {
@@ -24,6 +25,7 @@ public:
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
+	void DrawCameraComponent(ComponentCamera * component);
 
 
 public:

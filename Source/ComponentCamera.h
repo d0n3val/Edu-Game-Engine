@@ -12,8 +12,19 @@ public:
 	ComponentCamera (GameObject* container);
 	~ComponentCamera ();
 
-	void Setup(float near_dist, float far_dist, float fov_degrees, float aspect_ratio);
-	void UpdateTransformation();
+	void OnDebugDraw() const override;
+	void OnUpdateTransform() override;
+
+	float GetNearPlaneDist() const;
+	float GetFarPlaneDist() const;
+	float GetFOV() const;
+	float GetAspectRatio() const;
+
+	void SetNearPlaneDist(float dist);
+	void SetFarPlaneDist(float dist);
+	void SetFOV(float dist);
+	void SetAspectRatio(float dist);
+
 
 	void Look(const float3& position);
 

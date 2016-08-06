@@ -25,55 +25,25 @@ void EndDebugDraw()
 // ------------------------------------------------------------
 void DebugDraw(const AABB & aabb, Color color)
 {
-	DebugDraw(OBB(aabb), color);
+	static float3 corners[8];
+	aabb.GetCornerPoints(corners);
+
+	DebugDrawBox(corners, color);
 }
 
 // ------------------------------------------------------------
 void DebugDraw(const OBB & obb, Color color)
 {
-	glColor3f(color.r, color.g, color.b);
-
 	static float3 corners[8];
 	obb.GetCornerPoints(corners);
 
-	glBegin(GL_QUADS);
-
-	glVertex3fv((GLfloat*) &corners[1]); //glVertex3f(-sx, -sy, sz);
-	glVertex3fv((GLfloat*) &corners[5]); //glVertex3f( sx, -sy, sz);
-	glVertex3fv((GLfloat*) &corners[7]); //glVertex3f( sx,  sy, sz);
-	glVertex3fv((GLfloat*) &corners[3]); //glVertex3f(-sx,  sy, sz);
-
-	glVertex3fv((GLfloat*) &corners[4]); //glVertex3f( sx, -sy, -sz);
-	glVertex3fv((GLfloat*) &corners[0]); //glVertex3f(-sx, -sy, -sz);
-	glVertex3fv((GLfloat*) &corners[2]); //glVertex3f(-sx,  sy, -sz);
-	glVertex3fv((GLfloat*) &corners[6]); //glVertex3f( sx,  sy, -sz);
-
-	glVertex3fv((GLfloat*) &corners[5]); //glVertex3f(sx, -sy,  sz);
-	glVertex3fv((GLfloat*) &corners[4]); //glVertex3f(sx, -sy, -sz);
-	glVertex3fv((GLfloat*) &corners[6]); //glVertex3f(sx,  sy, -sz);
-	glVertex3fv((GLfloat*) &corners[7]); //glVertex3f(sx,  sy,  sz);
-
-	glVertex3fv((GLfloat*) &corners[0]); //glVertex3f(-sx, -sy, -sz);
-	glVertex3fv((GLfloat*) &corners[1]); //glVertex3f(-sx, -sy,  sz);
-	glVertex3fv((GLfloat*) &corners[3]); //glVertex3f(-sx,  sy,  sz);
-	glVertex3fv((GLfloat*) &corners[2]); //glVertex3f(-sx,  sy, -sz);
-
-	glVertex3fv((GLfloat*) &corners[3]); //glVertex3f(-sx, sy,  sz);
-	glVertex3fv((GLfloat*) &corners[7]); //glVertex3f( sx, sy,  sz);
-	glVertex3fv((GLfloat*) &corners[6]); //glVertex3f( sx, sy, -sz);
-	glVertex3fv((GLfloat*) &corners[2]); //glVertex3f(-sx, sy, -sz);
-
-	glVertex3fv((GLfloat*) &corners[0]); //glVertex3f(-sx, -sy, -sz);
-	glVertex3fv((GLfloat*) &corners[4]); //glVertex3f( sx, -sy, -sz);
-	glVertex3fv((GLfloat*) &corners[5]); //glVertex3f( sx, -sy,  sz);
-	glVertex3fv((GLfloat*) &corners[1]); //glVertex3f(-sx, -sy,  sz);
-
-	glEnd();
+	DebugDrawBox(corners, color);
 }
 
 // Draw Axis
 void DebugDraw(const float4x4 & transform)
 {
+	// scale based on distance to keep same screen space ?
 	static float4x4 m;
 	
 	m = transform.Transposed();
@@ -109,4 +79,51 @@ void DebugDraw(const float4x4 & transform)
 	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 	glPopMatrix();
+}
+
+void DebugDraw(const Frustum & frustum, Color color)
+{
+	float3 vertices[8];
+	frustum.GetCornerPoints(vertices);
+
+	DebugDrawBox(vertices, color);
+}
+
+void DebugDrawBox(const float3* corners, Color color)
+{
+	glColor3f(color.r, color.g, color.b);
+
+	glBegin(GL_QUADS);
+
+	glVertex3fv((GLfloat*) &corners[1]); //glVertex3f(-sx, -sy, sz);
+	glVertex3fv((GLfloat*) &corners[5]); //glVertex3f( sx, -sy, sz);
+	glVertex3fv((GLfloat*) &corners[7]); //glVertex3f( sx,  sy, sz);
+	glVertex3fv((GLfloat*) &corners[3]); //glVertex3f(-sx,  sy, sz);
+
+	glVertex3fv((GLfloat*) &corners[4]); //glVertex3f( sx, -sy, -sz);
+	glVertex3fv((GLfloat*) &corners[0]); //glVertex3f(-sx, -sy, -sz);
+	glVertex3fv((GLfloat*) &corners[2]); //glVertex3f(-sx,  sy, -sz);
+	glVertex3fv((GLfloat*) &corners[6]); //glVertex3f( sx,  sy, -sz);
+
+	glVertex3fv((GLfloat*) &corners[5]); //glVertex3f(sx, -sy,  sz);
+	glVertex3fv((GLfloat*) &corners[4]); //glVertex3f(sx, -sy, -sz);
+	glVertex3fv((GLfloat*) &corners[6]); //glVertex3f(sx,  sy, -sz);
+	glVertex3fv((GLfloat*) &corners[7]); //glVertex3f(sx,  sy,  sz);
+
+	glVertex3fv((GLfloat*) &corners[0]); //glVertex3f(-sx, -sy, -sz);
+	glVertex3fv((GLfloat*) &corners[1]); //glVertex3f(-sx, -sy,  sz);
+	glVertex3fv((GLfloat*) &corners[3]); //glVertex3f(-sx,  sy,  sz);
+	glVertex3fv((GLfloat*) &corners[2]); //glVertex3f(-sx,  sy, -sz);
+
+	glVertex3fv((GLfloat*) &corners[3]); //glVertex3f(-sx, sy,  sz);
+	glVertex3fv((GLfloat*) &corners[7]); //glVertex3f( sx, sy,  sz);
+	glVertex3fv((GLfloat*) &corners[6]); //glVertex3f( sx, sy, -sz);
+	glVertex3fv((GLfloat*) &corners[2]); //glVertex3f(-sx, sy, -sz);
+
+	glVertex3fv((GLfloat*) &corners[0]); //glVertex3f(-sx, -sy, -sz);
+	glVertex3fv((GLfloat*) &corners[4]); //glVertex3f( sx, -sy, -sz);
+	glVertex3fv((GLfloat*) &corners[5]); //glVertex3f( sx, -sy,  sz);
+	glVertex3fv((GLfloat*) &corners[1]); //glVertex3f(-sx, -sy,  sz);
+
+	glEnd();
 }

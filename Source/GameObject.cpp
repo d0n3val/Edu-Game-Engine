@@ -5,6 +5,8 @@
 #include "ComponentAudioListener.h"
 #include "ComponentAudioSource.h"
 #include "ComponentMesh.h"
+#include "ComponentCamera.h"
+#include "DebugDraw.h"
 
 using namespace std;
 
@@ -55,6 +57,9 @@ Component* GameObject::CreateComponent(ComponentTypes type)
 		case ComponentTypes::AudioSource:
 			ret = new ComponentAudioSource(this);
 		break;
+		case ComponentTypes::Camera:
+			ret = new ComponentCamera(this);
+		break;
 	}
 
 	if (ret != nullptr)
@@ -91,21 +96,21 @@ float3 GameObject::GetLocalScale() const
 void GameObject::SetLocalRotation(const float3& XYZ_euler_rotation)
 {
 	rotation = Quat::FromEulerXYZ(XYZ_euler_rotation.x, XYZ_euler_rotation.y, XYZ_euler_rotation.z);
-	trans_dirty = true;
+	local_trans_dirty = true;
 }
 
 // ---------------------------------------------------------
 void GameObject::SetLocalScale(const float3 & scale)
 {
 	this->scale = scale;
-	trans_dirty = true;
+	local_trans_dirty = true;
 }
 
 // ---------------------------------------------------------
 void GameObject::SetLocalPosition(const float3 & position)
 {
 	translation = position;
-	trans_dirty = true;
+	local_trans_dirty = true;
 }
 
 // ---------------------------------------------------------
@@ -117,10 +122,10 @@ const float4x4& GameObject::GetGlobalTransformation() const
 // ---------------------------------------------------------
 const float4x4& GameObject::GetLocalTransform() const
 {
-	if (trans_dirty == true)
+	if (local_trans_dirty == true)
 	{
+		local_trans_dirty = false;
 		transform_cache = float4x4::FromTRS(translation, rotation, scale);
-		trans_dirty = false;
 	}
 
 	return transform_cache;
@@ -133,52 +138,70 @@ const float* GameObject::GetOpenGLGlobalTranform() const
 }
 
 // ---------------------------------------------------------
-void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent)
+void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force_recalc)
 {
-	transform_global = parent * GetLocalTransform();
+	if (local_trans_dirty == true || force_recalc)
+	{
+		force_recalc = true;
+		was_dirty = true;
+		transform_global = parent * GetLocalTransform();
+		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+			(*it)->OnUpdateTransform();
+	}
+	else
+		was_dirty = false;
 
 	for(list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
-		(*it)->RecursiveCalcGlobalTransform(transform_global);
+		(*it)->RecursiveCalcGlobalTransform(transform_global, force_recalc);
 }
 
 // ---------------------------------------------------------
-const OBB& GameObject::RecursiveCalcBoundingBoxes()
+// TODO: game objects that have mesh components AND childs with bbox
+const OBB& GameObject::RecursiveCalcBoundingBoxes(bool& needs_recalc)
 {
-	// Iterate all components and generate an ABB enclosing everything in local_bbox
-	local_bbox.SetNegativeInfinity();
-
-	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
-	{
-		if ((*it)->GetType() == ComponentTypes::Geometry) {
-			AABB comp_box = ((ComponentMesh*)(*it))->GetBoundingBox();
-			if (comp_box.IsFinite())
-				local_bbox.Enclose(comp_box);
-		}
-	}
-
-	// Now generate a OBB global_bbox with world coordinates
-	global_bbox = local_bbox;
-
-	if (global_bbox.IsFinite() == true)
-		global_bbox.Transform(GetGlobalTransformation());
-
 	// Enclose all childs in a AABB with world coordinates
 	AABB tmp;
 	tmp.SetNegativeInfinity();
 
+	bool did_change = false;
+	calculated_bbox = false;
+
 	for (list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
 	{
-		const OBB& box = (*it)->RecursiveCalcBoundingBoxes();
+		const OBB& box = (*it)->RecursiveCalcBoundingBoxes(did_change);
+		if (did_change == true)
+			calculated_bbox = true;
 		if (box.IsFinite() == true)
 			tmp.Enclose(box);
 	}
 
-	// If we did not have a bbox so far, create an OBB with all childs
-	// No transformation since we already used world coordinates
-	if (global_bbox.IsFinite() == false)
-		global_bbox.SetFrom(tmp);
+	if (was_dirty == true || calculated_bbox == true)
+	{
+		needs_recalc = true;
 
-	// TODO: game objects that have mesh components AND childs with bbox
+		// Iterate all components and generate an ABB enclosing everything in local_bbox
+		local_bbox.SetNegativeInfinity();
+
+		for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		{
+			if ((*it)->GetType() == ComponentTypes::Geometry) {
+				AABB comp_box = ((ComponentMesh*)(*it))->GetBoundingBox();
+				if (comp_box.IsFinite())
+					local_bbox.Enclose(comp_box);
+			}
+		}
+
+		// Now generate a OBB global_bbox with world coordinates
+		global_bbox = local_bbox;
+
+		if (global_bbox.IsFinite() == true)
+			global_bbox.Transform(GetGlobalTransformation());
+
+		// If we did not have a bbox so far, create an OBB with all childs
+		// No transformation since we already used world coordinates
+		if (global_bbox.IsFinite() == false)
+			global_bbox.SetFrom(tmp);
+	}
 
 	return global_bbox;
 }
@@ -194,4 +217,27 @@ void GameObject::SetActive(bool active)
 {
 	if (this->active != active)
 		this->active = active;
+}
+
+// ---------------------------------------------------------
+void GameObject::OnDebugDraw() const
+{
+	DebugDraw(GetGlobalTransformation());
+
+	if (global_bbox.IsFinite() == true) 
+		DebugDraw(global_bbox, Green);
+
+	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnDebugDraw();
+}
+
+// ---------------------------------------------------------
+bool GameObject::WasDirty() const
+{
+	return was_dirty;
+}
+
+bool GameObject::WasBBoxDirty() const
+{
+	return calculated_bbox;
 }

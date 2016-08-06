@@ -2,38 +2,92 @@
 #include "ComponentCamera.h"
 #include "Application.h"
 #include "GameObject.h"
+#include "DebugDraw.h"
 
 // ---------------------------------------------------------
 ComponentCamera::ComponentCamera(GameObject* container) : Component(container)
 {
 	type = ComponentTypes::Camera;
 	frustum.type = FrustumType::PerspectiveFrustum;
+
+	frustum.nearPlaneDistance = 1.0f;
+	frustum.farPlaneDistance = 5000.0f;
+	frustum.verticalFov = DEGTORAD * 60.0f;
+	SetAspectRatio(1.3f);
 }
 
 // ---------------------------------------------------------
 ComponentCamera::~ComponentCamera()
 {}
 
-// ---------------------------------------------------------
-void ComponentCamera::Setup(float near_dist, float far_dist, float fov_degrees, float aspect_ratio)
+void ComponentCamera::OnDebugDraw() const
 {
-	frustum.nearPlaneDistance = near_dist;
-	frustum.farPlaneDistance = far_dist;
-
-	frustum.verticalFov = DEGTORAD * fov_degrees;
-	// More about FOV: http://twgljs.org/examples/fov-checker.html
-	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
-	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
+	DebugDraw(frustum, Yellow);
 }
 
 // -----------------------------------------------------------------
-void ComponentCamera::UpdateTransformation()
+void ComponentCamera::OnUpdateTransform()
 {
 	float4x4 trans = game_object->GetGlobalTransformation();
 
 	frustum.pos = trans.TranslatePart();
 	frustum.front = trans.WorldZ();
 	frustum.up = trans.WorldY();
+}
+
+// ---------------------------------------------------------
+float ComponentCamera::GetNearPlaneDist() const
+{
+	return frustum.nearPlaneDistance;
+}
+
+// ---------------------------------------------------------
+float ComponentCamera::GetFarPlaneDist() const
+{
+	return frustum.farPlaneDistance;
+}
+
+// ---------------------------------------------------------
+float ComponentCamera::GetFOV() const
+{
+	return frustum.verticalFov * RADTODEG;
+}
+
+// ---------------------------------------------------------
+float ComponentCamera::GetAspectRatio() const
+{
+	return frustum.AspectRatio();
+}
+
+// ---------------------------------------------------------
+void ComponentCamera::SetNearPlaneDist(float dist)
+{
+	if(dist > 0.0f && dist < frustum.farPlaneDistance)
+		frustum.nearPlaneDistance = dist;
+}
+
+// ---------------------------------------------------------
+void ComponentCamera::SetFarPlaneDist(float dist)
+{
+	if(dist > 0.0f && dist > frustum.nearPlaneDistance)
+		frustum.farPlaneDistance = dist;
+}
+
+// ---------------------------------------------------------
+void ComponentCamera::SetFOV(float fov)
+{
+	float aspect_ratio = frustum.AspectRatio();
+
+	frustum.verticalFov = DEGTORAD * fov;
+	SetAspectRatio(aspect_ratio);
+}
+
+// ---------------------------------------------------------
+void ComponentCamera::SetAspectRatio(float aspect_ratio)
+{
+	// More about FOV: http://twgljs.org/examples/fov-checker.html
+	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
+	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
 }
 
 // -----------------------------------------------------------------
@@ -68,3 +122,4 @@ float * ComponentCamera::GetOpenGLProjectionMatrix()
 
 	return (float*) m.v;
 }
+

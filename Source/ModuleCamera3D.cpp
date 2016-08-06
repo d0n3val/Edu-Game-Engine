@@ -4,6 +4,10 @@
 #include "ModuleEditor.h"
 #include "ModuleInput.h"
 #include "ModuleWindow.h"
+// delete --
+#include "ModuleScene.h"
+#include "GameObject.h"
+#include "ComponentCamera.h"
 
 ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module("Camera", start_enabled)
 {
@@ -29,9 +33,6 @@ bool ModuleCamera3D::Init(Config* config)
 	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
 	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
 
-	LOG("FOV X %0.1f FOV Y %0.1f", frustum.horizontalFov *RADTODEG, frustum.verticalFov * RADTODEG);
-	LOG("Aspect ratio: %0.3f vs %0.3f vs 0.3f", aspect_ratio, frustum.AspectRatio(), frustum.verticalFov / frustum.horizontalFov);
-
 	return true;
 }
 
@@ -40,6 +41,9 @@ bool ModuleCamera3D::Start(Config* config)
 {
 	LOG("Setting up the camera");
 	bool ret = true;
+
+	GameObject* go = App->scene->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Camera");
+	ComponentCamera* c = (ComponentCamera*) go->CreateComponent(ComponentTypes::Camera);
 
 	return ret;
 }
@@ -60,7 +64,7 @@ update_status ModuleCamera3D::Update(float dt)
 		return UPDATE_CONTINUE;
 
 	// OnKeys WASD keys -----------------------------------
-	float speed = 5.0f;
+	float speed = 15.0f;
 
 	if(App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) speed *= 5.0f;
 	if(App->input->GetKey(SDL_SCANCODE_LALT) == KEY_REPEAT) speed *= 0.5f;

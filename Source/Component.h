@@ -33,6 +33,10 @@ public:
 	virtual void OnUpdate() {};
 	virtual void OnFinish() {};
 
+	virtual void OnUpdateTransform() {};
+
+	virtual void OnDebugDraw() const {};
+
 protected:
 	ComponentTypes type = ComponentTypes::Invalid;
 	bool active = false;

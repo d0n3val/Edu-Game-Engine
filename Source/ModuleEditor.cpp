@@ -103,7 +103,7 @@ update_status ModuleEditor::Update(float dt)
 		ImGui::EndPopup();
 	}
 
-	// Console log
+	// Draw all active panels
 	for (vector<Panel*>::iterator it = panels.begin(); it != panels.end(); ++it)
 	{
 		Panel* panel = (*it);
@@ -151,17 +151,12 @@ void ModuleEditor::Draw()
 {
 	// Debug Draw on selected GameObject
 	BeginDebugDraw();
+
 	if (props->selected != nullptr)
-	{
-		GameObject* go = props->selected;
-
-		DebugDraw(go->GetGlobalTransformation());
-
-		if (go->global_bbox.IsFinite() == true) 
-			DebugDraw(go->global_bbox, Green);
-	}
+		props->selected->OnDebugDraw();
 
 	EndDebugDraw();
+
 
 	ImGui::Render();
 }

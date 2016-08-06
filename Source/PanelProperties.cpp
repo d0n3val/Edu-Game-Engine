@@ -6,7 +6,9 @@
 #include "ComponentMaterial.h"
 #include "ComponentAudioSource.h"
 #include "ComponentAudioListener.h"
+#include "ComponentCamera.h"
 #include "ModuleMeshes.h"
+#include "DebugDraw.h"
 #include <list>
 
 using namespace std;
@@ -57,6 +59,8 @@ void PanelProperties::Draw()
 			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
 				selected->SetLocalScale(scale);
 
+			DebugDraw(selected->GetGlobalTransformation());
+
 			ImGui::Text("Bounding Box:");
 			ImGui::SameLine();
 			if (selected->global_bbox.IsFinite())
@@ -92,6 +96,11 @@ void PanelProperties::Draw()
 				{
 					if(InitComponentDraw(*it, "Audio Listener"))
 						DrawAudioListenerComponent((ComponentAudioListener*)(*it));
+				}	break;
+				case ComponentTypes::Camera:
+				{
+					if(InitComponentDraw(*it, "Camera"))
+						DrawCameraComponent((ComponentCamera*)(*it));
 				}	break;
 				default:
 				{
@@ -192,6 +201,25 @@ void PanelProperties::DrawAudioListenerComponent(ComponentAudioListener * compon
 	ImGui::DragFloat("Distance", (float*)&component->distance, 0.1f, 0.1f, 10000.0f);
 	ImGui::SliderFloat("Roll Off", (float*)&component->roll_off, 0.0f, 10.0f);
 	ImGui::SliderFloat("Doppler", (float*)&component->doppler, 0.0f, 10.0f);
+}
+
+void PanelProperties::DrawCameraComponent(ComponentCamera * component)
+{
+	float near_plane = component->GetNearPlaneDist();
+	if (ImGui::DragFloat("Near Plane", &near_plane, 0.1f, 0.1f, 1000.0f))
+		component->SetNearPlaneDist(near_plane);
+
+	float far_plane = component->GetFarPlaneDist();
+	if (ImGui::DragFloat("Far Plane", &far_plane, 0.1f, 10.f, 10000.0f))
+		component->SetFarPlaneDist(far_plane);
+
+	float fov = component->GetFOV();
+	if (ImGui::SliderAngle("Field of View", &fov, 1.0f, 360.0f))
+		component->SetFOV(fov);
+
+	float aspect_ratio = component->GetAspectRatio();
+	if (ImGui::DragFloat("Aspect Ratio", &aspect_ratio, 0.1f, 0.1f, 10000.0f))
+		component->SetAspectRatio(aspect_ratio);
 }
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)

@@ -6,7 +6,11 @@
 #include <string>
 #include "SDL/include/SDL_scancode.h"
 
+#define IMGUI_BLUE ImVec4(0,0,1,1)
+#define IMGUI_GREEN ImVec4(0,1,0,1)
 #define IMGUI_YELLOW ImVec4(1,1,0,1)
+#define IMGUI_RED ImVec4(1,0,0,1)
+#define IMGUI_WHITE ImVec4(1,1,1,1)
 
 class Panel
 {

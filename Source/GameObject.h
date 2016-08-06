@@ -33,11 +33,16 @@ public:
 
 	const float* GetOpenGLGlobalTranform() const;
 
-	void RecursiveCalcGlobalTransform(const float4x4& parent);
-	const OBB& RecursiveCalcBoundingBoxes();
+	void RecursiveCalcGlobalTransform(const float4x4& parent, bool force_recalc);
+	const OBB& RecursiveCalcBoundingBoxes(bool& needs_recalc);
 
 	bool IsActive() const;
 	void SetActive(bool active);
+
+	void OnDebugDraw() const;
+
+	bool WasDirty() const;
+	bool WasBBoxDirty() const;
 
 public:
 	std::string name;
@@ -47,7 +52,9 @@ public:
 	OBB global_bbox;
 
 private:
-	mutable bool trans_dirty = true;
+	bool calculated_bbox = false;
+	bool was_dirty = false;
+	mutable bool local_trans_dirty = true;
 	mutable float4x4 transform_cache;
 	float3 translation = float3::zero;
 	Quat rotation = Quat::identity;

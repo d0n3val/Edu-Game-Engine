@@ -57,11 +57,21 @@ bool ModuleScene::Init(Config* config)
 	return ret;
 }
 
+bool ModuleScene::Start(Config * config)
+{
+	// Pre-calculate all transformations and bboxes
+	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
+	bool did_recalc;
+	root->RecursiveCalcBoundingBoxes(did_recalc);
+	return true;
+}
+
 update_status ModuleScene::PreUpdate(float dt)
 {
 	// Update transformations tree for this frame
-	root->RecursiveCalcGlobalTransform(root->GetLocalTransform());
-	root->RecursiveCalcBoundingBoxes();
+	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), false);
+	bool did_recalc;
+	root->RecursiveCalcBoundingBoxes(did_recalc);
 
 	return UPDATE_CONTINUE;
 }

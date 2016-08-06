@@ -37,8 +37,18 @@ void PanelGOTree::RecursiveDraw(const GameObject* go)
 	if (go == selected)
 		flags |= ImGuiTreeNodeFlags_Selected;
 
+	ImVec4 color = IMGUI_WHITE;
+
 	if(go->IsActive() == false)
-		ImGui::PushStyleColor(ImGuiCol_Text, ImColor::HSV(7.0f, 0.6f, 0.6f));
+		color = IMGUI_RED;
+
+	if (go->WasBBoxDirty() == true)
+		color = IMGUI_GREEN;
+
+	if (go->WasDirty() == true)
+		color = IMGUI_YELLOW;
+
+	ImGui::PushStyleColor(ImGuiCol_Text, color);
 
 	if (ImGui::TreeNodeEx(name, flags))
 	{
@@ -51,6 +61,5 @@ void PanelGOTree::RecursiveDraw(const GameObject* go)
 		ImGui::TreePop();
 	}
 
-	if(go->IsActive() == false)
-		ImGui::PopStyleColor(1);
+	ImGui::PopStyleColor();
 }
