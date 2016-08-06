@@ -210,17 +210,17 @@ void PSphere::InnerRender() const
 
 
 // CYLINDER ============================================
-Cylinder::Cylinder() : Primitive(), radius(1.0f), height(1.0f)
+PCylinder::PCylinder() : Primitive(), radius(1.0f), height(1.0f)
 {
 	type = PrimitiveTypes::Primitive_Cylinder;
 }
 
-Cylinder::Cylinder(float radius, float height) : Primitive(), radius(radius), height(height)
+PCylinder::PCylinder(float radius, float height) : Primitive(), radius(radius), height(height)
 {
 	type = PrimitiveTypes::Primitive_Cylinder;
 }
 
-void Cylinder::InnerRender() const
+void PCylinder::InnerRender() const
 {
 	int n = 30;
 

@@ -4,6 +4,7 @@
 #include "Module.h"
 #include "Globals.h"
 #include "glmath.h"
+#include "Math.h"
 
 class ModuleCamera3D : public Module
 {
@@ -21,6 +22,8 @@ public:
 	void Look(const vec3 &Position, const vec3 &Reference, bool RotateAroundReference = false);
 	void Move(const vec3 &Movement);
 	float* GetViewMatrix();
+	float* GetOpenGLViewMatrix();
+	float* GetOpenGLProjectionMatrix();
 
 private:
 
@@ -29,14 +32,16 @@ private:
 public:
 	
 	vec3 X, Y, Z, Position, Reference;
+	float3 reference;
 
 private:
 
-	mat4x4 ViewMatrix, ViewMatrixInverse;
+	mat4x4 ViewMatrix;//, ViewMatrixInverse;
 	PhysBody3D* following = nullptr;
 	float min_following_dist;
 	float max_following_dist;
 	float following_height;
+	Frustum frustum;
 };
 
 #endif // __MODULE_CAMERA_3D_H__

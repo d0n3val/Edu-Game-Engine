@@ -117,7 +117,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const PSphere& sphere, float mass)
 }
 
 // ---------------------------------------------------------
-PhysBody3D* ModulePhysics3D::AddBody(const Cylinder& cylinder, float mass)
+PhysBody3D* ModulePhysics3D::AddBody(const PCylinder& cylinder, float mass)
 {
 	btCollisionShape* colShape = new btCylinderShapeX(btVector3(cylinder.height*0.5f, cylinder.radius*2, 0.0f));
 	shapes.push_back(colShape);
@@ -372,7 +372,7 @@ update_status ModulePhysics3D::Update(float dt)
 
 		if(App->input->GetKey(SDL_SCANCODE_3) == KEY_DOWN)
 		{
-			Cylinder c(0.5, 1);
+			PCylinder c(0.5, 1);
 			c.SetPos(App->camera->Position.x, App->camera->Position.y, App->camera->Position.z);
 			App->physics3D->AddBody(c);
 		}

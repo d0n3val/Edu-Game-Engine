@@ -24,7 +24,7 @@ PhysVehicle3D::~PhysVehicle3D()
 // ----------------------------------------------------------------------------
 void PhysVehicle3D::Render()
 {
-	Cylinder wheel;
+	PCylinder wheel;
 
 	wheel.color = Blue;
 

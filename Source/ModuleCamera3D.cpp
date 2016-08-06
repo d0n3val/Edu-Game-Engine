@@ -4,6 +4,7 @@
 #include "ModuleCamera3D.h"
 #include "ModuleEditor.h"
 #include "ModuleInput.h"
+#include "ModuleWindow.h"
 
 ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module("Camera", start_enabled)
 {
@@ -15,6 +16,7 @@ ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module("Camera", start_enab
 
 	Position = vec3(0.0f, 0.0f, 5.0f);
 	Reference = vec3(0.0f, 0.0f, 0.0f);
+	reference = float3::zero;
 }
 
 ModuleCamera3D::~ModuleCamera3D()
@@ -23,6 +25,24 @@ ModuleCamera3D::~ModuleCamera3D()
 // -----------------------------------------------------------------
 bool ModuleCamera3D::Init(Config* config)
 {
+	// More about FOV: http://twgljs.org/examples/fov-checker.html
+
+	float aspect_ratio = (float) App->window->GetWidth() / (float) App->window->GetHeigth();
+	float fov = 60.f; // degrees
+
+	frustum.type = FrustumType::OrthographicFrustum;
+	frustum.pos = float3(0.f, 0.0f, 0.0f);
+	frustum.front = float3(0.f, 0.f, 1.f);
+	frustum.up = float3(0.f, 1.f, 0.f);
+	frustum.nearPlaneDistance = 1.0f;
+	frustum.farPlaneDistance = 5000.0f;
+	frustum.verticalFov = DEGTORAD * fov;
+	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
+	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
+
+	LOG("FOV X %0.1f FOV Y %0.1f", frustum.horizontalFov *RADTODEG, frustum.verticalFov * RADTODEG);
+	LOG("Aspect ratio: %0.3f vs %0.3f vs 0.3f", aspect_ratio, frustum.AspectRatio(), frustum.verticalFov / frustum.horizontalFov);
+
 	return true;
 }
 
@@ -84,15 +104,15 @@ update_status ModuleCamera3D::Update(float dt)
 
 	float Distance = Speed * dt;
 
-	vec3 Up(0.0f, 1.0f, 0.0f);
-	vec3 Right = X;
-	vec3 Forward = cross(Up, Right);
+	float3 Up(0.f, 1.f, 0.f);
+	float3 Right(frustum.WorldRight());
+	float3 Forward(frustum.front);
 
 	Up *= Distance;
 	Right *= Distance;
 	Forward *= Distance;
 
-	vec3 Movement;
+	float3 Movement(float3::zero);
 
 	if(App->input->GetKey(SDL_SCANCODE_W) == KEY_REPEAT) Movement += Forward;
 	if(App->input->GetKey(SDL_SCANCODE_S) == KEY_REPEAT) Movement -= Forward;
@@ -101,46 +121,26 @@ update_status ModuleCamera3D::Update(float dt)
 	if(App->input->GetKey(SDL_SCANCODE_R) == KEY_REPEAT) Movement += Up;
 	if(App->input->GetKey(SDL_SCANCODE_F) == KEY_REPEAT) Movement -= Up;
 
-	Position += Movement;
-	Reference += Movement;
+	frustum.pos += Movement;
+	//Position += Movement;
+	//Reference += Movement;
 	
 	// Mouse motion ----------------
 
 	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT)
 	{
-
 		iPoint motion = App->input->GetMouseMotion();
-		int dx = -motion.x;
-		int dy = -motion.y;
+		float sensitivity = 0.01f;
+		float dx = (float)-motion.x * sensitivity;
+		float dy = (float)-motion.y * sensitivity;
 
-		float Sensitivity = 0.25f;
+		if(dx != 0.f)
+			frustum.Transform(Quat(float3::unitY, dx));
 
-		Position -= Reference;
-
-		if(dx != 0)
-		{
-			float DeltaX = (float)dx * Sensitivity;
-
-			X = rotate(X, DeltaX, vec3(0.0f, 1.0f, 0.0f));
-			Y = rotate(Y, DeltaX, vec3(0.0f, 1.0f, 0.0f));
-			Z = rotate(Z, DeltaX, vec3(0.0f, 1.0f, 0.0f));
+		if (dy != 0.f) {
+			//frustum.Transform(Quat(frustum.WorldRight(), dy));
+			LOG("%.2f, %.2f,%.2f", frustum.WorldRight().x, frustum.WorldRight().y, frustum.WorldRight().z);
 		}
-
-		if(dy != 0)
-		{
-			float DeltaY = (float)dy * Sensitivity;
-
-			Y = rotate(Y, DeltaY, X);
-			Z = rotate(Z, DeltaY, X);
-
-			if(Y.y < 0.0f)
-			{
-				Z = vec3(0.0f, Z.y > 0.0f ? 1.0f : -1.0f, 0.0f);
-				Y = cross(Z, X);
-			}
-		}
-
-		Position = Reference + Z * length(Position);
 	}
 
 	// Mouse wheel -----------------------
@@ -203,10 +203,31 @@ float* ModuleCamera3D::GetViewMatrix()
 }
 
 // -----------------------------------------------------------------
+float * ModuleCamera3D::GetOpenGLViewMatrix()
+{
+	static float4x4 m;
+	
+	m = frustum.ViewMatrix();
+	m.Transpose();
+
+	return (float*) m.v;
+}
+
+float * ModuleCamera3D::GetOpenGLProjectionMatrix()
+{
+	static float4x4 m;
+	
+	m = frustum.ProjectionMatrix();
+	m.Transpose();
+
+	return (float*) m.v;
+}
+
+// -----------------------------------------------------------------
 void ModuleCamera3D::CalculateViewMatrix()
 {
 	ViewMatrix = mat4x4(X.x, Y.x, Z.x, 0.0f, X.y, Y.y, Z.y, 0.0f, X.z, Y.z, Z.z, 0.0f, -dot(X, Position), -dot(Y, Position), -dot(Z, Position), 1.0f);
-	ViewMatrixInverse = inverse(ViewMatrix);
+	//ViewMatrixInverse = inverse(ViewMatrix);
 }
 
 // -----------------------------------------------------------------
