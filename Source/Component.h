@@ -9,7 +9,8 @@ enum ComponentTypes
 	Geometry,
 	Material,
 	AudioListener,
-	AudioSource
+	AudioSource,
+	Camera
 };
 
 class GameObject;

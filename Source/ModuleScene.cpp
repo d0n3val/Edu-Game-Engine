@@ -99,13 +99,12 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 	float4x4 m(rot, pos);
 	m.Scale(scale);
 
-	if (!m.HasUniformScale())
-		LOG("Mesh [%s] with non-uniform scale %0.3f,%0.3f,%0.3f ***************************", node->mName.C_Str(), scale.x, scale.y, scale.z);
-
-	//GameObject* go = CreateGameObject(parent, node->mTransformation, node->mName.C_Str());
 	GameObject* go = CreateGameObject(parent, pos, scale, rot, node->mName.C_Str());
 
 	LOG("Created new Game Object %s", go->name.c_str());
+
+	// Load meta data
+	LoadMetaData(node->mMetaData);
 
 	// iterate all meshes in this node
 	for (uint i = 0; i < node->mNumMeshes; ++i)
@@ -169,6 +168,62 @@ bool ModuleScene::LoadScene(const char* file)
 	}
 
 	return ret;
+}
+
+void ModuleScene::LoadMetaData(aiMetadata * const meta)
+{
+	// iterate all metadata in this node
+	if (meta != nullptr)
+	{
+		for (uint i = 0; i < meta->mNumProperties; ++i)
+		{
+			LOG("Key: %s", meta->mKeys[i]);
+			switch(meta->mValues[i].mType)
+			{
+				case AI_BOOL:
+				{
+					bool v;
+					meta->Get(meta->mKeys[i], v);
+					LOG("Is a bool with %s", (v) ? "true" : "false");
+				}	break;
+
+				case AI_INT:
+				{
+					int v;
+					meta->Get(meta->mKeys[i], v);
+					LOG("Is a int with %i", v);
+				}	break;
+
+				case AI_UINT64:
+				{
+					unsigned long long v;
+					meta->Get(meta->mKeys[i], v);
+					LOG("Is a uint64 with %u", v);
+				}	break;
+
+				case AI_FLOAT:
+				{
+					float v;
+					meta->Get(meta->mKeys[i], v);
+					LOG("Is a float with %.3f", v);
+				}	break;
+
+				case AI_AISTRING:
+				{
+					aiString v;
+					meta->Get(meta->mKeys[i], v);
+					LOG("Is a string with %s", v.C_Str());
+				}	break;
+
+				case AI_AIVECTOR3D:
+				{
+					aiVector3D v;
+					meta->Get(meta->mKeys[i], v);
+					LOG("Is a vector3 with %.3f, %.3f, %.3f", v.x, v.y, v.z);
+				}	break;	  
+			}
+		}
+	}
 }
 
 void ModuleScene::Draw() const

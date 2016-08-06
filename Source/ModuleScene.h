@@ -8,6 +8,7 @@
 struct aiScene;
 struct aiNode;
 struct aiMaterial;
+struct aiMetadata;
 class GameObject;
 
 class ModuleScene : public Module
@@ -22,6 +23,7 @@ public:
 	bool CleanUp() override;
 
 	bool LoadScene(const char* file);
+	void LoadMetaData(aiMetadata* const meta);
 	void Draw() const;
 
 	const GameObject* GetRoot() const;

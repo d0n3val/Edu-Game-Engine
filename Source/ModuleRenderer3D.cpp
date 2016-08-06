@@ -133,7 +133,6 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	glLoadIdentity();
 
 	glMatrixMode(GL_MODELVIEW);
-	//glLoadMatrixf(App->camera->GetViewMatrix());
 	glLoadMatrixf(App->camera->GetOpenGLViewMatrix());
 
 	// light 0 on cam pos
@@ -176,16 +175,13 @@ bool ModuleRenderer3D::CleanUp()
 	return true;
 }
 
-
 void ModuleRenderer3D::OnResize(int width, int height)
 {
 	glViewport(0, 0, width, height);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	ProjectionMatrix = perspective(60.0f, (float)width / (float)height, 0.1f, 5000.0f);
-	glLoadMatrixf(&ProjectionMatrix);
-	//glLoadMatrixf((GLfloat*) App->camera->GetOpenGLProjectionMatrix());
+	glLoadMatrixf((GLfloat*) App->camera->GetOpenGLProjectionMatrix());
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

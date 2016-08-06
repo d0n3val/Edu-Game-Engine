@@ -462,6 +462,9 @@
     <ClInclude Include="DebugDraw.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentCamera.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -673,6 +676,9 @@
     </ClCompile>
     <ClCompile Include="DebugDraw.cpp">
       <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentCamera.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
