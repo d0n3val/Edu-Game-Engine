@@ -53,7 +53,9 @@ bool ModuleRenderer3D::Init(Config* config)
 		LOG("OpenGL version supported %s", glGetString(GL_VERSION));
 
 		//Use Vsync
-		SetVSync(config->GetBool("Vertical Sync", false));
+		bool set_vsync = config->GetBool("Vertical Sync", false);
+		vsync = !set_vsync; // force change
+		SetVSync(set_vsync);
 
 		//Initialize Projection Matrix
 		glMatrixMode(GL_PROJECTION);
@@ -154,9 +156,12 @@ update_status ModuleRenderer3D::Update(float dt)
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
 	// debug draw ---
-	PPlane p(0, 1, 0, 0);
-	p.axis = true;
-	p.Render();
+	//PPlane p(0, 1, 0, 0);
+	//p.axis = true;
+	//p.Render();
+
+	// TODO: need to find out who is messing with the colors so I do not need this
+	glColor3f(1.f,1.f,1.f);
 
 	App->scene->Draw();
 	App->editor->Draw();

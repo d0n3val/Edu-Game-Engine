@@ -60,7 +60,7 @@
 // If MATH_ASSERT_ON_ASSUME is defined, assume() resolves directly to assert().
 // When not defined, assume() prints out an error if the condition fails, but continues
 // execution.
-#define MATH_ASSERT_ON_ASSUME
+//#define MATH_ASSERT_ON_ASSUME
 
 #ifndef _DEBUG
 // If MATH_SILENT_ASSUME is defined, all assume() tests are stripped from the build. This
@@ -79,7 +79,7 @@
 #ifdef _DEBUG
 // If MATH_ASSERT_CORRECTNESS is defined, special (and possibly rather costly) mathassert()
 // tests are enabled, which test the internal correctness of the library.
-#define MATH_ASSERT_CORRECTNESS
+//#define MATH_ASSERT_CORRECTNESS
 #endif
 
 // If FAIL_USING_EXCEPTIONS is defined, all mathassert(), assert() and assume() macros turn into

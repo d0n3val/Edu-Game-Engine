@@ -50,6 +50,7 @@ public:
 	std::list<Component*> components;
 	AABB local_bbox;
 	OBB global_bbox;
+	mutable bool visible = false;
 
 private:
 	bool calculated_bbox = false;

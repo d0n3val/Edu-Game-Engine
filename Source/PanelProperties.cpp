@@ -210,11 +210,11 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 		component->SetNearPlaneDist(near_plane);
 
 	float far_plane = component->GetFarPlaneDist();
-	if (ImGui::DragFloat("Far Plane", &far_plane, 0.1f, 10.f, 10000.0f))
+	if (ImGui::DragFloat("Far Plane", &far_plane, 10.0f, 25.f, 10000.0f))
 		component->SetFarPlaneDist(far_plane);
 
 	float fov = component->GetFOV();
-	if (ImGui::SliderAngle("Field of View", &fov, 1.0f, 360.0f))
+	if (ImGui::SliderFloat("Field of View", &fov, 1.0f, 180.0f))
 		component->SetFOV(fov);
 
 	float aspect_ratio = component->GetAspectRatio();

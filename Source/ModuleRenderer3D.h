@@ -28,6 +28,7 @@ public:
 
 public:
 
+	Frustum* active_camera = nullptr;
 	Light lights[MAX_LIGHTS];
 	SDL_GLContext context;
 	DDRenderInterfaceLegacyGL* debug_draw_interface = nullptr;

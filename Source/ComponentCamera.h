@@ -31,7 +31,7 @@ public:
 	float* GetOpenGLViewMatrix();
 	float* GetOpenGLProjectionMatrix();
 
-private:
+public:
 	Frustum frustum;
 };
 

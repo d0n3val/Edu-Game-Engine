@@ -5,6 +5,7 @@
 #include "ModuleInput.h"
 #include "ModuleMeshes.h"
 #include "ModuleFileSystem.h"
+#include "ModuleRenderer3D.h"
 #include "GameObject.h"
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
@@ -267,6 +268,16 @@ void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
 	// Avoid inactive gameobjects
 	if (go->IsActive() == false)
 		return;
+
+	if (App->renderer3D->active_camera != nullptr && go->global_bbox.IsFinite() == true)
+	{
+		if (App->renderer3D->active_camera->Intersects(go->global_bbox) == false)
+		{
+			go->visible = false;
+			return;
+		}
+		go->visible = true;
+	}
 
 	// push this matrix before drawing
 	glPushMatrix();

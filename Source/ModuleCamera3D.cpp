@@ -8,6 +8,7 @@
 #include "ModuleScene.h"
 #include "GameObject.h"
 #include "ComponentCamera.h"
+#include "ModuleRenderer3D.h"
 
 ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module("Camera", start_enabled)
 {
@@ -27,11 +28,12 @@ bool ModuleCamera3D::Init(Config* config)
 	frustum.front = float3(0.f, 0.f, 1.f);
 	frustum.up = float3(0.f, 1.f, 0.f);
 	frustum.nearPlaneDistance = 1.0f;
-	frustum.farPlaneDistance = 5000.0f;
+	frustum.farPlaneDistance = 500.0f;
 	frustum.verticalFov = DEGTORAD * fov;
 	// More about FOV: http://twgljs.org/examples/fov-checker.html
 	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
 	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
+
 
 	return true;
 }
@@ -45,6 +47,8 @@ bool ModuleCamera3D::Start(Config* config)
 	GameObject* go = App->scene->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Camera");
 	ComponentCamera* c = (ComponentCamera*) go->CreateComponent(ComponentTypes::Camera);
 
+	App->renderer3D->active_camera = &c->frustum;
+
 	return ret;
 }
 
@@ -53,6 +57,7 @@ bool ModuleCamera3D::CleanUp()
 {
 	LOG("Cleaning camera");
 
+	App->renderer3D->active_camera = nullptr;
 	return true;
 }
 

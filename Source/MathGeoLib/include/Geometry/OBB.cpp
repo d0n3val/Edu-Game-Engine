@@ -594,7 +594,10 @@ float3x4 OBB::LocalToWorld() const
 	m.SetCol(1, axis[1]);
 	m.SetCol(2, axis[2]);
 	m.SetCol(3, pos - axis[0] * r.x - axis[1] * r.y - axis[2] * r.z);
-	assume(m.IsOrthonormal());
+	// Ric WTF
+	//assume(m.IsOrthonormal());
+	if(!m.IsOrthonormal())
+		m.Orthonormalize(0,1,2);
 	return m;
 }
 

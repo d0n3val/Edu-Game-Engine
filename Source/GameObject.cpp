@@ -222,6 +222,7 @@ void GameObject::SetActive(bool active)
 // ---------------------------------------------------------
 void GameObject::OnDebugDraw() const
 {
+	BeginDebugDraw();
 	DebugDraw(GetGlobalTransformation());
 
 	if (global_bbox.IsFinite() == true) 
@@ -229,6 +230,8 @@ void GameObject::OnDebugDraw() const
 
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 		(*it)->OnDebugDraw();
+
+	EndDebugDraw();
 }
 
 // ---------------------------------------------------------

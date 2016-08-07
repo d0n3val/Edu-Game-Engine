@@ -159,6 +159,7 @@ void ModuleEditor::Draw()
 
 
 	ImGui::Render();
+
 }
 
 bool ModuleEditor::UsingInput() const

@@ -627,8 +627,40 @@ bool Frustum::Intersects(const AABB &aabb) const
 
 bool Frustum::Intersects(const OBB &obb) const
 {
-	///@todo This is a naive test. Implement a faster version.
-	return this->ToPolyhedron().Intersects(obb);
+	float3 points[8];
+	obb.GetCornerPoints(points);
+
+	Plane planes[6];
+	GetPlanes(planes);
+
+	// Discard boxes with all points outside
+	int out;
+	for (int i = 0; i < 6; ++i)
+	{
+		out = 0;
+		for (int k = 0; k < 8; ++k)
+			out += planes[i].IsOnPositiveSide(points[k]);
+
+		if (out == 8)
+			return false;
+	}
+
+	return true;
+
+	// TODO: test this code
+
+	// Second pass to filter false positives
+	// http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
+	GetCornerPoints(points);
+	out = 0;
+
+	for (int k = 0; k < 8; ++k)
+		out += obb.Contains(points[k]) ? 1 : 0;
+
+	if (out == 8)
+		return false;
+
+	return true;
 }
 
 bool Frustum::Intersects(const Plane &plane) const

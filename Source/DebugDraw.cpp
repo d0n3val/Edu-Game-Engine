@@ -89,6 +89,31 @@ void DebugDraw(const Frustum & frustum, Color color)
 	DebugDrawBox(vertices, color);
 }
 
+void DebugDraw(const LineSegment & segment, Color color)
+{
+	glColor3f(color.r, color.g, color.b);
+	glBegin(GL_LINES);
+
+	glLineWidth(3.0f);
+	glVertex3fv((GLfloat*)&segment.a);
+	glVertex3fv((GLfloat*)&segment.b);
+	glLineWidth(1.0f);
+
+	glEnd();
+}
+
+void DebugDraw(const float3 & point, Color color)
+{
+	glColor3f(color.r, color.g, color.b);
+	glBegin(GL_POINTS);
+
+	glLineWidth(3.0f);
+	glVertex3fv((GLfloat*)&point);
+	glLineWidth(1.0f);
+
+	glEnd();
+}
+
 void DebugDrawBox(const float3* corners, Color color)
 {
 	glColor3f(color.r, color.g, color.b);

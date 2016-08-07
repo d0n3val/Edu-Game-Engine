@@ -42,6 +42,9 @@ void PanelGOTree::RecursiveDraw(const GameObject* go)
 	if(go->IsActive() == false)
 		color = IMGUI_RED;
 
+	if (go->visible == false)
+		color = IMGUI_GREY;
+
 	if (go->WasBBoxDirty() == true)
 		color = IMGUI_GREEN;
 
