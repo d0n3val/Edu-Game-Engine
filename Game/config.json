@@ -30,7 +30,7 @@
     "Scene": {
         "ToLoad": [
 			//"Models/water/Water World Scene.obj",
-			"Models/street/scene.dae"
+			"Assets/Models/street/scene.dae"
         ]
     },
 

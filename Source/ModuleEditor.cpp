@@ -12,18 +12,20 @@
 #include "Imgui/imgui.h"
 #include "Imgui/imgui_impl_sdl_gl3.h"
 #include "OpenGL.h"
-
 #include "Panel.h"
 #include "PanelConsole.h"
 #include "PanelGOTree.h"
 #include "PanelProperties.h"
 #include "PanelConfiguration.h"
 #include "PanelAbout.h"
+#include <string.h>
+#include <algorithm>
 
 using namespace std;
 
 ModuleEditor::ModuleEditor(bool start_enabled) : Module("Editor", start_enabled)
 {
+	selected_file[0] = '\0';
 }
 
 // Destructor
@@ -67,7 +69,9 @@ update_status ModuleEditor::Update(float dt)
 		if (ImGui::BeginMenu("File"))
 		{
 			ImGui::MenuItem("New ...");
-			ImGui::MenuItem("Load ...");
+			if (ImGui::MenuItem("Load ..."))
+				load_file_active = true;
+				
 			if (ImGui::MenuItem("Save ..."))
 				App->level->Save(nullptr);
 
@@ -121,6 +125,9 @@ update_status ModuleEditor::Update(float dt)
 	// Link tree and property panel
 	props->selected = (GameObject*) tree->selected;
 
+	if (load_file_active)
+		LoadFile();
+
 	// Show showcase ? 
 	if(showcase)
 		ImGui::ShowTestWindow(&showcase);
@@ -159,15 +166,12 @@ void ModuleEditor::Draw()
 		props->selected->OnDebugDraw();
 
 	EndDebugDraw();
-
-
 	ImGui::Render();
-
 }
 
 bool ModuleEditor::UsingInput() const
 {
-	return ImGui::IsMouseHoveringAnyWindow() || (ImGui::IsAnyItemActive() && ImGui::IsMouseDragging());
+	return in_modal || ImGui::IsMouseHoveringAnyWindow() || (ImGui::IsAnyItemActive() && ImGui::IsMouseDragging());
 }
 
 void ModuleEditor::Log(const char * entry)
@@ -195,4 +199,77 @@ void ModuleEditor::LogFPS(float fps, float ms)
 {
 	if (conf != nullptr)
 		conf->AddFPS(fps, ms);
+}
+
+void ModuleEditor::LoadFile(const char* filter_extension)
+{
+	ImGui::OpenPopup("Load File");
+	if (ImGui::BeginPopupModal("Load File", &load_file_active, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		in_modal = true;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
+        ImGui::BeginChild("File Browser", ImVec2(0,300), true);
+		DrawDirectoryRecursive("", filter_extension);
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
+
+		ImGui::PushItemWidth(250.f);
+		ImGui::InputText("##file_selector", selected_file, FILE_MAX, ImGuiInputTextFlags_AutoSelectAll);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		ImGui::Button("Ok", ImVec2(50, 20));
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel", ImVec2(50, 20)))
+		{
+			load_file_active = false;
+			ImGui::CloseCurrentPopup();
+		}
+
+
+		ImGui::EndPopup();
+	}
+	else
+		in_modal = false;
+}
+
+void ModuleEditor::DrawDirectoryRecursive(const char* directory, const char* filter_extension) 
+{
+	vector<string> files;
+	vector<string> dirs;
+
+	std::string dir(directory);
+	dir += "/";
+
+	App->fs->DiscoverFiles(dir.c_str(), files, dirs);
+
+	for (vector<string>::const_iterator it = dirs.begin(); it != dirs.end(); ++it)
+	{
+		if (ImGui::TreeNodeEx((dir + (*it)).c_str(), 0, "%s/", (*it).c_str()))
+		{
+			DrawDirectoryRecursive((dir + (*it)).c_str(), filter_extension);
+			ImGui::TreePop();
+		}
+	}
+
+	std::sort(files.begin(), files.end());
+
+	for (vector<string>::const_iterator it = files.begin(); it != files.end(); ++it)
+	{
+		const string& str = *it;
+
+		bool ok = true;
+
+		if(filter_extension && str.substr(str.find_last_of(".") + 1) != filter_extension)
+			ok = false;
+
+		if (ok && ImGui::TreeNodeEx(str.c_str(), ImGuiTreeNodeFlags_Leaf))
+		{
+			if (ImGui::IsItemClicked())
+				sprintf_s(selected_file, FILE_MAX, "%s%s", dir.c_str(), str.c_str());
+
+			ImGui::TreePop();
+		}
+	}
 }

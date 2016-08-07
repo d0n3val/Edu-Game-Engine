@@ -4,6 +4,8 @@
 #include "Module.h"
 #include <vector>
 
+#define FILE_MAX 250
+
 union SDL_Event;
 
 class Panel;
@@ -40,7 +42,16 @@ public:
 	PanelConfiguration* conf = nullptr;
 
 private:
+	void LoadFile(const char* filter_extension = nullptr);
+	void DrawDirectoryRecursive(const char* directory, const char* filter_extension) ;
+	//void SaveFile();
+
+private:
 	std::vector<Panel *> panels;
+	bool load_file_active = false;
+	bool save_file_active = false;
+	bool in_modal = false;
+	char selected_file[FILE_MAX];
 };
 
 #endif // __MODULEEDITOR_H__

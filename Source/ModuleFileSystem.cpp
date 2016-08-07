@@ -7,6 +7,8 @@
 
 #pragma comment( lib, "PhysFS/libx86/physfs.lib" )
 
+using namespace std;
+
 ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("File System", true)
 {
 	// needs to be created before Init so other modules can use it
@@ -17,7 +19,7 @@ ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("File System"
 	// workaround VS string directory mess
 	AddPath(".");
 
-	if(game_path != nullptr)
+	if(0&&game_path != nullptr)
 		AddPath(game_path);
 
 	// Dump list of paths
@@ -46,7 +48,11 @@ bool ModuleFileSystem::Init(Config* config)
 	// Ask SDL for a write dir
 	char* write_path = SDL_GetPrefPath(App->GetOrganizationName(), App->GetAppName());
 
-	if(PHYSFS_setWriteDir(write_path) == 0)
+	// Trun this on while in game mode
+	//if(PHYSFS_setWriteDir(write_path) == 0)
+		//LOG("File System error while creating write dir: %s\n", PHYSFS_getLastError());
+
+	if(PHYSFS_setWriteDir(".") == 0)
 		LOG("File System error while creating write dir: %s\n", PHYSFS_getLastError());
 
 	SDL_free(write_path);
@@ -85,6 +91,24 @@ bool ModuleFileSystem::Exists(const char* file) const
 bool ModuleFileSystem::IsDirectory(const char* file) const
 {
 	return PHYSFS_isDirectory(file) != 0;
+}
+
+void ModuleFileSystem::DiscoverFiles(const char* directory, vector<string> & file_list, vector<string> & dir_list) const
+{
+	char **rc = PHYSFS_enumerateFiles(directory);
+	char **i;
+
+	string dir(directory);
+
+	for (i = rc; *i != nullptr; i++)
+	{
+		if(PHYSFS_isDirectory((dir+*i).c_str()))
+			dir_list.push_back(*i);
+		else
+			file_list.push_back(*i);
+	}
+
+	PHYSFS_freeList(rc);
 }
 
 // Read a whole file and put it in a new buffer

@@ -19,7 +19,7 @@ public:
 	bool CreateFromString(const char* string);
 	void CreateEmpty();
 
-	size_t Save(char** buf) const;
+	size_t Save(char** buf, const char* title_comment) const;
 
 	int Size() const;
 	Config GetSection(const char* section_name);

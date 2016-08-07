@@ -1,5 +1,7 @@
 #include "Config.h"
 #include "parson.h"
+#include "string.h"
+#include "stdio.h"
 
 // C++ wrapper for JSON parser library "Parson"
 
@@ -44,12 +46,16 @@ void Config::CreateEmpty()
 	needs_removal = true;
 }
 
-size_t Config::Save(char** buf) const
+size_t Config::Save(char** buf, const char* title_comment) const
 {
 	size_t written = json_serialization_size_pretty(vroot);
-	*buf = new char[written];
-	json_serialize_to_buffer_pretty(vroot, *buf, written);
-	return written;
+	int extra = (title_comment) ? strlen(title_comment) + 6 : 0;
+	*buf = new char[written+extra];
+	if(extra > 0)
+		sprintf_s(*buf, extra, "// %s\r\n", title_comment);
+
+	json_serialize_to_buffer_pretty(vroot, *buf+extra-1, written);
+	return written+extra;
 }
 
 int Config::Size() const

@@ -2,6 +2,7 @@
 #define __MODULEFILESYSTEM_H__
 
 #include "Module.h"
+#include <vector>
 
 struct SDL_RWops;
 int close_sdl_rwops(SDL_RWops *rw);
@@ -29,6 +30,7 @@ public:
 	bool AddPath(const char* path_or_zip);
 	bool Exists(const char* file) const;
 	bool IsDirectory(const char* file) const;
+	void DiscoverFiles(const char* directory, std::vector<std::string>& file_list, std::vector<std::string>& dir_list) const;
 
 	// Open for Read/Write
 	unsigned int Load(const char* file, char** buffer) const;

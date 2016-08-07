@@ -74,7 +74,9 @@ bool ModuleLevelManager::Save(const char * file)
 
 	char* buf = nullptr;
 
-	test.Save(&buf);
+	uint size = test.Save(&buf, "This is a test");
+
+	App->fs->Save("prefs.json", buf, size);
 
 	RELEASE(buf);
 

@@ -31,6 +31,16 @@ void PanelConfiguration::Draw()
 {
     ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoFocusOnAppearing);
 
+	if (ImGui::BeginMenu("File"))
+	{
+		ImGui::MenuItem("Set Defaults");
+		ImGui::MenuItem("Load..");
+		if (ImGui::MenuItem("Save.."))
+			App->SavePrefs();
+		ImGui::EndMenu();
+	}
+
+
 	DrawApplication();
 
 	if (InitModuleDraw(App->window))
@@ -79,15 +89,18 @@ void PanelConfiguration::DrawApplication()
 		ImGui::TextColored(IMGUI_YELLOW, App->GetOrganizationName());
 
 		int max_fps = App->GetFramerateLimit();
-		if (ImGui::SliderInt("Max FPS", &max_fps, 10, 100))
+		if (ImGui::SliderInt("Max FPS", &max_fps, 0, 120))
 			App->SetFramerateLimit(max_fps);
 
 		ImGui::Text("Limit Framerate:");
 		ImGui::SameLine();
 		ImGui::TextColored(IMGUI_YELLOW, "%i", App->GetFramerateLimit());
 
-		ImGui::PlotHistogram("##framerate", &fps_log[0], fps_log.size(), 0, "Framerate", 0.0f, 120.0f, ImVec2(310, 100));
-		ImGui::PlotHistogram("##milliseconds", &ms_log[0], ms_log.size(), 0, "Milliseconds", 0.0f, 60.0f, ImVec2(310, 100));
+		char title[25];
+		sprintf_s(title, 25, "Framerate %.1f", fps_log[fps_log.size()-1]);
+		ImGui::PlotHistogram("##framerate", &fps_log[0], fps_log.size(), 0, title, 0.0f, 100.0f, ImVec2(310, 100));
+		sprintf_s(title, 25, "Milliseconds %0.1f", ms_log[ms_log.size()-1]);
+		ImGui::PlotHistogram("##milliseconds", &ms_log[0], ms_log.size(), 0, title, 0.0f, 40.0f, ImVec2(310, 100));
 	}
 }
 
