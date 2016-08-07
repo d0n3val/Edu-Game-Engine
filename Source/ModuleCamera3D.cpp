@@ -34,6 +34,7 @@ bool ModuleCamera3D::Init(Config* config)
 	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
 	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
 
+	App->renderer3D->active_camera = &frustum;
 
 	return true;
 }
@@ -47,7 +48,6 @@ bool ModuleCamera3D::Start(Config* config)
 	GameObject* go = App->scene->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Camera");
 	ComponentCamera* c = (ComponentCamera*) go->CreateComponent(ComponentTypes::Camera);
 
-	App->renderer3D->active_camera = &c->frustum;
 
 	return ret;
 }

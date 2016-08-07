@@ -648,7 +648,7 @@ bool Frustum::Intersects(const OBB &obb) const
 	return true;
 
 	// TODO: test this code
-
+#if 0
 	// Second pass to filter false positives
 	// http://www.iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
 	GetCornerPoints(points);
@@ -659,6 +659,7 @@ bool Frustum::Intersects(const OBB &obb) const
 
 	if (out == 8)
 		return false;
+#endif
 
 	return true;
 }

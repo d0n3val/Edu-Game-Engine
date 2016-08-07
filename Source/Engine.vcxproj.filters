@@ -465,6 +465,9 @@
     <ClInclude Include="ComponentCamera.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleLevelManager.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -679,6 +682,9 @@
     </ClCompile>
     <ClCompile Include="ComponentCamera.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleLevelManager.cpp">
+      <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -17,14 +17,23 @@ public:
 
 	bool IsValid() const;
 	bool CreateFromString(const char* string);
+	void CreateEmpty();
+
+	size_t Save(char** buf) const;
 
 	int Size() const;
 	Config GetSection(const char* section_name);
+	Config AddSection(const char* section_name);
 
 	bool GetBool(const char * field, bool default, int index = -1) const;
 	int GetInt(const char* field, int default, int index = -1) const;
 	float GetFloat(const char* field, float default, int index = -1) const;
 	const char* GetString(const char* field, const char* default, int index = -1) const;
+
+	bool AddBool(const char* field, bool value);
+	bool AddInt(const char* field, int value);
+	bool AddFloat(const char* field, float value);
+	bool AddString(const char* field, const char* string);
 
 private:
 	JSON_Value* FindValue(const char* field, int index) const;

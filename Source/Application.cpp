@@ -10,6 +10,7 @@
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
 #include "ModuleEditor.h"
+#include "ModuleLevelManager.h"
 #include "Config.h"
 
 using namespace std;
@@ -38,6 +39,7 @@ Application::Application()
 	modules.push_back(input = new ModuleInput());
 	modules.push_back(audio = new ModuleAudio(true));
 	modules.push_back(scene = new ModuleScene());
+	modules.push_back(level = new ModuleLevelManager());
 }
 
 // ---------------------------------------------
@@ -196,4 +198,13 @@ void Application::OnResize(uint width, uint height)
 {
 	window->OnResize(width, height);
 	renderer3D->OnResize(width, height);
+}
+
+void Application::LoadPrefs()
+{
+}
+
+void Application::SavePrefs()
+{
+
 }

@@ -73,6 +73,12 @@ public:
 		return true; 
 	}
 
+	virtual void Save(Config* config) 
+	{}
+
+	virtual void Load(Config* config) 
+	{}
+
 	virtual void OnCollision(PhysBody3D* body1, PhysBody3D* body2)
 	{ }
 };

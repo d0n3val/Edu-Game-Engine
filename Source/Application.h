@@ -19,6 +19,7 @@ class ModuleScene;
 class ModuleTextures;
 class ModuleMeshes;
 class ModuleEditor;
+class ModuleLevelManager;
 
 class Application
 {
@@ -34,6 +35,7 @@ public:
 	ModuleTextures* tex = nullptr;
 	ModuleMeshes* meshes = nullptr;
 	ModuleEditor* editor = nullptr;
+	ModuleLevelManager* level = nullptr;
 
 private:
 
@@ -66,6 +68,8 @@ public:
 	void SetFramerateLimit(uint max_framerate);
 	void Log(const char* entry);
 	void OnResize(uint width, uint height);
+	void LoadPrefs();
+	void SavePrefs();
 
 private:
 
