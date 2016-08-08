@@ -73,7 +73,7 @@ public:
 		return true; 
 	}
 
-	virtual void Save(Config* config) 
+	virtual void Save(Config* config) const
 	{}
 
 	virtual void Load(Config* config) 

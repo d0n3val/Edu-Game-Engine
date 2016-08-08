@@ -177,7 +177,7 @@ const char * ModuleEditor::CloseFileDialog()
 	if (file_dialog == ready_to_close)
 	{
 		file_dialog = closed;
-		return selected_file;
+		return selected_file[0] ? selected_file : nullptr;
 	}
 	return nullptr;
 }

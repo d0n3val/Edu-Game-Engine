@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include <Windows.h>
 #include <stdlib.h>
 #include "Application.h"
 #include "MemLeaks.h"

@@ -72,10 +72,8 @@ bool ModuleWindow::Init(Config* config)
 
 bool ModuleWindow::Start(Config * config)
 {
-	// Set App Icon
-	SDL_Surface *surface = SDL_LoadBMP_RW(App->fs->Load(config->GetString("Icon", "")), 1);
-	SDL_SetWindowIcon(window, surface);
-	SDL_FreeSurface(surface);
+	SetIcon(config->GetString("Icon", ""));
+	SetBrightness(config->GetFloat("Brightness", 0.5f));
 
 	return true;
 }
@@ -87,13 +85,22 @@ bool ModuleWindow::CleanUp()
 
 	//Destroy window
 	if(window != nullptr)
-	{
 		SDL_DestroyWindow(window);
-	}
 
 	//Quit SDL subsystems
 	SDL_Quit();
 	return true;
+}
+
+void ModuleWindow::Save(Config * config) const
+{
+	config->AddString("Icon", icon_file.c_str());
+}
+
+void ModuleWindow::Load(Config * config)
+{
+	SetIcon(config->GetString("Icon", ""));
+	SetBrightness(config->GetFloat("Brightness", 1.0f));
 }
 
 void ModuleWindow::SetTitle(const char* title)
@@ -109,6 +116,50 @@ SDL_Window * ModuleWindow::GetWindow() const
 uint ModuleWindow::GetHeigth() const
 {
 	return screen_height;
+}
+
+void ModuleWindow::SetWidth(uint width)
+{
+	SDL_SetWindowSize(window, width, GetHeigth());
+}
+
+void ModuleWindow::SetHeigth(uint height)
+{
+	SDL_SetWindowSize(window, GetWidth(), height);
+}
+
+void ModuleWindow::GetMaxMinSize(uint & min_width, uint & min_height, uint & max_width, uint & max_height) const
+{
+	min_width = 640;
+	min_height = 480;
+	max_width = 3000;
+	max_height = 2000;
+
+	SDL_DisplayMode dm;
+	if (SDL_GetDesktopDisplayMode(0, &dm) != 0) 
+	    LOG("SDL_GetDesktopDisplayMode failed: %s", SDL_GetError());
+	else
+	{
+		max_width = dm.w;
+		max_height = dm.h;
+	}
+
+	// Aparently this is only to gather what user setup in the SDl_SetWindowMaxumimSize()
+	//SDL_GetWindowMinimumSize(window, (int*) &min_width, (int*) &min_height);
+	//SDL_GetWindowMaximumSize(window, (int*) &max_width, (int*) &max_height);
+}
+
+uint ModuleWindow::GetRefreshRate() const
+{
+	uint ret = 0;
+
+	SDL_DisplayMode dm;
+	if (SDL_GetDesktopDisplayMode(0, &dm) != 0)
+		LOG("SDL_GetDesktopDisplayMode failed: %s", SDL_GetError());
+	else
+		ret = dm.refresh_rate;
+
+	return ret;
 }
 
 void ModuleWindow::OnResize(int width, int height)
@@ -135,6 +186,89 @@ bool ModuleWindow::IsBorderless() const
 bool ModuleWindow::IsFullscreenDesktop() const
 {
 	return fullscreen_desktop;
+}
+
+float ModuleWindow::GetBrightness() const
+{
+	return SDL_GetWindowBrightness(window);
+}
+
+void ModuleWindow::SetFullscreen(bool set)
+{
+	if (set != fullscreen)
+	{
+		fullscreen = set;
+		if (fullscreen == true)
+		{
+			if (SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) != 0)
+				LOG("Could not switch to fullscreen: %s\n", SDL_GetError());
+			fullscreen_desktop = false;
+			SDL_Log("this is a test");
+		}
+		else
+		{
+			if (SDL_SetWindowFullscreen(window, 0) != 0)
+				LOG("Could not switch to windowed: %s\n", SDL_GetError());
+		}
+	}
+}
+
+void ModuleWindow::SetResizable(bool set)
+{
+	// cannot be changed while the program is running, but we can save the change
+	resizable = set;
+}
+
+void ModuleWindow::SetBorderless(bool set)
+{
+	if (set != borderless && fullscreen == false && fullscreen_desktop == false )
+	{
+		borderless = set;
+		SDL_SetWindowBordered(window, (SDL_bool)!borderless);
+	}
+}
+
+void ModuleWindow::SetFullScreenDesktop(bool set)
+{
+	if (set != fullscreen_desktop)
+	{
+		fullscreen_desktop = set;
+		if (fullscreen_desktop == true)
+		{
+			if (SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
+				LOG("Could not switch to fullscreen desktop: %s\n", SDL_GetError());
+			fullscreen = false;
+		}
+		else
+		{
+			if (SDL_SetWindowFullscreen(window, 0) != 0)
+				LOG("Could not switch to windowed: %s\n", SDL_GetError());
+		}
+	}
+}
+
+void ModuleWindow::SetBrightness(float set)
+{
+	CAP(set);
+	if(SDL_SetWindowBrightness(window, set) != 0)
+		LOG("Could not change window brightness: %s\n", SDL_GetError());
+}
+
+const char * ModuleWindow::GetIcon() const
+{
+	return icon_file.c_str();
+}
+
+void ModuleWindow::SetIcon(const char * file)
+{
+	if (file != nullptr && file != icon_file)
+	{
+		icon_file = file;
+
+		SDL_Surface *surface = SDL_LoadBMP_RW(App->fs->Load(file), 1);
+		SDL_SetWindowIcon(window, surface);
+		SDL_FreeSurface(surface);
+	}
 }
 
 uint ModuleWindow::GetWidth() const

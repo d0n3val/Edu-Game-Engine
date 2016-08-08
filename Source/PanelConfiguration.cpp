@@ -29,15 +29,22 @@ PanelConfiguration::~PanelConfiguration()
 // ---------------------------------------------------------
 void PanelConfiguration::Draw()
 {
+	static bool waiting_to_load_file = false;
+	static bool waiting_to_save_file = false;
+
 	if (waiting_to_load_file == true && App->editor->FileDialog("json"))
 	{
-		App->LoadPrefs(App->editor->CloseFileDialog());
+		const char* file = App->editor->CloseFileDialog();
+		if (file != nullptr)
+			App->LoadPrefs(file);
 		waiting_to_load_file = false;
 	}
 
 	if (waiting_to_save_file == true && App->editor->FileDialog("json"))
 	{
-		App->SavePrefs(App->editor->CloseFileDialog());
+		const char* file = App->editor->CloseFileDialog();
+		if (file != nullptr)
+			App->SavePrefs(file);
 		waiting_to_save_file = false;
 	}
 
@@ -94,13 +101,15 @@ void PanelConfiguration::DrawApplication()
 {
 	if (ImGui::CollapsingHeader("Application"))
 	{
-		ImGui::Text("Name:");
-		ImGui::SameLine();
-		ImGui::TextColored(IMGUI_YELLOW, App->GetAppName());
+		static char app_name[120];
+		strcpy_s(app_name, 120, App->GetAppName());
+		if (ImGui::InputText("App Name", app_name, 120, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+			App->SetAppName(app_name);
 
-		ImGui::Text("Organization:");
-		ImGui::SameLine();
-		ImGui::TextColored(IMGUI_YELLOW, App->GetOrganizationName());
+		static char org_name[120];
+		strcpy_s(org_name, 120, App->GetOrganizationName());
+		if (ImGui::InputText("Organization", org_name, 120, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+			App->SetOrganizationName(org_name);
 
 		int max_fps = App->GetFramerateLimit();
 		if (ImGui::SliderInt("Max FPS", &max_fps, 0, 120))
@@ -184,21 +193,60 @@ void PanelConfiguration::DrawModuleInput(ModuleInput * module)
 
 void PanelConfiguration::DrawModuleWindow(ModuleWindow * module)
 {
-	ImGui::Text("Window Size:");
+	static bool waiting_to_load_icon = false;
+
+	if (waiting_to_load_icon == true && App->editor->FileDialog("bmp"))
+	{
+		const char* file = App->editor->CloseFileDialog();
+		if(file != nullptr)
+			App->window->SetIcon(file);
+		waiting_to_load_icon = false;
+	}
+
+	ImGui::Text("Icon: ");
 	ImGui::SameLine();
-	ImGui::TextColored(IMGUI_YELLOW, "%i,%i", App->window->GetWidth(), App->window->GetHeigth());
+	if (ImGui::Selectable(App->window->GetIcon()))
+		waiting_to_load_icon = true;
+
+	float brightness = App->window->GetBrightness();
+	if (ImGui::SliderFloat("Brightness", &brightness, 0.0f, 1.0f))
+		App->window->SetBrightness(brightness);
+
+	uint w, h, min_w, min_h, max_w, max_h;
+	App->window->GetMaxMinSize(min_w, min_h, max_w, max_h);
+	w = App->window->GetWidth();
+	h = App->window->GetHeigth();
+
+	if (ImGui::SliderInt("Width", (int*)&w, min_w, max_w))
+		App->window->SetWidth(w);
+
+	if (ImGui::SliderInt("Height", (int*)&h, min_h, max_h))
+		App->window->SetHeigth(h);
+
+	ImGui::Text("Refresh rate:");
+	ImGui::SameLine();
+	ImGui::TextColored(IMGUI_YELLOW, "%u", App->window->GetRefreshRate());
 
 	bool fullscreen = App->window->IsFullscreen();
 	bool resizable = App->window->IsResizable();
 	bool borderless = App->window->IsBorderless();
 	bool full_desktop = App->window->IsFullscreenDesktop();
 
-	ImGui::Checkbox("Fullscreen", &fullscreen);
+	if (ImGui::Checkbox("Fullscreen", &fullscreen))
+		App->window->SetFullscreen(fullscreen);
+
 	ImGui::SameLine();
-	ImGui::Checkbox("Resizable", &resizable);
-	ImGui::Checkbox("Borderless", &borderless);
+	if (ImGui::Checkbox("Resizable", &resizable))
+		App->window->SetResizable(resizable);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Restart to apply");
+
+	if (ImGui::Checkbox("Borderless", &borderless))
+		App->window->SetBorderless(borderless);
+
 	ImGui::SameLine();
-	ImGui::Checkbox("Full Desktop", &full_desktop);
+	if (ImGui::Checkbox("Full Desktop", &full_desktop))
+		App->window->SetFullScreenDesktop(full_desktop);
 }
 
 void PanelConfiguration::DrawModuleRenderer(ModuleRenderer3D * module)

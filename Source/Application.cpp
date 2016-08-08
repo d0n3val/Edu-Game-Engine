@@ -56,6 +56,13 @@ void Application::ReadConfiguration(const Config& config)
 	SetFramerateLimit(config.GetInt("MaxFramerate", 0));
 }
 
+void Application::SaveConfiguration(Config& config) const
+{
+	config.AddString("Name", app_name.c_str());
+	config.AddString("Organization", organization_name.c_str());
+	config.AddInt("MaxFramerate", GetFramerateLimit());
+}
+
 // ---------------------------------------------
 bool Application::Init()
 {
@@ -67,7 +74,7 @@ bool Application::Init()
 	Config config;
 	config.CreateFromString((const char*) buffer);
 
-	ReadConfiguration(config);
+	ReadConfiguration(config.GetSection("App"));
 
 	// We init everything, even if not anabled
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
@@ -160,10 +167,29 @@ const char* Application::GetAppName() const
 	return app_name.c_str();
 }
 
+void Application::SetAppName(const char * name)
+{
+	if (name != nullptr && name != app_name)
+	{
+		app_name = name;
+		window->SetTitle(name);
+		// TODO: Filesystem should adjust its writing folder
+	}
+}
+
 // ---------------------------------------------
 const char* Application::GetOrganizationName() const
 {
 	return organization_name.c_str();
+}
+
+void Application::SetOrganizationName(const char * name)
+{
+	if (name != nullptr && name != organization_name)
+	{
+		organization_name = name;
+		// TODO: Filesystem should adjust its writing folder
+	}
 }
 
 // ---------------------------------------------
@@ -202,10 +228,48 @@ void Application::OnResize(uint width, uint height)
 
 void Application::LoadPrefs(const char* file)
 {
-	LOG("Loading Engine Preferences from %s", file);
+	char* buffer = nullptr;
+	fs->Load(file, &buffer);
+
+	if (buffer != nullptr)
+	{
+		Config config;
+		config.CreateFromString((const char*)buffer);
+
+		if (config.IsValid() == true)
+		{
+			LOG("Loading Engine Preferences from %s", file);
+
+			ReadConfiguration(config.GetSection("App"));
+
+			Config section;
+			for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
+			{
+				section = config.GetSection((*it)->GetName());
+				if (section.IsValid())
+					(*it)->Load(&section);
+			}
+		}
+		else
+			LOG("Cannot load Engine Preferences from %s: Invalid format", file);
+
+		RELEASE(buffer);
+	}
 }
 
 void Application::SavePrefs(const char* file)
 {
-	LOG("Saving Engine Preferences to %s", file);
+	Config config;
+	config.CreateEmpty();
+
+	SaveConfiguration(config.AddSection("App"));
+
+	for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
+		(*it)->Save(&config.AddSection((*it)->GetName()));
+
+	char *buf;
+	uint size = config.Save(&buf, "Saved preferences for Edu Engine");
+	if(App->fs->Save(file, buf, size) > 0)
+		LOG("Saved Engine Preferences to %s", file);
+	RELEASE(buf);
 }

@@ -2,13 +2,14 @@
 {
 	
 	"App" : {
-		"App" : "EDU Engine",
+		"Name" : "EDU Engine",
 		"Organization" : "UPC CITM",
-		"MaxFramerate" : 0
+		"Brightness" : 1.0,
+		"MaxFramerate" : 40
 	},
 
 	"Window" : {
-		"Icon" : "Icons/edu.bmp",
+		"Icon" : "Assets/Icons/edu.bmp",
 		"Width" : 1280,
 		"Height" : 1024,
 		"Fullscreen" : false,

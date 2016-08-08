@@ -20,18 +20,35 @@ public:
 	bool Start(Config* config = nullptr) override;
 	bool CleanUp() override;
 
+	void Save(Config* config) const override;
+	void Load(Config* config) override;
+
 	void SetTitle(const char* title);
 
 	SDL_Window* GetWindow() const;
 
 	uint GetWidth() const;
 	uint GetHeigth() const;
+	void SetWidth(uint width);
+	void SetHeigth(uint height);
+	void GetMaxMinSize(uint& min_width, uint& min_height, uint& max_width, uint& max_height) const;
+	uint GetRefreshRate() const;
 	void OnResize(int width, int height);
 
 	bool IsFullscreen() const;
 	bool IsResizable() const;
 	bool IsBorderless() const;
 	bool IsFullscreenDesktop() const;
+	float GetBrightness() const;
+
+	void SetFullscreen(bool set);
+	void SetResizable(bool set);
+	void SetBorderless(bool set);
+	void SetFullScreenDesktop(bool set);
+	void SetBrightness(float set);
+
+	const char* GetIcon() const;
+	void SetIcon(const char* file);
 
 private:
 	//The window we'll be rendering to
@@ -46,6 +63,7 @@ private:
 	bool resizable = false;
 	bool borderless = false;
 	bool fullscreen_desktop = false;
+	std::string icon_file;
 
 };
 

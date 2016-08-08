@@ -23,7 +23,35 @@ class ModuleLevelManager;
 
 class Application
 {
+
 public:
+	Application();
+	~Application();
+
+	void ReadConfiguration(const Config& config);
+	void SaveConfiguration(Config& config) const;
+
+	bool Init();
+	update_status Update();
+	bool CleanUp();
+	const char* GetAppName() const;
+	void SetAppName(const char* name) ;
+	const char* GetOrganizationName() const;
+	void SetOrganizationName(const char* name) ;
+	uint GetFramerateLimit() const;
+	void SetFramerateLimit(uint max_framerate);
+	void Log(const char* entry);
+	void OnResize(uint width, uint height);
+	void LoadPrefs(const char* file);
+	void SavePrefs(const char* file);
+
+private:
+
+	void PrepareUpdate();
+	void FinishUpdate();
+
+public:
+
 	ModuleFileSystem* fs = nullptr;
 	ModuleWindow* window = nullptr;
 	ModuleInput* input = nullptr;
@@ -48,36 +76,10 @@ private:
 	int		last_fps;
 	int		capped_ms;
 
+	std::list<Module*> modules;
+	std::string log;
 	std::string app_name;
 	std::string organization_name;
-	std::list<Module*> modules;
-
-public:
-
-	Application();
-	~Application();
-
-	void ReadConfiguration(const Config& config);
-
-	bool Init();
-	update_status Update();
-	bool CleanUp();
-	const char* GetAppName() const;
-	const char* GetOrganizationName() const;
-	uint GetFramerateLimit() const;
-	void SetFramerateLimit(uint max_framerate);
-	void Log(const char* entry);
-	void OnResize(uint width, uint height);
-	void LoadPrefs(const char* file);
-	void SavePrefs(const char* file);
-
-private:
-
-	void PrepareUpdate();
-	void FinishUpdate();
-
-private:
-	std::string log;
 };
 
 // Give App pointer access everywhere
