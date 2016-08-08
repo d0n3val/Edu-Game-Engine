@@ -200,11 +200,12 @@ void Application::OnResize(uint width, uint height)
 	renderer3D->OnResize(width, height);
 }
 
-void Application::LoadPrefs()
+void Application::LoadPrefs(const char* file)
 {
+	LOG("Loading Engine Preferences from %s", file);
 }
 
-void Application::SavePrefs()
+void Application::SavePrefs(const char* file)
 {
-
+	LOG("Saving Engine Preferences to %s", file);
 }

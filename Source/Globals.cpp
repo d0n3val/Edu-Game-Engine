@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "Application.h"
 
-void log(const char file[], int line, const char* format, ...)
+void _log(const char file[], int line, const char* format, ...)
 {
 	static char tmp_string[4096];
 	static char tmp_string2[4096];

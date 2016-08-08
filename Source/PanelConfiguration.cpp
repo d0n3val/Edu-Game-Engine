@@ -29,17 +29,31 @@ PanelConfiguration::~PanelConfiguration()
 // ---------------------------------------------------------
 void PanelConfiguration::Draw()
 {
+	if (waiting_to_load_file == true && App->editor->FileDialog("json"))
+	{
+		App->LoadPrefs(App->editor->CloseFileDialog());
+		waiting_to_load_file = false;
+	}
+
+	if (waiting_to_save_file == true && App->editor->FileDialog("json"))
+	{
+		App->SavePrefs(App->editor->CloseFileDialog());
+		waiting_to_save_file = false;
+	}
+
     ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoFocusOnAppearing);
 
 	if (ImGui::BeginMenu("File"))
 	{
 		ImGui::MenuItem("Set Defaults");
-		ImGui::MenuItem("Load..");
+		if (ImGui::MenuItem("Load.."))
+			waiting_to_load_file = true;
+
 		if (ImGui::MenuItem("Save.."))
-			App->SavePrefs();
+			waiting_to_save_file = true;
+
 		ImGui::EndMenu();
 	}
-
 
 	DrawApplication();
 

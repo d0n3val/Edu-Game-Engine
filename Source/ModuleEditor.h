@@ -28,6 +28,9 @@ public:
 
 	void HandleInput(SDL_Event* event);
 
+	bool FileDialog(const char* extension = nullptr);
+	const char* CloseFileDialog();
+
 	void Draw();
 	bool UsingInput() const;
 	void Log(const char* entry);
@@ -48,8 +51,14 @@ private:
 
 private:
 	std::vector<Panel *> panels;
-	bool load_file_active = false;
-	bool save_file_active = false;
+	enum
+	{
+		closed,
+		opened,
+		ready_to_close
+	} file_dialog = closed;
+	std::string file_dialog_filter;
+
 	bool in_modal = false;
 	char selected_file[FILE_MAX];
 };

@@ -44,7 +44,8 @@ private:
     bool need_scroll = false;
 	std::vector<float> fps_log;
 	std::vector<float> ms_log;
-
+	bool waiting_to_load_file = false;
+	bool waiting_to_save_file = false;
 };
 
 #endif// __PANELCONFIGURATION_H__

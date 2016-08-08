@@ -69,11 +69,8 @@ update_status ModuleEditor::Update(float dt)
 		if (ImGui::BeginMenu("File"))
 		{
 			ImGui::MenuItem("New ...");
-			if (ImGui::MenuItem("Load ..."))
-				load_file_active = true;
-				
-			if (ImGui::MenuItem("Save ..."))
-				App->level->Save(nullptr);
+			ImGui::MenuItem("Load ...");
+			ImGui::MenuItem("Save ...");
 
 			if (ImGui::MenuItem("Quit", "ESC"))
 				ret = UPDATE_STOP;
@@ -125,8 +122,8 @@ update_status ModuleEditor::Update(float dt)
 	// Link tree and property panel
 	props->selected = (GameObject*) tree->selected;
 
-	if (load_file_active)
-		LoadFile();
+	if (file_dialog == opened)
+		LoadFile(file_dialog_filter.c_str());
 
 	// Show showcase ? 
 	if(showcase)
@@ -155,6 +152,34 @@ bool ModuleEditor::CleanUp()
 void ModuleEditor::HandleInput(SDL_Event* event)
 {
     ImGui_ImplSdlGL3_ProcessEvent(event);
+}
+
+bool ModuleEditor::FileDialog(const char * extension)
+{
+	bool ret = true;
+
+	switch (file_dialog)
+	{
+		case closed:
+			selected_file[0] = '\0';
+			file_dialog_filter = extension;
+			file_dialog = opened;
+		case opened:
+			ret = false;
+		break;
+	}
+
+	return ret;
+}
+
+const char * ModuleEditor::CloseFileDialog()
+{
+	if (file_dialog == ready_to_close)
+	{
+		file_dialog = closed;
+		return selected_file;
+	}
+	return nullptr;
 }
 
 void ModuleEditor::Draw()
@@ -204,7 +229,7 @@ void ModuleEditor::LogFPS(float fps, float ms)
 void ModuleEditor::LoadFile(const char* filter_extension)
 {
 	ImGui::OpenPopup("Load File");
-	if (ImGui::BeginPopupModal("Load File", &load_file_active, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal("Load File", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		in_modal = true;
 
@@ -215,18 +240,20 @@ void ModuleEditor::LoadFile(const char* filter_extension)
         ImGui::PopStyleVar();
 
 		ImGui::PushItemWidth(250.f);
-		ImGui::InputText("##file_selector", selected_file, FILE_MAX, ImGuiInputTextFlags_AutoSelectAll);
+		if (ImGui::InputText("##file_selector", selected_file, FILE_MAX, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+			file_dialog = ready_to_close;
+
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
-		ImGui::Button("Ok", ImVec2(50, 20));
+		if (ImGui::Button("Ok", ImVec2(50, 20)))
+			file_dialog = ready_to_close;
 		ImGui::SameLine();
 
 		if (ImGui::Button("Cancel", ImVec2(50, 20)))
 		{
-			load_file_active = false;
-			ImGui::CloseCurrentPopup();
+			file_dialog = ready_to_close;
+			selected_file[0] = '\0';
 		}
-
 
 		ImGui::EndPopup();
 	}
@@ -266,8 +293,12 @@ void ModuleEditor::DrawDirectoryRecursive(const char* directory, const char* fil
 
 		if (ok && ImGui::TreeNodeEx(str.c_str(), ImGuiTreeNodeFlags_Leaf))
 		{
-			if (ImGui::IsItemClicked())
+			if (ImGui::IsItemClicked()) {
 				sprintf_s(selected_file, FILE_MAX, "%s%s", dir.c_str(), str.c_str());
+
+				if (ImGui::IsMouseDoubleClicked(0))
+					file_dialog = ready_to_close;
+			}
 
 			ImGui::TreePop();
 		}

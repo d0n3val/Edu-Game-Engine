@@ -68,8 +68,8 @@ public:
 	void SetFramerateLimit(uint max_framerate);
 	void Log(const char* entry);
 	void OnResize(uint width, uint height);
-	void LoadPrefs();
-	void SavePrefs();
+	void LoadPrefs(const char* file);
+	void SavePrefs(const char* file);
 
 private:
 
