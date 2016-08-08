@@ -28,6 +28,9 @@ public:
 	update_status PostUpdate(float dt) override;
 	bool CleanUp() override;
 
+	void Save(Config* config) const override;
+	void Load(Config* config) override;
+
 	// Load audio assets
 	ulong Load(const char* file);
 	const char* GetFile(uint id) const;

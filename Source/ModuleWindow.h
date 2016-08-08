@@ -28,7 +28,7 @@ public:
 	SDL_Window* GetWindow() const;
 
 	uint GetWidth() const;
-	uint GetHeigth() const;
+	uint GetHeight() const;
 	void SetWidth(uint width);
 	void SetHeigth(uint height);
 	void GetMaxMinSize(uint& min_width, uint& min_height, uint& max_width, uint& max_height) const;

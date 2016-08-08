@@ -94,8 +94,8 @@ bool ModuleAudio::Init(Config* config)
 	if (config != nullptr && config->IsValid() == true)
 	{
 		SetVolume(config->GetFloat("Volume", 1.0f));
-		SetMusicVolume(config->GetFloat("Music_Volume", 1.0f));
-		SetFXVolume(config->GetFloat("Fx_Volume", 1.0f));
+		SetMusicVolume(config->GetFloat("Music Volume", 1.0f));
+		SetFXVolume(config->GetFloat("Fx Volume", 1.0f));
 	}
 
 	return ret;
@@ -136,6 +136,21 @@ bool ModuleAudio::CleanUp()
 
 	BASS_Free();
 	return true;
+}
+
+
+void ModuleAudio::Save(Config * config) const
+{
+	config->AddFloat("Volume", GetVolume());
+	config->AddFloat("Music Volume", GetMusicVolume());
+	config->AddFloat("FX Volume", GetFXVolume());
+}
+
+void ModuleAudio::Load(Config * config)
+{
+	SetVolume(config->GetFloat("Volume", 1.0f));
+	SetMusicVolume(config->GetFloat("Music Volume", 1.0f));
+	SetFXVolume(config->GetFloat("Fx Volume", 1.0f));
 }
 
 ulong ModuleAudio::Load(const char * file)

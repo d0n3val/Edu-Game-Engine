@@ -20,7 +20,7 @@ ModuleCamera3D::~ModuleCamera3D()
 // -----------------------------------------------------------------
 bool ModuleCamera3D::Init(Config* config)
 {
-	float aspect_ratio = (float) App->window->GetWidth() / (float) App->window->GetHeigth();
+	float aspect_ratio = (float) App->window->GetWidth() / (float) App->window->GetHeight();
 	float fov = 60.f; // degrees
 
 	frustum.type = FrustumType::PerspectiveFrustum;

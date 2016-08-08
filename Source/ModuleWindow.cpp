@@ -73,7 +73,7 @@ bool ModuleWindow::Init(Config* config)
 bool ModuleWindow::Start(Config * config)
 {
 	SetIcon(config->GetString("Icon", ""));
-	SetBrightness(config->GetFloat("Brightness", 0.5f));
+	SetBrightness(config->GetFloat("Brightness", 1.0f));
 
 	return true;
 }
@@ -95,12 +95,25 @@ bool ModuleWindow::CleanUp()
 void ModuleWindow::Save(Config * config) const
 {
 	config->AddString("Icon", icon_file.c_str());
+	config->AddFloat("Brightness", GetBrightness());
+	config->AddInt("Width", GetWidth());
+	config->AddInt("Height", this->GetHeight());
+	config->AddBool("Fullscreen", IsFullscreen());
+	config->AddBool("Resizable", IsResizable());
+	config->AddBool("Borderless", IsBorderless());
+	config->AddBool("Fullscreen Desktop", IsFullscreenDesktop());
 }
 
 void ModuleWindow::Load(Config * config)
 {
 	SetIcon(config->GetString("Icon", ""));
 	SetBrightness(config->GetFloat("Brightness", 1.0f));
+	SetWidth(config->GetInt("Width", 1280));
+	SetHeigth(config->GetInt("Height", 1024));
+	SetFullscreen(config->GetBool("Fullscreen", false));
+	SetResizable(config->GetBool("Resizable", false));
+	SetBorderless(config->GetBool("Borderless", false));
+	SetFullScreenDesktop(config->GetBool("Fullscreen Desktop", false));
 }
 
 void ModuleWindow::SetTitle(const char* title)
@@ -113,14 +126,14 @@ SDL_Window * ModuleWindow::GetWindow() const
 	return window;
 }
 
-uint ModuleWindow::GetHeigth() const
+uint ModuleWindow::GetHeight() const
 {
 	return screen_height;
 }
 
 void ModuleWindow::SetWidth(uint width)
 {
-	SDL_SetWindowSize(window, width, GetHeigth());
+	SDL_SetWindowSize(window, width, GetHeight());
 }
 
 void ModuleWindow::SetHeigth(uint height)

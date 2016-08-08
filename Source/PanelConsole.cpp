@@ -3,7 +3,12 @@
 
 // ---------------------------------------------------------
 PanelConsole::PanelConsole() : Panel("Console", SDL_SCANCODE_F1)
-{}
+{
+	width = 658;
+	height = 105;
+	posx = 325;
+	posy = 919;
+}
 
 // ---------------------------------------------------------
 PanelConsole::~PanelConsole()
@@ -25,7 +30,7 @@ void PanelConsole::AddLog(const char* entry)
 // ---------------------------------------------------------
 void PanelConsole::Draw()
 {
-    ImGui::Begin("Console", &active, ImGuiWindowFlags_NoFocusOnAppearing );
+    ImGui::Begin("Console", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
     ImGui::TextUnformatted(Buf.begin());
     if (ScrollToBottom)
         ImGui::SetScrollHere(1.0f);

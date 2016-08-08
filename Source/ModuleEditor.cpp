@@ -50,6 +50,12 @@ bool ModuleEditor::Init(Config* config)
 	return true;
 }
 
+bool ModuleEditor::Start(Config * config)
+{
+	OnResize(App->window->GetWidth(), App->window->GetHeight());
+	return true;
+}
+
 update_status ModuleEditor::PreUpdate(float dt)
 {
     ImGui_ImplSdlGL3_NewFrame(App->window->GetWindow());
@@ -101,12 +107,6 @@ update_status ModuleEditor::Update(float dt)
 		ImGui::EndMainMenuBar();
 	}
 
-	if (ImGui::BeginPopup("About"))
-	{
-		ImGui::TextUnformatted("Info about the EDU Engine");
-		ImGui::EndPopup();
-	}
-
 	// Draw all active panels
 	for (vector<Panel*>::iterator it = panels.begin(); it != panels.end(); ++it)
 	{
@@ -115,8 +115,12 @@ update_status ModuleEditor::Update(float dt)
 		if (App->input->GetKey(panel->GetShortCut()) == KEY_DOWN)
 			panel->SwitchActive();
 
-		if(panel->IsActive())
+		if (panel->IsActive())
+		{
+			ImGui::SetNextWindowPos(ImVec2(panel->posx, panel->posy), ImGuiSetCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(panel->width, panel->height), ImGuiSetCond_Always);
 			panel->Draw();
+		}
 	}
 
 	// Link tree and property panel
@@ -147,6 +151,22 @@ bool ModuleEditor::CleanUp()
     ImGui_ImplSdlGL3_Shutdown();
 
 	return true;
+}
+
+void ModuleEditor::OnResize(int width, int height)
+{
+	LOG("Moving windows");
+
+	console->width = width - tree->width - conf->width;
+	console->posy = height - console->height;
+
+	tree->height = height - tree->posy;
+
+	props->posx = width - props->width;
+	props->height = height - props->posy - conf->height;
+
+	conf->posy = height - conf->height;
+	conf->posx = width - conf->width;
 }
 
 void ModuleEditor::HandleInput(SDL_Event* event)

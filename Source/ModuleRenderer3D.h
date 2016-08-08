@@ -21,10 +21,15 @@ public:
 	update_status PostUpdate(float dt) override;
 	bool CleanUp();
 
+	void Save(Config* config) const override;
+	void Load(Config* config) override;
+
 	void OnResize(int width, int height);
 
 	bool GetVSync() const;
 	void SetVSync(bool vsync);
+
+	const char* GetDriver() const;
 
 public:
 

@@ -22,9 +22,12 @@ public:
 	~ModuleEditor();
 
 	bool Init(Config* config = nullptr) override;
+	bool Start(Config* config = nullptr) override;
 	update_status PreUpdate(float dt) override;
 	update_status Update(float dt) override;
 	bool CleanUp() override;
+
+	void OnResize(int width, int height);
 
 	void HandleInput(SDL_Event* event);
 

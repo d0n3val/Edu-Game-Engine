@@ -224,6 +224,7 @@ void Application::OnResize(uint width, uint height)
 {
 	window->OnResize(width, height);
 	renderer3D->OnResize(width, height);
+	editor->OnResize(width, height);
 }
 
 void Application::LoadPrefs(const char* file)

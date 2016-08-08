@@ -121,7 +121,7 @@ bool ModuleRenderer3D::Init(Config* config)
 	}
 
 	// Projection matrix for
-	OnResize(App->window->GetWidth(), App->window->GetHeigth());
+	OnResize(App->window->GetWidth(), App->window->GetHeight());
 	
 	App->camera->Look(float3::zero);
 
@@ -180,6 +180,16 @@ bool ModuleRenderer3D::CleanUp()
 	return true;
 }
 
+void ModuleRenderer3D::Save(Config * config) const
+{
+	config->AddBool("Vertical Sync", GetVSync());
+}
+
+void ModuleRenderer3D::Load(Config * config)
+{
+	SetVSync(config->GetBool("Vertical Sync", true));
+}
+
 void ModuleRenderer3D::OnResize(int width, int height)
 {
 	glViewport(0, 0, width, height);
@@ -205,4 +215,9 @@ void ModuleRenderer3D::SetVSync(bool vsync)
 		if(SDL_GL_SetSwapInterval(vsync ? 1 : 0) < 0)
 			LOG("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
 	}
+}
+
+const char * ModuleRenderer3D::GetDriver() const
+{
+	return SDL_GetCurrentVideoDriver();
 }

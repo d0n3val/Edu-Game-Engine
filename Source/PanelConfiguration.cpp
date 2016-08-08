@@ -18,9 +18,13 @@ using namespace std;
 
 // ---------------------------------------------------------
 PanelConfiguration::PanelConfiguration() : Panel("Configuration", SDL_SCANCODE_F4),
-	fps_log(FPS_LOG_SIZE),
-	ms_log(FPS_LOG_SIZE)
-{}
+	fps_log(FPS_LOG_SIZE), ms_log(FPS_LOG_SIZE)
+{
+	width = 325;
+	height = 417;
+	posx = 956;
+	posy = 609;
+}
 
 // ---------------------------------------------------------
 PanelConfiguration::~PanelConfiguration()
@@ -48,7 +52,7 @@ void PanelConfiguration::Draw()
 		waiting_to_save_file = false;
 	}
 
-    ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoFocusOnAppearing);
+    ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
 
 	if (ImGui::BeginMenu("File"))
 	{
@@ -215,7 +219,7 @@ void PanelConfiguration::DrawModuleWindow(ModuleWindow * module)
 	uint w, h, min_w, min_h, max_w, max_h;
 	App->window->GetMaxMinSize(min_w, min_h, max_w, max_h);
 	w = App->window->GetWidth();
-	h = App->window->GetHeigth();
+	h = App->window->GetHeight();
 
 	if (ImGui::SliderInt("Width", (int*)&w, min_w, max_w))
 		App->window->SetWidth(w);
@@ -251,6 +255,10 @@ void PanelConfiguration::DrawModuleWindow(ModuleWindow * module)
 
 void PanelConfiguration::DrawModuleRenderer(ModuleRenderer3D * module)
 {
+	ImGui::Text("Driver:");
+	ImGui::SameLine();
+	ImGui::TextColored(IMGUI_YELLOW, App->renderer3D->GetDriver());
+
 	bool vsync = App->renderer3D->GetVSync();
 	if (ImGui::Checkbox("Vertical Sync", &vsync))
 		App->renderer3D->SetVSync(vsync);

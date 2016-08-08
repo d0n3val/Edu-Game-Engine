@@ -4,16 +4,16 @@
 	"App" : {
 		"Name" : "EDU Engine",
 		"Organization" : "UPC CITM",
-		"Brightness" : 1.0,
 		"MaxFramerate" : 40
 	},
 
 	"Window" : {
 		"Icon" : "Assets/Icons/edu.bmp",
+		"Brightness" : 1.0,
 		"Width" : 1280,
 		"Height" : 1024,
 		"Fullscreen" : false,
-		"Resizable" : false,
+		"Resizable" : true,
 		"Borderless" : false,
 		"Fullscreen Desktop" : false
 	},
@@ -24,8 +24,8 @@
 	
 	"Audio" : {
 		"Volume" : 0.9, // global volume
-		"Music_Volume": 0.8, 
-		"Fx_Volume": 0.7
+		"Music Volume": 0.8, 
+		"Fx Volume": 0.7
 	},
 
     "Scene": {

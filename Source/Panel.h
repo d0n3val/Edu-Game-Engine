@@ -27,6 +27,7 @@ public:
 
 public:
 	bool active = true;
+	int width, height, posx, posy;
 
 protected:
 	std::string name;

@@ -15,7 +15,12 @@ using namespace std;
 
 // ---------------------------------------------------------
 PanelProperties::PanelProperties() : Panel("Properties", SDL_SCANCODE_F3)
-{}
+{
+	width = 325;
+	height = 578;
+	posx = 956;
+	posy = 21;
+}
 
 // ---------------------------------------------------------
 PanelProperties::~PanelProperties()
@@ -24,7 +29,7 @@ PanelProperties::~PanelProperties()
 // ---------------------------------------------------------
 void PanelProperties::Draw()
 {
-    ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoFocusOnAppearing);
+    ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
 
 	if (selected != nullptr)
 	{

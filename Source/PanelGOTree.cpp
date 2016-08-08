@@ -9,7 +9,12 @@ using namespace std;
 
 // ---------------------------------------------------------
 PanelGOTree::PanelGOTree() : Panel("Game Objects Hierarchy", SDL_SCANCODE_F2)
-{}
+{
+	width = 325;
+	height = 1002;
+	posx = 2;
+	posy = 21;
+}
 
 // ---------------------------------------------------------
 PanelGOTree::~PanelGOTree()
@@ -19,7 +24,7 @@ PanelGOTree::~PanelGOTree()
 void PanelGOTree::Draw()
 {
 	node = 0;
-    ImGui::Begin("GameObjects Hierarchy", &active, ImGuiWindowFlags_NoFocusOnAppearing );
+    ImGui::Begin("GameObjects Hierarchy", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
 
 	GameObject* root = App->scene->GetRoot();
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
