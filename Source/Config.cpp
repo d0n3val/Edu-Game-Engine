@@ -74,6 +74,11 @@ Config Config::AddSection(const char * section_name)
 	return GetSection(section_name);
 }
 
+Config Config::AddNewArray()
+{
+	return Config(json_value_get_object(json_value_init_array()));
+}
+
 JSON_Value * Config::FindValue(const char * field, int index) const
 {
 	if (index < 0)
@@ -144,4 +149,9 @@ bool Config::AddFloat(const char * field, float value)
 bool Config::AddString(const char * field, const char * string)
 {
 	return json_object_set_string(root, field, string) == JSONSuccess;
+}
+
+Config Config::AddArrayEntry()
+{
+	return Config(nullptr);
 }

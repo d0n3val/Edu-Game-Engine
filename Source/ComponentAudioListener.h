@@ -11,12 +11,8 @@ public:
 	ComponentAudioListener (GameObject* container);
 	~ComponentAudioListener ();
 
-	void OnActivate() override;
-	void OnDeActivate() override;
-
-	void OnStart() override;
-	void OnUpdate() override;
-	void OnFinish() override;
+	void OnSave(Config* config) const override;
+	void OnLoad(Config* config) override;
 
 public:
 

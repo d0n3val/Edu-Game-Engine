@@ -12,26 +12,11 @@ ComponentMaterial::~ComponentMaterial()
 {}
 
 // ---------------------------------------------------------
-void ComponentMaterial::OnActivate()
+void ComponentMaterial::OnSave(Config * config) const
 {
 }
 
 // ---------------------------------------------------------
-void ComponentMaterial::OnDeActivate()
-{
-}
-
-// ---------------------------------------------------------
-void ComponentMaterial::OnStart()
-{
-}
-
-// ---------------------------------------------------------
-void ComponentMaterial::OnUpdate()
-{
-}
-
-// ---------------------------------------------------------
-void ComponentMaterial::OnFinish()
+void ComponentMaterial::OnLoad(Config * config)
 {
 }

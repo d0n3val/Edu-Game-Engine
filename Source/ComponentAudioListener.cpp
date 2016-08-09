@@ -12,26 +12,11 @@ ComponentAudioListener::~ComponentAudioListener()
 {}
 
 // ---------------------------------------------------------
-void ComponentAudioListener::OnActivate()
+void ComponentAudioListener::OnSave(Config * config) const
 {
 }
 
 // ---------------------------------------------------------
-void ComponentAudioListener::OnDeActivate()
-{
-}
-
-// ---------------------------------------------------------
-void ComponentAudioListener::OnStart()
-{
-}
-
-// ---------------------------------------------------------
-void ComponentAudioListener::OnUpdate()
-{
-}
-
-// ---------------------------------------------------------
-void ComponentAudioListener::OnFinish()
+void ComponentAudioListener::OnLoad(Config * config)
 {
 }

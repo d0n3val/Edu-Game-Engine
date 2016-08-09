@@ -11,6 +11,16 @@ ComponentMesh::ComponentMesh(GameObject* container) : Component(container)
 }
 
 // ---------------------------------------------------------
+void ComponentMesh::OnSave(Config * config) const
+{
+}
+
+// ---------------------------------------------------------
+void ComponentMesh::OnLoad(Config * config)
+{
+}
+
+// ---------------------------------------------------------
 void ComponentMesh::SetMesh(const Mesh * data)
 {
 	if (data != nullptr)

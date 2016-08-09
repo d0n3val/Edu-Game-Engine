@@ -14,6 +14,7 @@ enum ComponentTypes
 };
 
 class GameObject;
+class Config;
 
 class Component
 {
@@ -21,10 +22,14 @@ public:
 	Component(GameObject* container);
 	virtual ~Component();
 
+
 	void SetActive(bool active);
 	bool IsActive() const;
 	ComponentTypes GetType() const;
 	const GameObject* GetGameObject() const;
+
+	virtual void OnSave(Config* config) const = 0;
+	virtual void OnLoad(Config* config) = 0;
 
 	virtual void OnActivate() {};
 	virtual void OnDeActivate() {};

@@ -6,6 +6,7 @@
 
 enum ComponentTypes;
 class Component;
+class Config;
 
 class GameObject
 {
@@ -14,6 +15,9 @@ public:
 	GameObject(const char* name);
 	GameObject(const char* name, const float3& translation, const float3& scale, const Quat& rotation );
 	virtual ~GameObject();
+
+	void Save(Config* config) const;
+	void Load(Config* config);
 
 	void AddChild(GameObject* go);
 	Component* CreateComponent(ComponentTypes type);

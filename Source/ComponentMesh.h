@@ -13,6 +13,9 @@ class ComponentMesh : public Component
 public:
 	ComponentMesh (GameObject* container);
 
+	void OnSave(Config* config) const override;
+	void OnLoad(Config* config) override;
+
 	void SetMesh(const Mesh* data);
 	const Mesh* GetMesh() const;
 	const AABB& GetBoundingBox() const;

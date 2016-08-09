@@ -32,6 +32,25 @@ GameObject::~GameObject()
 }
 
 // ---------------------------------------------------------
+void GameObject::Save(Config * config) const
+{
+	// Save my info
+
+	// Now Save all my components
+	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnSave(config);
+
+	for(list<GameObject*>::const_iterator it = childs.begin(); it != childs.end(); ++it)
+		(*it)->Save(config);
+}
+
+// ---------------------------------------------------------
+void GameObject::Load(Config * config)
+{
+
+}
+
+// ---------------------------------------------------------
 void GameObject::AddChild(GameObject* go)
 {
 	if (std::find(childs.begin(), childs.end(), go) == childs.end())

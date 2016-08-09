@@ -24,6 +24,7 @@ public:
 	int Size() const;
 	Config GetSection(const char* section_name);
 	Config AddSection(const char* section_name);
+	Config AddNewArray();
 
 	bool GetBool(const char * field, bool default, int index = -1) const;
 	int GetInt(const char* field, int default, int index = -1) const;
@@ -34,6 +35,7 @@ public:
 	bool AddInt(const char* field, int value);
 	bool AddFloat(const char* field, float value);
 	bool AddString(const char* field, const char* string);
+	Config AddArrayEntry();
 
 private:
 	JSON_Value* FindValue(const char* field, int index) const;

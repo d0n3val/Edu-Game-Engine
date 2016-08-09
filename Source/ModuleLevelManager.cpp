@@ -119,27 +119,25 @@ bool ModuleLevelManager::Load(const char * file)
 
 bool ModuleLevelManager::Save(const char * file)
 {
-	Config test;
+	bool ret = true;
 
-	test.CreateEmpty();
-	Config c(test.AddSection("hello_world"));
+	Config save;
+	save.CreateEmpty();
 
-	c.AddString("my name", "is ric");
-	c.AddBool("my bool", true);
-	c.AddInt("my int", 123);
-	c.AddFloat("my float", 3.1416f);
+	// Add header info
+	Config desc(save.AddSection("Description"));
+	desc.AddString("Name", name.c_str());
 
-	c.AddSection("Sebsection2");
+	// Serialize GameObjects recursively
+	
 
+	// Finally save to file
 	char* buf = nullptr;
-
-	uint size = test.Save(&buf, "This is a test");
-
-	App->fs->Save("prefs.json", buf, size);
-
+	uint size = save.Save(&buf, "Level save file from EDU Engine");
+	App->fs->Save(file, buf, size);
 	RELEASE(buf);
 
-	return false;
+	return ret;
 }
 
 void ModuleLevelManager::UnloadCurrent()

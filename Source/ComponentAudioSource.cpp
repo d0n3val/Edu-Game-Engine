@@ -14,6 +14,16 @@ ComponentAudioSource::~ComponentAudioSource()
 {}
 
 // ---------------------------------------------------------
+void ComponentAudioSource::OnSave(Config * config) const
+{
+}
+
+// ---------------------------------------------------------
+void ComponentAudioSource::OnLoad(Config * config)
+{
+}
+
+// ---------------------------------------------------------
 bool ComponentAudioSource::LoadFile(const char * file)
 {
 	if(current_state != state::unloaded)

@@ -27,6 +27,16 @@ void ComponentCamera::OnDebugDraw() const
 	DebugDraw(frustum, Yellow);
 }
 
+// ---------------------------------------------------------
+void ComponentCamera::OnSave(Config * config) const
+{
+}
+
+// ---------------------------------------------------------
+void ComponentCamera::OnLoad(Config * config)
+{
+}
+
 // -----------------------------------------------------------------
 void ComponentCamera::OnUpdateTransform()
 {
