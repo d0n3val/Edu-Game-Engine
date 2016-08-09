@@ -78,9 +78,6 @@
     <ClInclude Include="ModuleAudio.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleCamera3D.h">
-      <Filter>Core Modules</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleInput.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
@@ -468,6 +465,9 @@
     <ClInclude Include="ModuleLevelManager.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleCamera3D.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -495,9 +495,6 @@
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="ModuleAudio.cpp">
-      <Filter>Core Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleCamera3D.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
     <ClCompile Include="ModuleInput.cpp">
@@ -684,6 +681,9 @@
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ModuleLevelManager.cpp">
+      <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleCamera3D.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>

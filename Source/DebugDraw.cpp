@@ -10,11 +10,13 @@ void BeginDebugDraw()
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
 }
 
 // ------------------------------------------------------------
 void EndDebugDraw()
 {
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_TEXTURE_2D);
@@ -52,7 +54,6 @@ void DebugDraw(const float4x4 & transform)
 	glMultMatrixf((GLfloat*) m.v);
 	glLineWidth(2.0f);
 
-	glDisable(GL_DEPTH_TEST);
 	glBegin(GL_LINES);
 
 	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
@@ -76,7 +77,6 @@ void DebugDraw(const float4x4 & transform)
 	glVertex3f(-0.05f, -0.1f, 1.05f); glVertex3f(0.05f, -0.1f, 1.05f);
 
 	glEnd();
-	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 	glPopMatrix();
 }

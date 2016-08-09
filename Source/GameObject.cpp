@@ -270,20 +270,20 @@ void GameObject::Draw(bool debug) const
 	glPushMatrix();
 	glMultMatrixf(GetOpenGLGlobalTranform());
 
-	if (debug == false)
+	if (debug == true)
+		glColor3f(1.0f, 1.0f, 0.0f);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 	{
-		glBindTexture(GL_TEXTURE_2D, 0);
+		if ((*it)->IsActive() == false)
+			continue;
 
-		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+		if ((*it)->GetType() == ComponentTypes::Material)
 		{
-			if ((*it)->IsActive() == false)
-				continue;
-
-			if ((*it)->GetType() == ComponentTypes::Material)
-			{
-				ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
-				glBindTexture(GL_TEXTURE_2D, cmaterial->material_id);
-			}
+			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
+			glBindTexture(GL_TEXTURE_2D, cmaterial->material_id);
 		}
 	}
 
@@ -325,32 +325,21 @@ void GameObject::Draw(bool debug) const
 		}
 	}
 
-	// we no longer need this matrix (all global transforms are already calculated)
 	glPopMatrix();		
 }
 
 // ---------------------------------------------------------
 void GameObject::OnDebugDraw() const
 {
-	BeginDebugDraw();
 	DebugDraw(GetGlobalTransformation());
 
 	if (global_bbox.IsFinite() == true) 
 		DebugDraw(global_bbox, Green);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDisable(GL_DEPTH_TEST);
-	glColor3f(1.0f, 1.0f, 0.0f);
-
 	Draw(true);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glEnable(GL_DEPTH_TEST);
 
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 		(*it)->OnDebugDraw();
-
-	EndDebugDraw();
 }
 
 // ---------------------------------------------------------

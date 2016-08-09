@@ -218,7 +218,7 @@ void ModuleEditor::Draw()
 	BeginDebugDraw();
 
 	if (props->selected != nullptr)
-		props->selected->OnDebugDraw();
+		App->level->RecursiveDebugDrawGameObjects(props->selected);
 
 	EndDebugDraw();
 	ImGui::Render();

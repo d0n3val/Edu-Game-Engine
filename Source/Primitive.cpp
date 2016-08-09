@@ -26,7 +26,7 @@ void Primitive::Render() const
 		// Draw Axis Grid
 		glLineWidth(2.0f);
 
-		glDisable(GL_DEPTH_TEST);
+		//glDisable(GL_DEPTH_TEST);
 		glBegin(GL_LINES);
 
 		glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
@@ -50,7 +50,7 @@ void Primitive::Render() const
 		glVertex3f(-0.05f, -0.1f, 1.05f); glVertex3f(0.05f, -0.1f, 1.05f);
 
 		glEnd();
-		glEnable(GL_DEPTH_TEST);
+		//glEnable(GL_DEPTH_TEST);
 
 		glLineWidth(1.0f);
 	}

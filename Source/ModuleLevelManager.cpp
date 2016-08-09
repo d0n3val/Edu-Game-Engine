@@ -165,3 +165,12 @@ void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveDrawGameObjects(*it);
 }
+
+void ModuleLevelManager::RecursiveDebugDrawGameObjects(const GameObject* go) const
+{
+	go->OnDebugDraw();
+
+	// Recursive call to all childs keeping matrices
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		RecursiveDebugDrawGameObjects(*it);
+}

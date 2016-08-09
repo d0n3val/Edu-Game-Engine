@@ -2,6 +2,7 @@
 #include "Imgui/imgui.h"
 #include "Application.h"
 #include "ModuleLevelManager.h"
+#include "ModuleCamera3D.h"
 #include "GameObject.h"
 #include <list>
 
@@ -61,7 +62,11 @@ void PanelGOTree::RecursiveDraw(const GameObject* go)
 	if (ImGui::TreeNodeEx(name, flags))
 	{
 		if (ImGui::IsItemClicked())
+		{
+			float radius = go->global_bbox.MinimalEnclosingSphere().r;
+			//App->camera->CenterOn(go->GetGlobalPosition(), radius * 3.0f);
 			selected = go;
+		}
 
 		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 			RecursiveDraw(*it);
