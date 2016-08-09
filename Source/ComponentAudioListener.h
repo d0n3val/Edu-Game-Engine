@@ -11,7 +11,7 @@ public:
 	ComponentAudioListener (GameObject* container);
 	~ComponentAudioListener ();
 
-	void OnSave(Config* config) const override;
+	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
 public:

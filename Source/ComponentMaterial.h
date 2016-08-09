@@ -11,7 +11,7 @@ public:
 	ComponentMaterial (GameObject* container);
 	~ComponentMaterial ();
 
-	void OnSave(Config* config) const override;
+	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
 public:

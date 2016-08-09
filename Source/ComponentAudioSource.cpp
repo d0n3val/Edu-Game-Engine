@@ -14,8 +14,17 @@ ComponentAudioSource::~ComponentAudioSource()
 {}
 
 // ---------------------------------------------------------
-void ComponentAudioSource::OnSave(Config * config) const
+void ComponentAudioSource::OnSave(Config& config) const
 {
+	// TODO: what about the id ?
+	config.AddBool("Is 2D", is_2d);
+	config.AddFloat("Min Distance", min_distance);
+	config.AddFloat("Max Distance", max_distance);
+	config.AddInt("Cone Angle In", cone_angle_in);
+	config.AddInt("Cone Angle Out", cone_angle_out);
+	config.AddFloat("Out Cone Vol", out_cone_vol);
+	config.AddFloat("Fade In", fade_in);
+	config.AddFloat("Fade Out", fade_out);
 }
 
 // ---------------------------------------------------------

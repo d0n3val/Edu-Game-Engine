@@ -28,8 +28,10 @@ void ComponentCamera::OnDebugDraw() const
 }
 
 // ---------------------------------------------------------
-void ComponentCamera::OnSave(Config * config) const
+void ComponentCamera::OnSave(Config& config) const
 {
+	config.AddArrayFloat("Background", (float*) &background, 4);
+	config.AddArrayFloat("Frustum", (float*)&frustum.pos.x, 13);
 }
 
 // ---------------------------------------------------------

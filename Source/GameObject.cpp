@@ -48,7 +48,8 @@ bool GameObject::Save(Config& config) const
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 	{
 		Config component;
-		(*it)->OnSave(&component);
+		component.AddInt("Type", (*it)->GetType());
+		(*it)->OnSave(component);
 		config.AddArrayEntry(component);
 	}
 

@@ -12,7 +12,7 @@ ComponentMaterial::~ComponentMaterial()
 {}
 
 // ---------------------------------------------------------
-void ComponentMaterial::OnSave(Config * config) const
+void ComponentMaterial::OnSave(Config& config) const
 {
 }
 

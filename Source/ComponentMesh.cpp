@@ -11,8 +11,9 @@ ComponentMesh::ComponentMesh(GameObject* container) : Component(container)
 }
 
 // ---------------------------------------------------------
-void ComponentMesh::OnSave(Config * config) const
+void ComponentMesh::OnSave(Config& config) const
 {
+	config.AddArrayFloat("AABB", (float*) &bbox.minPoint.x, 6);
 }
 
 // ---------------------------------------------------------

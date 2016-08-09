@@ -13,7 +13,7 @@ class ComponentMesh : public Component
 public:
 	ComponentMesh (GameObject* container);
 
-	void OnSave(Config* config) const override;
+	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
 	void SetMesh(const Mesh* data);

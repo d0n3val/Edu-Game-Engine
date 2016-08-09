@@ -12,8 +12,11 @@ ComponentAudioListener::~ComponentAudioListener()
 {}
 
 // ---------------------------------------------------------
-void ComponentAudioListener::OnSave(Config * config) const
+void ComponentAudioListener::OnSave(Config& config) const
 {
+	config.AddFloat("Distance", distance);
+	config.AddFloat("Roll Off", roll_off);
+	config.AddFloat("Doppler", doppler);
 }
 
 // ---------------------------------------------------------

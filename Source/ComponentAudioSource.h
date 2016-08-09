@@ -13,7 +13,7 @@ public:
 	ComponentAudioSource (GameObject* container);
 	~ComponentAudioSource ();
 
-	void OnSave(Config* config) const override;
+	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
 	bool LoadFile(const char* file);

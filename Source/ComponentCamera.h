@@ -13,7 +13,7 @@ public:
 	ComponentCamera (GameObject* container);
 	~ComponentCamera ();
 
-	void OnSave(Config* config) const override;
+	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
 	void OnDebugDraw() const override;

@@ -3,6 +3,8 @@
 
 // Base class for all possible components a GameObject could have
 
+#include "Config.h"
+
 enum ComponentTypes
 {
 	Invalid,
@@ -28,7 +30,7 @@ public:
 	ComponentTypes GetType() const;
 	const GameObject* GetGameObject() const;
 
-	virtual void OnSave(Config* config) const = 0;
+	virtual void OnSave(Config& config) const = 0;
 	virtual void OnLoad(Config* config) = 0;
 
 	virtual void OnActivate() {};
