@@ -5,6 +5,25 @@
 
 // C++ wrapper for JSON parser library "Parson"
 
+Config::Config()
+{
+	vroot = json_value_init_object();
+	root = json_value_get_object(vroot);
+	needs_removal = true;
+}
+
+Config::Config(const char * string)
+{
+	if (string != nullptr)
+	{
+		vroot = json_parse_string_with_comments(string);
+		if (vroot != nullptr) {
+			root = json_value_get_object(vroot);
+			needs_removal = true;
+		}
+	}
+}
+
 Config::Config(JSON_Object* section) : root(section)
 {}
 
@@ -17,33 +36,6 @@ Config::~Config()
 bool Config::IsValid() const
 {
 	return root != nullptr;
-}
-
-bool Config::CreateFromString(const char * string)
-{
-	bool ret = false;
-
-	if (string != nullptr)
-	{
-		vroot = json_parse_string_with_comments(string);
-		if (vroot != nullptr) {
-			root = json_value_get_object(vroot);
-			ret = needs_removal = true;
-		}
-	}
-
-	return ret;
-}
-
-void Config::CreateEmpty()
-{
-	if (needs_removal == true)
-		json_value_free(vroot);
-
-	vroot = json_value_init_object();
-	if (vroot != nullptr) 
-		root = json_value_get_object(vroot);
-	needs_removal = true;
 }
 
 size_t Config::Save(char** buf, const char* title_comment) const
@@ -74,10 +66,6 @@ Config Config::AddSection(const char * section_name)
 	return GetSection(section_name);
 }
 
-Config Config::AddNewArray()
-{
-	return Config(json_value_get_object(json_value_init_array()));
-}
 
 JSON_Value * Config::FindValue(const char * field, int index) const
 {
@@ -151,7 +139,78 @@ bool Config::AddString(const char * field, const char * string)
 	return json_object_set_string(root, field, string) == JSONSuccess;
 }
 
-Config Config::AddArrayEntry()
+bool Config::AddArray(const char* array_name)
 {
-	return Config(nullptr);
+	JSON_Value* va = json_value_init_array();
+	array = json_value_get_array(va);
+
+	return json_object_set_value(root, array_name, va) == JSONSuccess;
+}
+
+bool Config::AddArrayEntry(const Config & config)
+{
+	if (array != nullptr)
+		return json_array_append_value(array, json_value_deep_copy(config.vroot)) == JSONSuccess;
+
+	return false;
+}
+
+bool Config::AddArrayBool(const char * field, const bool * values, int size)
+{
+	if (values != nullptr && size > 0)
+	{
+		JSON_Value* va = json_value_init_array();
+		array = json_value_get_array(va);
+		json_object_set_value(root, field, va);
+
+		for(int i=0; i < size; ++i)
+			json_array_append_boolean(array, values[i]);
+		return true;
+	}
+	return false;
+}
+
+bool Config::AddArrayInt(const char * field, const int * values, int size)
+{
+	if (values != nullptr && size > 0)
+	{
+		JSON_Value* va = json_value_init_array();
+		array = json_value_get_array(va);
+		json_object_set_value(root, field, va);
+
+		for(int i=0; i < size; ++i)
+			json_array_append_number(array, values[i]);
+		return true;
+	}
+	return false;
+}
+
+bool Config::AddArrayFloat(const char * field, const float * values, int size)
+{
+	if (values != nullptr && size > 0)
+	{
+		JSON_Value* va = json_value_init_array();
+		array = json_value_get_array(va);
+		json_object_set_value(root, field, va);
+
+		for(int i=0; i < size; ++i)
+			json_array_append_number(array, values[i]);
+		return true;
+	}
+	return false;
+}
+
+bool Config::AddArrayString(const char * field, const char ** values, int size)
+{
+	if (values != nullptr && size > 0)
+	{
+		JSON_Value* va = json_value_init_array();
+		array = json_value_get_array(va);
+		json_object_set_value(root, field, va);
+
+		for(int i=0; i < size; ++i)
+			json_array_append_string(array, values[i]);
+		return true;
+	}
+	return false;
 }

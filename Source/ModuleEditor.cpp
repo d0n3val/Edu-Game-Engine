@@ -76,7 +76,8 @@ update_status ModuleEditor::Update(float dt)
 		{
 			ImGui::MenuItem("New ...");
 			ImGui::MenuItem("Load ...");
-			ImGui::MenuItem("Save ...");
+			if (ImGui::MenuItem("Save ..."))
+				App->level->Save("level.json");
 
 			if (ImGui::MenuItem("Quit", "ESC"))
 				ret = UPDATE_STOP;

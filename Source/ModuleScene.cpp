@@ -19,7 +19,8 @@
 using namespace std;
 
 ModuleScene::ModuleScene( bool start_enabled) : Module("Scene", start_enabled)
-{}
+{
+}
 
 // Destructor
 ModuleScene::~ModuleScene()

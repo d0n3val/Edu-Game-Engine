@@ -71,8 +71,7 @@ bool Application::Init()
 	char* buffer = nullptr;
 	fs->Load("config.json", &buffer);
 
-	Config config;
-	config.CreateFromString((const char*) buffer);
+	Config config((const char*) buffer);
 
 	ReadConfiguration(config.GetSection("App"));
 
@@ -234,8 +233,7 @@ void Application::LoadPrefs(const char* file)
 
 	if (buffer != nullptr)
 	{
-		Config config;
-		config.CreateFromString((const char*)buffer);
+		Config config((const char*)buffer);
 
 		if (config.IsValid() == true)
 		{
@@ -261,7 +259,6 @@ void Application::LoadPrefs(const char* file)
 void Application::SavePrefs(const char* file)
 {
 	Config config;
-	config.CreateEmpty();
 
 	SaveConfiguration(config.AddSection("App"));
 

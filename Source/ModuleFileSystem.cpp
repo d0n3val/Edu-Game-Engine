@@ -303,25 +303,23 @@ aiReturn AssimpSeek(aiFile* file, size_t pos, aiOrigin from)
 
 aiFile* AssimpOpen(aiFileIO* io, const char* name, const char* format)
 {
-	aiFile* file = new aiFile;
+	static aiFile file;
 
-	file->UserData = (char*) PHYSFS_openRead(name);
-	file->ReadProc = AssimpRead;
-	file->WriteProc = AssimpWrite;
-	file->TellProc = AssimpTell;
-	file->FileSizeProc = AssimpSize;
-	file->FlushProc= AssimpFlush;
-	file->SeekProc = AssimpSeek;
+	file.UserData = (char*) PHYSFS_openRead(name);
+	file.ReadProc = AssimpRead;
+	file.WriteProc = AssimpWrite;
+	file.TellProc = AssimpTell;
+	file.FileSizeProc = AssimpSize;
+	file.FlushProc= AssimpFlush;
+	file.SeekProc = AssimpSeek;
 
-	return file;
+	return &file;
 }
 
 void AssimpClose(aiFileIO* io, aiFile* file)
 {
 	if (PHYSFS_close((PHYSFS_File*)file->UserData) == 0)
 		LOG("File System error while CLOSE via assimp: %s", PHYSFS_getLastError());
-
-	RELEASE(file);
 }
 
 void ModuleFileSystem::CreateAssimpIO()

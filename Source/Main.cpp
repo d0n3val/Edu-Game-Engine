@@ -1,8 +1,8 @@
+#include "MemLeaks.h"
 #include "Globals.h"
 #include <Windows.h>
 #include <stdlib.h>
 #include "Application.h"
-#include "MemLeaks.h"
 
 // We need to include this here beacuse SDL overwrites main()
 #include "SDL/include/SDL.h"

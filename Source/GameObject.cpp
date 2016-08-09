@@ -6,6 +6,7 @@
 #include "ComponentAudioSource.h"
 #include "ComponentMesh.h"
 #include "ComponentCamera.h"
+#include "Config.h"
 #include "DebugDraw.h"
 
 using namespace std;
@@ -32,16 +33,35 @@ GameObject::~GameObject()
 }
 
 // ---------------------------------------------------------
-void GameObject::Save(Config * config) const
+bool GameObject::Save(Config& config) const
 {
 	// Save my info
+	config.AddString("Name", name.c_str());
+
+	bool test[5] = { true,false,true,true,true };
+	config.AddArrayFloat("Translation", (float*) &translation, 3);
+	config.AddArrayFloat("Scale", (float*) &scale, 3);
+	config.AddArrayFloat("Rotation", (float*) &rotation, 4);
 
 	// Now Save all my components
+	config.AddArray("Components");
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
-		(*it)->OnSave(config);
+	{
+		Config component;
+		(*it)->OnSave(&component);
+		config.AddArrayEntry(component);
+	}
 
-	for(list<GameObject*>::const_iterator it = childs.begin(); it != childs.end(); ++it)
-		(*it)->Save(config);
+	// ANd recursively all children
+	config.AddArray("Childs");
+	for (list<GameObject*>::const_iterator it = childs.begin(); it != childs.end(); ++it)
+	{
+		Config child;
+		(*it)->Save(child);
+		config.AddArrayEntry(child);
+	}
+
+	return true;
 }
 
 // ---------------------------------------------------------

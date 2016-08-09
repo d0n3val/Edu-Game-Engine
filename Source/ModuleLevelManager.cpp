@@ -122,14 +122,17 @@ bool ModuleLevelManager::Save(const char * file)
 	bool ret = true;
 
 	Config save;
-	save.CreateEmpty();
 
 	// Add header info
 	Config desc(save.AddSection("Description"));
 	desc.AddString("Name", name.c_str());
 
 	// Serialize GameObjects recursively
-	
+	save.AddArray("Game Objects");
+
+	Config game_objects;
+	root->Save(game_objects);
+	save.AddArrayEntry(game_objects);
 
 	// Finally save to file
 	char* buf = nullptr;

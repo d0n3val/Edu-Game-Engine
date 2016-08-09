@@ -1,6 +1,7 @@
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
+
 #define LOG(format, ...) _log(__FILE__, __LINE__, format, __VA_ARGS__)
 
 void _log(const char file[], int line, const char* format, ...);
@@ -54,7 +55,9 @@ enum update_status
 #pragma warning( disable : 4530 ) // Warning that exceptions are disabled
 
 // Disable STL exceptions
+#ifndef _HAS_EXCEPTIONS
 #define _HAS_EXCEPTIONS 0
+#endif
 #define _STATIC_CPPLIB
 
 #endif // __GLOBALS_H__

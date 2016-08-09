@@ -16,7 +16,7 @@ public:
 	GameObject(const char* name, const float3& translation, const float3& scale, const Quat& rotation );
 	virtual ~GameObject();
 
-	void Save(Config* config) const;
+	bool Save(Config& config) const;
 	void Load(Config* config);
 
 	void AddChild(GameObject* go);
