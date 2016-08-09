@@ -4,6 +4,7 @@
 #include "Globals.h"
 #include "Component.h"
 #include "Math.h"
+#include "Color.h"
 
 class ComponentCamera : public Component
 {
@@ -33,6 +34,7 @@ public:
 
 public:
 	Frustum frustum;
+	Color background;
 };
 
 #endif // __COMPONENT_AUDIOCAMERA_H__

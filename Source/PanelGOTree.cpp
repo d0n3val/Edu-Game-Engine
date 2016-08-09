@@ -1,7 +1,7 @@
 #include "PanelGOTree.h"
 #include "Imgui/imgui.h"
 #include "Application.h"
-#include "ModuleScene.h"
+#include "ModuleLevelManager.h"
 #include "GameObject.h"
 #include <list>
 
@@ -26,7 +26,7 @@ void PanelGOTree::Draw()
 	node = 0;
     ImGui::Begin("GameObjects Hierarchy", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
 
-	GameObject* root = App->scene->GetRoot();
+	GameObject* root = App->level->GetRoot();
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
 		RecursiveDraw(*it);
     ImGui::End();

@@ -44,6 +44,7 @@ public:
 	void OnResize(uint width, uint height);
 	void LoadPrefs(const char* file);
 	void SavePrefs(const char* file);
+	void RequestBrowser(const char* url) const;
 
 private:
 

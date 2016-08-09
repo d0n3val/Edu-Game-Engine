@@ -274,3 +274,8 @@ void Application::SavePrefs(const char* file)
 		LOG("Saved Engine Preferences to %s", file);
 	RELEASE(buf);
 }
+
+void Application::RequestBrowser(const char * url) const
+{
+   ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+}

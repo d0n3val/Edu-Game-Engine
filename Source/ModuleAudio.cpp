@@ -2,7 +2,7 @@
 #include "Application.h"
 #include "ModuleAudio.h"
 #include "ModuleFileSystem.h"
-#include "ModuleScene.h"
+#include "ModuleLevelManager.h"
 #include "GameObject.h"
 #include "Component.h"
 #include "ComponentAudioListener.h"
@@ -104,7 +104,7 @@ bool ModuleAudio::Init(Config* config)
 bool ModuleAudio::Start(Config * config)
 {
 	
-	GameObject* go = App->scene->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Audio");
+	GameObject* go = App->level->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Audio");
 	ComponentAudioSource* s = (ComponentAudioSource*) go->CreateComponent(ComponentTypes::AudioSource);
 	s->LoadFile("Assets/audio/music/music_sadpiano.ogg");
 	//s->Play();
@@ -265,7 +265,7 @@ void ModuleAudio::SetFXVolume(float new_fx_volume)
 
 void ModuleAudio::UpdateAudio()	const
 {
-	RecursiveUpdateAudio(App->scene->GetRoot());
+	RecursiveUpdateAudio(App->level->GetRoot());
 
 	/*
 	// While in debug, make the debug camera the listener

@@ -14,6 +14,8 @@ ComponentCamera::ComponentCamera(GameObject* container) : Component(container)
 	frustum.farPlaneDistance = 200.0f;
 	frustum.verticalFov = DEGTORAD * 60.0f;
 	SetAspectRatio(1.3f);
+
+	background = Black;
 }
 
 // ---------------------------------------------------------

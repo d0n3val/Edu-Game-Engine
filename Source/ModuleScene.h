@@ -19,26 +19,17 @@ public:
 	~ModuleScene();
 
 	bool Init(Config* config = nullptr) override;
-	bool Start(Config* config = nullptr) override;
-	update_status PreUpdate(float dt) override;
+	bool Start(Config* config) override;
 	bool CleanUp() override;
 
 	bool LoadScene(const char* file);
 	void LoadMetaData(aiMetadata* const meta);
-	void Draw() const;
-
-	const GameObject* GetRoot() const;
-	GameObject* GetRoot();
-
-	GameObject* CreateGameObject(GameObject * parent, const float3& pos, const float3& scale, const Quat& rot, const char* name = nullptr);
 
 private:
 
-	void RecursiveDrawGameObjects(const GameObject* go) const;
 	void RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath);
 
 	const struct aiScene* scene = nullptr;
-	GameObject* root = nullptr;
 };
 
 #endif // __MODULE_SCENE_H__

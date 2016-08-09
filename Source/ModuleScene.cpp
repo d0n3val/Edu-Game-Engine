@@ -12,6 +12,8 @@
 #include "Config.h"
 #include "OpenGL.h"
 #include "Primitive.h"
+#include "ComponentCamera.h"
+#include "ModuleLevelManager.h"
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
 #include "Assimp/include/postprocess.h"
@@ -39,8 +41,14 @@ bool ModuleScene::Init(Config* config)
 	stream = aiGetPredefinedLogStream(aiDefaultLogStream_DEBUGGER, nullptr);
 	aiAttachLogStream(&stream);
 
-	// create an empty game object to be the root of everything
-	root = new GameObject("root");
+	return ret;
+}
+
+// Called before render is available
+bool ModuleScene::Start(Config* config)
+{
+	LOG("Loading Scene Manager");
+	bool ret = true;
 
 	// Load conf
 	if (config != nullptr && config->IsValid() == true)
@@ -58,25 +66,6 @@ bool ModuleScene::Init(Config* config)
 	return ret;
 }
 
-bool ModuleScene::Start(Config * config)
-{
-	// Pre-calculate all transformations and bboxes
-	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
-	bool did_recalc;
-	root->RecursiveCalcBoundingBoxes(did_recalc);
-	return true;
-}
-
-update_status ModuleScene::PreUpdate(float dt)
-{
-	// Update transformations tree for this frame
-	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), false);
-	bool did_recalc;
-	root->RecursiveCalcBoundingBoxes(did_recalc);
-
-	return UPDATE_CONTINUE;
-}
-
 // Called before quitting or switching levels
 bool ModuleScene::CleanUp()
 {
@@ -89,8 +78,6 @@ bool ModuleScene::CleanUp()
 	// detach log stream
 	aiDetachAllLogStreams();
 
-	// destructor should trigger a recursive destruction of the whole tree
-	RELEASE(root);
 
 	return true;
 }
@@ -110,7 +97,7 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 	float4x4 m(rot, pos);
 	m.Scale(scale);
 
-	GameObject* go = CreateGameObject(parent, pos, scale, rot, node->mName.C_Str());
+	GameObject* go = App->level->CreateGameObject(parent, pos, scale, rot, node->mName.C_Str());
 
 	LOG("Created new Game Object %s", go->name.c_str());
 
@@ -124,7 +111,7 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 
 		// Create a single game object per mesh
 		//GameObject* child_go = CreateGameObject(go, aiMatrix4x4(), mesh->mName.C_Str());
-		GameObject* child_go = CreateGameObject(go, float3::zero, float3::one, Quat::identity, mesh->mName.C_Str());
+		GameObject* child_go = App->level->CreateGameObject(go, float3::zero, float3::one, Quat::identity, mesh->mName.C_Str());
 		LOG("-> Created new child Game Object %s", child_go->name.c_str());
 
 		// Add material component if needed
@@ -169,7 +156,7 @@ bool ModuleScene::LoadScene(const char* file)
 			basePath.erase(pos + 1, string::npos);
 
 		// generate GameObjects for each mesh 
-		RecursiveCreateGameObjects(scene->mRootNode, root, basePath);
+		RecursiveCreateGameObjects(scene->mRootNode, App->level->GetRoot(), basePath);
 
 		// Release all info from assimp
 		aiReleaseImport(scene);
@@ -235,110 +222,4 @@ void ModuleScene::LoadMetaData(aiMetadata * const meta)
 			}
 		}
 	}
-}
-
-void ModuleScene::Draw() const
-{
-	RecursiveDrawGameObjects(root);
-}
-
-const GameObject * ModuleScene::GetRoot() const
-{
-	return root;
-}
-
-GameObject * ModuleScene::GetRoot()
-{
-	return root;
-}
-
-GameObject * ModuleScene::CreateGameObject(GameObject * parent, const float3 & pos, const float3 & scale, const Quat & rot, const char * name)
-{
-	if (parent == nullptr)
-		parent = App->scene->GetRoot();
-
-	GameObject* ret = new GameObject(name, pos, scale, rot);
-	parent->AddChild(ret);
-
-	return ret;
-}
-
-void ModuleScene::RecursiveDrawGameObjects(const GameObject* go) const
-{
-	// Avoid inactive gameobjects
-	if (go->IsActive() == false)
-		return;
-
-	if (App->renderer3D->active_camera != nullptr && go->global_bbox.IsFinite() == true)
-	{
-		if (App->renderer3D->active_camera->Intersects(go->global_bbox) == false)
-		{
-			go->visible = false;
-			return;
-		}
-		go->visible = true;
-	}
-
-	// push this matrix before drawing
-	glPushMatrix();
-	glMultMatrixf(go->GetOpenGLGlobalTranform());
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
-	{
-		if ((*it)->IsActive() == false)
-			continue;
-
-		if ((*it)->GetType() == ComponentTypes::Material)
-		{
-			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
-			glBindTexture(GL_TEXTURE_2D, cmaterial->material_id);
-		}
-	}
-
-	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
-	{
-		if ((*it)->IsActive() == false)
-			continue;
-
-		if ((*it)->GetType() == ComponentTypes::Geometry)
-		{
-			ComponentMesh* cmesh = (ComponentMesh*) (*it);
-			const Mesh* mesh = cmesh->GetMesh();
-
-			if (mesh->vbo_normals > 0)
-			{
-				glEnable(GL_LIGHTING);
-				//glEnableClientState(GL_NORMAL_ARRAY);
-				
-				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_normals);
-				glNormalPointer(3, GL_FLOAT, NULL);
-			}
-			else
-				glDisable(GL_LIGHTING);
-			  
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_vertices);
-			glVertexPointer(3, GL_FLOAT, 0, NULL);
-
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_texture_coords);
-			glTexCoordPointer(3, GL_FLOAT, 0, NULL);
-			  
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vbo_indices);
-			glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, NULL);
-
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
-			glDisableClientState(GL_NORMAL_ARRAY);
-			glDisableClientState(GL_VERTEX_ARRAY );
-		}
-	}
-
-	// we no longer need this matrix (all global transforms are already calculated)
-	glPopMatrix();		
-
-	// Recursive call to all childs keeping matrices
-	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-		RecursiveDrawGameObjects(*it);
 }

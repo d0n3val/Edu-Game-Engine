@@ -99,6 +99,15 @@ update_status ModuleEditor::Update(float dt)
 			if (ImGui::MenuItem("Gui Demo"))
 				showcase = !showcase;
 
+			if (ImGui::MenuItem("Documentation"))
+				App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/wiki");
+
+			if (ImGui::MenuItem("Download latest"))
+				App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/releases");
+
+			if (ImGui::MenuItem("Report a bug"))
+				App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/issues");
+
 			if (ImGui::MenuItem("About"))
 				about->SwitchActive();
 
@@ -117,8 +126,8 @@ update_status ModuleEditor::Update(float dt)
 
 		if (panel->IsActive())
 		{
-			ImGui::SetNextWindowPos(ImVec2(panel->posx, panel->posy), ImGuiSetCond_Always);
-			ImGui::SetNextWindowSize(ImVec2(panel->width, panel->height), ImGuiSetCond_Always);
+			ImGui::SetNextWindowPos(ImVec2((float)panel->posx, (float)panel->posy), ImGuiSetCond_Always);
+			ImGui::SetNextWindowSize(ImVec2((float)panel->width, (float)panel->height), ImGuiSetCond_Always);
 			panel->Draw();
 		}
 	}

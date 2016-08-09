@@ -8,6 +8,7 @@
 #define MAX_LIGHTS 8
 
 class DDRenderInterfaceLegacyGL;
+class ComponentCamera;
 
 class ModuleRenderer3D : public Module
 {
@@ -33,7 +34,7 @@ public:
 
 public:
 
-	Frustum* active_camera = nullptr;
+	ComponentCamera* active_camera = nullptr;
 	Light lights[MAX_LIGHTS];
 	SDL_GLContext context;
 	DDRenderInterfaceLegacyGL* debug_draw_interface = nullptr;

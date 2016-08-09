@@ -3,10 +3,11 @@
 #include "ModuleWindow.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleCamera3D.h"
-#include "ModuleScene.h"
+#include "ModuleLevelManager.h"
 #include "ModuleEditor.h"
 #include "OpenGL.h"
 #include "Primitive.h"
+#include "ComponentCamera.h"
 #include "Config.h"
 
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
@@ -131,6 +132,8 @@ bool ModuleRenderer3D::Init(Config* config)
 // PreUpdate: clear buffer
 update_status ModuleRenderer3D::PreUpdate(float dt)
 {
+	Color c = active_camera->background;
+	glClearColor(c.r, c.g, c.b, c.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
@@ -156,14 +159,14 @@ update_status ModuleRenderer3D::Update(float dt)
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
 	// debug draw ---
-	//PPlane p(0, 1, 0, 0);
-	//p.axis = true;
-	//p.Render();
+	PPlane p(0, 1, 0, 0);
+	p.axis = true;
+	p.Render();
 
 	// TODO: need to find out who is messing with the colors so I do not need this
 	glColor3f(1.f,1.f,1.f);
 
-	App->scene->Draw();
+	App->level->Draw();
 	App->editor->Draw();
 
 	SDL_GL_SwapWindow(App->window->GetWindow());

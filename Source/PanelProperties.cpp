@@ -225,6 +225,8 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 	float aspect_ratio = component->GetAspectRatio();
 	if (ImGui::DragFloat("Aspect Ratio", &aspect_ratio, 0.1f, 0.1f, 10000.0f))
 		component->SetAspectRatio(aspect_ratio);
+
+	ImGui::ColorEdit3("Background", &component->background);
 }
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)

@@ -5,7 +5,7 @@
 #include "ModuleInput.h"
 #include "ModuleWindow.h"
 // delete --
-#include "ModuleScene.h"
+#include "ModuleLevelManager.h"
 #include "GameObject.h"
 #include "ComponentCamera.h"
 #include "ModuleRenderer3D.h"
@@ -34,7 +34,6 @@ bool ModuleCamera3D::Init(Config* config)
 	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
 	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
 
-	App->renderer3D->active_camera = &frustum;
 
 	return true;
 }
@@ -45,9 +44,10 @@ bool ModuleCamera3D::Start(Config* config)
 	LOG("Setting up the camera");
 	bool ret = true;
 
-	GameObject* go = App->scene->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Camera");
+	GameObject* go = App->level->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Camera");
 	ComponentCamera* c = (ComponentCamera*) go->CreateComponent(ComponentTypes::Camera);
 
+	App->renderer3D->active_camera = c;
 
 	return ret;
 }
