@@ -86,36 +86,70 @@ update_status ModuleCamera3D::Update(float dt)
 	if(App->input->GetKey(SDL_SCANCODE_R) == KEY_REPEAT) movement += float3::unitY;
 	if(App->input->GetKey(SDL_SCANCODE_F) == KEY_REPEAT) movement -= float3::unitY;
 
-	frustum.Translate(movement * (speed * dt));
+	if (movement.Equals(float3::zero) == false)
+	{
+		frustum.Translate(movement * (speed * dt));
+		looking = false;
+	}
 
-	// look test
-	if (App->input->GetKey(SDL_SCANCODE_X) == KEY_DOWN) Look(float3::zero);
-	
 	// Mouse motion ----------------
-
 	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT)
 	{
 		iPoint motion = App->input->GetMouseMotion();
-		float sensitivity = 0.01f;
-		float dx = (float)-motion.x * sensitivity;
-		float dy = (float)-motion.y * sensitivity;
+		float dx = (float)-motion.x;
+		float dy = (float)-motion.y;
 
-		// x motion make the camera rotate in Y absolute axis (0,1,0) (not local)
-		if (dx != 0.f)
+		if (App->input->GetKey(SDL_SCANCODE_LCTRL) == KEY_REPEAT)
 		{
-			Quat q = Quat::RotateY(dx);
-			frustum.front = q.Mul(frustum.front).Normalized();
-			// would not need this is we were rotating in the local Y, but that is too disorienting
-			frustum.up = q.Mul(frustum.up).Normalized(); 
+			// rotate around a position - lookat
+			float sensitivity = 0.6f;
+			float3 point = looking_at;
+
+			// fake point should be a ray colliding with something
+			if (looking == false)
+				point = frustum.pos + frustum.front * 50.0f;
+
+			float3 up = frustum.up * (-dy*sensitivity);
+			float3 right = frustum.WorldRight() * (dx*sensitivity);
+
+			frustum.pos += up;
+			frustum.pos += right;
+			Look(point);
+		}
+		else
+		{
+			// WASD style lookat
+			looking = false;
+			float sensitivity = 0.01f;
+			dx *= sensitivity;
+			dy *= sensitivity;
+
+			// x motion make the camera rotate in Y absolute axis (0,1,0) (not local)
+			if (dx != 0.f)
+			{
+				Quat q = Quat::RotateY(dx);
+				frustum.front = q.Mul(frustum.front).Normalized();
+				// would not need this is we were rotating in the local Y, but that is too disorienting
+				frustum.up = q.Mul(frustum.up).Normalized();
+			}
+
+			// y motion makes the camera rotate in X local axis 
+			if (dy != 0.f)
+			{
+				Quat q = Quat::RotateAxisAngle(frustum.WorldRight(), dy);
+
+				frustum.up = q.Mul(frustum.up).Normalized();
+				frustum.front = q.Mul(frustum.front).Normalized();
+			}
 		}
 
-		// y motion makes the camera rotate in X local axis 
-		if (dy != 0.f)
+		// Mouse wheel
+		int wheel = App->input->GetMouseWheel();
+		if (wheel != 0)
 		{
-			Quat q = Quat::RotateAxisAngle(frustum.WorldRight(), dy);
-
-			frustum.up = q.Mul(frustum.up).Normalized();
-			frustum.front = q.Mul(frustum.front).Normalized();
+			float sensitivity = 1.0f;
+			float3 p = frustum.front * ((float)wheel * sensitivity);
+			frustum.pos += p;
 		}
 	}
 
@@ -158,4 +192,13 @@ float * ModuleCamera3D::GetOpenGLProjectionMatrix()
 	m.Transpose();
 
 	return (float*) m.v;
+}
+
+// -----------------------------------------------------------------
+void ModuleCamera3D::CenterOn(const float3& position, float distance)
+{
+	float3 v = frustum.front.Neg();
+	frustum.pos = position + (v * distance);
+	looking_at = position;
+	looking = true;
 }

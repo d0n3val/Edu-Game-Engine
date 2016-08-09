@@ -64,7 +64,7 @@ void PanelGOTree::RecursiveDraw(const GameObject* go)
 		if (ImGui::IsItemClicked())
 		{
 			float radius = go->global_bbox.MinimalEnclosingSphere().r;
-			//App->camera->CenterOn(go->GetGlobalPosition(), radius * 3.0f);
+			App->camera->CenterOn(go->GetGlobalPosition(), radius * 3.0f);
 			selected = go;
 		}
 

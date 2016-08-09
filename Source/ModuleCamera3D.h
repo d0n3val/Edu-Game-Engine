@@ -18,13 +18,15 @@ public:
 
 	float3 GetPosition() const;
 	void Look(const float3& position);
-	float* GetViewMatrix();
 	float* GetOpenGLViewMatrix();
 	float* GetOpenGLProjectionMatrix();
+	void CenterOn(const float3& position, float distance);
 
 private:
 
 	Frustum frustum;
+	float3 looking_at;
+	bool looking = false;
 };
 
 #endif // __MODULE_CAMERA_3D_H__
