@@ -29,7 +29,6 @@ public:
 	void SetFOV(float dist);
 	void SetAspectRatio(float dist);
 
-
 	void Look(const float3& position);
 
 	float* GetOpenGLViewMatrix();
@@ -38,6 +37,7 @@ public:
 public:
 	Frustum frustum;
 	Color background;
+	bool frustum_culling = false;
 };
 
 #endif // __COMPONENT_AUDIOCAMERA_H__

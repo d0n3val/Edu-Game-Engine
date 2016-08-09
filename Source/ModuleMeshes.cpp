@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleMeshes.h"
+#include "ModuleFileSystem.h"
 #include "Glew/include/glew.h" // extensio lib
 #include "gl/GL.h"
 #include "Assimp/include/mesh.h"
@@ -36,11 +37,11 @@ bool ModuleMeshes::CleanUp()
 	return true;
 }
 
-// Load new texture from file path
-const Mesh* ModuleMeshes::Load(const aiMesh* new_mesh)
+// Load new mesh
+const char* ModuleMeshes::Import(const aiMesh* new_mesh) const
 {
 	if (new_mesh == nullptr)
-		return INVALID_MESH;
+		return nullptr;
 
 	Mesh* m = new Mesh;
 
@@ -78,10 +79,150 @@ const Mesh* ModuleMeshes::Load(const aiMesh* new_mesh)
 		memcpy(m->texture_coords, new_mesh->mTextureCoords[0], sizeof(float) * m->num_vertices * 3);
 	}
 
-	meshes.push_back(m);
+	const char* filename = Save(m);
+	RELEASE(m);
 
-	GenerateVertexBuffer(m);
-	return m;
+	return filename;
+}
+
+const Mesh * ModuleMeshes::Load(const char * file)
+{
+	if (file == nullptr)
+		return nullptr;
+
+	Mesh* mesh = nullptr;
+
+	char* buffer;
+	uint size = App->fs->Load(file, &buffer);
+
+	if (size > 0)
+	{
+		char* cursor = buffer;
+		mesh = new Mesh;
+
+		// amount of indices / vertices / colors / normals / texture_coords
+		uint ranges[5];
+		uint bytes = sizeof(ranges);
+		memcpy(ranges, cursor, bytes);
+
+		mesh->num_indices = ranges[0];
+		mesh->num_vertices = ranges[1];
+		
+		// Load indices
+		cursor += bytes;
+		bytes = sizeof(uint) * mesh->num_indices;
+		mesh->indices = new uint[mesh->num_indices];
+		memcpy(mesh->indices, cursor, bytes);
+
+		// Load vertices
+		cursor += bytes;
+		bytes = sizeof(float) * mesh->num_vertices * 3;
+		mesh->vertices = new float[mesh->num_vertices * 3];
+		memcpy(mesh->vertices, cursor, bytes);
+
+		// Load colors
+		if (ranges[2] > 0)
+		{
+			cursor += bytes;
+			mesh->colors = new float[mesh->num_vertices * 3];
+			memcpy(mesh->colors, cursor, bytes);
+		}
+		
+		// Load normals
+		if (ranges[3] > 0)
+		{
+			cursor += bytes;
+			mesh->normals = new float[mesh->num_vertices * 3];
+			memcpy(mesh->normals, cursor, bytes);
+		}
+
+		// Load texture coords
+		if (ranges[4] > 0)
+		{
+			cursor += bytes;
+			mesh->texture_coords = new float[mesh->num_vertices * 3];
+			memcpy(mesh->texture_coords, cursor, bytes);
+		}
+
+		RELEASE(buffer);
+
+		meshes.push_back(mesh);
+		GenerateVertexBuffer(mesh); // we need to do this here ?
+	}
+
+	return mesh;
+}
+
+const char * ModuleMeshes::Save(const Mesh * mesh) const
+{
+	// amount of indices / vertices / colors / normals / texture_coords
+	uint ranges[5] = {
+		mesh->num_indices,
+		mesh->num_vertices,
+		(mesh->colors) ? mesh->num_vertices : 0,
+		(mesh->normals) ? mesh->num_vertices : 0,
+		(mesh->texture_coords) ? mesh->num_vertices : 0
+	};
+
+	uint size = sizeof(ranges); 
+	size += sizeof(uint) * mesh->num_indices;
+	size += sizeof(float) * mesh->num_vertices * 3;
+	if (mesh->colors != nullptr)
+		size += sizeof(float) * mesh->num_vertices * 3;
+	if (mesh->normals != nullptr)
+		size += sizeof(float) * mesh->num_vertices * 3;
+	if (mesh->texture_coords != nullptr)
+		size += sizeof(float) * mesh->num_vertices * 3;
+
+	// allocate and fill
+	char* data = new char[size];
+	char* cursor = data;
+
+	// First store ranges
+	uint bytes = sizeof(ranges);
+	memcpy(cursor, ranges, bytes);
+
+	// Store indices
+	cursor += bytes;
+	bytes = sizeof(uint) * mesh->num_indices;
+	memcpy(cursor, mesh->indices, bytes);
+
+	// Store vertices
+	cursor += bytes;
+	bytes = sizeof(float) * mesh->num_vertices * 3;
+	memcpy(cursor, mesh->vertices, bytes);
+
+	// Store colors
+	if (mesh->colors != nullptr)
+	{
+		cursor += bytes;
+		memcpy(cursor, mesh->colors, bytes);
+	}
+
+	// Store normals
+	if (mesh->normals != nullptr)
+	{
+		cursor += bytes;
+		memcpy(cursor, mesh->normals, bytes);
+	}
+
+	// Store texture coords
+	if (mesh->texture_coords != nullptr)
+	{
+		cursor += bytes;
+		memcpy(cursor, mesh->texture_coords, bytes);
+	}
+
+	// We are ready to write the file
+	static int f = 0;
+	static char file[80];
+
+	sprintf_s(file, 80, "assets/meshes/mesh_%i.mesh", ++f);
+	App->fs->Save(file, data, size);
+
+	RELEASE(data);
+
+	return file;
 }
 
 uint ModuleMeshes::GenerateVertexBuffer(const Mesh* mesh)
@@ -138,3 +279,4 @@ uint ModuleMeshes::GenerateVertexBuffer(const Mesh* mesh)
 	*/
 	return ret;
 }
+

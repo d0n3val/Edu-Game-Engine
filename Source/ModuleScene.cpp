@@ -126,7 +126,7 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 
 		// Add mesh component
 		ComponentMesh* c_mesh = (ComponentMesh*) child_go->CreateComponent(ComponentTypes::Geometry);
-		c_mesh->SetMesh(App->meshes->Load(mesh));
+		c_mesh->SetMesh(App->meshes->Load(App->meshes->Import(mesh)));
 		LOG("->-> Added mesh component");
 	}
 
@@ -171,49 +171,48 @@ void ModuleScene::LoadMetaData(aiMetadata * const meta)
 	{
 		for (uint i = 0; i < meta->mNumProperties; ++i)
 		{
-			LOG("Key: %s", meta->mKeys[i]);
 			switch(meta->mValues[i].mType)
 			{
 				case AI_BOOL:
 				{
 					bool v;
-					meta->Get(meta->mKeys[i], v);
-					LOG("Is a bool with %s", (v) ? "true" : "false");
+					meta->Get(meta->mKeys[i].data, v);
+					LOG("%s: %s", meta->mKeys[i].data, (v) ? "true" : "false");
 				}	break;
 
 				case AI_INT:
 				{
 					int v;
-					meta->Get(meta->mKeys[i], v);
-					LOG("Is a int with %i", v);
+					meta->Get(meta->mKeys[i].data, v);
+					LOG("%s: %i", meta->mKeys[i].data, v);
 				}	break;
 
 				case AI_UINT64:
 				{
 					unsigned long long v;
-					meta->Get(meta->mKeys[i], v);
-					LOG("Is a uint64 with %u", v);
+					meta->Get(meta->mKeys[i].data, v);
+					LOG("%s: %u", meta->mKeys[i].data, v);
 				}	break;
 
 				case AI_FLOAT:
 				{
 					float v;
-					meta->Get(meta->mKeys[i], v);
-					LOG("Is a float with %.3f", v);
+					meta->Get(meta->mKeys[i].data, v);
+					LOG("%s: %.3f", meta->mKeys[i].data, v);
 				}	break;
 
 				case AI_AISTRING:
 				{
 					aiString v;
-					meta->Get(meta->mKeys[i], v);
-					LOG("Is a string with %s", v.C_Str());
+					meta->Get(meta->mKeys[i].data, v);
+					LOG("%s: %s", meta->mKeys[i].data, v.C_Str());
 				}	break;
 
 				case AI_AIVECTOR3D:
 				{
 					aiVector3D v;
 					meta->Get(meta->mKeys[i], v);
-					LOG("Is a vector3 with %.3f, %.3f, %.3f", v.x, v.y, v.z);
+					LOG("%s: %.3f,%.3f,%.3f", meta->mKeys[i].data, v.x, v.y, v.z);
 				}	break;	  
 			}
 		}

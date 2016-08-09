@@ -210,6 +210,8 @@ void PanelProperties::DrawAudioListenerComponent(ComponentAudioListener * compon
 
 void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 {
+	ImGui::Checkbox("Frustum Culling", &component->frustum_culling);
+
 	float near_plane = component->GetNearPlaneDist();
 	if (ImGui::DragFloat("Near Plane", &near_plane, 0.1f, 0.1f, 1000.0f))
 		component->SetNearPlaneDist(near_plane);

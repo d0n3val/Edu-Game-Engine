@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "GameObject.h"
+#include "ModuleMeshes.h"
 #include "Component.h"
 #include "ComponentMaterial.h"
 #include "ComponentAudioListener.h"
@@ -7,6 +8,7 @@
 #include "ComponentMesh.h"
 #include "ComponentCamera.h"
 #include "Config.h"
+#include "OpenGL.h"
 #include "DebugDraw.h"
 
 using namespace std;
@@ -260,6 +262,74 @@ void GameObject::SetActive(bool active)
 }
 
 // ---------------------------------------------------------
+void GameObject::Draw(bool debug) const
+{
+	visible = true;
+
+	// push this matrix before drawing
+	glPushMatrix();
+	glMultMatrixf(GetOpenGLGlobalTranform());
+
+	if (debug == false)
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+		{
+			if ((*it)->IsActive() == false)
+				continue;
+
+			if ((*it)->GetType() == ComponentTypes::Material)
+			{
+				ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
+				glBindTexture(GL_TEXTURE_2D, cmaterial->material_id);
+			}
+		}
+	}
+
+	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+	{
+		if ((*it)->IsActive() == false)
+			continue;
+
+		if ((*it)->GetType() == ComponentTypes::Geometry)
+		{
+			ComponentMesh* cmesh = (ComponentMesh*) (*it);
+			const Mesh* mesh = cmesh->GetMesh();
+
+			if (debug == false && mesh->vbo_normals > 0)
+			{
+				glEnable(GL_LIGHTING);
+				//glEnableClientState(GL_NORMAL_ARRAY);
+				
+				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_normals);
+				glNormalPointer(3, GL_FLOAT, NULL);
+			}
+			else
+				glDisable(GL_LIGHTING);
+			  
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_vertices);
+			glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_texture_coords);
+			glTexCoordPointer(3, GL_FLOAT, 0, NULL);
+			  
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vbo_indices);
+			glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, NULL);
+
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
+			glDisableClientState(GL_NORMAL_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY );
+		}
+	}
+
+	// we no longer need this matrix (all global transforms are already calculated)
+	glPopMatrix();		
+}
+
+// ---------------------------------------------------------
 void GameObject::OnDebugDraw() const
 {
 	BeginDebugDraw();
@@ -267,6 +337,15 @@ void GameObject::OnDebugDraw() const
 
 	if (global_bbox.IsFinite() == true) 
 		DebugDraw(global_bbox, Green);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDisable(GL_DEPTH_TEST);
+	glColor3f(1.0f, 1.0f, 0.0f);
+
+	Draw(true);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_DEPTH_TEST);
 
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 		(*it)->OnDebugDraw();

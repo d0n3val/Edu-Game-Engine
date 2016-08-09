@@ -48,10 +48,13 @@ public:
 	bool Init(Config* config = nullptr) override;
 	bool CleanUp() override;
 
-	const Mesh* Load(const aiMesh* mesh);
+	const char* Import(const aiMesh* mesh) const;
+	const Mesh* Load(const char* file);
 	uint GenerateVertexBuffer(const Mesh* mesh);
 
 private:
+	const char* Save(const Mesh* mesh) const;
+
 	std::list<Mesh*> meshes;
 };
 

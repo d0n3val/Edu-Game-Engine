@@ -43,6 +43,7 @@ public:
 	bool IsActive() const;
 	void SetActive(bool active);
 
+	void Draw(bool debug = false) const;
 	void OnDebugDraw() const;
 
 	bool WasDirty() const;
