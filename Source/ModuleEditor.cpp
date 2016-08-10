@@ -4,7 +4,7 @@
 #include "ModuleWindow.h"
 #include "ModuleFileSystem.h"
 #include "ModuleLevelManager.h"
-#include "ModuleScene.h"
+#include "ModuleSceneLoader.h"
 #include "ModuleInput.h"
 #include "GameObject.h"
 #include "DebugDraw.h"

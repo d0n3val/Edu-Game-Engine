@@ -2,7 +2,7 @@
 #include "Application.h"
 #include "ModuleLevelManager.h"
 #include "ModuleFileSystem.h"
-#include "ModuleScene.h"
+#include "ModuleSceneLoader.h"
 #include "GameObject.h"
 #include "Config.h"
 #include "ModuleRenderer3D.h"

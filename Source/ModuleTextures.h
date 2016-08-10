@@ -6,8 +6,6 @@
 #include <string>
 #include <map>
 
-#define INVALID_TEXTURE 65535
-
 class ModuleTextures : public Module
 {
 public:
@@ -17,7 +15,10 @@ public:
 	bool Init(Config* config = nullptr) override;
 	bool CleanUp() override;
 
+	const char* Import(const char* file, const char* path);
+	const char* Import(const void* buffer, uint size);
 	uint Load(const char* file, const char* path);
+	uint Load(const void* buffer, uint size);
 	uint GetId(const char* path);
 
 private:

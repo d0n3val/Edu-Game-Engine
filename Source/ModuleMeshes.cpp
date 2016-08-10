@@ -72,6 +72,13 @@ const char* ModuleMeshes::Import(const aiMesh* new_mesh) const
 		memcpy(m->normals, new_mesh->mNormals, sizeof(float) * m->num_vertices * 3);
 	}
 
+	// colors
+	if (new_mesh->HasVertexColors(0))
+	{
+		m->colors = new float[m->num_vertices * 3];
+		memcpy(m->colors, new_mesh->mColors, sizeof(float) * m->num_vertices * 3);
+	}
+
 	// texture coords (only one texture for now)
 	if (new_mesh->HasTextureCoords(0))
 	{
@@ -217,7 +224,7 @@ const char * ModuleMeshes::Save(const Mesh * mesh) const
 	static int f = 0;
 	static char file[80];
 
-	sprintf_s(file, 80, "assets/meshes/mesh_%i.mesh", ++f);
+	sprintf_s(file, 80, "Library/Meshes/mesh_%i.edu", ++f);
 	App->fs->Save(file, data, size);
 
 	RELEASE(data);
@@ -249,10 +256,21 @@ uint ModuleMeshes::GenerateVertexBuffer(const Mesh* mesh)
 		glBufferData (GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, mesh->normals, GL_STATIC_DRAW);
 	}
 
+	// Buffer for vertex colors
+	if (mesh->colors != nullptr)
+	{
+		glGenBuffers (1, (GLuint*) &(mesh->vbo_colors));
+		glBindBuffer (GL_ARRAY_BUFFER, mesh->vbo_colors);
+		glBufferData (GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, mesh->colors, GL_STATIC_DRAW);
+	}
+
 	// Buffer for texture coords
-	glGenBuffers (1, (GLuint*) &(mesh->vbo_texture_coords));
-	glBindBuffer (GL_ARRAY_BUFFER, mesh->vbo_texture_coords);
-	glBufferData (GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, mesh->texture_coords, GL_STATIC_DRAW);
+	if (mesh->texture_coords != nullptr)
+	{
+		glGenBuffers(1, (GLuint*) &(mesh->vbo_texture_coords));
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_texture_coords);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, mesh->texture_coords, GL_STATIC_DRAW);
+	}
 
 	/*
 	// Now we pack all buffers using a VAO (Vertex Attribute Object)

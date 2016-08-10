@@ -16,7 +16,7 @@ class ModuleAudio;
 class ModulePhysics3D;
 class ModuleRenderer3D;
 class ModuleCamera3D;
-class ModuleScene;
+class ModuleSceneLoader;
 class ModuleTextures;
 class ModuleMeshes;
 class ModuleEditor;

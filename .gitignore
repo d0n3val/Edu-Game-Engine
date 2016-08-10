@@ -243,4 +243,4 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-/Game/Assets/Meshes
+/Game/Library

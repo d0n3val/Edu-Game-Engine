@@ -15,7 +15,7 @@ class ModuleAudio;
 class ModulePhysics3D;
 class ModuleRenderer3D;
 class ModuleCamera3D;
-class ModuleScene;
+class ModuleSceneLoader;
 class ModuleTextures;
 class ModuleMeshes;
 class ModuleEditor;
@@ -60,7 +60,7 @@ public:
 	ModulePhysics3D* physics3D = nullptr;
 	ModuleRenderer3D* renderer3D = nullptr;
 	ModuleCamera3D* camera = nullptr;
-	ModuleScene* scene = nullptr;
+	ModuleSceneLoader* scene = nullptr;
 	ModuleTextures* tex = nullptr;
 	ModuleMeshes* meshes = nullptr;
 	ModuleEditor* editor = nullptr;

@@ -93,9 +93,6 @@
     <ClInclude Include="Point.h">
       <Filter>Containers</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleScene.h">
-      <Filter>Core Modules</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleTextures.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
@@ -468,6 +465,9 @@
     <ClInclude Include="ModuleCamera3D.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleSceneLoader.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -507,9 +507,6 @@
       <Filter>Core Modules</Filter>
     </ClCompile>
     <ClCompile Include="ModuleWindow.cpp">
-      <Filter>Core Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleScene.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
     <ClCompile Include="ModuleTextures.cpp">
@@ -684,6 +681,9 @@
       <Filter>Core Modules</Filter>
     </ClCompile>
     <ClCompile Include="ModuleCamera3D.cpp">
+      <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleSceneLoader.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>

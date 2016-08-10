@@ -312,10 +312,20 @@ void GameObject::Draw(bool debug) const
 			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_vertices);
 			glVertexPointer(3, GL_FLOAT, 0, NULL);
 
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_texture_coords);
-			glTexCoordPointer(3, GL_FLOAT, 0, NULL);
-			  
+			if (mesh->vbo_texture_coords > 0)
+			{
+				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_texture_coords);
+				glTexCoordPointer(3, GL_FLOAT, 0, NULL);
+			}
+
+			if (mesh->vbo_colors > 0)
+			{
+				glEnableClientState(GL_COLOR_ARRAY);
+				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_colors);
+				glColorPointer(3, GL_FLOAT, 0, NULL);
+			}
+
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vbo_indices);
 			glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, NULL);
 

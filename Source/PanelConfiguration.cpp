@@ -9,7 +9,7 @@
 #include "ModulePhysics3D.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleCamera3D.h"
-#include "ModuleScene.h"
+#include "ModuleSceneLoader.h"
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
 #include "ModuleEditor.h"

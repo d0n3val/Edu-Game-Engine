@@ -13,6 +13,7 @@ struct Mesh
 	uint id = INVALID_MESH;
 	// ids of the VBO
 	uint vbo_vertices = 0;
+	uint vbo_colors = 0;
 	uint vbo_normals = 0;
 	uint vbo_texture_coords = 0;
 	uint vbo_indices = 0;

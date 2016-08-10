@@ -6,7 +6,7 @@
 #include "ModulePhysics3D.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleCamera3D.h"
-#include "ModuleScene.h"
+#include "ModuleSceneLoader.h"
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
 #include "ModuleEditor.h"
@@ -38,7 +38,7 @@ Application::Application()
 	modules.push_back(editor = new ModuleEditor());
 	modules.push_back(input = new ModuleInput());
 	modules.push_back(audio = new ModuleAudio(true));
-	modules.push_back(scene = new ModuleScene());
+	modules.push_back(scene = new ModuleSceneLoader());
 	modules.push_back(level = new ModuleLevelManager());
 }
 

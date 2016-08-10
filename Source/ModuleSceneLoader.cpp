@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "Application.h"
-#include "ModuleScene.h"
+#include "ModuleSceneLoader.h"
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
 #include "ModuleFileSystem.h"
@@ -18,16 +18,16 @@
 
 using namespace std;
 
-ModuleScene::ModuleScene( bool start_enabled) : Module("Scene", start_enabled)
+ModuleSceneLoader::ModuleSceneLoader( bool start_enabled) : Module("Scene", start_enabled)
 {
 }
 
 // Destructor
-ModuleScene::~ModuleScene()
+ModuleSceneLoader::~ModuleSceneLoader()
 {}
 
 // Called before render is available
-bool ModuleScene::Init(Config* config)
+bool ModuleSceneLoader::Init(Config* config)
 {
 	LOG("Loading Scene Manager");
 	bool ret = true;
@@ -41,7 +41,7 @@ bool ModuleScene::Init(Config* config)
 }
 
 // Called before render is available
-bool ModuleScene::Start(Config* config)
+bool ModuleSceneLoader::Start(Config* config)
 {
 	LOG("Loading Scene Manager");
 	bool ret = true;
@@ -63,7 +63,7 @@ bool ModuleScene::Start(Config* config)
 }
 
 // Called before quitting or switching levels
-bool ModuleScene::CleanUp()
+bool ModuleSceneLoader::CleanUp()
 {
 	LOG("Freeing Scene Manager");
 
@@ -78,7 +78,7 @@ bool ModuleScene::CleanUp()
 	return true;
 }
 
-void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath)
+void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath)
 {
 	aiVector3D translation;
 	aiVector3D scaling;
@@ -118,9 +118,20 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 		{
 			aiString path;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-
 			ComponentMaterial* c_material = (ComponentMaterial*) child_go->CreateComponent(ComponentTypes::Material);
-			c_material->material_id = App->tex->Load(path.C_Str(), basePath.c_str());
+
+			if (path.data[0] == '*')
+			{
+				uint n = atoi(&path.data[1]);
+				// Embedded texture detected!
+				if (n < scene->mNumTextures)
+				{
+					aiTexture* tex = scene->mTextures[n];
+					c_material->material_id = App->tex->Load(tex->pcData, (tex->mHeight == 0) ? tex->mWidth : tex->mHeight*tex->mWidth);
+				}
+			}
+			else
+				c_material->material_id = App->tex->Load(App->tex->Import(path.C_Str(), basePath.c_str()), "");
 			LOG("->-> Added material component");
 		}
 
@@ -137,7 +148,7 @@ void ModuleScene::RecursiveCreateGameObjects(const aiNode* node, GameObject* par
 	}
 }
 
-bool ModuleScene::LoadScene(const char* file)
+bool ModuleSceneLoader::LoadScene(const char* file)
 {
 	bool ret = false;
 
@@ -164,7 +175,7 @@ bool ModuleScene::LoadScene(const char* file)
 	return ret;
 }
 
-void ModuleScene::LoadMetaData(aiMetadata * const meta)
+void ModuleSceneLoader::LoadMetaData(aiMetadata * const meta)
 {
 	// iterate all metadata in this node
 	if (meta != nullptr)

@@ -11,12 +11,12 @@ struct aiMaterial;
 struct aiMetadata;
 class GameObject;
 
-class ModuleScene : public Module
+class ModuleSceneLoader : public Module
 {
 public:
 
-	ModuleScene(bool start_enabled = true);
-	~ModuleScene();
+	ModuleSceneLoader(bool start_enabled = true);
+	~ModuleSceneLoader();
 
 	bool Init(Config* config = nullptr) override;
 	bool Start(Config* config) override;
