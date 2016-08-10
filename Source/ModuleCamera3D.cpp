@@ -93,27 +93,35 @@ update_status ModuleCamera3D::Update(float dt)
 	}
 
 	// Mouse motion ----------------
-	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT)
+	iPoint motion = App->input->GetMouseMotion();
+	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && (motion.x != 0 || motion.y != 0))
 	{
-		iPoint motion = App->input->GetMouseMotion();
 		float dx = (float)-motion.x;
 		float dy = (float)-motion.y;
 
 		if (App->input->GetKey(SDL_SCANCODE_LCTRL) == KEY_REPEAT)
 		{
 			// rotate around a position - lookat
-			float sensitivity = 0.6f;
+			float sensitivity = 0.01f;
+			dx *= sensitivity;
+			dy *= sensitivity;
+
 			float3 point = looking_at;
 
 			// fake point should be a ray colliding with something
 			if (looking == false)
 				point = frustum.pos + frustum.front * 50.0f;
 
-			float3 up = frustum.up * (-dy*sensitivity);
-			float3 right = frustum.WorldRight() * (dx*sensitivity);
+			float3 focus = frustum.pos - point;
 
-			frustum.pos += up;
-			frustum.pos += right;
+			Quat qy(frustum.up, dx);
+			Quat qx(frustum.WorldRight(), dy);
+
+			focus = qx.Transform(focus);
+			focus = qy.Transform(focus);
+
+			frustum.pos = focus + point;
+
 			Look(point);
 		}
 		else
