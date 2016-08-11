@@ -55,7 +55,7 @@ void PanelConfiguration::Draw()
 
     ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
 
-	if (ImGui::BeginMenu("File"))
+	if (ImGui::BeginMenu("Options"))
 	{
 		ImGui::MenuItem("Set Defaults");
 		if (ImGui::MenuItem("Load.."))

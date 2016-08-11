@@ -32,6 +32,34 @@ void PanelProperties::Draw()
 {
     ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
 
+
+	if (ImGui::BeginMenu("Options"))
+	{
+		if (ImGui::MenuItem("Reset Transform", nullptr, nullptr, (selected != nullptr)))
+		{
+			selected->SetLocalPosition(float3::zero);
+			selected->SetLocalScale(float3::one);
+			selected->SetLocalRotation(float3::zero);
+		}
+
+        if (ImGui::BeginMenu("New Component", (selected != nullptr)))
+        {
+			if (ImGui::MenuItem("Audio Listener"))
+				selected->CreateComponent(ComponentTypes::AudioListener);
+			if (ImGui::MenuItem("Audio Source"))
+				selected->CreateComponent(ComponentTypes::AudioSource);
+			if (ImGui::MenuItem("Geometry"))
+				selected->CreateComponent(ComponentTypes::Geometry);
+			if (ImGui::MenuItem("Material"))
+				selected->CreateComponent(ComponentTypes::Material);
+			if (ImGui::MenuItem("Camera"))
+				selected->CreateComponent(ComponentTypes::Camera);
+            ImGui::EndMenu();
+        }
+
+		ImGui::EndMenu();
+	}
+
 	if (selected != nullptr)
 	{
 		// Active check box

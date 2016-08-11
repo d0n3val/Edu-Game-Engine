@@ -33,6 +33,8 @@ public:
 	int GetInt(const char* field, int default, int index = -1) const;
 	float GetFloat(const char* field, float default, int index = -1) const;
 	const char* GetString(const char* field, const char* default, int index = -1) const;
+	int GetArrayCount(const char * field) const;
+	Config GetArray(const char* field, int index) const;
 
 	bool AddBool(const char* field, bool value);
 	bool AddInt(const char* field, int value);

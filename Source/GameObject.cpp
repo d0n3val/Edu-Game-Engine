@@ -1,7 +1,9 @@
 #include "Globals.h"
+#include "Application.h"
 #include "GameObject.h"
 #include "ModuleMeshes.h"
 #include "ModuleTextures.h"
+#include "ModuleLevelManager.h"
 #include "Component.h"
 #include "ComponentMaterial.h"
 #include "ComponentAudioListener.h"
@@ -41,7 +43,6 @@ bool GameObject::Save(Config& config) const
 	// Save my info
 	config.AddString("Name", name.c_str());
 
-	bool test[5] = { true,false,true,true,true };
 	config.AddArrayFloat("Translation", (float*) &translation, 3);
 	config.AddArrayFloat("Scale", (float*) &scale, 3);
 	config.AddArrayFloat("Rotation", (float*) &rotation, 4);
@@ -56,7 +57,7 @@ bool GameObject::Save(Config& config) const
 		config.AddArrayEntry(component);
 	}
 
-	// ANd recursively all children
+	// Recursively all children
 	config.AddArray("Childs");
 	for (list<GameObject*>::const_iterator it = childs.begin(); it != childs.end(); ++it)
 	{
@@ -71,7 +72,47 @@ bool GameObject::Save(Config& config) const
 // ---------------------------------------------------------
 void GameObject::Load(Config * config)
 {
+	// Name
+	name = config->GetString("Name", "Unnamed");
 
+	// Transform
+	translation.x = config->GetFloat("Translation", 0.f, 0);
+	translation.y = config->GetFloat("Translation", 0.f, 1);
+	translation.z = config->GetFloat("Translation", 0.f, 2);
+
+	scale.x = config->GetFloat("Scale", 1.f, 0);
+	scale.y = config->GetFloat("Scale", 1.f, 1);
+	scale.z = config->GetFloat("Scale", 1.f, 2);
+
+	rotation.x = config->GetFloat("Rotation", 0.f, 0);
+	rotation.y = config->GetFloat("Rotation", 0.f, 1);
+	rotation.z = config->GetFloat("Rotation", 0.f, 2);
+	rotation.w = config->GetFloat("Rotation", 1.f, 3);
+
+	// Now Load all my components
+	int count = config->GetArrayCount("Components");
+
+	for (int i = 0; i < count; ++i)
+	{
+		Config component_conf(config->GetArray("Components", i));
+		ComponentTypes type = (ComponentTypes) component_conf.GetInt("Type", ComponentTypes::Invalid);
+		if (type != ComponentTypes::Invalid)
+		{
+			Component* component = CreateComponent(type);
+			component->OnLoad(&component_conf);
+		}
+		else
+			LOG("Cannot load component type INVALID for gameobject %s", name.c_str());
+	}
+
+	// And now all children recursively
+	count = config->GetArrayCount("Children");
+	for (int i = 0; i < count; ++i)
+	{
+		Config children_conf(config->GetArray("Children", i));
+		GameObject* new_go = App->level->CreateGameObject(this);
+		new_go->Load(&children_conf);
+	}
 }
 
 // ---------------------------------------------------------

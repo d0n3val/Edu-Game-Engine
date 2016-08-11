@@ -119,6 +119,23 @@ const char* Config::GetString(const char * field, const char* default, int index
 	return default;
 }
 
+Config Config::GetArray(const char * field, int index) const
+{
+	JSON_Array* array = json_object_get_array(root, field);
+	if (array != nullptr)
+		return Config(json_array_get_object(array, index));
+	return Config((JSON_Object*) nullptr);
+}
+
+int Config::GetArrayCount(const char * field) const
+{
+	int ret = -1;
+	JSON_Array* array = json_object_get_array(root, field);
+	if (array != nullptr)
+		ret = json_array_get_count(array);
+	return ret;
+}
+
 bool Config::AddBool(const char * field, bool value)
 {
 	return json_object_set_boolean(root, field, (value) ? 1 : 0) == JSONSuccess;

@@ -91,6 +91,16 @@ GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent, const flo
 	return ret;
 }
 
+GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent)
+{
+	if (parent == nullptr)
+		parent = root;
+
+	GameObject* ret = new GameObject("Unnamed");
+	parent->AddChild(ret);
+	return ret;
+}
+
 bool ModuleLevelManager::Load(const char * file)
 {
 	bool ret = false;

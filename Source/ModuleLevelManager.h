@@ -23,7 +23,7 @@ public:
 	const GameObject* GetRoot() const;
 	GameObject* GetRoot();
 
-	// Load audio assets
+	// Manage whole levels
 	bool CreateNewEmpty(const char* name);
 	bool Load(const char* file);
 	bool Save(const char* file = nullptr);
@@ -34,6 +34,7 @@ public:
 
 	// Add or remove from the hierarchy
 	GameObject* CreateGameObject(GameObject * parent, const float3& pos, const float3& scale, const Quat& rot, const char* name = nullptr);
+	GameObject* CreateGameObject(GameObject * parent = nullptr);
 
 	void RecursiveDebugDrawGameObjects(const GameObject* go) const;
 

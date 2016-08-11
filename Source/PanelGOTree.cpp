@@ -1,7 +1,9 @@
+#include "Application.h"
 #include "PanelGOTree.h"
 #include "Imgui/imgui.h"
 #include "Application.h"
 #include "ModuleLevelManager.h"
+#include "ModuleEditor.h"
 #include "ModuleCamera3D.h"
 #include "GameObject.h"
 #include <list>
@@ -27,6 +29,41 @@ void PanelGOTree::Draw()
 	node = 0;
     ImGui::Begin("GameObjects Hierarchy", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
 
+	// Menu ---
+	static bool waiting_to_load_file = false;
+	static bool waiting_to_save_file = false;
+
+	if (waiting_to_load_file == true && App->editor->FileDialog("json"))
+	{
+		const char* file = App->editor->CloseFileDialog();
+		if (file != nullptr)
+			App->level->Load(file);
+		waiting_to_load_file = false;
+	}
+
+	if (waiting_to_save_file == true && App->editor->FileDialog("json"))
+	{
+		const char* file = App->editor->CloseFileDialog();
+		if (file != nullptr)
+			App->level->Save(file);
+		waiting_to_save_file = false;
+	}
+
+	if (ImGui::BeginMenu("Options"))
+	{
+		if (ImGui::MenuItem("Load.."))
+			waiting_to_load_file = true;
+
+		if (ImGui::MenuItem("Save.."))
+			waiting_to_save_file = true;
+
+		if(ImGui::MenuItem("Create New"))
+			App->level->CreateGameObject();
+
+		ImGui::EndMenu();
+	}
+
+	// Draw the tree
 	GameObject* root = App->level->GetRoot();
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
 		RecursiveDraw(*it);
