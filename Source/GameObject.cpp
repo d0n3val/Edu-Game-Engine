@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "GameObject.h"
 #include "ModuleMeshes.h"
+#include "ModuleTextures.h"
 #include "Component.h"
 #include "ComponentMaterial.h"
 #include "ComponentAudioListener.h"
@@ -283,7 +284,8 @@ void GameObject::Draw(bool debug) const
 		if ((*it)->GetType() == ComponentTypes::Material)
 		{
 			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
-			glBindTexture(GL_TEXTURE_2D, cmaterial->material_id);
+			if(cmaterial->texture != nullptr)
+				glBindTexture(GL_TEXTURE_2D, cmaterial->texture->gpu_id);
 		}
 	}
 

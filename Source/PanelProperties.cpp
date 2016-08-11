@@ -8,6 +8,7 @@
 #include "ComponentAudioListener.h"
 #include "ComponentCamera.h"
 #include "ModuleMeshes.h"
+#include "ModuleTextures.h"
 #include "DebugDraw.h"
 #include <list>
 
@@ -233,4 +234,5 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
+	ImGui::Image((ImTextureID) component->texture->gpu_id, ImVec2(50, 50));
 }

@@ -127,11 +127,11 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObjec
 				if (n < scene->mNumTextures)
 				{
 					aiTexture* tex = scene->mTextures[n];
-					c_material->material_id = App->tex->Load(tex->pcData, (tex->mHeight == 0) ? tex->mWidth : tex->mHeight*tex->mWidth);
+					c_material->texture = App->tex->Load(App->tex->Import(tex->pcData, (tex->mHeight == 0) ? tex->mWidth : tex->mHeight*tex->mWidth));
 				}
 			}
 			else
-				c_material->material_id = App->tex->Load(App->tex->Import(path.C_Str(), basePath.c_str()), "");
+				c_material->texture = App->tex->Load(App->tex->Import(path.C_Str(), basePath.c_str()));
 			LOG("->-> Added material component");
 		}
 

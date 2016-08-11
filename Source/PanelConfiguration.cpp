@@ -74,6 +74,9 @@ void PanelConfiguration::Draw()
 	if (InitModuleDraw(App->renderer3D))
 		DrawModuleRenderer(App->renderer3D);
 
+	if (InitModuleDraw(App->tex))
+		DrawModuleTextures(App->tex);
+
 	if (InitModuleDraw(App->audio))
 		DrawModuleAudio(App->audio);
 
@@ -262,6 +265,46 @@ void PanelConfiguration::DrawModuleRenderer(ModuleRenderer3D * module)
 	bool vsync = App->renderer3D->GetVSync();
 	if (ImGui::Checkbox("Vertical Sync", &vsync))
 		App->renderer3D->SetVSync(vsync);
+}
+
+void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
+{
+	int i = 0;
+	int cols = 5;
+	for (vector<TextureInfo*>::iterator it = module->textures.begin(); it != module->textures.end(); ++it)
+	{
+		TextureInfo* info = *it;
+		ImGui::Image((ImTextureID) info->gpu_id, ImVec2(50.f, 50.f), ImVec2(0,1), ImVec2(1,0));
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextColored(IMGUI_YELLOW, info->name);
+			ImGui::Text("Size: %u,%u Depth: %u", info->width, info->height);
+			ImGui::Text("Bpp: %u Mips: %u", info->bpp, info->mips);
+
+			ImVec2 size((float)info->width, (float)info->height);
+			float max_size = 250.f;
+
+			if (size.x > max_size || size.y > max_size)
+			{
+				if (size.x > size.y)
+				{
+					size.y *= max_size / size.x;
+					size.x = max_size;
+				}
+				else
+				{
+					size.x *= max_size / size.y;
+					size.y = max_size;
+				}
+			}
+
+			ImGui::Image((ImTextureID) info->gpu_id, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+			ImGui::EndTooltip();
+		}
+        if ((i++ % 5) < 4) ImGui::SameLine();
+	}
+	ImGui::NewLine();
 }
 
 void PanelConfiguration::AddInput(const char * entry)

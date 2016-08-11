@@ -5,6 +5,8 @@
 
 #include "Component.h"
 
+struct TextureInfo;
+
 class ComponentMaterial : public Component
 {
 public:
@@ -15,7 +17,7 @@ public:
 	void OnLoad(Config* config) override;
 
 public:
-	uint material_id = 0;
+	const TextureInfo* texture;
 };
 
 #endif // __COMPONENT_MESH_H__
