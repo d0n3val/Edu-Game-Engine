@@ -26,13 +26,6 @@ public:
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
 	void DrawCameraComponent(ComponentCamera * component);
-
-
-public:
-	GameObject* selected = nullptr;
-
-
-
 };
 
 #endif// __PANELPROPERTIES_H__

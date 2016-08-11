@@ -1,4 +1,5 @@
 #include "PanelProperties.h"
+#include "Application.h"
 #include "Imgui/imgui.h"
 #include "GameObject.h"
 #include "Component.h"
@@ -8,7 +9,9 @@
 #include "ComponentAudioListener.h"
 #include "ComponentCamera.h"
 #include "ModuleMeshes.h"
+#include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
+#include "ModuleEditor.h"
 #include "DebugDraw.h"
 #include <list>
 
@@ -30,8 +33,8 @@ PanelProperties::~PanelProperties()
 // ---------------------------------------------------------
 void PanelProperties::Draw()
 {
+	GameObject* selected = App->editor->selected;
     ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
-
 
 	if (ImGui::BeginMenu("Options"))
 	{
@@ -60,8 +63,9 @@ void PanelProperties::Draw()
 		ImGui::EndMenu();
 	}
 
-	if (selected != nullptr)
+	if (selected != nullptr )
 	{
+
 		// Active check box
 		bool active = selected->IsActive();
 		ImGui::Checkbox(" ", &active);
@@ -166,6 +170,9 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 {
 	const Mesh* mesh = component->GetMesh();
+	if (mesh == nullptr)
+		return;
+
     ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)",
 		mesh->num_indices / 3,
 		mesh->num_indices,

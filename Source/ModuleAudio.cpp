@@ -11,8 +11,12 @@
 #include "Component.h"
 #include "Config.h"
 #include "Bass/include/bass.h"
+#include "Bass/include/bassenc.h"
+#include "Bass/include/bassenc_ogg.h"
 
 #pragma comment( lib, "Bass/libx86/bass.lib" )
+#pragma comment( lib, "Bass/libx86/bassenc.lib" )
+#pragma comment( lib, "Bass/libx86/bassenc_ogg.lib" )
 
 using namespace std;
 
@@ -151,6 +155,59 @@ void ModuleAudio::Load(Config * config)
 	SetVolume(config->GetFloat("Volume", 1.0f));
 	SetMusicVolume(config->GetFloat("Music Volume", 1.0f));
 	SetFXVolume(config->GetFloat("Fx Volume", 1.0f));
+
+}
+
+void CALLBACK EncodeNewData(HENCODE encoder, DWORD channel, const void* buffer, DWORD lenght, void* user)
+{
+	LOG("Received encoding chunk of %u bytes for %s", lenght, (const char*)user);
+	App->fs->Save((const char*)user, (const char*) buffer, lenght, true);
+}
+
+const char * ModuleAudio::Import(const char * file)
+{
+	static uint asset_id = 0;
+	static char name[80];
+
+	sprintf_s(name, 80, "stream_%u.ogg", ++asset_id);
+
+	BASS_SetConfig( BASS_CONFIG_BUFFER, 65535);
+
+	ulong id = BASS_StreamCreateFileUser( 
+				STREAMFILE_NOBUFFER, 
+				BASS_STREAM_DECODE | BASS_ASYNCFILE, 
+				App->fs->GetBassIO(), 
+				App->fs->BassLoad(file) );
+
+	// Start encode paused
+	HENCODE encoder = BASS_Encode_OGG_Start(
+		id,
+		"-m 80",
+		BASS_ENCODE_AUTOFREE | BASS_ENCODE_CAST_NOLIMIT,
+		EncodeNewData, 
+		(void*) name);
+	
+	if (encoder == 0)
+		LOG("BASS_Encode_OGG_Start() error: %s", BASS_GetErrorString());
+	else
+	{
+		// truncate file if it already exist
+		App->fs->Remove(name);
+
+		char* buffer = new char[1024*1024];
+		BASS_ChannelPlay(id, 0);
+
+		while (BASS_ChannelIsActive(id) == BASS_ACTIVE_PLAYING)
+		{
+			uint len = BASS_ChannelGetData(id, buffer, 655350);
+			BASS_Encode_Write(id, buffer, len);
+			LOG("Got %u", len);
+		}
+
+		RELEASE(buffer);
+	}
+
+	return nullptr;
 }
 
 ulong ModuleAudio::Load(const char * file)
@@ -162,7 +219,9 @@ ulong ModuleAudio::Load(const char * file)
 		int len = strlen(file);
 
 		// OGG files will be streams
-		if (len > 4 && _strnicmp("ogg", &file[len - 3], 3) == 0)
+		if (len > 4 && (
+			_strnicmp("ogg", &file[len - 3], 3) == 0 ||
+			_strnicmp("mp3", &file[len - 3], 3) == 0))
 		{
 			ret = BASS_StreamCreateFileUser( 
 				STREAMFILE_BUFFER, 

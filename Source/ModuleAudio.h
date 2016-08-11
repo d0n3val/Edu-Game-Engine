@@ -32,6 +32,7 @@ public:
 	void Load(Config* config) override;
 
 	// Load audio assets
+	const char* Import(const char* file);  // too slow for now, better to just copy the file
 	ulong Load(const char* file);
 	const char* GetFile(uint id) const;
 	void Unload(ulong id);

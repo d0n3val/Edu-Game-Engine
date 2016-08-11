@@ -31,8 +31,8 @@
     "Scene": {
         "ToLoad": [
 			//"Models/water/Water World Scene.obj"
-			//"Assets/Models/street/scene.dae"
-			"Assets/Models/Dreamhouse/Dreamhouse.fbx"
+			"Assets/Models/street/scene.dae"
+			//"Assets/Models/Dreamhouse/Dreamhouse.fbx"
         ]
     },
 

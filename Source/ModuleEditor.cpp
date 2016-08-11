@@ -133,11 +133,10 @@ update_status ModuleEditor::Update(float dt)
 		}
 	}
 
-	// Link tree and property panel
-	props->selected = (GameObject*) tree->selected;
-
 	if (file_dialog == opened)
 		LoadFile(file_dialog_filter.c_str());
+	else
+		in_modal = false;
 
 	// Show showcase ? 
 	if(showcase)
@@ -161,6 +160,17 @@ bool ModuleEditor::CleanUp()
     ImGui_ImplSdlGL3_Shutdown();
 
 	return true;
+}
+
+void ModuleEditor::ReceiveEvent(EventType type, void * userdata)
+{
+	switch (type)
+	{
+		case EventType::gameobject_destroyed:
+		{
+			selected = App->level->Validate(selected);
+		} break;
+	}
 }
 
 void ModuleEditor::OnResize(int width, int height)
@@ -217,8 +227,9 @@ void ModuleEditor::Draw()
 	// Debug Draw on selected GameObject
 	BeginDebugDraw();
 
-	if (props->selected != nullptr)
-		App->level->RecursiveDebugDrawGameObjects(props->selected);
+	GameObject* selected = App->editor->selected;
+	if (selected = App->level->Validate(selected))
+		App->level->RecursiveDebugDrawGameObjects(selected);
 
 	EndDebugDraw();
 	ImGui::Render();

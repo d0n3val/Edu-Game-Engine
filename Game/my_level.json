@@ -1,0 +1,695 @@
+// Level save file from EDU Engine
+{
+    "Description": {
+        "Name": ""
+    },
+    "Game Objects": [{
+            "Name": "Test Camera",
+            "Translation": [0,0,0],
+            "Scale": [1,1,1],
+            "Rotation": [0,0,0,1],
+            "Components": [{
+                    "Type": 5,
+                    "Background": [0,0,0,1],
+                    "Frustum": [0,0,0,0,0,1,0,1,0,1,200,1.287713,1.047198]
+                }],
+            "Childs": []
+        },{
+            "Name": "Test Audio",
+            "Translation": [0,0,0],
+            "Scale": [1,1,1],
+            "Rotation": [0,0,0,1],
+            "Components": [{
+                    "Type": 4,
+                    "Is 2D": false,
+                    "Min Distance": 0,
+                    "Max Distance": 5,
+                    "Cone Angle In": 360,
+                    "Cone Angle Out": 360,
+                    "Out Cone Vol": 0,
+                    "Fade In": 10,
+                    "Fade Out": 1
+                },{
+                    "Type": 3,
+                    "Distance": 10,
+                    "Roll Off": 1,
+                    "Doppler": 1
+                }],
+            "Childs": []
+        },{
+            "Name": "scene",
+            "Translation": [0,0,0],
+            "Scale": [1,1,1],
+            "Rotation": [0,0,0,1],
+            "Components": [],
+            "Childs": [{
+                    "Name": "Sky001",
+                    "Translation": [18.153732,0,58.960911],
+                    "Scale": [1,1,1],
+                    "Rotation": [0,0,0,1],
+                    "Components": [],
+                    "Childs": []
+                },{
+                    "Name": "Dummy001",
+                    "Translation": [0,0,0],
+                    "Scale": [1,1,1],
+                    "Rotation": [-0.707107,0,0,0.707107],
+                    "Components": [],
+                    "Childs": [{
+                            "Name": "City_building_004",
+                            "Translation": [-41.475891,21.014099,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_004Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.879169,-6.414958,-0.003676,4.957353,6.414958,5.900143]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_001",
+                            "Translation": [17.707165,20.053276,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_001Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.925279,-5.057125,0.000013,6.911661,5.057126,4.707838]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_007",
+                            "Translation": [16.010492,37.493286,-0.000002],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_007Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-5.085423,-8.293857,-0.002402,5.032501,8.293859,4.787869]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_008",
+                            "Translation": [40.979996,18.270824,-0.000002],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_008Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-3.530196,-2.602533,-0.011603,3.530196,2.602533,3.432285]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "Line002",
+                            "Translation": [-2.159772,1.853838,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,-0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "Line002Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-45.230946,-46.370934,-1.036507,49.102776,50.079964,0.068778]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "Plane001",
+                            "Translation": [-0.028603,0.026032,0],
+                            "Scale": [0.996635,0.970616,0.996635],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "Plane001Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-48.521923,-48.521923,0,48.521923,48.521923,0]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_010",
+                            "Translation": [25.154011,-39.153721,0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_010Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.146075,3.313899,-0.000890,6.146075,3.313899,0.818961]
+                                        }],
+                                    "Childs": []
+                                },{
+                                    "Name": "City_building_010Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.356300,-3.508818,-0.002742,6.356300,3.508818,10.213581]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_011",
+                            "Translation": [30.134541,37.493286,-0.000002],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_007Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-5.085423,-8.293857,-0.002402,5.032501,8.293859,4.787869]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_013",
+                            "Translation": [-42.288055,33.201576,0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_013Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-5.650912,-3.826586,0.000366,5.370074,4.408821,7.291561]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_014",
+                            "Translation": [-19.439707,32.061729,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,1,0],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_014Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-4.957353,-6.414958,-0.005405,4.957353,17.370289,5.900141]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_016",
+                            "Translation": [34.270424,-41.972748,0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,1,0],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_010Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.146075,3.313899,-0.000890,6.146075,3.313899,0.818961]
+                                        }],
+                                    "Childs": []
+                                },{
+                                    "Name": "City_building_010Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.356300,-3.508818,-0.002742,6.356300,3.508818,10.213581]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_017",
+                            "Translation": [44.260082,-39.153721,0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_010Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.146075,3.313899,-0.000890,6.146075,3.313899,0.818961]
+                                        }],
+                                    "Childs": []
+                                },{
+                                    "Name": "City_building_010Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.356300,-3.508818,-0.002742,6.356300,3.508818,10.213581]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_022",
+                            "Translation": [-20.831324,-27.426489,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,1,0],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_022Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.522705,-5.218341,-0.018112,6.522705,15.018168,8.290951]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_023",
+                            "Translation": [42.130642,37.493286,-0.000002],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_007Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-5.085423,-8.293857,-0.002402,5.032501,8.293859,4.787869]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_024",
+                            "Translation": [-20.572771,43.060829,-0.069194],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,1,0],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_008Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-3.530196,-2.602533,-0.011603,3.530196,2.602533,3.432285]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_026",
+                            "Translation": [31.511889,-16.446016,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,1,0],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_026Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-16.089149,-5.218341,-0.018112,6.522705,5.218340,8.290951]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_028",
+                            "Translation": [13.387990,-33.755039,-0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_028Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-4.060417,-3.521622,-0.003617,4.060417,3.521622,9.851799]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "Object010",
+                            "Translation": [-20.604874,4.066742,-0.475960],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "Object010Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-1.596704,-22.565062,-0.560547,38.453686,17.485327,0.560547]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_030",
+                            "Translation": [-42.807240,-41.835564,-0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,-0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_028Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-4.060417,-3.521622,-0.003617,4.060417,3.521622,9.851799]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_031",
+                            "Translation": [-34.679482,-41.835564,-0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,-0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_028Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-4.060417,-3.521622,-0.003617,4.060417,3.521622,9.851799]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_032",
+                            "Translation": [-29.478403,21.014099,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_004Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.879169,-6.414958,-0.003676,4.957353,6.414958,5.900143]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_033",
+                            "Translation": [-32.361496,42.370422,0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_033Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-14.148149,-3.826586,0.000366,5.370074,4.408821,7.291561]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_034",
+                            "Translation": [16.049517,-16.696884,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,-0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_034Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.522705,-5.218341,-0.018112,13.256577,5.217877,8.290951]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_035",
+                            "Translation": [13.387990,-40.802517,-0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0,1],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_028Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-4.060417,-3.521622,-0.003617,4.060417,3.521622,9.851799]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_036",
+                            "Translation": [-31.216331,33.201576,0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,-0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_013Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-5.650912,-3.826586,0.000366,5.370074,4.408821,7.291561]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_037",
+                            "Translation": [-20.317694,-16.163609,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,1,0],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_037Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-5.779385,-5.218341,-0.018112,6.522705,5.218340,8.290951]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_038",
+                            "Translation": [-41.649002,-16.495394,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,-0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_038Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.522705,-5.218341,-0.018112,6.522705,13.306090,8.290951]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_039",
+                            "Translation": [-42.807240,-30.643888,-0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,-0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_028Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-4.060417,-3.521622,-0.003617,4.060417,3.521622,9.851799]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_040",
+                            "Translation": [-34.679482,-30.643888,-0.000001],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,-0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_028Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-4.060417,-3.521622,-0.003617,4.060417,3.521622,9.851799]
+                                        }],
+                                    "Childs": []
+                                }]
+                        },{
+                            "Name": "City_building_041",
+                            "Translation": [30.695278,21.612646,0],
+                            "Scale": [1,1,1],
+                            "Rotation": [0,0,0.707107,0.707107],
+                            "Components": [],
+                            "Childs": [{
+                                    "Name": "City_building_001Mesh",
+                                    "Translation": [0,0,0],
+                                    "Scale": [1,1,1],
+                                    "Rotation": [0,0,0,1],
+                                    "Components": [{
+                                            "Type": 2
+                                        },{
+                                            "Type": 1,
+                                            "AABB": [-6.925279,-5.057125,0.000013,6.911661,5.057126,4.707838]
+                                        }],
+                                    "Childs": []
+                                }]
+                        }]
+                },{
+                    "Name": "Camera001",
+                    "Translation": [-78.312431,45.251217,-97.031113],
+                    "Scale": [1.000000,1,1.000000],
+                    "Rotation": [0.133411,0.892671,0.063633,0.425782],
+                    "Components": [],
+                    "Childs": []
+                },{
+                    "Name": "Camera001.Target",
+                    "Translation": [-28.132622,20.873329,-35.064213],
+                    "Scale": [1.000000,1,1.000000],
+                    "Rotation": [0.049340,0.932287,0.139331,-0.330140],
+                    "Components": [],
+                    "Childs": []
+                },{
+                    "Name": "Spot001",
+                    "Translation": [-66.721268,141.934128,0.000006],
+                    "Scale": [1,1.000000,1.000000],
+                    "Rotation": [-0.378724,-0.597134,-0.378724,0.597134],
+                    "Components": [],
+                    "Childs": []
+                },{
+                    "Name": "Spot001.Target",
+                    "Translation": [28.890945,-60.963882,-0.000003],
+                    "Scale": [1,1,1],
+                    "Rotation": [0,0,0,1],
+                    "Components": [],
+                    "Childs": []
+                }]
+        }]
+} Í

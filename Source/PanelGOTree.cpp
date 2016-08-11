@@ -1,3 +1,4 @@
+#include "Globals.h"
 #include "Application.h"
 #include "PanelGOTree.h"
 #include "Imgui/imgui.h"
@@ -60,6 +61,9 @@ void PanelGOTree::Draw()
 		if(ImGui::MenuItem("Create New"))
 			App->level->CreateGameObject();
 
+		if(ImGui::MenuItem("Clear Scene", "!"))
+			App->level->RecursiveRemove();
+
 		ImGui::EndMenu();
 	}
 
@@ -75,9 +79,11 @@ void PanelGOTree::RecursiveDraw(const GameObject* go)
 {
 	sprintf_s(name, 80, "%s##node_%i", go->name.c_str(), node++);
 	uint flags = 0;// ImGuiTreeNodeFlags_OpenOnArrow;
+
 	if (go->childs.size() == 0)
 		flags |= ImGuiTreeNodeFlags_Leaf;
-	if (go == selected)
+
+	if (go == App->editor->selected)
 		flags |= ImGuiTreeNodeFlags_Selected;
 
 	ImVec4 color = IMGUI_WHITE;
@@ -98,11 +104,13 @@ void PanelGOTree::RecursiveDraw(const GameObject* go)
 
 	if (ImGui::TreeNodeEx(name, flags))
 	{
-		if (ImGui::IsItemClicked())
+		if(ImGui::IsItemClicked(0))
+			App->editor->selected = (GameObject*) go;
+
+		if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered())
 		{
 			float radius = go->global_bbox.MinimalEnclosingSphere().r;
-			App->camera->CenterOn(go->GetGlobalPosition(), radius * 3.0f);
-			selected = go;
+			App->camera->CenterOn(go->GetGlobalPosition(), std::fmaxf(radius, 5.0f) * 3.0f);
 		}
 
 		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)

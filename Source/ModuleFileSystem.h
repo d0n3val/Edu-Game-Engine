@@ -41,7 +41,8 @@ public:
 	aiFileIO* GetAssimpIO();
 	BASS_FILEPROCS* GetBassIO();
 
-	unsigned int Save(const char* file, const char* buffer, unsigned int size) const;
+	unsigned int Save(const char* file, const char* buffer, unsigned int size, bool append = false) const;
+	bool Remove(const char* file);
 
 	const char* GetBasePath() const;
 	const char* GetWritePath() const;

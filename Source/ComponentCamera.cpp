@@ -37,6 +37,25 @@ void ComponentCamera::OnSave(Config& config) const
 // ---------------------------------------------------------
 void ComponentCamera::OnLoad(Config * config)
 {
+	background.r = config->GetFloat("Background", 0.f, 0);
+	background.g = config->GetFloat("Background", 0.f, 1);
+	background.b = config->GetFloat("Background", 0.f, 2);
+	background.a = config->GetFloat("Background", 1.f, 3);
+
+	frustum.pos.x = config->GetFloat("Frustum", 0.f, 4);
+	frustum.pos.y = config->GetFloat("Frustum", 0.f, 5);
+	frustum.pos.z = config->GetFloat("Frustum", 0.f, 6);
+
+	frustum.front.x = config->GetFloat("Frustum", 0.f, 7);
+	frustum.front.y = config->GetFloat("Frustum", 0.f, 8);
+	frustum.front.z = config->GetFloat("Frustum", 1.f, 9);
+
+	frustum.up.x = config->GetFloat("Frustum", 0.f, 10);
+	frustum.up.y = config->GetFloat("Frustum", 1.f, 11);
+	frustum.up.z = config->GetFloat("Frustum", 0.f, 12);
+
+	frustum.nearPlaneDistance = config->GetFloat("Frustum", 0.1f, 13);
+	frustum.farPlaneDistance = config->GetFloat("Frustum", 1000.f, 14);
 }
 
 // -----------------------------------------------------------------

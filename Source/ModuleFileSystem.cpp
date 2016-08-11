@@ -180,11 +180,11 @@ int close_sdl_rwops(SDL_RWops *rw)
 }
 
 // Save a whole buffer to disk
-uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int size) const
+uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int size, bool append) const
 {
 	unsigned int ret = 0;
 
-	PHYSFS_file* fs_file = PHYSFS_openWrite(file);
+	PHYSFS_file* fs_file = (append) ? PHYSFS_openAppend(file) : PHYSFS_openWrite(file);
 
 	if(fs_file != nullptr)
 	{
@@ -193,7 +193,10 @@ uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int s
 			LOG("File System error while writing to file %s: %s", file, PHYSFS_getLastError());
 		else
 		{
-			LOG("New file created [%s%s]", PHYSFS_getWriteDir(), file);
+			if(append == true)
+				LOG("Added %u data to [%s%s]", size, PHYSFS_getWriteDir(), file);
+			else
+				LOG("New file created [%s%s] of %u bytes", PHYSFS_getWriteDir(), file, size);
 			ret = written;
 		}
 
@@ -202,6 +205,24 @@ uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int s
 	}
 	else
 		LOG("File System error while opening file %s: %s", file, PHYSFS_getLastError());
+
+	return ret;
+}
+
+bool ModuleFileSystem::Remove(const char * file)
+{
+	bool ret = false;
+
+	if (file != nullptr)
+	{
+		if (PHYSFS_delete(file) == 0)
+		{
+			LOG("File deleted: [%s]", file);
+			ret = true;
+		}
+		else
+			LOG("File System error while trying to delete [%s]: ", file, PHYSFS_getLastError());
+	}
 
 	return ret;
 }

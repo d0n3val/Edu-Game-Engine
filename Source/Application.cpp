@@ -278,3 +278,9 @@ void Application::RequestBrowser(const char * url) const
 {
    ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
+
+void Application::BroadcastEvent(EventType type, void * userdata)
+{
+	for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
+		(*it)->ReceiveEvent(type, userdata);
+}

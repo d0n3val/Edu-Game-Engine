@@ -19,6 +19,13 @@ void ComponentMesh::OnSave(Config& config) const
 // ---------------------------------------------------------
 void ComponentMesh::OnLoad(Config * config)
 {
+	bbox.minPoint.x = config->GetFloat("AABB", 0.f, 0);
+	bbox.minPoint.y = config->GetFloat("AABB", 0.f, 1);
+	bbox.minPoint.z = config->GetFloat("AABB", 0.f, 2);
+
+	bbox.maxPoint.x = config->GetFloat("AABB", 0.f, 3);
+	bbox.maxPoint.y = config->GetFloat("AABB", 0.f, 4);
+	bbox.maxPoint.z = config->GetFloat("AABB", 0.f, 5);
 }
 
 // ---------------------------------------------------------

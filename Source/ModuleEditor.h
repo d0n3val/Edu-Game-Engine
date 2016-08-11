@@ -14,6 +14,7 @@ class PanelGOTree;
 class PanelProperties;
 class PanelConfiguration;
 class PanelAbout;
+class GameObject;
 
 class ModuleEditor : public Module
 {
@@ -26,6 +27,7 @@ public:
 	update_status PreUpdate(float dt) override;
 	update_status Update(float dt) override;
 	bool CleanUp() override;
+	void ReceiveEvent(EventType type, void* userdata) override;
 
 	void OnResize(int width, int height);
 
@@ -46,6 +48,7 @@ public:
 	PanelProperties* props = nullptr;
 	PanelAbout* about = nullptr;
 	PanelConfiguration* conf = nullptr;
+	GameObject* selected = nullptr;
 
 private:
 	void LoadFile(const char* filter_extension = nullptr);

@@ -22,6 +22,12 @@ class ModuleMeshes;
 class ModuleEditor;
 class ModuleLevelManager;
 
+enum EventType
+{
+	gameobject_destroyed,
+	invalid
+};
+
 class Application
 {
 
@@ -46,6 +52,7 @@ public:
 	void LoadPrefs(const char* file);
 	void SavePrefs(const char* file);
 	void RequestBrowser(const char* url) const;
+	void BroadcastEvent(EventType type, void* userdata);
 
 private:
 

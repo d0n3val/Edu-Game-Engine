@@ -22,4 +22,7 @@ void ComponentAudioListener::OnSave(Config& config) const
 // ---------------------------------------------------------
 void ComponentAudioListener::OnLoad(Config * config)
 {
+	distance = config->GetFloat("Distance", 100.f);
+	roll_off = config->GetFloat("Roll Off", 1.f);
+	doppler = config->GetFloat("Doppler", 1.f);
 }

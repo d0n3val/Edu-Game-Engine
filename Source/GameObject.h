@@ -59,7 +59,7 @@ public:
 
 private:
 	bool calculated_bbox = false;
-	bool was_dirty = false;
+	bool was_dirty = true;
 	mutable bool local_trans_dirty = true;
 	mutable float4x4 transform_cache;
 	float3 translation = float3::zero;

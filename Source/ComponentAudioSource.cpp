@@ -30,6 +30,14 @@ void ComponentAudioSource::OnSave(Config& config) const
 // ---------------------------------------------------------
 void ComponentAudioSource::OnLoad(Config * config)
 {
+	is_2d = config->GetBool("Is 2D", false);
+	min_distance = config->GetFloat("Min Distance", 0.f);
+	max_distance = config->GetFloat("Max Distance", 0.f);
+	cone_angle_in = config->GetInt("Cone Angle In", 360);
+	cone_angle_out = config->GetInt("Cone Angle Out", 360);
+	out_cone_vol = config->GetFloat("Out Cone Vol", 0.f);
+	fade_in = config->GetFloat("Fade In", 1.f);
+	fade_out = config->GetFloat("Fade Out", 1.f);
 }
 
 // ---------------------------------------------------------

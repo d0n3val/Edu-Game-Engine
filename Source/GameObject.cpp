@@ -106,10 +106,10 @@ void GameObject::Load(Config * config)
 	}
 
 	// And now all children recursively
-	count = config->GetArrayCount("Children");
+	count = config->GetArrayCount("Childs");
 	for (int i = 0; i < count; ++i)
 	{
-		Config children_conf(config->GetArray("Children", i));
+		Config children_conf(config->GetArray("Childs", i));
 		GameObject* new_go = App->level->CreateGameObject(this);
 		new_go->Load(&children_conf);
 	}
@@ -339,6 +339,9 @@ void GameObject::Draw(bool debug) const
 		{
 			ComponentMesh* cmesh = (ComponentMesh*) (*it);
 			const Mesh* mesh = cmesh->GetMesh();
+
+			if (mesh == nullptr)
+				continue;
 
 			if (debug == false && mesh->vbo_normals > 0)
 			{

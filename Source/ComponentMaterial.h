@@ -17,7 +17,7 @@ public:
 	void OnLoad(Config* config) override;
 
 public:
-	const TextureInfo* texture;
+	const TextureInfo* texture = nullptr;
 };
 
 #endif // __COMPONENT_MESH_H__

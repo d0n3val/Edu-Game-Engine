@@ -101,6 +101,19 @@ GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent)
 	return ret;
 }
 
+void ModuleLevelManager::RecursiveRemove(GameObject * go)
+{
+	if (go == nullptr || go == root)
+	{
+		RELEASE(root);
+		root = new GameObject("root");
+	}
+	else
+		RELEASE(go);
+
+	App->BroadcastEvent(EventType::gameobject_destroyed, (void*)go);
+}
+
 bool ModuleLevelManager::Load(const char * file)
 {
 	bool ret = false;
@@ -114,9 +127,27 @@ bool ModuleLevelManager::Load(const char * file)
 
 		if (buffer != nullptr)
 		{
+			Config config(buffer);
+			if (config.IsValid())
+				RecursiveRemove(root);
+
+			// Load level description
+			Config desc(config.GetSection("Desscription"));
+			name = desc.GetString("Name", "Unnamed level");
+
+			int count = config.GetArrayCount("Game Objects");
+			for (int i = 0; i < count; ++i)
+			{
+				GameObject* go = CreateGameObject();
+				go->Load(&config.GetArray("Game Objects", i));
+			}
+
+			root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
+			bool did_recalc;
+			root->RecursiveCalcBoundingBoxes(did_recalc);
 		}
 
-		RELEASE(buffer); // since we are not buffering the file, we can safely remove it
+		RELEASE(buffer); 
 	}
 
 	return ret;
@@ -135,9 +166,12 @@ bool ModuleLevelManager::Save(const char * file)
 	// Serialize GameObjects recursively
 	save.AddArray("Game Objects");
 
-	Config game_objects;
-	root->Save(game_objects);
-	save.AddArrayEntry(game_objects);
+	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
+	{
+		Config child;
+		(*it)->Save(child);
+		save.AddArrayEntry(child);
+	}
 
 	// Finally save to file
 	char* buf = nullptr;
@@ -183,4 +217,16 @@ void ModuleLevelManager::RecursiveDebugDrawGameObjects(const GameObject* go) con
 	// Recursive call to all childs keeping matrices
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveDebugDrawGameObjects(*it);
+}
+
+GameObject * ModuleLevelManager::Validate(const GameObject * pointer) const
+{
+	if (pointer == root)
+		return root;
+
+	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
+		if (pointer == *it)
+			return (GameObject *) pointer;
+
+	return nullptr;
 }
