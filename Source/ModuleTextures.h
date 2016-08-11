@@ -13,9 +13,20 @@ struct TextureInfo
 	uint width, height;
 	uint depth, bpp;
 	uint mips;
+	uint bytes;
 	uint gpu_id;
+	enum {
+		unknown,
+		color_index,
+		rgb,
+		rgba,
+		bgr,
+		bgra,
+		luminance
+	} format;
 };
 
+static const char* texture_formats[] = { "unknown", "color index", "rgb", "rgba", "bgr", "bgra", "luminance" };
 
 class ModuleTextures : public Module
 {

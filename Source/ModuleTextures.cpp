@@ -141,6 +141,32 @@ const TextureInfo* ModuleTextures::Load(const char* file)
 				info->bpp = (uint) i.Bpp;
 				info->depth = i.Depth;
 				info->mips = i.NumMips;
+				info->bytes = i.SizeOfData;
+
+				switch (i.Format)
+				{
+					case IL_COLOUR_INDEX:
+						info->format = TextureInfo::color_index;
+					break;
+					case IL_RGB:
+						info->format = TextureInfo::rgb;
+					break;
+					case IL_RGBA:
+						info->format = TextureInfo::rgba;
+					break;
+					case IL_BGR:
+						info->format = TextureInfo::bgr;
+					break;
+					case IL_BGRA:
+						info->format = TextureInfo::bgra;
+					break;
+					case IL_LUMINANCE:
+						info->format = TextureInfo::luminance;
+					break;
+					default:
+						info->format = TextureInfo::unknown;
+					break;
+				}
 
 				info->gpu_id = ilutGLBindTexImage();
 				ilDeleteImages(1, &ImageName);

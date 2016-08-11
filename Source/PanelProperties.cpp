@@ -241,8 +241,8 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 
 	ImGui::TextColored(IMGUI_YELLOW, info->name);
 	ImGui::SameLine();
-	ImGui::Text("(%u,%u)", info->width, info->height);
-	ImGui::Text("Depth: %u Bpp: %u Mips: %u", info->depth, info->bpp, info->mips);
+	ImGui::Text("(%u,%u) %0.1f Mb", info->width, info->height, info->bytes / (1024.f*1024.f));
+	ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", texture_formats[info->format], info->depth, info->bpp, info->mips);
 
 	ImVec2 size((float)info->width, (float)info->height);
 	float max_size = 250.f;

@@ -280,7 +280,7 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 			ImGui::BeginTooltip();
 			ImGui::TextColored(IMGUI_YELLOW, info->name);
 			ImGui::SameLine();
-			ImGui::Text("(%u,%u)", info->width, info->height);
+			ImGui::Text("(%u,%u) %0.1f Mb %s", info->width, info->height, info->bytes / (1024.f*1024.f) , texture_formats[info->format]);
 			ImGui::Text("Depth: %u Bpp: %u Mips: %u", info->depth, info->bpp, info->mips);
 
 			ImVec2 size((float)info->width, (float)info->height);
