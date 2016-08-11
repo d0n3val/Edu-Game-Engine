@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "ModuleWindow.h"
 #include "ModuleFileSystem.h"
+#include "Event.h"
 #include "Config.h"
 
 ModuleWindow::ModuleWindow(bool start_enabled) : Module("Window", start_enabled)
@@ -175,10 +176,15 @@ uint ModuleWindow::GetRefreshRate() const
 	return ret;
 }
 
-void ModuleWindow::OnResize(int width, int height)
+void ModuleWindow::ReceiveEvent(const Event& event)
 {
-	screen_width = width;
-	screen_height = height;
+	switch (event.type)
+	{
+		case Event::window_resize:
+			screen_width = event.point2d.x;
+			screen_height = event.point2d.y;
+		break;
+	}
 }
 
 bool ModuleWindow::IsFullscreen() const

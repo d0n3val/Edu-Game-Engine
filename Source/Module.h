@@ -6,7 +6,7 @@
 class Application;
 class Config;
 struct PhysBody3D;
-enum EventType;
+struct Event;
 
 #define MODULE_NAME_LENGTH 25
 class Module
@@ -85,7 +85,7 @@ public:
 	virtual void OnCollision(PhysBody3D* body1, PhysBody3D* body2)
 	{ }
 
-	virtual void ReceiveEvent(EventType type, void * userdata)
+	virtual void ReceiveEvent(const Event& event)
 	{ }
 };
 

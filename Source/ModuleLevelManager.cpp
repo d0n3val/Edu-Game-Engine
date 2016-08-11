@@ -7,6 +7,7 @@
 #include "Config.h"
 #include "ModuleRenderer3D.h"
 #include "ComponentCamera.h"
+#include "Event.h"
 
 using namespace std;
 
@@ -111,7 +112,12 @@ void ModuleLevelManager::RecursiveRemove(GameObject * go)
 	else
 		RELEASE(go);
 
-	App->BroadcastEvent(EventType::gameobject_destroyed, (void*)go);
+	// Notify everybody that a GameObject has been destroyed
+	// this gives the oportunity to other modules to Validate()
+	// their pointers to GameObjects
+	Event event(Event::gameobject_destroyed);
+	event.gameobject.ptr = go;
+	App->BroadcastEvent(event);
 }
 
 bool ModuleLevelManager::Load(const char * file)

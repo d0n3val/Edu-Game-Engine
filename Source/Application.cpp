@@ -12,6 +12,8 @@
 #include "ModuleMeshes.h"
 #include "ModuleEditor.h"
 #include "ModuleLevelManager.h"
+#include "ModuleResources.h"
+#include "Event.h"
 #include "Config.h"
 
 using namespace std;
@@ -32,6 +34,7 @@ Application::Application()
 	modules.push_back(hw = new ModuleHardware(false));
 	modules.push_back(fs = new ModuleFileSystem(ASSETS_FOLDER));
 	modules.push_back(window = new ModuleWindow());
+	modules.push_back(resources = new ModuleResources());
 	modules.push_back(tex = new ModuleTextures());
 	modules.push_back(meshes = new ModuleMeshes());
 	modules.push_back(physics3D = new ModulePhysics3D());
@@ -221,13 +224,6 @@ void Application::Log(const char * entry)
 	editor->Log(entry);
 }
 
-void Application::OnResize(uint width, uint height)
-{
-	window->OnResize(width, height);
-	renderer3D->OnResize(width, height);
-	editor->OnResize(width, height);
-}
-
 void Application::LoadPrefs(const char* file)
 {
 	char* buffer = nullptr;
@@ -279,8 +275,8 @@ void Application::RequestBrowser(const char * url) const
    ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
 
-void Application::BroadcastEvent(EventType type, void * userdata)
+void Application::BroadcastEvent(const Event& event)
 {
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
-		(*it)->ReceiveEvent(type, userdata);
+		(*it)->ReceiveEvent(event);
 }

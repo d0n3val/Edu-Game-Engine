@@ -21,12 +21,8 @@ class ModuleTextures;
 class ModuleMeshes;
 class ModuleEditor;
 class ModuleLevelManager;
-
-enum EventType
-{
-	gameobject_destroyed,
-	invalid
-};
+class ModuleResources;
+struct Event;
 
 class Application
 {
@@ -48,11 +44,10 @@ public:
 	uint GetFramerateLimit() const;
 	void SetFramerateLimit(uint max_framerate);
 	void Log(const char* entry);
-	void OnResize(uint width, uint height);
 	void LoadPrefs(const char* file);
 	void SavePrefs(const char* file);
 	void RequestBrowser(const char* url) const;
-	void BroadcastEvent(EventType type, void* userdata);
+	void BroadcastEvent(const Event& event);
 
 private:
 
@@ -74,6 +69,7 @@ public:
 	ModuleMeshes* meshes = nullptr;
 	ModuleEditor* editor = nullptr;
 	ModuleLevelManager* level = nullptr;
+	ModuleResources* resources = nullptr;
 
 private:
 

@@ -21,6 +21,7 @@ public:
 	update_status Update(float dt) override;
 	update_status PostUpdate(float dt) override;
 	bool CleanUp();
+	void ReceiveEvent(const Event& event) override;
 
 	void Save(Config* config) const override;
 	void Load(Config* config) override;

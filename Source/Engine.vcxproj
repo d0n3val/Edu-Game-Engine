@@ -135,6 +135,7 @@
     <ClInclude Include="Config.h" />
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="dxgi1_4.h" />
+    <ClInclude Include="Event.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="glmath.h" />
     <ClInclude Include="Globals.h" />
@@ -215,6 +216,7 @@
     <ClInclude Include="ModuleMeshes.h" />
     <ClInclude Include="ModulePhysics3D.h" />
     <ClInclude Include="ModuleRenderer3D.h" />
+    <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="ModuleSceneLoader.h" />
     <ClInclude Include="ModuleTextures.h" />
     <ClInclude Include="OpenGL.h" />
@@ -228,6 +230,7 @@
     <ClInclude Include="Panel.h" />
     <ClInclude Include="PanelGOTree.h" />
     <ClInclude Include="PanelProperties.h" />
+    <ClInclude Include="PanelResources.h" />
     <ClInclude Include="parson.h" />
     <ClInclude Include="PhysBody3D.h" />
     <ClInclude Include="Point.h" />
@@ -296,6 +299,7 @@
     <ClCompile Include="ModuleMeshes.cpp" />
     <ClCompile Include="ModulePhysics3D.cpp" />
     <ClCompile Include="ModuleRenderer3D.cpp" />
+    <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="ModuleSceneLoader.cpp" />
     <ClCompile Include="ModuleTextures.cpp" />
     <ClCompile Include="ModuleWindow.cpp" />
@@ -305,6 +309,7 @@
     <ClCompile Include="Panel.cpp" />
     <ClCompile Include="PanelGOTree.cpp" />
     <ClCompile Include="PanelProperties.cpp" />
+    <ClCompile Include="PanelResources.cpp" />
     <ClCompile Include="parson.c" />
     <ClCompile Include="PhysBody3D.cpp" />
     <ClCompile Include="Primitive.cpp" />

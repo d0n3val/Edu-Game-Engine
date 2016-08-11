@@ -19,6 +19,7 @@ public:
 	bool Init(Config* config = nullptr) override;
 	bool Start(Config* config = nullptr) override;
 	bool CleanUp() override;
+	void ReceiveEvent(const Event& event) override;
 
 	void Save(Config* config) const override;
 	void Load(Config* config) override;

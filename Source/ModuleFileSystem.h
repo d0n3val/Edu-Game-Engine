@@ -31,6 +31,8 @@ public:
 	bool Exists(const char* file) const;
 	bool IsDirectory(const char* file) const;
 	void DiscoverFiles(const char* directory, std::vector<std::string>& file_list, std::vector<std::string>& dir_list) const;
+	bool Copy(const char* full_path, const char* destination);
+	void SplitFilePath(const char* full_path, std::string* path, std::string* file, std::string* extension) const;
 
 	// Open for Read/Write
 	unsigned int Load(const char* file, char** buffer) const;

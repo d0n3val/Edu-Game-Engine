@@ -18,6 +18,8 @@
 #include "PanelProperties.h"
 #include "PanelConfiguration.h"
 #include "PanelAbout.h"
+#include "PanelResources.h"
+#include "Event.h"
 #include <string.h>
 #include <algorithm>
 
@@ -46,6 +48,7 @@ bool ModuleEditor::Init(Config* config)
 	panels.push_back(props = new PanelProperties());
 	panels.push_back(conf = new PanelConfiguration());
 	panels.push_back(about = new PanelAbout());
+	panels.push_back(res = new PanelResources());
 
 	return true;
 }
@@ -88,9 +91,10 @@ update_status ModuleEditor::Update(float dt)
 		if (ImGui::BeginMenu("View"))
 		{
             ImGui::MenuItem("Console", "F1", &console->active);
-            ImGui::MenuItem("Hierarchy", "F2", &tree->active);
+            ImGui::MenuItem("Scene Hierarchy", "F2", &tree->active);
             ImGui::MenuItem("Properties", "F3", &props->active);
-            ImGui::MenuItem("Configuration", "F4", &props->active);
+            ImGui::MenuItem("Configuration", "F4", &conf->active);
+            ImGui::MenuItem("Resource Browser", "F5", &res->active);
 
 			ImGui::EndMenu();
 		}
@@ -162,14 +166,16 @@ bool ModuleEditor::CleanUp()
 	return true;
 }
 
-void ModuleEditor::ReceiveEvent(EventType type, void * userdata)
+void ModuleEditor::ReceiveEvent(const Event& event)
 {
-	switch (type)
+	switch (event.type)
 	{
-		case EventType::gameobject_destroyed:
-		{
+		case Event::gameobject_destroyed:
 			selected = App->level->Validate(selected);
-		} break;
+		break;
+		case Event::window_resize:
+			OnResize(event.point2d.x, event.point2d.y);
+		break;
 	}
 }
 
@@ -180,7 +186,9 @@ void ModuleEditor::OnResize(int width, int height)
 	console->width = width - tree->width - conf->width;
 	console->posy = height - console->height;
 
-	tree->height = height - tree->posy;
+	tree->height = height / 2;
+	res->posy = height / 2 + tree->posy;
+	res->height = height / 2 - tree->posy;
 
 	props->posx = width - props->width;
 	props->height = height - props->posy - conf->height;

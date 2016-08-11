@@ -3,6 +3,7 @@
 #include "ModuleInput.h"
 #include "ModuleWindow.h"
 #include "ModuleEditor.h"
+#include "Event.h"
 #include "SDL/include/SDL.h"
 
 #define MAX_KEYS 300
@@ -122,7 +123,10 @@ update_status ModuleInput::PreUpdate(float dt)
 
 					case SDL_WINDOWEVENT_RESIZED:
 					case SDL_WINDOWEVENT_SIZE_CHANGED:
-						App->OnResize(event.window.data1, event.window.data2);
+						Event ev(Event::window_resize);
+						ev.point2d.x = event.window.data1;
+						ev.point2d.y = event.window.data2;
+						App->BroadcastEvent(ev);
 						break;
 				}
 			break;
@@ -145,6 +149,13 @@ update_status ModuleInput::PreUpdate(float dt)
 			case SDL_MOUSEWHEEL:
 				mouse_wheel = event.wheel.y;
 			break;
+
+			case SDL_DROPFILE: 
+				Event ev(Event::file_dropped);
+				ev.string.ptr = event.drop.file;
+				App->BroadcastEvent(ev);
+				SDL_free(event.drop.file);
+				break;
 		}
 	}
 

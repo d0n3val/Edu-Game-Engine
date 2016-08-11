@@ -15,7 +15,7 @@ using namespace std;
 PanelGOTree::PanelGOTree() : Panel("Game Objects Hierarchy", SDL_SCANCODE_F2)
 {
 	width = 325;
-	height = 1002;
+	height = 500;
 	posx = 2;
 	posy = 21;
 }

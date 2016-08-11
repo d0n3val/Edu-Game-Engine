@@ -5,6 +5,7 @@
 
 #include "Globals.h"
 #include "Component.h"
+#include <string>
 
 class ComponentAudioSource : public Component
 {
@@ -57,6 +58,7 @@ public:
 
 private:
 	state current_state = state::unloaded;
+	std::string resource;
 };
 
 #endif // __COMPONENT_AUDIOSOURCE_H__

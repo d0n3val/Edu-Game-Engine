@@ -480,6 +480,15 @@
     <ClInclude Include="ModuleHardware.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleResources.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelResources.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Event.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -703,6 +712,12 @@
     </ClCompile>
     <ClCompile Include="ModuleHardware.cpp">
       <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleResources.cpp">
+      <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelResources.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -8,6 +8,7 @@
 #include "OpenGL.h"
 #include "Primitive.h"
 #include "ComponentCamera.h"
+#include "Event.h"
 #include "Config.h"
 
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
@@ -181,6 +182,16 @@ bool ModuleRenderer3D::CleanUp()
 	SDL_GL_DeleteContext(context);
 
 	return true;
+}
+
+void ModuleRenderer3D::ReceiveEvent(const Event& event)
+{
+	switch (event.type)
+	{
+		case Event::window_resize:
+			OnResize(event.point2d.x, event.point2d.y);
+		break;
+	}
 }
 
 void ModuleRenderer3D::Save(Config * config) const
