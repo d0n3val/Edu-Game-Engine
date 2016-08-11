@@ -1,10 +1,8 @@
 #include "MemLeaks.h"
 #include "Globals.h"
-#include <Windows.h>
-#include <stdlib.h>
 #include "Application.h"
 
-// We need to include this here beacuse SDL overwrites main()
+// We need to include this here because SDL overwrites main()
 #include "SDL/include/SDL.h"
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
 #pragma comment( lib, "SDL/libx86/SDL2main.lib" )
@@ -23,25 +21,7 @@ Application* App = nullptr;
 int main(int argc, char ** argv)
 {
 	ReportMemoryLeaks();
-
-	SDL_version version;
-	SDL_GetVersion(&version);
 	LOG("Starting EDU Engine from [%s]", argv[0]);
-	LOG("Using SDL v%i.%i.%i", version.major, version.minor, version.patch);
-	LOG("Machine with %ikb RAM and %i CPUs and %i Kb L1 cache", 
-		SDL_GetSystemRAM(), SDL_GetCPUCount(), SDL_GetCPUCacheLineSize());
-	LOG("CPU capabilities: %s%s%s%s%s%s%s%s%s%s%s",
-		SDL_HasRDTSC() ? "RDTSC," : "",
-		SDL_HasAltiVec() ? "AltiVec," : "",
-		SDL_HasMMX() ? "MMX," : "",
-		SDL_Has3DNow() ? "3DNow," : "",
-		SDL_HasSSE() ? "SSE," : "",
-		SDL_HasSSE2() ? "SSE2," : "",
-		SDL_HasSSE3() ? "SSE3," : "",
-		SDL_HasSSE41() ? "SSE41," : "",
-		SDL_HasSSE42() ? "SSE42," : "",
-		SDL_HasAVX() ? "AVX," : "",
-		SDL_HasAVX2() ? "AVX2" : "" );
 
 	int main_return = EXIT_FAILURE;
 	main_states state = MAIN_CREATION;

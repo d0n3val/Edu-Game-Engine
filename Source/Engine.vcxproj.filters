@@ -46,6 +46,9 @@
     <Filter Include="3rd Party\mathgeo\src">
       <UniqueIdentifier>{546f49ef-0dc8-4410-9c3f-f024392c0cd2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\gpudetect">
+      <UniqueIdentifier>{b5a328af-d712-4721-bda7-dbd8ad5a3099}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -468,6 +471,15 @@
     <ClInclude Include="ModuleSceneLoader.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="gpudetect\DeviceId.h">
+      <Filter>3rd Party\gpudetect</Filter>
+    </ClInclude>
+    <ClInclude Include="dxgi1_4.h">
+      <Filter>3rd Party\gpudetect</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleHardware.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -684,6 +696,12 @@
       <Filter>Core Modules</Filter>
     </ClCompile>
     <ClCompile Include="ModuleSceneLoader.cpp">
+      <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="gpudetect\DeviceId.cpp">
+      <Filter>3rd Party\gpudetect</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleHardware.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,6 +2,7 @@
 #include "Imgui/imgui.h"
 #include "Application.h"
 #include "Module.h"
+#include "ModuleHardware.h"
 #include "ModuleFileSystem.h"
 #include "ModuleWindow.h"
 #include "ModuleInput.h"
@@ -86,6 +87,9 @@ void PanelConfiguration::Draw()
 	if (InitModuleDraw(App->input))
 		DrawModuleInput(App->input);
 
+	if (InitModuleDraw(App->hw))
+		DrawModuleHardware(App->hw);
+
     ImGui::End();
 }
 
@@ -132,6 +136,38 @@ void PanelConfiguration::DrawApplication()
 		sprintf_s(title, 25, "Milliseconds %0.1f", ms_log[ms_log.size()-1]);
 		ImGui::PlotHistogram("##milliseconds", &ms_log[0], ms_log.size(), 0, title, 0.0f, 40.0f, ImVec2(310, 100));
 	}
+}
+
+void PanelConfiguration::DrawModuleHardware(ModuleHardware * module)
+{
+	ModuleHardware::hw_info info = module->GetInfo();
+	IMGUI_PRINT("SDL Version:", info.sdl_version);
+
+	ImGui::Separator();
+	IMGUI_PRINT("CPUs:", "%u (Cache: %ukb)", info.cpu_count, info.l1_cachekb);
+	IMGUI_PRINT("System RAM:", "%.1fGb", info.ram_gb);
+	IMGUI_PRINT("Caps:", "%s%s%s%s%s%s",
+		info.rdtsc ? "RDTSC," : "",
+		info.altivec ? "AltiVec," : "",
+		info.mmx ? "MMX," : "",
+		info.now3d ? "3DNow," : "",
+		info.sse ? "SSE," : "",
+		info.sse2 ? "SSE2," : "");
+	IMGUI_PRINT("", "%s%s%s%s%s",
+		info.sse3 ? "SSE3," : "",
+		info.sse41 ? "SSE41," : "",
+		info.sse42 ? "SSE42," : "",
+		info.avx ? "AVX," : "",
+		info.avx2 ? "AVX2" : "" );
+
+
+	ImGui::Separator();
+	IMGUI_PRINT("GPU:", "vendor %u device %u", info.gpu_vendor, info.gpu_device);
+	IMGUI_PRINT("Brand:", info.gpu_brand);
+	IMGUI_PRINT("RAM Budget:", "%.1f Mb", info.vram_mb_budget);
+	IMGUI_PRINT("RAM Usage:", "%.1f Mb", info.vram_mb_usage);
+	IMGUI_PRINT("RAM Available:", "%.1f Mb", info.vram_mb_available);
+	IMGUI_PRINT("RAM Reserved:", "%.1f Mb", info.vram_mb_reserved);
 }
 
 void PanelConfiguration::DrawModuleAudio(ModuleAudio * module)

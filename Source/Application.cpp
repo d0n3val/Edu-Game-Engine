@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "ModuleHardware.h"
 #include "ModuleFileSystem.h"
 #include "ModuleWindow.h"
 #include "ModuleInput.h"
@@ -28,6 +29,7 @@ Application::Application()
 	// Modules will Init() Start() and Update in this order
 	// They will CleanUp() in reverse order
 
+	modules.push_back(hw = new ModuleHardware(false));
 	modules.push_back(fs = new ModuleFileSystem(ASSETS_FOLDER));
 	modules.push_back(window = new ModuleWindow());
 	modules.push_back(tex = new ModuleTextures());

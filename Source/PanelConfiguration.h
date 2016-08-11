@@ -19,6 +19,7 @@ class ModuleCamera3D;
 class ModuleSceneLoader;
 class ModuleTextures;
 class ModuleMeshes;
+class ModuleHardware;
 class ModuleEditor;
 
 class PanelConfiguration : public Panel
@@ -31,6 +32,7 @@ public:
 
 	bool InitModuleDraw(Module* module);
 	void DrawApplication();
+	void DrawModuleHardware(ModuleHardware * module);
 	void DrawModuleAudio(ModuleAudio * module);
 	void DrawModuleFileSystem(ModuleFileSystem * module);
 	void DrawModuleInput(ModuleInput * module);

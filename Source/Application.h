@@ -8,6 +8,7 @@
 
 class Config;
 class Module;
+class ModuleHardware;
 class ModuleFileSystem;
 class ModuleWindow;
 class ModuleInput;
@@ -53,6 +54,7 @@ private:
 
 public:
 
+	ModuleHardware* hw = nullptr;
 	ModuleFileSystem* fs = nullptr;
 	ModuleWindow* window = nullptr;
 	ModuleInput* input = nullptr;
