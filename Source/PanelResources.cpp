@@ -19,6 +19,24 @@ PanelResources::~PanelResources()
 void PanelResources::Draw()
 {
     ImGui::Begin("Resources", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
-	ImGui::Text("Hello world");
+
+	if (ImGui::BeginMenu("Options"))
+	{
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::IsItemHoveredRect() && ImGui::IsMouseClicked(1))
+	{
+        ImGui::OpenPopup("File Manager");
+        if (ImGui::BeginPopup("File Manager"))
+        {
+			if (ImGui::BeginMenu("Files"))
+			{
+				LOG("Create new folder");
+			}
+            ImGui::EndPopup();
+        }
+	}
+
     ImGui::End();
 }

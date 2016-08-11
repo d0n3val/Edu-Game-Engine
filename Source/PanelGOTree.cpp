@@ -75,7 +75,7 @@ void PanelGOTree::Draw()
 }
 
 // ---------------------------------------------------------
-void PanelGOTree::RecursiveDraw(const GameObject* go)
+void PanelGOTree::RecursiveDraw(GameObject* go)
 {
 	sprintf_s(name, 80, "%s##node_%i", go->name.c_str(), node++);
 	uint flags = 0;// ImGuiTreeNodeFlags_OpenOnArrow;
@@ -105,7 +105,19 @@ void PanelGOTree::RecursiveDraw(const GameObject* go)
 	if (ImGui::TreeNodeEx(name, flags))
 	{
 		if(ImGui::IsItemClicked(0))
-			App->editor->selected = (GameObject*) go;
+			App->editor->selected = go;
+
+		if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
+			ImGui::OpenPopup("GameObject Options");
+
+		if (ImGui::BeginPopup("GameObject Options"))
+		{
+			//ImGui::BeginMenu("GameObjects");
+			if (ImGui::MenuItem("Delete"))
+				App->level->RecursiveRemove(go);
+			//ImGui::EndMenu();
+			ImGui::EndPopup();
+		}
 
 		if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered())
 		{

@@ -44,6 +44,7 @@ public:
 
 private:
 	void RecursiveDrawGameObjects(const GameObject* go) const;
+	void DestroyFlaggedGameObjects();
 
 private:
 	GameObject* root = nullptr;

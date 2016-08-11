@@ -20,6 +20,7 @@ public:
 	void Load(Config* config);
 
 	void AddChild(GameObject* go);
+	bool RecursiveRemoveFlagged();
 	Component* CreateComponent(ComponentTypes type);
 
 	float3 GetLocalPosition() const;
@@ -48,6 +49,7 @@ public:
 
 	bool WasDirty() const;
 	bool WasBBoxDirty() const;
+	void Remove();
 
 public:
 	std::string name;
@@ -67,6 +69,7 @@ private:
 	float3 scale = float3::one;
 	float4x4 transform_global;
 	bool active = true;
+	bool flag_for_removal = false;
 };
 
 #endif // __GAMEOBJECT_H__

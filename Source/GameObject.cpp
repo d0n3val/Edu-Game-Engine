@@ -123,6 +123,30 @@ void GameObject::AddChild(GameObject* go)
 }
 
 // ---------------------------------------------------------
+bool GameObject::RecursiveRemoveFlagged()
+{
+	bool ret = false;
+
+	for (list<GameObject*>::iterator it = childs.begin(); it != childs.end();)
+	{
+		if ((*it)->flag_for_removal == true)
+		{
+			RELEASE(*it);
+			it = childs.erase(it);
+			ret = true;
+		}
+		else
+		{
+			// Keep looking, hay millones de premios
+			ret |= (*it)->RecursiveRemoveFlagged();
+			++it;
+		}
+	}
+
+	return ret;
+}
+
+// ---------------------------------------------------------
 Component* GameObject::CreateComponent(ComponentTypes type)
 {
 	Component* ret = nullptr;
@@ -407,4 +431,9 @@ bool GameObject::WasDirty() const
 bool GameObject::WasBBoxDirty() const
 {
 	return calculated_bbox;
+}
+
+void GameObject::Remove()
+{
+	flag_for_removal = true;
 }

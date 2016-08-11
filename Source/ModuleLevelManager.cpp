@@ -41,6 +41,7 @@ bool ModuleLevelManager::Start(Config * config)
 
 update_status ModuleLevelManager::PreUpdate(float dt)
 {
+	DestroyFlaggedGameObjects();
 	// Update transformations tree for this frame
 	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), false);
 	bool did_recalc;
@@ -104,20 +105,23 @@ GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent)
 
 void ModuleLevelManager::RecursiveRemove(GameObject * go)
 {
-	if (go == nullptr || go == root)
-	{
-		RELEASE(root);
-		root = new GameObject("root");
-	}
+	if (go == nullptr)
+		root->Remove();
 	else
-		RELEASE(go);
+		go->Remove();
+}
 
-	// Notify everybody that a GameObject has been destroyed
-	// this gives the oportunity to other modules to Validate()
-	// their pointers to GameObjects
-	Event event(Event::gameobject_destroyed);
-	event.gameobject.ptr = go;
-	App->BroadcastEvent(event);
+void ModuleLevelManager::DestroyFlaggedGameObjects()
+{
+	// Find parent and cut connection
+	if (root->RecursiveRemoveFlagged())
+	{
+		// Notify everybody that a GameObject has been destroyed
+		// this gives the oportunity to other modules to Validate()
+		// their pointers to GameObjects
+		Event event(Event::gameobject_destroyed);
+		App->BroadcastEvent(event);
+	}
 }
 
 bool ModuleLevelManager::Load(const char * file)

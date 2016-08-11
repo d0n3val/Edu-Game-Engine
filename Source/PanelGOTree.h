@@ -13,7 +13,7 @@ public:
 	virtual ~PanelGOTree();
 
 	void Draw() override;
-	void RecursiveDraw(const GameObject* go);
+	void RecursiveDraw(GameObject* go);
 
 private:
 

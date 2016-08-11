@@ -12,6 +12,16 @@
                     "Type": 5,
                     "Background": [0,0,0,1],
                     "Frustum": [0,0,0,0,0,1,0,1,0,1,200,1.287713,1.047198]
+                },{
+                    "Type": 4,
+                    "Is 2D": false,
+                    "Min Distance": 0,
+                    "Max Distance": 0,
+                    "Cone Angle In": 360,
+                    "Cone Angle Out": 360,
+                    "Out Cone Vol": 0,
+                    "Fade In": 3.909000,
+                    "Fade Out": 2.183000
                 }],
             "Childs": []
         },{
