@@ -161,6 +161,9 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 		bool active = component->IsActive();
 		if(ImGui::Checkbox("Active", &active))
 			component->SetActive(active);
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Delete Component"))
+			component->flag_for_removal = true;
 		ret = true;
 	}
 

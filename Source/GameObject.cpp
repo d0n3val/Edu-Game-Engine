@@ -127,6 +127,17 @@ bool GameObject::RecursiveRemoveFlagged()
 {
 	bool ret = false;
 
+	for (list<Component*>::iterator it = components.begin(); it != components.end();)
+	{
+		if ((*it)->flag_for_removal == true)
+		{
+			RELEASE(*it);
+			it = components.erase(it);
+		}
+		else
+			++it;
+	}
+
 	for (list<GameObject*>::iterator it = childs.begin(); it != childs.end();)
 	{
 		if ((*it)->flag_for_removal == true)

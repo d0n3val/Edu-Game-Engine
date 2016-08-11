@@ -24,7 +24,6 @@ public:
 	Component(GameObject* container);
 	virtual ~Component();
 
-
 	void SetActive(bool active);
 	bool IsActive() const;
 	ComponentTypes GetType() const;
@@ -43,6 +42,9 @@ public:
 	virtual void OnUpdateTransform() {};
 
 	virtual void OnDebugDraw() const {};
+
+public:
+	bool flag_for_removal = false;
 
 protected:
 	ComponentTypes type = ComponentTypes::Invalid;
