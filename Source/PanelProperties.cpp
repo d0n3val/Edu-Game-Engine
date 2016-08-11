@@ -234,5 +234,32 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
-	ImGui::Image((ImTextureID) component->texture->gpu_id, ImVec2(50, 50));
+	const TextureInfo* info = component->texture;
+
+	if (info == nullptr)
+		return;
+
+	ImGui::TextColored(IMGUI_YELLOW, info->name);
+	ImGui::SameLine();
+	ImGui::Text("(%u,%u)", info->width, info->height);
+	ImGui::Text("Depth: %u Bpp: %u Mips: %u", info->depth, info->bpp, info->mips);
+
+	ImVec2 size((float)info->width, (float)info->height);
+	float max_size = 250.f;
+
+	if (size.x > max_size || size.y > max_size)
+	{
+		if (size.x > size.y)
+		{
+			size.y *= max_size / size.x;
+			size.x = max_size;
+		}
+		else
+		{
+			size.x *= max_size / size.y;
+			size.y = max_size;
+		}
+	}
+
+	ImGui::Image((ImTextureID) info->gpu_id, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
 }

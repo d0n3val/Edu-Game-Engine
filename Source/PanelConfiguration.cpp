@@ -279,8 +279,9 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 		{
 			ImGui::BeginTooltip();
 			ImGui::TextColored(IMGUI_YELLOW, info->name);
-			ImGui::Text("Size: %u,%u Depth: %u", info->width, info->height);
-			ImGui::Text("Bpp: %u Mips: %u", info->bpp, info->mips);
+			ImGui::SameLine();
+			ImGui::Text("(%u,%u)", info->width, info->height);
+			ImGui::Text("Depth: %u Bpp: %u Mips: %u", info->depth, info->bpp, info->mips);
 
 			ImVec2 size((float)info->width, (float)info->height);
 			float max_size = 250.f;
