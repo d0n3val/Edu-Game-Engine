@@ -6,7 +6,7 @@
 #include "Component.h"
 #include "Math.h"
 
-struct Mesh;
+class ResourceMesh;
 
 class ComponentMesh : public Component
 {
@@ -16,12 +16,12 @@ public:
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
-	void SetMesh(const Mesh* data);
-	const Mesh* GetMesh() const;
+	bool SetResource(UID resource);
+	const ResourceMesh* GetResource() const;
 	const AABB& GetBoundingBox() const;
 
 private:
-	const Mesh* mesh_data = nullptr;
+	UID resource;
 	AABB bbox;
 };
 

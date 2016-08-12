@@ -13,8 +13,7 @@ public:
 	enum Type {
 		texture,
 		mesh,
-		music,
-		effect,
+		audio,
 		scene,
 		unknown
 	};

@@ -79,7 +79,7 @@ bool ModuleSceneLoader::CleanUp()
 	return true;
 }
 
-void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath)
+void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath, const string& file)
 {
 	aiVector3D translation;
 	aiVector3D scaling;
@@ -147,33 +147,32 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObjec
 
 		// Add mesh component
 		ComponentMesh* c_mesh = (ComponentMesh*) child_go->CreateComponent(ComponentTypes::Geometry);
-		c_mesh->SetMesh(App->meshes->Load(App->meshes->Import(mesh)));
+		// TODO: "some.fbx" ... ehem
+		c_mesh->SetResource(App->resources->ImportBuffer(mesh, 0, Resource::mesh, file.c_str()));
 		LOG("->-> Added mesh component");
 	}
 
 	// recursive call to generate the rest of the scene tree
 	for (uint i = 0; i < node->mNumChildren; ++i)
 	{
-		RecursiveCreateGameObjects(node->mChildren[i], go, basePath);
+		RecursiveCreateGameObjects(node->mChildren[i], go, basePath, file);
 	}
 }
 
-bool ModuleSceneLoader::LoadScene(const char* file)
+bool ModuleSceneLoader::LoadScene(const char* full_path)
 {
 	bool ret = false;
 
-	scene = aiImportFileEx(file, aiProcessPreset_TargetRealtime_MaxQuality, App->fs->GetAssimpIO());
+	scene = aiImportFileEx(full_path, aiProcessPreset_TargetRealtime_MaxQuality, App->fs->GetAssimpIO());
 
 	if (scene != nullptr)
 	{
 		// Generate base path
-		std::string basePath(file);
-		size_t pos = basePath.find_last_of("\\/");
-		if (pos != string::npos)
-			basePath.erase(pos + 1, string::npos);
+		string path, file;
+		App->fs->SplitFilePath(full_path, &path, &file);
 
 		// generate GameObjects for each mesh 
-		RecursiveCreateGameObjects(scene->mRootNode, App->level->GetRoot(), basePath);
+		RecursiveCreateGameObjects(scene->mRootNode, App->level->GetRoot(), path, file);
 
 		// Release all info from assimp
 		aiReleaseImport(scene);

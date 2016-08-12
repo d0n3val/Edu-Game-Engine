@@ -27,7 +27,7 @@ public:
 
 private:
 
-	void RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath);
+	void RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath, const std::string& file);
 
 	const struct aiScene* scene = nullptr;
 };

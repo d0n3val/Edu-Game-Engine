@@ -43,9 +43,9 @@ bool ModuleTextures::CleanUp()
 }
 
 // Import new texture from file path
-const char* ModuleTextures::Import(const char* file, const char* path)
+bool ModuleTextures::Import(const char* file, const char* path, string& output_file)
 {
-	const char* ret = nullptr;
+	bool ret = false;
 
 	std::string sPath(path);
 	std::string sFile(file);
@@ -54,27 +54,22 @@ const char* ModuleTextures::Import(const char* file, const char* path)
 	uint size = App->fs->Load((char*) (sPath + sFile).c_str(), &buffer);
 
 	if (buffer)
-		ret = Import(buffer, size);
+		ret = Import(buffer, size, output_file);
 
 	RELEASE(buffer);
 
-	if(ret == nullptr)
+	if(ret == false)
 		LOG("Cannot load texture %s from path %s", file, path);
 
 	return ret;
 }
 
-const char* ModuleTextures::Import(const void * buffer, uint size)
+bool ModuleTextures::Import(const void * buffer, uint size, string& output_file)
 {
-	static uint id = 0;
-	const char* ret = nullptr;
-	static char n[25];
+	bool ret = false;
 
 	if (buffer)
 	{
-		sprintf_s(n, 25, "tex_%u.dds", ++id);
-		std::string name(n);
-
 		ILuint ImageName;				  
 		ilGenImages(1, &ImageName);
 		ilBindImage(ImageName);
@@ -91,17 +86,15 @@ const char* ModuleTextures::Import(const void * buffer, uint size)
 			{
 				data = new ILubyte[size]; // allocate data buffer
 				if (ilSaveL(IL_DDS, data, size) > 0) // Save with the ilSaveIL function
-				{
-					App->fs->Save((LIBRARY_TEXTURES_FOLDER + name).c_str(), (const char*)data, size);
-					ret = n;
-				}
+					ret = App->fs->SaveUnique(output_file, data, size, LIBRARY_TEXTURES_FOLDER, "texture", "dds");
+
 				RELEASE(data);
 			}
 			ilDeleteImages(1, &ImageName);
 		}
 	}
 
-	if (ret == nullptr)
+	if (ret == false)
 		LOG("Cannot load texture from buffer of size %u", size);
 
 	return ret;

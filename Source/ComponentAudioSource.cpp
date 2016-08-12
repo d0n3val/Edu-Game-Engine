@@ -2,6 +2,8 @@
 #include "ComponentAudioSource.h"
 #include "Application.h"
 #include "ModuleAudio.h"
+#include "ModuleResources.h"
+#include "ResourceAudio.h"
 
 // ---------------------------------------------------------
 ComponentAudioSource::ComponentAudioSource(GameObject* container) : Component(container)
@@ -41,42 +43,56 @@ void ComponentAudioSource::OnLoad(Config * config)
 }
 
 // ---------------------------------------------------------
-bool ComponentAudioSource::LoadFile(const char * file)
+bool ComponentAudioSource::SetResource(UID resource)
 {
+	bool ret = false;
+
 	if(current_state != state::unloaded)
 		Unload();
 
-	if (file != nullptr)
-		id = App->audio->Load(file);
+	if (resource != 0)
+	{
+		const Resource* res = App->resources->Get(resource);
+		if (res != nullptr && res->GetType() == Resource::texture)
+		{
+			if(App->audio->Load((ResourceAudio*)res))
+			{
+				this->resource = resource;
+				current_state = state::stopped;
+				ret = true;
+			}
+		}
+	}
 
-	if (id != 0)
-		current_state = state::stopped;
-
-	return id != 0;
+	return ret;
 }
 
 // ---------------------------------------------------------
-const char * ComponentAudioSource::GetFile() const
+const ResourceAudio * ComponentAudioSource::GetResource() const
 {
-	return App->audio->GetFile(id);
+	return (ResourceAudio*) App->resources->Get(resource);
 }
 
 // ---------------------------------------------------------
 void ComponentAudioSource::Unload()
 {
-	if (id != 0)
+	// TODO: still not a formal way to unload resources
+	const ResourceAudio* res = GetResource();
+	if (res != nullptr && res->audio_id != 0)
 	{
-		App->audio->Unload(id);
+		App->audio->Unload(res->audio_id);
 		current_state = state::unloaded;
 	}
 }
 
+// ---------------------------------------------------------
 void ComponentAudioSource::OnDeActivate()
 {
 	if (IsPlaying() == true)
 		Stop();
 }
 
+// ---------------------------------------------------------
 bool ComponentAudioSource::Play()
 {
 	bool ret = false;
@@ -90,6 +106,7 @@ bool ComponentAudioSource::Play()
 	return ret;
 }
 
+// ---------------------------------------------------------
 bool ComponentAudioSource::Pause()
 {
 	bool ret = false;
@@ -103,6 +120,7 @@ bool ComponentAudioSource::Pause()
 	return ret;
 }
 
+// ---------------------------------------------------------
 bool ComponentAudioSource::UnPause()
 {
 	bool ret = false;
@@ -116,22 +134,26 @@ bool ComponentAudioSource::UnPause()
 	return ret;
 }
 
+// ---------------------------------------------------------
 void ComponentAudioSource::Stop()
 {
 	if (current_state == state::playing)
 		current_state = state::waiting_to_stop;
 }
 
+// ---------------------------------------------------------
 bool ComponentAudioSource::IsPlaying() const
 {
 	return current_state == state::playing;
 }
 
+// ---------------------------------------------------------
 bool ComponentAudioSource::IsPaused() const
 {
 	return current_state == state::paused;
 }
 
+// ---------------------------------------------------------
 int ComponentAudioSource::GetCurrentState() const
 {
 	return current_state;

@@ -31,9 +31,11 @@ public:
 	bool Exists(const char* file) const;
 	bool IsDirectory(const char* file) const;
 	void DiscoverFiles(const char* directory, std::vector<std::string>& file_list, std::vector<std::string>& dir_list) const;
-	bool Copy(const char* full_path, const char* destination);
-	void SplitFilePath(const char* full_path, std::string* path, std::string* file, std::string* extension) const;
-	const char* NormalizePath(const char* full_path);
+	bool CopyFromOutsideFS(const char* full_path, const char* destination);
+	bool Copy(const char* source, const char* destination);
+	void SplitFilePath(const char* full_path, std::string* path, std::string* file = nullptr, std::string* extension = nullptr) const;
+	void NormalizePath(char* full_path) const;
+	void NormalizePath(std::string& full_path) const;
 
 	// Open for Read/Write
 	unsigned int Load(const char* path, const char* file, char** buffer) const;
@@ -45,7 +47,8 @@ public:
 	aiFileIO* GetAssimpIO();
 	BASS_FILEPROCS* GetBassIO();
 
-	unsigned int Save(const char* file, const char* buffer, unsigned int size, bool append = false) const;
+	unsigned int Save(const char* file, const void* buffer, unsigned int size, bool append = false) const;
+	bool SaveUnique(std::string& output, const void* buffer, uint size, const char* path, const char* prefix, const char* extension);
 	bool Remove(const char* file);
 
 	const char* GetBasePath() const;

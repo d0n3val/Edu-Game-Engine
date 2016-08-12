@@ -54,10 +54,9 @@ enum update_status
 #define ASSETS_FOLDER "/Assets/"
 #define SETTINGS_FOLDER "/Settings/"
 #define LIBRARY_FOLDER "/Library/"
-#define LIBRARY_MUSIC_FOLDER "/Library/Music/"
-#define LIBRARY_EFFECTS_FOLDER "/Library/Effects/"
+#define LIBRARY_AUDIO_FOLDER "/Library/Audio/"
 #define LIBRARY_TEXTURES_FOLDER "/Library/Textures/"
-#define LIBRARY_MESH_FOLDER "/Library/Mesh/"
+#define LIBRARY_MESH_FOLDER "/Library/Meshes/"
 
 
 // Warning disabled ---

@@ -3,41 +3,8 @@
 
 #include "Globals.h"
 #include "Module.h"
-#include <list>
 
-#define INVALID_MESH 0
-
-// full mesh description
-struct Mesh
-{
-	uint id = INVALID_MESH;
-	// ids of the VBO
-	uint vbo_vertices = 0;
-	uint vbo_colors = 0;
-	uint vbo_normals = 0;
-	uint vbo_texture_coords = 0;
-	uint vbo_indices = 0;
-
-	uint num_indices = 0;
-	uint num_vertices = 0;
-	uint* indices = nullptr;
-	float* vertices = nullptr;
-	float* colors = nullptr;
-	float* normals = nullptr;
-	float* texture_coords = nullptr;
-
-	~Mesh()
-	{
-		RELEASE_ARRAY(indices);
-		RELEASE_ARRAY(vertices);
-		RELEASE_ARRAY(colors);
-		RELEASE_ARRAY(normals);
-		RELEASE_ARRAY(texture_coords);
-		// TODO: deallocate opengl buffers
-	}
-};
-
-// Mesh manager, keeps in memory all meshes only once
+class ResourceMesh;
 struct aiMesh;
 
 class ModuleMeshes : public Module
@@ -49,14 +16,12 @@ public:
 	bool Init(Config* config = nullptr) override;
 	bool CleanUp() override;
 
-	const char* Import(const aiMesh* mesh) const;
-	const Mesh* Load(const char* file);
-	uint GenerateVertexBuffer(const Mesh* mesh);
+	bool Load(ResourceMesh* resource);
+	bool Import(const aiMesh* mesh, std::string& output) const;
 
 private:
-	const char* Save(const Mesh* mesh) const;
-
-	std::list<Mesh*> meshes;
+	bool Save(const ResourceMesh& mesh, std::string& output) const;
+	void GenerateVertexBuffer(const ResourceMesh* mesh);
 };
 
 #endif // __MODULE_MESHES_H__

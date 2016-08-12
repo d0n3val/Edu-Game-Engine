@@ -3,7 +3,6 @@
 
 #include "Globals.h"
 #include "Module.h"
-#include <vector>
 
 class ResourceTexture;
 
@@ -17,9 +16,9 @@ public:
 	bool CleanUp() override;
 
 	bool Load(ResourceTexture* resource);
-	// TODO: Unload Textures
-	const char* Import(const char* file, const char* path);
-	const char* Import(const void* buffer, uint size);
+	// TODO: Unload Texture
+	bool Import(const char* file, const char* path, std::string& output_file);
+	bool Import(const void* buffer, uint size, std::string& output_file);
 };
 
 #endif // __MODULETEXTURES_H__

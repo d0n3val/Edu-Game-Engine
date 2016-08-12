@@ -1,6 +1,8 @@
 #include "Globals.h"
+#include "Application.h"
 #include "ComponentMesh.h"
 #include "ModuleMeshes.h"
+#include "ModuleResources.h"
 #include "GameObject.h"
 
 // ---------------------------------------------------------
@@ -13,6 +15,7 @@ ComponentMesh::ComponentMesh(GameObject* container) : Component(container)
 // ---------------------------------------------------------
 void ComponentMesh::OnSave(Config& config) const
 {
+	config.AddUID("Resource", resource);
 	config.AddArrayFloat("AABB", (float*) &bbox.minPoint.x, 6);
 }
 
@@ -29,22 +32,34 @@ void ComponentMesh::OnLoad(Config * config)
 }
 
 // ---------------------------------------------------------
-void ComponentMesh::SetMesh(const Mesh * data)
+bool ComponentMesh::SetResource(UID resource)
 {
-	if (data != nullptr)
+	bool ret = false;
+
+	if (resource != 0)
 	{
-		mesh_data = data;
-		bbox.Enclose((float3*)mesh_data->vertices, data->num_vertices);
+		const Resource* res = App->resources->Get(resource);
+		if (res != nullptr && res->GetType() == Resource::mesh)
+		{
+			if(App->meshes->Load((ResourceMesh*) res))
+			{
+				this->resource = resource;
+				ret = true;
+			}
+		}
 	}
+
+	return true;
 }
 
 // ---------------------------------------------------------
-const Mesh * ComponentMesh::GetMesh() const
-{
-	return mesh_data;
-}
-
 const AABB & ComponentMesh::GetBoundingBox() const
 {
 	return bbox;
+}
+
+// ---------------------------------------------------------
+const ResourceMesh * ComponentMesh::GetResource() const
+{
+	return (ResourceMesh*) App->resources->Get(resource);
 }

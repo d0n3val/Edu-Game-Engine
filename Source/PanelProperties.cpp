@@ -16,6 +16,8 @@
 #include "ModuleFileSystem.h"
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
+#include "ResourceMesh.h"
+#include "ResourceAudio.h"
 #include <list>
 
 using namespace std;
@@ -191,7 +193,7 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 
 void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 {
-	const Mesh* mesh = component->GetMesh();
+	const ResourceMesh* mesh = component->GetResource();
 	if (mesh == nullptr)
 		return;
 
@@ -213,11 +215,16 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 
 void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)
 {
-	const char* file = component->GetFile();
+	const ResourceAudio* res = component->GetResource();
+	const char* file = (res) ? res->GetFile() : nullptr;
 
 	ImGui::Text("File: ");
 	ImGui::SameLine();
-	ImGui::TextColored(ImVec4(1, 1, 0, 1), (file) ? file : "No file loaded");
+	ImGui::TextColored(IMGUI_YELLOW, (file) ? file : "No file loaded");
+
+	ImGui::Text("Format: ");
+	ImGui::SameLine();
+	ImGui::TextColored(IMGUI_YELLOW, (res) ? res->GetFormatStr() : "???");
 	ImGui::SameLine();
 	ImGui::Checkbox("Is 2D", &component->is_2d);
 

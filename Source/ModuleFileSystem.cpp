@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ModuleFileSystem.h"
+#include "ModuleResources.h"
 #include "PhysFS/include/physfs.h"
 #include "Assimp/include/cfileio.h"
 #include "Assimp/include/types.h"
@@ -111,7 +112,7 @@ void ModuleFileSystem::DiscoverFiles(const char* directory, vector<string> & fil
 	PHYSFS_freeList(rc);
 }
 
-bool ModuleFileSystem::Copy(const char * full_path, const char * destination)
+bool ModuleFileSystem::CopyFromOutsideFS(const char * full_path, const char * destination)
 {
 	// Only place we acces non virtual filesystem
  	bool ret = false;
@@ -140,18 +141,46 @@ bool ModuleFileSystem::Copy(const char * full_path, const char * destination)
 	return ret;
 }
 
+bool ModuleFileSystem::Copy(const char * source, const char * destination)
+{
+ 	bool ret = false;
+
+    char buf[8192];
+
+	PHYSFS_file* src = PHYSFS_openRead(source);
+	PHYSFS_file* dst = PHYSFS_openWrite(destination);
+
+	PHYSFS_sint32 size;
+	if (src && dst)
+	{
+		while (size = (PHYSFS_sint32) PHYSFS_read(src, buf, 1, 8192))
+			PHYSFS_write(dst, buf, 1, size);
+
+		PHYSFS_close(src);
+		PHYSFS_close(dst);
+		ret = true;
+
+		LOG("File System copied file [%s] to [%s]", source, destination);
+	}
+	else
+		LOG("File System error while copy from [%s] to [%s]", source, destination);
+
+	return ret;
+}
+
 void ModuleFileSystem::SplitFilePath(const char * full_path, std::string * path, std::string * file, std::string * extension) const
 {
 	if (full_path != nullptr)
 	{
 		string full(full_path);
+		NormalizePath(full);
 		size_t pos_separator = full.find_last_of("\\/");
 		size_t pos_dot = full.find_last_of(".");
 
 		if (path != nullptr)
 		{
 			if (pos_separator < full.length())
-				*path = full.substr(0, pos_separator);
+				*path = full.substr(0, pos_separator + 1);
 			else
 				path->clear();
 		}
@@ -182,13 +211,27 @@ char normalize_char(char c)
 	return tolower(c);
 }
 
-const char * ModuleFileSystem::NormalizePath(const char * full_path)
+void ModuleFileSystem::NormalizePath(char * full_path) const
 {
-	static string normalized;
-	normalized = full_path;
-	transform(normalized.begin(), normalized.end(), normalized.begin(), normalize_char);
+	int len = strlen(full_path);
+	for (int i = 0; i < len; ++i)
+	{
+		if (full_path[i] == '\\')
+			full_path[i] = '/';
+		else
+			full_path[i] = tolower(full_path[i]);
+	}
+}
 
-	return normalized.c_str();
+void ModuleFileSystem::NormalizePath(std::string & full_path) const
+{
+	for (string::iterator it = full_path.begin(); it != full_path.end(); ++it)
+	{
+		if (*it == '\\')
+			*it = '/';
+		else
+			*it = tolower(*it);
+	}
 }
 
 unsigned int ModuleFileSystem::Load(const char * path, const char * file, char ** buffer) const
@@ -267,7 +310,7 @@ int close_sdl_rwops(SDL_RWops *rw)
 }
 
 // Save a whole buffer to disk
-uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int size, bool append) const
+uint ModuleFileSystem::Save(const char* file, const void* buffer, unsigned int size, bool append) const
 {
 	unsigned int ret = 0;
 
@@ -294,6 +337,20 @@ uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int s
 		LOG("File System error while opening file %s: %s", file, PHYSFS_getLastError());
 
 	return ret;
+}
+
+bool ModuleFileSystem::SaveUnique(string& name, const void * buffer, uint size, const char * path, const char * prefix, const char * extension)
+{
+	char result[250];
+
+	sprintf_s(result, 250, "%s%s_%llu.%s", path, prefix, App->resources->GenerateNewUID(), extension);
+	NormalizePath(result);
+	if (Save(result, buffer, size) > 0)
+	{
+		name = result;
+		return true;
+	}
+	return false;
 }
 
 bool ModuleFileSystem::Remove(const char * file)

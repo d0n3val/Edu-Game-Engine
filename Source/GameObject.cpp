@@ -11,6 +11,7 @@
 #include "ComponentMesh.h"
 #include "ComponentCamera.h"
 #include "ResourceTexture.h"
+#include "ResourceMesh.h"
 #include "Config.h"
 #include "OpenGL.h"
 #include "DebugDraw.h"
@@ -375,7 +376,7 @@ void GameObject::Draw(bool debug) const
 		if ((*it)->GetType() == ComponentTypes::Geometry)
 		{
 			ComponentMesh* cmesh = (ComponentMesh*) (*it);
-			const Mesh* mesh = cmesh->GetMesh();
+			const ResourceMesh* mesh = cmesh->GetResource();
 
 			if (mesh == nullptr)
 				continue;

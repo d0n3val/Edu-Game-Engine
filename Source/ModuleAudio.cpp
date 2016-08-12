@@ -3,12 +3,11 @@
 #include "ModuleAudio.h"
 #include "ModuleFileSystem.h"
 #include "ModuleLevelManager.h"
+#include "ModuleResources.h"
+#include "ResourceAudio.h"
 #include "GameObject.h"
-#include "Component.h"
 #include "ComponentAudioListener.h"
 #include "ComponentAudioSource.h"
-#include "ModuleCamera3D.h"
-#include "Component.h"
 #include "Config.h"
 #include "Bass/include/bass.h"
 #include "Bass/include/bassenc.h"
@@ -107,19 +106,6 @@ bool ModuleAudio::Init(Config* config)
 
 bool ModuleAudio::Start(Config * config)
 {
-	
-	GameObject* go = App->level->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Audio");
-	ComponentAudioSource* s = (ComponentAudioSource*) go->CreateComponent(ComponentTypes::AudioSource);
-	s->LoadFile("Assets/audio/music/music_sadpiano.ogg");
-	//s->Play();
-	s->fade_in = 10.0f;
-	s->is_2d = false;
-	s->min_distance = 0.f;
-	s->max_distance = 5.0f;
-
-	ComponentAudioListener* l = (ComponentAudioListener*)go->CreateComponent(ComponentTypes::AudioListener);
-	l->distance = 10.0f;
-
 	return true;
 }
 
@@ -164,7 +150,7 @@ void CALLBACK EncodeNewData(HENCODE encoder, DWORD channel, const void* buffer, 
 	App->fs->Save((const char*)user, (const char*) buffer, lenght, true);
 }
 
-const char * ModuleAudio::Import(const char * file)
+const char * ModuleAudio::ImportSlow(const char * file)
 {
 	static uint asset_id = 0;
 	static char name[80];
@@ -210,66 +196,126 @@ const char * ModuleAudio::Import(const char * file)
 	return nullptr;
 }
 
-ulong ModuleAudio::Load(const char * file)
+bool ModuleAudio::Import(const char * full_path, string& output_file)
 {
-	ulong ret = 0;
+	// Try to load and free immediately to check if the resource is valid
+	bool ret = false;
+	string extension;
 
-	if (file != nullptr)
+	if (full_path != nullptr)
 	{
-		int len = strlen(file);
+		App->fs->SplitFilePath(full_path, nullptr, nullptr, &extension);
 
-		// OGG files will be streams
-		if (len > 4 && (
-			_strnicmp("ogg", &file[len - 3], 3) == 0 ||
-			_strnicmp("mp3", &file[len - 3], 3) == 0))
+		if (extension == "ogg")
 		{
-			ret = BASS_StreamCreateFileUser( 
+			// OGG files will be streams
+			HSTREAM stream = BASS_StreamCreateFileUser( 
+				STREAMFILE_BUFFER, BASS_STREAM_AUTOFREE, 
+				App->fs->GetBassIO(), App->fs->BassLoad(full_path) );
+
+			if (stream != 0)
+			{
+				BASS_StreamFree(stream);
+				ret = true;
+			}
+			else
+				LOG("BASS_StreamCreateFile() error: %s", BASS_GetErrorString());
+		}
+		else if (extension == "wav")
+		{
+			// WAV for samples
+			char* buffer = nullptr;
+			uint size = App->fs->Load(full_path, &buffer);
+
+			if (buffer != nullptr)
+			{
+				HSAMPLE sample = BASS_SampleLoad(TRUE, buffer, 0, size, 5, BASS_SAMPLE_OVER_VOL);
+
+				if (sample != 0)
+				{
+					BASS_SampleFree(sample);
+					ret = true;
+				}
+				else
+					LOG("BASS_SampleLoad() file [%s] error: %s", full_path, BASS_GetErrorString());
+
+				RELEASE(buffer);
+			}
+		}
+	}
+
+	// Just copy the file for now
+	// TODO: decode and encode again - check ImportSlow()
+	if (ret == true)
+	{
+		char result[250];
+		sprintf_s(result, 250, "%s%s_%llu.%s", LIBRARY_AUDIO_FOLDER, "audio", App->resources->GenerateNewUID(), extension.c_str());
+		App->fs->NormalizePath(result);
+		if (ret = App->fs->Copy(full_path, result))
+			output_file = result;
+	}
+
+	return ret;
+}
+
+bool ModuleAudio::Load(ResourceAudio * resource)
+{
+	bool ret = false;
+	ulong id = 0;
+
+	if (resource != nullptr && resource->GetExportedFile())
+	{
+		string extension;
+		App->fs->SplitFilePath(resource->GetExportedFile(), nullptr, nullptr, &extension);
+
+		if (extension == "ogg")
+		{
+			// OGG files will be streams
+			id = BASS_StreamCreateFileUser( 
 				STREAMFILE_BUFFER, 
 				BASS_SAMPLE_LOOP | BASS_STREAM_AUTOFREE, 
 				App->fs->GetBassIO(), 
-				App->fs->BassLoad(file) );
+				App->fs->BassLoad(resource->GetExportedFile()) );
 
-			if (ret  == 0)
+			if (id != 0)
+				resource->format = ResourceAudio::stream;
+			else
 				LOG("BASS_StreamCreateFile() error: %s", BASS_GetErrorString());
 		}
-		// WAV for samples
-		else if (len > 4 && _strnicmp("wav", &file[len - 3], 3) == 0)
+		else if (extension == "wav")
 		{
+			// WAV for samples
 			char* buffer = nullptr;
-			uint size = App->fs->Load(file, &buffer);
+			uint size = App->fs->Load(resource->GetExportedFile(), &buffer);
 
 			if (buffer != nullptr)
 			{
 				HSAMPLE sample = BASS_SampleLoad(TRUE, buffer, 0, size, 5, BASS_SAMPLE_OVER_VOL);
 
 				if (sample == 0)
-					LOG("BASS_SampleLoad() file [%s] error: %s", file, BASS_GetErrorString());
+					LOG("BASS_SampleLoad() file [%s] error: %s", resource->GetExportedFile(), BASS_GetErrorString());
 				else
 				{
-					ret = BASS_SampleGetChannel(sample, FALSE);
+					id = BASS_SampleGetChannel(sample, FALSE);
 
-					if (ret == 0)
+					if (id != 0)
+						resource->format = ResourceAudio::sample;
+					else
 						LOG("BASS_SampleGetChannel() with id [%ul] error: %s", sample, BASS_GetErrorString());
 				}
-			}
 
-			RELEASE(buffer); // since we are not buffering the file, we can safely remove it
+				// since we are not buffering the file, we can safely remove it
+				RELEASE(buffer); 
+			}
 		}
 	}
 
-	return ret;
-}
-
-const char * ModuleAudio::GetFile(uint id) const
-{
-	const char* ret = nullptr;
-
-	if (id != 0)
+	if(id != 0)
 	{
-		BASS_CHANNELINFO info;
-		BASS_ChannelGetInfo(id, &info );
-		ret = info.filename;
+		resource->audio_id = id;
+		ret = true;
 	}
+
 	return ret;
 }
 
@@ -376,12 +422,16 @@ void ModuleAudio::UpdateListener(ComponentAudioListener * listener) const
 
 void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 {
+	if (source == nullptr)
+		return;
+
+	ulong id = source->GetResource()->audio_id;
 	switch (source->current_state)
 	{
 		case ComponentAudioSource::state::playing:
 		{
 			// Setup 3D attributes for this gameobject
-			BASS_ChannelSet3DAttributes(source->id,
+			BASS_ChannelSet3DAttributes(id,
 				source->is_2d ? BASS_3DMODE_OFF : BASS_3DMODE_NORMAL,
 				source->min_distance,
 				source->max_distance,
@@ -391,7 +441,7 @@ void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 
 			// Update 3D position
 			const GameObject* go = source->GetGameObject();
-			BASS_ChannelSet3DPosition(source->id,
+			BASS_ChannelSet3DPosition(id,
 				(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
 				(BASS_3DVECTOR*)&go->GetGlobalTransformation().WorldZ(), // front
 				nullptr); // velocity
@@ -399,40 +449,40 @@ void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 
 		case ComponentAudioSource::state::waiting_to_play:
 		{
-			if (BASS_ChannelPlay(source->id, FALSE) == FALSE)
-				LOG("BASS_ChannelPlay() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			if (BASS_ChannelPlay(id, FALSE) == FALSE)
+				LOG("BASS_ChannelPlay() with channel [%ul] error: %s", id, BASS_GetErrorString());
 			else
 			{
-				BASS_ChannelSetAttribute(source->id, BASS_ATTRIB_VOL, 0.0f );
-				BASS_ChannelSlideAttribute(source->id, BASS_ATTRIB_VOL, 1.0f, DWORD(source->fade_in * 1000.0f));
+				BASS_ChannelSetAttribute(id, BASS_ATTRIB_VOL, 0.0f );
+				BASS_ChannelSlideAttribute(id, BASS_ATTRIB_VOL, 1.0f, DWORD(source->fade_in * 1000.0f));
 				source->current_state = ComponentAudioSource::state::playing;
 			}
 		} break;
 
 		case ComponentAudioSource::state::waiting_to_stop:
 		{
-			if (BASS_ChannelStop(source->id) == FALSE)
-				LOG("BASS_ChannelStop() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			if (BASS_ChannelStop(id) == FALSE)
+				LOG("BASS_ChannelStop() with channel [%ul] error: %s", id, BASS_GetErrorString());
 			else
 			{
 				// TODO: test
-				BASS_ChannelSlideAttribute(source->id, BASS_ATTRIB_VOL, 0.0f, DWORD(source->fade_out * 1000.0f));
+				BASS_ChannelSlideAttribute(id, BASS_ATTRIB_VOL, 0.0f, DWORD(source->fade_out * 1000.0f));
 				source->current_state = ComponentAudioSource::state::stopped;
 			}
 		} break;
 
 		case ComponentAudioSource::state::waiting_to_pause:
 		{
-			if (BASS_ChannelPause(source->id) == FALSE)
-				LOG("BASS_ChannelPause() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			if (BASS_ChannelPause(id) == FALSE)
+				LOG("BASS_ChannelPause() with channel [%ul] error: %s", id, BASS_GetErrorString());
 			else
 				source->current_state = ComponentAudioSource::state::paused;
 		} break;
 
 		case ComponentAudioSource::state::waiting_to_unpause:
 		{
-			if (BASS_ChannelPlay(source->id, FALSE) == FALSE)
-				LOG("BASS_ChannelPlay() with channel [%ul] error: %s", source->id, BASS_GetErrorString());
+			if (BASS_ChannelPlay(id, FALSE) == FALSE)
+				LOG("BASS_ChannelPlay() with channel [%ul] error: %s", id, BASS_GetErrorString());
 			else
 				source->current_state = ComponentAudioSource::state::playing;
 		} break;

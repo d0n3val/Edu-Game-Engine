@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "ModuleMeshes.h"
 #include "ModuleFileSystem.h"
+#include "ResourceMesh.h"
 #include "Glew/include/glew.h" // extensio lib
 #include "gl/GL.h"
 #include "Assimp/include/mesh.h"
@@ -30,156 +31,154 @@ bool ModuleMeshes::CleanUp()
 {
 	LOG("Freeing Mesh library");
 					  
-	for(list<Mesh*>::iterator it = meshes.begin(); it != meshes.end(); ++it)
-		RELEASE(*it);
-
-	meshes.clear();
 	return true;
 }
 
 // Load new mesh
-const char* ModuleMeshes::Import(const aiMesh* new_mesh) const
+bool ModuleMeshes::Import(const aiMesh* new_mesh, string& output) const
 {
-	if (new_mesh == nullptr)
-		return nullptr;
+	bool ret = false;
 
-	Mesh* m = new Mesh;
+	if (new_mesh == nullptr)
+		return ret;
+
+	// Temporary object to make the load/Save process
+	ResourceMesh m(0);
 
 	// copy vertices
-	m->num_vertices = new_mesh->mNumVertices;
-	m->vertices = new float[m->num_vertices * 3];
-	memcpy(m->vertices, new_mesh->mVertices, sizeof(float) * m->num_vertices * 3);
-	LOG("New mesh with %d vertices", m->num_vertices);
+	m.num_vertices = new_mesh->mNumVertices;
+	m.vertices = new float[m.num_vertices * 3];
+	memcpy(m.vertices, new_mesh->mVertices, sizeof(float) * m.num_vertices * 3);
+	LOG("New mesh with %d vertices", m.num_vertices);
 
 	// copy faces
 	if (new_mesh->HasFaces())
 	{
-		m->num_indices = new_mesh->mNumFaces * 3;
-		m->indices = new uint[m->num_indices]; // assume each face is a triangle
+		m.num_indices = new_mesh->mNumFaces * 3;
+		m.indices = new uint[m.num_indices]; // assume each face is a triangle
 		for (uint i = 0; i < new_mesh->mNumFaces; ++i)
 		{
 			if(new_mesh->mFaces[i].mNumIndices != 3)
 				LOG("WARNING, geometry face with %d indices, all should be have 3!", new_mesh->mFaces[i].mNumIndices);
 
-			memcpy(&m->indices[i*3], new_mesh->mFaces[i].mIndices, 3 * sizeof(uint));
+			memcpy(&m.indices[i*3], new_mesh->mFaces[i].mIndices, 3 * sizeof(uint));
 		}
 	}
 
 	// normals
 	if (new_mesh->HasNormals())
 	{
-		m->normals = new float[m->num_vertices * 3];
-		memcpy(m->normals, new_mesh->mNormals, sizeof(float) * m->num_vertices * 3);
+		m.normals = new float[m.num_vertices * 3];
+		memcpy(m.normals, new_mesh->mNormals, sizeof(float) * m.num_vertices * 3);
 	}
 
 	// colors
 	if (new_mesh->HasVertexColors(0))
 	{
-		m->colors = new float[m->num_vertices * 3];
-		memcpy(m->colors, new_mesh->mColors, sizeof(float) * m->num_vertices * 3);
+		m.colors = new float[m.num_vertices * 3];
+		memcpy(m.colors, new_mesh->mColors, sizeof(float) * m.num_vertices * 3);
 	}
 
 	// texture coords (only one texture for now)
 	if (new_mesh->HasTextureCoords(0))
 	{
-		m->texture_coords = new float[m->num_vertices * 3];
-		memcpy(m->texture_coords, new_mesh->mTextureCoords[0], sizeof(float) * m->num_vertices * 3);
+		m.texture_coords = new float[m.num_vertices * 3];
+		memcpy(m.texture_coords, new_mesh->mTextureCoords[0], sizeof(float) * m.num_vertices * 3);
 	}
 
-	const char* filename = Save(m);
-	RELEASE(m);
-
-	return filename;
+	return Save(m, output);
 }
 
-const Mesh * ModuleMeshes::Load(const char * file)
+bool ModuleMeshes::Load(ResourceMesh* resource)
 {
-	if (file == nullptr)
-		return nullptr;
+	bool ret = false;
 
-	Mesh* mesh = nullptr;
+	if (resource == nullptr || resource->GetExportedFile() == nullptr)
+		return ret;
 
 	char* buffer;
-	uint size = App->fs->Load(file, &buffer);
+	uint size = App->fs->Load(LIBRARY_MESH_FOLDER, resource->GetExportedFile(), &buffer);
 
-	if (size > 0)
+	if (buffer != nullptr && size > 0)
 	{
 		char* cursor = buffer;
-		mesh = new Mesh;
 
 		// amount of indices / vertices / colors / normals / texture_coords
 		uint ranges[5];
 		uint bytes = sizeof(ranges);
 		memcpy(ranges, cursor, bytes);
 
-		mesh->num_indices = ranges[0];
-		mesh->num_vertices = ranges[1];
+		resource->num_indices = ranges[0];
+		resource->num_vertices = ranges[1];
 		
 		// Load indices
 		cursor += bytes;
-		bytes = sizeof(uint) * mesh->num_indices;
-		mesh->indices = new uint[mesh->num_indices];
-		memcpy(mesh->indices, cursor, bytes);
+		bytes = sizeof(uint) * resource->num_indices;
+		resource->indices = new uint[resource->num_indices];
+		memcpy(resource->indices, cursor, bytes);
 
 		// Load vertices
 		cursor += bytes;
-		bytes = sizeof(float) * mesh->num_vertices * 3;
-		mesh->vertices = new float[mesh->num_vertices * 3];
-		memcpy(mesh->vertices, cursor, bytes);
+		bytes = sizeof(float) * resource->num_vertices * 3;
+		resource->vertices = new float[resource->num_vertices * 3];
+		memcpy(resource->vertices, cursor, bytes);
 
 		// Load colors
 		if (ranges[2] > 0)
 		{
 			cursor += bytes;
-			mesh->colors = new float[mesh->num_vertices * 3];
-			memcpy(mesh->colors, cursor, bytes);
+			resource->colors = new float[resource->num_vertices * 3];
+			memcpy(resource->colors, cursor, bytes);
 		}
 		
 		// Load normals
 		if (ranges[3] > 0)
 		{
 			cursor += bytes;
-			mesh->normals = new float[mesh->num_vertices * 3];
-			memcpy(mesh->normals, cursor, bytes);
+			resource->normals = new float[resource->num_vertices * 3];
+			memcpy(resource->normals, cursor, bytes);
 		}
 
 		// Load texture coords
 		if (ranges[4] > 0)
 		{
 			cursor += bytes;
-			mesh->texture_coords = new float[mesh->num_vertices * 3];
-			memcpy(mesh->texture_coords, cursor, bytes);
+			resource->texture_coords = new float[resource->num_vertices * 3];
+			memcpy(resource->texture_coords, cursor, bytes);
 		}
 
 		RELEASE(buffer);
 
-		meshes.push_back(mesh);
-		GenerateVertexBuffer(mesh); // we need to do this here ?
+		GenerateVertexBuffer(resource); // we need to do this here ?
+
+		ret = true;
 	}
 
-	return mesh;
+	return ret;
 }
 
-const char * ModuleMeshes::Save(const Mesh * mesh) const
+bool ModuleMeshes::Save(const ResourceMesh& mesh, string& output) const
 {
+	bool ret = false;
+
 	// amount of indices / vertices / colors / normals / texture_coords
 	uint ranges[5] = {
-		mesh->num_indices,
-		mesh->num_vertices,
-		(mesh->colors) ? mesh->num_vertices : 0,
-		(mesh->normals) ? mesh->num_vertices : 0,
-		(mesh->texture_coords) ? mesh->num_vertices : 0
+		mesh.num_indices,
+		mesh.num_vertices,
+		(mesh.colors) ? mesh.num_vertices : 0,
+		(mesh.normals) ? mesh.num_vertices : 0,
+		(mesh.texture_coords) ? mesh.num_vertices : 0
 	};
 
 	uint size = sizeof(ranges); 
-	size += sizeof(uint) * mesh->num_indices;
-	size += sizeof(float) * mesh->num_vertices * 3;
-	if (mesh->colors != nullptr)
-		size += sizeof(float) * mesh->num_vertices * 3;
-	if (mesh->normals != nullptr)
-		size += sizeof(float) * mesh->num_vertices * 3;
-	if (mesh->texture_coords != nullptr)
-		size += sizeof(float) * mesh->num_vertices * 3;
+	size += sizeof(uint) * mesh.num_indices;
+	size += sizeof(float) * mesh.num_vertices * 3;
+	if (mesh.colors != nullptr)
+		size += sizeof(float) * mesh.num_vertices * 3;
+	if (mesh.normals != nullptr)
+		size += sizeof(float) * mesh.num_vertices * 3;
+	if (mesh.texture_coords != nullptr)
+		size += sizeof(float) * mesh.num_vertices * 3;
 
 	// allocate and fill
 	char* data = new char[size];
@@ -191,51 +190,45 @@ const char * ModuleMeshes::Save(const Mesh * mesh) const
 
 	// Store indices
 	cursor += bytes;
-	bytes = sizeof(uint) * mesh->num_indices;
-	memcpy(cursor, mesh->indices, bytes);
+	bytes = sizeof(uint) * mesh.num_indices;
+	memcpy(cursor, mesh.indices, bytes);
 
 	// Store vertices
 	cursor += bytes;
-	bytes = sizeof(float) * mesh->num_vertices * 3;
-	memcpy(cursor, mesh->vertices, bytes);
+	bytes = sizeof(float) * mesh.num_vertices * 3;
+	memcpy(cursor, mesh.vertices, bytes);
 
 	// Store colors
-	if (mesh->colors != nullptr)
+	if (mesh.colors != nullptr)
 	{
 		cursor += bytes;
-		memcpy(cursor, mesh->colors, bytes);
+		memcpy(cursor, mesh.colors, bytes);
 	}
 
 	// Store normals
-	if (mesh->normals != nullptr)
+	if (mesh.normals != nullptr)
 	{
 		cursor += bytes;
-		memcpy(cursor, mesh->normals, bytes);
+		memcpy(cursor, mesh.normals, bytes);
 	}
 
 	// Store texture coords
-	if (mesh->texture_coords != nullptr)
+	if (mesh.texture_coords != nullptr)
 	{
 		cursor += bytes;
-		memcpy(cursor, mesh->texture_coords, bytes);
+		memcpy(cursor, mesh.texture_coords, bytes);
 	}
 
 	// We are ready to write the file
-	static int f = 0;
-	static char file[80];
-
-	sprintf_s(file, 80, "Library/Meshes/mesh_%i.edu", ++f);
-	App->fs->Save(file, data, size);
+	ret = App->fs->SaveUnique(output, data, size, LIBRARY_MESH_FOLDER, "mesh", "edu");
 
 	RELEASE(data);
 
-	return file;
+	return ret;
 }
 
-uint ModuleMeshes::GenerateVertexBuffer(const Mesh* mesh)
+void ModuleMeshes::GenerateVertexBuffer(const ResourceMesh* mesh)
 {
-	uint ret = 0;
-
 	// Generate VBO to send all this mesh information to the graphics card
 
 	// Buffer for vertices
@@ -295,6 +288,5 @@ uint ModuleMeshes::GenerateVertexBuffer(const Mesh* mesh)
 
 	LOG("New VAO with id %u", ret);
 	*/
-	return ret;
 }
 

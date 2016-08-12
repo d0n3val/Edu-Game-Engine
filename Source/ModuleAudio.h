@@ -11,9 +11,9 @@ struct Mix_Chunk;
 typedef struct _Mix_Music Mix_Music;
 
 class GameObject;
-
 class ComponentAudioListener;
 class ComponentAudioSource;
+class ResourceAudio;
 
 class ModuleAudio : public Module
 {
@@ -32,9 +32,9 @@ public:
 	void Load(Config* config) override;
 
 	// Load audio assets
-	const char* Import(const char* file);  // too slow for now, better to just copy the file
-	ulong Load(const char* file);
-	const char* GetFile(uint id) const;
+	const char* ImportSlow(const char* file);  // too slow for now, better to just copy the file
+	bool Import(const char* file, std::string& output_file); 
+	bool Load(ResourceAudio* resource);
 	void Unload(ulong id);
 
 	float GetVolume() const;

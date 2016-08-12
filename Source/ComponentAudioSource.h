@@ -7,6 +7,8 @@
 #include "Component.h"
 #include <string>
 
+class ResourceAudio;
+
 class ComponentAudioSource : public Component
 {
 	friend class ModuleAudio;
@@ -17,8 +19,9 @@ public:
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
-	bool LoadFile(const char* file);
-	const char* GetFile() const;
+	bool SetResource(UID resource);
+	const ResourceAudio* GetResource() const;
+
 	void Unload();
 
 	void OnDeActivate() override;
@@ -34,7 +37,6 @@ public:
 	int GetCurrentState() const;
 
 public:
-	ulong id = 0;
 	bool is_2d = false;
 	float min_distance = 0.f;
 	float max_distance = 0.f;
@@ -57,8 +59,8 @@ public:
 	};
 
 private:
+	UID resource = 0;
 	state current_state = state::unloaded;
-	std::string resource;
 };
 
 #endif // __COMPONENT_AUDIOSOURCE_H__
