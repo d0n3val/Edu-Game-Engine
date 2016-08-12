@@ -1,4 +1,5 @@
 #include "ResourceTexture.h"
+#include "Config.h"
 
 // ---------------------------------------------------------
 ResourceTexture::ResourceTexture(UID uid) : Resource(uid, Resource::Type::texture)
@@ -17,3 +18,18 @@ const char * ResourceTexture::GetFormatStr() const
 	return formats[format];
 }
 
+// ---------------------------------------------------------
+void ResourceTexture::Save(Config & config) const
+{
+	Resource::Save(config);
+
+	config.AddInt("Format", format);
+}
+
+// ---------------------------------------------------------
+void ResourceTexture::Load(const Config & config)
+{
+	Resource::Load(config);
+
+	format = (Format) config.GetInt("Format", unknown);
+}

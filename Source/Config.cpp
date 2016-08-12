@@ -41,10 +41,10 @@ bool Config::IsValid() const
 size_t Config::Save(char** buf, const char* title_comment) const
 {
 	size_t written = json_serialization_size_pretty(vroot);
-	int extra = (title_comment) ? strlen(title_comment) + 6 : 0;
+	int extra = (title_comment) ? strlen(title_comment) + 5 : 0;
 	*buf = new char[written+extra];
 	if(extra > 0)
-		sprintf_s(*buf, extra, "// %s\r\n", title_comment);
+		sprintf_s(*buf, extra, "// %s\n", title_comment);
 
 	json_serialize_to_buffer_pretty(vroot, *buf+extra-1, written);
 	return written+extra;

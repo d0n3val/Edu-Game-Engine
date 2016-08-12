@@ -425,7 +425,16 @@ void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 	if (source == nullptr)
 		return;
 
-	ulong id = source->GetResource()->audio_id;
+	const ResourceAudio* resource = source->GetResource();
+
+	if (resource == nullptr)
+		return;
+
+	ulong id = resource->audio_id;
+
+	if (id == 0)
+		return;
+
 	switch (source->current_state)
 	{
 		case ComponentAudioSource::state::playing:

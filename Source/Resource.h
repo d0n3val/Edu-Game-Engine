@@ -6,6 +6,8 @@
 #include "Globals.h"
 #include <string>
 
+class Config;
+
 class Resource
 {
 	friend class ModuleResources;
@@ -27,6 +29,9 @@ public:
 	UID GetUID() const;
 	const char* GetFile() const;
 	const char* GetExportedFile() const;
+
+	virtual void Save(Config& config) const;
+	virtual void Load(const Config& config);
 
 private:
 

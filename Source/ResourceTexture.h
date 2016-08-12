@@ -6,12 +6,26 @@
 class ResourceTexture : public Resource
 {
 	friend class ModuleTextures;
+public:
+
+	enum Format {
+		color_index,
+		rgb,
+		rgba,
+		bgr,
+		bgra,
+		luminance,
+		unknown
+	};
 
 public:
 	ResourceTexture(UID id);
 	virtual ~ResourceTexture();
 
 	const char* GetFormatStr() const;
+
+	void Save(Config& config) const override;
+	void Load(const Config& config) override;
 
 public:
 	uint width = 0;
@@ -22,15 +36,7 @@ public:
 	uint bytes = 0;
 	uint gpu_id = 0;
 
-	enum {
-		color_index,
-		rgb,
-		rgba,
-		bgr,
-		bgra,
-		luminance,
-		unknown
-	} format = unknown;
+	Format format = unknown;
 };
 
 #endif // __RESOURCE_TEXTURE_H__

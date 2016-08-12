@@ -14,3 +14,15 @@ ResourceMesh::~ResourceMesh()
 	RELEASE_ARRAY(normals);
 	RELEASE_ARRAY(texture_coords);
 }
+
+// ---------------------------------------------------------
+void ResourceMesh::Save(Config & config) const
+{
+	Resource::Save(config);
+}
+
+// ---------------------------------------------------------
+void ResourceMesh::Load(const Config & config)
+{
+	Resource::Load(config);
+}

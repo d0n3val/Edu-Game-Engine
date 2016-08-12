@@ -16,12 +16,14 @@ ComponentMesh::ComponentMesh(GameObject* container) : Component(container)
 void ComponentMesh::OnSave(Config& config) const
 {
 	config.AddUID("Resource", resource);
-	config.AddArrayFloat("AABB", (float*) &bbox.minPoint.x, 6);
+	//config.AddArrayFloat("AABB", (float*) &bbox.minPoint.x, 6);
 }
 
 // ---------------------------------------------------------
 void ComponentMesh::OnLoad(Config * config)
 {
+	SetResource(config->GetUID("Resource", 0));
+
 	bbox.minPoint.x = config->GetFloat("AABB", 0.f, 0);
 	bbox.minPoint.y = config->GetFloat("AABB", 0.f, 1);
 	bbox.minPoint.z = config->GetFloat("AABB", 0.f, 2);

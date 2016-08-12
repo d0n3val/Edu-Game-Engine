@@ -147,7 +147,6 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObjec
 
 		// Add mesh component
 		ComponentMesh* c_mesh = (ComponentMesh*) child_go->CreateComponent(ComponentTypes::Geometry);
-		// TODO: "some.fbx" ... ehem
 		c_mesh->SetResource(App->resources->ImportBuffer(mesh, 0, Resource::mesh, file.c_str()));
 		LOG("->-> Added mesh component");
 	}

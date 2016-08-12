@@ -1,5 +1,7 @@
 #include "PanelResources.h"
 #include "ModuleInput.h"
+#include "Application.h"
+#include "ModuleResources.h"
 #include "Imgui/imgui.h"
 
 // ---------------------------------------------------------
@@ -22,6 +24,10 @@ void PanelResources::Draw()
 
 	if (ImGui::BeginMenu("Options"))
 	{
+		if (ImGui::MenuItem("Load"))
+			App->resources->LoadResources();
+		if (ImGui::MenuItem("Save"))
+			App->resources->SaveResources();
 		ImGui::EndMenu();
 	}
 

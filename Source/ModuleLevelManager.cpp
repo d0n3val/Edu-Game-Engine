@@ -135,12 +135,12 @@ bool ModuleLevelManager::Load(const char * file)
 		char* buffer = nullptr;
 		uint size = App->fs->Load(file, &buffer);
 
-		if (buffer != nullptr)
+		if (buffer != nullptr && size > 0)
 		{
 			Config config(buffer);
 
 			// Load level description
-			Config desc(config.GetSection("Desscription"));
+			Config desc(config.GetSection("Description"));
 			name = desc.GetString("Name", "Unnamed level");
 
 			int count = config.GetArrayCount("Game Objects");

@@ -22,6 +22,9 @@ public:
 	Format GetFormat() const;
 	const char* GetFormatStr() const;
 
+	void Save(Config& config) const override;
+	void Load(const Config& config) override;
+
 public:
 	ulong audio_id = 0;
 	Format format = unknown;

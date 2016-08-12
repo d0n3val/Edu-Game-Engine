@@ -3,6 +3,8 @@
 
 #include "Resource.h"
 
+class Resource;
+
 class ResourceMesh : public Resource
 {
 	friend class ModuleMeshes;
@@ -10,6 +12,9 @@ class ResourceMesh : public Resource
 public:
 	ResourceMesh(UID id);
 	virtual ~ResourceMesh();
+
+	void Save(Config& config) const override;
+	void Load(const Config& config) override;
 
 public:
 	uint vbo_vertices = 0;

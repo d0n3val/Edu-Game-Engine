@@ -732,7 +732,7 @@ static JSON_Value * parse_null_value(const char **string) {
                                   if (buf != NULL) { buf += written; }\
                                   written_total += written; } while(0)
 
-#define NEWLINE "\r\n"
+#define NEWLINE "\n"
 
 static int json_serialize_to_buffer_r(const JSON_Value *value, char *buf, int level, int is_pretty, char *num_buf)
 {
@@ -749,11 +749,11 @@ static int json_serialize_to_buffer_r(const JSON_Value *value, char *buf, int le
             array = json_value_get_array(value);
             count = json_array_get_count(array);
             APPEND_STRING("[");
-            //if (count > 0 && is_pretty)
-                //APPEND_STRING(NEWLINE);
+            if (count > 0 && is_pretty)
+                APPEND_STRING(NEWLINE);
             for (i = 0; i < count; i++) {
-                //if (is_pretty)
-                    //APPEND_INDENT(level+1);
+                if (is_pretty)
+                    APPEND_INDENT(level+1);
                 temp_value = json_array_get_value(array, i);
                 written = json_serialize_to_buffer_r(temp_value, buf, level+1, is_pretty, num_buf);
                 if (written < 0)
@@ -763,11 +763,11 @@ static int json_serialize_to_buffer_r(const JSON_Value *value, char *buf, int le
                 written_total += written;
                 if (i < (count - 1))
                     APPEND_STRING(",");
-                //if (is_pretty)
-					//APPEND_STRING(NEWLINE);
+                if (is_pretty)
+					APPEND_STRING(NEWLINE);
             }
-            //if (count > 0 && is_pretty)
-               // APPEND_INDENT(level);
+            if (count > 0 && is_pretty)
+                APPEND_INDENT(level);
             APPEND_STRING("]");
             return written_total;
         case JSONObject:

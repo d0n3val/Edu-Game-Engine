@@ -10,6 +10,7 @@
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "ResourceAudio.h"
+#include "Config.h"
 #include <string>
 
 #define LAST_UID_FILE "LAST_UID"
@@ -18,8 +19,6 @@ using namespace std;
 
 ModuleResources::ModuleResources(bool start_enabled) : Module("Resource Manager", start_enabled), asset_folder(ASSETS_FOLDER)
 {
-	// Exception: we are going to acces file system to obtain the last used unique id
-	// so others modules can use resources starting from Init()
 }
 
 // Destructor
@@ -34,6 +33,7 @@ bool ModuleResources::Init(Config* config)
 	bool ret = true;
 
 	LoadUID();
+	LoadResources();
 
 	return ret;
 }
@@ -42,6 +42,8 @@ bool ModuleResources::Init(Config* config)
 bool ModuleResources::CleanUp()
 {
 	LOG("Unloading Resource Manager");
+
+	SaveResources();
 
 	for (map<UID, Resource*>::iterator it = resources.begin(); it != resources.end(); ++it)
 		RELEASE(it->second);
@@ -59,6 +61,58 @@ void ModuleResources::ReceiveEvent(const Event& event)
 			LOG("File dropped: %s", event.string.ptr);
 			ImportFileOutsideVFM(event.string.ptr);
 		break;
+	}
+}
+
+void ModuleResources::SaveResources() const
+{
+	bool ret = true;
+
+	Config save;
+
+	// Add header info
+	Config desc(save.AddSection("Header"));
+
+	// Serialize GameObjects recursively
+	save.AddArray("Resources");
+
+	for (map<UID, Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+	{
+		Config resource;
+		it->second->Save(resource);
+		save.AddArrayEntry(resource);
+	}
+
+	// Finally save to file
+	char* buf = nullptr;
+	uint size = save.Save(&buf, "Resources setup from the EDU Engine");
+	App->fs->Save(SETTINGS_FOLDER "resources.json", buf, size);
+	RELEASE(buf);
+}
+
+void ModuleResources::LoadResources()
+{
+	char* buffer = nullptr;
+	uint size = App->fs->Load(SETTINGS_FOLDER "resources.json", &buffer);
+
+	if (buffer != nullptr && size > 0)
+	{
+		Config config(buffer);
+
+		// Load level description
+		Config desc(config.GetSection("Header"));
+
+		int count = config.GetArrayCount("Resources");
+		for (int i = 0; i < count; ++i)
+		{
+			Config resource(config.GetArray("Resources", i));
+			Resource::Type type = (Resource::Type) resource.GetInt("Type");
+			UID uid = resource.GetUID("UID");
+
+			Resource* res = CreateNewResource(type, uid);
+			res->Load(config.GetArray("Resources", i));
+		}
+		RELEASE(buffer); 
 	}
 }
 
@@ -212,24 +266,31 @@ const Resource * ModuleResources::Get(UID uid) const
 	return nullptr;
 }
 
-Resource * ModuleResources::CreateNewResource(Resource::Type type)
+Resource * ModuleResources::CreateNewResource(Resource::Type type, UID force_uid)
 {
 	Resource* ret = nullptr;
+	UID uid;
+
+	if (force_uid != 0 && Get(force_uid) == nullptr)
+		uid = force_uid;
+	else
+		uid = GenerateNewUID();
+
 	switch (type)
 	{
 		case Resource::texture:
-			ret = (Resource*) new ResourceTexture(GenerateNewUID());
+			ret = (Resource*) new ResourceTexture(uid);
 		break;
 		case Resource::mesh:
-			ret = (Resource*) new ResourceMesh(GenerateNewUID());
+			ret = (Resource*) new ResourceMesh(uid);
 		break;
 		case Resource::audio:
-			ret = (Resource*) new ResourceAudio(GenerateNewUID());
+			ret = (Resource*) new ResourceAudio(uid);
 		break;
 	}
 
 	if(ret != nullptr)
-		resources[ret->uid] = ret;
+		resources[uid] = ret;
 
 	return ret;
 }
