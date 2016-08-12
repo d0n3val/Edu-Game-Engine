@@ -15,8 +15,10 @@ public:
 
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
+	bool SetResource(UID resource);
 
 public:
+	UID resource = 0;
 	const TextureInfo* texture = nullptr;
 };
 

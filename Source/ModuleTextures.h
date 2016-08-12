@@ -5,16 +5,16 @@
 #include "Module.h"
 #include <vector>
 
-#define TEXTURE_PATH "/Library/Textures/"
-
 struct TextureInfo
 {
 	char name[15];
-	uint width, height;
-	uint depth, bpp;
-	uint mips;
-	uint bytes;
-	uint gpu_id;
+	uint width = 0;
+	uint height = 0;
+	uint depth = 0;
+	uint bpp = 0;
+	uint mips = 0;
+	uint bytes = 0;
+	uint gpu_id = 0;
 	enum {
 		unknown,
 		color_index,
@@ -23,7 +23,7 @@ struct TextureInfo
 		bgr,
 		bgra,
 		luminance
-	} format;
+	} format = unknown;
 };
 
 static const char* texture_formats[] = { "unknown", "color index", "rgb", "rgba", "bgr", "bgra", "luminance" };

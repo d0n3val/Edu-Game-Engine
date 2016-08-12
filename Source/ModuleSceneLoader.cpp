@@ -9,6 +9,7 @@
 #include "ComponentMaterial.h"
 #include "Config.h"
 #include "ModuleLevelManager.h"
+#include "ModuleResources.h"
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
 #include "Assimp/include/postprocess.h"
@@ -131,7 +132,11 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObjec
 				}
 			}
 			else
-				c_material->texture = App->tex->Load(App->tex->Import(path.C_Str(), basePath.c_str()));
+			{
+				string file(basePath.c_str());
+				file += path.C_Str();
+				c_material->SetResource(App->resources->ImportFile(file.c_str()));
+			}
 			LOG("->-> Added material component");
 		}
 

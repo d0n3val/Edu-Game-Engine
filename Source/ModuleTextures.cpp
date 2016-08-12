@@ -96,7 +96,7 @@ const char* ModuleTextures::Import(const void * buffer, uint size)
 				data = new ILubyte[size]; // allocate data buffer
 				if (ilSaveL(IL_DDS, data, size) > 0) // Save with the ilSaveIL function
 				{
-					App->fs->Save((TEXTURE_PATH + name).c_str(), (const char*)data, size);
+					App->fs->Save((LIBRARY_TEXTURES_FOLDER + name).c_str(), (const char*)data, size);
 					ret = n;
 				}
 				RELEASE(data);
@@ -122,7 +122,7 @@ const TextureInfo* ModuleTextures::Load(const char* file)
 		std::string sFile(file);
 
 		char* buffer = nullptr;
-		uint size = App->fs->Load((TEXTURE_PATH + sFile).c_str(), &buffer);
+		uint size = App->fs->Load((LIBRARY_TEXTURES_FOLDER + sFile).c_str(), &buffer);
 
 		if (buffer)
 		{

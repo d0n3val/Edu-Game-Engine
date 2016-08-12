@@ -1,6 +1,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include "Globals.h"
+
 // C++ wrapper for JSON parser library "Parson"
 // http://www.w3schools.com/json/json_syntax.asp
 
@@ -29,15 +31,18 @@ public:
 	Config GetSection(const char* section_name);
 	Config AddSection(const char* section_name);
 
-	bool GetBool(const char * field, bool default, int index = -1) const;
-	int GetInt(const char* field, int default, int index = -1) const;
-	float GetFloat(const char* field, float default, int index = -1) const;
-	const char* GetString(const char* field, const char* default, int index = -1) const;
+	bool GetBool(const char * field, bool default = false, int index = -1) const;
+	int GetInt(const char* field, int default = 0, int index = -1) const;
+	UID GetUID(const char* field, UID default = 0, int index = -1) const;
+	float GetFloat(const char* field, float default = 0.f, int index = -1) const;
+	const char* GetString(const char* field, const char* default = nullptr, int index = -1) const;
+
 	int GetArrayCount(const char * field) const;
 	Config GetArray(const char* field, int index) const;
 
 	bool AddBool(const char* field, bool value);
 	bool AddInt(const char* field, int value);
+	bool AddUID(const char* field, UID value);
 	bool AddFloat(const char* field, float value);
 	bool AddString(const char* field, const char* string);
 	bool AddArray(const char* array_name);

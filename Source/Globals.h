@@ -15,6 +15,7 @@ void _log(const char file[], int line, const char* format, ...);
 typedef unsigned int uint;
 typedef unsigned char uchar;
 typedef unsigned long ulong;
+typedef unsigned long long UID;
 
 enum update_status
 {
@@ -49,8 +50,15 @@ enum update_status
 	 }
 
 // Configuration -----------
-#define ASSETS_FOLDER "Assets"
 #define VERSION "0.4-alpha"
+#define ASSETS_FOLDER "/Assets/"
+#define SETTINGS_FOLDER "/Settings/"
+#define LIBRARY_FOLDER "/Library/"
+#define LIBRARY_MUSIC_FOLDER "/Library/Music/"
+#define LIBRARY_EFFECTS_FOLDER "/Library/Effects/"
+#define LIBRARY_TEXTURES_FOLDER "/Library/Textures/"
+#define LIBRARY_MESH_FOLDER "/Library/Mesh/"
+
 
 // Warning disabled ---
 #pragma warning( disable : 4577 ) // Warning that exceptions are disabled

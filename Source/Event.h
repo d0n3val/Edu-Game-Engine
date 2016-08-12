@@ -1,8 +1,6 @@
 #ifndef __EVENT_H__
 #define __EVENT_H__
 
-class GameObject;
-
 struct Event
 {
 	enum EventType
@@ -15,11 +13,6 @@ struct Event
 
 	union
 	{
-		struct 
-		{
-			GameObject* ptr;
-		} gameobject;
-
 		struct 
 		{
 			const char* ptr;
