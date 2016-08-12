@@ -34,10 +34,9 @@ bool ComponentMaterial::SetResource(UID resource)
 	if (resource != 0)
 	{
 		const Resource* res = App->resources->Get(resource);
-		if (res != nullptr && res->type == Resource::image)
+		if (res != nullptr && res->GetType() == Resource::texture)
 		{
-			texture = App->tex->Load(res->exported_file.c_str());
-			if (texture != nullptr)
+			if(App->tex->Load((ResourceTexture*)res))
 			{
 				this->resource = resource;
 				ret = true;
@@ -46,4 +45,10 @@ bool ComponentMaterial::SetResource(UID resource)
 	}
 
 	return ret;
+}
+
+// TODO: speed up this with a shared_ptr
+const ResourceTexture * ComponentMaterial::GetResource() const
+{
+	return (ResourceTexture*) App->resources->Get(resource);
 }

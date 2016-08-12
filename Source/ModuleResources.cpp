@@ -6,6 +6,7 @@
 #include "ModuleAudio.h"
 #include "ModuleSceneLoader.h"
 #include "Event.h"
+#include "ResourceTexture.h"
 #include <string>
 
 #define LAST_UID_FILE "LAST_UID"
@@ -39,6 +40,11 @@ bool ModuleResources::CleanUp()
 {
 	LOG("Unloading Resource Manager");
 
+	for (map<UID, Resource*>::iterator it = resources.begin(); it != resources.end(); ++it)
+		RELEASE(it->second);
+
+	resources.clear();
+
 	return true;
 }
 
@@ -64,13 +70,13 @@ Resource::Type ModuleResources::TypeFromExtension(const char * extension) const
 		else if (_stricmp(extension, "ogg") == 0)
 			ret = Resource::music;
 		else if (_stricmp(extension, "dds") == 0)
-			ret = Resource::image;
+			ret = Resource::texture;
 		else if (_stricmp(extension, "png") == 0)
-			ret = Resource::image;
+			ret = Resource::texture;
 		else if (_stricmp(extension, "jpg") == 0)
-			ret = Resource::image;
+			ret = Resource::texture;
 		else if (_stricmp(extension, "tga") == 0)
-			ret = Resource::image;
+			ret = Resource::texture;
 		else if (_stricmp(extension, "fbx") == 0)
 			ret = Resource::scene;
 		else if (_stricmp(extension, "dae") == 0)
@@ -78,6 +84,18 @@ Resource::Type ModuleResources::TypeFromExtension(const char * extension) const
 	}
 
 	return ret;
+}
+
+UID ModuleResources::Find(const char * file_in_assets) const
+{
+	const char* file = App->fs->NormalizePath(file_in_assets);
+
+	for (map<UID, Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+	{
+		if (it->second->file.compare(file) == 0)
+			return it->first;
+	}
+	return 0;
 }
 
 UID ModuleResources::ImportFile(const char * full_path, const char * destination)
@@ -102,24 +120,51 @@ UID ModuleResources::ImportFile(const char * full_path, const char * destination
 
 UID ModuleResources::ImportFile(const char * new_file_in_assets)
 {
+	// Check is that file has been already exported
+	UID ret = Find(new_file_in_assets);
+
+	if (ret != 0)
+		return ret;
+
+	// Find out the type from the extension and send to the correct exporter
 	string extension;
 	App->fs->SplitFilePath(new_file_in_assets, nullptr, nullptr, &extension);
 
-	Resource* res = new Resource(GenerateNewUID(), TypeFromExtension(extension.c_str()));
-	resources[res->uid] = res;
-	res->file = new_file_in_assets;
+	Resource::Type type = TypeFromExtension(extension.c_str());
+	const char* exported_file = nullptr;
 
-	switch (res->type)
+	switch (type)
 	{
-		case Resource::image:
-			res->exported_file = App->tex->Import(new_file_in_assets, "");
+	case Resource::texture:
+		exported_file = App->tex->Import(new_file_in_assets, "");
 		break;
 
 		default:
 		break;
 	}
 
-	return res->uid;
+	// If export was successfull, create a new resource
+	if (exported_file != nullptr)
+	{
+		Resource* res = CreateNewResource(type);
+		res->file = App->fs->NormalizePath(new_file_in_assets);
+		res->exported_file = exported_file;
+		ret = res->uid;
+	}
+
+	return ret;
+}
+
+UID ModuleResources::ImportBuffer(const char * buffer, uint size, Resource::Type type)
+{
+	UID ret = 0;
+	switch (type)
+	{
+	case Resource::texture:
+		break;
+
+	}
+	return ret;
 }
 
 UID ModuleResources::GenerateNewUID()
@@ -134,6 +179,31 @@ const Resource * ModuleResources::Get(UID uid) const
 	if(resources.find(uid) != resources.end())
 		return resources.at(uid);
 	return nullptr;
+}
+
+Resource * ModuleResources::CreateNewResource(Resource::Type type)
+{
+	Resource* ret = nullptr;
+	switch (type)
+	{
+		case Resource::texture:
+			ret = (Resource*) new ResourceTexture(GenerateNewUID());
+		break;
+	}
+
+	if(ret != nullptr)
+		resources[ret->uid] = ret;
+
+	return ret;
+}
+
+void ModuleResources::GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const
+{
+	for (map<UID, Resource*>::const_iterator it = this->resources.begin(); it != this->resources.end(); ++it)
+	{
+		if (it->second->type == type)
+			resources.push_back(it->second);
+	}
 }
 
 void ModuleResources::LoadUID()

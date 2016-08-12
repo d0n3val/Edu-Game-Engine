@@ -33,8 +33,10 @@ public:
 	void DiscoverFiles(const char* directory, std::vector<std::string>& file_list, std::vector<std::string>& dir_list) const;
 	bool Copy(const char* full_path, const char* destination);
 	void SplitFilePath(const char* full_path, std::string* path, std::string* file, std::string* extension) const;
+	const char* NormalizePath(const char* full_path);
 
 	// Open for Read/Write
+	unsigned int Load(const char* path, const char* file, char** buffer) const;
 	unsigned int Load(const char* file, char** buffer) const;
 	SDL_RWops* Load(const char* file) const;
 	void* BassLoad(const char* file) const;

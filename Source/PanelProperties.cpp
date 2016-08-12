@@ -12,7 +12,10 @@
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
 #include "ModuleEditor.h"
+#include "ModuleResources.h"
+#include "ModuleFileSystem.h"
 #include "DebugDraw.h"
+#include "ResourceTexture.h"
 #include <list>
 
 using namespace std;
@@ -152,6 +155,22 @@ void PanelProperties::Draw()
     ImGui::End();
 }
 
+void PanelProperties::DrawResource(UID resource)
+{
+	const Resource* res = App->resources->Get(resource);
+
+	std::string file;
+	ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::Text("Type: %s", res->GetTypeStr());
+		ImGui::Text("UID: %llu", res->GetUID());
+		ImGui::Text("Lib: %s", res->GetExportedFile());
+		ImGui::EndTooltip();
+	}
+}
+
 bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 {
 	bool ret = false;
@@ -272,15 +291,15 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
-	const TextureInfo* info = component->texture;
+	const ResourceTexture* info = component->GetResource();
+	//const TextureInfo* info = component->texture;
 
 	if (info == nullptr)
 		return;
 
-	ImGui::TextColored(IMGUI_YELLOW, info->name);
-	ImGui::SameLine();
+	DrawResource(component->resource);
 	ImGui::Text("(%u,%u) %0.1f Mb", info->width, info->height, info->bytes / (1024.f*1024.f));
-	ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", texture_formats[info->format], info->depth, info->bpp, info->mips);
+	ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->depth, info->bpp, info->mips);
 
 	ImVec2 size((float)info->width, (float)info->height);
 	float max_size = 250.f;

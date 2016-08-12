@@ -174,6 +174,30 @@ void ModuleFileSystem::SplitFilePath(const char * full_path, std::string * path,
 	}
 }
 
+// Flatten filenames to always use lowercase and / as folder separator
+char normalize_char(char c)
+{
+	if (c == '\\')
+		return '/';
+	return tolower(c);
+}
+
+const char * ModuleFileSystem::NormalizePath(const char * full_path)
+{
+	static string normalized;
+	normalized = full_path;
+	transform(normalized.begin(), normalized.end(), normalized.begin(), normalize_char);
+
+	return normalized.c_str();
+}
+
+unsigned int ModuleFileSystem::Load(const char * path, const char * file, char ** buffer) const
+{
+	string full_path(path);
+	full_path += file;
+	return Load(full_path.c_str(), buffer);
+}
+
 // Read a whole file and put it in a new buffer
 uint ModuleFileSystem::Load(const char* file, char** buffer) const
 {

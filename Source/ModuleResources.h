@@ -3,28 +3,12 @@
 
 #include "Globals.h"
 #include "Module.h"
+#include "Resource.h"
 #include <map>
+#include <vector>
 
+class Resource;
 
-struct Resource
-{
-	UID uid = 0;
-	std::string file;
-	std::string exported_file;
-
-	enum Type{
-		image,
-		mesh,
-		music,
-		effect,
-		scene,
-		unknown
-	} type = unknown;
-
-	Resource(UID uid, Resource::Type type) : uid(uid), type(type)
-	{}
-};
-  
 class ModuleResources : public Module
 {
 public:
@@ -39,10 +23,15 @@ public:
 	void ReceiveEvent(const Event& event) override;
 
 	Resource::Type TypeFromExtension(const char* extension) const;
+	UID Find(const char* file_in_assets) const;
 	UID ImportFile(const char* full_path, const char* destination);
 	UID ImportFile(const char* new_file_in_assets);
+	UID ImportBuffer(const char* buffer, uint size, Resource::Type type);
 	UID GenerateNewUID();
 	const Resource* Get(UID uid) const;
+	Resource* CreateNewResource(Resource::Type type);
+	//const Resource* Attach(GameObject* gameobject, UID uid));
+	void GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
 
 private:
 

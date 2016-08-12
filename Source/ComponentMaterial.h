@@ -6,6 +6,7 @@
 #include "Component.h"
 
 struct TextureInfo;
+class ResourceTexture;
 
 class ComponentMaterial : public Component
 {
@@ -16,6 +17,7 @@ public:
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 	bool SetResource(UID resource);
+	const ResourceTexture* GetResource() const;
 
 public:
 	UID resource = 0;

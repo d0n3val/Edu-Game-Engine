@@ -36,8 +36,6 @@ public:
 	GameObject* CreateGameObject(GameObject * parent, const float3& pos, const float3& scale, const Quat& rot, const char* name = nullptr);
 	GameObject* CreateGameObject(GameObject * parent = nullptr);
 
-	void RecursiveRemove(GameObject* go = nullptr);
-
 	void RecursiveDebugDrawGameObjects(const GameObject* go) const;
 
 	GameObject* Validate(const GameObject* pointer) const;

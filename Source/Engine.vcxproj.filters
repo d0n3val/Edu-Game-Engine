@@ -49,6 +49,9 @@
     <Filter Include="3rd Party\gpudetect">
       <UniqueIdentifier>{b5a328af-d712-4721-bda7-dbd8ad5a3099}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{7536cf35-6681-45d2-ae28-42740516db7f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -489,6 +492,12 @@
     <ClInclude Include="Event.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceTexture.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -718,6 +727,12 @@
     </ClCompile>
     <ClCompile Include="PanelResources.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceTexture.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -61,8 +61,8 @@ void PanelGOTree::Draw()
 		if(ImGui::MenuItem("Create New"))
 			App->level->CreateGameObject();
 
-		if(ImGui::MenuItem("Clear Scene", "!"))
-			App->level->RecursiveRemove();
+		if (ImGui::MenuItem("Clear Scene", "!"))
+			App->level->GetRoot()->Remove();
 
 		ImGui::EndMenu();
 	}
@@ -112,10 +112,8 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 
 		if (ImGui::BeginPopup("GameObject Options"))
 		{
-			//ImGui::BeginMenu("GameObjects");
 			if (ImGui::MenuItem("Delete"))
-				App->level->RecursiveRemove(go);
-			//ImGui::EndMenu();
+				go->Remove();
 			ImGui::EndPopup();
 		}
 

@@ -128,7 +128,12 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObjec
 				if (n < scene->mNumTextures)
 				{
 					aiTexture* tex = scene->mTextures[n];
-					c_material->texture = App->tex->Load(App->tex->Import(tex->pcData, (tex->mHeight == 0) ? tex->mWidth : tex->mHeight*tex->mWidth));
+					UID id = App->resources->ImportBuffer(
+						(const char*) tex->pcData, 
+						(tex->mHeight == 0) ? tex->mWidth : tex->mHeight * tex->mWidth,
+						Resource::texture
+					);
+					c_material->SetResource(id);
 				}
 			}
 			else

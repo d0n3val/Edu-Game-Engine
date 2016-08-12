@@ -2,6 +2,7 @@
 #define __PANELPROPERTIES_H__
 
 // Editor Panel to show the properties of a single GameObject and its components
+#include "Globals.h"
 #include "Panel.h"
 
 class GameObject;
@@ -19,6 +20,8 @@ public:
 	virtual ~PanelProperties();
 
 	void Draw() override;
+
+	void DrawResource(UID resource);
 
 	bool InitComponentDraw(Component* component, const char * name);
 	void DrawMeshComponent(ComponentMesh* component);

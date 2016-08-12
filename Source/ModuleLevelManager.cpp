@@ -103,16 +103,16 @@ GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent)
 	return ret;
 }
 
-void ModuleLevelManager::RecursiveRemove(GameObject * go)
-{
-	if (go == nullptr)
-		root->Remove();
-	else
-		go->Remove();
-}
-
 void ModuleLevelManager::DestroyFlaggedGameObjects()
 {
+	// we never really have to remove root, but we remove all its childs
+	if (root->flag_for_removal == true)
+	{
+		for (list<GameObject*>::iterator it = root->childs.begin(); it != root->childs.end(); ++it)
+			(*it)->flag_for_removal = true;
+		root->flag_for_removal = false;
+	}
+
 	// Find parent and cut connection
 	if (root->RecursiveRemoveFlagged())
 	{
@@ -138,8 +138,6 @@ bool ModuleLevelManager::Load(const char * file)
 		if (buffer != nullptr)
 		{
 			Config config(buffer);
-			if (config.IsValid())
-				RecursiveRemove(root);
 
 			// Load level description
 			Config desc(config.GetSection("Desscription"));

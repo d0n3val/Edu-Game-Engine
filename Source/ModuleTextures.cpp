@@ -4,6 +4,7 @@
 #include "ModuleFileSystem.h"
 #include "Devil/include/il.h"
 #include "Devil/include/ilut.h"
+#include "ResourceTexture.h"
 
 #pragma comment( lib, "Devil/libx86/DevIL.lib" )
 #pragma comment( lib, "Devil/libx86/ILU.lib" )
@@ -38,11 +39,6 @@ bool ModuleTextures::CleanUp()
 {
 	LOG("Freeing textures and Image library");
 
-	// TODO: Free all textures
-	for (vector<TextureInfo*>::iterator it = textures.begin(); it != textures.end(); ++it)
-		RELEASE(*it);
-					  
-	textures.clear();
 	return true;
 }
 
@@ -112,74 +108,65 @@ const char* ModuleTextures::Import(const void * buffer, uint size)
 }
 
 // Load new texture from file path
-const TextureInfo* ModuleTextures::Load(const char* file)
+bool ModuleTextures::Load(ResourceTexture* resource)
 {
-	static uint id = 0;
-	TextureInfo* info = nullptr;
+	bool ret = false;
 
-	if (file != nullptr)
+	char* buffer = nullptr;
+	uint size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, resource->GetExportedFile(), &buffer);
+
+	if (buffer != nullptr && size > 0)
 	{
-		std::string sFile(file);
+		ILuint ImageName;
+		ilGenImages(1, &ImageName);
+		ilBindImage(ImageName);
 
-		char* buffer = nullptr;
-		uint size = App->fs->Load((LIBRARY_TEXTURES_FOLDER + sFile).c_str(), &buffer);
-
-		if (buffer)
+		if (ilLoadL(IL_DDS, (const void*)buffer, size))
 		{
-			ILuint ImageName;				  
-			ilGenImages(1, &ImageName);
-			ilBindImage(ImageName);
+			ILinfo i;
+			iluGetImageInfo(&i);
+			resource->width = i.Width;
+			resource->height = i.Height;
+			resource->bpp = (uint)i.Bpp;
+			resource->depth = i.Depth;
+			resource->mips = i.NumMips;
+			resource->bytes = i.SizeOfData;
 
-			if (ilLoadL(IL_DDS, (const void*)buffer, size))
+			switch (i.Format)
 			{
-				ILinfo i;
-				iluGetImageInfo(&i);
-				info = new TextureInfo;
-				strcpy_s(info->name, 15, file);
-				info->width = i.Width;
-				info->height = i.Height;
-				info->bpp = (uint) i.Bpp;
-				info->depth = i.Depth;
-				info->mips = i.NumMips;
-				info->bytes = i.SizeOfData;
-
-				switch (i.Format)
-				{
-					case IL_COLOUR_INDEX:
-						info->format = TextureInfo::color_index;
-					break;
-					case IL_RGB:
-						info->format = TextureInfo::rgb;
-					break;
-					case IL_RGBA:
-						info->format = TextureInfo::rgba;
-					break;
-					case IL_BGR:
-						info->format = TextureInfo::bgr;
-					break;
-					case IL_BGRA:
-						info->format = TextureInfo::bgra;
-					break;
-					case IL_LUMINANCE:
-						info->format = TextureInfo::luminance;
-					break;
-					default:
-						info->format = TextureInfo::unknown;
-					break;
-				}
-
-				info->gpu_id = ilutGLBindTexImage();
-				ilDeleteImages(1, &ImageName);
+			case IL_COLOUR_INDEX:
+				resource->format = ResourceTexture::color_index;
+				break;
+			case IL_RGB:
+				resource->format = ResourceTexture::rgb;
+				break;
+			case IL_RGBA:
+				resource->format = ResourceTexture::rgba;
+				break;
+			case IL_BGR:
+				resource->format = ResourceTexture::bgr;
+				break;
+			case IL_BGRA:
+				resource->format = ResourceTexture::bgra;
+				break;
+			case IL_LUMINANCE:
+				resource->format = ResourceTexture::luminance;
+				break;
+			default:
+				resource->format = ResourceTexture::unknown;
+				break;
 			}
+
+			resource->gpu_id = ilutGLBindTexImage();
+			ilDeleteImages(1, &ImageName);
+
+			ret = true;
 		}
-
-		RELEASE(buffer);
 	}
-
-	if (info != nullptr)
-		textures.push_back(info);
 	else
-		LOG("Cannot load texture %s", file);
+		LOG("Cannot load texture resource %s", resource->GetFile());
 
-	return info;
+	RELEASE(buffer);
+
+	return ret;
 }

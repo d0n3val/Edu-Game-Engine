@@ -10,6 +10,7 @@
 #include "ComponentAudioSource.h"
 #include "ComponentMesh.h"
 #include "ComponentCamera.h"
+#include "ResourceTexture.h"
 #include "Config.h"
 #include "OpenGL.h"
 #include "DebugDraw.h"
@@ -360,8 +361,9 @@ void GameObject::Draw(bool debug) const
 		if ((*it)->GetType() == ComponentTypes::Material)
 		{
 			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
-			if(cmaterial->texture != nullptr)
-				glBindTexture(GL_TEXTURE_2D, cmaterial->texture->gpu_id);
+			const ResourceTexture* tex = cmaterial->GetResource();
+			if(tex != nullptr && tex->gpu_id > 0)
+				glBindTexture(GL_TEXTURE_2D, tex->gpu_id);
 		}
 	}
 

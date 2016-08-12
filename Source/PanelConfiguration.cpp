@@ -14,6 +14,8 @@
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
 #include "ModuleEditor.h"
+#include "ModuleResources.h"
+#include "ResourceTexture.h"
 
 using namespace std;
 
@@ -164,10 +166,10 @@ void PanelConfiguration::DrawModuleHardware(ModuleHardware * module)
 	ImGui::Separator();
 	IMGUI_PRINT("GPU:", "vendor %u device %u", info.gpu_vendor, info.gpu_device);
 	IMGUI_PRINT("Brand:", info.gpu_brand);
-	IMGUI_PRINT("RAM Budget:", "%.1f Mb", info.vram_mb_budget);
-	IMGUI_PRINT("RAM Usage:", "%.1f Mb", info.vram_mb_usage);
-	IMGUI_PRINT("RAM Available:", "%.1f Mb", info.vram_mb_available);
-	IMGUI_PRINT("RAM Reserved:", "%.1f Mb", info.vram_mb_reserved);
+	IMGUI_PRINT("VRAM Budget:", "%.1f Mb", info.vram_mb_budget);
+	IMGUI_PRINT("VRAM Usage:", "%.1f Mb", info.vram_mb_usage);
+	IMGUI_PRINT("VRAM Available:", "%.1f Mb", info.vram_mb_available);
+	IMGUI_PRINT("VRAM Reserved:", "%.1f Mb", info.vram_mb_reserved);
 }
 
 void PanelConfiguration::DrawModuleAudio(ModuleAudio * module)
@@ -307,16 +309,20 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 {
 	int i = 0;
 	int cols = 5;
-	for (vector<TextureInfo*>::iterator it = module->textures.begin(); it != module->textures.end(); ++it)
+	vector<const Resource*> loaded_textures;
+	App->resources->GatherResourceType(loaded_textures, Resource::texture);
+
+	for (vector<const Resource*>::const_iterator it = loaded_textures.begin(); it != loaded_textures.end(); ++it)
 	{
-		TextureInfo* info = *it;
+		const ResourceTexture* info = (const ResourceTexture*) (*it);
+
 		ImGui::Image((ImTextureID) info->gpu_id, ImVec2(50.f, 50.f), ImVec2(0,1), ImVec2(1,0));
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
-			ImGui::TextColored(IMGUI_YELLOW, info->name);
-			ImGui::SameLine();
-			ImGui::Text("(%u,%u) %0.1f Mb %s", info->width, info->height, info->bytes / (1024.f*1024.f) , texture_formats[info->format]);
+			ImGui::TextColored(IMGUI_YELLOW, info->GetFile());
+			ImGui::Text("%s", (info->gpu_id != 0) ? "Loaded in VRAM" : "Not in VRAM");
+			ImGui::Text("(%u,%u) %0.1f Mb %s", info->width, info->height, info->bytes / (1024.f*1024.f) , info->GetFormatStr());
 			ImGui::Text("Depth: %u Bpp: %u Mips: %u", info->depth, info->bpp, info->mips);
 
 			ImVec2 size((float)info->width, (float)info->height);

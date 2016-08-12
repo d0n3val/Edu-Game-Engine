@@ -58,6 +58,7 @@ public:
 	AABB local_bbox;
 	OBB global_bbox;
 	mutable bool visible = false;
+	bool flag_for_removal = false;
 
 private:
 	bool calculated_bbox = false;
@@ -69,7 +70,6 @@ private:
 	float3 scale = float3::one;
 	float4x4 transform_global;
 	bool active = true;
-	bool flag_for_removal = false;
 };
 
 #endif // __GAMEOBJECT_H__
