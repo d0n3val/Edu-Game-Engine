@@ -38,7 +38,8 @@ public:
 	const char* CloseFileDialog();
 
 	void Draw();
-	bool UsingInput() const;
+	bool UsingMouse() const;
+	bool UsingKeyboard() const;
 	void Log(const char* entry);
 	void LogInputEvent(uint key, uint state);
 	void LogFPS(float fps, float ms);
@@ -68,6 +69,8 @@ private:
 	std::string file_dialog_filter;
 	std::string file_dialog_origin;
 
+	bool capture_mouse = false;
+	bool capture_keyboard = false;
 	bool in_modal = false;
 	char selected_file[FILE_MAX];
 };

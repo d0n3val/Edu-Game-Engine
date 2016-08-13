@@ -157,7 +157,7 @@ bool Application::CleanUp()
 {
 	bool ret = true;
 
-	fs->Save("Engine.log", log.c_str(), log.size());
+	fs->Save(SETTINGS_FOLDER "Engine.log", log.c_str(), log.size());
 
 	for(list<Module*>::reverse_iterator it = modules.rbegin(); it != modules.rend() && ret; ++it)
 		if((*it)->IsActive() == true) 

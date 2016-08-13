@@ -64,100 +64,102 @@ bool ModuleCamera3D::CleanUp()
 // -----------------------------------------------------------------
 update_status ModuleCamera3D::Update(float dt)
 {
-	// Ignore camera movement if we are using the editor
-	if (App->editor->UsingInput() == true)
-		return UPDATE_CONTINUE;
-
 	// OnKeys WASD keys -----------------------------------
-	float speed = 15.0f;
-
-	if(App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) speed *= 5.0f;
-	if(App->input->GetKey(SDL_SCANCODE_LALT) == KEY_REPEAT) speed *= 0.5f;
-
-	float3 right(frustum.WorldRight());
-	float3 forward(frustum.front);
-
-	float3 movement(float3::zero);
-
-	if(App->input->GetKey(SDL_SCANCODE_W) == KEY_REPEAT) movement += forward;
-	if(App->input->GetKey(SDL_SCANCODE_S) == KEY_REPEAT) movement -= forward;
-	if(App->input->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) movement -= right;
-	if(App->input->GetKey(SDL_SCANCODE_D) == KEY_REPEAT) movement += right;
-	if(App->input->GetKey(SDL_SCANCODE_R) == KEY_REPEAT) movement += float3::unitY;
-	if(App->input->GetKey(SDL_SCANCODE_F) == KEY_REPEAT) movement -= float3::unitY;
-
-	if (movement.Equals(float3::zero) == false)
+	if (App->editor->UsingKeyboard() == false)
 	{
-		frustum.Translate(movement * (speed * dt));
-		looking = false;
+		float speed = 15.0f;
+
+		if (App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) speed *= 5.0f;
+		if (App->input->GetKey(SDL_SCANCODE_LALT) == KEY_REPEAT) speed *= 0.5f;
+
+		float3 right(frustum.WorldRight());
+		float3 forward(frustum.front);
+
+		float3 movement(float3::zero);
+
+		if (App->input->GetKey(SDL_SCANCODE_W) == KEY_REPEAT) movement += forward;
+		if (App->input->GetKey(SDL_SCANCODE_S) == KEY_REPEAT) movement -= forward;
+		if (App->input->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) movement -= right;
+		if (App->input->GetKey(SDL_SCANCODE_D) == KEY_REPEAT) movement += right;
+		if (App->input->GetKey(SDL_SCANCODE_R) == KEY_REPEAT) movement += float3::unitY;
+		if (App->input->GetKey(SDL_SCANCODE_F) == KEY_REPEAT) movement -= float3::unitY;
+
+		if (movement.Equals(float3::zero) == false)
+		{
+			frustum.Translate(movement * (speed * dt));
+			looking = false;
+		}
 	}
 
 	// Mouse motion ----------------
-	iPoint motion = App->input->GetMouseMotion();
-	if(App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && (motion.x != 0 || motion.y != 0))
+	if (App->editor->UsingMouse() == false)
 	{
-		float dx = (float)-motion.x;
-		float dy = (float)-motion.y;
-
-		if (App->input->GetKey(SDL_SCANCODE_LCTRL) == KEY_REPEAT)
+		iPoint motion = App->input->GetMouseMotion();
+		if (App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && (motion.x != 0 || motion.y != 0))
 		{
-			// rotate around a position - lookat
-			float sensitivity = 0.01f;
-			dx *= sensitivity;
-			dy *= sensitivity;
+			float dx = (float)-motion.x;
+			float dy = (float)-motion.y;
 
-			float3 point = looking_at;
-
-			// fake point should be a ray colliding with something
-			if (looking == false)
-				point = frustum.pos + frustum.front * 50.0f;
-
-			float3 focus = frustum.pos - point;
-
-			Quat qy(frustum.up, dx);
-			Quat qx(frustum.WorldRight(), dy);
-
-			focus = qx.Transform(focus);
-			focus = qy.Transform(focus);
-
-			frustum.pos = focus + point;
-
-			Look(point);
-		}
-		else
-		{
-			// WASD style lookat
-			looking = false;
-			float sensitivity = 0.01f;
-			dx *= sensitivity;
-			dy *= sensitivity;
-
-			// x motion make the camera rotate in Y absolute axis (0,1,0) (not local)
-			if (dx != 0.f)
+			if (App->input->GetKey(SDL_SCANCODE_LCTRL) == KEY_REPEAT)
 			{
-				Quat q = Quat::RotateY(dx);
-				frustum.front = q.Mul(frustum.front).Normalized();
-				// would not need this is we were rotating in the local Y, but that is too disorienting
-				frustum.up = q.Mul(frustum.up).Normalized();
+				// rotate around a position - lookat
+				float sensitivity = 0.01f;
+				dx *= sensitivity;
+				dy *= sensitivity;
+
+				float3 point = looking_at;
+
+				// fake point should be a ray colliding with something
+				if (looking == false)
+					point = frustum.pos + frustum.front * 50.0f;
+
+				float3 focus = frustum.pos - point;
+
+				Quat qy(frustum.up, dx);
+				Quat qx(frustum.WorldRight(), dy);
+
+				focus = qx.Transform(focus);
+				focus = qy.Transform(focus);
+
+				frustum.pos = focus + point;
+
+				Look(point);
+			}
+			else
+			{
+				// WASD style lookat
+				looking = false;
+				float sensitivity = 0.01f;
+				dx *= sensitivity;
+				dy *= sensitivity;
+
+				// x motion make the camera rotate in Y absolute axis (0,1,0) (not local)
+				if (dx != 0.f)
+				{
+					Quat q = Quat::RotateY(dx);
+					frustum.front = q.Mul(frustum.front).Normalized();
+					// would not need this is we were rotating in the local Y, but that is too disorienting
+					frustum.up = q.Mul(frustum.up).Normalized();
+				}
+
+				// y motion makes the camera rotate in X local axis 
+				if (dy != 0.f)
+				{
+					Quat q = Quat::RotateAxisAngle(frustum.WorldRight(), dy);
+
+					frustum.up = q.Mul(frustum.up).Normalized();
+					frustum.front = q.Mul(frustum.front).Normalized();
+				}
 			}
 
-			// y motion makes the camera rotate in X local axis 
-			if (dy != 0.f)
+			// Mouse wheel
+			int wheel = App->input->GetMouseWheel();
+			if (wheel != 0)
 			{
-				Quat q = Quat::RotateAxisAngle(frustum.WorldRight(), dy);
-
-				frustum.up = q.Mul(frustum.up).Normalized();
-				frustum.front = q.Mul(frustum.front).Normalized();
+				float sensitivity = 1.0f;
+				float3 p = frustum.front * ((float)wheel * sensitivity);
+				frustum.pos += p;
 			}
-		}
-
-		// Mouse wheel
-		int wheel = App->input->GetMouseWheel();
-		if (wheel != 0)
-		{
-			float sensitivity = 1.0f;
-			float3 p = frustum.front * ((float)wheel * sensitivity);
-			frustum.pos += p;
 		}
 	}
 

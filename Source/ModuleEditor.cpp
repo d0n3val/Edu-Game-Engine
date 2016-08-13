@@ -42,6 +42,9 @@ bool ModuleEditor::Init(Config* config)
 
     ImGui_ImplSdlGL3_Init(App->window->GetWindow());
 
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = SETTINGS_FOLDER "imgui.ini";
+
 	// create all panels
 	panels.push_back(console = new PanelConsole());
 	panels.push_back(tree = new PanelGOTree());
@@ -62,6 +65,10 @@ bool ModuleEditor::Start(Config * config)
 update_status ModuleEditor::PreUpdate(float dt)
 {
     ImGui_ImplSdlGL3_NewFrame(App->window->GetWindow());
+    ImGuiIO& io = ImGui::GetIO();
+	capture_keyboard = io.WantCaptureKeyboard;
+	capture_mouse = io.WantCaptureMouse;
+
 	return UPDATE_CONTINUE;
 }
 
@@ -244,9 +251,15 @@ void ModuleEditor::Draw()
 	ImGui::Render();
 }
 
-bool ModuleEditor::UsingInput() const
+bool ModuleEditor::UsingMouse() const
 {
-	return in_modal || ImGui::IsMouseHoveringAnyWindow() || (ImGui::IsAnyItemActive() && ImGui::IsMouseDragging());
+	return capture_mouse;
+	//return in_modal || ImGui::IsMouseHoveringAnyWindow() || (ImGui::IsAnyItemActive() && ImGui::IsMouseDragging());
+}
+
+bool ModuleEditor::UsingKeyboard() const
+{
+	return capture_keyboard;
 }
 
 void ModuleEditor::Log(const char * entry)
