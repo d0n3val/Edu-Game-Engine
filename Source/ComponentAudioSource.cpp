@@ -71,16 +71,10 @@ bool ComponentAudioSource::SetResource(UID resource)
 }
 
 // ---------------------------------------------------------
-const ResourceAudio * ComponentAudioSource::GetResource() const
-{
-	return (ResourceAudio*) App->resources->Get(resource);
-}
-
-// ---------------------------------------------------------
 void ComponentAudioSource::Unload()
 {
 	// TODO: still not a formal way to unload resources
-	const ResourceAudio* res = GetResource();
+	const ResourceAudio* res = (const ResourceAudio*) GetResource();
 	if (res != nullptr && res->audio_id != 0)
 	{
 		App->audio->Unload(res->audio_id);

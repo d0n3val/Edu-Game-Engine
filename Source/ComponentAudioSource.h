@@ -3,13 +3,13 @@
 
 // Component to hold an audio source in 3D space (both music and fx)
 
-#include "Globals.h"
 #include "Component.h"
+#include "ComponentWithResource.h"
 #include <string>
 
 class ResourceAudio;
 
-class ComponentAudioSource : public Component
+class ComponentAudioSource : public Component, public ComponentWithResource
 {
 	friend class ModuleAudio;
 public:
@@ -19,8 +19,7 @@ public:
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
-	bool SetResource(UID resource);
-	const ResourceAudio* GetResource() const;
+	bool SetResource(UID resource) override;
 
 	void Unload();
 
@@ -59,7 +58,6 @@ public:
 	};
 
 private:
-	UID resource = 0;
 	state current_state = state::unloaded;
 };
 

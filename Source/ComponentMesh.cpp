@@ -59,9 +59,3 @@ const AABB & ComponentMesh::GetBoundingBox() const
 {
 	return bbox;
 }
-
-// ---------------------------------------------------------
-const ResourceMesh * ComponentMesh::GetResource() const
-{
-	return (ResourceMesh*) App->resources->Get(resource);
-}

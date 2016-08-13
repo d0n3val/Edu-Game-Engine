@@ -46,9 +46,3 @@ bool ComponentMaterial::SetResource(UID resource)
 
 	return ret;
 }
-
-// TODO: speed up this with a shared_ptr
-const ResourceTexture * ComponentMaterial::GetResource() const
-{
-	return (ResourceTexture*) App->resources->Get(resource);
-}

@@ -362,7 +362,7 @@ void GameObject::Draw(bool debug) const
 		if ((*it)->GetType() == ComponentTypes::Material)
 		{
 			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
-			const ResourceTexture* tex = cmaterial->GetResource();
+			const ResourceTexture* tex = (const ResourceTexture*) cmaterial->GetResource();
 			if(tex != nullptr && tex->gpu_id > 0)
 				glBindTexture(GL_TEXTURE_2D, tex->gpu_id);
 		}
@@ -376,7 +376,7 @@ void GameObject::Draw(bool debug) const
 		if ((*it)->GetType() == ComponentTypes::Geometry)
 		{
 			ComponentMesh* cmesh = (ComponentMesh*) (*it);
-			const ResourceMesh* mesh = cmesh->GetResource();
+			const ResourceMesh* mesh = (const ResourceMesh*)  cmesh->GetResource();
 
 			if (mesh == nullptr)
 				continue;

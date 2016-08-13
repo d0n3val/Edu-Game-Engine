@@ -159,17 +159,33 @@ void PanelProperties::Draw()
 
 void PanelProperties::DrawResource(UID resource)
 {
-	const Resource* res = App->resources->Get(resource);
-
-	std::string file;
-	ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
-	if (ImGui::IsItemHovered())
+	if (resource > 0)
 	{
-		ImGui::BeginTooltip();
-		ImGui::Text("Type: %s", res->GetTypeStr());
-		ImGui::Text("UID: %llu", res->GetUID());
-		ImGui::Text("Lib: %s", res->GetExportedFile());
-		ImGui::EndTooltip();
+		const Resource* res = App->resources->Get(resource);
+
+		std::string file;
+		ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Type: %s", res->GetTypeStr());
+			ImGui::Text("UID: %llu", res->GetUID());
+			ImGui::Text("Lib: %s", res->GetExportedFile());
+			ImGui::EndTooltip();
+		}
+		if (ImGui::Button("Attach Another Resource"))
+			ImGui::OpenPopup("Load Resource");
+	}
+	else
+	{
+		if (ImGui::Button("Attach Resource"))
+			ImGui::OpenPopup("Load Resource");
+	}
+
+	if (ImGui::BeginPopup("Load Resource"))
+	{
+		ImGui::Text("Hello World");
+		ImGui::EndPopup();
 	}
 }
 
@@ -193,11 +209,11 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 
 void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 {
-	const ResourceMesh* mesh = component->GetResource();
+	DrawResource(component->GetResourceUID());
+	const ResourceMesh* mesh = (const ResourceMesh*) component->GetResource();
 	if (mesh == nullptr)
 		return;
 
-	DrawResource(mesh->GetUID());
     ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)",
 		mesh->num_indices / 3,
 		mesh->num_indices,
@@ -216,7 +232,7 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 
 void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)
 {
-	const ResourceAudio* res = component->GetResource();
+	const ResourceAudio* res = (const ResourceAudio*) component->GetResource();
 	const char* file = (res) ? res->GetFile() : nullptr;
 
 	ImGui::Text("File: ");
@@ -299,13 +315,13 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
-	const ResourceTexture* info = component->GetResource();
+	DrawResource(component->GetResourceUID());
+	const ResourceTexture* info = (const ResourceTexture*) component->GetResource();
 	//const TextureInfo* info = component->texture;
 
 	if (info == nullptr)
 		return;
 
-	DrawResource(component->resource);
 	ImGui::Text("(%u,%u) %0.1f Mb", info->width, info->height, info->bytes / (1024.f*1024.f));
 	ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->depth, info->bpp, info->mips);
 

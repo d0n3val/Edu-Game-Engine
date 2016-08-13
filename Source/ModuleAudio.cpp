@@ -425,7 +425,7 @@ void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 	if (source == nullptr)
 		return;
 
-	const ResourceAudio* resource = source->GetResource();
+	const ResourceAudio* resource = (const ResourceAudio*) source->GetResource();
 
 	if (resource == nullptr)
 		return;

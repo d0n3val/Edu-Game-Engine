@@ -4,24 +4,23 @@
 // Component to hold a 3D Mesh
 
 #include "Component.h"
+#include "ComponentWithResource.h"
 #include "Math.h"
 
 class ResourceMesh;
 
-class ComponentMesh : public Component
+class ComponentMesh : public Component, public ComponentWithResource
 {
 public:
 	ComponentMesh (GameObject* container);
 
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
+	bool SetResource(UID resource) override;
 
-	bool SetResource(UID resource);
-	const ResourceMesh* GetResource() const;
 	const AABB& GetBoundingBox() const;
 
 private:
-	UID resource;
 	AABB bbox;
 };
 
