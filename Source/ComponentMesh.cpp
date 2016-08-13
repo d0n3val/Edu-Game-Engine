@@ -40,10 +40,10 @@ bool ComponentMesh::SetResource(UID resource)
 
 	if (resource != 0)
 	{
-		const Resource* res = App->resources->Get(resource);
+		Resource* res = App->resources->Get(resource);
 		if (res != nullptr && res->GetType() == Resource::mesh)
 		{
-			if(App->meshes->Load((ResourceMesh*) res))
+			if(res->LoadToMemory() == true)
 			{
 				this->resource = resource;
 				ret = true;

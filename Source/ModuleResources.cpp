@@ -110,6 +110,12 @@ void ModuleResources::LoadResources()
 			Resource::Type type = (Resource::Type) resource.GetInt("Type");
 			UID uid = resource.GetUID("UID");
 
+			if (Get(uid) != nullptr)
+			{
+				LOG("Skipping suplicated resource id %llu", uid);
+				continue;
+			}
+
 			Resource* res = CreateNewResource(type, uid);
 			res->Load(config.GetArray("Resources", i));
 		}
@@ -267,6 +273,13 @@ UID ModuleResources::GenerateNewUID()
 }
 
 const Resource * ModuleResources::Get(UID uid) const
+{			   
+	if(resources.find(uid) != resources.end())
+		return resources.at(uid);
+	return nullptr;
+}
+
+Resource * ModuleResources::Get(UID uid) 
 {			   
 	if(resources.find(uid) != resources.end())
 		return resources.at(uid);

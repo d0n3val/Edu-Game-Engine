@@ -529,7 +529,6 @@ static	void	dumpAllocations(FILE *fp)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
-
 static	void	dumpLeakReport()
 {
 	// Open the report file

@@ -11,6 +11,12 @@ ResourceScene::~ResourceScene()
 }
 
 // ---------------------------------------------------------
+bool ResourceScene::LoadInMemory()
+{
+	return false;
+}
+
+// ---------------------------------------------------------
 void ResourceScene::Save(Config & config) const
 {
 	Resource::Save(config);

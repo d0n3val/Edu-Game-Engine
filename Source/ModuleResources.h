@@ -32,6 +32,7 @@ public:
 	UID ImportBuffer(const void* buffer, uint size, Resource::Type type, const char* source_file = nullptr);
 	UID GenerateNewUID();
 	const Resource* Get(UID uid) const;
+	Resource * Get(UID uid);
 	Resource* CreateNewResource(Resource::Type type, UID force_uid = 0);
 	//TODO: const Resource* Attach(GameObject* gameobject, UID uid));
 	void GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;

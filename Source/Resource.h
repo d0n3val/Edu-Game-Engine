@@ -30,17 +30,24 @@ public:
 	const char* GetFile() const;
 	const char* GetExportedFile() const;
 
+	bool IsLoadedToMemory() const;
+	bool LoadToMemory();
+
 	virtual void Save(Config& config) const;
 	virtual void Load(const Config& config);
 
-private:
+protected:
+
+	virtual bool LoadInMemory() = 0;
+
+protected:
 
 	UID uid = 0;
 	std::string file;
 	std::string exported_file;
 
 	Type type = unknown;
-
+	int loaded = 0;
 };
 
 #endif // __Resource_H__

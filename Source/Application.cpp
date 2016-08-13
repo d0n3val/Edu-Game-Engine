@@ -13,6 +13,7 @@
 #include "ModuleEditor.h"
 #include "ModuleLevelManager.h"
 #include "ModuleResources.h"
+#include "ModuleAnimation.h"
 #include "Event.h"
 #include "Config.h"
 
@@ -37,6 +38,7 @@ Application::Application()
 	modules.push_back(resources = new ModuleResources());
 	modules.push_back(tex = new ModuleTextures());
 	modules.push_back(meshes = new ModuleMeshes());
+	modules.push_back(animation = new ModuleAnimation());
 	modules.push_back(physics3D = new ModulePhysics3D());
 	modules.push_back(camera = new ModuleCamera3D());
 	modules.push_back(renderer3D = new ModuleRenderer3D());

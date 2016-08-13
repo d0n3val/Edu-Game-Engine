@@ -16,7 +16,7 @@ Resource::Type Resource::GetType() const
 const char * Resource::GetTypeStr() const
 {
 	static const char* types[] = {
-		"Texture", "Geometry", "Audio Stream", "Audio Sample", "Scene", "Unknown" };
+		"Texture", "Mesh", "Audio", "Scene", "Unknown" };
 	return types[type];
 }
 // ---------------------------------------------------------
@@ -33,6 +33,23 @@ const char * Resource::GetFile() const
 const char * Resource::GetExportedFile() const
 {
 	return exported_file.c_str();
+}
+
+// ---------------------------------------------------------
+bool Resource::IsLoadedToMemory() const
+{
+	return loaded > 0;
+}
+
+// ---------------------------------------------------------
+bool Resource::LoadToMemory()
+{
+	if (loaded > 0)
+		loaded++;
+	else
+		loaded = LoadInMemory() ? 1 : 0;
+	
+	return loaded > 0;
 }
 
 // ---------------------------------------------------------

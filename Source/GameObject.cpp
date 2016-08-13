@@ -420,6 +420,7 @@ void GameObject::Draw(bool debug) const
 	}
 
 	glPopMatrix();		
+	glUseProgram(0);
 }
 
 // ---------------------------------------------------------

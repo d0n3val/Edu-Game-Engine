@@ -18,6 +18,7 @@
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "ResourceAudio.h"
+#include "PanelResources.h"
 #include <list>
 
 using namespace std;
@@ -157,8 +158,10 @@ void PanelProperties::Draw()
     ImGui::End();
 }
 
-void PanelProperties::DrawResource(UID resource)
+UID PanelProperties::DrawResource(UID resource, int type)
 {
+	UID ret = 0;
+
 	if (resource > 0)
 	{
 		const Resource* res = App->resources->Get(resource);
@@ -184,9 +187,27 @@ void PanelProperties::DrawResource(UID resource)
 
 	if (ImGui::BeginPopup("Load Resource"))
 	{
-		ImGui::Text("Hello World");
+		if (type >= 0)
+		{
+			ret = App->editor->res->DrawResourceType((Resource::Type) type);
+		}
+		else
+		{
+			// Draw All
+			UID r = 0;
+			r = App->editor->res->DrawResourceType(Resource::texture);
+			ret = (r) ? r : ret;
+			r = App->editor->res->DrawResourceType(Resource::mesh);
+			ret = (r) ? r : ret;
+			r = App->editor->res->DrawResourceType(Resource::audio);
+			ret = (r) ? r : ret;
+			r = App->editor->res->DrawResourceType(Resource::scene);
+			ret = (r) ? r : ret;
+		}
+
 		ImGui::EndPopup();
 	}
+	return ret;
 }
 
 bool PanelProperties::InitComponentDraw(Component* component, const char * name)
@@ -209,7 +230,10 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 
 void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 {
-	DrawResource(component->GetResourceUID());
+	UID new_res = DrawResource(component->GetResourceUID(), Resource::mesh);
+	if (new_res > 0)
+		component->SetResource(new_res);
+
 	const ResourceMesh* mesh = (const ResourceMesh*) component->GetResource();
 	if (mesh == nullptr)
 		return;
@@ -232,6 +256,10 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 
 void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)
 {
+	UID new_res = DrawResource(component->GetResourceUID(), Resource::audio);
+	if (new_res > 0)
+		component->SetResource(new_res);
+
 	const ResourceAudio* res = (const ResourceAudio*) component->GetResource();
 	const char* file = (res) ? res->GetFile() : nullptr;
 
@@ -315,7 +343,10 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
-	DrawResource(component->GetResourceUID());
+	UID new_res = DrawResource(component->GetResourceUID(), Resource::texture);
+	if (new_res > 0)
+		component->SetResource(new_res);
+
 	const ResourceTexture* info = (const ResourceTexture*) component->GetResource();
 	//const TextureInfo* info = component->texture;
 

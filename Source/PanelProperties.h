@@ -21,7 +21,7 @@ public:
 
 	void Draw() override;
 
-	void DrawResource(UID resource);
+	UID DrawResource(UID resource, int type = -1);
 
 	bool InitComponentDraw(Component* component, const char * name);
 	void DrawMeshComponent(ComponentMesh* component);

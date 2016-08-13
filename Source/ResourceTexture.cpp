@@ -1,4 +1,6 @@
 #include "ResourceTexture.h"
+#include "Application.h"
+#include "ModuleTextures.h"
 #include "Config.h"
 
 // ---------------------------------------------------------
@@ -16,6 +18,12 @@ const char * ResourceTexture::GetFormatStr() const
 		"color index", "rgb", "rgba", "bgr", "bgra", "luminance", "unknown" };
 
 	return formats[format];
+}
+
+// ---------------------------------------------------------
+bool ResourceTexture::LoadInMemory()
+{
+	return App->tex->Load(this);
 }
 
 // ---------------------------------------------------------

@@ -131,6 +131,7 @@ unsigned int	m_calcAllUnused();
 // Logging and reporting
 // ---------------------------------------------------------------------------------------------------------------------------------
 
+unsigned int countMemoryLeaks();
 void		m_dumpAllocUnit(const sAllocUnit *allocUnit, const char *prefix = "");
 void		m_dumpMemoryReport(const char *filename = "memreport.log", const bool overwrite = true);
 sMStats		m_getMemoryStatistics();

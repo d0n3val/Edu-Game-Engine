@@ -1,8 +1,10 @@
+//#include "MemLeaks.h"
 #include "Globals.h"
 #include "Application.h"
 
 // Old school memory leak detector and other random awesomeness
 #ifdef _DEBUG
+	//#define TEST_MEMORY_MANAGER
 	#include "mmgr/mmgr.h"
 #endif
 
@@ -24,6 +26,7 @@ Application* App = nullptr;
 
 int main(int argc, char ** argv)
 {
+	//ReportMemoryLeaks();
 	LOG("Starting EDU Engine from [%s]", argv[0]);
 
 	int main_return = EXIT_FAILURE;
@@ -87,7 +90,7 @@ int main(int argc, char ** argv)
 		}
 	}
 
-	LOG("Exiting engine ...\n");
 	RELEASE(App);
+	LOG("Exiting engine with %d memory leaks ...\n", m_getMemoryStatistics().totalAllocUnitCount);
 	return main_return;
 }

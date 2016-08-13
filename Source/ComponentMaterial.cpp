@@ -33,10 +33,10 @@ bool ComponentMaterial::SetResource(UID resource)
 
 	if (resource != 0)
 	{
-		const Resource* res = App->resources->Get(resource);
+		Resource* res = App->resources->Get(resource);
 		if (res != nullptr && res->GetType() == Resource::texture)
 		{
-			if(App->tex->Load((ResourceTexture*)res))
+			if(res->LoadToMemory() == true)
 			{
 				this->resource = resource;
 				ret = true;

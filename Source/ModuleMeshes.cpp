@@ -7,6 +7,8 @@
 #include "gl/GL.h"
 #include "Assimp/include/mesh.h"
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 ModuleMeshes::ModuleMeshes(bool start_enabled) : Module("Meshes", start_enabled)

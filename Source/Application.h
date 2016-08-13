@@ -22,6 +22,7 @@ class ModuleMeshes;
 class ModuleEditor;
 class ModuleLevelManager;
 class ModuleResources;
+class ModuleAnimation;
 struct Event;
 
 class Application
@@ -70,6 +71,7 @@ public:
 	ModuleEditor* editor = nullptr;
 	ModuleLevelManager* level = nullptr;
 	ModuleResources* resources = nullptr;
+	ModuleAnimation* animation = nullptr;
 
 private:
 

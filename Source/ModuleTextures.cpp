@@ -6,6 +6,7 @@
 #include "Devil/include/ilut.h"
 #include "ResourceTexture.h"
 
+#include "mmgr/mmgr.h"
 #pragma comment( lib, "Devil/libx86/DevIL.lib" )
 #pragma comment( lib, "Devil/libx86/ILU.lib" )
 #pragma comment( lib, "Devil/libx86/ILUT.lib" )
@@ -56,7 +57,7 @@ bool ModuleTextures::Import(const char* file, const char* path, string& output_f
 	if (buffer)
 		ret = Import(buffer, size, output_file);
 
-	RELEASE(buffer);
+	RELEASE_ARRAY(buffer);
 
 	if(ret == false)
 		LOG("Cannot load texture %s from path %s", file, path);
@@ -88,7 +89,7 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file)
 				if (ilSaveL(IL_DDS, data, size) > 0) // Save with the ilSaveIL function
 					ret = App->fs->SaveUnique(output_file, data, size, LIBRARY_TEXTURES_FOLDER, "texture", "dds");
 
-				RELEASE(data);
+				RELEASE_ARRAY(data);
 			}
 			ilDeleteImages(1, &ImageName);
 		}
@@ -159,7 +160,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 	else
 		LOG("Cannot load texture resource %s", resource->GetFile());
 
-	RELEASE(buffer);
+	RELEASE_ARRAY(buffer);
 
 	return ret;
 }

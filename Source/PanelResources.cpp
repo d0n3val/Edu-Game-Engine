@@ -68,65 +68,38 @@ void PanelResources::Draw()
         }
 	}
 
-	vector<const Resource*> resources;
-	// Textures	
-	if (ImGui::TreeNodeEx("Textures", 0))
-	{
-		App->resources->GatherResourceType(resources, Resource::texture);
-		for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
-		{
-			const ResourceTexture* info = (const ResourceTexture*)(*it);
-			if(ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
-				ImGui::TreePop();
-		}
+	DrawResourceType(Resource::texture);
+	DrawResourceType(Resource::mesh);
+	DrawResourceType(Resource::audio);
+	DrawResourceType(Resource::scene);
 
-		ImGui::TreePop();
-	}
-
-	// Meshes	
-	if (ImGui::TreeNodeEx("Meshes", 0))
-	{
-		App->resources->GatherResourceType(resources, Resource::mesh);
-		for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
-		{
-			const ResourceMesh* info = (const ResourceMesh*)(*it);
-			if(ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
-				ImGui::TreePop();
-		}
-
-		ImGui::TreePop();
-	}
-
-	// Audio	
-	if (ImGui::TreeNodeEx("Audio", 0))
-	{
-		App->resources->GatherResourceType(resources, Resource::audio);
-		for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
-		{
-			const ResourceAudio* info = (const ResourceAudio*)(*it);
-			if (ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
-			{
-				ImGui::TreePop();
-			}
-		}
-
-		ImGui::TreePop();
-	}
-
-	// Scenes	
-	if (ImGui::TreeNodeEx("Scenes", 0))
-	{
-		App->resources->GatherResourceType(resources, Resource::scene);
-		for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
-		{
-			const ResourceScene* info = (const ResourceScene*)(*it);
-			if (ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
-			{
-				ImGui::TreePop();
-			}
-		}
-
-		ImGui::TreePop();
-	}
     ImGui::End();
+}
+
+
+UID PanelResources::DrawResourceType(Resource::Type type)
+{
+	UID selected = 0;
+	vector<const Resource*> resources;
+
+	static const char* titles[] = {
+		"Textures", "Meshes", "Audios", "Scenes", "Others" };
+
+	if (ImGui::TreeNodeEx(titles[type], 0))
+	{
+		App->resources->GatherResourceType(resources, type);
+		for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+		{
+			const Resource* info = (*it);
+			if (ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
+			{
+				if (ImGui::IsItemClicked())
+					selected = info->GetUID();
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::TreePop();
+	}
+	return selected;
 }

@@ -3,8 +3,7 @@
 #include "ModuleResources.h"
 
 ComponentWithResource::~ComponentWithResource()
-{
-}
+{}
 
 const Resource * ComponentWithResource::GetResource() const
 {

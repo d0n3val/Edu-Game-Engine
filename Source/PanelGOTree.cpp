@@ -34,7 +34,7 @@ void PanelGOTree::Draw()
 	static bool waiting_to_load_file = false;
 	static bool waiting_to_save_file = false;
 
-	if (waiting_to_load_file == true && App->editor->FileDialog("json"))
+	if (waiting_to_load_file == true && App->editor->FileDialog("eduscene"))
 	{
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)
@@ -42,7 +42,7 @@ void PanelGOTree::Draw()
 		waiting_to_load_file = false;
 	}
 
-	if (waiting_to_save_file == true && App->editor->FileDialog("json"))
+	if (waiting_to_save_file == true && App->editor->FileDialog("eduscene"))
 	{
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)

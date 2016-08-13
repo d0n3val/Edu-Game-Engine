@@ -1,7 +1,6 @@
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
-
 #define LOG(format, ...) _log(__FILE__, __LINE__, format, __VA_ARGS__)
 
 void _log(const char file[], int line, const char* format, ...);

@@ -1,4 +1,6 @@
 #include "ResourceAudio.h"
+#include "Application.h"
+#include "ModuleAudio.h"
 #include "Config.h"
 
 // ---------------------------------------------------------
@@ -21,6 +23,12 @@ const char * ResourceAudio::GetFormatStr() const
 {
 	const char* formats[] = { "Stream", "Sample", "Unknown" };
 	return formats[format];
+}
+
+// ---------------------------------------------------------
+bool ResourceAudio::LoadInMemory()
+{
+	return App->audio->Load(this);
 }
 
 // ---------------------------------------------------------

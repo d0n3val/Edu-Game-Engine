@@ -55,10 +55,10 @@ bool ComponentAudioSource::SetResource(UID resource)
 
 	if (resource != 0)
 	{
-		const Resource* res = App->resources->Get(resource);
+		Resource* res = App->resources->Get(resource);
 		if (res != nullptr && res->GetType() == Resource::texture)
 		{
-			if(App->audio->Load((ResourceAudio*)res))
+			if(res->LoadToMemory() == true)
 			{
 				this->resource = resource;
 				current_state = state::stopped;
