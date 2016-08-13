@@ -220,7 +220,7 @@ bool ModuleMeshes::Save(const ResourceMesh& mesh, string& output) const
 	}
 
 	// We are ready to write the file
-	ret = App->fs->SaveUnique(output, data, size, LIBRARY_MESH_FOLDER, "mesh", "edu");
+	ret = App->fs->SaveUnique(output, data, size, LIBRARY_MESH_FOLDER, "mesh", "edumesh");
 
 	RELEASE(data);
 

@@ -138,7 +138,7 @@ update_status ModuleEditor::Update(float dt)
 	}
 
 	if (file_dialog == opened)
-		LoadFile(file_dialog_filter.c_str());
+		LoadFile((file_dialog_filter.length() > 0) ? file_dialog_filter.c_str() : nullptr);
 	else
 		in_modal = false;
 
@@ -202,7 +202,7 @@ void ModuleEditor::HandleInput(SDL_Event* event)
     ImGui_ImplSdlGL3_ProcessEvent(event);
 }
 
-bool ModuleEditor::FileDialog(const char * extension)
+bool ModuleEditor::FileDialog(const char * extension, const char* from_folder)
 {
 	bool ret = true;
 
@@ -210,7 +210,8 @@ bool ModuleEditor::FileDialog(const char * extension)
 	{
 		case closed:
 			selected_file[0] = '\0';
-			file_dialog_filter = extension;
+			file_dialog_filter = (extension) ? extension : "";
+			file_dialog_origin = (from_folder) ? from_folder : "";
 			file_dialog = opened;
 		case opened:
 			ret = false;
@@ -275,7 +276,7 @@ void ModuleEditor::LogFPS(float fps, float ms)
 		conf->AddFPS(fps, ms);
 }
 
-void ModuleEditor::LoadFile(const char* filter_extension)
+void ModuleEditor::LoadFile(const char* filter_extension, const char* from_dir)
 {
 	ImGui::OpenPopup("Load File");
 	if (ImGui::BeginPopupModal("Load File", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -284,7 +285,7 @@ void ModuleEditor::LoadFile(const char* filter_extension)
 
         ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
         ImGui::BeginChild("File Browser", ImVec2(0,300), true);
-		DrawDirectoryRecursive("", filter_extension);
+		DrawDirectoryRecursive(from_dir, filter_extension);
         ImGui::EndChild();
         ImGui::PopStyleVar();
 
@@ -315,7 +316,7 @@ void ModuleEditor::DrawDirectoryRecursive(const char* directory, const char* fil
 	vector<string> files;
 	vector<string> dirs;
 
-	std::string dir(directory);
+	std::string dir((directory) ? directory : "");
 	dir += "/";
 
 	App->fs->DiscoverFiles(dir.c_str(), files, dirs);

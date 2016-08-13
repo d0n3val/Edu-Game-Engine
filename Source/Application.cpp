@@ -73,8 +73,9 @@ bool Application::Init()
 {
 	bool ret = true;
 			
+	// TODO crash cuando se borra config.json
 	char* buffer = nullptr;
-	fs->Load("config.json", &buffer);
+	fs->Load(SETTINGS_FOLDER "config.json", &buffer);
 
 	Config config((const char*) buffer);
 
@@ -224,10 +225,10 @@ void Application::Log(const char * entry)
 	editor->Log(entry);
 }
 
-void Application::LoadPrefs(const char* file)
+void Application::LoadPrefs()
 {
 	char* buffer = nullptr;
-	fs->Load(file, &buffer);
+	fs->Load(SETTINGS_FOLDER "config.json", &buffer);
 
 	if (buffer != nullptr)
 	{
@@ -235,7 +236,7 @@ void Application::LoadPrefs(const char* file)
 
 		if (config.IsValid() == true)
 		{
-			LOG("Loading Engine Preferences from %s", file);
+			LOG("Loading Engine Preferences");
 
 			ReadConfiguration(config.GetSection("App"));
 
@@ -248,25 +249,25 @@ void Application::LoadPrefs(const char* file)
 			}
 		}
 		else
-			LOG("Cannot load Engine Preferences from %s: Invalid format", file);
+			LOG("Cannot load Engine Preferences: Invalid format");
 
 		RELEASE(buffer);
 	}
 }
 
-void Application::SavePrefs(const char* file)
+void Application::SavePrefs() const
 {
 	Config config;
 
 	SaveConfiguration(config.AddSection("App"));
 
-	for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
+	for (list<Module*>::const_iterator it = modules.begin(); it != modules.end(); ++it)
 		(*it)->Save(&config.AddSection((*it)->GetName()));
 
 	char *buf;
 	uint size = config.Save(&buf, "Saved preferences for Edu Engine");
-	if(App->fs->Save(file, buf, size) > 0)
-		LOG("Saved Engine Preferences to %s", file);
+	if(App->fs->Save(SETTINGS_FOLDER "config.json", buf, size) > 0)
+		LOG("Saved Engine Preferences");
 	RELEASE(buf);
 }
 

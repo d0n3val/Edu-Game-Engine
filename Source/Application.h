@@ -44,8 +44,8 @@ public:
 	uint GetFramerateLimit() const;
 	void SetFramerateLimit(uint max_framerate);
 	void Log(const char* entry);
-	void LoadPrefs(const char* file);
-	void SavePrefs(const char* file);
+	void LoadPrefs();
+	void SavePrefs() const;
 	void RequestBrowser(const char* url) const;
 	void BroadcastEvent(const Event& event);
 

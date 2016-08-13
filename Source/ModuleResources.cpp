@@ -10,6 +10,7 @@
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "ResourceAudio.h"
+#include "ResourceScene.h"
 #include "Config.h"
 #include <string>
 
@@ -196,8 +197,8 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets)
 		case Resource::audio:
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
 		break;
-
-		default:
+		case Resource::scene:
+			import_ok = App->scene->Import(new_file_in_assets, written_file);
 		break;
 	}
 
@@ -286,6 +287,9 @@ Resource * ModuleResources::CreateNewResource(Resource::Type type, UID force_uid
 		break;
 		case Resource::audio:
 			ret = (Resource*) new ResourceAudio(uid);
+		break;
+		case Resource::scene:
+			ret = (Resource*) new ResourceScene(uid);
 		break;
 	}
 

@@ -238,6 +238,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceAudio.h" />
     <ClInclude Include="ResourceMesh.h" />
+    <ClInclude Include="ResourceScene.h" />
     <ClInclude Include="ResourceTexture.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="PhysVehicle3D.h" />
@@ -320,6 +321,7 @@
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceAudio.cpp" />
     <ClCompile Include="ResourceMesh.cpp" />
+    <ClCompile Include="ResourceScene.cpp" />
     <ClCompile Include="ResourceTexture.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="PhysVehicle3D.cpp" />

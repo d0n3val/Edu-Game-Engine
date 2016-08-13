@@ -197,6 +197,7 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 	if (mesh == nullptr)
 		return;
 
+	DrawResource(mesh->GetUID());
     ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)",
 		mesh->num_indices / 3,
 		mesh->num_indices,

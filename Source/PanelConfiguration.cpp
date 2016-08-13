@@ -36,35 +36,16 @@ PanelConfiguration::~PanelConfiguration()
 // ---------------------------------------------------------
 void PanelConfiguration::Draw()
 {
-	static bool waiting_to_load_file = false;
-	static bool waiting_to_save_file = false;
-
-	if (waiting_to_load_file == true && App->editor->FileDialog("json"))
-	{
-		const char* file = App->editor->CloseFileDialog();
-		if (file != nullptr)
-			App->LoadPrefs(file);
-		waiting_to_load_file = false;
-	}
-
-	if (waiting_to_save_file == true && App->editor->FileDialog("json"))
-	{
-		const char* file = App->editor->CloseFileDialog();
-		if (file != nullptr)
-			App->SavePrefs(file);
-		waiting_to_save_file = false;
-	}
-
     ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
 
 	if (ImGui::BeginMenu("Options"))
 	{
 		ImGui::MenuItem("Set Defaults");
 		if (ImGui::MenuItem("Load.."))
-			waiting_to_load_file = true;
+			App->LoadPrefs();
 
 		if (ImGui::MenuItem("Save.."))
-			waiting_to_save_file = true;
+			App->SavePrefs();
 
 		ImGui::EndMenu();
 	}

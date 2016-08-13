@@ -19,17 +19,14 @@ public:
 	~ModuleSceneLoader();
 
 	bool Init(Config* config = nullptr) override;
-	bool Start(Config* config) override;
 	bool CleanUp() override;
 
-	bool LoadScene(const char* file);
-	void LoadMetaData(aiMetadata* const meta);
+	bool Import(const char* file, std::string& output);
 
 private:
 
-	void RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath, const std::string& file);
-
-	const struct aiScene* scene = nullptr;
+	void LoadMetaData(aiMetadata* const meta);
+	void RecursiveCreateGameObjects(const aiScene* scene, const aiNode* node, GameObject* parent, const std::string& basePath, const std::string& file);
 };
 
 #endif // __MODULE_SCENE_H__

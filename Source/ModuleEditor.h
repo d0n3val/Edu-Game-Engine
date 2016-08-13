@@ -34,7 +34,7 @@ public:
 
 	void HandleInput(SDL_Event* event);
 
-	bool FileDialog(const char* extension = nullptr);
+	bool FileDialog(const char* extension = nullptr, const char* from_folder = nullptr);
 	const char* CloseFileDialog();
 
 	void Draw();
@@ -53,7 +53,7 @@ public:
 	GameObject* selected = nullptr;
 
 private:
-	void LoadFile(const char* filter_extension = nullptr);
+	void LoadFile(const char* filter_extension = nullptr, const char* from_dir = nullptr);
 	void DrawDirectoryRecursive(const char* directory, const char* filter_extension) ;
 	//void SaveFile();
 
@@ -66,6 +66,7 @@ private:
 		ready_to_close
 	} file_dialog = closed;
 	std::string file_dialog_filter;
+	std::string file_dialog_origin;
 
 	bool in_modal = false;
 	char selected_file[FILE_MAX];

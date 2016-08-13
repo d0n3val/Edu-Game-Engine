@@ -26,13 +26,13 @@ const char * ResourceAudio::GetFormatStr() const
 // ---------------------------------------------------------
 void ResourceAudio::Save(Config & config) const
 {
+	Resource::Save(config);
 	config.AddInt("Format", format);
-	//Resource::Save(config);
 }
 
 // ---------------------------------------------------------
 void ResourceAudio::Load(const Config & config)
 {
+	Resource::Load(config);
 	format = (Format) config.GetInt("Format", unknown);
-	//Resource::Load(config);
 }

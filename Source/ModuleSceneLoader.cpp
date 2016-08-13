@@ -41,45 +41,18 @@ bool ModuleSceneLoader::Init(Config* config)
 	return ret;
 }
 
-// Called before render is available
-bool ModuleSceneLoader::Start(Config* config)
-{
-	LOG("Loading Scene Manager");
-	bool ret = true;
-
-	// Load conf
-	if (config != nullptr && config->IsValid() == true)
-	{
-		uint i = 0;
-		const char* str = config->GetString("ToLoad", nullptr, i);
-
-		while (str != nullptr)
-		{
-			LoadScene(str);
-			str = config->GetString("ToLoad", nullptr, ++i);
-		}
-	}
-
-	return ret;
-}
-
 // Called before quitting or switching levels
 bool ModuleSceneLoader::CleanUp()
 {
 	LOG("Freeing Scene Manager");
 
-	// Clean scene data
-	if(scene != nullptr)	// Unload Textures ?
-		aiReleaseImport(scene);
-
 	// detach log stream
 	aiDetachAllLogStreams();
-
 
 	return true;
 }
 
-void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObject* parent, const std::string& basePath, const string& file)
+void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const aiNode* node, GameObject* parent, const string& basePath, const string& file)
 {
 	aiVector3D translation;
 	aiVector3D scaling;
@@ -147,22 +120,22 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiNode* node, GameObjec
 
 		// Add mesh component
 		ComponentMesh* c_mesh = (ComponentMesh*) child_go->CreateComponent(ComponentTypes::Geometry);
-		c_mesh->SetResource(App->resources->ImportBuffer(mesh, 0, Resource::mesh, file.c_str()));
+		c_mesh->SetResource(App->resources->ImportBuffer(mesh, 0, Resource::mesh, (basePath + file).c_str()));
 		LOG("->-> Added mesh component");
 	}
 
 	// recursive call to generate the rest of the scene tree
 	for (uint i = 0; i < node->mNumChildren; ++i)
 	{
-		RecursiveCreateGameObjects(node->mChildren[i], go, basePath, file);
+		RecursiveCreateGameObjects(scene, node->mChildren[i], go, basePath, file);
 	}
 }
 
-bool ModuleSceneLoader::LoadScene(const char* full_path)
+bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 {
 	bool ret = false;
 
-	scene = aiImportFileEx(full_path, aiProcessPreset_TargetRealtime_MaxQuality, App->fs->GetAssimpIO());
+	const aiScene* scene = aiImportFileEx(full_path, aiProcessPreset_TargetRealtime_MaxQuality, App->fs->GetAssimpIO());
 
 	if (scene != nullptr)
 	{
@@ -171,11 +144,32 @@ bool ModuleSceneLoader::LoadScene(const char* full_path)
 		App->fs->SplitFilePath(full_path, &path, &file);
 
 		// generate GameObjects for each mesh 
-		RecursiveCreateGameObjects(scene->mRootNode, App->level->GetRoot(), path, file);
+		GameObject* go = App->level->CreateGameObject();
+		go->name = file;
+		RecursiveCreateGameObjects(scene, scene->mRootNode, go, path, file);
 
 		// Release all info from assimp
 		aiReleaseImport(scene);
-		scene = nullptr;
+
+		// Serialize GameObjects recursively
+		Config save;
+		save.AddArray("Game Objects");
+
+		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		{
+			Config child;
+			(*it)->Save(child);
+			save.AddArrayEntry(child);
+		}
+
+		// Finally save to file
+		char* buf = nullptr;
+		uint size = save.Save(&buf, "Prefab save file from EDU Engine");
+		ret = App->fs->SaveUnique(output, buf, size, LIBRARY_SCENE_FOLDER, "scene", "eduscene");
+		RELEASE(buf);
+
+		// We can now safely remove the tree
+		go->Remove();
 
 		ret = true;
 	}
@@ -185,7 +179,7 @@ bool ModuleSceneLoader::LoadScene(const char* full_path)
 
 void ModuleSceneLoader::LoadMetaData(aiMetadata * const meta)
 {
-	// iterate all metadata in this node
+	// TODO: Store this somehow ?
 	if (meta != nullptr)
 	{
 		for (uint i = 0; i < meta->mNumProperties; ++i)
