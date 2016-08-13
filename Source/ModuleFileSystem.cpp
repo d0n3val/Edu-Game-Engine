@@ -304,7 +304,7 @@ void * ModuleFileSystem::BassLoad(const char * file) const
 
 int close_sdl_rwops(SDL_RWops *rw)
 {
-	RELEASE(rw->hidden.mem.base);
+	RELEASE_ARRAY(rw->hidden.mem.base);
 	SDL_FreeRW(rw);
 	return 0;
 }
@@ -314,6 +314,7 @@ uint ModuleFileSystem::Save(const char* file, const void* buffer, unsigned int s
 {
 	unsigned int ret = 0;
 
+	bool overwrite = PHYSFS_exists(file) != 0;
 	PHYSFS_file* fs_file = (append) ? PHYSFS_openAppend(file) : PHYSFS_openWrite(file);
 
 	if(fs_file != nullptr)
@@ -325,8 +326,11 @@ uint ModuleFileSystem::Save(const char* file, const void* buffer, unsigned int s
 		{
 			if(append == true)
 				LOG("Added %u data to [%s%s]", size, PHYSFS_getWriteDir(), file);
+			else if(overwrite == true)
+				LOG("File [%s%s] overwritten with %u bytes", PHYSFS_getWriteDir(), file, size);
 			else
 				LOG("New file created [%s%s] of %u bytes", PHYSFS_getWriteDir(), file, size);
+
 			ret = written;
 		}
 

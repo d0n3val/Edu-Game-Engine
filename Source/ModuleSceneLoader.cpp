@@ -166,7 +166,7 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 		char* buf = nullptr;
 		uint size = save.Save(&buf, "Prefab save file from EDU Engine");
 		ret = App->fs->SaveUnique(output, buf, size, LIBRARY_SCENE_FOLDER, "scene", "eduscene");
-		RELEASE(buf);
+		RELEASE_ARRAY(buf);
 
 		// We can now safely remove the tree
 		go->Remove();

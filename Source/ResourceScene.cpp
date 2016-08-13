@@ -2,7 +2,7 @@
 #include "Config.h"
 
 // ---------------------------------------------------------
-ResourceScene::ResourceScene(UID uid) : Resource(uid, Resource::Type::audio)
+ResourceScene::ResourceScene(UID uid) : Resource(uid, Resource::Type::scene)
 {}
 
 // ---------------------------------------------------------

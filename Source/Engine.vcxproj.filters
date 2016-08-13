@@ -52,6 +52,12 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{7536cf35-6681-45d2-ae28-42740516db7f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources\Loaders">
+      <UniqueIdentifier>{d1aa883b-73da-488b-9c30-9a486fcfc0e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd Party\mmgr">
+      <UniqueIdentifier>{4c1e152e-2005-4ea3-bf33-ab8ec47378d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -99,9 +105,6 @@
     <ClInclude Include="Point.h">
       <Filter>Containers</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleTextures.h">
-      <Filter>Core Modules</Filter>
-    </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>Game Objects</Filter>
     </ClInclude>
@@ -110,9 +113,6 @@
     </ClInclude>
     <ClInclude Include="ComponentMesh.h">
       <Filter>Game Objects\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleMeshes.h">
-      <Filter>Core Modules</Filter>
     </ClInclude>
     <ClInclude Include="ComponentMaterial.h">
       <Filter>Game Objects\Components</Filter>
@@ -471,9 +471,6 @@
     <ClInclude Include="ModuleCamera3D.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleSceneLoader.h">
-      <Filter>Core Modules</Filter>
-    </ClInclude>
     <ClInclude Include="gpudetect\DeviceId.h">
       <Filter>3rd Party\gpudetect</Filter>
     </ClInclude>
@@ -506,6 +503,21 @@
     </ClInclude>
     <ClInclude Include="ResourceScene.h">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleSceneLoader.h">
+      <Filter>Resources\Loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleTextures.h">
+      <Filter>Resources\Loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleMeshes.h">
+      <Filter>Resources\Loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="mmgr\mmgr.h">
+      <Filter>3rd Party\mmgr</Filter>
+    </ClInclude>
+    <ClInclude Include="mmgr\nommgr.h">
+      <Filter>3rd Party\mmgr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -548,9 +560,6 @@
     <ClCompile Include="ModuleWindow.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleTextures.cpp">
-      <Filter>Core Modules</Filter>
-    </ClCompile>
     <ClCompile Include="GameObject.cpp">
       <Filter>Game Objects</Filter>
     </ClCompile>
@@ -559,9 +568,6 @@
     </ClCompile>
     <ClCompile Include="ComponentMesh.cpp">
       <Filter>Game Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleMeshes.cpp">
-      <Filter>Core Modules</Filter>
     </ClCompile>
     <ClCompile Include="ComponentMaterial.cpp">
       <Filter>Game Objects\Components</Filter>
@@ -722,9 +728,6 @@
     <ClCompile Include="ModuleCamera3D.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleSceneLoader.cpp">
-      <Filter>Core Modules</Filter>
-    </ClCompile>
     <ClCompile Include="gpudetect\DeviceId.cpp">
       <Filter>3rd Party\gpudetect</Filter>
     </ClCompile>
@@ -751,6 +754,18 @@
     </ClCompile>
     <ClCompile Include="ResourceScene.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleSceneLoader.cpp">
+      <Filter>Resources\Loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleTextures.cpp">
+      <Filter>Resources\Loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleMeshes.cpp">
+      <Filter>Resources\Loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="mmgr\mmgr.cpp">
+      <Filter>3rd Party\mmgr</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

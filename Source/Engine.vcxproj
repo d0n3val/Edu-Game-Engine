@@ -208,6 +208,8 @@
     <ClInclude Include="MathGeoLib\include\Math\TransformOps.h" />
     <ClInclude Include="MathGeoLib\include\Time\Clock.h" />
     <ClInclude Include="MemLeaks.h" />
+    <ClInclude Include="mmgr\mmgr.h" />
+    <ClInclude Include="mmgr\nommgr.h" />
     <ClInclude Include="ModuleCamera3D.h" />
     <ClInclude Include="ModuleEditor.h" />
     <ClInclude Include="ModuleFileSystem.h" />
@@ -294,6 +296,7 @@
     <ClCompile Include="MathGeoLib\include\Math\SSEMath.cpp" />
     <ClCompile Include="MathGeoLib\include\Math\TransformOps.cpp" />
     <ClCompile Include="MathGeoLib\include\Time\Clock.cpp" />
+    <ClCompile Include="mmgr\mmgr.cpp" />
     <ClCompile Include="ModuleAudio.cpp" />
     <ClCompile Include="ModuleCamera3D.cpp" />
     <ClCompile Include="ModuleEditor.cpp" />

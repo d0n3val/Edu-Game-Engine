@@ -95,7 +95,7 @@ bool Application::Init()
 			ret = (*it)->Start(config.IsValid() ? &(config.GetSection((*it)->GetName())) : nullptr); 
 	}
 
-	RELEASE(buffer);
+	RELEASE_ARRAY(buffer);
 	return ret;
 }
 
@@ -251,7 +251,7 @@ void Application::LoadPrefs()
 		else
 			LOG("Cannot load Engine Preferences: Invalid format");
 
-		RELEASE(buffer);
+		RELEASE_ARRAY(buffer);
 	}
 }
 

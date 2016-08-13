@@ -147,7 +147,7 @@ bool ModuleMeshes::Load(ResourceMesh* resource)
 			memcpy(resource->texture_coords, cursor, bytes);
 		}
 
-		RELEASE(buffer);
+		RELEASE_ARRAY(buffer);
 
 		GenerateVertexBuffer(resource); // we need to do this here ?
 
@@ -222,7 +222,7 @@ bool ModuleMeshes::Save(const ResourceMesh& mesh, string& output) const
 	// We are ready to write the file
 	ret = App->fs->SaveUnique(output, data, size, LIBRARY_MESH_FOLDER, "mesh", "edumesh");
 
-	RELEASE(data);
+	RELEASE_ARRAY(data);
 
 	return ret;
 }

@@ -155,7 +155,7 @@ bool ModuleLevelManager::Load(const char * file)
 			root->RecursiveCalcBoundingBoxes(did_recalc);
 		}
 
-		RELEASE(buffer); 
+		RELEASE_ARRAY(buffer); 
 	}
 
 	return ret;
@@ -185,7 +185,7 @@ bool ModuleLevelManager::Save(const char * file)
 	char* buf = nullptr;
 	uint size = save.Save(&buf, "Level save file from EDU Engine");
 	App->fs->Save(file, buf, size);
-	RELEASE(buf);
+	RELEASE_ARRAY(buf);
 
 	return ret;
 }

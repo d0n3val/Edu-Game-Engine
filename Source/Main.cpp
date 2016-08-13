@@ -1,6 +1,7 @@
-#include "MemLeaks.h"
+//#include "MemLeaks.h"
 #include "Globals.h"
 #include "Application.h"
+#include "mmgr/mmgr.h"
 
 // We need to include this here because SDL overwrites main()
 #include "SDL/include/SDL.h"
@@ -18,9 +19,11 @@ enum main_states
 
 Application* App = nullptr;
 
+// Use _crtBreakAlloc on watch window with the block number to break on memory leaks
+
 int main(int argc, char ** argv)
 {
-	ReportMemoryLeaks();
+	//ReportMemoryLeaks();
 	LOG("Starting EDU Engine from [%s]", argv[0]);
 
 	int main_return = EXIT_FAILURE;

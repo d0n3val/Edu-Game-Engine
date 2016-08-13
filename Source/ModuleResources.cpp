@@ -88,7 +88,7 @@ void ModuleResources::SaveResources() const
 	char* buf = nullptr;
 	uint size = save.Save(&buf, "Resources setup from the EDU Engine");
 	App->fs->Save(SETTINGS_FOLDER "resources.json", buf, size);
-	RELEASE(buf);
+	RELEASE_ARRAY(buf);
 }
 
 void ModuleResources::LoadResources()
@@ -113,7 +113,7 @@ void ModuleResources::LoadResources()
 			Resource* res = CreateNewResource(type, uid);
 			res->Load(config.GetArray("Resources", i));
 		}
-		RELEASE(buffer); 
+		RELEASE_ARRAY(buffer); 
 	}
 }
 
@@ -212,7 +212,10 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets)
 		App->fs->SplitFilePath(written_file.c_str(), nullptr, &file);
 		res->exported_file = file.c_str();
 		ret = res->uid;
+		LOG("Imported successful from [%s] to [%s]", res->GetFile(), res->GetExportedFile());
 	}
+	else
+		LOG("Importing of [%s] FAILED", new_file_in_assets);
 
 	return ret;
 }
@@ -248,7 +251,10 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 		App->fs->SplitFilePath(output.c_str(), nullptr, &file);
 		res->exported_file = file;
 		ret = res->uid;
+		LOG("Imported successful from BUFFER [%s] to [%s]", res->GetFile(), res->GetExportedFile());
 	}
+	else
+		LOG("Importing of BUFFER [%s] FAILED", source_file);
 
 	return ret;
 }
@@ -293,8 +299,10 @@ Resource * ModuleResources::CreateNewResource(Resource::Type type, UID force_uid
 		break;
 	}
 
-	if(ret != nullptr)
+	if (ret != nullptr)
+	{
 		resources[uid] = ret;
+	}
 
 	return ret;
 }
@@ -317,14 +325,15 @@ void ModuleResources::LoadUID()
 	uint size = App->fs->Load(file.c_str(), &buf);
 
 	if (size == sizeof(last_uid))
+	{
 		last_uid = *((UID*)buf);
+		RELEASE_ARRAY(buf);
+	}
 	else
 	{
 		LOG("WARNING! Cannot read resource UID from file [%s] - Generating a new one", file.c_str());
 		SaveUID();
 	}
-
-	RELEASE(buf);
 }
 
 void ModuleResources::SaveUID() const

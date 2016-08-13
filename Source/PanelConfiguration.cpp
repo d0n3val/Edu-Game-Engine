@@ -41,10 +41,10 @@ void PanelConfiguration::Draw()
 	if (ImGui::BeginMenu("Options"))
 	{
 		ImGui::MenuItem("Set Defaults");
-		if (ImGui::MenuItem("Load.."))
+		if (ImGui::MenuItem("Load"))
 			App->LoadPrefs();
 
-		if (ImGui::MenuItem("Save.."))
+		if (ImGui::MenuItem("Save"))
 			App->SavePrefs();
 
 		ImGui::EndMenu();
