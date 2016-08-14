@@ -152,14 +152,15 @@ update_status ModuleCamera3D::Update(float dt)
 				}
 			}
 
-			// Mouse wheel
-			int wheel = App->input->GetMouseWheel();
-			if (wheel != 0)
-			{
-				float sensitivity = 1.0f;
-				float3 p = frustum.front * ((float)wheel * sensitivity);
-				frustum.pos += p;
-			}
+		}
+		// Mouse wheel
+		int wheel = App->input->GetMouseWheel();
+		if (wheel != 0)
+		{
+			float speed = 3.0f;
+			if (App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) speed *= 5.0f;
+			float3 p = frustum.front * ((float)wheel * speed);
+			frustum.pos += p;
 		}
 	}
 
