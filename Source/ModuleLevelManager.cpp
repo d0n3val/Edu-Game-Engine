@@ -25,7 +25,7 @@ bool ModuleLevelManager::Init(Config* config)
 	LOG("Loading Level Manager");
 	
 	// create an empty game object to be the root of everything
-	root = new GameObject("root");
+	root = new GameObject(nullptr, "root");
 
 	return ret;
 }
@@ -84,11 +84,7 @@ void ModuleLevelManager::Draw() const
 
 GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent, const float3 & pos, const float3 & scale, const Quat & rot, const char * name)
 {
-	if (parent == nullptr)
-		parent = root;
-
-	GameObject* ret = new GameObject(name, pos, scale, rot);
-	parent->AddChild(ret);
+	GameObject* ret = new GameObject(parent, name, pos, scale, rot);
 
 	return ret;
 }
@@ -98,9 +94,7 @@ GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent)
 	if (parent == nullptr)
 		parent = root;
 
-	GameObject* ret = new GameObject("Unnamed");
-	parent->AddChild(ret);
-	return ret;
+	return new GameObject(parent, "Unnamed");
 }
 
 void ModuleLevelManager::DestroyFlaggedGameObjects()
@@ -144,10 +138,26 @@ bool ModuleLevelManager::Load(const char * file)
 			name = desc.GetString("Name", "Unnamed level");
 
 			int count = config.GetArrayCount("Game Objects");
+			map<int, GameObject*> relations;
 			for (int i = 0; i < count; ++i)
 			{
 				GameObject* go = CreateGameObject();
-				go->Load(&config.GetArray("Game Objects", i));
+				go->Load(&config.GetArray("Game Objects", i), relations);
+			}
+
+			// Second pass to tide up the hierarchy
+			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
+			{
+				int my_id = it->first;
+				GameObject* go = it->second;
+				int parent_id = go->serialization_id;
+
+				if (parent_id > 0)
+				{
+					GameObject* parent_go = relations[parent_id];
+					go->SetNewParent(parent_go);
+					//parent_go->childs.push_back(go);
+				}
 			}
 
 			root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
@@ -164,6 +174,7 @@ bool ModuleLevelManager::Load(const char * file)
 bool ModuleLevelManager::Save(const char * file)
 {
 	bool ret = true;
+	int file_uid = 1;
 
 	Config save;
 
@@ -174,11 +185,10 @@ bool ModuleLevelManager::Save(const char * file)
 	// Serialize GameObjects recursively
 	save.AddArray("Game Objects");
 
+	Config child;
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
 	{
-		Config child;
-		(*it)->Save(child);
-		save.AddArrayEntry(child);
+		(*it)->Save(child, file_uid, root);
 	}
 
 	// Finally save to file

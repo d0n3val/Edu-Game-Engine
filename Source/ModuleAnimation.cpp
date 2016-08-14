@@ -2,8 +2,6 @@
 #include "Application.h"
 #include "ModuleAnimation.h"
 
-//#pragma comment( lib, "PhysFS/libx86/physfs.lib" )
-
 using namespace std;
 
 ModuleAnimation::ModuleAnimation(bool start_active) : Module("Animation", start_active)

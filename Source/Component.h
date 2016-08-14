@@ -12,7 +12,8 @@ enum ComponentTypes
 	Material,
 	AudioListener,
 	AudioSource,
-	Camera
+	Camera,
+	Bone
 };
 
 class GameObject;

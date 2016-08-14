@@ -16,7 +16,7 @@ Config::Config(const char * string)
 {
 	if (string != nullptr)
 	{
-		vroot = json_parse_string_with_comments(string);
+		vroot = json_parse_string(string);
 		if (vroot != nullptr) {
 			root = json_value_get_object(vroot);
 			needs_removal = true;
@@ -40,14 +40,10 @@ bool Config::IsValid() const
 
 size_t Config::Save(char** buf, const char* title_comment) const
 {
-	size_t written = json_serialization_size_pretty(vroot);
-	int extra = (title_comment) ? strlen(title_comment) + 5 : 0;
-	*buf = new char[written+extra];
-	if(extra > 0)
-		sprintf_s(*buf, extra, "// %s\n", title_comment);
-
-	json_serialize_to_buffer_pretty(vroot, *buf+extra-1, written);
-	return written+extra;
+	size_t written = json_serialization_size(vroot);
+	*buf = new char[written];
+	json_serialize_to_buffer(vroot, *buf, written);
+	return written;
 }
 
 int Config::Size() const

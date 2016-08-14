@@ -244,7 +244,7 @@ void ModuleEditor::Draw()
 	BeginDebugDraw();
 
 	GameObject* selected = App->editor->selected;
-	if (selected = App->level->Validate(selected))
+	if(selected != nullptr)
 		App->level->RecursiveDebugDrawGameObjects(selected);
 
 	EndDebugDraw();

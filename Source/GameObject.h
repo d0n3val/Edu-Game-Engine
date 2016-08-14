@@ -2,6 +2,7 @@
 #define __GAMEOBJECT_H__
 
 #include <list>
+#include <map>
 #include "Math.h"
 
 enum ComponentTypes;
@@ -12,16 +13,17 @@ class GameObject
 {
 	friend class Component;
 public:
-	GameObject(const char* name);
-	GameObject(const char* name, const float3& translation, const float3& scale, const Quat& rotation );
+	GameObject(GameObject* parent, const char* name);
+	GameObject(GameObject* parent, const char* name, const float3& translation, const float3& scale, const Quat& rotation );
 	virtual ~GameObject();
 
-	bool Save(Config& config) const;
-	void Load(Config* config);
+	bool Save(Config& config, int&, const GameObject* parent) const;
+	void Load(Config* config, std::map<int, GameObject*>& relations);
 
-	void AddChild(GameObject* go);
 	bool RecursiveRemoveFlagged();
 	Component* CreateComponent(ComponentTypes type);
+
+	void SetNewParent(GameObject* node);
 
 	float3 GetLocalPosition() const;
 	float3 GetGlobalPosition() const;
@@ -59,6 +61,7 @@ public:
 	OBB global_bbox;
 	mutable bool visible = false;
 	bool flag_for_removal = false;
+	mutable int serialization_id = 0;
 
 private:
 	bool calculated_bbox = false;
@@ -70,6 +73,7 @@ private:
 	float3 scale = float3::one;
 	float4x4 transform_global;
 	bool active = true;
+	GameObject* parent = nullptr;
 };
 
 #endif // __GAMEOBJECT_H__

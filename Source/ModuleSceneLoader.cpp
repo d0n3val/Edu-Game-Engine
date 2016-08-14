@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
+#include "ComponentBone.h"
 #include "Config.h"
 #include "ModuleLevelManager.h"
 #include "ModuleResources.h"
@@ -42,6 +43,13 @@ bool ModuleSceneLoader::Init(Config* config)
 	return ret;
 }
 
+bool ModuleSceneLoader::Start(Config * config)
+{
+	string t;
+	//Import("/Assets/Animation/Ethan/Ethan.fbx", t);
+	return true;
+}
+
 // Called before quitting or switching levels
 bool ModuleSceneLoader::CleanUp()
 {
@@ -53,8 +61,29 @@ bool ModuleSceneLoader::CleanUp()
 	return true;
 }
 
+// TODO: simplify this function
+float4x4 assimp_matrix_to_math(const aiMatrix4x4& mat)
+{
+	aiVector3D translation;
+	aiVector3D scaling;
+	aiQuaternion rotation;
+
+	mat.Decompose(scaling, rotation, translation);
+
+	float3 pos(translation.x, translation.y, translation.z);
+	float3 scale(scaling.x, scaling.y, scaling.z);
+	Quat rot(rotation.x, rotation.y, rotation.z, rotation.w);
+
+	float4x4 m(rot, pos);
+	m.Scale(scale);
+
+	return m;
+}
+
 void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const aiNode* node, GameObject* parent, const string& basePath, const string& file)
 {
+	static string name;
+	name = (node->mName.length > 0) ? node->mName.C_Str() : "Unnamed";
 	aiVector3D translation;
 	aiVector3D scaling;
 	aiQuaternion rotation;
@@ -68,9 +97,9 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 	float4x4 m(rot, pos);
 	m.Scale(scale);
 
-	GameObject* go = App->level->CreateGameObject(parent, pos, scale, rot, node->mName.C_Str());
+	GameObject* go = App->level->CreateGameObject(parent, pos, scale, rot, name.c_str());
 
-	LOG("Created new Game Object %s", go->name.c_str());
+	relations[node] = go;
 
 	// Load meta data
 	LoadMetaData(node->mMetaData);
@@ -80,10 +109,21 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 	{
 		const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
-		// Create a single game object per mesh
-		//GameObject* child_go = CreateGameObject(go, aiMatrix4x4(), mesh->mName.C_Str());
-		GameObject* child_go = App->level->CreateGameObject(go, float3::zero, float3::one, Quat::identity, mesh->mName.C_Str());
-		LOG("-> Created new child Game Object %s", child_go->name.c_str());
+		GameObject* child_go = nullptr;
+
+		if (node->mNumMeshes > 1)
+		{
+			// If we have sub_meshes, create a single game object per mesh
+			name = mesh->mName.C_Str();
+			if (name.length() == 0)
+			{
+				name = node->mName.C_Str();
+				name += "_submesh";
+			}
+			child_go = App->level->CreateGameObject(go, float3::zero, float3::one, Quat::identity, name.c_str());
+		}
+		else
+			child_go = go;
 
 		// Add material component if needed
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
@@ -93,7 +133,7 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 		{
 			aiString path;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-			ComponentMaterial* c_material = (ComponentMaterial*) child_go->CreateComponent(ComponentTypes::Material);
+			ComponentMaterial* c_material = (ComponentMaterial*)child_go->CreateComponent(ComponentTypes::Material);
 
 			if (path.data[0] == '*')
 			{
@@ -103,7 +143,7 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 				{
 					aiTexture* tex = scene->mTextures[n];
 					UID id = App->resources->ImportBuffer(
-						(const char*) tex->pcData, 
+						(const char*)tex->pcData,
 						(tex->mHeight == 0) ? tex->mWidth : tex->mHeight * tex->mWidth,
 						Resource::texture
 					);
@@ -112,24 +152,77 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 			}
 			else
 			{
-				string file(basePath.c_str());
+				string file(basePath);
 				file += path.C_Str();
+				if (App->fs->Exists(file.c_str()) == false)
+				{
+					// try extracting the file from path
+					string extracted;
+					App->fs->SplitFilePath(path.C_Str(), nullptr, &extracted);
+					file = basePath;
+					file += extracted;
+					LOG("File [%s%s] does not exist, trying [%s]", basePath.c_str(), path.C_Str(), file.c_str());
+				}
 				c_material->SetResource(App->resources->ImportFile(file.c_str()));
 			}
 			LOG("->-> Added material component");
 		}
 
 		// Add mesh component
-		ComponentMesh* c_mesh = (ComponentMesh*) child_go->CreateComponent(ComponentTypes::Geometry);
+		ComponentMesh* c_mesh = (ComponentMesh*)child_go->CreateComponent(ComponentTypes::Geometry);
 		c_mesh->SetResource(App->resources->ImportBuffer(mesh, 0, Resource::mesh, (basePath + file).c_str()));
 		LOG("->-> Added mesh component");
+
+		// If we have bones keep them for later
+		if (mesh->HasBones() == true)
+		{
+			int num = mesh->mNumBones;
+			for (int i = 0; i < num; ++i)
+			{
+				bones[mesh->mBones[i]->mName.C_Str()] = mesh->mBones[i];
+				bone_to_go[mesh->mBones[i]] = child_go;
+				LOG("Bone %s found in %s", mesh->mBones[i]->mName.C_Str(), node->mName.C_Str());
+			}
+		}
 	}
 
 	// recursive call to generate the rest of the scene tree
 	for (uint i = 0; i < node->mNumChildren; ++i)
-	{
 		RecursiveCreateGameObjects(scene, node->mChildren[i], go, basePath, file);
+}
+
+void ModuleSceneLoader::RecursiveProcessBones(const aiScene * scene, const aiNode * node)
+{
+	// We need to find if this node it supposed to hold a bone
+	// for that we will look for all the other meshes and look
+	// if there is a mach in the name
+	map<string, aiBone*>::iterator it = bones.find(node->mName.C_Str());
+
+	if(it != bones.end())
+	{
+		LOG("Found a that this node [%s] should have a Bone Component", node->mName.C_Str());
+		aiBone* bone = it->second; 
+
+		GameObject* go = relations[node];
+		ComponentBone* c_bone = (ComponentBone*) go->CreateComponent(ComponentTypes::Bone);
+		c_bone->attached_mesh = bone_to_go[bone];
+		LOG("This bone affects the mesh inside %s", c_bone->attached_mesh->name.c_str());
+		c_bone->num_weigths = bone->mNumWeights;
+		c_bone->offset = assimp_matrix_to_math(bone->mOffsetMatrix);
+		c_bone->weigth_indices = new uint[c_bone->num_weigths];
+		c_bone->weigths = new float[c_bone->num_weigths];
+
+		for (uint k = 0; k < c_bone->num_weigths; ++k)
+		{
+			c_bone->weigth_indices[k] = bone->mWeights[k].mVertexId;
+			c_bone->weigths[k] = bone->mWeights[k].mWeight;
+		}
+		LOG("->-> Added Bone component");
 	}
+
+	// recursive call to generate the rest of the scene tree
+	for (uint i = 0; i < node->mNumChildren; ++i)
+		RecursiveProcessBones(scene, node->mChildren[i]);
 }
 
 bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
@@ -145,22 +238,28 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 		App->fs->SplitFilePath(full_path, &path, &file);
 
 		// generate GameObjects for each mesh 
+		bones.clear();
+		relations.clear();
+		bone_to_go.clear();
 		GameObject* go = App->level->CreateGameObject();
 		go->name = file;
 		RecursiveCreateGameObjects(scene, scene->mRootNode, go, path, file);
+
+		// Do a second pass to process bones
+		LOG("Second pass looking for bones -----------------------------");
+		RecursiveProcessBones(scene, scene->mRootNode);
 
 		// Release all info from assimp
 		aiReleaseImport(scene);
 
 		// Serialize GameObjects recursively
+		int file_uid = 1;
 		Config save;
 		save.AddArray("Game Objects");
 
 		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		{
-			Config child;
-			(*it)->Save(child);
-			save.AddArrayEntry(child);
+			(*it)->Save(save, file_uid, go);
 		}
 
 		// Finally save to file

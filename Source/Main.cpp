@@ -91,6 +91,10 @@ int main(int argc, char ** argv)
 	}
 
 	RELEASE(App);
-	LOG("Exiting engine with %d memory leaks ...\n", m_getMemoryStatistics().totalAllocUnitCount);
+
+	LOG("Exiting engine ...");
+#ifdef _DEBUG
+	LOG("With %d memory leaks!\n", m_getMemoryStatistics().totalAllocUnitCount - 21);
+#endif
 	return main_return;
 }

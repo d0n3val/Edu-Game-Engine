@@ -44,7 +44,7 @@ bool ModuleCamera3D::Start(Config* config)
 	LOG("Setting up the camera");
 	bool ret = true;
 
-	GameObject* go = App->level->CreateGameObject(nullptr, float3::zero, float3::one, Quat::identity, "Test Camera");
+	GameObject* go = App->level->CreateGameObject(App->level->GetRoot(), float3::zero, float3::one, Quat::identity, "Test Camera");
 	ComponentCamera* c = (ComponentCamera*) go->CreateComponent(ComponentTypes::Camera);
 
 	App->renderer3D->active_camera = c;

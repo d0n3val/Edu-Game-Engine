@@ -8,6 +8,7 @@
 #include "ComponentAudioSource.h"
 #include "ComponentAudioListener.h"
 #include "ComponentCamera.h"
+#include "ComponentBone.h"
 #include "ModuleMeshes.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
@@ -63,6 +64,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(ComponentTypes::Material);
 			if (ImGui::MenuItem("Camera"))
 				selected->CreateComponent(ComponentTypes::Camera);
+			if (ImGui::MenuItem("Bone", nullptr, nullptr, false))
+				selected->CreateComponent(ComponentTypes::Bone);
             ImGui::EndMenu();
         }
 
@@ -145,6 +148,11 @@ void PanelProperties::Draw()
 				{
 					if(InitComponentDraw(*it, "Camera"))
 						DrawCameraComponent((ComponentCamera*)(*it));
+				}	break;
+				case ComponentTypes::Bone:
+				{
+					if(InitComponentDraw(*it, "Bone"))
+						DrawBoneComponent((ComponentBone*)(*it));
 				}	break;
 				default:
 				{
@@ -339,6 +347,11 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 		component->SetAspectRatio(aspect_ratio);
 
 	ImGui::ColorEdit3("Background", &component->background);
+}
+
+void PanelProperties::DrawBoneComponent(ComponentBone * component)
+{
+	ImGui::Text("Num Weigths: %u", component->num_weigths);
 }
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)

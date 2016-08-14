@@ -525,6 +525,9 @@
     <ClInclude Include="ModuleAnimation.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentBone.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -778,6 +781,9 @@
     </ClCompile>
     <ClCompile Include="ModuleAnimation.cpp">
       <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentBone.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

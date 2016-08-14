@@ -94,7 +94,7 @@ void DebugDraw(const LineSegment & segment, Color color)
 	glColor3f(color.r, color.g, color.b);
 	glBegin(GL_LINES);
 
-	glLineWidth(3.0f);
+	glLineWidth(5.0f);
 	glVertex3fv((GLfloat*)&segment.a);
 	glVertex3fv((GLfloat*)&segment.b);
 	glLineWidth(1.0f);

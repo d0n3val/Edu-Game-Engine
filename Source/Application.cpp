@@ -86,7 +86,7 @@ bool Application::Init()
 	// We init everything, even if not anabled
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
-		ret = (*it)->Init(config.IsValid() ? &(config.GetSection((*it)->GetName())) : nullptr); 
+		ret = (*it)->Init(&(config.GetSection((*it)->GetName()))); 
 	}
 
 	// Another round, just before starting the Updates. Only called for "active" modules
@@ -94,7 +94,7 @@ bool Application::Init()
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
 		if((*it)->IsActive() == true)
-			ret = (*it)->Start(config.IsValid() ? &(config.GetSection((*it)->GetName())) : nullptr); 
+			ret = (*it)->Start(&(config.GetSection((*it)->GetName()))); 
 	}
 
 	RELEASE_ARRAY(buffer);

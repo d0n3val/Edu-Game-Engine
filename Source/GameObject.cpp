@@ -10,6 +10,7 @@
 #include "ComponentAudioSource.h"
 #include "ComponentMesh.h"
 #include "ComponentCamera.h"
+#include "ComponentBone.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Config.h"
@@ -19,14 +20,16 @@
 using namespace std;
 
 // ---------------------------------------------------------
-GameObject::GameObject(const char* name) : name(name)
+GameObject::GameObject(GameObject* parent, const char* name) : name(name)
 {
+	SetNewParent(parent);
 }
 
 // ---------------------------------------------------------
-GameObject::GameObject(const char * name, const float3 & translation, const float3 & scale, const Quat & rotation) :
+GameObject::GameObject(GameObject* parent, const char * name, const float3 & translation, const float3 & scale, const Quat & rotation) :
 	name(name), translation(translation), scale(scale), rotation(rotation)
 {
+	SetNewParent(parent);
 }
 
 // ---------------------------------------------------------
@@ -40,9 +43,14 @@ GameObject::~GameObject()
 }
 
 // ---------------------------------------------------------
-bool GameObject::Save(Config& config) const
+bool GameObject::Save(Config& parent_config, int& serialization_id, const GameObject* parent) const
 {
+	Config config;
+
 	// Save my info
+	this->serialization_id = serialization_id++;
+	config.AddInt("File UID", this->serialization_id);
+	config.AddInt("Parent UID", parent->serialization_id);
 	config.AddString("Name", name.c_str());
 
 	config.AddArrayFloat("Translation", (float*) &translation, 3);
@@ -59,21 +67,28 @@ bool GameObject::Save(Config& config) const
 		config.AddArrayEntry(component);
 	}
 
+	parent_config.AddArrayEntry(config);
+
 	// Recursively all children
-	config.AddArray("Childs");
 	for (list<GameObject*>::const_iterator it = childs.begin(); it != childs.end(); ++it)
 	{
-		Config child;
-		(*it)->Save(child);
-		config.AddArrayEntry(child);
+		(*it)->Save(parent_config, serialization_id, this);
 	}
 
 	return true;
 }
 
 // ---------------------------------------------------------
-void GameObject::Load(Config * config)
+void GameObject::Load(Config * config, map<int, GameObject*>& relations)
 {
+	static int num = 0;
+
+	LOG("Loading item %i", ++num);
+
+	// Store me for later reference
+	relations[config->GetInt("File UID")] = this;
+	serialization_id = config->GetInt("Parent UID");
+
 	// Name
 	name = config->GetString("Name", "Unnamed");
 
@@ -97,7 +112,7 @@ void GameObject::Load(Config * config)
 	for (int i = 0; i < count; ++i)
 	{
 		Config component_conf(config->GetArray("Components", i));
-		ComponentTypes type = (ComponentTypes) component_conf.GetInt("Type", ComponentTypes::Invalid);
+		ComponentTypes type = (ComponentTypes)component_conf.GetInt("Type", ComponentTypes::Invalid);
 		if (type != ComponentTypes::Invalid)
 		{
 			Component* component = CreateComponent(type);
@@ -106,22 +121,6 @@ void GameObject::Load(Config * config)
 		else
 			LOG("Cannot load component type INVALID for gameobject %s", name.c_str());
 	}
-
-	// And now all children recursively
-	count = config->GetArrayCount("Childs");
-	for (int i = 0; i < count; ++i)
-	{
-		Config children_conf(config->GetArray("Childs", i));
-		GameObject* new_go = App->level->CreateGameObject(this);
-		new_go->Load(&children_conf);
-	}
-}
-
-// ---------------------------------------------------------
-void GameObject::AddChild(GameObject* go)
-{
-	if (std::find(childs.begin(), childs.end(), go) == childs.end())
-		childs.push_back(go);
 }
 
 // ---------------------------------------------------------
@@ -181,12 +180,31 @@ Component* GameObject::CreateComponent(ComponentTypes type)
 		case ComponentTypes::Camera:
 			ret = new ComponentCamera(this);
 		break;
+		case ComponentTypes::Bone:
+			ret = new ComponentBone(this);
+		break;
 	}
 
 	if (ret != nullptr)
 		components.push_back(ret);
 
 	return ret;
+}
+
+// ---------------------------------------------------------
+void GameObject::SetNewParent(GameObject * new_parent)
+{
+	// TODO recalculate transformation to stay in teh same position in global space
+	if (new_parent == parent)
+		return;
+
+	if (parent)
+		parent->childs.remove(this);
+
+	parent = new_parent;
+
+	if (new_parent)
+		new_parent->childs.push_back(this);
 }
 
 // ---------------------------------------------------------
