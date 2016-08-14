@@ -19,6 +19,7 @@
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "ResourceAudio.h"
+#include "ResourceBone.h"
 #include "PanelResources.h"
 #include <list>
 
@@ -113,7 +114,7 @@ void PanelProperties::Draw()
 			if (selected->global_bbox.IsFinite())
 			{
 				float3 size = selected->local_bbox.Size();
-				ImGui::TextColored(IMGUI_YELLOW, "%.2f, %.2f %.2f", size.x, size.y, size.x);
+				ImGui::TextColored(IMGUI_YELLOW, "%.2f %.2f %.2f", size.x, size.y, size.x);
 			}
 			else
 				ImGui::TextColored(IMGUI_YELLOW, "- not generated -");
@@ -351,7 +352,40 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 void PanelProperties::DrawBoneComponent(ComponentBone * component)
 {
-	ImGui::Text("Num Weigths: %u", component->num_weigths);
+	UID new_res = DrawResource(component->GetResourceUID(), Resource::texture);
+	if (new_res > 0)
+		component->SetResource(new_res);
+
+	ResourceBone* bone = (ResourceBone*) component->GetResource();
+	if (bone == nullptr)
+		return;
+
+	ImGui::Text("Num Weigths: %u", bone->num_weigths);
+
+	float3 pos;
+	Quat qrot;
+	float3 scale;
+
+	bone->offset.Decompose(pos, qrot, scale);
+
+	float3 rot(qrot.ToEulerXYZ());
+
+	bool compose = false;
+
+	if (ImGui::DragFloat3("Offset Trans", (float*)&pos, 0.25f))
+		compose = true;
+
+	if(ImGui::SliderFloat3("Offset Rot", (float*)&rot, -PI, PI))
+		compose = true;
+
+	if (ImGui::DragFloat3("Offset Scale", (float*)&scale, 0.05f))
+		compose = true;
+
+	if (compose == true)
+	{
+		qrot.FromEulerXYZ(rot.x, rot.y, rot.z);
+		bone->offset = float4x4::FromTRS(pos, qrot, scale);
+	}
 }
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
@@ -361,7 +395,6 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 		component->SetResource(new_res);
 
 	const ResourceTexture* info = (const ResourceTexture*) component->GetResource();
-	//const TextureInfo* info = component->texture;
 
 	if (info == nullptr)
 		return;

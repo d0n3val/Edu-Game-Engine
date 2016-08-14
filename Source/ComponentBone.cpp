@@ -1,9 +1,13 @@
 #include "ComponentBone.h"
 #include "Globals.h"
+#include "Application.h"
+#include "ModuleResources.h"
 #include "GameObject.h"
 #include "Math.h"
 #include "DebugDraw.h"
 #include "Color.h"
+#include "Resource.h"
+#include "ResourceBone.h"
 #include <list>
 
 using namespace std;
@@ -17,25 +21,44 @@ ComponentBone::ComponentBone(GameObject* container) : Component(container)
 // ---------------------------------------------------------
 ComponentBone::~ComponentBone()
 {
-	RELEASE_ARRAY(weigth_indices);
-	RELEASE_ARRAY(weigths);
 }
 
 // ---------------------------------------------------------
 void ComponentBone::OnSave(Config & config) const
 {
-	config.AddInt("Num Weigths", num_weigths);
-	//config.AddArrayFloat("Offset", &offset.v[0][0], 16);
-	//config.AddArrayInt("Indices", (const int*) weigth_indices, num_weigths);
-	//config.AddArrayFloat("Weigths", weigths, num_weigths);
+	// TODO save Attached mesh ?
+	ComponentWithResource::OnSaveResource(config);
 }
 
 // ---------------------------------------------------------
 void ComponentBone::OnLoad(Config * config)
 {
-	num_weigths = config->GetInt("Num Weigths");
+	// TODO load Maybe Attached mesh ?
+	ComponentWithResource::OnLoadResource(config);
 }
 
+// ---------------------------------------------------------
+bool ComponentBone::SetResource(UID resource)
+{
+	bool ret = false;
+
+	if (resource != 0)
+	{
+		Resource* res = App->resources->Get(resource);
+		if (res != nullptr && res->GetType() == Resource::bone)
+		{
+			if(res->LoadToMemory() == true)
+			{
+				this->resource = resource;
+				ret = true;
+			}
+		}
+	}
+
+	return ret;
+}
+
+// ---------------------------------------------------------
 void ComponentBone::OnDebugDraw() const
 {
 	math::LineSegment segment;

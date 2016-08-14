@@ -8,6 +8,7 @@
 #include <vector>
 
 class Resource;
+class LoaderBone;
 
 class ModuleResources : public Module
 {
@@ -37,6 +38,9 @@ public:
 	//TODO: const Resource* Attach(GameObject* gameobject, UID uid));
 	void GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
 
+	const LoaderBone* GetBoneLoader() const;
+	
+
 private:
 
 	void LoadUID();
@@ -46,6 +50,7 @@ private:
 	std::string asset_folder;
 	UID last_uid = 1;
 	std::map<UID, Resource*> resources;
+	LoaderBone* bone_loader = nullptr;
 };
 
 #endif // __MODULERESOURCES_H__

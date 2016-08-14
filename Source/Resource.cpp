@@ -16,7 +16,7 @@ Resource::Type Resource::GetType() const
 const char * Resource::GetTypeStr() const
 {
 	static const char* types[] = {
-		"Texture", "Mesh", "Audio", "Scene", "Unknown" };
+		"Texture", "Mesh", "Audio", "Scene", "Bone", "Unknown" };
 	return types[type];
 }
 // ---------------------------------------------------------
@@ -50,6 +50,12 @@ bool Resource::LoadToMemory()
 		loaded = LoadInMemory() ? 1 : 0;
 	
 	return loaded > 0;
+}
+
+// ---------------------------------------------------------
+uint Resource::CountReferences() const
+{
+	return loaded;
 }
 
 // ---------------------------------------------------------

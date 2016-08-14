@@ -207,17 +207,9 @@ void ModuleSceneLoader::RecursiveProcessBones(const aiScene * scene, const aiNod
 		ComponentBone* c_bone = (ComponentBone*) go->CreateComponent(ComponentTypes::Bone);
 		c_bone->attached_mesh = bone_to_go[bone];
 		LOG("This bone affects the mesh inside %s", c_bone->attached_mesh->name.c_str());
-		c_bone->num_weigths = bone->mNumWeights;
-		c_bone->offset = assimp_matrix_to_math(bone->mOffsetMatrix);
-		c_bone->weigth_indices = new uint[c_bone->num_weigths];
-		c_bone->weigths = new float[c_bone->num_weigths];
 
-		for (uint k = 0; k < c_bone->num_weigths; ++k)
-		{
-			c_bone->weigth_indices[k] = bone->mWeights[k].mVertexId;
-			c_bone->weigths[k] = bone->mWeights[k].mWeight;
-		}
-		LOG("->-> Added Bone component");
+		c_bone->SetResource(App->resources->ImportBuffer(bone, 0, Resource::bone, bone->mName.C_Str()));
+		LOG("->-> Added Bone component and created bone resource");
 	}
 
 	// recursive call to generate the rest of the scene tree

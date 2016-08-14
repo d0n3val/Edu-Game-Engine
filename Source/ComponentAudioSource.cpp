@@ -18,7 +18,7 @@ ComponentAudioSource::~ComponentAudioSource()
 // ---------------------------------------------------------
 void ComponentAudioSource::OnSave(Config& config) const
 {
-	config.AddUID("Resource", resource);
+	ComponentWithResource::OnSaveResource(config);
 
 	config.AddBool("Is 2D", is_2d);
 	config.AddFloat("Min Distance", min_distance);
@@ -33,7 +33,7 @@ void ComponentAudioSource::OnSave(Config& config) const
 // ---------------------------------------------------------
 void ComponentAudioSource::OnLoad(Config * config)
 {
-	SetResource(config->GetUID("Resource", 0));
+	ComponentWithResource::OnLoadResource(config);
 
 	is_2d = config->GetBool("Is 2D", false);
 	min_distance = config->GetFloat("Min Distance", 0.f);

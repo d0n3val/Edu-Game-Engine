@@ -21,7 +21,6 @@ public:
 	const AABB& GetBoundingBox() const;
 
 private:
-	AABB bbox;
 };
 
 #endif // __COMPONENT_MESH_H__

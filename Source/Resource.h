@@ -17,6 +17,7 @@ public:
 		mesh,
 		audio,
 		scene,
+		bone,
 		unknown
 	};
 
@@ -33,6 +34,8 @@ public:
 	bool IsLoadedToMemory() const;
 	bool LoadToMemory();
 
+	uint CountReferences() const;
+
 	virtual void Save(Config& config) const;
 	virtual void Load(const Config& config);
 
@@ -47,7 +50,7 @@ protected:
 	std::string exported_file;
 
 	Type type = unknown;
-	int loaded = 0;
+	uint loaded = 0;
 };
 
 #endif // __Resource_H__

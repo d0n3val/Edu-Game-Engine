@@ -2,6 +2,7 @@
 #define __RESOURCE_MESH_H__
 
 #include "Resource.h"
+#include "Math.h"
 
 class Resource;
 
@@ -32,6 +33,8 @@ public:
 	float* colors = nullptr;
 	float* normals = nullptr;
 	float* texture_coords = nullptr;
+
+	AABB bbox;
 };
 
 #endif // __RESOURCE_MESH_H__

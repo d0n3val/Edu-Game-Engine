@@ -2,9 +2,10 @@
 #define __COMPONENT_BONE_H__
 
 #include "Component.h"
+#include "ComponentWithResource.h"
 #include "Math.h"
 
-class ComponentBone : public Component
+class ComponentBone : public Component, public ComponentWithResource
 {
 public:
 	ComponentBone(GameObject* container);
@@ -13,14 +14,12 @@ public:
 	void OnSave(Config& config) const;
 	void OnLoad(Config* config);
 
+	bool SetResource(UID Resource);
+
 	void OnDebugDraw() const override;
 
 public:
 	GameObject* attached_mesh = nullptr;
-	uint num_weigths = 0;
-	uint* weigth_indices = nullptr;
-	float* weigths = nullptr;
-	float4x4 offset;
 };
 
 #endif // __COMPONENT_BONE_H__

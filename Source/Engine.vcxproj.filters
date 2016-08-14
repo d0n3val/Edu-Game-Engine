@@ -528,6 +528,12 @@
     <ClInclude Include="ComponentBone.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceBone.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="LoaderBone.h">
+      <Filter>Resources\Loaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -784,6 +790,12 @@
     </ClCompile>
     <ClCompile Include="ComponentBone.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceBone.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="LoaderBone.cpp">
+      <Filter>Resources\Loaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

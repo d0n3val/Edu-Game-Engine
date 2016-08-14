@@ -88,6 +88,10 @@ bool ModuleMeshes::Import(const aiMesh* new_mesh, string& output) const
 		memcpy(m.texture_coords, new_mesh->mTextureCoords[0], sizeof(float) * m.num_vertices * 3);
 	}
 
+	// Generate AABB
+	m.bbox.SetNegativeInfinity();
+	m.bbox.Enclose((float3*) m.vertices, m.num_vertices);
+
 	return Save(m, output);
 }
 
@@ -149,6 +153,11 @@ bool ModuleMeshes::Load(ResourceMesh* resource)
 			memcpy(resource->texture_coords, cursor, bytes);
 		}
 
+		// AABB
+		cursor += bytes;
+		bytes = sizeof(float) * 6;
+		memcpy(&resource->bbox.minPoint.x, cursor, bytes);
+
 		RELEASE_ARRAY(buffer);
 
 		GenerateVertexBuffer(resource); // we need to do this here ?
@@ -163,7 +172,7 @@ bool ModuleMeshes::Save(const ResourceMesh& mesh, string& output) const
 {
 	bool ret = false;
 
-	// amount of indices / vertices / colors / normals / texture_coords
+	// amount of indices / vertices / colors / normals / texture_coords / AABB
 	uint ranges[5] = {
 		mesh.num_indices,
 		mesh.num_vertices,
@@ -181,6 +190,7 @@ bool ModuleMeshes::Save(const ResourceMesh& mesh, string& output) const
 		size += sizeof(float) * mesh.num_vertices * 3;
 	if (mesh.texture_coords != nullptr)
 		size += sizeof(float) * mesh.num_vertices * 3;
+	size += sizeof(float) * 6; // AABB
 
 	// allocate and fill
 	char* data = new char[size];
@@ -220,6 +230,11 @@ bool ModuleMeshes::Save(const ResourceMesh& mesh, string& output) const
 		cursor += bytes;
 		memcpy(cursor, mesh.texture_coords, bytes);
 	}
+
+	// Store AABB
+	cursor += bytes;
+	bytes = sizeof(float) * 6;
+	memcpy(cursor, &mesh.bbox.minPoint.x, bytes);
 
 	// We are ready to write the file
 	ret = App->fs->SaveUnique(output, data, size, LIBRARY_MESH_FOLDER, "mesh", "edumesh");

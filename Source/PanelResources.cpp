@@ -72,6 +72,7 @@ void PanelResources::Draw()
 	DrawResourceType(Resource::mesh);
 	DrawResourceType(Resource::audio);
 	DrawResourceType(Resource::scene);
+	DrawResourceType(Resource::bone);
 
     ImGui::End();
 }
@@ -83,7 +84,7 @@ UID PanelResources::DrawResourceType(Resource::Type type)
 	vector<const Resource*> resources;
 
 	static const char* titles[] = {
-		"Textures", "Meshes", "Audios", "Scenes", "Others" };
+		"Textures", "Meshes", "Audios", "Scenes", "Bones", "Others" };
 
 	if (ImGui::TreeNodeEx(titles[type], 0))
 	{
@@ -95,6 +96,16 @@ UID PanelResources::DrawResourceType(Resource::Type type)
 			{
 				if (ImGui::IsItemClicked())
 					selected = info->GetUID();
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::Text("UID: %llu", info->GetUID());
+					ImGui::Text("Source: %s", info->GetFile());
+					ImGui::Text("References: %u", info->CountReferences());
+					ImGui::EndTooltip();
+				}
+
 				ImGui::TreePop();
 			}
 		}

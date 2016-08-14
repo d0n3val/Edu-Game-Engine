@@ -83,8 +83,6 @@ void GameObject::Load(Config * config, map<int, GameObject*>& relations)
 {
 	static int num = 0;
 
-	LOG("Loading item %i", ++num);
-
 	// Store me for later reference
 	relations[config->GetInt("File UID")] = this;
 	serialization_id = config->GetInt("Parent UID");

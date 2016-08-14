@@ -17,13 +17,13 @@ ComponentMaterial::~ComponentMaterial()
 // ---------------------------------------------------------
 void ComponentMaterial::OnSave(Config& config) const
 {
-	config.AddUID("Resource", resource);
+	ComponentWithResource::OnSaveResource(config);
 }
 
 // ---------------------------------------------------------
 void ComponentMaterial::OnLoad(Config * config)
 {
-	SetResource(config->GetUID("Resource", 0));
+	ComponentWithResource::OnLoadResource(config);
 }
 
 // ---------------------------------------------------------

@@ -4,6 +4,7 @@
 // Interface for components that handle resources
 #include "Globals.h"
 
+class Config;
 class Resource;
 
 class ComponentWithResource
@@ -14,6 +15,11 @@ public:
 	virtual bool SetResource(UID Resource) = 0;
 	virtual const Resource* GetResource() const;
 	UID GetResourceUID() const;
+
+protected:
+
+	void OnSaveResource(Config& config) const;
+	void OnLoadResource(Config* config);
 
 protected:
 	UID resource = 0;

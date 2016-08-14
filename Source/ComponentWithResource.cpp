@@ -1,6 +1,7 @@
 #include "ComponentWithResource.h"
 #include "Application.h"
 #include "ModuleResources.h"
+#include "Config.h"
 
 ComponentWithResource::~ComponentWithResource()
 {}
@@ -13,4 +14,14 @@ const Resource * ComponentWithResource::GetResource() const
 UID ComponentWithResource::GetResourceUID() const
 {
 	return resource;
+}
+
+void ComponentWithResource::OnSaveResource(Config & config) const
+{
+	config.AddUID("Resource", resource);
+}
+
+void ComponentWithResource::OnLoadResource(Config * config)
+{
+	SetResource(config->GetUID("Resource", 0));
 }
