@@ -212,6 +212,8 @@ UID PanelProperties::DrawResource(UID resource, int type)
 			ret = (r) ? r : ret;
 			r = App->editor->res->DrawResourceType(Resource::scene);
 			ret = (r) ? r : ret;
+			r = App->editor->res->DrawResourceType(Resource::bone);
+			ret = (r) ? r : ret;
 		}
 
 		ImGui::EndPopup();
@@ -359,6 +361,10 @@ void PanelProperties::DrawBoneComponent(ComponentBone * component)
 	ResourceBone* bone = (ResourceBone*) component->GetResource();
 	if (bone == nullptr)
 		return;
+
+	ImGui::Separator();
+
+	DrawResource(bone->mesh, Resource::mesh);
 
 	ImGui::Text("Num Weigths: %u", bone->num_weigths);
 

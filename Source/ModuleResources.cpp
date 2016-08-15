@@ -249,8 +249,9 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 		break;
 		case Resource::bone:
 			// Old school trick: if it is a Mesh, buffer will be treated as an AiBone*
+			// also the UID for the MESH is inside "size" ... need to improve that :-S
 			// TODO: this can go bad in so many ways :)
-			import_ok = bone_loader->Import((aiBone*) buffer, output);
+			import_ok = bone_loader->Import((aiBone*) buffer, (UID) size, output);
 		break;
 	}
 

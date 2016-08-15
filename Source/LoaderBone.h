@@ -14,7 +14,7 @@ public:
 	~LoaderBone();
 
 	bool Load(ResourceBone* resource) const;
-	bool Import(const aiBone* bone, std::string& output) const;
+	bool Import(const aiBone* bone, UID mesh, std::string& output) const;
 
 private:
 	bool Save(const ResourceBone& bone, std::string& output) const;

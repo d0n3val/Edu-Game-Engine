@@ -23,6 +23,7 @@ public:
 	uint* weigth_indices = nullptr;
 	float* weigths = nullptr;
 	float4x4 offset;
+	UID mesh = 0;
 };
 
 #endif // __RESOURCE_BONE_H__

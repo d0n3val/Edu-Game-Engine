@@ -27,6 +27,23 @@ ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("File System"
 	LOG("FileSystem Operations base is [%s] plus:", GetBasePath());
 	LOG(GetReadPaths());
 
+	// enable us to write in the game's dir area
+	if(PHYSFS_setWriteDir(".") == 0)
+		LOG("File System error while creating write dir: %s\n", PHYSFS_getLastError());
+
+	// Make sure standard paths exist
+	const char* dirs[] = {
+		SETTINGS_FOLDER, ASSETS_FOLDER, LIBRARY_FOLDER,
+		LIBRARY_AUDIO_FOLDER, LIBRARY_BONE_FOLDER, LIBRARY_MESH_FOLDER,
+		LIBRARY_SCENE_FOLDER, LIBRARY_TEXTURES_FOLDER
+	};
+
+	for (uint i = 0; i < 8; ++i)
+	{
+		if (PHYSFS_exists(dirs[i]) == 0)
+			PHYSFS_mkdir(dirs[i]);
+	}
+
 	// Generate IO interfaces
 	CreateAssimpIO();
 	CreateBassIO();
@@ -53,8 +70,6 @@ bool ModuleFileSystem::Init(Config* config)
 	//if(PHYSFS_setWriteDir(write_path) == 0)
 		//LOG("File System error while creating write dir: %s\n", PHYSFS_getLastError());
 
-	if(PHYSFS_setWriteDir(".") == 0)
-		LOG("File System error while creating write dir: %s\n", PHYSFS_getLastError());
 
 	SDL_free(write_path);
 

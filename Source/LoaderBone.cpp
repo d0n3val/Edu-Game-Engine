@@ -16,7 +16,7 @@ LoaderBone::~LoaderBone()
 {}
 
 // Load new mesh
-bool LoaderBone::Import(const aiBone* new_bone, string& output) const
+bool LoaderBone::Import(const aiBone* new_bone, UID mesh, string& output) const
 {
 	bool ret = false;
 
@@ -26,6 +26,7 @@ bool LoaderBone::Import(const aiBone* new_bone, string& output) const
 	// Temporary object to make the load/Save process
 	ResourceBone bone(0);
 
+	bone.mesh = mesh;
 	bone.num_weigths = new_bone->mNumWeights;
 	memcpy(bone.offset.v, &new_bone->mOffsetMatrix.a1, sizeof(float) * 16);
 
@@ -49,15 +50,22 @@ bool LoaderBone::Load(ResourceBone* resource) const
 		return ret;
 
 	char* buffer;
-	uint size = App->fs->Load(LIBRARY_BONE_FOLDER, resource->GetExportedFile(), &buffer);
+	uint sizef = App->fs->Load(LIBRARY_BONE_FOLDER, resource->GetExportedFile(), &buffer);
 
-	if (buffer != nullptr && size > 0)
+	if (buffer != nullptr && sizef > 0)
 	{
+
 		char* cursor = buffer;
 
 		// See Save() method for format
+
+		// Load mesh UID
+		uint bytes = sizeof(UID);
+		memcpy(&resource->mesh, cursor, bytes);
+		
 		// Load offset matrix
-		uint bytes = sizeof(resource->offset);
+		cursor += bytes;
+		bytes = sizeof(resource->offset);
 		memcpy(resource->offset.v, cursor, bytes);
 
 		// Load num_weigths
@@ -65,6 +73,11 @@ bool LoaderBone::Load(ResourceBone* resource) const
 		bytes = sizeof(resource->num_weigths);
 		memcpy(&resource->num_weigths, cursor, bytes);
 
+		uint size = sizeof(resource->mesh);
+		size += sizeof(resource->offset);
+		size += sizeof(resource->num_weigths);
+		size += sizeof(uint) * resource->num_weigths;
+		size += sizeof(float) * resource->num_weigths;
 		// Allocate mem
 		resource->weigth_indices = new uint[resource->num_weigths];
 		resource->weigths = new float[resource->num_weigths];
@@ -91,8 +104,9 @@ bool LoaderBone::Save(const ResourceBone& bone, string& output) const
 {
 	bool ret = false;
 
-	// Format: 16 float matrix + num_weigths uint + indices uint * num_weight + weight float * num_weights
-	uint size = sizeof(bone.offset);
+	// Format: mesh UID + 16 float matrix + num_weigths uint + indices uint * num_weight + weight float * num_weights
+	uint size = sizeof(bone.mesh);
+	size += sizeof(bone.offset);
 	size += sizeof(bone.num_weigths);
 	size += sizeof(uint) * bone.num_weigths;
 	size += sizeof(float) * bone.num_weigths;
@@ -101,8 +115,13 @@ bool LoaderBone::Save(const ResourceBone& bone, string& output) const
 	char* data = new char[size];
 	char* cursor = data;
 
+	// store mesh UID
+	uint bytes = sizeof(bone.mesh);
+	memcpy(cursor, &bone.mesh, bytes);
+
 	// store offset matrix
-	uint bytes = sizeof(bone.offset);
+	cursor += bytes;
+	bytes = sizeof(bone.offset);
 	memcpy(cursor, &bone.offset.v, bytes);
 
 	// store num_weights
