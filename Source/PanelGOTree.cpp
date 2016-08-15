@@ -6,6 +6,7 @@
 #include "ModuleLevelManager.h"
 #include "ModuleEditor.h"
 #include "ModuleCamera3D.h"
+#include "ModuleResources.h"
 #include "GameObject.h"
 #include <list>
 
@@ -58,6 +59,24 @@ void PanelGOTree::Draw()
 		if (ImGui::MenuItem("Save.."))
 			waiting_to_save_file = true;
 
+		if (ImGui::BeginMenu("Load Prefab"))
+		{
+			vector<const Resource*> resources;
+			App->resources->GatherResourceType(resources, Resource::scene);
+
+			for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+			{
+				const Resource* info = (*it);
+				if (ImGui::MenuItem(info->GetExportedFile()))
+				{
+					string file(LIBRARY_SCENE_FOLDER);
+					file += info->GetExportedFile();
+					App->level->Load(file.c_str());
+				}
+			}
+            ImGui::EndMenu();
+		}
+
 		if(ImGui::MenuItem("Create New"))
 			App->level->CreateGameObject();
 
@@ -71,6 +90,13 @@ void PanelGOTree::Draw()
 	GameObject* root = App->level->GetRoot();
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
 		RecursiveDraw(*it);
+
+	if (drag && ImGui::IsMouseReleased(0))
+	{
+		LOG("Mouse drag stopped somewhere else");
+		drag = nullptr;
+	}
+
     ImGui::End();
 }
 
@@ -104,10 +130,14 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 
 	if (ImGui::TreeNodeEx(name, flags))
 	{
-		if(ImGui::IsItemClicked(0))
-			App->editor->selected = go;
+		CheckHover(go);
 
-		if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
+		if (ImGui::IsItemClicked(0)) {
+			App->editor->selected = go;
+			drag = App->editor->selected;
+		}
+
+		if (ImGui::IsItemClicked(1))
 			ImGui::OpenPopup("GameObject Options");
 
 		if (ImGui::BeginPopup("GameObject Options"))
@@ -117,17 +147,44 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 			ImGui::EndPopup();
 		}
 
-		if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered())
-		{
-			float radius = go->global_bbox.MinimalEnclosingSphere().r;
-			App->camera->CenterOn(go->GetGlobalPosition(), std::fmaxf(radius, 5.0f) * 3.0f);
-		}
-
 		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 			RecursiveDraw(*it);
 
 		ImGui::TreePop();
 	}
+	else
+		CheckHover(go);
 
 	ImGui::PopStyleColor();
 }
+
+void PanelGOTree::CheckHover(GameObject* go)
+{
+	if (ImGui::IsItemHoveredRect())
+	{
+		if (drag && drag != go)
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Move %s to %s", drag->name.c_str(), go->name.c_str());
+			ImGui::EndTooltip();
+		}
+
+		if (ImGui::IsMouseClicked(0)) {
+			App->editor->selected = go;
+			drag = App->editor->selected;
+		}
+
+		if (ImGui::IsMouseDoubleClicked(0))
+		{
+			float radius = go->global_bbox.MinimalEnclosingSphere().r;
+			App->camera->CenterOn(go->GetGlobalPosition(), std::fmaxf(radius, 5.0f) * 2.0f);
+		}
+
+		if (drag && ImGui::IsMouseReleased(0) && drag != go)
+		{
+			drag->SetNewParent(go, true);
+			drag = nullptr;
+		}
+	}
+}
+

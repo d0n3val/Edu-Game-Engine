@@ -190,8 +190,9 @@ Component* GameObject::CreateComponent(ComponentTypes type)
 }
 
 // ---------------------------------------------------------
-void GameObject::SetNewParent(GameObject * new_parent)
+void GameObject::SetNewParent(GameObject * new_parent, bool recalc_transformation)
 {
+	float4x4 current_global = GetGlobalTransformation();
 	// TODO recalculate transformation to stay in teh same position in global space
 	if (new_parent == parent)
 		return;
@@ -203,6 +204,16 @@ void GameObject::SetNewParent(GameObject * new_parent)
 
 	if (new_parent)
 		new_parent->childs.push_back(this);
+
+	local_trans_dirty = true;
+
+	// we want to keep the same global transformation even if we are somewhere else in
+	// transformation hierarchy
+	if (recalc_transformation == true)
+	{
+		float4x4 new_local = current_global * new_parent->GetLocalTransform().Inverted();
+		new_local.Decompose(translation, rotation, scale);
+	}
 }
 
 // ---------------------------------------------------------

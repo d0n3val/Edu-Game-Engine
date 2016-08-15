@@ -23,7 +23,7 @@ public:
 	bool RecursiveRemoveFlagged();
 	Component* CreateComponent(ComponentTypes type);
 
-	void SetNewParent(GameObject* node);
+	void SetNewParent(GameObject* node, bool recalc_transformation = false);
 
 	float3 GetLocalPosition() const;
 	float3 GetGlobalPosition() const;

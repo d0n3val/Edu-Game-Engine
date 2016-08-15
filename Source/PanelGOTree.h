@@ -14,11 +14,13 @@ public:
 
 	void Draw() override;
 	void RecursiveDraw(GameObject* go);
+	void CheckHover(GameObject* go);
 
 private:
 
 	uint node = 0;
 	char name[80];
+	GameObject* drag = nullptr;
 };
 
 #endif// __PANELGOTREE_H__
