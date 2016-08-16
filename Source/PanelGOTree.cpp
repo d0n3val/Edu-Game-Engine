@@ -29,7 +29,11 @@ PanelGOTree::~PanelGOTree()
 void PanelGOTree::Draw()
 {
 	node = 0;
-    ImGui::Begin("GameObjects Hierarchy", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
+	ImGui::SetNextWindowContentWidth(width*2);
+    ImGui::Begin("GameObjects Hierarchy", &active, 
+		ImGuiWindowFlags_NoResize | 
+		ImGuiWindowFlags_NoFocusOnAppearing |
+		ImGuiWindowFlags_HorizontalScrollbar );
 
 	// Menu ---
 	static bool waiting_to_load_file = false;

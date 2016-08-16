@@ -11,6 +11,7 @@
 #include "ComponentMesh.h"
 #include "ComponentCamera.h"
 #include "ComponentBone.h"
+#include "ComponentSkeleton.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Config.h"
@@ -180,6 +181,9 @@ Component* GameObject::CreateComponent(ComponentTypes type)
 		break;
 		case ComponentTypes::Bone:
 			ret = new ComponentBone(this);
+		break;
+		case ComponentTypes::Skeleton:
+			ret = new ComponentSkeleton(this);
 		break;
 	}
 
@@ -407,18 +411,25 @@ void GameObject::Draw(bool debug) const
 
 			if (mesh == nullptr)
 				continue;
+			
+			if (cmesh->deformable != nullptr)
+			{
+				mesh = cmesh->deformable;
+				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_vertices);
+				glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, mesh->vertices, GL_STATIC_DRAW);
+			}
 
 			if (debug == false && mesh->vbo_normals > 0)
 			{
 				glEnable(GL_LIGHTING);
 				//glEnableClientState(GL_NORMAL_ARRAY);
-				
+
 				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_normals);
 				glNormalPointer(3, GL_FLOAT, NULL);
 			}
 			else
 				glDisable(GL_LIGHTING);
-			  
+
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_vertices);
 			glVertexPointer(3, GL_FLOAT, 0, NULL);
@@ -440,9 +451,9 @@ void GameObject::Draw(bool debug) const
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vbo_indices);
 			glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, NULL);
 
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			glDisableClientState(GL_NORMAL_ARRAY);
-			glDisableClientState(GL_VERTEX_ARRAY );
+			glDisableClientState(GL_VERTEX_ARRAY);
 		}
 	}
 

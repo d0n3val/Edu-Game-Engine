@@ -5,6 +5,8 @@
 #include "ComponentWithResource.h"
 #include "Math.h"
 
+class ComponentMesh;
+
 class ComponentBone : public Component, public ComponentWithResource
 {
 public:
@@ -19,7 +21,7 @@ public:
 	void OnDebugDraw() const override;
 
 public:
-	GameObject* attached_mesh = nullptr;
+	ComponentMesh* attached_mesh = nullptr;
 };
 
 #endif // __COMPONENT_BONE_H__

@@ -180,7 +180,6 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 			for (int i = 0; i < num; ++i)
 			{
 				bones[mesh->mBones[i]->mName.C_Str()] = mesh->mBones[i];
-				bone_to_go[mesh->mBones[i]] = child_go;
 				mesh_bone[mesh->mBones[i]] = c_mesh->GetResourceUID();
 				LOG("Bone %s found in %s", mesh->mBones[i]->mName.C_Str(), node->mName.C_Str());
 			}
@@ -206,8 +205,6 @@ void ModuleSceneLoader::RecursiveProcessBones(const aiScene * scene, const aiNod
 
 		GameObject* go = relations[node];
 		ComponentBone* c_bone = (ComponentBone*) go->CreateComponent(ComponentTypes::Bone);
-		c_bone->attached_mesh = bone_to_go[bone];
-		LOG("This bone affects the mesh inside %s", c_bone->attached_mesh->name.c_str());
 
 		c_bone->SetResource(App->resources->ImportBuffer(bone, (uint) mesh_bone[bone], Resource::bone, bone->mName.C_Str()));
 		LOG("->-> Added Bone component and created bone resource");
@@ -233,7 +230,6 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 		// generate GameObjects for each mesh 
 		bones.clear();
 		relations.clear();
-		bone_to_go.clear();
 		GameObject* go = App->level->CreateGameObject();
 		go->name = file;
 		RecursiveCreateGameObjects(scene, scene->mRootNode, go, path, file);

@@ -37,7 +37,6 @@ private:
 	std::map<aiBone*, UID> mesh_bone;
 	std::map<std::string, aiBone*> bones;
 	std::map<const aiNode*, GameObject*> relations;
-	std::map<const aiBone*, GameObject*> bone_to_go;
 };
 
 #endif // __MODULE_SCENE_H__

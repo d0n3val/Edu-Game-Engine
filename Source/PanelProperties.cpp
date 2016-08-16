@@ -9,6 +9,7 @@
 #include "ComponentAudioListener.h"
 #include "ComponentCamera.h"
 #include "ComponentBone.h"
+#include "ComponentSkeleton.h"
 #include "ModuleMeshes.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
@@ -67,6 +68,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(ComponentTypes::Camera);
 			if (ImGui::MenuItem("Bone", nullptr, nullptr, false))
 				selected->CreateComponent(ComponentTypes::Bone);
+			if (ImGui::MenuItem("Skeleton"))
+				selected->CreateComponent(ComponentTypes::Skeleton);
             ImGui::EndMenu();
         }
 
@@ -154,6 +157,11 @@ void PanelProperties::Draw()
 				{
 					if(InitComponentDraw(*it, "Bone"))
 						DrawBoneComponent((ComponentBone*)(*it));
+				}	break;
+				case ComponentTypes::Skeleton:
+				{
+					if(InitComponentDraw(*it, "Skeleton"))
+						DrawSkeletonComponent((ComponentSkeleton*)(*it));
 				}	break;
 				default:
 				{
@@ -263,6 +271,19 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 	ImGui::Checkbox("Normals", &normals);
 	ImGui::SameLine();
 	ImGui::Checkbox("Colors", &colors);
+
+	ImGui::Text("Potential Bones: %i", component->CountPotentialBones());
+	ImGui::Text("Attached to %i bones", component->CountAttachedBones());
+	if (component->CountAttachedBones() > 0)
+	{
+		if (ImGui::Button("DeAttach to all bones"))
+			component->DetachBones();
+	}
+	else
+	{
+		if (ImGui::Button("Attach to all potential bones"))
+			component->AttachBones();
+	}
 }
 
 void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)
@@ -358,13 +379,18 @@ void PanelProperties::DrawBoneComponent(ComponentBone * component)
 	if (new_res > 0)
 		component->SetResource(new_res);
 
+	if(component->attached_mesh != nullptr)
+		ImGui::TextColored(IMGUI_YELLOW, "Attached to %s", component->attached_mesh->GetGameObject()->name.c_str());
+	else
+		ImGui::TextColored(IMGUI_YELLOW, "Not attached to any mesh");
+
 	ResourceBone* bone = (ResourceBone*) component->GetResource();
 	if (bone == nullptr)
 		return;
 
 	ImGui::Separator();
 
-	DrawResource(bone->mesh, Resource::mesh);
+	DrawResource(bone->uid_mesh, Resource::mesh);
 
 	ImGui::Text("Num Weigths: %u", bone->num_weigths);
 
@@ -426,4 +452,13 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 	}
 
 	ImGui::Image((ImTextureID) info->gpu_id, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+}
+
+void PanelProperties::DrawSkeletonComponent(ComponentSkeleton * component)
+{
+	ComponentMesh* mesh = component->FindMesh();
+
+	ImGui::Text("Mesh to deform:");
+	ImGui::SameLine();
+	ImGui::TextColored(IMGUI_YELLOW, "%s", (mesh) ? "OK" : "Please add a mesh component");
 }

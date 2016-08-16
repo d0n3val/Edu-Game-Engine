@@ -13,7 +13,8 @@ enum ComponentTypes
 	AudioListener,
 	AudioSource,
 	Camera,
-	Bone
+	Bone,
+	Skeleton
 };
 
 class GameObject;

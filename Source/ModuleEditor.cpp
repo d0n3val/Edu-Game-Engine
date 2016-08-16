@@ -241,13 +241,14 @@ const char * ModuleEditor::CloseFileDialog()
 void ModuleEditor::Draw()
 {
 	// Debug Draw on selected GameObject
-	BeginDebugDraw();
-
 	GameObject* selected = App->editor->selected;
-	if(selected != nullptr)
+	if (selected != nullptr)
+	{
+		BeginDebugDraw();
 		App->level->RecursiveDebugDrawGameObjects(selected);
+		EndDebugDraw();
+	}
 
-	EndDebugDraw();
 	ImGui::Render();
 }
 

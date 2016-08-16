@@ -18,10 +18,10 @@ public:
 
 	bool Load(ResourceMesh* resource);
 	bool Import(const aiMesh* mesh, std::string& output) const;
+	void GenerateVertexBuffer(const ResourceMesh* mesh);
 
 private:
 	bool Save(const ResourceMesh& mesh, std::string& output) const;
-	void GenerateVertexBuffer(const ResourceMesh* mesh);
 };
 
 #endif // __MODULE_MESHES_H__

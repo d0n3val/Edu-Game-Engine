@@ -534,6 +534,9 @@
     <ClInclude Include="LoaderBone.h">
       <Filter>Resources\Loaders</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentSkeleton.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -796,6 +799,9 @@
     </ClCompile>
     <ClCompile Include="LoaderBone.cpp">
       <Filter>Resources\Loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentSkeleton.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

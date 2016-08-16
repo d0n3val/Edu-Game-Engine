@@ -19,6 +19,8 @@ public:
 	void Save(Config& config) const override;
 	void Load(const Config& config) override;
 
+	void DeepCopyFrom(const ResourceMesh* original);
+
 public:
 	uint vbo_vertices = 0;
 	uint vbo_colors = 0;
