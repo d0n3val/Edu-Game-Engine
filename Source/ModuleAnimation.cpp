@@ -67,7 +67,6 @@ void ModuleAnimation::RecursiveResetMeshes(GameObject * go)
 // ---------------------------------------------------------
 void ModuleAnimation::RecursiveDeformMeshes(GameObject * go)
 {
-	// first iteration then code to start go bottom-up
 	for (list<GameObject*>::iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		if((*it)->IsActive())
 			RecursiveDeformMeshes(*it);
@@ -101,13 +100,28 @@ void ModuleAnimation::DeformMesh(const ComponentBone* bone)
 		{
 			uint index = rbone->weigth_indices[i];
 			float3 original(&roriginal->vertices[index * 3]);
-			float3 vertex;
+			float3 vertex(&rmesh->vertices[index*3]);
+
+			if (rmesh->indices[index]++ == 0) 
+			{
+				memset(&rmesh->vertices[index*3], 0, sizeof(float) * 3);
+				if(roriginal->normals)
+					memset(&rmesh->normals[index*3], 0, sizeof(float) * 3);
+			}
 			
 			vertex = trans.TransformPos(original);
 
 			rmesh->vertices[index * 3] += vertex.x * rbone->weigths[i];
 			rmesh->vertices[index * 3 + 1] += vertex.y * rbone->weigths[i];
 			rmesh->vertices[index * 3 + 2] += vertex.z * rbone->weigths[i];
+
+			if (roriginal->normals)
+			{
+				vertex = trans.TransformPos(float3(&roriginal->normals[index*3]));
+				rmesh->normals[index * 3] += vertex.x * rbone->weigths[i];
+				rmesh->normals[index * 3 + 1] += vertex.y * rbone->weigths[i];
+				rmesh->normals[index * 3 + 2] += vertex.z * rbone->weigths[i];
+			}
 		}
 	}
 }

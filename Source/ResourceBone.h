@@ -9,6 +9,8 @@ class Resource;
 class ResourceBone : public Resource
 {
 public:
+	ALIGN_CLASS_TO_16
+
 	ResourceBone(UID id);
 	virtual ~ResourceBone();
 
@@ -19,10 +21,10 @@ public:
 
 public:
 	
+	float4x4 offset;
 	uint num_weigths = 0;
 	uint* weigth_indices = nullptr;
 	float* weigths = nullptr;
-	float4x4 offset;
 	UID uid_mesh = 0;
 };
 

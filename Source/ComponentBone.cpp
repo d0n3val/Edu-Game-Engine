@@ -82,10 +82,9 @@ void ComponentBone::OnDebugDraw() const
 			for (uint i = 0; i < bone->num_weigths; ++i)
 			{
 				float3 vertex(&mesh->vertices[bone->weigth_indices[i] * 3]);
-				vertex = attached_mesh->GetGameObject()->GetLocalTransform().TransformDir(vertex);
 				vertex = attached_mesh->GetGameObject()->GetLocalTransform().TransformPos(vertex);
 				Color c(0.f, 1.f - bone->weigths[i], bone->weigths[i]);
-				//DebugDraw(vertex, c);
+				DebugDraw(vertex, c);
 			}
 		}
 	}

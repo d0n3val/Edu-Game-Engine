@@ -116,7 +116,7 @@ void PanelProperties::Draw()
 			ImGui::SameLine();
 			if (selected->global_bbox.IsFinite())
 			{
-				float3 size = selected->local_bbox.Size();
+				float3 size = selected->GetLocalBBox().Size();
 				ImGui::TextColored(IMGUI_YELLOW, "%.2f %.2f %.2f", size.x, size.y, size.x);
 			}
 			else

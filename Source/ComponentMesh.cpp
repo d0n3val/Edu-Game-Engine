@@ -94,7 +94,7 @@ void ComponentMesh::AttachBones()
 		if (deformable == nullptr)
 		{
 			deformable = new ResourceMesh(0);
-			deformable->DeepCopyFrom((const ResourceMesh*)GetResource());
+			deformable->CreateDeformableVersion((const ResourceMesh*)GetResource());
 			App->meshes->GenerateVertexBuffer(deformable);
 		}
 
@@ -125,13 +125,14 @@ void ComponentMesh::ResetDeformableMesh()
 	{
 		const ResourceMesh* original = (const ResourceMesh*) GetResource();
 
-		//memcpy(deformable->vertices, original->vertices, deformable->num_vertices * sizeof(float) * 3);
-		memset(deformable->vertices, 0, deformable->num_vertices * sizeof(float) * 3);
+		memset(deformable->indices, 0, original->num_indices * sizeof(uint));
+
+		memcpy(deformable->vertices, original->vertices, deformable->num_vertices * sizeof(float) * 3);
+		//memset(deformable->vertices, 0, deformable->num_vertices * sizeof(float) * 3);
 
 		if (deformable->normals != nullptr)
-		{
 			memcpy(deformable->normals, original->normals, deformable->num_vertices * sizeof(float) * 3);
-		}
+			//memset(deformable->normals, original->normals, deformable->num_vertices * sizeof(float) * 3);
 	}
 }
 

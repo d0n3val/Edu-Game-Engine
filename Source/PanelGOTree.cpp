@@ -29,7 +29,7 @@ PanelGOTree::~PanelGOTree()
 void PanelGOTree::Draw()
 {
 	node = 0;
-	ImGui::SetNextWindowContentWidth(width*2);
+	ImGui::SetNextWindowContentWidth((float) (width*2));
     ImGui::Begin("GameObjects Hierarchy", &active, 
 		ImGuiWindowFlags_NoResize | 
 		ImGuiWindowFlags_NoFocusOnAppearing |
@@ -96,10 +96,7 @@ void PanelGOTree::Draw()
 		RecursiveDraw(*it);
 
 	if (drag && ImGui::IsMouseReleased(0))
-	{
-		LOG("Mouse drag stopped somewhere else");
 		drag = nullptr;
-	}
 
     ImGui::End();
 }

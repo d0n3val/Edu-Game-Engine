@@ -11,6 +11,8 @@ class ResourceMesh : public Resource
 	friend class ModuleMeshes;
 
 public:
+	ALIGN_CLASS_TO_16
+
 	ResourceMesh(UID id);
 	virtual ~ResourceMesh();
 
@@ -19,9 +21,11 @@ public:
 	void Save(Config& config) const override;
 	void Load(const Config& config) override;
 
-	void DeepCopyFrom(const ResourceMesh* original);
+	void CreateDeformableVersion(const ResourceMesh* original);
 
 public:
+	AABB bbox;
+
 	uint vbo_vertices = 0;
 	uint vbo_colors = 0;
 	uint vbo_normals = 0;
@@ -36,7 +40,6 @@ public:
 	float* normals = nullptr;
 	float* texture_coords = nullptr;
 
-	AABB bbox;
 };
 
 #endif // __RESOURCE_MESH_H__

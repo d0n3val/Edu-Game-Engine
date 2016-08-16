@@ -155,7 +155,7 @@ bool ModuleMeshes::Load(ResourceMesh* resource)
 
 		// AABB
 		cursor += bytes;
-		bytes = sizeof(float) * 6;
+		bytes = sizeof(AABB);
 		memcpy(&resource->bbox.minPoint.x, cursor, bytes);
 
 		RELEASE_ARRAY(buffer);
@@ -190,7 +190,7 @@ bool ModuleMeshes::Save(const ResourceMesh& mesh, string& output) const
 		size += sizeof(float) * mesh.num_vertices * 3;
 	if (mesh.texture_coords != nullptr)
 		size += sizeof(float) * mesh.num_vertices * 3;
-	size += sizeof(float) * 6; // AABB
+	size += sizeof(AABB);
 
 	// allocate and fill
 	char* data = new char[size];
@@ -233,7 +233,7 @@ bool ModuleMeshes::Save(const ResourceMesh& mesh, string& output) const
 
 	// Store AABB
 	cursor += bytes;
-	bytes = sizeof(float) * 6;
+	bytes = sizeof(AABB);
 	memcpy(cursor, &mesh.bbox.minPoint.x, bytes);
 
 	// We are ready to write the file

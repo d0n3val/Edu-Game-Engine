@@ -46,7 +46,7 @@ bool ModuleSceneLoader::Init(Config* config)
 bool ModuleSceneLoader::Start(Config * config)
 {
 	string t;
-	//Import("/Assets/Animation/Ethan/Ethan.fbx", t);
+	Import("/Assets/Animation/Ethan/Ethan.fbx", t);
 	return true;
 }
 
@@ -93,6 +93,31 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 	float3 pos(translation.x, translation.y, translation.z);
 	float3 scale(scaling.x, scaling.y, scaling.z);
 	Quat rot(rotation.x, rotation.y, rotation.z, rotation.w);
+
+	// Name analysis to handle FBX dummy nodes
+	// check bottom of http://g3d.cs.williams.edu/g3d/G3D10/assimp.lib/code/FBXImportSettings.h
+	static const char* dummies[5] = {
+		"$AssimpFbx$_PreRotation", "$AssimpFbx$_Rotation", "$AssimpFbx$_PostRotation",
+		"$AssimpFbx$_Scaling", "$AssimpFbx$_Translation"};
+
+	for (int i = 0; i < 5; ++i)
+	{
+		if (name.find(dummies[i]) != string::npos && node->mNumChildren == 1)
+		{
+			node = node->mChildren[0];
+
+			node->mTransformation.Decompose(scaling, rotation, translation);
+			// accumulate transform
+			pos += float3(translation.x, translation.y, translation.z);
+			scale = float3(scale.x * scaling.x, scale.y * scaling.y, scale.z * scaling.z);
+			rot = rot * Quat(rotation.x, rotation.y, rotation.z, rotation.w);
+
+			name = node->mName.C_Str();
+			i = -1; // start over!
+		}
+	}
+	// ---
+
 
 	float4x4 m(rot, pos);
 	m.Scale(scale);

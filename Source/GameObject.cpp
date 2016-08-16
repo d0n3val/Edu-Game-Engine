@@ -414,9 +414,14 @@ void GameObject::Draw(bool debug) const
 			
 			if (cmesh->deformable != nullptr)
 			{
-				mesh = cmesh->deformable;
-				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_vertices);
-				glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, mesh->vertices, GL_STATIC_DRAW);
+				glBindBuffer(GL_ARRAY_BUFFER, cmesh->deformable->vbo_vertices);
+				glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, cmesh->deformable->vertices, GL_STATIC_DRAW);
+
+				if (mesh->normals != nullptr)
+				{
+					glBindBuffer(GL_ARRAY_BUFFER, cmesh->deformable->vbo_normals);
+					glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, cmesh->deformable->vertices, GL_STATIC_DRAW);
+				}
 			}
 
 			if (debug == false && mesh->vbo_normals > 0)
@@ -424,14 +429,14 @@ void GameObject::Draw(bool debug) const
 				glEnable(GL_LIGHTING);
 				//glEnableClientState(GL_NORMAL_ARRAY);
 
-				glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_normals);
+				glBindBuffer(GL_ARRAY_BUFFER, (cmesh->deformable) ? cmesh->deformable->vbo_normals : mesh->vbo_normals);
 				glNormalPointer(3, GL_FLOAT, NULL);
 			}
 			else
 				glDisable(GL_LIGHTING);
 
 			glEnableClientState(GL_VERTEX_ARRAY);
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_vertices);
+			glBindBuffer(GL_ARRAY_BUFFER, (cmesh->deformable) ? cmesh->deformable->vbo_vertices : mesh->vbo_vertices);
 			glVertexPointer(3, GL_FLOAT, 0, NULL);
 
 			if (mesh->vbo_texture_coords > 0)
@@ -489,4 +494,9 @@ bool GameObject::WasBBoxDirty() const
 void GameObject::Remove()
 {
 	flag_for_removal = true;
+}
+
+const AABB& GameObject::GetLocalBBox() const
+{
+	return local_bbox;
 }
