@@ -12,7 +12,9 @@
 #include "ResourceAudio.h"
 #include "ResourceScene.h"
 #include "ResourceBone.h"
+#include "ResourceAnimation.h"
 #include "LoaderBone.h"
+#include "LoaderAnimation.h"
 #include "Config.h"
 #include <string>
 
@@ -23,11 +25,13 @@ using namespace std;
 ModuleResources::ModuleResources(bool start_enabled) : Module("Resource Manager", start_enabled), asset_folder(ASSETS_FOLDER)
 {
 	bone_loader = new LoaderBone;
+	anim_loader = new LoaderAnimation;
 }
 
 // Destructor
 ModuleResources::~ModuleResources()
 {
+	RELEASE(anim_loader);
 	RELEASE(bone_loader);
 }
 
@@ -252,6 +256,8 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 			// also the UID for the MESH is inside "size" ... need to improve that :-S
 			// TODO: this can go bad in so many ways :)
 			import_ok = bone_loader->Import((aiBone*) buffer, (UID) size, output);
+		case Resource::animation:
+			import_ok = anim_loader->Import((aiAnimation*) buffer, (UID) size, output);
 		break;
 	}
 
@@ -323,6 +329,9 @@ Resource * ModuleResources::CreateNewResource(Resource::Type type, UID force_uid
 		case Resource::bone:
 			ret = (Resource*) new ResourceBone(uid);
 		break;
+		case Resource::animation:
+			ret = (Resource*) new ResourceAnimation(uid);
+		break;
 	}
 
 	if (ret != nullptr)
@@ -345,6 +354,11 @@ void ModuleResources::GatherResourceType(std::vector<const Resource*>& resources
 const LoaderBone * ModuleResources::GetBoneLoader() const
 {
 	return bone_loader;
+}
+
+const LoaderAnimation * ModuleResources::GetAnimationLoader() const
+{
+	return anim_loader;
 }
 
 void ModuleResources::LoadUID()

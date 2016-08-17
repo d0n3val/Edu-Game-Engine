@@ -9,6 +9,7 @@
 
 class Resource;
 class LoaderBone;
+class LoaderAnimation;
 
 class ModuleResources : public Module
 {
@@ -39,6 +40,7 @@ public:
 	void GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
 
 	const LoaderBone* GetBoneLoader() const;
+	const LoaderAnimation* GetAnimationLoader() const;
 	
 
 private:
@@ -51,6 +53,7 @@ private:
 	UID last_uid = 1;
 	std::map<UID, Resource*> resources;
 	LoaderBone* bone_loader = nullptr;
+	LoaderAnimation* anim_loader = nullptr;
 };
 
 #endif // __MODULERESOURCES_H__

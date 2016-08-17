@@ -105,6 +105,16 @@ UID Config::GetUID(const char * field, UID default, int index) const
 	return default;
 }
 
+double Config::GetDouble(const char * field, double default, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	if (value && json_value_get_type(value) == JSONNumber)
+		return json_value_get_number(value);
+
+	return default;
+}
+
 float Config::GetFloat(const char * field, float default, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
@@ -155,6 +165,11 @@ bool Config::AddInt(const char * field, int value)
 bool Config::AddUID(const char * field, UID value)
 {
 	return json_object_set_number(root, field, (double) value) == JSONSuccess;
+}
+
+bool Config::AddDouble(const char * field, double value)
+{
+	return json_object_set_number(root, field, value) == JSONSuccess;
 }
 
 bool Config::AddFloat(const char * field, float value)

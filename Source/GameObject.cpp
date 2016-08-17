@@ -12,6 +12,7 @@
 #include "ComponentCamera.h"
 #include "ComponentBone.h"
 #include "ComponentSkeleton.h"
+#include "ComponentAnimation.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Config.h"
@@ -184,6 +185,9 @@ Component* GameObject::CreateComponent(ComponentTypes type)
 		break;
 		case ComponentTypes::Skeleton:
 			ret = new ComponentSkeleton(this);
+		break;
+		case ComponentTypes::Animation:
+			ret = new ComponentAnimation(this);
 		break;
 	}
 

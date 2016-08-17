@@ -18,6 +18,7 @@ public:
 		audio,
 		scene,
 		bone,
+		animation,
 		unknown
 	};
 

@@ -14,6 +14,7 @@ class ComponentMaterial;
 class ComponentCamera;
 class ComponentBone;
 class ComponentSkeleton;
+class ComponentAnimation;
 
 class PanelProperties : public Panel
 {
@@ -33,6 +34,7 @@ public:
 	void DrawCameraComponent(ComponentCamera * component);
 	void DrawBoneComponent(ComponentBone * component);
 	void DrawSkeletonComponent(ComponentSkeleton * component);
+	void DrawAnimationComponent(ComponentAnimation * component);
 };
 
 #endif// __PANELPROPERTIES_H__

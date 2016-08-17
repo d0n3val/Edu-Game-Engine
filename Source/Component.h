@@ -14,7 +14,8 @@ enum ComponentTypes
 	AudioSource,
 	Camera,
 	Bone,
-	Skeleton
+	Skeleton,
+	Animation
 };
 
 class GameObject;

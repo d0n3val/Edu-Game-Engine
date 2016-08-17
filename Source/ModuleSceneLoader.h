@@ -29,6 +29,7 @@ public:
 private:
 
 	void LoadMetaData(aiMetadata* const meta);
+	void ImportAnimations(const aiScene* scene);
 	void RecursiveCreateGameObjects(const aiScene* scene, const aiNode* node, GameObject* parent, const std::string& basePath, const std::string& file);
 	void RecursiveProcessBones(const aiScene* scene, const aiNode* node);
 

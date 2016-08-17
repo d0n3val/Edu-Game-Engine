@@ -10,6 +10,7 @@
 #include "ComponentCamera.h"
 #include "ComponentBone.h"
 #include "ComponentSkeleton.h"
+#include "ComponentAnimation.h"
 #include "ModuleMeshes.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
@@ -21,6 +22,7 @@
 #include "ResourceMesh.h"
 #include "ResourceAudio.h"
 #include "ResourceBone.h"
+#include "ResourceAnimation.h"
 #include "PanelResources.h"
 #include <list>
 
@@ -70,6 +72,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(ComponentTypes::Bone);
 			if (ImGui::MenuItem("Skeleton"))
 				selected->CreateComponent(ComponentTypes::Skeleton);
+			if (ImGui::MenuItem("Animation"))
+				selected->CreateComponent(ComponentTypes::Animation);
             ImGui::EndMenu();
         }
 
@@ -163,6 +167,11 @@ void PanelProperties::Draw()
 					if(InitComponentDraw(*it, "Skeleton"))
 						DrawSkeletonComponent((ComponentSkeleton*)(*it));
 				}	break;
+				case ComponentTypes::Animation:
+				{
+					if(InitComponentDraw(*it, "Animation"))
+						DrawAnimationComponent((ComponentAnimation*)(*it));
+				}	break;
 				default:
 				{
 					InitComponentDraw(*it, "Unknown");
@@ -221,6 +230,8 @@ UID PanelProperties::DrawResource(UID resource, int type)
 			r = App->editor->res->DrawResourceType(Resource::scene);
 			ret = (r) ? r : ret;
 			r = App->editor->res->DrawResourceType(Resource::bone);
+			ret = (r) ? r : ret;
+			r = App->editor->res->DrawResourceType(Resource::animation);
 			ret = (r) ? r : ret;
 		}
 
@@ -461,4 +472,20 @@ void PanelProperties::DrawSkeletonComponent(ComponentSkeleton * component)
 	ImGui::Text("Mesh to deform:");
 	ImGui::SameLine();
 	ImGui::TextColored(IMGUI_YELLOW, "%s", (mesh) ? "OK" : "Please add a mesh component");
+}
+
+void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
+{
+	UID new_res = DrawResource(component->GetResourceUID(), Resource::texture);
+	if (new_res > 0)
+		component->SetResource(new_res);
+
+	const ResourceAnimation* info = (const ResourceAnimation*) component->GetResource();
+
+	if (info == nullptr)
+		return;
+
+	ImGui::Text("Name: %s", info->name);
+	ImGui::Text("Duration: %d", info->duration);
+	ImGui::Text("Ticks Per Second: %d", info->duration);
 }

@@ -4,8 +4,6 @@
 #include "Resource.h"
 #include "Math.h"
 
-class Resource;
-
 class ResourceBone : public Resource
 {
 public:

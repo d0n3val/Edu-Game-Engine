@@ -537,6 +537,15 @@
     <ClInclude Include="ComponentSkeleton.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceAnimation.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="LoaderAnimation.h">
+      <Filter>Resources\Loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentAnimation.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -801,6 +810,15 @@
       <Filter>Resources\Loaders</Filter>
     </ClCompile>
     <ClCompile Include="ComponentSkeleton.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceAnimation.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="LoaderAnimation.cpp">
+      <Filter>Resources\Loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentAnimation.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>

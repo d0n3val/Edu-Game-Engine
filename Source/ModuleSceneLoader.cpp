@@ -46,7 +46,7 @@ bool ModuleSceneLoader::Init(Config* config)
 bool ModuleSceneLoader::Start(Config * config)
 {
 	string t;
-	Import("/Assets/Animation/Ethan/Ethan.fbx", t);
+	//Import("/Assets/Animation/Ethan/Ethan.fbx", t);
 	return true;
 }
 
@@ -59,25 +59,6 @@ bool ModuleSceneLoader::CleanUp()
 	aiDetachAllLogStreams();
 
 	return true;
-}
-
-// TODO: simplify this function
-float4x4 assimp_matrix_to_math(const aiMatrix4x4& mat)
-{
-	aiVector3D translation;
-	aiVector3D scaling;
-	aiQuaternion rotation;
-
-	mat.Decompose(scaling, rotation, translation);
-
-	float3 pos(translation.x, translation.y, translation.z);
-	float3 scale(scaling.x, scaling.y, scaling.z);
-	Quat rot(rotation.x, rotation.y, rotation.z, rotation.w);
-
-	float4x4 m(rot, pos);
-	m.Scale(scale);
-
-	return m;
 }
 
 void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const aiNode* node, GameObject* parent, const string& basePath, const string& file)
@@ -206,7 +187,6 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 			{
 				bones[mesh->mBones[i]->mName.C_Str()] = mesh->mBones[i];
 				mesh_bone[mesh->mBones[i]] = c_mesh->GetResourceUID();
-				LOG("Bone %s found in %s", mesh->mBones[i]->mName.C_Str(), node->mName.C_Str());
 			}
 		}
 	}
@@ -225,7 +205,6 @@ void ModuleSceneLoader::RecursiveProcessBones(const aiScene * scene, const aiNod
 
 	if(it != bones.end())
 	{
-		LOG("Found a that this node [%s] should have a Bone Component", node->mName.C_Str());
 		aiBone* bone = it->second; 
 
 		GameObject* go = relations[node];
@@ -260,8 +239,10 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 		RecursiveCreateGameObjects(scene, scene->mRootNode, go, path, file);
 
 		// Do a second pass to process bones
-		LOG("Second pass looking for bones -----------------------------");
 		RecursiveProcessBones(scene, scene->mRootNode);
+
+		// Now search for animations
+		ImportAnimations(scene);
 
 		// Release all info from assimp
 		aiReleaseImport(scene);
@@ -343,5 +324,15 @@ void ModuleSceneLoader::LoadMetaData(aiMetadata * const meta)
 				}	break;	  
 			}
 		}
+	}
+}
+
+void ModuleSceneLoader::ImportAnimations(const aiScene * scene)
+{
+	for (uint i = 0; i < scene->mNumAnimations; ++i)
+	{
+		const aiAnimation* anim = scene->mAnimations[i];
+		LOG("Importing animation [%s] -----------------", anim->mName.C_Str());
+		App->resources->ImportBuffer(anim, 0, Resource::animation, anim->mName.C_Str());
 	}
 }

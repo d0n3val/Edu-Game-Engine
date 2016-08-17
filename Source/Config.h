@@ -34,6 +34,7 @@ public:
 	bool GetBool(const char * field, bool default = false, int index = -1) const;
 	int GetInt(const char* field, int default = 0, int index = -1) const;
 	UID GetUID(const char* field, UID default = 0, int index = -1) const;
+	double GetDouble(const char * field, double default = 0.0, int index = -1) const;
 	float GetFloat(const char* field, float default = 0.f, int index = -1) const;
 	const char* GetString(const char* field, const char* default = nullptr, int index = -1) const;
 
@@ -43,6 +44,7 @@ public:
 	bool AddBool(const char* field, bool value);
 	bool AddInt(const char* field, int value);
 	bool AddUID(const char* field, UID value);
+	bool AddDouble(const char * field, double value);
 	bool AddFloat(const char* field, float value);
 	bool AddString(const char* field, const char* string);
 	bool AddArray(const char* array_name);
