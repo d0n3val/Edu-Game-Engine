@@ -78,7 +78,7 @@ bool LoaderAnimation::Save(const ResourceAnimation& anim, string& output) const
 	bool ret = false;
 
 	// Format: name char[25], double duration double ticks_per_second
-	uint size = sizeof(sizeof(char) * ANIM_NAME_SIZE);
+	uint size = sizeof(char) * ANIM_NAME_SIZE;
 	size += sizeof(anim.duration);
 	size += sizeof(anim.ticks_per_second);
 

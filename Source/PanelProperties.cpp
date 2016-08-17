@@ -202,7 +202,7 @@ UID PanelProperties::DrawResource(UID resource, int type)
 			ImGui::Text("Lib: %s", res->GetExportedFile());
 			ImGui::EndTooltip();
 		}
-		if (ImGui::Button("Attach Another Resource"))
+		if (ImGui::Button("Change Resource"))
 			ImGui::OpenPopup("Load Resource");
 	}
 	else
@@ -213,12 +213,6 @@ UID PanelProperties::DrawResource(UID resource, int type)
 
 	if (ImGui::BeginPopup("Load Resource"))
 	{
-		if (type >= 0)
-		{
-			ret = App->editor->res->DrawResourceType((Resource::Type) type);
-		}
-		else
-		{
 			// Draw All
 			UID r = 0;
 			r = App->editor->res->DrawResourceType(Resource::texture);
@@ -233,7 +227,6 @@ UID PanelProperties::DrawResource(UID resource, int type)
 			ret = (r) ? r : ret;
 			r = App->editor->res->DrawResourceType(Resource::animation);
 			ret = (r) ? r : ret;
-		}
 
 		ImGui::EndPopup();
 	}
@@ -485,7 +478,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	if (info == nullptr)
 		return;
 
-	ImGui::Text("Name: %s", info->name);
-	ImGui::Text("Duration: %d", info->duration);
-	ImGui::Text("Ticks Per Second: %d", info->duration);
+	ImGui::Text("Name: %s", info->name.c_str());
+	ImGui::Text("Duration: %f", info->duration);
+	ImGui::Text("Ticks Per Second: %f", info->duration);
 }

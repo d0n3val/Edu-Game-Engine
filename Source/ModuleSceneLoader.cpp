@@ -242,7 +242,7 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 		RecursiveProcessBones(scene, scene->mRootNode);
 
 		// Now search for animations
-		ImportAnimations(scene);
+		ImportAnimations(scene, full_path);
 
 		// Release all info from assimp
 		aiReleaseImport(scene);
@@ -327,12 +327,12 @@ void ModuleSceneLoader::LoadMetaData(aiMetadata * const meta)
 	}
 }
 
-void ModuleSceneLoader::ImportAnimations(const aiScene * scene)
+void ModuleSceneLoader::ImportAnimations(const aiScene * scene, const char* full_path)
 {
 	for (uint i = 0; i < scene->mNumAnimations; ++i)
 	{
 		const aiAnimation* anim = scene->mAnimations[i];
 		LOG("Importing animation [%s] -----------------", anim->mName.C_Str());
-		App->resources->ImportBuffer(anim, 0, Resource::animation, anim->mName.C_Str());
+		App->resources->ImportBuffer(anim, 0, Resource::animation, full_path);
 	}
 }

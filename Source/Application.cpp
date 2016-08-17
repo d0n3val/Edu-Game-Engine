@@ -75,7 +75,6 @@ bool Application::Init()
 {
 	bool ret = true;
 			
-	// TODO crash cuando se borra config.json
 	char* buffer = nullptr;
 	fs->Load(SETTINGS_FOLDER "config.json", &buffer);
 
@@ -160,6 +159,7 @@ bool Application::CleanUp()
 	bool ret = true;
 
 	fs->Save(SETTINGS_FOLDER "Engine.log", log.c_str(), log.size());
+	SavePrefs();
 
 	for(list<Module*>::reverse_iterator it = modules.rbegin(); it != modules.rend() && ret; ++it)
 		if((*it)->IsActive() == true) 
@@ -174,6 +174,7 @@ const char* Application::GetAppName() const
 	return app_name.c_str();
 }
 
+// ---------------------------------------------
 void Application::SetAppName(const char * name)
 {
 	if (name != nullptr && name != app_name)
@@ -227,6 +228,7 @@ void Application::Log(const char * entry)
 	editor->Log(entry);
 }
 
+// ---------------------------------------------
 void Application::LoadPrefs()
 {
 	char* buffer = nullptr;
@@ -257,6 +259,7 @@ void Application::LoadPrefs()
 	}
 }
 
+// ---------------------------------------------
 void Application::SavePrefs() const
 {
 	Config config;
@@ -270,14 +273,16 @@ void Application::SavePrefs() const
 	uint size = config.Save(&buf, "Saved preferences for Edu Engine");
 	if(App->fs->Save(SETTINGS_FOLDER "config.json", buf, size) > 0)
 		LOG("Saved Engine Preferences");
-	RELEASE(buf);
+	RELEASE_ARRAY(buf);
 }
 
+// ---------------------------------------------
 void Application::RequestBrowser(const char * url) const
 {
    ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
 
+// ---------------------------------------------
 void Application::BroadcastEvent(const Event& event)
 {
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)

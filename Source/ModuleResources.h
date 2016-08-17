@@ -30,7 +30,7 @@ public:
 	Resource::Type TypeFromExtension(const char* extension) const;
 	UID Find(const char* file_in_assets) const;
 	UID ImportFileOutsideVFM(const char* full_path);
-	UID ImportFile(const char* new_file_in_assets);
+	UID ImportFile(const char* new_file_in_assets, bool force = false);
 	UID ImportBuffer(const void* buffer, uint size, Resource::Type type, const char* source_file = nullptr);
 	UID GenerateNewUID();
 	const Resource* Get(UID uid) const;

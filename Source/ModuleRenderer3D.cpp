@@ -207,6 +207,7 @@ void ModuleRenderer3D::Load(Config * config)
 
 void ModuleRenderer3D::OnResize(int width, int height)
 {
+	// TODO fix resize
 	glViewport(0, 0, width, height);
 
 	glMatrixMode(GL_PROJECTION);

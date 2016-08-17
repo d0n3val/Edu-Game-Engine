@@ -186,13 +186,18 @@ UID ModuleResources::ImportFileOutsideVFM(const char * full_path)
 	return ret;
 }
 
-UID ModuleResources::ImportFile(const char * new_file_in_assets)
+UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
 {
-	// Check is that file has been already exported
-	UID ret = Find(new_file_in_assets);
+	UID ret = 0;
 
-	if (ret != 0)
-		return ret;
+	// Check is that file has been already exported
+	if (force == true)
+	{
+		ret = Find(new_file_in_assets);
+
+		if (ret != 0)
+			return ret;
+	}
 
 	// Find out the type from the extension and send to the correct exporter
 	string extension;
