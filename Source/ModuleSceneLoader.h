@@ -26,6 +26,8 @@ public:
 
 	bool Import(const char* file, std::string& output);
 
+	UID FindBoneFromLastImport(const char* name) const;
+
 private:
 
 	void LoadMetaData(aiMetadata* const meta);
@@ -38,6 +40,7 @@ private:
 	std::map<aiBone*, UID> mesh_bone;
 	std::map<std::string, aiBone*> bones;
 	std::map<const aiNode*, GameObject*> relations;
+	std::map<std::string, UID> imported_bones;
 };
 
 #endif // __MODULE_SCENE_H__

@@ -3,10 +3,11 @@
 
 #include "Globals.h"
 #include "Module.h"
+#include "ResourceAnimation.h"
 #include <string>
 
-class ResourceAnimation;
 struct aiAnimation;
+struct aiNodeAnim;
 
 class LoaderAnimation
 {
@@ -19,6 +20,7 @@ public:
 
 private:
 	bool Save(const ResourceAnimation& bone, std::string& output) const;
+	void ImportBoneTransform(const aiNodeAnim* node, ResourceAnimation::bone_transform& bone) const;
 };
 
 #endif // __LOADER_ANIMATION_H__

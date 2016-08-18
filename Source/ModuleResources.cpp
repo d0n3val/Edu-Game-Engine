@@ -302,8 +302,9 @@ const Resource * ModuleResources::Get(UID uid) const
 
 Resource * ModuleResources::Get(UID uid) 
 {			   
-	if(resources.find(uid) != resources.end())
-		return resources.at(uid);
+	std::map<UID, Resource*>::iterator it = resources.find(uid);
+	if(it != resources.end())
+		return it->second;
 	return nullptr;
 }
 

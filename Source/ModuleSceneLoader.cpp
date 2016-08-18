@@ -210,7 +210,9 @@ void ModuleSceneLoader::RecursiveProcessBones(const aiScene * scene, const aiNod
 		GameObject* go = relations[node];
 		ComponentBone* c_bone = (ComponentBone*) go->CreateComponent(ComponentTypes::Bone);
 
-		c_bone->SetResource(App->resources->ImportBuffer(bone, (uint) mesh_bone[bone], Resource::bone, bone->mName.C_Str()));
+		UID uid = App->resources->ImportBuffer(bone, (uint) mesh_bone[bone], Resource::bone, bone->mName.C_Str());
+		c_bone->SetResource(uid);
+		imported_bones[node->mName.C_Str()] = uid;
 		LOG("->-> Added Bone component and created bone resource");
 	}
 
@@ -270,6 +272,14 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 	}
 
 	return ret;
+}
+
+UID ModuleSceneLoader::FindBoneFromLastImport(const char * name) const
+{
+	if (imported_bones.find(name) != imported_bones.end())
+		return imported_bones.at(name);
+
+	return 0;
 }
 
 void ModuleSceneLoader::LoadMetaData(aiMetadata * const meta)
