@@ -10,6 +10,8 @@ class ComponentMesh;
 class ComponentBone : public Component, public ComponentWithResource
 {
 public:
+	ALIGN_CLASS_TO_16
+
 	ComponentBone(GameObject* container);
 	virtual ~ComponentBone();
 
@@ -21,6 +23,7 @@ public:
 	void OnDebugDraw() const override;
 
 public:
+	float4x4 anim_transform = float4x4::identity;
 	ComponentMesh* attached_mesh = nullptr;
 };
 

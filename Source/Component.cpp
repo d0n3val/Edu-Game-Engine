@@ -6,8 +6,6 @@ Component::Component(GameObject* container) : game_object(container)
 {
 	if (game_object != nullptr)
 		SetActive(true);
-	else
-		LOG("Component orphaned	since it's container Game Object is null");
 }
 
 // ---------------------------------------------------------
@@ -39,6 +37,7 @@ ComponentTypes Component::GetType() const
 	return type;
 }
 
+// ---------------------------------------------------------
 const char * Component::GetTypeStr() const
 {
 	static const char* names[] = {
@@ -55,7 +54,14 @@ const char * Component::GetTypeStr() const
 	return names[type];
 }
 
+// ---------------------------------------------------------
 const GameObject * Component::GetGameObject() const
+{
+	return game_object;
+}
+
+// ---------------------------------------------------------
+GameObject * Component::GetGameObject() 
 {
 	return game_object;
 }

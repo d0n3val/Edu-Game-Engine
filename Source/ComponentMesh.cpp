@@ -27,14 +27,18 @@ ComponentMesh::~ComponentMesh()
 void ComponentMesh::OnSave(Config& config) const
 {
 	ComponentWithResource::OnSaveResource(config);
-	// TODO Save bone attachment status
+	// TODO naive approach to bone attachment, simply try on start
+	config.AddBool("Attached", (deformable != nullptr));
 }
 
 // ---------------------------------------------------------
 void ComponentMesh::OnLoad(Config * config)
 {
 	ComponentWithResource::OnLoadResource(config);
-	// TODO Load bone attachment status
+	bool attached = config->GetBool("Attached", false);
+
+	if (attached == true)
+		AttachBones();
 }
 
 // ---------------------------------------------------------

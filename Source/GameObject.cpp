@@ -201,7 +201,7 @@ Component* GameObject::CreateComponent(ComponentTypes type)
 void GameObject::SetNewParent(GameObject * new_parent, bool recalc_transformation)
 {
 	float4x4 current_global = GetGlobalTransformation();
-	// TODO recalculate transformation to stay in teh same position in global space
+
 	if (new_parent == parent)
 		return;
 
@@ -256,9 +256,23 @@ void GameObject::SetLocalRotation(const float3& XYZ_euler_rotation)
 }
 
 // ---------------------------------------------------------
+void GameObject::SetLocalRotation(const Quat& rotation)
+{
+	this->rotation = rotation;
+	local_trans_dirty = true;
+}
+
+// ---------------------------------------------------------
 void GameObject::SetLocalScale(const float3 & scale)
 {
 	this->scale = scale;
+	local_trans_dirty = true;
+}
+
+// ---------------------------------------------------------
+void GameObject::PushTransformation(const float4x4 & transform)
+{
+	pushed = pushed * transform;
 	local_trans_dirty = true;
 }
 
@@ -303,6 +317,12 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force
 		transform_global = parent * GetLocalTransform();
 		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 			(*it)->OnUpdateTransform();
+
+		if (pushed.Equals(float4x4::identity) == false)
+		{
+			pushed = float4x4::identity;
+			local_trans_dirty = true;
+		}
 	}
 	else
 		was_dirty = false;
@@ -376,6 +396,7 @@ void GameObject::SetActive(bool active)
 }
 
 // ---------------------------------------------------------
+// TODO: move the draw to ModuleRenderer
 void GameObject::Draw(bool debug) const
 {
 	visible = true;
@@ -490,16 +511,19 @@ bool GameObject::WasDirty() const
 	return was_dirty;
 }
 
+// ---------------------------------------------------------
 bool GameObject::WasBBoxDirty() const
 {
 	return calculated_bbox;
 }
 
+// ---------------------------------------------------------
 void GameObject::Remove()
 {
 	flag_for_removal = true;
 }
 
+// ---------------------------------------------------------
 const AABB& GameObject::GetLocalBBox() const
 {
 	return local_bbox;

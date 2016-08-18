@@ -211,22 +211,6 @@ UID PanelProperties::DrawResource(UID resource, int type)
 			UID r = 0;
 			r = App->editor->res->DrawResourceType((Resource::Type) type);
 			ret = (r) ? r : ret;
-		/*
-			// Draw All
-			UID r = 0;
-			r = App->editor->res->DrawResourceType(Resource::texture);
-			ret = (r) ? r : ret;
-			r = App->editor->res->DrawResourceType(Resource::mesh);
-			ret = (r) ? r : ret;
-			r = App->editor->res->DrawResourceType(Resource::audio);
-			ret = (r) ? r : ret;
-			r = App->editor->res->DrawResourceType(Resource::scene);
-			ret = (r) ? r : ret;
-			r = App->editor->res->DrawResourceType(Resource::bone);
-			ret = (r) ? r : ret;
-			r = App->editor->res->DrawResourceType(Resource::animation);
-			ret = (r) ? r : ret;
-			*/
 		ImGui::EndPopup();
 	}
 
@@ -481,7 +465,8 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	ImGui::Text("Name: %s", info->name.c_str());
 	ImGui::Text("Duration in Ticks: %.3f", info->duration);
 	ImGui::Text("Ticks Per Second: %.3f", info->ticks_per_second);
-	ImGui::Text("Real Time: %.3f", info->duration / info->ticks_per_second);
+	ImGui::Text("Real Time: %.3f", info->GetDurationInSecs());
+	//ImGui::Text("Potential Bones to animate: %i", component->CountBones());
 
 	static const char * states[] = { 
 		"Not Loaded", 
@@ -496,6 +481,9 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 
 	ImGui::Text("Current State: ");
 	ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", states[component->GetCurrentState()]);
+	//ImGui::Text("Attached to Bones: %i", component->CountAttachedBones());
+	//ImGui::Text("Animation Time: %.3f", component->GetTime());
+	//ImGui::ProgressBar(component->GetTime() / info->GetDurationInSecs());
 
 	if (ImGui::Button("Play"))
 		component->Play();
@@ -511,6 +499,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	ImGui::SameLine();
 	if (ImGui::Button("Stop"))
 		component->Stop();
+
 
 	ImGui::Separator();
 	if (ImGui::TreeNode("Bone Transformations"))

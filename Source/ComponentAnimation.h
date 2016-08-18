@@ -3,6 +3,9 @@
 
 #include "Component.h"
 #include "ComponentWithResource.h"
+#include <map>
+
+class ComponentBone;
 
 class ComponentAnimation : public Component, public ComponentWithResource
 {
@@ -30,6 +33,15 @@ public:
 
 	int GetCurrentState() const;
 
+	uint CountBones() const;
+	void AttachBones();
+	uint CountAttachedBones() const;
+	float GetTime() const;
+
+private:
+	void RecursiveCountBones(const GameObject * go, uint& count) const;
+	void RecursiveAttachBones(const GameObject * go);
+
 public:
 	enum state
 	{
@@ -45,6 +57,8 @@ public:
 
 private:
 	state current_state = state::unloaded;
+	float time = 0.f;
+	std::map<uint, ComponentBone*> bones;
 };
 
 #endif // __COMPONENT_AUDIOSOURCE_H__

@@ -21,6 +21,10 @@ public:
 	void Save(Config& config) const override;
 	void Load(const Config& config) override;
 
+	float GetDurationInSecs() const;
+
+	void FindBoneTransformation(float time, uint bone_index, float3& pos, Quat& rot, float3& scale) const;
+
 public:
 	std::string name;
 	double duration;

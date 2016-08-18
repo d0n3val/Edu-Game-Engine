@@ -32,6 +32,7 @@ public:
 	ComponentTypes GetType() const;
 	const char* GetTypeStr() const;
 	const GameObject* GetGameObject() const;
+	GameObject* GetGameObject();
 
 	virtual void OnSave(Config& config) const = 0;
 	virtual void OnLoad(Config* config) = 0;

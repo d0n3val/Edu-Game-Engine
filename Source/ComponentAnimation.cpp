@@ -4,6 +4,11 @@
 #include "ModuleAnimation.h"
 #include "ModuleResources.h"
 #include "ResourceAnimation.h"
+#include "gameObject.h"
+#include "Component.h"
+#include <list>
+
+using namespace std;
 
 // ---------------------------------------------------------
 ComponentAnimation::ComponentAnimation(GameObject* container) : Component(container)
@@ -131,3 +136,72 @@ int ComponentAnimation::GetCurrentState() const
 {
 	return current_state;
 }
+
+// ---------------------------------------------------------
+uint ComponentAnimation::CountBones() const
+{
+	uint ret = 0;
+	RecursiveCountBones(game_object, ret);
+	return ret;
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::AttachBones()
+{
+	bones.clear();
+	RecursiveAttachBones(game_object);
+}
+
+// ---------------------------------------------------------
+uint ComponentAnimation::CountAttachedBones() const
+{
+	return bones.size();
+}
+
+// ---------------------------------------------------------
+float ComponentAnimation::GetTime() const
+{
+	return time;
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::RecursiveCountBones(const GameObject * go, uint& count) const
+{
+	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
+	{
+		if ((*it)->GetType() == ComponentTypes::Bone)
+		{
+			const ResourceAnimation* anim = (const ResourceAnimation*) GetResource();
+			for (uint i = 0; i < anim->num_keys; ++i)
+			{
+				if (anim->bone_keys[i].bone_name == (*it)->GetGameObject()->name)
+					++count;
+			}
+		}
+	}
+
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		RecursiveCountBones(*it, count);
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::RecursiveAttachBones(const GameObject * go)
+{
+	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
+	{
+		if ((*it)->GetType() == ComponentTypes::Bone)
+		{
+			const ResourceAnimation* anim = (const ResourceAnimation*) GetResource();
+
+			for (uint i = 0; i < anim->num_keys; ++i)
+			{
+				if (anim->bone_keys[i].bone_name == (*it)->GetGameObject()->name)
+					bones[i] = (ComponentBone*) (*it);
+			}
+		}
+	}
+
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		RecursiveAttachBones(*it);
+}
+

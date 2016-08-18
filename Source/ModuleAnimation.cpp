@@ -107,13 +107,17 @@ void ModuleAnimation::UpdateAnimation(ComponentAnimation * anim, float dt)
 			switch (anim->GetCurrentState())
 			{
 			case ComponentAnimation::state::waiting_to_play:
-				anim->current_state = ComponentAnimation::state::playing;
+				anim->AttachBones();
+				anim->time = 0.f;
+				if(anim->bones.size() > 0)
+					anim->current_state = ComponentAnimation::state::playing;
 			break;
 			case ComponentAnimation::state::waiting_to_stop:
 				anim->current_state = ComponentAnimation::state::stopped;
 			break;
 			case ComponentAnimation::state::playing:
-				AdvanceAnimation(anim, mesh, dt);
+				if (AdvanceAnimation(anim, mesh, dt) == false)
+					anim->current_state = ComponentAnimation::state::stopped;
 				break;
 			default:
 				break;
@@ -123,7 +127,7 @@ void ModuleAnimation::UpdateAnimation(ComponentAnimation * anim, float dt)
 }
 
 // ---------------------------------------------------------
-void ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh * mesh, float dt)
+bool ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh * mesh, float dt)
 {
 	const ResourceAnimation* res = (const ResourceAnimation*) anim->GetResource();
 
@@ -131,6 +135,27 @@ void ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh 
 		anim->GetGameObject()->name.c_str(),
 		res->GetUID(), dt, mesh->GetResourceUID());
 
+	// advance animation timer
+	// TODO fmodf for looping
+	anim->time += dt;
+
+	// are we done ?
+	if (anim->time > res->GetDurationInSecs())
+		return false;
+
+	float3 pos;
+	Quat rot;
+	float3 scale;
+	float4x4 mat;
+
+	for (map<uint, ComponentBone*>::iterator it = anim->bones.begin(); it != anim->bones.end(); ++it)
+	{
+		res->FindBoneTransformation(anim->time, it->first, pos, rot, scale);
+		it->second->anim_transform.FromTRS(pos, rot, scale);
+		it->second->GetGameObject()->PushTransformation(it->second->anim_transform);
+	}
+
+	return true;
 }
 
 // ---------------------------------------------------------

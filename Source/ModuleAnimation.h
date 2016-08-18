@@ -25,7 +25,7 @@ public:
 
 private:
 	void UpdateAnimation(ComponentAnimation* anim, float dt);
-	void AdvanceAnimation(ComponentAnimation* anim, ComponentMesh* mesh, float dt);
+	bool AdvanceAnimation(ComponentAnimation* anim, ComponentMesh* mesh, float dt);
 	void DeformMesh(const ComponentBone* bone);
 };
 
