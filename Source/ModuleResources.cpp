@@ -261,6 +261,7 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 			// also the UID for the MESH is inside "size" ... need to improve that :-S
 			// TODO: this can go bad in so many ways :)
 			import_ok = bone_loader->Import((aiBone*) buffer, (UID) size, output);
+		break;
 		case Resource::animation:
 			import_ok = anim_loader->Import((aiAnimation*) buffer, (UID) size, output);
 		break;

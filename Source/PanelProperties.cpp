@@ -479,6 +479,32 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 		return;
 
 	ImGui::Text("Name: %s", info->name.c_str());
-	ImGui::Text("Duration: %f", info->duration);
-	ImGui::Text("Ticks Per Second: %f", info->duration);
+	ImGui::Text("Duration in Ticks: %.3f", info->duration);
+	ImGui::Text("Ticks Per Second: %.3f", info->ticks_per_second);
+	ImGui::Text("Real Time: %.3f", info->duration / info->ticks_per_second);
+
+	ImGui::Separator();
+	for (uint i = 0; i < info->num_keys; ++i)
+	{
+		if (ImGui::TreeNode(info->bone_keys[i].bone_name.c_str()))
+		{
+			ResourceAnimation::bone_transform* bone = &info->bone_keys[i];
+			if (ImGui::TreeNode("Positions", "Positions (%i)", bone->positions.count))
+			{
+				ImGui::Columns(2, "Position");
+				for (uint k = 0; k < bone->positions.count; ++k)
+				{
+					ImGui::Text("%.3f", info->bone_keys[i].positions.time[k]);
+					ImGui::NextColumn();
+					ImGui::Text("%.1f, %.1f, %1f", 
+						info->bone_keys[i].positions.value[k*3+0],
+						info->bone_keys[i].positions.value[k*3+1],
+						info->bone_keys[i].positions.value[k*3+2] );
+				}
+				ImGui::Columns(1);
+				ImGui::TreePop();
+			}
+			ImGui::TreePop();
+		}
+	}
 }

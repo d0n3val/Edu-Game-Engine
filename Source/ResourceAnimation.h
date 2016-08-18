@@ -30,31 +30,29 @@ public:
 	{
 		std::string bone_name;
 
-		template<class TYPE>
-		struct key
+		struct TRS
 		{
-			void Alloc(uint size)
+			void Alloc(uint count, uint values_per_item = 3)
 			{
-				count = size;
-				time = new double[size];
-				value = (TYPE*) _aligned_malloc_dbg(sizeof(TYPE) * size, 16, __FILE__, __LINE__);
+				this->count = count;
+				time = new double[count];
+				value = new float[count * values_per_item];
 			}
 
-			~key()
+			~TRS()
 			{
 				RELEASE_ARRAY(time);
-				if (value != nullptr)
-					_aligned_free_dbg(value); // for quats!
+				RELEASE_ARRAY(value);
 			}
 
 			uint count = 0;
 			double* time = nullptr;
-			TYPE* value = nullptr;
+			float* value = nullptr; // for rotations we should have count * 4 floats
 		};
 
-		key<float3> positions;
-		key<float3> scales;
-		key<Quat> rotations;
+		TRS positions;
+		TRS scales;
+		TRS rotations;
 	};
 
 	uint num_keys = 0;

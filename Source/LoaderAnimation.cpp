@@ -25,6 +25,10 @@ bool LoaderAnimation::Import(const aiAnimation* new_anim, UID mesh, string& outp
 	if (new_anim == nullptr)
 		return ret;
 
+	// Happened once importeing a fbx, so just in case
+	if (new_anim->mNumChannels == 0)
+		return ret;
+
 	// Temporary object to make the load/Save process
 	ResourceAnimation anim(0);
 
@@ -47,35 +51,42 @@ void LoaderAnimation::ImportBoneTransform(const aiNodeAnim * node, ResourceAnima
 	bone.bone_name = node->mNodeName.C_Str();
 
 	// Import positions
-	bone.positions.Alloc(node->mNumPositionKeys);
+	bone.positions.Alloc(node->mNumPositionKeys, 3);
 
 	for (uint k = 0; k < node->mNumPositionKeys; ++k)
 	{
 		aiVectorKey translation = node->mPositionKeys[k];
 		bone.positions.time[k] = translation.mTime;
-		bone.positions.value[k].Set(translation.mValue.x, translation.mValue.y, translation.mValue.z);
+		bone.positions.value[k*3+0] = translation.mValue.x;
+		bone.positions.value[k*3+1] = translation.mValue.y;
+		bone.positions.value[k*3+2] = translation.mValue.z;
 	}
 
 	// Import rotation
-	bone.rotations.Alloc(node->mNumRotationKeys);
+	bone.rotations.Alloc(node->mNumRotationKeys, 4);
 
 	for (uint k = 0; k < node->mNumRotationKeys; ++k)
 	{
 		aiQuatKey rotation = node->mRotationKeys[k];
 		bone.rotations.time[k] = rotation.mTime;
-		bone.rotations.value[k].Set(rotation.mValue.x, rotation.mValue.y, rotation.mValue.z, rotation.mValue.w);
+		bone.rotations.value[k*4+0] = rotation.mValue.x;
+		bone.rotations.value[k*4+1] = rotation.mValue.y;
+		bone.rotations.value[k*4+2] = rotation.mValue.z;
+		bone.rotations.value[k*4+3] = rotation.mValue.w;
 	}
 
 	// Import scales
-	bone.scales.Alloc(node->mNumScalingKeys);
+	bone.scales.Alloc(node->mNumScalingKeys, 3);
 
 	for (uint k = 0; k < node->mNumScalingKeys; ++k)
 	{
 		aiVectorKey scale = node->mScalingKeys[k];
 		bone.scales.time[k] = scale.mTime;
-		bone.scales.value[k].Set(scale.mValue.x, scale.mValue.y, scale.mValue.z);
-		if (bone.scales.value[k].Equals(float3::one))
-			bone.scales.value[k] = float3::one;
+		// I've ssen most scales with numbers very close to one, might be useful
+		// to check for that epsilon and just use (1,1,1) ... bloody floats :(
+		bone.scales.value[k*3+0] = scale.mValue.x;
+		bone.scales.value[k*3+1] = scale.mValue.y;
+		bone.scales.value[k*3+2] = scale.mValue.z;
 	}
 }
 
@@ -139,51 +150,51 @@ bool LoaderAnimation::Load(ResourceAnimation* resource) const
 			cursor += bytes;
 			bytes = sizeof(count);
 			memcpy(&count, cursor, bytes);
-			bone->positions.Alloc(count);
+			bone->positions.Alloc(count, 3);
 
 			// load position times
 			cursor += bytes;
 			bytes = sizeof(double) * count;
-			memcpy(&bone->positions.time, cursor, bytes);
+			memcpy(bone->positions.time, cursor, bytes);
 
 			// load position values
 			cursor += bytes;
-			bytes = sizeof(float3) * count;
-			memcpy(&bone->positions.value, cursor, bytes);
+			bytes = sizeof(float) * 3 * count;
+			memcpy(bone->positions.value, cursor, bytes);
 
-			// load num_positions -------------------------------
+			// load num rotations -------------------------------
 			count = 0;
 			cursor += bytes;
 			bytes = sizeof(count);
 			memcpy(&count, cursor, bytes);
-			bone->rotations.Alloc(count);
+			bone->rotations.Alloc(count, 4);
 
-			// load position times
+			// load rotation times
 			cursor += bytes;
 			bytes = sizeof(double) * count;
-			memcpy(&bone->rotations.time, cursor, bytes);
+			memcpy(bone->rotations.time, cursor, bytes);
 
-			// load position values
+			// load rotation values
 			cursor += bytes;
-			bytes = sizeof(Quat) * count;
-			memcpy(&bone->rotations.value, cursor, bytes);
+			bytes = sizeof(float) * 4 * count;
+			memcpy(bone->rotations.value, cursor, bytes);
 
 			// load num_scales -------------------------------
 			count = 0;
 			cursor += bytes;
 			bytes = sizeof(count);
 			memcpy(&count, cursor, bytes);
-			bone->scales.Alloc(count);
+			bone->scales.Alloc(count, 3);
 
 			// load position times
 			cursor += bytes;
 			bytes = sizeof(double) * count;
-			memcpy(&bone->scales.time, cursor, bytes);
+			memcpy(bone->scales.time, cursor, bytes);
 
 			// load position values
 			cursor += bytes;
-			bytes = sizeof(float3) * count;
-			memcpy(&bone->scales.value, cursor, bytes);
+			bytes = sizeof(float) * 3 * count;
+			memcpy(bone->scales.value, cursor, bytes);
 		}
 
 		RELEASE_ARRAY(buffer);
@@ -212,15 +223,15 @@ bool LoaderAnimation::Save(const ResourceAnimation& anim, string& output) const
 
 		size += sizeof(anim.bone_keys[i].positions.count);
 		size += sizeof(double) * anim.bone_keys[i].positions.count;
-		size += sizeof(float3) * anim.bone_keys[i].positions.count;
+		size += sizeof(float) * 3 * anim.bone_keys[i].positions.count;
 
 		size += sizeof(anim.bone_keys[i].rotations.count);
 		size += sizeof(double) * anim.bone_keys[i].rotations.count;
-		size += sizeof(Quat) * anim.bone_keys[i].rotations.count;
+		size += sizeof(float) * 4 * anim.bone_keys[i].rotations.count;
 
 		size += sizeof(anim.bone_keys[i].scales.count);
 		size += sizeof(double) * anim.bone_keys[i].scales.count;
-		size += sizeof(float3) * anim.bone_keys[i].scales.count;
+		size += sizeof(float) * 3 * anim.bone_keys[i].scales.count;
 	}
 
 	// allocate mem
@@ -272,12 +283,12 @@ bool LoaderAnimation::Save(const ResourceAnimation& anim, string& output) const
 		// store times for positions
 		cursor += bytes;
 		bytes = sizeof(double) * anim.bone_keys[i].positions.count;
-		memcpy(cursor, &anim.bone_keys[i].positions.time, bytes);
+		memcpy(cursor, anim.bone_keys[i].positions.time, bytes);
 
 		// store positions
 		cursor += bytes;
-		bytes = sizeof(float3) * anim.bone_keys[i].positions.count;
-		memcpy(cursor, &anim.bone_keys[i].positions.value, bytes);
+		bytes = sizeof(float) * 3 * anim.bone_keys[i].positions.count;
+		memcpy(cursor, anim.bone_keys[i].positions.value, bytes);
 
 		// store num_rotations ----------------------------
 		cursor += bytes;
@@ -287,27 +298,27 @@ bool LoaderAnimation::Save(const ResourceAnimation& anim, string& output) const
 		// store times for rotations
 		cursor += bytes;
 		bytes = sizeof(double) * anim.bone_keys[i].rotations.count;
-		memcpy(cursor, &anim.bone_keys[i].rotations.time, bytes);
+		memcpy(cursor, anim.bone_keys[i].rotations.time, bytes);
 
 		// store positions
 		cursor += bytes;
-		bytes = sizeof(Quat) * anim.bone_keys[i].rotations.count;
-		memcpy(cursor, &anim.bone_keys[i].rotations.value, bytes);
+		bytes = sizeof(float) * 4 * anim.bone_keys[i].rotations.count;
+		memcpy(cursor, anim.bone_keys[i].rotations.value, bytes);
 
 		// store num_scales ---------------------------
 		cursor += bytes;
 		bytes = sizeof(anim.bone_keys[i].scales.count);
 		memcpy(cursor, &anim.bone_keys[i].scales.count, bytes);
 
-		// store times for positions
+		// store times for scales
 		cursor += bytes;
 		bytes = sizeof(double) * anim.bone_keys[i].scales.count;
-		memcpy(cursor, &anim.bone_keys[i].scales.time, bytes);
+		memcpy(cursor, anim.bone_keys[i].scales.time, bytes);
 
-		// store positions
+		// store scales
 		cursor += bytes;
-		bytes = sizeof(float3) * anim.bone_keys[i].scales.count;
-		memcpy(cursor, &anim.bone_keys[i].scales.value, bytes);
+		bytes = sizeof(float) * 3 * anim.bone_keys[i].scales.count;
+		memcpy(cursor, anim.bone_keys[i].scales.value, bytes);
 	}
 
 	// We are ready to write the file
