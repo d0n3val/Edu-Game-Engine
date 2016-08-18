@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "Application.h"
-#include "ModuleCamera3D.h"
+#include "ModuleEditorCamera.h"
 #include "ModuleEditor.h"
 #include "ModuleInput.h"
 #include "ModuleWindow.h"
@@ -10,50 +10,36 @@
 #include "ComponentCamera.h"
 #include "ModuleRenderer3D.h"
 
-ModuleCamera3D::ModuleCamera3D(bool start_enabled) : Module("Camera", start_enabled)
+ModuleEditorCamera::ModuleEditorCamera(bool start_enabled) : Module("Camera", start_enabled)
 {
+	dummy = new ComponentCamera(nullptr);
 }
 
-ModuleCamera3D::~ModuleCamera3D()
-{}
+ModuleEditorCamera::~ModuleEditorCamera()
+{
+	RELEASE(dummy);
+}
 
 // -----------------------------------------------------------------
-bool ModuleCamera3D::Init(Config* config)
+bool ModuleEditorCamera::Init(Config* config)
 {
-	float aspect_ratio = (float) App->window->GetWidth() / (float) App->window->GetHeight();
-	float fov = 60.f; // degrees
-
-	frustum.type = FrustumType::PerspectiveFrustum;
-	frustum.pos = float3(-10.f, 5.0f, 3.0f);
-	frustum.front = float3(0.f, 0.f, 1.f);
-	frustum.up = float3(0.f, 1.f, 0.f);
-	frustum.nearPlaneDistance = 1.0f;
-	frustum.farPlaneDistance = 500.0f;
-	frustum.verticalFov = DEGTORAD * fov;
-	// More about FOV: http://twgljs.org/examples/fov-checker.html
-	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
-	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
-
+	dummy->OnLoad(config);
+	App->renderer3D->active_camera = dummy;
 
 	return true;
 }
 
 // -----------------------------------------------------------------
-bool ModuleCamera3D::Start(Config* config)
+bool ModuleEditorCamera::Start(Config* config)
 {
 	LOG("Setting up the camera");
 	bool ret = true;
-
-	GameObject* go = App->level->CreateGameObject(App->level->GetRoot(), float3::zero, float3::one, Quat::identity, "Test Camera");
-	ComponentCamera* c = (ComponentCamera*) go->CreateComponent(ComponentTypes::Camera);
-
-	App->renderer3D->active_camera = c;
 
 	return ret;
 }
 
 // -----------------------------------------------------------------
-bool ModuleCamera3D::CleanUp()
+bool ModuleEditorCamera::CleanUp()
 {
 	LOG("Cleaning camera");
 
@@ -62,8 +48,22 @@ bool ModuleCamera3D::CleanUp()
 }
 
 // -----------------------------------------------------------------
-update_status ModuleCamera3D::Update(float dt)
+void ModuleEditorCamera::Save(Config * config) const
 {
+	if(config != nullptr)
+		dummy->OnSave(*config);
+}
+
+// -----------------------------------------------------------------
+void ModuleEditorCamera::Load(Config * config)
+{
+	dummy->OnLoad(config);
+}
+
+// -----------------------------------------------------------------
+update_status ModuleEditorCamera::Update(float dt)
+{
+	Frustum* frustum = &dummy->frustum;
 	// OnKeys WASD keys -----------------------------------
 	if (App->editor->UsingKeyboard() == false)
 	{
@@ -72,8 +72,8 @@ update_status ModuleCamera3D::Update(float dt)
 		if (App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) speed *= 5.0f;
 		if (App->input->GetKey(SDL_SCANCODE_LALT) == KEY_REPEAT) speed *= 0.5f;
 
-		float3 right(frustum.WorldRight());
-		float3 forward(frustum.front);
+		float3 right(frustum->WorldRight());
+		float3 forward(frustum->front);
 
 		float3 movement(float3::zero);
 
@@ -86,7 +86,7 @@ update_status ModuleCamera3D::Update(float dt)
 
 		if (movement.Equals(float3::zero) == false)
 		{
-			frustum.Translate(movement * (speed * dt));
+			frustum->Translate(movement * (speed * dt));
 			looking = false;
 		}
 	}
@@ -111,17 +111,17 @@ update_status ModuleCamera3D::Update(float dt)
 
 				// fake point should be a ray colliding with something
 				if (looking == false)
-					point = frustum.pos + frustum.front * 50.0f;
+					point = frustum->pos + frustum->front * 50.0f;
 
-				float3 focus = frustum.pos - point;
+				float3 focus = frustum->pos - point;
 
-				Quat qy(frustum.up, dx);
-				Quat qx(frustum.WorldRight(), dy);
+				Quat qy(frustum->up, dx);
+				Quat qx(frustum->WorldRight(), dy);
 
 				focus = qx.Transform(focus);
 				focus = qy.Transform(focus);
 
-				frustum.pos = focus + point;
+				frustum->pos = focus + point;
 
 				Look(point);
 			}
@@ -137,18 +137,18 @@ update_status ModuleCamera3D::Update(float dt)
 				if (dx != 0.f)
 				{
 					Quat q = Quat::RotateY(dx);
-					frustum.front = q.Mul(frustum.front).Normalized();
+					frustum->front = q.Mul(frustum->front).Normalized();
 					// would not need this is we were rotating in the local Y, but that is too disorienting
-					frustum.up = q.Mul(frustum.up).Normalized();
+					frustum->up = q.Mul(frustum->up).Normalized();
 				}
 
 				// y motion makes the camera rotate in X local axis 
 				if (dy != 0.f)
 				{
-					Quat q = Quat::RotateAxisAngle(frustum.WorldRight(), dy);
+					Quat q = Quat::RotateAxisAngle(frustum->WorldRight(), dy);
 
-					frustum.up = q.Mul(frustum.up).Normalized();
-					frustum.front = q.Mul(frustum.front).Normalized();
+					frustum->up = q.Mul(frustum->up).Normalized();
+					frustum->front = q.Mul(frustum->front).Normalized();
 				}
 			}
 
@@ -159,57 +159,37 @@ update_status ModuleCamera3D::Update(float dt)
 		{
 			float speed = 3.0f;
 			if (App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) speed *= 5.0f;
-			float3 p = frustum.front * ((float)wheel * speed);
-			frustum.pos += p;
+			float3 p = frustum->front * ((float)wheel * speed);
+			frustum->pos += p;
 		}
 	}
 
 	return UPDATE_CONTINUE;
 }
 
-float3 ModuleCamera3D::GetPosition() const
+// -----------------------------------------------------------------
+float3 ModuleEditorCamera::GetPosition() const
 {
-	return frustum.pos;
+	return dummy->frustum.pos;
 }
 
 // -----------------------------------------------------------------
-void ModuleCamera3D::Look(const float3& position)
+void ModuleEditorCamera::Look(const float3& position)
 {
-	float3 dir = position - frustum.pos;
-
-	float3x3 m = float3x3::LookAt(frustum.front, dir.Normalized(), frustum.up, float3::unitY);
-
-	frustum.front = m.MulDir(frustum.front).Normalized();
-	frustum.up = m.MulDir(frustum.up).Normalized();
+	dummy->Look(position);
 }
 
 // -----------------------------------------------------------------
-float * ModuleCamera3D::GetOpenGLViewMatrix()
+void ModuleEditorCamera::CenterOn(const float3& position, float distance)
 {
-	static float4x4 m;
-	
-	m = frustum.ViewMatrix();
-	m.Transpose();
-
-	return (float*) m.v;
-}
-
-// -----------------------------------------------------------------
-float * ModuleCamera3D::GetOpenGLProjectionMatrix()
-{
-	static float4x4 m;
-	
-	m = frustum.ProjectionMatrix();
-	m.Transpose();
-
-	return (float*) m.v;
-}
-
-// -----------------------------------------------------------------
-void ModuleCamera3D::CenterOn(const float3& position, float distance)
-{
-	float3 v = frustum.front.Neg();
-	frustum.pos = position + (v * distance);
+	float3 v = dummy->frustum.front.Neg();
+	dummy->frustum.pos = position + (v * distance);
 	looking_at = position;
 	looking = true;
+}
+
+// -----------------------------------------------------------------
+ComponentCamera * ModuleEditorCamera::GetDummy() const
+{
+	return dummy;
 }

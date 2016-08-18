@@ -16,7 +16,7 @@ public:
 	void RecursiveDraw(GameObject* go);
 	void CheckHover(GameObject* go);
 
-private:
+public:
 
 	uint node = 0;
 	char name[80];

@@ -15,12 +15,13 @@ class ModuleInput;
 class ModuleAudio;
 class ModulePhysics3D;
 class ModuleRenderer3D;
-class ModuleCamera3D;
+class ModuleEditorCamera;
 class ModuleSceneLoader;
 class ModuleTextures;
 class ModuleMeshes;
 class ModuleHardware;
 class ModuleEditor;
+class ModuleEditorCamera;
 
 class PanelConfiguration : public Panel
 {
@@ -39,6 +40,7 @@ public:
 	void DrawModuleWindow(ModuleWindow * module);
 	void DrawModuleRenderer(ModuleRenderer3D * module);
 	void DrawModuleTextures(ModuleTextures * module);
+	void DrawModuleCamera(ModuleEditorCamera * module);
 	void AddInput(const char* entry);
 	void AddFPS(float fps, float ms);
 

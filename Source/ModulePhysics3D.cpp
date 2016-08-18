@@ -5,7 +5,7 @@
 #include "PhysBody3D.h"
 #include "PhysVehicle3D.h"
 #include "ModuleInput.h"
-#include "ModuleCamera3D.h"
+#include "ModuleEditorCamera.h"
 #include "Bullet/include/btBulletDynamicsCommon.h"
 #include "Bullet/include/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 

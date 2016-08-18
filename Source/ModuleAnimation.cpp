@@ -6,7 +6,9 @@
 #include "ComponentBone.h"
 #include "ResourceBone.h"
 #include "ComponentMesh.h"
+#include "ComponentAnimation.h"
 #include "ResourceMesh.h"
+#include "ResourceAnimation.h"
 #include "DebugDraw.h"
 
 using namespace std;
@@ -41,6 +43,8 @@ bool ModuleAnimation::CleanUp()
 update_status ModuleAnimation::Update(float dt)
 {
 	// Update all bones according to animations
+	RecursiveUpdateAnimation(App->level->GetRoot(), dt);
+
 	// Reset all deformable meshes, getting them ready to receive transformation
 	RecursiveResetMeshes(App->level->GetRoot());
 
@@ -51,6 +55,18 @@ update_status ModuleAnimation::Update(float dt)
 }
 
 // ---------------------------------------------------------
+void ModuleAnimation::RecursiveUpdateAnimation(GameObject * go, float dt)
+{
+	for (list<GameObject*>::iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		if((*it)->IsActive())
+			RecursiveUpdateAnimation(*it, dt);
+
+	for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
+		if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Animation)
+			UpdateAnimation((ComponentAnimation*)*it, dt);
+}
+
+// ---------------------------------------------------------
 void ModuleAnimation::RecursiveResetMeshes(GameObject * go)
 {
 	for (list<GameObject*>::iterator it = go->childs.begin(); it != go->childs.end(); ++it)
@@ -58,11 +74,8 @@ void ModuleAnimation::RecursiveResetMeshes(GameObject * go)
 			RecursiveResetMeshes(*it);
 
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
-	{
 		if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Geometry)
 			((ComponentMesh*)*it)->ResetDeformableMesh();
-	}
-
 }
 // ---------------------------------------------------------
 void ModuleAnimation::RecursiveDeformMeshes(GameObject * go)
@@ -72,10 +85,52 @@ void ModuleAnimation::RecursiveDeformMeshes(GameObject * go)
 			RecursiveDeformMeshes(*it);
 
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
-	{
 		if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Bone)
 			DeformMesh((const ComponentBone*)*it);
+}
+
+// ---------------------------------------------------------
+void ModuleAnimation::UpdateAnimation(ComponentAnimation * anim, float dt)
+{
+	const ResourceAnimation* res = (const ResourceAnimation*) anim->GetResource();
+	if (res != nullptr && anim->current_state)
+	{
+		const GameObject* go = anim->GetGameObject();
+		ComponentMesh* mesh = nullptr;
+
+		for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
+			if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Geometry)
+				mesh = (ComponentMesh*) *it;
+
+		if (mesh != nullptr && mesh->deformable != nullptr)
+		{
+			switch (anim->GetCurrentState())
+			{
+			case ComponentAnimation::state::waiting_to_play:
+				anim->current_state = ComponentAnimation::state::playing;
+			break;
+			case ComponentAnimation::state::waiting_to_stop:
+				anim->current_state = ComponentAnimation::state::stopped;
+			break;
+			case ComponentAnimation::state::playing:
+				AdvanceAnimation(anim, mesh, dt);
+				break;
+			default:
+				break;
+			}
+		}
 	}
+}
+
+// ---------------------------------------------------------
+void ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh * mesh, float dt)
+{
+	const ResourceAnimation* res = (const ResourceAnimation*) anim->GetResource();
+
+	LOG("Updating animation on %s with anim %llu with dt %.3f on mesh %llu",
+		anim->GetGameObject()->name.c_str(),
+		res->GetUID(), dt, mesh->GetResourceUID());
+
 }
 
 // ---------------------------------------------------------

@@ -128,55 +128,50 @@ void PanelProperties::Draw()
 		}
 
 		// Iterate all components and draw
+
 		for (list<Component*>::iterator it = selected->components.begin(); it != selected->components.end(); ++it)
 		{
-			switch ((*it)->GetType())
+			if (InitComponentDraw(*it, (*it)->GetTypeStr()))
 			{
+				ImGui::PushID(*it);
+
+				switch ((*it)->GetType())
+				{
 				case ComponentTypes::Geometry:
 				{
-					if(InitComponentDraw(*it, "Geometry Mesh"))
-						DrawMeshComponent((ComponentMesh*)(*it));
+					DrawMeshComponent((ComponentMesh*)(*it));
 				}	break;
 				case ComponentTypes::Material:
 				{
-					if(InitComponentDraw(*it, "Material"))
-						DrawMaterialComponent((ComponentMaterial*)(*it));
+					DrawMaterialComponent((ComponentMaterial*)(*it));
 				}	break;
 				case ComponentTypes::AudioSource:
 				{
-					if(InitComponentDraw(*it, "Audio Source"))
-						DrawAudioSourceComponent((ComponentAudioSource*)(*it));
+					DrawAudioSourceComponent((ComponentAudioSource*)(*it));
 				}	break;
 				case ComponentTypes::AudioListener:
 				{
-					if(InitComponentDraw(*it, "Audio Listener"))
-						DrawAudioListenerComponent((ComponentAudioListener*)(*it));
+					DrawAudioListenerComponent((ComponentAudioListener*)(*it));
 				}	break;
 				case ComponentTypes::Camera:
 				{
-					if(InitComponentDraw(*it, "Camera"))
-						DrawCameraComponent((ComponentCamera*)(*it));
+					DrawCameraComponent((ComponentCamera*)(*it));
 				}	break;
 				case ComponentTypes::Bone:
 				{
-					if(InitComponentDraw(*it, "Bone"))
-						DrawBoneComponent((ComponentBone*)(*it));
+					DrawBoneComponent((ComponentBone*)(*it));
 				}	break;
 				case ComponentTypes::Skeleton:
 				{
-					if(InitComponentDraw(*it, "Skeleton"))
-						DrawSkeletonComponent((ComponentSkeleton*)(*it));
+					DrawSkeletonComponent((ComponentSkeleton*)(*it));
 				}	break;
 				case ComponentTypes::Animation:
 				{
-					if(InitComponentDraw(*it, "Animation"))
-						DrawAnimationComponent((ComponentAnimation*)(*it));
+					DrawAnimationComponent((ComponentAnimation*)(*it));
 				}	break;
-				default:
-				{
-					InitComponentDraw(*it, "Unknown");
 				}
-			};
+				ImGui::PopID();
+			}
 		}
 
 	}
@@ -213,6 +208,10 @@ UID PanelProperties::DrawResource(UID resource, int type)
 
 	if (ImGui::BeginPopup("Load Resource"))
 	{
+			UID r = 0;
+			r = App->editor->res->DrawResourceType((Resource::Type) type);
+			ret = (r) ? r : ret;
+		/*
 			// Draw All
 			UID r = 0;
 			r = App->editor->res->DrawResourceType(Resource::texture);
@@ -227,9 +226,10 @@ UID PanelProperties::DrawResource(UID resource, int type)
 			ret = (r) ? r : ret;
 			r = App->editor->res->DrawResourceType(Resource::animation);
 			ret = (r) ? r : ret;
-
+			*/
 		ImGui::EndPopup();
 	}
+
 	return ret;
 }
 
@@ -469,7 +469,7 @@ void PanelProperties::DrawSkeletonComponent(ComponentSkeleton * component)
 
 void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 {
-	UID new_res = DrawResource(component->GetResourceUID(), Resource::texture);
+	UID new_res = DrawResource(component->GetResourceUID(), Resource::animation);
 	if (new_res > 0)
 		component->SetResource(new_res);
 
@@ -483,28 +483,101 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	ImGui::Text("Ticks Per Second: %.3f", info->ticks_per_second);
 	ImGui::Text("Real Time: %.3f", info->duration / info->ticks_per_second);
 
+	static const char * states[] = { 
+		"Not Loaded", 
+		"Stopped",
+		"About to Play",
+		"Playing",
+		"About to Pause",
+		"Pause",
+		"About to Unpause",
+		"About to Stop"
+	};
+
+	ImGui::Text("Current State: ");
+	ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", states[component->GetCurrentState()]);
+
+	if (ImGui::Button("Play"))
+		component->Play();
+
+	ImGui::SameLine();
+	if (ImGui::Button("Pause"))
+		component->Pause();
+
+	ImGui::SameLine();
+	if (ImGui::Button("Unpause"))
+		component->UnPause();
+
+	ImGui::SameLine();
+	if (ImGui::Button("Stop"))
+		component->Stop();
+
 	ImGui::Separator();
-	for (uint i = 0; i < info->num_keys; ++i)
+	if (ImGui::TreeNode("Bone Transformations"))
 	{
-		if (ImGui::TreeNode(info->bone_keys[i].bone_name.c_str()))
+		for (uint i = 0; i < info->num_keys; ++i)
 		{
-			ResourceAnimation::bone_transform* bone = &info->bone_keys[i];
-			if (ImGui::TreeNode("Positions", "Positions (%i)", bone->positions.count))
+			if (ImGui::TreeNode(info->bone_keys[i].bone_name.c_str()))
 			{
-				ImGui::Columns(2, "Position");
-				for (uint k = 0; k < bone->positions.count; ++k)
+				ResourceAnimation::bone_transform* bone = &info->bone_keys[i];
+
+				// Positions ---
+				if (ImGui::TreeNode("Positions", "Positions (%i)", bone->positions.count))
 				{
-					ImGui::Text("%.3f", info->bone_keys[i].positions.time[k]);
-					ImGui::NextColumn();
-					ImGui::Text("%.1f, %.1f, %1f", 
-						info->bone_keys[i].positions.value[k*3+0],
-						info->bone_keys[i].positions.value[k*3+1],
-						info->bone_keys[i].positions.value[k*3+2] );
+					ImGui::Columns(2, "Position");
+					for (uint k = 0; k < bone->positions.count; ++k)
+					{
+						ImGui::Text("%.1f", info->bone_keys[i].positions.time[k]);
+						ImGui::NextColumn();
+						ImGui::Text("%.1f, %.1f, %.1f",
+							info->bone_keys[i].positions.value[k * 3 + 0],
+							info->bone_keys[i].positions.value[k * 3 + 1],
+							info->bone_keys[i].positions.value[k * 3 + 2]);
+						ImGui::NextColumn();
+					}
+					ImGui::Columns(1);
+					ImGui::TreePop();
 				}
-				ImGui::Columns(1);
+
+				// Rotations ---
+				if (ImGui::TreeNode("Rotations", "Rotations (%i)", bone->rotations.count))
+				{
+					ImGui::Columns(2, "Rotation");
+					for (uint k = 0; k < bone->rotations.count; ++k)
+					{
+						ImGui::Text("%.1f", info->bone_keys[i].rotations.time[k]);
+						ImGui::NextColumn();
+						ImGui::Text("%.1f,%.1f,%.1f,%.1f",
+							info->bone_keys[i].rotations.value[k * 4 + 0],
+							info->bone_keys[i].rotations.value[k * 4 + 1],
+							info->bone_keys[i].rotations.value[k * 4 + 2],
+							info->bone_keys[i].rotations.value[k * 4 + 3]);
+						ImGui::NextColumn();
+					}
+					ImGui::Columns(1);
+					ImGui::TreePop();
+				}
+
+				// Scales ---
+				if (ImGui::TreeNode("Scales", "Scales (%i)", bone->scales.count))
+				{
+					ImGui::Columns(2, "Scale");
+					for (uint k = 0; k < bone->scales.count; ++k)
+					{
+						ImGui::Text("%.1f", info->bone_keys[i].scales.time[k]);
+						ImGui::NextColumn();
+						ImGui::Text("%.1f, %.1f, %.1f",
+							info->bone_keys[i].scales.value[k * 3 + 0],
+							info->bone_keys[i].scales.value[k * 3 + 1],
+							info->bone_keys[i].scales.value[k * 3 + 2]);
+						ImGui::NextColumn();
+					}
+					ImGui::Columns(1);
+					ImGui::TreePop();
+				}
 				ImGui::TreePop();
 			}
-			ImGui::TreePop();
 		}
+		ImGui::TreePop();
 	}
 }

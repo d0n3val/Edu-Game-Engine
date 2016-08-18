@@ -39,6 +39,22 @@ ComponentTypes Component::GetType() const
 	return type;
 }
 
+const char * Component::GetTypeStr() const
+{
+	static const char* names[] = {
+	"Invalid",
+	"Geometry",
+	"Material",
+	"AudioListener",
+	"AudioSource",
+	"Camera",
+	"Bone",
+	"Skeleton",
+	"Animation" };
+
+	return names[type];
+}
+
 const GameObject * Component::GetGameObject() const
 {
 	return game_object;

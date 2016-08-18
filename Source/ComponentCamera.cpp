@@ -10,18 +10,24 @@ ComponentCamera::ComponentCamera(GameObject* container) : Component(container)
 	type = ComponentTypes::Camera;
 	frustum.type = FrustumType::PerspectiveFrustum;
 
-	frustum.nearPlaneDistance = 1.0f;
-	frustum.farPlaneDistance = 200.0f;
+	frustum.pos = float3::zero;
+	frustum.front = float3::unitZ;
+	frustum.up = float3::unitY;
+
+	frustum.nearPlaneDistance = 0.1f;
+	frustum.farPlaneDistance = 1000.0f;
 	frustum.verticalFov = DEGTORAD * 60.0f;
 	SetAspectRatio(1.3f);
 
 	background = Black;
+	projection_changed = true;
 }
 
 // ---------------------------------------------------------
 ComponentCamera::~ComponentCamera()
 {}
 
+// ---------------------------------------------------------
 void ComponentCamera::OnDebugDraw() const
 {
 	DebugDraw(frustum, Yellow);
@@ -42,20 +48,25 @@ void ComponentCamera::OnLoad(Config * config)
 	background.b = config->GetFloat("Background", 0.f, 2);
 	background.a = config->GetFloat("Background", 1.f, 3);
 
-	frustum.pos.x = config->GetFloat("Frustum", 0.f, 4);
-	frustum.pos.y = config->GetFloat("Frustum", 0.f, 5);
-	frustum.pos.z = config->GetFloat("Frustum", 0.f, 6);
+	frustum.pos.x = config->GetFloat("Frustum", 0.f, 0);
+	frustum.pos.y = config->GetFloat("Frustum", 0.f, 1);
+	frustum.pos.z = config->GetFloat("Frustum", 0.f, 2);
 
-	frustum.front.x = config->GetFloat("Frustum", 0.f, 7);
-	frustum.front.y = config->GetFloat("Frustum", 0.f, 8);
-	frustum.front.z = config->GetFloat("Frustum", 1.f, 9);
+	frustum.front.x = config->GetFloat("Frustum", 0.f, 3);
+	frustum.front.y = config->GetFloat("Frustum", 0.f, 4);
+	frustum.front.z = config->GetFloat("Frustum", 1.f, 5);
 
-	frustum.up.x = config->GetFloat("Frustum", 0.f, 10);
-	frustum.up.y = config->GetFloat("Frustum", 1.f, 11);
-	frustum.up.z = config->GetFloat("Frustum", 0.f, 12);
+	frustum.up.x = config->GetFloat("Frustum", 0.f, 6);
+	frustum.up.y = config->GetFloat("Frustum", 1.f, 7);
+	frustum.up.z = config->GetFloat("Frustum", 0.f, 8);
 
-	frustum.nearPlaneDistance = config->GetFloat("Frustum", 0.1f, 13);
-	frustum.farPlaneDistance = config->GetFloat("Frustum", 1000.f, 14);
+	frustum.nearPlaneDistance = config->GetFloat("Frustum", 0.1f, 9);
+	frustum.farPlaneDistance = config->GetFloat("Frustum", 1000.f, 10);
+
+	frustum.horizontalFov = config->GetFloat("Frustum", 1.f, 11);
+	frustum.verticalFov = config->GetFloat("Frustum", 1.f, 12);
+
+	projection_changed = true;
 }
 
 // -----------------------------------------------------------------
@@ -95,15 +106,21 @@ float ComponentCamera::GetAspectRatio() const
 // ---------------------------------------------------------
 void ComponentCamera::SetNearPlaneDist(float dist)
 {
-	if(dist > 0.0f && dist < frustum.farPlaneDistance)
+	if (dist > 0.0f && dist < frustum.farPlaneDistance)
+	{
 		frustum.nearPlaneDistance = dist;
+		projection_changed = true;
+	}
 }
 
 // ---------------------------------------------------------
 void ComponentCamera::SetFarPlaneDist(float dist)
 {
-	if(dist > 0.0f && dist > frustum.nearPlaneDistance)
+	if (dist > 0.0f && dist > frustum.nearPlaneDistance)
+	{
 		frustum.farPlaneDistance = dist;
+		projection_changed = true;
+	}
 }
 
 // ---------------------------------------------------------
@@ -121,6 +138,7 @@ void ComponentCamera::SetAspectRatio(float aspect_ratio)
 	// More about FOV: http://twgljs.org/examples/fov-checker.html
 	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
 	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
+	projection_changed = true;
 }
 
 // -----------------------------------------------------------------

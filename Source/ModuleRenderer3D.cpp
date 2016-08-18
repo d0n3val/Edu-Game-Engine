@@ -2,7 +2,7 @@
 #include "Application.h"
 #include "ModuleWindow.h"
 #include "ModuleRenderer3D.h"
-#include "ModuleCamera3D.h"
+#include "ModuleEditorCamera.h"
 #include "ModuleLevelManager.h"
 #include "ModuleEditor.h"
 #include "OpenGL.h"
@@ -125,8 +125,6 @@ bool ModuleRenderer3D::Init(Config* config)
 
 	// Projection matrix for
 	OnResize(App->window->GetWidth(), App->window->GetHeight());
-	
-	App->camera->Look(float3::zero);
 
 	return ret;
 }
@@ -134,13 +132,20 @@ bool ModuleRenderer3D::Init(Config* config)
 // PreUpdate: clear buffer
 update_status ModuleRenderer3D::PreUpdate(float dt)
 {
+	// Adjust projection if needed
+	if (active_camera->projection_changed == true)
+	{
+		RefreshProjection();
+		active_camera->projection_changed = false;
+	}
+
 	Color c = active_camera->background;
 	glClearColor(c.r, c.g, c.b, c.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(App->camera->GetOpenGLViewMatrix());
+	glLoadMatrixf(active_camera->GetOpenGLViewMatrix());
 
 	// light 0 on cam pos
 	lights[0].position = App->camera->GetPosition();
@@ -207,12 +212,17 @@ void ModuleRenderer3D::Load(Config * config)
 
 void ModuleRenderer3D::OnResize(int width, int height)
 {
-	// TODO fix resize
+	active_camera->SetAspectRatio((float)width / (float)height);
 	glViewport(0, 0, width, height);
 
+	RefreshProjection();
+}
+
+void ModuleRenderer3D::RefreshProjection()
+{
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf((GLfloat*) App->camera->GetOpenGLProjectionMatrix());
+	glLoadMatrixf((GLfloat*) active_camera->GetOpenGLProjectionMatrix());
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

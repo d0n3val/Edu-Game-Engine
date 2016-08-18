@@ -6,6 +6,7 @@
 #include "GameObject.h"
 #include "Config.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleEditorCamera.h"
 #include "ComponentCamera.h"
 #include "Event.h"
 
@@ -136,6 +137,7 @@ bool ModuleLevelManager::Load(const char * file)
 			// Load level description
 			Config desc(config.GetSection("Description"));
 			name = desc.GetString("Name", "Unnamed level");
+			App->camera->Load(&desc);
 
 			int count = config.GetArrayCount("Game Objects");
 			map<int, GameObject*> relations;
@@ -181,14 +183,14 @@ bool ModuleLevelManager::Save(const char * file)
 	// Add header info
 	Config desc(save.AddSection("Description"));
 	desc.AddString("Name", name.c_str());
+	App->camera->Save(&desc);
 
 	// Serialize GameObjects recursively
 	save.AddArray("Game Objects");
 
-	Config child;
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
 	{
-		(*it)->Save(child, file_uid, root);
+		(*it)->Save(save, file_uid, root);
 	}
 
 	// Finally save to file

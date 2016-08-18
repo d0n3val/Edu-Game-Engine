@@ -9,13 +9,14 @@
 #include "ModuleAudio.h"
 #include "ModulePhysics3D.h"
 #include "ModuleRenderer3D.h"
-#include "ModuleCamera3D.h"
+#include "ModuleEditorCamera.h"
 #include "ModuleSceneLoader.h"
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
 #include "ModuleEditor.h"
 #include "ModuleResources.h"
 #include "ResourceTexture.h"
+#include "PanelProperties.h"
 #include "mmgr/mmgr.h"
 
 using namespace std;
@@ -58,6 +59,9 @@ void PanelConfiguration::Draw()
 
 	if (InitModuleDraw(App->renderer3D))
 		DrawModuleRenderer(App->renderer3D);
+
+	if (InitModuleDraw(App->camera))
+		DrawModuleCamera(App->camera);
 
 	if (InitModuleDraw(App->tex))
 		DrawModuleTextures(App->tex);
@@ -342,6 +346,11 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
         if ((i++ % 5) < 4) ImGui::SameLine();
 	}
 	ImGui::NewLine();
+}
+
+void PanelConfiguration::DrawModuleCamera(ModuleEditorCamera * module)
+{
+	App->editor->props->DrawCameraComponent(module->GetDummy());
 }
 
 void PanelConfiguration::AddInput(const char * entry)

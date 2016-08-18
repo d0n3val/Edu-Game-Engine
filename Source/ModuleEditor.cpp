@@ -179,6 +179,7 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 	{
 		case Event::gameobject_destroyed:
 			selected = App->level->Validate(selected);
+			tree->drag = App->level->Validate(tree->drag);
 		break;
 		case Event::window_resize:
 			OnResize(event.point2d.x, event.point2d.y);

@@ -26,8 +26,8 @@ public:
 
 	void SetNearPlaneDist(float dist);
 	void SetFarPlaneDist(float dist);
-	void SetFOV(float dist);
-	void SetAspectRatio(float dist);
+	void SetFOV(float fov);
+	void SetAspectRatio(float aspect_ratio);
 
 	void Look(const float3& position);
 
@@ -38,6 +38,7 @@ public:
 	Frustum frustum;
 	Color background;
 	bool frustum_culling = false;
+	bool projection_changed = false;
 };
 
 #endif // __COMPONENT_AUDIOCAMERA_H__

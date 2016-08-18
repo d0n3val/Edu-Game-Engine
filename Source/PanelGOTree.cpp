@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "ModuleLevelManager.h"
 #include "ModuleEditor.h"
-#include "ModuleCamera3D.h"
+#include "ModuleEditorCamera.h"
 #include "ModuleResources.h"
 #include "GameObject.h"
 #include <list>

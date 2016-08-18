@@ -468,9 +468,6 @@
     <ClInclude Include="ModuleLevelManager.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleCamera3D.h">
-      <Filter>Core Modules</Filter>
-    </ClInclude>
     <ClInclude Include="gpudetect\DeviceId.h">
       <Filter>3rd Party\gpudetect</Filter>
     </ClInclude>
@@ -545,6 +542,9 @@
     </ClInclude>
     <ClInclude Include="ComponentAnimation.h">
       <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleEditorCamera.h">
+      <Filter>Core Modules</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -752,9 +752,6 @@
     <ClCompile Include="ModuleLevelManager.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleCamera3D.cpp">
-      <Filter>Core Modules</Filter>
-    </ClCompile>
     <ClCompile Include="gpudetect\DeviceId.cpp">
       <Filter>3rd Party\gpudetect</Filter>
     </ClCompile>
@@ -820,6 +817,9 @@
     </ClCompile>
     <ClCompile Include="ComponentAnimation.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleEditorCamera.cpp">
+      <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

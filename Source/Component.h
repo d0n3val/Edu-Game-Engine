@@ -30,6 +30,7 @@ public:
 	void SetActive(bool active);
 	bool IsActive() const;
 	ComponentTypes GetType() const;
+	const char* GetTypeStr() const;
 	const GameObject* GetGameObject() const;
 
 	virtual void OnSave(Config& config) const = 0;
