@@ -38,8 +38,6 @@ public:
 	void SetLocalRotation(const Quat& rotation);
 	void SetLocalScale(const float3& scale);
 
-	void PushTransformation(const float4x4& transform);
-
 	const float4x4& GetGlobalTransformation() const;
 	const float4x4& GetLocalTransform() const;
 
@@ -60,7 +58,6 @@ public:
 	const AABB& GetLocalBBox() const;
 
 private:
-	float4x4 pushed = float4x4::identity;
 	AABB local_bbox;
 	Quat rotation = Quat::identity;
 	mutable float4x4 transform_cache;

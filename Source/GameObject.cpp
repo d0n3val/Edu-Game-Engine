@@ -270,13 +270,6 @@ void GameObject::SetLocalScale(const float3 & scale)
 }
 
 // ---------------------------------------------------------
-void GameObject::PushTransformation(const float4x4 & transform)
-{
-	pushed = pushed * transform;
-	local_trans_dirty = true;
-}
-
-// ---------------------------------------------------------
 void GameObject::SetLocalPosition(const float3 & position)
 {
 	translation = position;
@@ -317,12 +310,6 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force
 		transform_global = parent * GetLocalTransform();
 		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 			(*it)->OnUpdateTransform();
-
-		if (pushed.Equals(float4x4::identity) == false)
-		{
-			pushed = float4x4::identity;
-			local_trans_dirty = true;
-		}
 	}
 	else
 		was_dirty = false;

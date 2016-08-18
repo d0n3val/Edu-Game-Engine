@@ -67,10 +67,10 @@ void ResourceAnimation::FindBoneTransformation(float time, uint bone_index, floa
 			break;
 	}
 	--i;
-	rot.Set( transform->positions.value[i * 3 + 0],
-		transform->positions.value[i * 3 + 1],
-		transform->positions.value[i * 3 + 2],
-		transform->positions.value[i * 3 + 3]);
+	rot.Set( transform->rotations.value[i * 3 + 0],
+		transform->rotations.value[i * 3 + 1],
+		transform->rotations.value[i * 3 + 2],
+		transform->rotations.value[i * 3 + 3]);
 
 	// find scale --------------------------
 	i = 0;

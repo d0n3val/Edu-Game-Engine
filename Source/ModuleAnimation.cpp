@@ -151,8 +151,10 @@ bool ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh 
 	for (map<uint, ComponentBone*>::iterator it = anim->bones.begin(); it != anim->bones.end(); ++it)
 	{
 		res->FindBoneTransformation(anim->time, it->first, pos, rot, scale);
-		it->second->anim_transform.FromTRS(pos, rot, scale);
-		it->second->GetGameObject()->PushTransformation(it->second->anim_transform);
+		//it->second->GetGameObject()->PushTransformation(float4x4::FromTRS(pos, rot, scale));
+		it->second->GetGameObject()->SetLocalPosition(pos);
+		it->second->GetGameObject()->SetLocalRotation(rot);
+		it->second->GetGameObject()->SetLocalScale(scale);
 	}
 
 	return true;

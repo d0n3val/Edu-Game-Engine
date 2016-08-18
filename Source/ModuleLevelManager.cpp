@@ -34,7 +34,7 @@ bool ModuleLevelManager::Init(Config* config)
 bool ModuleLevelManager::Start(Config * config)
 {
 	// Load a default map
-	//Load("default.eduscene");
+	Load("default.eduscene");
 
 	// Pre-calculate all transformations and bboxes
 	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);

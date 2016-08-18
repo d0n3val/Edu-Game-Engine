@@ -466,7 +466,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	ImGui::Text("Duration in Ticks: %.3f", info->duration);
 	ImGui::Text("Ticks Per Second: %.3f", info->ticks_per_second);
 	ImGui::Text("Real Time: %.3f", info->GetDurationInSecs());
-	//ImGui::Text("Potential Bones to animate: %i", component->CountBones());
+	ImGui::Text("Potential Bones to animate: %i", component->CountBones());
 
 	static const char * states[] = { 
 		"Not Loaded", 
@@ -481,9 +481,9 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 
 	ImGui::Text("Current State: ");
 	ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", states[component->GetCurrentState()]);
-	//ImGui::Text("Attached to Bones: %i", component->CountAttachedBones());
-	//ImGui::Text("Animation Time: %.3f", component->GetTime());
-	//ImGui::ProgressBar(component->GetTime() / info->GetDurationInSecs());
+	ImGui::Text("Attached to Bones: %i", component->CountAttachedBones());
+	ImGui::Text("Animation Time: %.3f", component->GetTime());
+	ImGui::ProgressBar(component->GetTime() / info->GetDurationInSecs());
 
 	if (ImGui::Button("Play"))
 		component->Play();
