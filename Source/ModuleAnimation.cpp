@@ -96,27 +96,43 @@ void ModuleAnimation::UpdateAnimation(ComponentAnimation * anim, float dt)
 	if (res != nullptr && anim->current_state)
 	{
 		const GameObject* go = anim->GetGameObject();
-		ComponentMesh* mesh = nullptr;
-
-		for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
-			if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Geometry)
-				mesh = (ComponentMesh*) *it;
 
 		switch (anim->GetCurrentState())
 		{
 		case ComponentAnimation::state::waiting_to_play:
-			anim->AttachBones();
-			anim->time = 0.f;
-			if(anim->bones.size() > 0)
+			anim->current->AttachBones();
+			anim->current->time = 0.f;
+			if(anim->current->bones.size() > 0)
 				anim->current_state = ComponentAnimation::state::playing;
 		break;
 		case ComponentAnimation::state::waiting_to_stop:
 			anim->current_state = ComponentAnimation::state::stopped;
 		break;
+		case ComponentAnimation::state::waiting_to_blend:
+			anim->next->AttachBones();
+			if(anim->next->bones.size() > 0)
+				anim->current_state = ComponentAnimation::state::blending;
+		//break; we want to fall down here!
 		case ComponentAnimation::state::playing:
-			if (AdvanceAnimation(anim, mesh, dt) == false)
+		{
+			if (AdvanceAnimation(anim->current, dt) == false)
 				anim->current_state = ComponentAnimation::state::stopped;
-			break;
+		}	break;
+		case ComponentAnimation::state::blending:
+		{
+			anim->blend_time += dt;
+			float blend_factor = anim->blend_time / anim->total_blend_time;
+
+			AdvanceAnimation(anim->current, dt, 1.0f - blend_factor, true);
+			AdvanceAnimation(anim->next, dt, blend_factor, false);
+
+			// Finish blend process
+			if (anim->blend_time > anim->total_blend_time)
+			{
+				anim->SwitchChannels();
+				anim->current_state = ComponentAnimation::state::playing;
+			}
+		}	break;
 		default:
 			break;
 		}
@@ -124,18 +140,14 @@ void ModuleAnimation::UpdateAnimation(ComponentAnimation * anim, float dt)
 }
 
 // ---------------------------------------------------------
-bool ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh * mesh, float dt)
+bool ModuleAnimation::AdvanceAnimation(ComponentAnimation::Channel * anim, float dt, float blend, bool first)
 {
 	const ResourceAnimation* res = (const ResourceAnimation*) anim->GetResource();
 
-	LOG("Updating animation on %s with anim %llu with dt %.3f on mesh %llu",
-		anim->GetGameObject()->name.c_str(),
-		res->GetUID(), dt, mesh->GetResourceUID());
-
 	// advance animation timer
-	anim->time += (dt * anim->speed);
+	anim->time += dt * anim->speed;
 
-	// are we done ? (taking in account negavuite speeds
+	// are we done ? (taking in account negative speeds)
 	if (anim->time > res->GetDurationInSecs())
 	{
 		if (anim->loop == true)
@@ -154,15 +166,26 @@ bool ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh 
 	float3 pos;
 	Quat rot;
 	float3 scale;
-	float4x4 mat;
 
 	for (map<uint, ComponentBone*>::iterator it = anim->bones.begin(); it != anim->bones.end(); ++it)
 	{
-		res->FindBoneTransformation(anim->time, it->first, pos, rot, scale, anim->interpolate);
+		res->FindBoneTransformation(anim->time, it->first, pos, rot, scale, anim->component->interpolate);
 
-		it->second->GetGameObject()->SetLocalPosition(pos);
-		it->second->GetGameObject()->SetLocalRotation(rot);
-		it->second->GetGameObject()->SetLocalScale(scale);
+		GameObject* go = it->second->GetGameObject();
+
+		if (first == true)
+		{
+			go->SetLocalPosition(pos);
+			go->SetLocalRotation(rot);
+			go->SetLocalScale(scale);
+		}
+		else
+		{
+			LOG("Blending factor %.3f", blend);
+			go->SetLocalPosition(float3::Lerp(go->GetLocalPosition(), pos, blend));
+			go->SetLocalRotation(Quat::Slerp(go->GetLocalRotationQ(), rot, blend));
+			go->SetLocalScale(float3::Lerp(go->GetLocalScale(), scale, blend));
+		}
 	}
 
 	return true;

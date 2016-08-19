@@ -453,7 +453,7 @@ void PanelProperties::DrawSkeletonComponent(ComponentSkeleton * component)
 
 void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 {
-	UID new_res = DrawResource(component->GetResourceUID(), Resource::animation);
+	UID new_res = DrawResource(component->current->resource, Resource::animation);
 	if (new_res > 0)
 		component->SetResource(new_res);
 
@@ -466,7 +466,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	ImGui::Text("Duration in Ticks: %.3f", info->duration);
 	ImGui::Text("Ticks Per Second: %.3f", info->ticks_per_second);
 	ImGui::Text("Real Time: %.3f", info->GetDurationInSecs());
-	ImGui::Text("Potential Bones to animate: %i", component->CountBones());
+	ImGui::Text("Potential Bones to animate: %i", component->current->CountBones());
 
 	static const char * states[] = { 
 		"Not Loaded", 
@@ -476,18 +476,20 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 		"About to Pause",
 		"Pause",
 		"About to Unpause",
-		"About to Stop"
+		"About to Stop",
+		"Blending",
+		"About to Blend"
 	};
 
 	ImGui::Text("Current State: ");
 	ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", states[component->GetCurrentState()]);
-	ImGui::Text("Attached to Bones: %i", component->CountAttachedBones());
+	ImGui::Text("Attached to Bones: %i", component->current->CountAttachedBones());
 	ImGui::Checkbox("Interpolate", &component->interpolate);
 	ImGui::SameLine();
-	ImGui::Checkbox("Loop", &component->loop);
-	ImGui::SliderFloat("Speed", &component->speed, -5.f, 5.f);
-	ImGui::Text("Animation Time: %.3f", component->GetTime());
-	ImGui::ProgressBar(component->GetTime() / info->GetDurationInSecs());
+	ImGui::Checkbox("Loop", &component->current->loop);
+	ImGui::SliderFloat("Speed", &component->current->speed, -5.f, 5.f);
+	ImGui::Text("Animation Time: %.3f", component->current->GetTime());
+	ImGui::ProgressBar(component->current->GetTime() / info->GetDurationInSecs());
 
 	if (ImGui::Button("Play"))
 		component->Play();
@@ -504,8 +506,25 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	if (ImGui::Button("Stop"))
 		component->Stop();
 
+	ImGui::Separator();
+	ImGui::Text("Blending to another animation");
+
+	static float blending_time_requested = 5.0f;
+	ImGui::SliderFloat("Time to blend", &blending_time_requested, 0.0f, 10.0f);
+
+	ImGui::PushID(2);
+	UID new_res2 = DrawResource(component->next->resource, Resource::animation);
+	if (new_res2 > 0)
+		component->BlendTo(new_res2, blending_time_requested);
+	ImGui::PopID();
+
+	const ResourceAnimation* info2 = component->next->GetResource();
+
+	ImGui::ProgressBar(component->blend_time / component->total_blend_time);
+	ImGui::ProgressBar(1.0f - (component->blend_time / component->total_blend_time));
 
 	ImGui::Separator();
+
 	if (ImGui::TreeNode("Bone Transformations"))
 	{
 		for (uint i = 0; i < info->num_keys; ++i)

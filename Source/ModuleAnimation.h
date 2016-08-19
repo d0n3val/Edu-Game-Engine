@@ -2,11 +2,11 @@
 #define __MODULEANIMATION_H__
 
 #include "Module.h"
+#include "ComponentAnimation.h"
 
 class GameObject;
 class ComponentBone;
 class ComponentMesh;
-class ComponentAnimation;
 
 class ModuleAnimation : public Module
 {
@@ -25,7 +25,7 @@ public:
 
 private:
 	void UpdateAnimation(ComponentAnimation* anim, float dt);
-	bool AdvanceAnimation(ComponentAnimation* anim, ComponentMesh* mesh, float dt);
+	bool AdvanceAnimation(ComponentAnimation::Channel* anim, float dt, float blend = 1.0f, bool first = true);
 	void DeformMesh(const ComponentBone* bone);
 };
 

@@ -31,6 +31,7 @@ public:
 	float3 GetGlobalPosition() const;
 
 	float3 GetLocalRotation() const;
+	Quat GetLocalRotationQ() const;
 	float3 GetLocalScale() const;
 
 	void SetLocalPosition(const float3& position);

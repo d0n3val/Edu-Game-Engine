@@ -243,6 +243,12 @@ float3 GameObject::GetLocalRotation() const
 }
 
 // ---------------------------------------------------------
+Quat GameObject::GetLocalRotationQ() const
+{
+	return rotation;
+}
+
+// ---------------------------------------------------------
 float3 GameObject::GetLocalScale() const
 {
 	return scale;
