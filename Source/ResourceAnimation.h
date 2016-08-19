@@ -23,7 +23,7 @@ public:
 
 	float GetDurationInSecs() const;
 
-	void FindBoneTransformation(float time, uint bone_index, float3& pos, Quat& rot, float3& scale) const;
+	void FindBoneTransformation(float time, uint bone_index, float3& pos, Quat& rot, float3& scale, bool interpolate = true) const;
 
 public:
 	std::string name;

@@ -482,6 +482,10 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	ImGui::Text("Current State: ");
 	ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", states[component->GetCurrentState()]);
 	ImGui::Text("Attached to Bones: %i", component->CountAttachedBones());
+	ImGui::Checkbox("Interpolate", &component->interpolate);
+	ImGui::SameLine();
+	ImGui::Checkbox("Loop", &component->loop);
+	ImGui::SliderFloat("Speed", &component->speed, -5.f, 5.f);
 	ImGui::Text("Animation Time: %.3f", component->GetTime());
 	ImGui::ProgressBar(component->GetTime() / info->GetDurationInSecs());
 

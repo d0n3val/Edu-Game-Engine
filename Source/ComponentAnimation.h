@@ -55,6 +55,10 @@ public:
 		waiting_to_stop
 	};
 
+	bool loop = false;
+	float speed = 1.0f;
+	bool interpolate = true;
+
 private:
 	state current_state = state::unloaded;
 	float time = 0.f;

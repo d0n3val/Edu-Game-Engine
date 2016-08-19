@@ -102,26 +102,23 @@ void ModuleAnimation::UpdateAnimation(ComponentAnimation * anim, float dt)
 			if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Geometry)
 				mesh = (ComponentMesh*) *it;
 
-		if (mesh != nullptr && mesh->deformable != nullptr)
+		switch (anim->GetCurrentState())
 		{
-			switch (anim->GetCurrentState())
-			{
-			case ComponentAnimation::state::waiting_to_play:
-				anim->AttachBones();
-				anim->time = 0.f;
-				if(anim->bones.size() > 0)
-					anim->current_state = ComponentAnimation::state::playing;
-			break;
-			case ComponentAnimation::state::waiting_to_stop:
+		case ComponentAnimation::state::waiting_to_play:
+			anim->AttachBones();
+			anim->time = 0.f;
+			if(anim->bones.size() > 0)
+				anim->current_state = ComponentAnimation::state::playing;
+		break;
+		case ComponentAnimation::state::waiting_to_stop:
+			anim->current_state = ComponentAnimation::state::stopped;
+		break;
+		case ComponentAnimation::state::playing:
+			if (AdvanceAnimation(anim, mesh, dt) == false)
 				anim->current_state = ComponentAnimation::state::stopped;
 			break;
-			case ComponentAnimation::state::playing:
-				if (AdvanceAnimation(anim, mesh, dt) == false)
-					anim->current_state = ComponentAnimation::state::stopped;
-				break;
-			default:
-				break;
-			}
+		default:
+			break;
 		}
 	}
 }
@@ -136,12 +133,23 @@ bool ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh 
 		res->GetUID(), dt, mesh->GetResourceUID());
 
 	// advance animation timer
-	// TODO fmodf for looping
-	anim->time += dt;
+	anim->time += (dt * anim->speed);
 
-	// are we done ?
+	// are we done ? (taking in account negavuite speeds
 	if (anim->time > res->GetDurationInSecs())
-		return false;
+	{
+		if (anim->loop == true)
+			anim->time = anim->time - res->GetDurationInSecs();
+		else
+			return false;
+	}
+	else if (anim->time < 0 && anim->speed < 0.0f)
+	{
+		if (anim->loop == true)
+			anim->time = res->GetDurationInSecs() - anim->time;
+		else
+			return false;
+	}
 
 	float3 pos;
 	Quat rot;
@@ -150,8 +158,8 @@ bool ModuleAnimation::AdvanceAnimation(ComponentAnimation * anim, ComponentMesh 
 
 	for (map<uint, ComponentBone*>::iterator it = anim->bones.begin(); it != anim->bones.end(); ++it)
 	{
-		res->FindBoneTransformation(anim->time, it->first, pos, rot, scale);
-		//it->second->GetGameObject()->PushTransformation(float4x4::FromTRS(pos, rot, scale));
+		res->FindBoneTransformation(anim->time, it->first, pos, rot, scale, anim->interpolate);
+
 		it->second->GetGameObject()->SetLocalPosition(pos);
 		it->second->GetGameObject()->SetLocalRotation(rot);
 		it->second->GetGameObject()->SetLocalScale(scale);

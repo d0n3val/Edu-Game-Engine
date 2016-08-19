@@ -24,12 +24,16 @@ ComponentAnimation::~ComponentAnimation()
 void ComponentAnimation::OnSave(Config& config) const
 {
 	ComponentWithResource::OnSaveResource(config);
+	config.AddBool("Loop", loop);
+	config.AddFloat("Speed", speed);
 }
 
 // ---------------------------------------------------------
 void ComponentAnimation::OnLoad(Config * config)
 {
 	ComponentWithResource::OnLoadResource(config);
+	loop = config->GetBool("Loop", false);
+	speed = config->GetFloat("Speed", 1.0f);
 }
 
 // ---------------------------------------------------------
