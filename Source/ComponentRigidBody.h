@@ -66,6 +66,11 @@ private:
 
 	btRigidBody* body = nullptr;
 	float mass = 1.0f;
+	float restitution = 1.0f;
+	float3 linear_factor = float3::zero;
+	float3 angular_factor = float3::zero;
+
+	float4x4 original_transform;
 };
 
 #endif // __COMPONENT_RIGID_BODY_H__

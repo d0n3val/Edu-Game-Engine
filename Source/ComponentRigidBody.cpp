@@ -44,6 +44,9 @@ void ComponentRigidBody::OnSave(Config& config) const
 	config.AddArrayFloat("Sphere", &sphere.pos.x, 4);
 	config.AddArrayFloat("Box", &box.pos.x, 6);
 	config.AddArrayFloat("Capsule", &capsule.l.a.x, 7);
+	config.AddArrayFloat("Linear Factor", &linear_factor.x, 3);
+	config.AddArrayFloat("Angular Factor", &angular_factor.x, 3);
+	config.AddFloat("Restitution", restitution);
 }
 
 // ---------------------------------------------------------
@@ -72,6 +75,16 @@ void ComponentRigidBody::OnLoad(Config * config)
 	box.r.x = config->GetFloat("Box", 1.f, 3);
 	box.r.y = config->GetFloat("Box", 1.f, 4);
 	box.r.z = config->GetFloat("Box", 1.f, 5);
+
+	restitution = config->GetFloat("Restitution", 1.0f);
+
+	linear_factor.x = config->GetFloat("Linear Factor", 1.f, 0);
+	linear_factor.y = config->GetFloat("Linear Factor", 1.f, 1);
+	linear_factor.z = config->GetFloat("Linear Factor", 1.f, 2);
+
+	angular_factor.x = config->GetFloat("Angular Factor", 1.f, 0);
+	angular_factor.y = config->GetFloat("Angular Factor", 1.f, 1);
+	angular_factor.z = config->GetFloat("Angular Factor", 1.f, 2);
 }
 
 // ---------------------------------------------------------
@@ -141,6 +154,13 @@ void ComponentRigidBody::CreateBody()
 			body = App->physics3D->AddBody(capsule, this);
 		break;
 	}
+
+	if (body != nullptr)
+	{
+		body->setLinearFactor(linear_factor);
+		body->setAngularFactor(angular_factor);
+		body->setRestitution(restitution);
+	}
 }
 
 // ---------------------------------------------------------
@@ -206,4 +226,33 @@ void ComponentRigidBody::DrawEditor()
 
 	if (ImGui::Button("Commit Changes to Physics Engine"))
 		CreateBody();
+
+	linear_factor =  body->getLinearFactor();
+	if (ImGui::DragFloat3("Linear Factor", &linear_factor.x, 0.05f, 0.f, 1.f))
+		body->setLinearFactor(linear_factor);
+
+	angular_factor = body->getAngularFactor();
+	if (ImGui::DragFloat3("Angular Factor", &angular_factor.x, 0.05f, 0.f, 1.f))
+		body->setAngularFactor(angular_factor);
+
+	restitution = body->getRestitution();
+	if(ImGui::DragFloat("Restitution", &restitution, 0.1f))
+		body->setRestitution(restitution);
+
+	float3 data = body->getLinearVelocity();
+	IMGUI_PRINT("Linear Velocity: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+	data = body->getAngularVelocity();
+	IMGUI_PRINT("Angular Velocity: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+	data = body->getCenterOfMassPosition();
+	IMGUI_PRINT("Center of Mass: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+	data = body->getLocalInertia();
+	IMGUI_PRINT("Local Inertia: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+	data = body->getTotalForce();
+	IMGUI_PRINT("Total Force: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+	data = body->getTotalTorque();
+	IMGUI_PRINT("Total Torque: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+	data.x = body->getFriction();
+	data.y = body->getHitFraction();
+	data.z = body->getRollingFriction();
+	IMGUI_PRINT("Friction/Hit/Rolling: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
 }
