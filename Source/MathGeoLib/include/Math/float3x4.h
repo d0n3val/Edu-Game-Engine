@@ -788,6 +788,7 @@ public:
 	operator QString() const { return toString(); }
 	QString toString() const { return ToString2().c_str(); }
 #endif
+
 };
 
 #ifdef MATH_ENABLE_STL_SUPPORT

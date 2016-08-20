@@ -38,6 +38,7 @@ public:
 	bool Init();
 	update_status Update();
 	bool CleanUp();
+	void DebugDraw();
 	const char* GetAppName() const;
 	void SetAppName(const char* name) ;
 	const char* GetOrganizationName() const;

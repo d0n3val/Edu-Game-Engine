@@ -7,8 +7,10 @@
 void BeginDebugDraw();
 void EndDebugDraw();
 
-void DebugDraw(const AABB& aabb, Color color = White);
-void DebugDraw(const OBB& obb, Color color = White);
+void DebugDraw(const Sphere& sphere, Color color = White, const float4x4& transform = float4x4::identity);
+void DebugDraw(const AABB& aabb, Color color = White, const float4x4& transform = float4x4::identity);
+void DebugDraw(const OBB& obb, Color color = White, const float4x4& transform = float4x4::identity);
+void DebugDraw(const Capsule& capsule, Color color = White, const float4x4& transform = float4x4::identity);
 void DebugDraw(const float4x4& transform);
 void DebugDraw(const Frustum& frustum, Color color = White);
 void DebugDraw(const LineSegment& segment, Color color = White);

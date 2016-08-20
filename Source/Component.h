@@ -14,7 +14,7 @@ enum ComponentTypes
 	AudioSource,
 	Camera,
 	Bone,
-	Skeleton,
+	RigidBody,
 	Animation
 };
 

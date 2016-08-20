@@ -127,6 +127,8 @@
     <ClInclude Include="Assimp\include\vector2.h" />
     <ClInclude Include="Assimp\include\vector3.h" />
     <ClInclude Include="Assimp\include\version.h" />
+    <ClInclude Include="Bullet\include\btBulletCollisionCommon.h" />
+    <ClInclude Include="Bullet\include\btBulletDynamicsCommon.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentAnimation.h" />
@@ -136,7 +138,7 @@
     <ClInclude Include="ComponentCamera.h" />
     <ClInclude Include="ComponentMaterial.h" />
     <ClInclude Include="ComponentMesh.h" />
-    <ClInclude Include="ComponentSkeleton.h" />
+    <ClInclude Include="ComponentRigidBody.h" />
     <ClInclude Include="ComponentWithResource.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="DebugDraw.h" />
@@ -244,7 +246,6 @@
     <ClInclude Include="PanelResources.h" />
     <ClInclude Include="parson.h" />
     <ClInclude Include="PhysBody3D.h" />
-    <ClInclude Include="Point.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceAudio.h" />
@@ -267,7 +268,7 @@
     <ClCompile Include="ComponentCamera.cpp" />
     <ClCompile Include="ComponentMaterial.cpp" />
     <ClCompile Include="ComponentMesh.cpp" />
-    <ClCompile Include="ComponentSkeleton.cpp" />
+    <ClCompile Include="ComponentRigidBody.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="DebugDraw.cpp" />

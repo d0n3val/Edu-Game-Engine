@@ -169,6 +169,14 @@ bool Application::CleanUp()
 }
 
 // ---------------------------------------------
+void Application::DebugDraw()
+{
+	for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
+		if ((*it)->IsActive() == true)
+			(*it)->DebugDraw();
+}
+
+// ---------------------------------------------
 const char* Application::GetAppName() const
 {
 	return app_name.c_str();

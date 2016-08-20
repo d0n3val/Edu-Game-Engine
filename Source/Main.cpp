@@ -94,7 +94,8 @@ int main(int argc, char ** argv)
 
 	LOG("Exiting engine ...");
 #ifdef _DEBUG
-	LOG("With %d memory leaks!\n", m_getMemoryStatistics().totalAllocUnitCount - 23);
+	int leaks =  MAX(0, m_getMemoryStatistics().totalAllocUnitCount - 23);
+	LOG("With %d memory leaks!\n", leaks);
 #endif
 	return main_return;
 }

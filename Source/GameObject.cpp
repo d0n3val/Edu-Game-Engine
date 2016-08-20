@@ -11,7 +11,7 @@
 #include "ComponentMesh.h"
 #include "ComponentCamera.h"
 #include "ComponentBone.h"
-#include "ComponentSkeleton.h"
+#include "ComponentRigidBody.h"
 #include "ComponentAnimation.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
@@ -215,8 +215,8 @@ Component* GameObject::CreateComponent(ComponentTypes type)
 		case ComponentTypes::Bone:
 			ret = new ComponentBone(this);
 		break;
-		case ComponentTypes::Skeleton:
-			ret = new ComponentSkeleton(this);
+		case ComponentTypes::RigidBody:
+			ret = new ComponentRigidBody(this);
 		break;
 		case ComponentTypes::Animation:
 			ret = new ComponentAnimation(this);
@@ -254,6 +254,12 @@ void GameObject::SetNewParent(GameObject * new_parent, bool recalc_transformatio
 		float4x4 new_local = current_global * new_parent->GetLocalTransform().Inverted();
 		new_local.Decompose(translation, rotation, scale);
 	}
+}
+
+// ---------------------------------------------------------
+GameObject* GameObject::GetParent() const
+{
+	return parent;
 }
 
 // ---------------------------------------------------------

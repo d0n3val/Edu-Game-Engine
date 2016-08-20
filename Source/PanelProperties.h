@@ -13,7 +13,7 @@ class ComponentAudioListener;
 class ComponentMaterial;
 class ComponentCamera;
 class ComponentBone;
-class ComponentSkeleton;
+class ComponentRigidBody;
 class ComponentAnimation;
 
 class PanelProperties : public Panel
@@ -35,8 +35,8 @@ public:
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
 	void DrawCameraComponent(ComponentCamera * component);
 	void DrawBoneComponent(ComponentBone * component);
-	void DrawSkeletonComponent(ComponentSkeleton * component);
 	void DrawAnimationComponent(ComponentAnimation * component);
+	void DrawRigidBodyComponent(ComponentRigidBody * component);
 };
 
 #endif// __PANELPROPERTIES_H__

@@ -94,11 +94,12 @@ update_status ModuleEditorCamera::Update(float dt)
 	// Mouse motion ----------------
 	if (App->editor->UsingMouse() == false)
 	{
-		iPoint motion = App->input->GetMouseMotion();
-		if (App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && (motion.x != 0 || motion.y != 0))
+		int motion_x, motion_y;
+		App->input->GetMouseMotion(motion_x, motion_y);
+		if (App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && (motion_x != 0 || motion_y != 0))
 		{
-			float dx = (float)-motion.x;
-			float dy = (float)-motion.y;
+			float dx = (float)-motion_x;
+			float dy = (float)-motion_y;
 
 			if (App->input->GetKey(SDL_SCANCODE_LCTRL) == KEY_REPEAT)
 			{

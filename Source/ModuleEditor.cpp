@@ -187,6 +187,13 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 	}
 }
 
+void ModuleEditor::DebugDraw()
+{
+	GameObject* selected = App->editor->selected;
+	if (selected != nullptr)
+		App->level->RecursiveDebugDrawGameObjects(selected);
+}
+
 void ModuleEditor::OnResize(int width, int height)
 {
 	LOG("Moving windows");
@@ -242,13 +249,6 @@ const char * ModuleEditor::CloseFileDialog()
 void ModuleEditor::Draw()
 {
 	// Debug Draw on selected GameObject
-	GameObject* selected = App->editor->selected;
-	if (selected != nullptr)
-	{
-		BeginDebugDraw();
-		App->level->RecursiveDebugDrawGameObjects(selected);
-		EndDebugDraw();
-	}
 
 	ImGui::Render();
 }

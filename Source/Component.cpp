@@ -48,7 +48,7 @@ const char * Component::GetTypeStr() const
 	"AudioSource",
 	"Camera",
 	"Bone",
-	"Skeleton",
+	"RigidBody",
 	"Animation" };
 
 	return names[type];

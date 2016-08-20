@@ -58,6 +58,9 @@
     <Filter Include="3rd Party\mmgr">
       <UniqueIdentifier>{4c1e152e-2005-4ea3-bf33-ab8ec47378d7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\bullet">
+      <UniqueIdentifier>{b8dd2996-a988-4934-9ec5-2796b986b47b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -101,9 +104,6 @@
     </ClInclude>
     <ClInclude Include="ModuleWindow.h">
       <Filter>Core Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Point.h">
-      <Filter>Containers</Filter>
     </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>Game Objects</Filter>
@@ -531,9 +531,6 @@
     <ClInclude Include="LoaderBone.h">
       <Filter>Resources\Loaders</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentSkeleton.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceAnimation.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -545,6 +542,15 @@
     </ClInclude>
     <ClInclude Include="ModuleEditorCamera.h">
       <Filter>Core Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentRigidBody.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Bullet\include\btBulletCollisionCommon.h">
+      <Filter>3rd Party\bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="Bullet\include\btBulletDynamicsCommon.h">
+      <Filter>3rd Party\bullet</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -806,9 +812,6 @@
     <ClCompile Include="LoaderBone.cpp">
       <Filter>Resources\Loaders</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentSkeleton.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceAnimation.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -820,6 +823,9 @@
     </ClCompile>
     <ClCompile Include="ModuleEditorCamera.cpp">
       <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentRigidBody.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

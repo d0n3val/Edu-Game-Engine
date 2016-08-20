@@ -10,6 +10,7 @@
 #include "ComponentCamera.h"
 #include "Event.h"
 #include "Config.h"
+#include "DebugDraw.h"
 
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
@@ -174,6 +175,11 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	glColor3f(1.f,1.f,1.f);
 
 	App->level->Draw();
+
+	BeginDebugDraw();
+	App->DebugDraw();
+	EndDebugDraw();
+
 	App->editor->Draw();
 
 	SDL_GL_SwapWindow(App->window->GetWindow());

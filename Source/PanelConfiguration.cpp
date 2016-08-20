@@ -213,15 +213,16 @@ void PanelConfiguration::DrawModuleFileSystem(ModuleFileSystem * module)
 
 void PanelConfiguration::DrawModuleInput(ModuleInput * module)
 {
-	iPoint mouse = module->GetMousePosition();
+	int mouse_x, mouse_y;
+	module->GetMousePosition(mouse_x, mouse_y);
 	ImGui::Text("Mouse Position:");
 	ImGui::SameLine();
-	ImGui::TextColored(IMGUI_YELLOW, "%i,%i", mouse.x, mouse.y);
+	ImGui::TextColored(IMGUI_YELLOW, "%i,%i", mouse_x, mouse_y);
 
-	mouse = module->GetMouseMotion();
+	module->GetMouseMotion(mouse_x, mouse_y);
 	ImGui::Text("Mouse Motion:");
 	ImGui::SameLine();
-	ImGui::TextColored(IMGUI_YELLOW, "%i,%i", mouse.x, mouse.y);
+	ImGui::TextColored(IMGUI_YELLOW, "%i,%i", mouse_x, mouse_y);
 
 	int wheel = module->GetMouseWheel();
 	ImGui::Text("Mouse Wheel:");
@@ -360,12 +361,60 @@ void PanelConfiguration::DrawModuleCamera(ModuleEditorCamera * module)
 void PanelConfiguration::DrawModulePhysics(ModulePhysics3D * module)
 {
 	ImGui::Checkbox("Paused", &App->physics3D->paused);
-	ImGui::SameLine();
-	ImGui::Checkbox("Debug Draw", &App->physics3D->debug);
 
 	float3 gravity = App->physics3D->GetGravity();
 	if (ImGui::DragFloat3("Gravity", &gravity.x, 0.1f))
 		App->physics3D->SetGravity(gravity);
+
+	ImGui::Checkbox("Debug Draw", &App->physics3D->debug);
+
+	ImGui::Text("Debug Draw Flags:");
+	uint mode = App->physics3D->GetDebugMode();
+/*
+		DBG_NoDebug=0,
+		DBG_DrawWireframe = 1,
+		DBG_DrawAabb=2,
+		DBG_DrawFeaturesText=4,
+		DBG_DrawContactPoints=8,
+		DBG_NoDeactivation=16,
+		DBG_NoHelpText = 32,
+		DBG_DrawText=64,
+		DBG_ProfileTimings = 128,
+		DBG_EnableSatComparison = 256,
+		DBG_DisableBulletLCP = 512,
+		DBG_EnableCCD = 1024,
+		DBG_DrawConstraints = (1 << 11),
+		DBG_DrawConstraintLimits = (1 << 12),
+		DBG_FastWireframe = (1<<13),
+		DBG_DrawNormals = (1<<14),
+		DBG_DrawFrames = (1<<15),
+*/
+	if (ImGui::CheckboxFlags("Wire Frame", &mode, 1))
+		App->physics3D->SetDebugMode(mode);
+
+	if (ImGui::CheckboxFlags("AABB", &mode, 2))
+		App->physics3D->SetDebugMode(mode);
+
+	if (ImGui::CheckboxFlags("Contact Points", &mode, 8))
+		App->physics3D->SetDebugMode(mode);
+
+	if (ImGui::CheckboxFlags("No Deactivation", &mode, 16))
+		App->physics3D->SetDebugMode(mode);
+
+	if (ImGui::CheckboxFlags("Constraints", &mode, 1<<11))
+		App->physics3D->SetDebugMode(mode);
+
+	if (ImGui::CheckboxFlags("Constraints Limits", &mode, 1<<12))
+		App->physics3D->SetDebugMode(mode);
+
+	if (ImGui::CheckboxFlags("Fast Wires", &mode, 1<<13))
+		App->physics3D->SetDebugMode(mode);
+
+	if (ImGui::CheckboxFlags("Normals", &mode, 1<<14))
+		App->physics3D->SetDebugMode(mode);
+
+	if (ImGui::CheckboxFlags("Frames", &mode, 1<<15))
+		App->physics3D->SetDebugMode(mode);
 }
 
 void PanelConfiguration::AddInput(const char * entry)

@@ -31,6 +31,7 @@ public:
 	Component* CreateComponent(ComponentTypes type);
 
 	void SetNewParent(GameObject* node, bool recalc_transformation = false);
+	GameObject* GetParent() const;
 
 	float3 GetLocalPosition() const;
 	float3 GetGlobalPosition() const;

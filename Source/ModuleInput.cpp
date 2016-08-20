@@ -8,7 +8,7 @@
 
 #define MAX_KEYS 300
 
-ModuleInput::ModuleInput(bool start_enabled) : Module("Input", start_enabled), mouse({0, 0}), mouse_motion({0,0})
+ModuleInput::ModuleInput(bool start_enabled) : Module("Input", start_enabled)
 {
 	keyboard = new KeyState[MAX_KEYS];
 	memset(keyboard, KEY_IDLE, sizeof(KeyState) * MAX_KEYS);
@@ -42,7 +42,7 @@ update_status ModuleInput::PreUpdate(float dt)
 {
 	static SDL_Event event;
 
-	mouse_motion = {0, 0};
+	mouse_motion_x = mouse_motion_y = 0;
 	memset(windowEvents, false, WE_COUNT * sizeof(bool));
 	
 	const Uint8* keys = SDL_GetKeyboardState(NULL);
@@ -140,10 +140,10 @@ update_status ModuleInput::PreUpdate(float dt)
 			break;
 
 			case SDL_MOUSEMOTION:
-				mouse_motion.x = event.motion.xrel;
-				mouse_motion.y = event.motion.yrel;
-				mouse.x = event.motion.x;
-				mouse.y = event.motion.y;
+				mouse_motion_x = event.motion.xrel;
+				mouse_motion_y = event.motion.yrel;
+				mouse_x = event.motion.x;
+				mouse_y = event.motion.y;
 			break;
 			
 			case SDL_MOUSEWHEEL:
@@ -179,14 +179,16 @@ bool ModuleInput::GetWindowEvent(EventWindow ev) const
 	return windowEvents[ev];
 }
 
-const iPoint& ModuleInput::GetMousePosition() const
+void ModuleInput::GetMouseMotion(int & x, int & y) const
 {
-	return mouse;
+	x = mouse_motion_x;
+	y = mouse_motion_y;
 }
 
-const iPoint& ModuleInput::GetMouseMotion() const
+void ModuleInput::GetMousePosition(int & x, int & y) const
 {
-	return mouse_motion;
+	x = mouse_x;
+	y = mouse_y;
 }
 
 int ModuleInput::GetMouseWheel() const

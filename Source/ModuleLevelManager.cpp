@@ -165,19 +165,18 @@ bool ModuleLevelManager::Load(const char * file)
 				}
 			}
 
+			root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
+			bool did_recalc;
+			root->RecursiveCalcBoundingBoxes(did_recalc);
+
 			// Third pass: call OnStart on all new GameObjects
 			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
 				it->second->OnStart();
 
-			root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
-			bool did_recalc;
-			root->RecursiveCalcBoundingBoxes(did_recalc);
 		}
 
 		RELEASE_ARRAY(buffer); 
 	}
-
-
 
 	return ret;
 }

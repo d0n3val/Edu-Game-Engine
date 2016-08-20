@@ -9,7 +9,7 @@
 #include "ComponentAudioListener.h"
 #include "ComponentCamera.h"
 #include "ComponentBone.h"
-#include "ComponentSkeleton.h"
+#include "ComponentRigidBody.h"
 #include "ComponentAnimation.h"
 #include "ModuleMeshes.h"
 #include "ModuleLevelManager.h"
@@ -71,8 +71,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(ComponentTypes::Camera);
 			if (ImGui::MenuItem("Bone", nullptr, nullptr, false))
 				selected->CreateComponent(ComponentTypes::Bone);
-			if (ImGui::MenuItem("Skeleton"))
-				selected->CreateComponent(ComponentTypes::Skeleton);
+			if (ImGui::MenuItem("RigidBody"))
+				selected->CreateComponent(ComponentTypes::RigidBody);
 			if (ImGui::MenuItem("Animation"))
 				selected->CreateComponent(ComponentTypes::Animation);
             ImGui::EndMenu();
@@ -162,9 +162,9 @@ void PanelProperties::Draw()
 				{
 					DrawBoneComponent((ComponentBone*)(*it));
 				}	break;
-				case ComponentTypes::Skeleton:
+				case ComponentTypes::RigidBody:
 				{
-					DrawSkeletonComponent((ComponentSkeleton*)(*it));
+					DrawRigidBodyComponent((ComponentRigidBody*)(*it));
 				}	break;
 				case ComponentTypes::Animation:
 				{
@@ -494,15 +494,6 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 	ImGui::Image((ImTextureID) info->gpu_id, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
 }
 
-void PanelProperties::DrawSkeletonComponent(ComponentSkeleton * component)
-{
-	ComponentMesh* mesh = component->FindMesh();
-
-	ImGui::Text("Mesh to deform:");
-	ImGui::SameLine();
-	ImGui::TextColored(IMGUI_YELLOW, "%s", (mesh) ? "OK" : "Please add a mesh component");
-}
-
 void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 {
 	UID new_res = PickResource(component->current->resource, Resource::animation);
@@ -644,4 +635,9 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 		}
 		ImGui::TreePop();
 	}
+}
+
+void PanelProperties::DrawRigidBodyComponent(ComponentRigidBody * component)
+{
+	component->DrawEditor();
 }

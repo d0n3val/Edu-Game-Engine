@@ -5,13 +5,25 @@
 #include "Globals.h"
 #include <list>
 #include "Primitive.h"
-#include "Bullet/include/btBulletDynamicsCommon.h"
+#include "Bullet/include/LinearMath/btIDebugDraw.h"
 #include "Math.h"
 
 // Recommended scale is 1.0f == 1 meter, no less than 0.2 objects
 #define GRAVITY btVector3(0.0f, -10.0f, 0.0f) 
 
+class btRigidBody;
+class btDefaultCollisionConfiguration;
+class btCollisionDispatcher;
+class btBroadphaseInterface;
+class btSequentialImpulseConstraintSolver;
+class btDiscreteDynamicsWorld;
+class btDefaultVehicleRaycaster;
+class btCollisionShape;
 class DebugDrawer;
+
+class DebugDrawer;
+class ComponentRigidBody;
+
 struct PhysBody3D;
 struct PhysVehicle3D;
 struct VehicleInfo;
@@ -28,6 +40,7 @@ public:
 	update_status Update(float dt) override;
 	update_status PostUpdate(float dt) override;
 	bool CleanUp();
+	void DebugDraw() override;
 
 	void Save(Config* config) const override;
 	void Load(Config* config) override;
@@ -39,14 +52,19 @@ public:
 
 	// Bodies ---
 
-	PhysBody3D*		AddBody(const Cube& cube, float mass = 1.0f);
-	PhysBody3D*		AddBody(const Sphere& sphere, float mass = 1.0f);
+	btRigidBody*	AddBody(const OBB & cube, ComponentRigidBody * component);
+	btRigidBody*	AddBody(const Sphere& sphere, ComponentRigidBody* component);
+	btRigidBody*	AddBody(const Capsule& capsule, ComponentRigidBody* component);
 	PhysBody3D*		AddBody(const PCylinder& cylinder, float mass = 1.0f);
 	PhysBody3D*		AddBody(const PPlane& plane);
 	PhysBody3D*		AddHeighField(const char* filename, int width, int height);
 	PhysVehicle3D*	AddVehicle(const VehicleInfo& info);
 
 	void DeleteBody(PhysBody3D* body);
+	void DeleteBody(btRigidBody* body);
+
+	uint GetDebugMode() const;
+	void SetDebugMode(uint mode);
 
 public:
 	bool debug = false;

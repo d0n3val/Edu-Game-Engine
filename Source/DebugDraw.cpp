@@ -24,6 +24,77 @@ void EndDebugDraw()
 	glPopMatrix();
 }
 
+
+ /*scalex - scaling of sphere around x-axis
+   scaley - scaling of sphere around y-axis
+   r - radius of sphere
+  */
+ void drawHalfSphere(GLfloat r) {
+   int i, j;
+   int scalex, scaley;
+   scalex = scaley = 12;
+   GLfloat v[12*12][3];
+ 
+   for (i=0; i<scalex; ++i) {
+     for (j=0; j<scaley; ++j) {
+       v[i*scaley+j][0]=r*cos(j*2*PI/scaley)*cos(i*PI/(2*scalex));
+       v[i*scaley+j][1]=r*sin(i*PI/(2*scalex));
+       v[i*scaley+j][2]=r*sin(j*2*PI/scaley)*cos(i*PI/(2*scalex));
+     }
+   }
+ 
+   glBegin(GL_QUADS);
+     for (i=0; i<scalex-1; ++i) {
+       for (j=0; j<scaley; ++j) {
+         glVertex3fv(v[i*scaley+j]);
+         glVertex3fv(v[i*scaley+(j+1)%scaley]);
+         glVertex3fv(v[(i+1)*scaley+(j+1)%scaley]);
+         glVertex3fv(v[(i+1)*scaley+j]);
+       }
+     }
+   glEnd();
+ }
+
+// ------------------------------------------------------------
+void DebugDraw(const Sphere & sphere, Color color, const float4x4 & transform)
+{
+	glColor3f(color.r, color.g, color.b);
+
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
+
+	int stacks = 10;
+	int slices = 10;
+
+    int i,j;
+    for (j = 0; j < stacks; j++) {
+        double latitude1 = (PI/stacks) * j - PI/2;
+        double latitude2 = (PI/stacks) * (j+1) - PI/2;
+        double sinLat1 = sin(latitude1);
+        double cosLat1 = cos(latitude1);
+        double sinLat2 = sin(latitude2);
+        double cosLat2 = cos(latitude2);
+        glBegin(GL_QUAD_STRIP);
+        for (i = 0; i <= slices; i++) {
+            double longitude = (2*PI/slices) * i;
+            double sinLong = sin(longitude);
+            double cosLong = cos(longitude);
+            double x1 = cosLong * cosLat1;
+            double y1 = sinLong * cosLat1;
+            double z1 = sinLat1;
+            double x2 = cosLong * cosLat2;
+            double y2 = sinLong * cosLat2;
+            double z2 = sinLat2;
+            glNormal3d(x2,y2,z2);
+            glVertex3d(sphere.r*x2,sphere.r*y2,sphere.r*z2);
+            glNormal3d(x1,y1,z1);
+            glVertex3d(sphere.r*x1,sphere.r*y1,sphere.r*z1);
+        }
+        glEnd();
+    }
+	glPopMatrix();
+}
+
 // ------------------------------------------------------------
 void DebugDraw(const AABB & aabb, Color color)
 {
@@ -34,24 +105,68 @@ void DebugDraw(const AABB & aabb, Color color)
 }
 
 // ------------------------------------------------------------
-void DebugDraw(const OBB & obb, Color color)
+void DebugDraw(const OBB& obb, Color color, const float4x4& transform)
 {
 	static float3 corners[8];
 	obb.GetCornerPoints(corners);
 
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
 	DebugDrawBox(corners, color);
+	glPopMatrix();
 }
 
+// ------------------------------------------------------------
+void DebugDraw(const Capsule & capsule, Color color, const float4x4 & transform)
+{
+	// TODO change that to draw a real capsule and not a cylinder :(
+	glColor3f(color.r, color.g, color.b);
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
+
+	int n = 12;
+	float height = capsule.LineLength();
+	float radius = capsule.r;
+
+	// Cap 1
+	glPushMatrix();
+	glTranslatef(0.f, height*0.5f, 0.f);
+	drawHalfSphere(capsule.r);
+	glPopMatrix();
+
+	// Cap 2
+	glPushMatrix();
+	glRotatef(180, 1, 0, 0);
+	glPushMatrix();
+	glTranslatef(0.f, height*0.5f, 0.f);
+	drawHalfSphere(capsule.r);
+	glPopMatrix();
+	glPopMatrix();
+
+	// Cover between caps
+	glPushMatrix();
+	glRotatef(90, 0, 0, 1);
+	glBegin(GL_QUAD_STRIP);
+	for(int i = 0; i < 480; i += (360 / n))
+	{
+		float a = (float)i * PI / 180.f; // degrees to radians
+
+		glVertex3f(height*0.5f,  radius * cosf(a), radius * sinf(a) );
+		glVertex3f(-height*0.5f, radius * cosf(a), radius * sinf(a) );
+	}
+	glEnd();
+
+	glPopMatrix();
+	glPopMatrix();
+}
+
+// ------------------------------------------------------------
 // Draw Axis
 void DebugDraw(const float4x4 & transform)
 {
-	// scale based on distance to keep same screen space ?
-	static float4x4 m;
-	
-	m = transform.Transposed();
-
+	// TODO scale based on distance to keep same screen space ?
 	glPushMatrix();
-	glMultMatrixf((GLfloat*) m.v);
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
 	glLineWidth(2.0f);
 
 	glBegin(GL_LINES);
@@ -92,7 +207,7 @@ void DebugDraw(const Frustum & frustum, Color color)
 void DebugDraw(const LineSegment & segment, Color color)
 {
 	glColor3f(color.r, color.g, color.b);
-	glLineWidth(5.0f);
+	glLineWidth(2.0f);
 	glBegin(GL_LINES);
 
 	glVertex3fv((GLfloat*)&segment.a);
@@ -105,7 +220,7 @@ void DebugDraw(const LineSegment & segment, Color color)
 void DebugDraw(const float3 & point, Color color)
 {
 	glColor3f(color.r, color.g, color.b);
-	glPointSize(5.0f);
+	glPointSize(3.0f);
 	glBegin(GL_POINTS);
 
 	glVertex3fv((GLfloat*)&point);

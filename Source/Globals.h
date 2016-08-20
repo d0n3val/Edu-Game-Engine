@@ -25,8 +25,8 @@ enum update_status
 
 // Useful macros
 #define CAP(n) ((n <= 0.0f) ? n=0.0f : (n >= 1.0f) ? n=1.0f : n=n)
-#define MIN(a,b) ((a)<(b)) ? (a) : (b))
-#define MAX(a,b) ((a)>(b)) ? (a) : (b))
+#define MIN(a,b) ((a)<(b)) ? (a) : (b)
+#define MAX(a,b) ((a)>(b)) ? (a) : (b)
 
 // Align 16, use if you have math elemtns in your class like float4x4 or AABB
 #define ALIGN_CLASS_TO_16 \

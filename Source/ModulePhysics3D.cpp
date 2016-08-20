@@ -4,8 +4,7 @@
 #include "Primitive.h"
 #include "PhysBody3D.h"
 #include "PhysVehicle3D.h"
-#include "ModuleInput.h"
-#include "ModuleEditorCamera.h"
+#include "ComponentRigidBody.h"
 #include "Config.h"
 #include "DebugDraw.h"
 #include "Bullet/include/btBulletDynamicsCommon.h"
@@ -68,57 +67,62 @@ bool ModulePhysics3D::Start(Config* config)
 }
 
 // ---------------------------------------------------------
-PhysBody3D* ModulePhysics3D::AddBody(const Cube& cube, float mass)
+btRigidBody* ModulePhysics3D::AddBody(const OBB& cube, ComponentRigidBody* component)
 {
-	btCollisionShape* colShape = new btBoxShape(btVector3(cube.size.x*0.5f, cube.size.y*0.5f, cube.size.z*0.5f));
+	float mass = (component->behaviour == ComponentRigidBody::BodyBehaviour::dynamic) ? component->mass : 0.0f;
+
+	btCollisionShape* colShape = new btBoxShape(cube.r);
 
 	shapes.push_back(colShape);
-
-	btTransform startTransform;
-	startTransform.setIdentity();
 
 	btVector3 localInertia(0.f, 0.f, 0.f);
 	if(mass != 0.f)
 		colShape->calculateLocalInertia(mass, localInertia);
 
-	btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, component, colShape, localInertia);
 
 	btRigidBody* body = new btRigidBody(rbInfo);
-	PhysBody3D* pbody = new PhysBody3D(body);
-	
-	body->setUserPointer(pbody);
 	world->addRigidBody(body);
-	bodies.push_back(pbody);
 
-	return pbody;
+	return body;
 }
 
 // ---------------------------------------------------------
-PhysBody3D* ModulePhysics3D::AddBody(const Sphere& sphere, float mass)
+btRigidBody* ModulePhysics3D::AddBody(const Sphere& sphere, ComponentRigidBody* component)
 {
+	float mass = (component->behaviour == ComponentRigidBody::BodyBehaviour::dynamic) ? component->mass : 0.0f;
 	btCollisionShape* colShape = new btSphereShape(sphere.r);
 	shapes.push_back(colShape);
-
-	btTransform startTransform;
-	startTransform.setIdentity();
-	startTransform.setOrigin(sphere.pos);
 
 	btVector3 localInertia(0, 0, 0);
 	if(mass != 0.f)
 		colShape->calculateLocalInertia(mass, localInertia);
 
-	btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, component, colShape, localInertia);
 
 	btRigidBody* body = new btRigidBody(rbInfo);
-	PhysBody3D* pbody = new PhysBody3D(body);
-
-	body->setUserPointer(pbody);
 	world->addRigidBody(body);
-	bodies.push_back(pbody);
 
-	return pbody;
+	return body;
+}
+
+// ---------------------------------------------------------
+btRigidBody * ModulePhysics3D::AddBody(const Capsule & capsule, ComponentRigidBody * component)
+{
+	float mass = (component->behaviour == ComponentRigidBody::BodyBehaviour::dynamic) ? component->mass : 0.0f;
+	btCollisionShape* colShape = new btCapsuleShape(capsule.r, capsule.LineLength());
+	shapes.push_back(colShape);
+
+	btVector3 localInertia(0, 0, 0);
+	if(mass != 0.f)
+		colShape->calculateLocalInertia(mass, localInertia);
+
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, component, colShape, localInertia);
+
+	btRigidBody* body = new btRigidBody(rbInfo);
+	world->addRigidBody(body);
+
+	return body;
 }
 
 // ---------------------------------------------------------
@@ -313,6 +317,25 @@ void ModulePhysics3D::DeleteBody(PhysBody3D* pbody)
 }
 
 // ---------------------------------------------------------
+void ModulePhysics3D::DeleteBody(btRigidBody * body)
+{
+	if (body != nullptr)
+		world->removeCollisionObject(body);
+}
+
+// ---------------------------------------------------------
+uint ModulePhysics3D::GetDebugMode() const
+{
+	return debug_draw->getDebugMode();
+}
+
+// ---------------------------------------------------------
+void ModulePhysics3D::SetDebugMode(uint mode)
+{
+	debug_draw->setDebugMode(mode);
+}
+
+// ---------------------------------------------------------
 update_status ModulePhysics3D::PreUpdate(float dt)
 {
 	if (paused == true)
@@ -320,6 +343,8 @@ update_status ModulePhysics3D::PreUpdate(float dt)
 
 	// Step the physics world
 	world->stepSimulation(dt, 15);
+
+	// Update transformations
 
 	// Detect collisions
 	int numManifolds = world->getDispatcher()->getNumManifolds();
@@ -352,41 +377,11 @@ update_status ModulePhysics3D::PreUpdate(float dt)
 // ---------------------------------------------------------
 update_status ModulePhysics3D::Update(float dt)
 {
-	if(App->input->GetKey(SDL_SCANCODE_F1) == KEY_DOWN)
-		debug = !debug;
-
-	if(debug == true)
-	{
-		world->debugDrawWorld();
-
-		// Render vehicles
-		for (list<PhysVehicle3D*>::iterator it = vehicles.begin(); it != vehicles.end(); ++it)
-			(*it)->Render();
-
-		// drop some primitives on 1,2,3
-		float3 pos = App->camera->GetPosition();
-		if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
-		{
-			Sphere s(pos, 1.0f);
-			App->physics3D->AddBody(s);
-		}
-
-		if(App->input->GetKey(SDL_SCANCODE_2) == KEY_DOWN)
-		{
-			math::OBB obb;
-			obb.pos = pos;
-			Cube c(1, 1, 1);
-			c.SetPos(pos.x, pos.y, pos.z);
-			App->physics3D->AddBody(c);
-		}
-
-		if(App->input->GetKey(SDL_SCANCODE_3) == KEY_DOWN)
-		{
-			PCylinder c(0.5, 1);
-			c.SetPos(pos.x, pos.y, pos.z);
-			App->physics3D->AddBody(c);
-		}
-	}
+	/* Legacy
+	// Render vehicles
+	for (list<PhysVehicle3D*>::iterator it = vehicles.begin(); it != vehicles.end(); ++it)
+		(*it)->Render();
+	*/
 
 	return UPDATE_CONTINUE;
 }
@@ -394,9 +389,11 @@ update_status ModulePhysics3D::Update(float dt)
 // ---------------------------------------------------------
 update_status ModulePhysics3D::PostUpdate(float dt)
 {
+
 	return UPDATE_CONTINUE;
 }
 
+// ---------------------------------------------------------
 // Called before quitting
 bool ModulePhysics3D::CleanUp()
 {
@@ -439,6 +436,13 @@ bool ModulePhysics3D::CleanUp()
 	return true;
 }
 
+// ---------------------------------------------------------
+void ModulePhysics3D::DebugDraw()
+{
+	if(debug == true)
+		world->debugDrawWorld();
+}
+
 // =============================================
 void ModulePhysics3D::Save(Config * config) const
 {
@@ -446,6 +450,7 @@ void ModulePhysics3D::Save(Config * config) const
 	config->AddArrayFloat("Gravity", &gravity.x, 3);
 	config->AddBool("Debug Draw", debug);
 	config->AddBool("Paused", paused);
+	config->AddInt("Debug Mode", debug_draw->getDebugMode());
 }
 
 // =============================================
@@ -460,6 +465,8 @@ void ModulePhysics3D::Load(Config * config)
 
 	debug = config->GetBool("Debug Draw", false);
 	paused = config->GetBool("Paused", false);
+
+	debug_draw->setDebugMode(config->GetInt("Debug Mode", 0));
 }
 
 // =============================================

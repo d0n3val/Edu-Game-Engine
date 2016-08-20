@@ -2,7 +2,6 @@
 #define __MODULEINPUT_H__
 
 #include "Module.h"
-#include "Point.h"
 
 #include "SDL/include/SDL_scancode.h"
 
@@ -58,16 +57,18 @@ public:
 	bool GetWindowEvent(EventWindow code) const;
 
 	// Get mouse / axis position
-	const iPoint& GetMouseMotion() const;
-	const iPoint& GetMousePosition() const;
+	void GetMouseMotion(int& x, int& y) const;
+	void GetMousePosition(int& x, int& y) const;
 	int GetMouseWheel() const;
 
 private:
 	bool		windowEvents[WE_COUNT];
 	KeyState*	keyboard = nullptr;
 	KeyState	mouse_buttons[NUM_MOUSE_BUTTONS];
-	iPoint mouse_motion;
-	iPoint mouse;
+	int mouse_motion_x = 0;
+	int mouse_motion_y = 0;
+	int mouse_x = 0;
+	int mouse_y = 0;
 	int mouse_wheel = 0;
 };
 
