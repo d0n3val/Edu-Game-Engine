@@ -165,6 +165,10 @@ bool ModuleLevelManager::Load(const char * file)
 				}
 			}
 
+			// Third pass: call OnStart on all new GameObjects
+			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
+				it->second->OnStart();
+
 			root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
 			bool did_recalc;
 			root->RecursiveCalcBoundingBoxes(did_recalc);
@@ -172,6 +176,8 @@ bool ModuleLevelManager::Load(const char * file)
 
 		RELEASE_ARRAY(buffer); 
 	}
+
+
 
 	return ret;
 }
@@ -207,6 +213,21 @@ bool ModuleLevelManager::Save(const char * file)
 
 void ModuleLevelManager::UnloadCurrent()
 {
+}
+
+// TODO that should be a combination of the UID of the scene resource + the local serialization_id
+GameObject * ModuleLevelManager::Find(uint serialization_id, const GameObject* from) const
+{
+	if (serialization_id > 0)
+	{
+		if (from->serialization_id == serialization_id)
+			return (GameObject *) from;
+
+		for (list<GameObject*>::const_iterator it = from->childs.begin(); it != from->childs.end(); ++it)
+			return Find(serialization_id, *it);
+	}
+
+	return nullptr;
 }
 
 void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const

@@ -32,7 +32,7 @@
 #endif
 
 #ifdef MATH_BULLET_INTEROP
-#include "LinearMath/btMatrix3x3.h"
+#include "../../../Bullet/include/LinearMath/btMatrix3x3.h"
 #endif
 
 MATH_BEGIN_NAMESPACE

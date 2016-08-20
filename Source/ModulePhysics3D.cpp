@@ -6,6 +6,8 @@
 #include "PhysVehicle3D.h"
 #include "ModuleInput.h"
 #include "ModuleEditorCamera.h"
+#include "Config.h"
+#include "DebugDraw.h"
 #include "Bullet/include/btBulletDynamicsCommon.h"
 #include "Bullet/include/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 
@@ -60,6 +62,8 @@ bool ModulePhysics3D::Start(Config* config)
 	world->setGravity(GRAVITY);
 	vehicle_raycaster = new btDefaultVehicleRaycaster(world);
 
+	Load(config);
+
 	return true;
 }
 
@@ -71,9 +75,9 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cube& cube, float mass)
 	shapes.push_back(colShape);
 
 	btTransform startTransform;
-	startTransform.setFromOpenGLMatrix(&cube.transform);
+	startTransform.setIdentity();
 
-	btVector3 localInertia(0, 0, 0);
+	btVector3 localInertia(0.f, 0.f, 0.f);
 	if(mass != 0.f)
 		colShape->calculateLocalInertia(mass, localInertia);
 
@@ -91,13 +95,14 @@ PhysBody3D* ModulePhysics3D::AddBody(const Cube& cube, float mass)
 }
 
 // ---------------------------------------------------------
-PhysBody3D* ModulePhysics3D::AddBody(const PSphere& sphere, float mass)
+PhysBody3D* ModulePhysics3D::AddBody(const Sphere& sphere, float mass)
 {
-	btCollisionShape* colShape = new btSphereShape(sphere.radius);
+	btCollisionShape* colShape = new btSphereShape(sphere.r);
 	shapes.push_back(colShape);
 
 	btTransform startTransform;
-	startTransform.setFromOpenGLMatrix(&sphere.transform);
+	startTransform.setIdentity();
+	startTransform.setOrigin(sphere.pos);
 
 	btVector3 localInertia(0, 0, 0);
 	if(mass != 0.f)
@@ -123,7 +128,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const PCylinder& cylinder, float mass)
 	shapes.push_back(colShape);
 
 	btTransform startTransform;
-	startTransform.setFromOpenGLMatrix(&cylinder.transform);
+	startTransform.setIdentity();
 
 	btVector3 localInertia(0, 0, 0);
 	if(mass != 0.f)
@@ -149,7 +154,7 @@ PhysBody3D* ModulePhysics3D::AddBody(const PPlane& plane)
 	shapes.push_back(colShape);
 
 	btTransform startTransform;
-	startTransform.setFromOpenGLMatrix(&plane.transform);
+	startTransform.setIdentity();
 
 	btVector3 localInertia(0, 0, 0);
 
@@ -310,6 +315,9 @@ void ModulePhysics3D::DeleteBody(PhysBody3D* pbody)
 // ---------------------------------------------------------
 update_status ModulePhysics3D::PreUpdate(float dt)
 {
+	if (paused == true)
+		return UPDATE_CONTINUE;
+
 	// Step the physics world
 	world->stepSimulation(dt, 15);
 
@@ -359,13 +367,14 @@ update_status ModulePhysics3D::Update(float dt)
 		float3 pos = App->camera->GetPosition();
 		if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
 		{
-			PSphere s(1);
-			s.SetPos(pos.x, pos.y, pos.z);
+			Sphere s(pos, 1.0f);
 			App->physics3D->AddBody(s);
 		}
 
 		if(App->input->GetKey(SDL_SCANCODE_2) == KEY_DOWN)
 		{
+			math::OBB obb;
+			obb.pos = pos;
 			Cube c(1, 1, 1);
 			c.SetPos(pos.x, pos.y, pos.z);
 			App->physics3D->AddBody(c);
@@ -431,19 +440,49 @@ bool ModulePhysics3D::CleanUp()
 }
 
 // =============================================
+void ModulePhysics3D::Save(Config * config) const
+{
+	float3 gravity = GetGravity();
+	config->AddArrayFloat("Gravity", &gravity.x, 3);
+	config->AddBool("Debug Draw", debug);
+	config->AddBool("Paused", paused);
+}
+
+// =============================================
+void ModulePhysics3D::Load(Config * config)
+{
+	float3 gravity(0.f, -10.f, 0.f);
+	gravity.x = config->GetFloat("Gravity", gravity.x, 0);
+	gravity.y = config->GetFloat("Gravity", gravity.y, 1);
+	gravity.z = config->GetFloat("Gravity", gravity.z, 2);
+
+	SetGravity(gravity);
+
+	debug = config->GetBool("Debug Draw", false);
+	paused = config->GetBool("Paused", false);
+}
+
+// =============================================
+void ModulePhysics3D::SetGravity(const float3 & gravity)
+{
+	world->setGravity(gravity);
+}
+
+// =============================================
+float3 ModulePhysics3D::GetGravity() const
+{
+	return world->getGravity();
+}
+
+// =============================================
 void DebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 {
-	line.origin.Set(from.getX(), from.getY(), from.getZ());
-	line.destination.Set(to.getX(), to.getY(), to.getZ());
-	line.color.Set(color.getX(), color.getY(), color.getZ());
-	line.Render();
+	DebugDraw(LineSegment(from, to), Color(color.getX(), color.getY(), color.getZ()));
 }
 
 void DebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color)
 {
-	point.transform.translate(PointOnB.getX(), PointOnB.getY(), PointOnB.getZ());
-	point.color.Set(color.getX(), color.getY(), color.getZ());
-	point.Render();
+	DebugDraw(PointOnB, Color(color.getX(), color.getY(), color.getZ()));
 }
 
 void DebugDrawer::reportErrorWarning(const char* warningString)

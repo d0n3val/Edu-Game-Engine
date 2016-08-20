@@ -24,6 +24,7 @@
 #include "ResourceBone.h"
 #include "ResourceAnimation.h"
 #include "PanelResources.h"
+#include "PanelGOTree.h"
 #include <list>
 
 using namespace std;
@@ -179,7 +180,7 @@ void PanelProperties::Draw()
     ImGui::End();
 }
 
-UID PanelProperties::DrawResource(UID resource, int type)
+UID PanelProperties::PickResource(UID resource, int type)
 {
 	UID ret = 0;
 
@@ -217,6 +218,54 @@ UID PanelProperties::DrawResource(UID resource, int type)
 	return ret;
 }
 
+const GameObject* PanelProperties::PickGameObject(const GameObject* current) const
+{
+	const GameObject* ret = nullptr;
+
+	ImGui::Text("Current: ");
+	ImGui::SameLine();
+	ImGui::TextColored(IMGUI_YELLOW, "%s", (current) ? current->name.c_str() : "- not assigned -");
+	if (ImGui::Button("Pick Another"))
+		ImGui::OpenPopup("Pick GameObject");
+
+	if (ImGui::BeginPopup("Pick GameObject"))
+	{
+		// Draw the tree
+		GameObject* root = App->level->GetRoot();
+		for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
+			RecursiveDrawTree(*it, &ret);
+
+		ImGui::EndPopup();
+	}
+
+	return ret;
+}
+
+void PanelProperties::RecursiveDrawTree(const GameObject * go, const GameObject** selected) const
+{
+	if (ImGui::TreeNodeEx(go, (go->childs.size() > 0) ? 0 : ImGuiTreeNodeFlags_Bullet, go->name.c_str())) 
+	{
+		if (ImGui::IsItemHoveredRect() && ImGui::IsMouseDoubleClicked(0))
+		{
+			*selected = go;
+			ImGui::CloseCurrentPopup();
+		}
+
+		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+			RecursiveDrawTree(*it, selected);
+
+		ImGui::TreePop();
+	}
+	else
+	{
+		if (ImGui::IsItemHoveredRect() && ImGui::IsMouseDoubleClicked(0))
+		{
+			*selected = go;
+			ImGui::CloseCurrentPopup();
+		}
+	}
+}
+
 bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 {
 	bool ret = false;
@@ -237,7 +286,7 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 
 void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 {
-	UID new_res = DrawResource(component->GetResourceUID(), Resource::mesh);
+	UID new_res = PickResource(component->GetResourceUID(), Resource::mesh);
 	if (new_res > 0)
 		component->SetResource(new_res);
 
@@ -262,21 +311,22 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 
 	ImGui::Text("Potential Bones: %i", component->CountPotentialBones());
 	ImGui::Text("Attached to %i bones", component->CountAttachedBones());
-	if (component->CountAttachedBones() > 0)
+
+	const GameObject* selected = PickGameObject(component->root_bones);
+	if (selected != nullptr)
+		component->AttachBones(selected);
+
+	if (component->root_bones != nullptr)
 	{
-		if (ImGui::Button("DeAttach to all bones"))
+		ImGui::SameLine();
+		if (ImGui::Button("Dettach"))
 			component->DetachBones();
-	}
-	else
-	{
-		if (ImGui::Button("Attach to all potential bones"))
-			component->AttachBones();
 	}
 }
 
 void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)
 {
-	UID new_res = DrawResource(component->GetResourceUID(), Resource::audio);
+	UID new_res = PickResource(component->GetResourceUID(), Resource::audio);
 	if (new_res > 0)
 		component->SetResource(new_res);
 
@@ -363,9 +413,11 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 void PanelProperties::DrawBoneComponent(ComponentBone * component)
 {
-	UID new_res = DrawResource(component->GetResourceUID(), Resource::texture);
+	UID new_res = PickResource(component->GetResourceUID(), Resource::texture);
 	if (new_res > 0)
 		component->SetResource(new_res);
+
+	ImGui::Checkbox("Translation Locked", &component->translation_locked);
 
 	if(component->attached_mesh != nullptr)
 		ImGui::TextColored(IMGUI_YELLOW, "Attached to %s", component->attached_mesh->GetGameObject()->name.c_str());
@@ -378,7 +430,7 @@ void PanelProperties::DrawBoneComponent(ComponentBone * component)
 
 	ImGui::Separator();
 
-	DrawResource(bone->uid_mesh, Resource::mesh);
+	PickResource(bone->uid_mesh, Resource::mesh);
 
 	ImGui::Text("Num Weigths: %u", bone->num_weigths);
 
@@ -410,7 +462,7 @@ void PanelProperties::DrawBoneComponent(ComponentBone * component)
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
-	UID new_res = DrawResource(component->GetResourceUID(), Resource::texture);
+	UID new_res = PickResource(component->GetResourceUID(), Resource::texture);
 	if (new_res > 0)
 		component->SetResource(new_res);
 
@@ -453,7 +505,7 @@ void PanelProperties::DrawSkeletonComponent(ComponentSkeleton * component)
 
 void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 {
-	UID new_res = DrawResource(component->current->resource, Resource::animation);
+	UID new_res = PickResource(component->current->resource, Resource::animation);
 	if (new_res > 0)
 		component->SetResource(new_res);
 
@@ -513,7 +565,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 	ImGui::SliderFloat("Time to blend", &blending_time_requested, 0.0f, 10.0f);
 
 	ImGui::PushID(2);
-	UID new_res2 = DrawResource(component->next->resource, Resource::animation);
+	UID new_res2 = PickResource(component->next->resource, Resource::animation);
 	if (new_res2 > 0)
 		component->BlendTo(new_res2, blending_time_requested);
 	ImGui::PopID();

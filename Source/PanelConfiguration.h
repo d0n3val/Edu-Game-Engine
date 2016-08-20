@@ -41,6 +41,7 @@ public:
 	void DrawModuleRenderer(ModuleRenderer3D * module);
 	void DrawModuleTextures(ModuleTextures * module);
 	void DrawModuleCamera(ModuleEditorCamera * module);
+	void DrawModulePhysics(ModulePhysics3D * module);
 	void AddInput(const char* entry);
 	void AddFPS(float fps, float ms);
 

@@ -26,6 +26,7 @@
 #pragma warning( disable : 4577 ) // Warning that exceptions are disabled
 #pragma warning( disable : 4530 ) // Warning that exceptions are disabled
 #define MATH_SILENT_ASSUME
+#define MATH_BULLET_INTEROP
 // ---
 
 // Disable STL exceptions

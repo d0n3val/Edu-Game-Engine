@@ -6,6 +6,7 @@
 #include <list>
 #include "Primitive.h"
 #include "Bullet/include/btBulletDynamicsCommon.h"
+#include "Math.h"
 
 // Recommended scale is 1.0f == 1 meter, no less than 0.2 objects
 #define GRAVITY btVector3(0.0f, -10.0f, 0.0f) 
@@ -28,8 +29,18 @@ public:
 	update_status PostUpdate(float dt) override;
 	bool CleanUp();
 
+	void Save(Config* config) const override;
+	void Load(Config* config) override;
+
+	// Utils ----
+
+	void SetGravity(const float3& gravity);
+	float3 GetGravity() const;
+
+	// Bodies ---
+
 	PhysBody3D*		AddBody(const Cube& cube, float mass = 1.0f);
-	PhysBody3D*		AddBody(const PSphere& sphere, float mass = 1.0f);
+	PhysBody3D*		AddBody(const Sphere& sphere, float mass = 1.0f);
 	PhysBody3D*		AddBody(const PCylinder& cylinder, float mass = 1.0f);
 	PhysBody3D*		AddBody(const PPlane& plane);
 	PhysBody3D*		AddHeighField(const char* filename, int width, int height);
@@ -37,9 +48,11 @@ public:
 
 	void DeleteBody(PhysBody3D* body);
 
-private:
-
+public:
 	bool debug = false;
+	bool paused = true;
+
+private:
 
 	btDefaultCollisionConfiguration*	collision_conf = nullptr;
 	btCollisionDispatcher*				dispatcher = nullptr;
@@ -57,7 +70,7 @@ private:
 class DebugDrawer : public btIDebugDraw
 {
 public:
-	DebugDrawer() : line(0,0,0)
+	DebugDrawer()
 	{}
 
 	void drawLine(const btVector3& from, const btVector3& to, const btVector3& color);
@@ -68,8 +81,6 @@ public:
 	int	 getDebugMode() const;
 
 	DebugDrawModes mode;
-	Line line;
-	Primitive point;
 };
 
 #endif __MODULE_PHYSICS_3D_H__

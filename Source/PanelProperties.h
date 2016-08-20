@@ -24,7 +24,9 @@ public:
 
 	void Draw() override;
 
-	UID DrawResource(UID resource, int type = -1);
+	UID PickResource(UID resource, int type = -1);
+	const GameObject* PickGameObject(const GameObject* current) const;
+	void RecursiveDrawTree(const GameObject* go, const GameObject** selected) const;
 
 	bool InitComponentDraw(Component* component, const char * name);
 	void DrawMeshComponent(ComponentMesh* component);

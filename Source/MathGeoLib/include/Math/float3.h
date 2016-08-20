@@ -38,7 +38,7 @@
 #endif
 
 #ifdef MATH_BULLET_INTEROP
-#include "LinearMath/btVector3.h"
+#include "../../../Bullet/include/LinearMath/btVector3.h"
 #endif
 
 MATH_BEGIN_NAMESPACE

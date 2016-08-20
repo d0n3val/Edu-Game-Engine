@@ -22,6 +22,11 @@ public:
 	bool Save(Config& config, int&, const GameObject* parent) const;
 	void Load(Config* config, std::map<int, GameObject*>& relations);
 
+	void OnStart();
+	void OnFinish();
+	void OnEnable();
+	void OnDisable();
+
 	bool RecursiveRemoveFlagged();
 	Component* CreateComponent(ComponentTypes type);
 

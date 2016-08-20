@@ -15,6 +15,7 @@
 #include "ModuleMeshes.h"
 #include "ModuleEditor.h"
 #include "ModuleResources.h"
+#include "ModulePhysics3D.h"
 #include "ResourceTexture.h"
 #include "PanelProperties.h"
 #include "mmgr/mmgr.h"
@@ -68,6 +69,9 @@ void PanelConfiguration::Draw()
 
 	if (InitModuleDraw(App->audio))
 		DrawModuleAudio(App->audio);
+
+	if (InitModuleDraw(App->physics3D))
+		DrawModulePhysics(App->physics3D);
 
 	if (InitModuleDraw(App->fs))
 		DrawModuleFileSystem(App->fs);
@@ -351,6 +355,17 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 void PanelConfiguration::DrawModuleCamera(ModuleEditorCamera * module)
 {
 	App->editor->props->DrawCameraComponent(module->GetDummy());
+}
+
+void PanelConfiguration::DrawModulePhysics(ModulePhysics3D * module)
+{
+	ImGui::Checkbox("Paused", &App->physics3D->paused);
+	ImGui::SameLine();
+	ImGui::Checkbox("Debug Draw", &App->physics3D->debug);
+
+	float3 gravity = App->physics3D->GetGravity();
+	if (ImGui::DragFloat3("Gravity", &gravity.x, 0.1f))
+		App->physics3D->SetGravity(gravity);
 }
 
 void PanelConfiguration::AddInput(const char * entry)

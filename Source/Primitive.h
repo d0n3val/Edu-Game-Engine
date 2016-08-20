@@ -72,11 +72,11 @@ public:
 };
 
 // ============================================
-class Line : public Primitive
+class PLine : public Primitive
 {
 public:
-	Line();
-	Line(float x, float y, float z);
+	PLine();
+	PLine(float x, float y, float z);
 	void InnerRender() const;
 public:
 	vec3 origin;

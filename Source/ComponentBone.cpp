@@ -28,15 +28,16 @@ ComponentBone::~ComponentBone()
 // ---------------------------------------------------------
 void ComponentBone::OnSave(Config & config) const
 {
-	// TODO save Attached mesh ?
 	ComponentWithResource::OnSaveResource(config);
+	if(translation_locked == true)
+	config.AddBool("Pos Locked", translation_locked);
 }
 
 // ---------------------------------------------------------
 void ComponentBone::OnLoad(Config * config)
 {
-	// TODO load Maybe Attached mesh ?
 	ComponentWithResource::OnLoadResource(config);
+	translation_locked = config->GetBool("Pos Locked", false);
 }
 
 // ---------------------------------------------------------
@@ -82,7 +83,7 @@ void ComponentBone::OnDebugDraw() const
 			for (uint i = 0; i < bone->num_weigths; ++i)
 			{
 				float3 vertex(&mesh->vertices[bone->weigth_indices[i] * 3]);
-				vertex = attached_mesh->GetGameObject()->GetLocalTransform().TransformPos(vertex);
+				vertex = attached_mesh->GetGameObject()->GetGlobalTransformation().TransformPos(vertex);
 				Color c(0.f, 1.f - bone->weigths[i], bone->weigths[i]);
 				DebugDraw(vertex, c);
 			}

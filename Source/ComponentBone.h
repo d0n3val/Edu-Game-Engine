@@ -13,10 +13,11 @@ public:
 	ALIGN_CLASS_TO_16
 
 	ComponentBone(GameObject* container);
-	virtual ~ComponentBone();
+	~ComponentBone() override;
 
-	void OnSave(Config& config) const;
-	void OnLoad(Config* config);
+	void OnSave(Config& config) const override;
+	void OnLoad(Config* config) override;
+
 
 	bool SetResource(UID Resource);
 
@@ -25,6 +26,7 @@ public:
 public:
 	float4x4 anim_transform = float4x4::identity;
 	ComponentMesh* attached_mesh = nullptr;
+	bool translation_locked = false;
 };
 
 #endif // __COMPONENT_BONE_H__

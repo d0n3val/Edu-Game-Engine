@@ -124,6 +124,36 @@ void GameObject::Load(Config * config, map<int, GameObject*>& relations)
 }
 
 // ---------------------------------------------------------
+void GameObject::OnStart()
+{
+	// Called after all loading is done
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnStart();
+}
+
+// ---------------------------------------------------------
+void GameObject::OnFinish()
+{
+	// Called just before deleting the component
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnFinish();
+}
+
+// ---------------------------------------------------------
+void GameObject::OnEnable()
+{
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnStart();
+}
+
+// ---------------------------------------------------------
+void GameObject::OnDisable()
+{
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnStart();
+}
+
+// ---------------------------------------------------------
 bool GameObject::RecursiveRemoveFlagged()
 {
 	bool ret = false;
@@ -132,6 +162,7 @@ bool GameObject::RecursiveRemoveFlagged()
 	{
 		if ((*it)->flag_for_removal == true)
 		{
+			(*it)->OnFinish();
 			RELEASE(*it);
 			it = components.erase(it);
 		}
@@ -143,6 +174,7 @@ bool GameObject::RecursiveRemoveFlagged()
 	{
 		if ((*it)->flag_for_removal == true)
 		{
+			(*it)->OnFinish();
 			RELEASE(*it);
 			it = childs.erase(it);
 			ret = true;
@@ -384,8 +416,15 @@ bool GameObject::IsActive() const
 // ---------------------------------------------------------
 void GameObject::SetActive(bool active)
 {
-	if (this->active != active)
+	// TODO: should this disable all childs recursively ?
+	if (this->active != active) 
+	{
 		this->active = active;
+		if (active)
+			OnEnable();
+		else
+			OnDisable();
+	}
 }
 
 // ---------------------------------------------------------

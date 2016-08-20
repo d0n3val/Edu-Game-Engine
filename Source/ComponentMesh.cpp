@@ -3,6 +3,7 @@
 #include "ComponentMesh.h"
 #include "ModuleMeshes.h"
 #include "ModuleResources.h"
+#include "ModuleLevelManager.h"
 #include "ResourceMesh.h"
 #include "GameObject.h"
 #include "ComponentBone.h"
@@ -28,17 +29,14 @@ void ComponentMesh::OnSave(Config& config) const
 {
 	ComponentWithResource::OnSaveResource(config);
 	// TODO naive approach to bone attachment, simply try on start
-	config.AddBool("Attached", (deformable != nullptr));
+	config.AddInt("Bones Root", (root_bones) ? root_bones->serialization_id : 0);
 }
 
 // ---------------------------------------------------------
 void ComponentMesh::OnLoad(Config * config)
 {
 	ComponentWithResource::OnLoadResource(config);
-	bool attached = config->GetBool("Attached", false);
-
-	if (attached == true)
-		AttachBones();
+	root_bones_id = config->GetInt("Bones Root", 0);
 }
 
 // ---------------------------------------------------------
@@ -63,6 +61,15 @@ bool ComponentMesh::SetResource(UID resource)
 }
 
 // ---------------------------------------------------------
+void ComponentMesh::OnStart()
+{
+	const GameObject* go = App->level->Find(root_bones_id, App->level->GetRoot());
+
+	if (go != nullptr)
+		AttachBones(go);
+}
+
+// ---------------------------------------------------------
 const AABB & ComponentMesh::GetBoundingBox() const
 {
 	const ResourceMesh* res = (const ResourceMesh*) App->resources->Get(resource);
@@ -77,22 +84,22 @@ const AABB & ComponentMesh::GetBoundingBox() const
 uint ComponentMesh::CountPotentialBones() const
 {
 	vector<ComponentBone*> bones;
-	RecursiveFindBones(game_object, bones);
+	if(root_bones != nullptr)
+		RecursiveFindBones(root_bones, bones);
 
 	return bones.size();
 }
 
 // ---------------------------------------------------------
-void ComponentMesh::AttachBones()
+void ComponentMesh::AttachBones(const GameObject* go)
 {
-	// TODO Attachment and detachment should be automatic upon moving in the hierarchy
-	// that means we would need to have a callback / event when we are moved in the tree
 	vector<ComponentBone*> bones;
-	RecursiveFindBones(game_object, bones);
+	RecursiveFindBones(go, bones);
 
 	if (bones.size() > 0)
 	{
 		DetachBones();
+		root_bones = go;
 		attached_bones = bones;
 
 		if (deformable == nullptr)
@@ -143,6 +150,9 @@ void ComponentMesh::ResetDeformableMesh()
 // ---------------------------------------------------------
 void ComponentMesh::RecursiveFindBones(const GameObject * go, vector<ComponentBone*>& found) const
 {
+	if (go == nullptr)
+		return;
+
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
 		if ((*it)->GetType() == ComponentTypes::Bone)

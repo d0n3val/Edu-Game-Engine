@@ -28,6 +28,7 @@ public:
 	bool Load(const char* file);
 	bool Save(const char* file = nullptr);
 	void UnloadCurrent();
+	GameObject* Find(uint serialization_id, const GameObject* from) const;
 	
 	// Draw
 	void Draw() const;

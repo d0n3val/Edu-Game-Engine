@@ -14,15 +14,16 @@ class ComponentMesh : public Component, public ComponentWithResource
 {
 public:
 	ComponentMesh (GameObject* container);
-	~ComponentMesh();
+	~ComponentMesh() override;
 
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 	bool SetResource(UID resource) override;
+	void OnStart() override;
 
 	const AABB& GetBoundingBox() const;
 	uint CountPotentialBones() const;
-	void AttachBones();
+	void AttachBones(const GameObject* go);
 	void DetachBones();
 	uint CountAttachedBones() const;
 	void ResetDeformableMesh();
@@ -33,6 +34,8 @@ private:
 public:
 	std::vector<ComponentBone*> attached_bones;
 	ResourceMesh* deformable = nullptr;
+	int root_bones_id = 0;
+	const GameObject* root_bones = nullptr;
 };
 
 #endif // __COMPONENT_MESH_H__

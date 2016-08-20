@@ -123,8 +123,8 @@ void ModuleAnimation::UpdateAnimation(ComponentAnimation * anim, float dt)
 			anim->blend_time += dt;
 			float blend_factor = anim->blend_time / anim->total_blend_time;
 
-			AdvanceAnimation(anim->current, dt, 1.0f - blend_factor, true);
-			AdvanceAnimation(anim->next, dt, blend_factor, false);
+			AdvanceAnimation(anim->current, dt);
+			AdvanceAnimation(anim->next, dt, blend_factor);
 
 			// Finish blend process
 			if (anim->blend_time > anim->total_blend_time)
@@ -140,7 +140,7 @@ void ModuleAnimation::UpdateAnimation(ComponentAnimation * anim, float dt)
 }
 
 // ---------------------------------------------------------
-bool ModuleAnimation::AdvanceAnimation(ComponentAnimation::Channel * anim, float dt, float blend, bool first)
+bool ModuleAnimation::AdvanceAnimation(ComponentAnimation::Channel * anim, float dt, float blend)
 {
 	const ResourceAnimation* res = (const ResourceAnimation*) anim->GetResource();
 
@@ -173,16 +173,17 @@ bool ModuleAnimation::AdvanceAnimation(ComponentAnimation::Channel * anim, float
 
 		GameObject* go = it->second->GetGameObject();
 
-		if (first == true)
+		if (blend >= 1.f)
 		{
-			go->SetLocalPosition(pos);
+			if(it->second->translation_locked == false)
+				go->SetLocalPosition(pos);
 			go->SetLocalRotation(rot);
 			go->SetLocalScale(scale);
 		}
 		else
 		{
-			LOG("Blending factor %.3f", blend);
-			go->SetLocalPosition(float3::Lerp(go->GetLocalPosition(), pos, blend));
+			if(it->second->translation_locked == false) 
+				go->SetLocalPosition(float3::Lerp(go->GetLocalPosition(), pos, blend));
 			go->SetLocalRotation(Quat::Slerp(go->GetLocalRotationQ(), rot, blend));
 			go->SetLocalScale(float3::Lerp(go->GetLocalScale(), scale, blend));
 		}
