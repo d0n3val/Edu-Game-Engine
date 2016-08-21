@@ -18,6 +18,7 @@
 #include "ModulePhysics3D.h"
 #include "ResourceTexture.h"
 #include "PanelProperties.h"
+#include "ComponentCamera.h"
 #include "mmgr/mmgr.h"
 
 using namespace std;
@@ -355,6 +356,7 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 
 void PanelConfiguration::DrawModuleCamera(ModuleEditorCamera * module)
 {
+	ImGui::DragFloat3("Position", &App->camera->GetDummy()->frustum.pos.x, 0.1f);
 	ImGui::DragFloat("Mov Speed", &App->camera->mov_speed, 0.1f, 0.1f);
 	ImGui::DragFloat("Rot Speed", &App->camera->rot_speed, 0.05f, 0.01f);
 	ImGui::DragFloat("Zoom Speed", &App->camera->zoom_speed, 0.1f, 0.1f);

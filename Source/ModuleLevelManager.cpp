@@ -8,6 +8,8 @@
 #include "ModuleRenderer3D.h"
 #include "ModuleEditorCamera.h"
 #include "ComponentCamera.h"
+#include "ComponentMesh.h"
+#include "ResourceMesh.h"
 #include "Event.h"
 
 using namespace std;
@@ -293,22 +295,104 @@ GameObject * ModuleLevelManager::Validate(const GameObject * pointer) const
 	return nullptr;
 }
 
-void ModuleLevelManager::CastRay(const LineSegment & segment, std::vector<GameObject*>& results) const
+GameObject* ModuleLevelManager::CastRay(const LineSegment& segment, float& dist) const
 {
-	RecursiveTestRay(root, segment, results);
+	dist = inf;
+	GameObject* candidate = nullptr;
+	RecursiveTestRay(root, segment, dist, &candidate);
+	return candidate;
 }
 
-void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const LineSegment& segment, std::vector<GameObject*>& results) const
+void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const LineSegment& segment, float& dist, GameObject** best_candidate) const
 {
-	float hit_near, hit_far;
-
-	if (segment.Intersects(go->global_bbox, hit_near, hit_far))
+	if (go->global_bbox.IsFinite() && segment.Intersects(go->global_bbox))
 	{
-		LOG("Hit at %.3f", near);
-		results.push_back((GameObject*) go);
-	}
+		// Look for meshes, nothing else can be "picked" from the screen
+		vector<Component*> meshes;
+		go->FindComponents(ComponentTypes::Geometry, meshes);
 
-	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-		RecursiveDebugDrawGameObjects(*it);
+		if (meshes.size() > 0)
+		{
+			const ComponentMesh* cmesh = (const ComponentMesh*)meshes[0];
+			const ResourceMesh* mesh = cmesh->deformable ? cmesh->deformable : (ResourceMesh*) cmesh->GetResource();
+
+			// test all triangles
+			LineSegment segment_local_space(segment);
+			segment_local_space.Transform(go->GetGlobalTransformation().Inverted());
+
+			Triangle tri;
+			for (uint i = 0; i < mesh->num_indices;)
+			{
+				tri.a.Set(&mesh->vertices[mesh->indices[i++]*3]);
+				tri.b.Set(&mesh->vertices[mesh->indices[i++]*3]);
+				tri.c.Set(&mesh->vertices[mesh->indices[i++]*3]);
+
+				float distance;
+				float3 hit_point;
+				if (segment_local_space.Intersects(tri, &distance, &hit_point))
+				{
+					if (distance < dist)
+					{
+						dist = distance;
+						*best_candidate = (GameObject*) go;
+					}
+				}
+			}
+		}
+
+		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+			RecursiveTestRay(*it, segment, dist, best_candidate);
+	}
+}
+
+GameObject* ModuleLevelManager::CastRay(const Ray & ray, float& dist) const
+{
+	dist = inf;
+	GameObject* candidate = nullptr;
+	RecursiveTestRay(root, ray, dist, &candidate);
+	return candidate;
+}
+
+void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const Ray& ray, float& dist, GameObject** best_candidate) const
+{
+	if (go->global_bbox.IsFinite() && ray.Intersects(go->global_bbox))
+	{
+		// Look for meshes, nothing else can be "picked" from the screen
+		vector<Component*> meshes;
+		go->FindComponents(ComponentTypes::Geometry, meshes);
+
+		if (meshes.size() > 0)
+		{
+			const ComponentMesh* cmesh = (const ComponentMesh*)meshes[0];
+			const ResourceMesh* mesh = cmesh->deformable ? cmesh->deformable : (ResourceMesh*) cmesh->GetResource();
+
+			// test all triangles
+			Ray ray_local_space(ray);
+			ray_local_space.Transform(go->GetGlobalTransformation().Inverted());
+			ray_local_space.dir.Normalize();
+
+			Triangle tri;
+			for (uint i = 0; i < mesh->num_indices;)
+			{
+				tri.a.Set(&mesh->vertices[mesh->indices[i++]*3]);
+				tri.b.Set(&mesh->vertices[mesh->indices[i++]*3]);
+				tri.c.Set(&mesh->vertices[mesh->indices[i++]*3]);
+
+				float distance;
+				float3 hit_point;
+				if (ray_local_space.Intersects(tri, &distance, &hit_point))
+				{
+					if (distance < dist)
+					{
+						dist = distance;
+						*best_candidate = (GameObject*) go;
+					}
+				}
+			}
+		}
+
+		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+			RecursiveTestRay(*it, ray, dist, best_candidate);
+	}
 }
 

@@ -217,6 +217,19 @@ void DebugDraw(const LineSegment & segment, Color color)
 	glLineWidth(1.0f);
 }
 
+void DebugDraw(const Ray & ray, Color color, float max_dist)
+{
+	glColor3f(color.r, color.g, color.b);
+	glLineWidth(2.0f);
+	glBegin(GL_LINES);
+
+	glVertex3fv((GLfloat*)&ray.pos);
+	glVertex3fv((GLfloat*)&ray.GetPoint(max_dist));
+
+	glEnd();
+	glLineWidth(1.0f);
+}
+
 void DebugDraw(const float3 & point, Color color)
 {
 	glColor3f(color.r, color.g, color.b);

@@ -111,8 +111,11 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 	if (go->childs.size() == 0)
 		flags |= ImGuiTreeNodeFlags_Leaf;
 
-	if (go == App->editor->selected)
+	if (go == App->editor->selected) 
+	{
 		flags |= ImGuiTreeNodeFlags_Selected;
+		open_selected = false;
+	}
 
 	ImVec4 color = IMGUI_WHITE;
 
@@ -129,6 +132,9 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 		color = IMGUI_YELLOW;
 
 	ImGui::PushStyleColor(ImGuiCol_Text, color);
+
+	if (open_selected == true && App->editor->selected->IsUnder(go) == true)
+		ImGui::SetNextTreeNodeOpen(true);
 
 	if (ImGui::TreeNodeEx(name, flags))
 	{

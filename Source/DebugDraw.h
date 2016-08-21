@@ -14,6 +14,7 @@ void DebugDraw(const Capsule& capsule, Color color = White, const float4x4& tran
 void DebugDraw(const float4x4& transform);
 void DebugDraw(const Frustum& frustum, Color color = White);
 void DebugDraw(const LineSegment& segment, Color color = White);
+void DebugDraw(const Ray& ray, Color color = White, float max_dist = 5000.0f);
 void DebugDraw(const float3& point, Color color = White);
 void DebugDrawBox(const float3* box_8_vertices, Color color = White);
 

@@ -282,6 +282,7 @@ public:
 	/// Sets all elements of this vector.
 	/** @see x, y, z, At(). */
 	void Set(float x, float y, float z);
+	void Set(float* v);
 
 	/// Converts the given vector represented in spherical coordinates to an euclidean float3 (x,y,z) triplet.
 	/** @param azimuth The direction, or yaw, of the vector. This function uses the convention that the X-Z plane is

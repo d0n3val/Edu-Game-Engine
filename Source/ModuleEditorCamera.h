@@ -6,6 +6,7 @@
 #include "Math.h"
 
 class ComponentCamera;
+class GameObject;
 
 class ModuleEditorCamera : public Module
 {
@@ -34,6 +35,7 @@ private:
 	void Orbit(float motion_x, float motion_y);
 	void LookAt(float motion_x, float motion_y);
 	void Zoom(float zoom);
+	GameObject* Pick(float3* hit_point = nullptr) const;
 
 public: 
 	float mov_speed = 15.0f;
@@ -45,7 +47,8 @@ private:
 	float3 looking_at;
 	bool looking = false;
 	ComponentCamera* dummy = nullptr;
-	LineSegment pick_segment;
+	LineSegment picking;
+	float3 last_hit;
 };
 
 #endif // __MODULE_EDITOR_CAMERA_H__

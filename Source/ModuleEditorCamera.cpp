@@ -8,6 +8,7 @@
 #include "ModuleRenderer3D.h"
 #include "DebugDraw.h"
 #include "ModuleLevelManager.h"
+#include "GameObject.h"
 #include <vector>
 
 using namespace std;
@@ -15,7 +16,8 @@ using namespace std;
 ModuleEditorCamera::ModuleEditorCamera(bool start_enabled) : Module("Camera", start_enabled)
 {
 	dummy = new ComponentCamera(nullptr);
-	pick_segment = LineSegment(float3::zero, float3::one);
+	picking = LineSegment(float3::zero, float3::unitY);
+	last_hit = float3::zero;
 }
 
 ModuleEditorCamera::~ModuleEditorCamera()
@@ -74,7 +76,8 @@ void ModuleEditorCamera::Load(Config * config)
 // -----------------------------------------------------------------
 void ModuleEditorCamera::DrawDebug()
 {
-	DebugDraw(pick_segment, Yellow);
+	DebugDraw(picking, Blue);
+	DebugDraw(last_hit, Red);
 }
 
 // -----------------------------------------------------------------
@@ -110,25 +113,9 @@ update_status ModuleEditorCamera::Update(float dt)
 		// Mouse Picking
 		if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) == KEY_DOWN)
 		{
-			// The point (1, 1) corresponds to the top-right corner of the near plane
-			// (-1, -1) is bottom-left
-
-			float width = (float) App->window->GetWidth();
-			float height = (float) App->window->GetHeight();
-
-			int mouse_x, mouse_y;
-			App->input->GetMousePosition(mouse_x, mouse_y);
-
-			float normalized_x = -(1.0f - (float(mouse_x) * 2.0f ) / width);
-			float normalized_y = 1.0f - (float(mouse_y) * 2.0f ) / height;
-
-			LOG("Picking at %i, %i (normalized %0.2f, %0.2f)", mouse_x, mouse_y, normalized_x, normalized_y);
-			pick_segment = dummy->frustum.UnProjectLineSegment(normalized_x, normalized_y);
-
-			vector<GameObject*> results;
-			App->level->CastRay(pick_segment, results);
-
-			LOG("The ray intersects %d gameobjects!", results.size());
+			GameObject* pick = Pick();
+			if (pick != nullptr)
+				App->editor->SetSelected(pick, (App->editor->selected == pick));
 		}
 	}
 
@@ -198,7 +185,21 @@ void ModuleEditorCamera::Orbit(float dx, float dy)
 
 	// fake point should be a ray colliding with something
 	if (looking == false)
-		point = dummy->frustum.pos + dummy->frustum.front * 50.0f;
+	{
+		LineSegment picking = dummy->frustum.UnProjectLineSegment(0.f, 0.f);
+		float distance;
+		GameObject* hit = App->level->CastRay(picking, distance);
+
+		if (hit != nullptr)
+			point = picking.GetPoint(distance);
+		else
+			point = dummy->frustum.pos + dummy->frustum.front * 50.0f;
+
+		LOG("orbiting around %.2f, %0.2f, %0.2f", point.x, point.y, point.z);
+
+		looking = true;
+		looking_at = point;
+	}
 
 	float3 focus = dummy->frustum.pos - point;
 
@@ -245,4 +246,30 @@ void ModuleEditorCamera::Zoom(float zoom)
 
 	float3 p = dummy->frustum.front * zoom;
 	dummy->frustum.pos += p;
+}
+
+// -----------------------------------------------------------------
+GameObject* ModuleEditorCamera::Pick(float3* hit_point) const
+{
+	// The point (1, 1) corresponds to the top-right corner of the near plane
+	// (-1, -1) is bottom-left
+
+	float width = (float) App->window->GetWidth();
+	float height = (float) App->window->GetHeight();
+
+	int mouse_x, mouse_y;
+	App->input->GetMousePosition(mouse_x, mouse_y);
+
+	float normalized_x = -(1.0f - (float(mouse_x) * 2.0f ) / width);
+	float normalized_y = 1.0f - (float(mouse_y) * 2.0f ) / height;
+
+	LineSegment picking = dummy->frustum.UnProjectLineSegment(normalized_x, normalized_y);
+
+	float distance;
+	GameObject* hit = App->level->CastRay(picking, distance);
+
+	if (hit != nullptr && hit_point != nullptr)
+		*hit_point = picking.GetPoint(distance);
+
+	return hit;
 }

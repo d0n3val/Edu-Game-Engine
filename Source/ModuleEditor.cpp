@@ -4,6 +4,7 @@
 #include "ModuleWindow.h"
 #include "ModuleFileSystem.h"
 #include "ModuleLevelManager.h"
+#include "ModuleEditorCamera.h"
 #include "ModuleSceneLoader.h"
 #include "ModuleInput.h"
 #include "GameObject.h"
@@ -313,6 +314,17 @@ void ModuleEditor::LogFPS(float fps, float ms)
 {
 	if (conf != nullptr)
 		conf->AddFPS(fps, ms);
+}
+
+void ModuleEditor::SetSelected(GameObject * selected, bool focus)
+{
+	this->selected = selected;
+	if (selected != nullptr && focus == true)
+	{
+		float radius = selected->global_bbox.MinimalEnclosingSphere().r;
+		App->camera->CenterOn(selected->GetGlobalPosition(), std::fmaxf(radius, 5.0f) * 3.0f);
+		tree->open_selected = true;
+	}
 }
 
 void ModuleEditor::LoadFile(const char* filter_extension, const char* from_dir)

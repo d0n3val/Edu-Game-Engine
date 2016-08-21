@@ -618,6 +618,13 @@ void float3::Set(float x_, float y_, float z_)
 	z = z_;
 }
 
+void float3::Set(float * v)
+{
+	x = *(v + 0);
+	y = *(v + 1);
+	z = *(v + 2);
+}
+
 void float3::SetFromSphericalCoordinates(float azimuth, float inclination, float radius)
 {
 	float cx = Cos(inclination);

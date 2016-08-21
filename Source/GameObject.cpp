@@ -600,3 +600,23 @@ const AABB& GameObject::GetLocalBBox() const
 {
 	return local_bbox;
 }
+
+// ---------------------------------------------------------
+bool GameObject::IsUnder(const GameObject* go) const
+{
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+	{
+		if (this == *it || IsUnder(*it) == true)
+			return true;
+	}
+
+	return false;
+}
+
+// ---------------------------------------------------------
+void GameObject::FindComponents(ComponentTypes type, vector<Component*>& results) const
+{
+	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+		if ((*it)->GetType() == type)
+			results.push_back(*it);
+}

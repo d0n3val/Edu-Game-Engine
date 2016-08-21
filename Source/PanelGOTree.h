@@ -21,6 +21,7 @@ public:
 	uint node = 0;
 	char name[80];
 	GameObject* drag = nullptr;
+	bool open_selected = false;
 };
 
 #endif// __PANELGOTREE_H__

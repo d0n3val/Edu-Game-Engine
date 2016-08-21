@@ -47,6 +47,7 @@ public:
 	void Log(const char* entry);
 	void LogInputEvent(uint key, uint state);
 	void LogFPS(float fps, float ms);
+	void SetSelected(GameObject* selected, bool focus = false);
 
 public:
 	PanelConsole* console = nullptr;

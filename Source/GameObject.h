@@ -1,9 +1,10 @@
 #ifndef __GAMEOBJECT_H__
 #define __GAMEOBJECT_H__
 
+#include "Math.h"
 #include <list>
 #include <map>
-#include "Math.h"
+#include <vector>
 
 enum ComponentTypes;
 class Component;
@@ -68,6 +69,9 @@ public:
 	bool WasBBoxDirty() const;
 	void Remove();
 	const AABB& GetLocalBBox() const;
+
+	bool IsUnder(const GameObject* go) const;
+	void FindComponents(ComponentTypes type, std::vector<Component*>& results) const;
 
 private:
 	AABB local_bbox;
