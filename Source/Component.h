@@ -44,6 +44,11 @@ public:
 	virtual void OnUpdate() {};
 	virtual void OnFinish() {};
 
+	virtual void OnPlay() {};
+	virtual void OnStop() {};
+	virtual void OnPause() {};
+	virtual void OnUnPause() {};
+
 	virtual void OnUpdateTransform() {};
 
 	virtual void OnDebugDraw() const {};

@@ -27,6 +27,11 @@ public:
 	void OnEnable();
 	void OnDisable();
 
+	void OnPlay();
+	void OnStop();
+	void OnPause();
+	void OnUnPause();
+
 	bool RecursiveRemoveFlagged();
 	Component* CreateComponent(ComponentTypes type);
 
@@ -76,6 +81,7 @@ private:
 	float3 scale = float3::one;
 	bool active = true;
 	GameObject* parent = nullptr;
+	float4x4 original_transform;
 
 public:
 	std::string name;

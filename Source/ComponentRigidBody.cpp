@@ -88,9 +88,16 @@ void ComponentRigidBody::OnLoad(Config * config)
 }
 
 // ---------------------------------------------------------
-void ComponentRigidBody::OnStart()
+void ComponentRigidBody::OnPlay()
 {
 	CreateBody();
+}
+
+// ---------------------------------------------------------
+void ComponentRigidBody::OnStop()
+{
+	if (body != nullptr)
+		App->physics3D->DeleteBody(body);
 }
 
 // ---------------------------------------------------------
@@ -227,32 +234,32 @@ void ComponentRigidBody::DrawEditor()
 	if (ImGui::Button("Commit Changes to Physics Engine"))
 		CreateBody();
 
-	linear_factor =  body->getLinearFactor();
-	if (ImGui::DragFloat3("Linear Factor", &linear_factor.x, 0.05f, 0.f, 1.f))
+	if (ImGui::DragFloat3("Linear Factor", &linear_factor.x, 0.05f, 0.f, 1.f) && body)
 		body->setLinearFactor(linear_factor);
 
-	angular_factor = body->getAngularFactor();
-	if (ImGui::DragFloat3("Angular Factor", &angular_factor.x, 0.05f, 0.f, 1.f))
+	if (ImGui::DragFloat3("Angular Factor", &angular_factor.x, 0.05f, 0.f, 1.f) && body)
 		body->setAngularFactor(angular_factor);
 
-	restitution = body->getRestitution();
-	if(ImGui::DragFloat("Restitution", &restitution, 0.1f))
+	if(ImGui::DragFloat("Restitution", &restitution, 0.1f) && body)
 		body->setRestitution(restitution);
 
-	float3 data = body->getLinearVelocity();
-	IMGUI_PRINT("Linear Velocity: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
-	data = body->getAngularVelocity();
-	IMGUI_PRINT("Angular Velocity: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
-	data = body->getCenterOfMassPosition();
-	IMGUI_PRINT("Center of Mass: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
-	data = body->getLocalInertia();
-	IMGUI_PRINT("Local Inertia: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
-	data = body->getTotalForce();
-	IMGUI_PRINT("Total Force: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
-	data = body->getTotalTorque();
-	IMGUI_PRINT("Total Torque: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
-	data.x = body->getFriction();
-	data.y = body->getHitFraction();
-	data.z = body->getRollingFriction();
-	IMGUI_PRINT("Friction/Hit/Rolling: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+	if (body != nullptr)
+	{
+		float3 data = body->getLinearVelocity();
+		IMGUI_PRINT("Linear Velocity: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+		data = body->getAngularVelocity();
+		IMGUI_PRINT("Angular Velocity: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+		data = body->getCenterOfMassPosition();
+		IMGUI_PRINT("Center of Mass: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+		data = body->getLocalInertia();
+		IMGUI_PRINT("Local Inertia: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+		data = body->getTotalForce();
+		IMGUI_PRINT("Total Force: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+		data = body->getTotalTorque();
+		IMGUI_PRINT("Total Torque: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+		data.x = body->getFriction();
+		data.y = body->getHitFraction();
+		data.z = body->getRollingFriction();
+		IMGUI_PRINT("Friction/Hit/Rolling: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+	}
 }

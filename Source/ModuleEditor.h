@@ -15,6 +15,7 @@ class PanelProperties;
 class PanelConfiguration;
 class PanelAbout;
 class PanelResources;
+class PanelQuickBar;
 class GameObject;
 
 class ModuleEditor : public Module
@@ -30,6 +31,8 @@ public:
 	bool CleanUp() override;
 	void ReceiveEvent(const Event& event) override;
 	void DebugDraw() override;
+
+	// TODO Save/load panel activation
 
 	void OnResize(int width, int height);
 
@@ -52,12 +55,12 @@ public:
 	PanelAbout* about = nullptr;
 	PanelConfiguration* conf = nullptr;
 	PanelResources* res= nullptr;
+	PanelQuickBar* bar= nullptr;
 	GameObject* selected = nullptr;
 
 private:
 	void LoadFile(const char* filter_extension = nullptr, const char* from_dir = nullptr);
 	void DrawDirectoryRecursive(const char* directory, const char* filter_extension) ;
-	//void SaveFile();
 
 private:
 	std::vector<Panel *> panels;
@@ -74,6 +77,7 @@ private:
 	bool capture_keyboard = false;
 	bool in_modal = false;
 	char selected_file[FILE_MAX];
+	bool draw_menu = true;
 };
 
 #endif // __MODULEEDITOR_H__

@@ -27,6 +27,17 @@ struct Event;
 
 class Application
 {
+public:
+	enum State
+	{
+		play,
+		stop,
+		pause,
+		waiting_play,
+		waiting_stop,
+		waiting_pause,
+		waiting_unpause
+	};
 
 public:
 	Application();
@@ -50,6 +61,14 @@ public:
 	void SavePrefs() const;
 	void RequestBrowser(const char* url) const;
 	void BroadcastEvent(const Event& event);
+	State GetState() const;
+	void Play();
+	void Pause();
+	void UnPause();
+	void Stop();
+	bool IsPlay() const;
+	bool IsPause() const;
+	bool IsStop() const;
 
 private:
 
@@ -89,6 +108,8 @@ private:
 	std::string log;
 	std::string app_name;
 	std::string organization_name;
+
+	State state = State::stop;
 };
 
 // Give App pointer access everywhere

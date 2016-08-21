@@ -143,16 +143,50 @@ void GameObject::OnFinish()
 void GameObject::OnEnable()
 {
 	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
-		(*it)->OnStart();
+		(*it)->OnActivate();
 }
 
 // ---------------------------------------------------------
 void GameObject::OnDisable()
 {
 	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
-		(*it)->OnStart();
+		(*it)->OnDeActivate();
 }
 
+// ---------------------------------------------------------
+void GameObject::OnPlay()
+{
+	// Save transform setup from the editor
+	original_transform = float4x4::FromTRS(translation, rotation, scale);
+
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnPlay();
+}
+
+// ---------------------------------------------------------
+void GameObject::OnStop()
+{
+	// go back to the original transform
+	original_transform.Decompose(translation, rotation, scale);
+	local_trans_dirty = true;
+
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnStop();
+}
+
+// ---------------------------------------------------------
+void GameObject::OnPause()
+{
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnPause();
+}
+
+// ---------------------------------------------------------
+void GameObject::OnUnPause()
+{
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnUnPause();
+}
 // ---------------------------------------------------------
 bool GameObject::RecursiveRemoveFlagged()
 {

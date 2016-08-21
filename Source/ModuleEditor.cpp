@@ -19,6 +19,7 @@
 #include "PanelConfiguration.h"
 #include "PanelAbout.h"
 #include "PanelResources.h"
+#include "PanelQuickBar.h"
 #include "Event.h"
 #include <string.h>
 #include <algorithm>
@@ -52,6 +53,7 @@ bool ModuleEditor::Init(Config* config)
 	panels.push_back(conf = new PanelConfiguration());
 	panels.push_back(about = new PanelAbout());
 	panels.push_back(res = new PanelResources());
+	panels.push_back(bar = new PanelQuickBar());
 
 	return true;
 }
@@ -79,53 +81,57 @@ update_status ModuleEditor::Update(float dt)
 	static bool showcase = false;
 	
 	// Main menu GUI
-	if (ImGui::BeginMainMenuBar())
+	if (draw_menu == true)
 	{
-		bool selected = false;
-		if (ImGui::BeginMenu("File"))
+		if (ImGui::BeginMainMenuBar())
 		{
-			ImGui::MenuItem("New ...");
-			ImGui::MenuItem("Load ...");
-			if (ImGui::MenuItem("Save ..."))
-				App->level->Save("level.json");
+			bool selected = false;
+			if (ImGui::BeginMenu("File"))
+			{
+				ImGui::MenuItem("New ...");
+				ImGui::MenuItem("Load ...");
+				if (ImGui::MenuItem("Save ..."))
+					App->level->Save("level.json");
 
-			if (ImGui::MenuItem("Quit", "ESC"))
-				ret = UPDATE_STOP;
+				if (ImGui::MenuItem("Quit", "ESC"))
+					ret = UPDATE_STOP;
 
-			ImGui::EndMenu();
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("View"))
+			{
+				ImGui::MenuItem("Console", "F1", &console->active);
+				ImGui::MenuItem("Scene Hierarchy", "F2", &tree->active);
+				ImGui::MenuItem("Properties", "F3", &props->active);
+				ImGui::MenuItem("Configuration", "F4", &conf->active);
+				ImGui::MenuItem("Resource Browser", "F5", &res->active);
+				ImGui::MenuItem("Quick Bar", "F6", &res->active);
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Help"))
+			{
+				if (ImGui::MenuItem("Gui Demo"))
+					showcase = !showcase;
+
+				if (ImGui::MenuItem("Documentation"))
+					App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/wiki");
+
+				if (ImGui::MenuItem("Download latest"))
+					App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/releases");
+
+				if (ImGui::MenuItem("Report a bug"))
+					App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/issues");
+
+				if (ImGui::MenuItem("About"))
+					about->SwitchActive();
+
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
 		}
-
-		if (ImGui::BeginMenu("View"))
-		{
-            ImGui::MenuItem("Console", "F1", &console->active);
-            ImGui::MenuItem("Scene Hierarchy", "F2", &tree->active);
-            ImGui::MenuItem("Properties", "F3", &props->active);
-            ImGui::MenuItem("Configuration", "F4", &conf->active);
-            ImGui::MenuItem("Resource Browser", "F5", &res->active);
-
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::BeginMenu("Help"))
-		{
-			if (ImGui::MenuItem("Gui Demo"))
-				showcase = !showcase;
-
-			if (ImGui::MenuItem("Documentation"))
-				App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/wiki");
-
-			if (ImGui::MenuItem("Download latest"))
-				App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/releases");
-
-			if (ImGui::MenuItem("Report a bug"))
-				App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/issues");
-
-			if (ImGui::MenuItem("About"))
-				about->SwitchActive();
-
-			ImGui::EndMenu();
-		}
-		ImGui::EndMainMenuBar();
 	}
 
 	// Draw all active panels
@@ -177,6 +183,24 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 {
 	switch (event.type)
 	{
+		case Event::play:
+		case Event::unpause:
+			draw_menu = false;
+			console->active = false;
+			tree->active = false;
+            props->active = false;
+            conf->active = false;
+            res->active = false;
+		break;
+		case Event::stop:
+		case Event::pause:
+			draw_menu = true;
+			console->active = true;
+			tree->active = true;
+            props->active = true;
+            conf->active = true;
+            res->active = true;
+		break;
 		case Event::gameobject_destroyed:
 			selected = App->level->Validate(selected);
 			tree->drag = App->level->Validate(tree->drag);
@@ -196,10 +220,10 @@ void ModuleEditor::DebugDraw()
 
 void ModuleEditor::OnResize(int width, int height)
 {
-	LOG("Moving windows");
-
 	console->width = width - tree->width - conf->width;
 	console->posy = height - console->height;
+
+	bar->posx = width / 2 - bar->width / 2;
 
 	tree->height = height / 2;
 	res->posy = height / 2 + tree->posy;

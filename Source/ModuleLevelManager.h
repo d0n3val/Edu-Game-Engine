@@ -19,6 +19,8 @@ public:
 	update_status PreUpdate(float dt) override;
 	bool CleanUp() override;
 
+	void ReceiveEvent(const Event& event) override;
+
 	// Utils
 	const GameObject* GetRoot() const;
 	GameObject* GetRoot();
@@ -43,6 +45,7 @@ public:
 
 private:
 	void RecursiveDrawGameObjects(const GameObject* go) const;
+	void RecursiveProcessEvent(GameObject* go, const Event& event) const;
 	void DestroyFlaggedGameObjects();
 
 private:

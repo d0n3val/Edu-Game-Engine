@@ -5,6 +5,10 @@ struct Event
 {
 	enum EventType
 	{
+		play,
+		pause,
+		unpause,
+		stop,
 		gameobject_destroyed,
 		window_resize,
 		file_dropped,

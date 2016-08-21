@@ -105,6 +105,30 @@ void Application::PrepareUpdate()
 {
 	dt = (float)ms_timer.Read() / 1000.0f;
 	ms_timer.Start();
+
+	switch (state)
+	{
+		case waiting_play:
+		{
+			state = play;
+			BroadcastEvent(Event(Event::EventType::play));
+		} break;
+		case waiting_stop:
+		{
+			state = stop;
+			BroadcastEvent(Event(Event::EventType::stop));
+		} break;
+		case waiting_pause:
+		{
+			state = pause;
+			BroadcastEvent(Event(Event::EventType::pause));
+		} break;
+		case waiting_unpause:
+		{
+			state = play;
+			BroadcastEvent(Event(Event::EventType::unpause));
+		} break;
+	}
 }
 
 // ---------------------------------------------
@@ -295,4 +319,53 @@ void Application::BroadcastEvent(const Event& event)
 {
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
 		(*it)->ReceiveEvent(event);
+}
+
+// ---------------------------------------------
+Application::State Application::GetState() const
+{
+	return state;
+}
+
+// ---------------------------------------------
+void Application::Play()
+{
+	if (state == State::stop)
+		state = State::waiting_play;
+}
+
+// ---------------------------------------------
+void Application::Pause()
+{
+	if (state == State::play)
+		state = State::waiting_pause;
+}
+
+// ---------------------------------------------
+void Application::UnPause()
+{
+	if (state == State::pause)
+		state = State::waiting_unpause;
+}
+
+// ---------------------------------------------
+void Application::Stop()
+{
+	if (state == State::play || state == State::pause)
+		state = State::waiting_stop;
+}
+
+bool Application::IsPlay() const
+{
+	return state == State::play;
+}
+
+bool Application::IsPause() const
+{
+	return state == State::pause;
+}
+
+bool Application::IsStop() const
+{
+	return state == State::stop;
 }

@@ -552,6 +552,9 @@
     <ClInclude Include="Bullet\include\btBulletDynamicsCommon.h">
       <Filter>3rd Party\bullet</Filter>
     </ClInclude>
+    <ClInclude Include="PanelQuickBar.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -826,6 +829,9 @@
     </ClCompile>
     <ClCompile Include="ComponentRigidBody.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelQuickBar.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

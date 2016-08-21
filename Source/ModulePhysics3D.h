@@ -45,6 +45,8 @@ public:
 	void Save(Config* config) const override;
 	void Load(Config* config) override;
 
+	void ReceiveEvent(const Event& event) override;
+
 	// Utils ----
 
 	void SetGravity(const float3& gravity);

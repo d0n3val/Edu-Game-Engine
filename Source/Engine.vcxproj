@@ -243,6 +243,7 @@
     <ClInclude Include="Panel.h" />
     <ClInclude Include="PanelGOTree.h" />
     <ClInclude Include="PanelProperties.h" />
+    <ClInclude Include="PanelQuickBar.h" />
     <ClInclude Include="PanelResources.h" />
     <ClInclude Include="parson.h" />
     <ClInclude Include="PhysBody3D.h" />
@@ -336,6 +337,7 @@
     <ClCompile Include="Panel.cpp" />
     <ClCompile Include="PanelGOTree.cpp" />
     <ClCompile Include="PanelProperties.cpp" />
+    <ClCompile Include="PanelQuickBar.cpp" />
     <ClCompile Include="PanelResources.cpp" />
     <ClCompile Include="parson.c" />
     <ClCompile Include="PhysBody3D.cpp" />

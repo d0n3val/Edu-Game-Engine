@@ -7,6 +7,7 @@
 #include "ComponentRigidBody.h"
 #include "Config.h"
 #include "DebugDraw.h"
+#include "Event.h"
 #include "Bullet/include/btBulletDynamicsCommon.h"
 #include "Bullet/include/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 
@@ -467,6 +468,22 @@ void ModulePhysics3D::Load(Config * config)
 	paused = config->GetBool("Paused", false);
 
 	debug_draw->setDebugMode(config->GetInt("Debug Mode", 0));
+}
+
+// =============================================
+void ModulePhysics3D::ReceiveEvent(const Event & event)
+{
+	switch (event.type)
+	{
+	case Event::play:
+	case Event::unpause:
+		paused = false;
+		break;
+	case Event::stop:
+	case Event::pause:
+		paused = true;
+		break;
+	}
 }
 
 // =============================================

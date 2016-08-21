@@ -65,6 +65,11 @@ bool ModuleLevelManager::CleanUp()
 	return true;
 }
 
+void ModuleLevelManager::ReceiveEvent(const Event & event)
+{
+	RecursiveProcessEvent(root, event);
+}
+
 const GameObject * ModuleLevelManager::GetRoot() const
 {
 	return root;
@@ -251,6 +256,20 @@ void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const
 	// Recursive call to all childs keeping matrices
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveDrawGameObjects(*it);
+}
+
+void ModuleLevelManager::RecursiveProcessEvent(GameObject * go, const Event & event) const
+{
+	switch (event.type)
+	{
+		case Event::EventType::play: go->OnPlay(); break;
+		case Event::EventType::stop: go->OnStop(); break;
+		case Event::EventType::pause: go->OnPause(); break;
+		case Event::EventType::unpause: go->OnUnPause(); break;
+	}
+
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		RecursiveProcessEvent(*it, event);
 }
 
 void ModuleLevelManager::RecursiveDebugDrawGameObjects(const GameObject* go) const

@@ -167,18 +167,24 @@ update_status ModuleRenderer3D::Update(float dt)
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
 	// debug draw ---
-	PPlane p(0, 1, 0, 0);
-	p.axis = true;
-	p.Render();
+	if (draw_plane == true)
+	{
+		PPlane p(0, 1, 0, 0);
+		p.axis = true;
+		p.Render();
+	}
 
 	// TODO: need to find out who is messing with the colors so I do not need this
 	glColor3f(1.f,1.f,1.f);
 
 	App->level->Draw();
 
-	BeginDebugDraw();
-	App->DebugDraw();
-	EndDebugDraw();
+	if (debug_draw == true)
+	{
+		BeginDebugDraw();
+		App->DebugDraw();
+		EndDebugDraw();
+	}
 
 	App->editor->Draw();
 
@@ -209,11 +215,15 @@ void ModuleRenderer3D::ReceiveEvent(const Event& event)
 void ModuleRenderer3D::Save(Config * config) const
 {
 	config->AddBool("Vertical Sync", GetVSync());
+	config->AddBool("Debug Plane", debug_draw);
+	config->AddBool("Debug Draw", draw_plane);
 }
 
 void ModuleRenderer3D::Load(Config * config)
 {
 	SetVSync(config->GetBool("Vertical Sync", true));
+	draw_plane = config->GetBool("Debug Plane", true);
+	debug_draw = config->GetBool("Debug Draw", true);
 }
 
 void ModuleRenderer3D::OnResize(int width, int height)

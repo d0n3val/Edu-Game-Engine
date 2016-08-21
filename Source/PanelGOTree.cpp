@@ -57,10 +57,11 @@ void PanelGOTree::Draw()
 
 	if (ImGui::BeginMenu("Options"))
 	{
-		if (ImGui::MenuItem("Load.."))
+		bool sel = false;
+		if (ImGui::MenuItem("Load..", "", &sel, App->IsStop()))
 			waiting_to_load_file = true;
 
-		if (ImGui::MenuItem("Save.."))
+		if (ImGui::MenuItem("Save..", "", &sel, App->IsStop()))
 			waiting_to_save_file = true;
 
 		if (ImGui::BeginMenu("Load Prefab"))
