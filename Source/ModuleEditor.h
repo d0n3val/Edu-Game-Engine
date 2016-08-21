@@ -30,7 +30,7 @@ public:
 	update_status Update(float dt) override;
 	bool CleanUp() override;
 	void ReceiveEvent(const Event& event) override;
-	void DebugDraw() override;
+	void DrawDebug() override;
 
 	// TODO Save/load panel activation
 

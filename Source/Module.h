@@ -82,7 +82,7 @@ public:
 	virtual void Load(Config* config) 
 	{}
 
-	virtual void DebugDraw() 
+	virtual void DrawDebug() 
 	{}
 
 	virtual void OnCollision(PhysBody3D* body1, PhysBody3D* body2)

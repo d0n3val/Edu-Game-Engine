@@ -438,7 +438,7 @@ bool ModulePhysics3D::CleanUp()
 }
 
 // ---------------------------------------------------------
-void ModulePhysics3D::DebugDraw()
+void ModulePhysics3D::DrawDebug()
 {
 	if(debug == true)
 		world->debugDrawWorld();

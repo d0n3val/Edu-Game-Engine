@@ -575,7 +575,7 @@ static JSON_Value * parse_value(const char **string, size_t nesting) {
             return parse_string_value(string);
         case 'f': case 't':
             return parse_boolean_value(string);
-        case '-':
+		case '-': case 'i':
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
             return parse_number_value(string);

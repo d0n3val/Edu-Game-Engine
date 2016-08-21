@@ -355,6 +355,9 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 
 void PanelConfiguration::DrawModuleCamera(ModuleEditorCamera * module)
 {
+	ImGui::DragFloat("Mov Speed", &App->camera->mov_speed, 0.1f, 0.1f);
+	ImGui::DragFloat("Rot Speed", &App->camera->rot_speed, 0.05f, 0.01f);
+	ImGui::DragFloat("Zoom Speed", &App->camera->zoom_speed, 0.1f, 0.1f);
 	App->editor->props->DrawCameraComponent(module->GetDummy());
 }
 

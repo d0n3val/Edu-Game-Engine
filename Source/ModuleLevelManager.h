@@ -34,16 +34,18 @@ public:
 	
 	// Draw
 	void Draw() const;
+	void RecursiveDebugDrawGameObjects(const GameObject* go) const;
 
 	// Add or remove from the hierarchy
 	GameObject* CreateGameObject(GameObject * parent, const float3& pos, const float3& scale, const Quat& rot, const char* name = nullptr);
 	GameObject* CreateGameObject(GameObject * parent = nullptr);
 
-	void RecursiveDebugDrawGameObjects(const GameObject* go) const;
-
+	// Utils
 	GameObject* Validate(const GameObject* pointer) const;
+	void CastRay(const LineSegment& segment, std::vector<GameObject*>& results) const;
 
 private:
+	void RecursiveTestRay(const GameObject* go, const LineSegment& segment, std::vector<GameObject*>& results) const;
 	void RecursiveDrawGameObjects(const GameObject* go) const;
 	void RecursiveProcessEvent(GameObject* go, const Event& event) const;
 	void DestroyFlaggedGameObjects();

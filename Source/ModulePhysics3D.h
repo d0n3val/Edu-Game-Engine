@@ -40,7 +40,7 @@ public:
 	update_status Update(float dt) override;
 	update_status PostUpdate(float dt) override;
 	bool CleanUp();
-	void DebugDraw() override;
+	void DrawDebug() override;
 
 	void Save(Config* config) const override;
 	void Load(Config* config) override;

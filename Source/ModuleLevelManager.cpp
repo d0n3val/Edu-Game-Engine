@@ -292,3 +292,23 @@ GameObject * ModuleLevelManager::Validate(const GameObject * pointer) const
 
 	return nullptr;
 }
+
+void ModuleLevelManager::CastRay(const LineSegment & segment, std::vector<GameObject*>& results) const
+{
+	RecursiveTestRay(root, segment, results);
+}
+
+void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const LineSegment& segment, std::vector<GameObject*>& results) const
+{
+	float hit_near, hit_far;
+
+	if (segment.Intersects(go->global_bbox, hit_near, hit_far))
+	{
+		LOG("Hit at %.3f", near);
+		results.push_back((GameObject*) go);
+	}
+
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		RecursiveDebugDrawGameObjects(*it);
+}
+

@@ -197,7 +197,7 @@ void Application::DebugDraw()
 {
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
 		if ((*it)->IsActive() == true)
-			(*it)->DebugDraw();
+			(*it)->DrawDebug();
 }
 
 // ---------------------------------------------
