@@ -20,6 +20,7 @@
 #include "ResourceTexture.h"
 #include "PanelProperties.h"
 #include "ComponentCamera.h"
+#include "GameObject.h"
 #include "mmgr/mmgr.h"
 
 using namespace std;
@@ -426,18 +427,113 @@ void PanelConfiguration::DrawModulePhysics(ModulePhysics3D * module)
 		App->physics3D->SetDebugMode(mode);
 }
 
+float rnd(float min, float max)
+{
+	return max * ((float) rand() / (float) RAND_MAX);
+}
+
+
+
 void PanelConfiguration::DrawModuleLevel(ModuleLevelManager * module)
 {
 	ImGui::Checkbox("Debug Draw Quadtree", &module->draw_quadtree);
 	if (ImGui::Button("Add random box to Quadtree"))
 	{
+		// this will leak memory, but it is only for visualization purposes
+		float3 max = module->quadtree.root->box.Size();
+
 		GameObject* dummy = new GameObject(nullptr, "test for quadtree");
 		float3 pos;
-		pos.Set(1, 1, 1);
-		float size = 5;
+		pos.Set(rnd(0.f, max.x), rnd(0.f, max.y), rnd(0.f, max.z));
+		float size = rnd(1.f, max.x * 0.25f);
 		dummy->global_bbox.SetFrom(Sphere(pos, size));
 		module->quadtree.Insert(dummy);
 	}
+
+	ImGui::Separator();
+	RecursiveDrawQuadtree(module->quadtree.root);
+
+	if (ImGui::CollapsingHeader("Quadtree Minimap"))
+	{
+		// Draw quadtree like a minimap
+		ImGui::Separator();
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		ImVec2 canvas_pos = ImGui::GetCursorScreenPos();            // ImDrawList API uses screen coordinates!
+		ImVec2 canvas_size = ImGui::GetContentRegionAvail();        // Resize canvas to what's available
+		draw_list->AddRectFilledMultiColor(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), ImColor(50, 50, 50), ImColor(50, 50, 60), ImColor(60, 60, 70), ImColor(50, 50, 60));
+		draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), ImColor(255, 255, 255));
+		ImGui::InvisibleButton("Canvas", canvas_size);
+
+		float quad_posx = module->quadtree.root->box.minPoint.x;
+		float quad_posz = module->quadtree.root->box.minPoint.z;
+		float quad_width = module->quadtree.root->box.maxPoint.x - quad_posx;
+		float quad_height = module->quadtree.root->box.maxPoint.z - quad_posz;
+
+		ImVec2 up_left;
+		ImVec2 bottom_right;
+
+		vector<AABB> objects;
+		module->quadtree.CollectObjects(objects);
+		for (vector<AABB>::const_iterator it = objects.begin(); it != objects.end(); ++it)
+		{
+			AABB box = *it;
+
+			up_left.x = ((box.minPoint.x - quad_posx) * (float)canvas_size.x) / quad_width;
+			up_left.y = ((box.minPoint.z - quad_posz) * (float)canvas_size.y) / quad_height;
+
+			bottom_right.x = ((box.maxPoint.x - quad_posx) * (float)canvas_size.x) / quad_width;
+			bottom_right.y = ((box.maxPoint.z - quad_posz) * (float)canvas_size.y) / quad_height;
+
+			draw_list->AddRectFilled(
+				ImVec2(canvas_pos.x + up_left.x, canvas_pos.y + up_left.y),
+				ImVec2(canvas_pos.x + bottom_right.x, canvas_pos.y + bottom_right.y),
+				ImColor(200, 0, 0, 100), 0.0f, 10);
+
+			draw_list->AddRect(
+				ImVec2(canvas_pos.x + up_left.x, canvas_pos.y + up_left.y),
+				ImVec2(canvas_pos.x + bottom_right.x, canvas_pos.y + bottom_right.y),
+				ImColor(255, 255, 255), 0.0f, 10, 0.5f);
+		}
+
+		vector<const QuadtreeNode*> nodes;
+		module->quadtree.CollectBoxes(nodes);
+		for (vector<const QuadtreeNode*>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
+		{
+			AABB box = (*it)->box;
+
+			up_left.x = ((box.minPoint.x - quad_posx) * (float)canvas_size.x) / quad_width;
+			up_left.y = ((box.minPoint.z - quad_posz) * (float)canvas_size.y) / quad_height;
+
+			bottom_right.x = ((box.maxPoint.x - quad_posx) * (float)canvas_size.x) / quad_width;
+			bottom_right.y = ((box.maxPoint.z - quad_posz) * (float)canvas_size.y) / quad_height;
+
+			draw_list->AddRect(
+				ImVec2(canvas_pos.x + up_left.x, canvas_pos.y + up_left.y),
+				ImVec2(canvas_pos.x + bottom_right.x, canvas_pos.y + bottom_right.y),
+				ImColor(255, 255, 0), 0.0f, 10, 0.1f);
+		}
+	}
+}
+
+void PanelConfiguration::RecursiveDrawQuadtree(QuadtreeNode * node)
+{
+	uint flags = 0;
+
+	if (node->childs[0] == nullptr)
+		flags |= ImGuiTreeNodeFlags_Leaf;
+
+	if (ImGui::TreeNodeEx(node, flags, "QNode"))
+	{
+		for (list<GameObject*>::const_iterator it = node->objects.begin(); it != node->objects.end(); ++it)
+			ImGui::Text("%s", (*it)->name.c_str());
+
+		for (uint i = 0; i < 4; ++i)
+			if (node->childs[i] != nullptr)
+				RecursiveDrawQuadtree(node->childs[i]);
+
+		ImGui::TreePop();
+	}
+
 }
 
 void PanelConfiguration::AddInput(const char * entry)

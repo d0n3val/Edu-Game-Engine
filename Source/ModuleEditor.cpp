@@ -40,7 +40,7 @@ ModuleEditor::~ModuleEditor()
 // Called before render is available
 bool ModuleEditor::Init(Config* config)
 {
-	LOG("Init editor gui with imgui lib");
+	LOG("Init editor gui with imgui lib version %s", ImGui::GetVersion());
 
     ImGui_ImplSdlGL3_Init(App->window->GetWindow());
 
@@ -157,8 +157,11 @@ update_status ModuleEditor::Update(float dt)
 		in_modal = false;
 
 	// Show showcase ? 
-	if(showcase)
+	if (showcase)
+	{
 		ImGui::ShowTestWindow(&showcase);
+		ImGui::ShowMetricsWindow(&showcase);
+	}
 
 	return ret;
 }

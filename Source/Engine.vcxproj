@@ -343,6 +343,7 @@
     <ClCompile Include="parson.c" />
     <ClCompile Include="PhysBody3D.cpp" />
     <ClCompile Include="Primitive.cpp" />
+    <ClCompile Include="QuadTree.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceAnimation.cpp" />
     <ClCompile Include="ResourceAudio.cpp" />

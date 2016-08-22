@@ -22,6 +22,7 @@ class ModuleMeshes;
 class ModuleHardware;
 class ModuleEditor;
 class ModuleEditorCamera;
+class QuadtreeNode;
 
 class PanelConfiguration : public Panel
 {
@@ -45,6 +46,7 @@ public:
 	void DrawModuleLevel(ModuleLevelManager * module);
 	void AddInput(const char* entry);
 	void AddFPS(float fps, float ms);
+	void RecursiveDrawQuadtree(QuadtreeNode* node);
 
 private:
     ImGuiTextBuffer input_buf;

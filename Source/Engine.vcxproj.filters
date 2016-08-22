@@ -836,6 +836,9 @@
     <ClCompile Include="PanelQuickBar.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="QuadTree.cpp">
+      <Filter>Containers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\appveyor.yml">

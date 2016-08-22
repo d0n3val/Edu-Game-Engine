@@ -74,18 +74,21 @@ void ModuleLevelManager::ReceiveEvent(const Event & event)
 {
 	RecursiveProcessEvent(root, event);
 }
-
 void ModuleLevelManager::DrawDebug()
 {
 	if (draw_quadtree == true)
 	{
-		vector<QuadtreeNode*> boxes;
+		vector<const QuadtreeNode*> boxes;
 		quadtree.CollectBoxes(boxes);
 
-		for (vector<QuadtreeNode*>::const_iterator it = boxes.begin(); it != boxes.end(); ++it)
-		{
+		for (vector<const QuadtreeNode*>::const_iterator it = boxes.begin(); it != boxes.end(); ++it)
 			DebugDraw((*it)->box, Yellow);
-		}
+
+		vector<AABB> objects;
+		quadtree.CollectObjects(objects);
+
+		for (vector<AABB>::const_iterator it = objects.begin(); it != objects.end(); ++it)
+			DebugDraw((*it), Red);
 	}
 }
 

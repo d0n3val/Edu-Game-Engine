@@ -56,7 +56,7 @@ private:
 
 public:
 	Quadtree quadtree;
-	bool draw_quadtree = false;
+	bool draw_quadtree = true;
 
 private:
 	GameObject* root = nullptr;
