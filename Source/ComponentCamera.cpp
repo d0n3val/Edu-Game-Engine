@@ -5,9 +5,8 @@
 #include "DebugDraw.h"
 
 // ---------------------------------------------------------
-ComponentCamera::ComponentCamera(GameObject* container) : Component(container)
+ComponentCamera::ComponentCamera(GameObject* container) : Component(container, Types::Camera)
 {
-	type = ComponentTypes::Camera;
 	frustum.type = FrustumType::PerspectiveFrustum;
 
 	frustum.pos = float3::zero;

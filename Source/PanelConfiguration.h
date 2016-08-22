@@ -16,7 +16,7 @@ class ModuleAudio;
 class ModulePhysics3D;
 class ModuleRenderer3D;
 class ModuleEditorCamera;
-class ModuleSceneLoader;
+class ModuleLevelManager;
 class ModuleTextures;
 class ModuleMeshes;
 class ModuleHardware;
@@ -42,6 +42,7 @@ public:
 	void DrawModuleTextures(ModuleTextures * module);
 	void DrawModuleCamera(ModuleEditorCamera * module);
 	void DrawModulePhysics(ModulePhysics3D * module);
+	void DrawModuleLevel(ModuleLevelManager * module);
 	void AddInput(const char* entry);
 	void AddFPS(float fps, float ms);
 

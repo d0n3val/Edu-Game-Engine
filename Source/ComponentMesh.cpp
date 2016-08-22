@@ -13,10 +13,8 @@
 using namespace std;
 
 // ---------------------------------------------------------
-ComponentMesh::ComponentMesh(GameObject* container) : Component(container)
-{
-	type = ComponentTypes::Geometry;
-}
+ComponentMesh::ComponentMesh(GameObject* container) : Component(container, Types::Geometry)
+{}
 
 // ---------------------------------------------------------
 ComponentMesh::~ComponentMesh()
@@ -155,7 +153,7 @@ void ComponentMesh::RecursiveFindBones(const GameObject * go, vector<ComponentBo
 
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
-		if ((*it)->GetType() == ComponentTypes::Bone)
+		if ((*it)->GetType() == Component::Types::Bone)
 		{
 			ComponentBone* bone = (ComponentBone*)*it;
 			ResourceBone* res = (ResourceBone*) bone->GetResource();

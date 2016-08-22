@@ -11,9 +11,8 @@
 using namespace std;
 
 // ---------------------------------------------------------
-ComponentAnimation::ComponentAnimation(GameObject* container) : Component(container)
+ComponentAnimation::ComponentAnimation(GameObject* container) : Component(container, Types::Animation)
 {
-	type = ComponentTypes::Animation;
 	first.component = second.component = this;
 }
 
@@ -222,7 +221,7 @@ void ComponentAnimation::Channel::RecursiveCountBones(const GameObject * go, uin
 {
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
-		if ((*it)->GetType() == ComponentTypes::Bone)
+		if ((*it)->GetType() == Component::Types::Bone)
 		{
 			const ResourceAnimation* anim = (const ResourceAnimation*) GetResource();
 			for (uint i = 0; i < anim->num_keys; ++i)
@@ -242,7 +241,7 @@ void ComponentAnimation::Channel::RecursiveAttachBones(const GameObject * go)
 {
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
-		if ((*it)->GetType() == ComponentTypes::Bone)
+		if ((*it)->GetType() == Component::Types::Bone)
 		{
 			const ResourceAnimation* anim = (const ResourceAnimation*) GetResource();
 

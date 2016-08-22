@@ -5,10 +5,8 @@
 #include "ModuleTextures.h"
 
 // ---------------------------------------------------------
-ComponentMaterial::ComponentMaterial(GameObject* container) : Component(container)
-{
-	type = ComponentTypes::Material;
-}
+ComponentMaterial::ComponentMaterial(GameObject* container) : Component(container, Types::Material)
+{}
 
 // ---------------------------------------------------------
 ComponentMaterial::~ComponentMaterial()

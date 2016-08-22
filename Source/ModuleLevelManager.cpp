@@ -10,12 +10,15 @@
 #include "ComponentCamera.h"
 #include "ComponentMesh.h"
 #include "ResourceMesh.h"
+#include "DebugDraw.h"
 #include "Event.h"
 
 using namespace std;
 
 ModuleLevelManager::ModuleLevelManager( bool start_enabled) : Module("LevelManager", start_enabled)
-{}
+{
+	quadtree.SetBoundaries(AABB(float3::zero, float3(100.f, 100.f, 100.f)));
+}
 
 // Destructor
 ModuleLevelManager::~ModuleLevelManager()
@@ -70,6 +73,20 @@ bool ModuleLevelManager::CleanUp()
 void ModuleLevelManager::ReceiveEvent(const Event & event)
 {
 	RecursiveProcessEvent(root, event);
+}
+
+void ModuleLevelManager::DrawDebug()
+{
+	if (draw_quadtree == true)
+	{
+		vector<QuadtreeNode*> boxes;
+		quadtree.CollectBoxes(boxes);
+
+		for (vector<QuadtreeNode*>::const_iterator it = boxes.begin(); it != boxes.end(); ++it)
+		{
+			DebugDraw((*it)->box, Yellow);
+		}
+	}
 }
 
 const GameObject * ModuleLevelManager::GetRoot() const
@@ -309,7 +326,7 @@ void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const LineSegme
 	{
 		// Look for meshes, nothing else can be "picked" from the screen
 		vector<Component*> meshes;
-		go->FindComponents(ComponentTypes::Geometry, meshes);
+		go->FindComponents(Component::Types::Geometry, meshes);
 
 		if (meshes.size() > 0)
 		{
@@ -359,7 +376,7 @@ void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const Ray& ray,
 	{
 		// Look for meshes, nothing else can be "picked" from the screen
 		vector<Component*> meshes;
-		go->FindComponents(ComponentTypes::Geometry, meshes);
+		go->FindComponents(Component::Types::Geometry, meshes);
 
 		if (meshes.size() > 0)
 		{
@@ -371,6 +388,7 @@ void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const Ray& ray,
 			ray_local_space.Transform(go->GetGlobalTransformation().Inverted());
 			ray_local_space.dir.Normalize();
 
+			// Experiment using a TriangleMesh instead of raw triangles
 			Triangle tri;
 			for (uint i = 0; i < mesh->num_indices;)
 			{

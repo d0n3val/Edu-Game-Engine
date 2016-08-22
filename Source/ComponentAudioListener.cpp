@@ -2,10 +2,8 @@
 #include "ComponentAudioListener.h"
 
 // ---------------------------------------------------------
-ComponentAudioListener::ComponentAudioListener(GameObject* container) : Component(container)
-{
-	type = ComponentTypes::AudioListener;
-}
+ComponentAudioListener::ComponentAudioListener(GameObject* container) : Component(container, Types::AudioListener)
+{}
 
 // ---------------------------------------------------------
 ComponentAudioListener::~ComponentAudioListener()

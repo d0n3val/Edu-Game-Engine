@@ -391,11 +391,11 @@ void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
 
 		switch((*it)->GetType())
 		{
-			case ComponentTypes::AudioListener:
+			case Component::Types::AudioListener:
 				UpdateListener((ComponentAudioListener*) *it);
 			 break;
 
-			case ComponentTypes::AudioSource:
+			case Component::Types::AudioSource:
 				UpdateSource((ComponentAudioSource*) *it);
 			break;
 		}

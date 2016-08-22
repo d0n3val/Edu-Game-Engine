@@ -62,7 +62,7 @@ void ModuleAnimation::RecursiveUpdateAnimation(GameObject * go, float dt)
 			RecursiveUpdateAnimation(*it, dt);
 
 	for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
-		if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Animation)
+		if ((*it)->IsActive() && (*it)->GetType() == Component::Types::Animation)
 			UpdateAnimation((ComponentAnimation*)*it, dt);
 }
 
@@ -74,7 +74,7 @@ void ModuleAnimation::RecursiveResetMeshes(GameObject * go)
 			RecursiveResetMeshes(*it);
 
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
-		if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Geometry)
+		if ((*it)->IsActive() && (*it)->GetType() == Component::Types::Geometry)
 			((ComponentMesh*)*it)->ResetDeformableMesh();
 }
 // ---------------------------------------------------------
@@ -85,7 +85,7 @@ void ModuleAnimation::RecursiveDeformMeshes(GameObject * go)
 			RecursiveDeformMeshes(*it);
 
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
-		if ((*it)->IsActive() && (*it)->GetType() == ComponentTypes::Bone)
+		if ((*it)->IsActive() && (*it)->GetType() == Component::Types::Bone)
 			DeformMesh((const ComponentBone*)*it);
 }
 

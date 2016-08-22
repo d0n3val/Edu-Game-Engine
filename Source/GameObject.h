@@ -2,12 +2,11 @@
 #define __GAMEOBJECT_H__
 
 #include "Math.h"
+#include "Component.h"
 #include <list>
 #include <map>
 #include <vector>
 
-enum ComponentTypes;
-class Component;
 class Config;
 
 class GameObject
@@ -34,7 +33,7 @@ public:
 	void OnUnPause();
 
 	bool RecursiveRemoveFlagged();
-	Component* CreateComponent(ComponentTypes type);
+	Component* CreateComponent(Component::Types type);
 
 	void SetNewParent(GameObject* node, bool recalc_transformation = false);
 	GameObject* GetParent() const;
@@ -71,7 +70,7 @@ public:
 	const AABB& GetLocalBBox() const;
 
 	bool IsUnder(const GameObject* go) const;
-	void FindComponents(ComponentTypes type, std::vector<Component*>& results) const;
+	void FindComponents(Component::Types type, std::vector<Component*>& results) const;
 
 private:
 	AABB local_bbox;

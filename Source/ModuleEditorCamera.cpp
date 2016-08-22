@@ -264,9 +264,10 @@ GameObject* ModuleEditorCamera::Pick(float3* hit_point) const
 	float normalized_y = 1.0f - (float(mouse_y) * 2.0f ) / height;
 
 	LineSegment picking = dummy->frustum.UnProjectLineSegment(normalized_x, normalized_y);
+	Ray r = dummy->frustum.UnProjectFromNearPlane(normalized_x, normalized_y);
 
 	float distance;
-	GameObject* hit = App->level->CastRay(picking, distance);
+	GameObject* hit = App->level->CastRay(r, distance);
 
 	if (hit != nullptr && hit_point != nullptr)
 		*hit_point = picking.GetPoint(distance);

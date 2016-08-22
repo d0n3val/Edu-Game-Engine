@@ -139,7 +139,7 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 		{
 			aiString path;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-			ComponentMaterial* c_material = (ComponentMaterial*)child_go->CreateComponent(ComponentTypes::Material);
+			ComponentMaterial* c_material = (ComponentMaterial*)child_go->CreateComponent(Component::Types::Material);
 
 			if (path.data[0] == '*')
 			{
@@ -175,7 +175,7 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 		}
 
 		// Add mesh component
-		ComponentMesh* c_mesh = (ComponentMesh*)child_go->CreateComponent(ComponentTypes::Geometry);
+		ComponentMesh* c_mesh = (ComponentMesh*)child_go->CreateComponent(Component::Types::Geometry);
 		c_mesh->SetResource(App->resources->ImportBuffer(mesh, 0, Resource::mesh, (basePath + file).c_str()));
 		LOG("->-> Added mesh component");
 
@@ -208,7 +208,7 @@ void ModuleSceneLoader::RecursiveProcessBones(const aiScene * scene, const aiNod
 		aiBone* bone = it->second; 
 
 		GameObject* go = relations[node];
-		ComponentBone* c_bone = (ComponentBone*) go->CreateComponent(ComponentTypes::Bone);
+		ComponentBone* c_bone = (ComponentBone*) go->CreateComponent(Component::Types::Bone);
 
 		UID uid = App->resources->ImportBuffer(bone, (uint) mesh_bone[bone], Resource::bone, bone->mName.C_Str());
 		c_bone->SetResource(uid);

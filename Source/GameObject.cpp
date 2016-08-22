@@ -112,14 +112,14 @@ void GameObject::Load(Config * config, map<int, GameObject*>& relations)
 	for (int i = 0; i < count; ++i)
 	{
 		Config component_conf(config->GetArray("Components", i));
-		ComponentTypes type = (ComponentTypes)component_conf.GetInt("Type", ComponentTypes::Invalid);
-		if (type != ComponentTypes::Invalid)
+		Component::Types type = (Component::Types)component_conf.GetInt("Type", Component::Types::Unknown);
+		if (type != Component::Types::Unknown)
 		{
 			Component* component = CreateComponent(type);
 			component->OnLoad(&component_conf);
 		}
 		else
-			LOG("Cannot load component type INVALID for gameobject %s", name.c_str());
+			LOG("Cannot load component type UNKNOWN for gameobject %s", name.c_str());
 	}
 }
 
@@ -225,34 +225,34 @@ bool GameObject::RecursiveRemoveFlagged()
 }
 
 // ---------------------------------------------------------
-Component* GameObject::CreateComponent(ComponentTypes type)
+Component* GameObject::CreateComponent(Component::Types type)
 {
 	Component* ret = nullptr;
 
 	switch (type)
 	{
-		case ComponentTypes::Material:
+		case Component::Types::Material:
 			ret = new ComponentMaterial(this);
 		break;
-		case ComponentTypes::Geometry:
+		case Component::Types::Geometry:
 			ret = new ComponentMesh(this);
 		break;
-		case ComponentTypes::AudioListener:
+		case Component::Types::AudioListener:
 			ret = new ComponentAudioListener(this);
 		break;
-		case ComponentTypes::AudioSource:
+		case Component::Types::AudioSource:
 			ret = new ComponentAudioSource(this);
 		break;
-		case ComponentTypes::Camera:
+		case Component::Types::Camera:
 			ret = new ComponentCamera(this);
 		break;
-		case ComponentTypes::Bone:
+		case Component::Types::Bone:
 			ret = new ComponentBone(this);
 		break;
-		case ComponentTypes::RigidBody:
+		case Component::Types::RigidBody:
 			ret = new ComponentRigidBody(this);
 		break;
-		case ComponentTypes::Animation:
+		case Component::Types::Animation:
 			ret = new ComponentAnimation(this);
 		break;
 	}
@@ -425,7 +425,7 @@ const OBB& GameObject::RecursiveCalcBoundingBoxes(bool& needs_recalc)
 
 		for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
 		{
-			if ((*it)->GetType() == ComponentTypes::Geometry) {
+			if ((*it)->GetType() == Component::Types::Geometry) {
 				AABB comp_box = ((ComponentMesh*)(*it))->GetBoundingBox();
 				if (comp_box.IsFinite())
 					local_bbox.Enclose(comp_box);
@@ -487,7 +487,7 @@ void GameObject::Draw(bool debug) const
 		if ((*it)->IsActive() == false)
 			continue;
 
-		if ((*it)->GetType() == ComponentTypes::Material)
+		if ((*it)->GetType() == Component::Types::Material)
 		{
 			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
 			const ResourceTexture* tex = (const ResourceTexture*) cmaterial->GetResource();
@@ -501,7 +501,7 @@ void GameObject::Draw(bool debug) const
 		if ((*it)->IsActive() == false)
 			continue;
 
-		if ((*it)->GetType() == ComponentTypes::Geometry)
+		if ((*it)->GetType() == Component::Types::Geometry)
 		{
 			ComponentMesh* cmesh = (ComponentMesh*) (*it);
 			const ResourceMesh* mesh = (const ResourceMesh*)  cmesh->GetResource();
@@ -614,7 +614,7 @@ bool GameObject::IsUnder(const GameObject* go) const
 }
 
 // ---------------------------------------------------------
-void GameObject::FindComponents(ComponentTypes type, vector<Component*>& results) const
+void GameObject::FindComponents(Component::Types type, vector<Component*>& results) const
 {
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 		if ((*it)->GetType() == type)

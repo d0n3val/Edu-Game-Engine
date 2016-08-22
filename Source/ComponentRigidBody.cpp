@@ -11,10 +11,8 @@
 using namespace std;
 
 // ---------------------------------------------------------
-ComponentRigidBody::ComponentRigidBody(GameObject* container) : Component(container)
+ComponentRigidBody::ComponentRigidBody(GameObject* container) : Component(container, Types::RigidBody)
 {
-	type = ComponentTypes::RigidBody;
-
 	sphere.r = 1.0f;
 	sphere.pos = float3::zero;
 

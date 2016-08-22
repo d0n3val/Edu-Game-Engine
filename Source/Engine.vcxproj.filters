@@ -555,6 +555,9 @@
     <ClInclude Include="PanelQuickBar.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="QuadTree.h">
+      <Filter>Containers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">

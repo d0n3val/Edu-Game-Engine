@@ -16,6 +16,7 @@
 #include "ModuleEditor.h"
 #include "ModuleResources.h"
 #include "ModulePhysics3D.h"
+#include "ModuleLevelManager.h"
 #include "ResourceTexture.h"
 #include "PanelProperties.h"
 #include "ComponentCamera.h"
@@ -55,6 +56,9 @@ void PanelConfiguration::Draw()
 	}
 
 	DrawApplication();
+
+	if (InitModuleDraw(App->level))
+		DrawModuleLevel(App->level);
 
 	if (InitModuleDraw(App->window))
 		DrawModuleWindow(App->window);
@@ -420,6 +424,20 @@ void PanelConfiguration::DrawModulePhysics(ModulePhysics3D * module)
 
 	if (ImGui::CheckboxFlags("Frames", &mode, 1<<15))
 		App->physics3D->SetDebugMode(mode);
+}
+
+void PanelConfiguration::DrawModuleLevel(ModuleLevelManager * module)
+{
+	ImGui::Checkbox("Debug Draw Quadtree", &module->draw_quadtree);
+	if (ImGui::Button("Add random box to Quadtree"))
+	{
+		GameObject* dummy = new GameObject(nullptr, "test for quadtree");
+		float3 pos;
+		pos.Set(1, 1, 1);
+		float size = 5;
+		dummy->global_bbox.SetFrom(Sphere(pos, size));
+		module->quadtree.Insert(dummy);
+	}
 }
 
 void PanelConfiguration::AddInput(const char * entry)

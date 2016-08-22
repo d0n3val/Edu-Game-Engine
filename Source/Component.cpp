@@ -2,7 +2,7 @@
 #include "Globals.h"
 
 // ---------------------------------------------------------
-Component::Component(GameObject* container) : game_object(container)
+Component::Component(GameObject* container, Component::Types type) : game_object(container), type(type)
 {
 	if (game_object != nullptr)
 		SetActive(true);
@@ -32,7 +32,7 @@ bool Component::IsActive() const
 }
 
 // ---------------------------------------------------------
-ComponentTypes Component::GetType() const
+Component::Types Component::GetType() const
 {
 	return type;
 }
@@ -40,6 +40,8 @@ ComponentTypes Component::GetType() const
 // ---------------------------------------------------------
 const char * Component::GetTypeStr() const
 {
+	static_assert(Component::Types::Unknown == 8, "String list needs update");
+
 	static const char* names[] = {
 	"Invalid",
 	"Geometry",

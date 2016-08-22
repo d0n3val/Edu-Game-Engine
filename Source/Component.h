@@ -5,31 +5,33 @@
 
 #include "Config.h"
 
-enum ComponentTypes
-{
-	Invalid,
-	Geometry,
-	Material,
-	AudioListener,
-	AudioSource,
-	Camera,
-	Bone,
-	RigidBody,
-	Animation
-};
-
 class GameObject;
 class Config;
 
 class Component
 {
 public:
-	Component(GameObject* container);
+
+	enum Types
+	{
+		Geometry,
+		Material,
+		AudioListener,
+		AudioSource,
+		Camera,
+		Bone,
+		RigidBody,
+		Animation,
+		Unknown
+	};
+
+public:
+	Component(GameObject* container, Types type);
 	virtual ~Component();
 
 	void SetActive(bool active);
 	bool IsActive() const;
-	ComponentTypes GetType() const;
+	Types GetType() const;
 	const char* GetTypeStr() const;
 	const GameObject* GetGameObject() const;
 	GameObject* GetGameObject();
@@ -57,7 +59,7 @@ public:
 	bool flag_for_removal = false;
 
 protected:
-	ComponentTypes type = ComponentTypes::Invalid;
+	Types type = Types::Unknown;
 	bool active = false;
 	GameObject* game_object = nullptr;
 };

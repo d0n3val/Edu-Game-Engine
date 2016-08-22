@@ -248,6 +248,7 @@
     <ClInclude Include="parson.h" />
     <ClInclude Include="PhysBody3D.h" />
     <ClInclude Include="Primitive.h" />
+    <ClInclude Include="QuadTree.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceAudio.h" />
     <ClInclude Include="ResourceAnimation.h" />

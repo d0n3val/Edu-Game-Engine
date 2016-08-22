@@ -4,6 +4,7 @@
 #include "Globals.h"
 #include "Module.h"
 #include "Math.h"
+#include "QuadTree.h"
 
 class GameObject;
 
@@ -20,6 +21,7 @@ public:
 	bool CleanUp() override;
 
 	void ReceiveEvent(const Event& event) override;
+	void DrawDebug() override;
 
 	// Utils
 	const GameObject* GetRoot() const;
@@ -51,6 +53,10 @@ private:
 	void RecursiveDrawGameObjects(const GameObject* go) const;
 	void RecursiveProcessEvent(GameObject* go, const Event& event) const;
 	void DestroyFlaggedGameObjects();
+
+public:
+	Quadtree quadtree;
+	bool draw_quadtree = false;
 
 private:
 	GameObject* root = nullptr;

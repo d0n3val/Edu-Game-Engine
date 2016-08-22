@@ -15,10 +15,8 @@
 using namespace std;
 
 // ---------------------------------------------------------
-ComponentBone::ComponentBone(GameObject* container) : Component(container)
-{
-	type = ComponentTypes::Bone;
-}
+ComponentBone::ComponentBone(GameObject* container) : Component(container, Types::Bone)
+{}
 
 // ---------------------------------------------------------
 ComponentBone::~ComponentBone()

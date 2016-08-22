@@ -60,21 +60,21 @@ void PanelProperties::Draw()
         if (ImGui::BeginMenu("New Component", (selected != nullptr)))
         {
 			if (ImGui::MenuItem("Audio Listener"))
-				selected->CreateComponent(ComponentTypes::AudioListener);
+				selected->CreateComponent(Component::Types::AudioListener);
 			if (ImGui::MenuItem("Audio Source"))
-				selected->CreateComponent(ComponentTypes::AudioSource);
+				selected->CreateComponent(Component::Types::AudioSource);
 			if (ImGui::MenuItem("Geometry"))
-				selected->CreateComponent(ComponentTypes::Geometry);
+				selected->CreateComponent(Component::Types::Geometry);
 			if (ImGui::MenuItem("Material"))
-				selected->CreateComponent(ComponentTypes::Material);
+				selected->CreateComponent(Component::Types::Material);
 			if (ImGui::MenuItem("Camera"))
-				selected->CreateComponent(ComponentTypes::Camera);
+				selected->CreateComponent(Component::Types::Camera);
 			if (ImGui::MenuItem("Bone", nullptr, nullptr, false))
-				selected->CreateComponent(ComponentTypes::Bone);
+				selected->CreateComponent(Component::Types::Bone);
 			if (ImGui::MenuItem("RigidBody"))
-				selected->CreateComponent(ComponentTypes::RigidBody);
+				selected->CreateComponent(Component::Types::RigidBody);
 			if (ImGui::MenuItem("Animation"))
-				selected->CreateComponent(ComponentTypes::Animation);
+				selected->CreateComponent(Component::Types::Animation);
             ImGui::EndMenu();
         }
 
@@ -138,35 +138,35 @@ void PanelProperties::Draw()
 
 				switch ((*it)->GetType())
 				{
-				case ComponentTypes::Geometry:
+				case Component::Types::Geometry:
 				{
 					DrawMeshComponent((ComponentMesh*)(*it));
 				}	break;
-				case ComponentTypes::Material:
+				case Component::Types::Material:
 				{
 					DrawMaterialComponent((ComponentMaterial*)(*it));
 				}	break;
-				case ComponentTypes::AudioSource:
+				case Component::Types::AudioSource:
 				{
 					DrawAudioSourceComponent((ComponentAudioSource*)(*it));
 				}	break;
-				case ComponentTypes::AudioListener:
+				case Component::Types::AudioListener:
 				{
 					DrawAudioListenerComponent((ComponentAudioListener*)(*it));
 				}	break;
-				case ComponentTypes::Camera:
+				case Component::Types::Camera:
 				{
 					DrawCameraComponent((ComponentCamera*)(*it));
 				}	break;
-				case ComponentTypes::Bone:
+				case Component::Types::Bone:
 				{
 					DrawBoneComponent((ComponentBone*)(*it));
 				}	break;
-				case ComponentTypes::RigidBody:
+				case Component::Types::RigidBody:
 				{
 					DrawRigidBodyComponent((ComponentRigidBody*)(*it));
 				}	break;
-				case ComponentTypes::Animation:
+				case Component::Types::Animation:
 				{
 					DrawAnimationComponent((ComponentAnimation*)(*it));
 				}	break;

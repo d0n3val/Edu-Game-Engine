@@ -6,10 +6,8 @@
 #include "ResourceAudio.h"
 
 // ---------------------------------------------------------
-ComponentAudioSource::ComponentAudioSource(GameObject* container) : Component(container)
-{
-	type = ComponentTypes::AudioSource;
-}
+ComponentAudioSource::ComponentAudioSource(GameObject* container) : Component(container, Types::AudioSource)
+{}
 
 // ---------------------------------------------------------
 ComponentAudioSource::~ComponentAudioSource()
