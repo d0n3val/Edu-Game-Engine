@@ -4,6 +4,7 @@
 // Base class for all possible components a GameObject could have
 
 #include "Config.h"
+#include "Math.h"
 
 class GameObject;
 class Config;
@@ -36,6 +37,10 @@ public:
 	const GameObject* GetGameObject() const;
 	GameObject* GetGameObject();
 
+	// Queries
+	virtual void GetBoundingBox(AABB& box) const {}
+
+	// Events
 	virtual void OnSave(Config& config) const = 0;
 	virtual void OnLoad(Config* config) = 0;
 
@@ -52,7 +57,6 @@ public:
 	virtual void OnUnPause() {};
 
 	virtual void OnUpdateTransform() {};
-
 	virtual void OnDebugDraw() const {};
 
 public:

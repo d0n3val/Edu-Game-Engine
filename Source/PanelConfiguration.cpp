@@ -472,11 +472,11 @@ void PanelConfiguration::DrawModuleLevel(ModuleLevelManager * module)
 		ImVec2 up_left;
 		ImVec2 bottom_right;
 
-		vector<AABB> objects;
+		vector<GameObject*> objects;
 		module->quadtree.CollectObjects(objects);
-		for (vector<AABB>::const_iterator it = objects.begin(); it != objects.end(); ++it)
+		for (vector<GameObject*>::const_iterator it = objects.begin(); it != objects.end(); ++it)
 		{
-			AABB box = *it;
+			AABB box = (*it)->global_bbox.MinimalEnclosingAABB();
 
 			up_left.x = ((box.minPoint.x - quad_posx) * (float)canvas_size.x) / quad_width;
 			up_left.y = ((box.minPoint.z - quad_posz) * (float)canvas_size.y) / quad_height;
@@ -484,10 +484,15 @@ void PanelConfiguration::DrawModuleLevel(ModuleLevelManager * module)
 			bottom_right.x = ((box.maxPoint.x - quad_posx) * (float)canvas_size.x) / quad_width;
 			bottom_right.y = ((box.maxPoint.z - quad_posz) * (float)canvas_size.y) / quad_height;
 
+			ImColor color(200, 0, 0, 100);
+
+			if ((*it)->visible == false)
+				color = ImColor(0, 0, 100, 100);
+
 			draw_list->AddRectFilled(
 				ImVec2(canvas_pos.x + up_left.x, canvas_pos.y + up_left.y),
 				ImVec2(canvas_pos.x + bottom_right.x, canvas_pos.y + bottom_right.y),
-				ImColor(200, 0, 0, 100), 0.0f, 10);
+				color, 0.0f, 10);
 
 			draw_list->AddRect(
 				ImVec2(canvas_pos.x + up_left.x, canvas_pos.y + up_left.y),

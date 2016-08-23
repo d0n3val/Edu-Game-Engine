@@ -17,6 +17,7 @@
 #include "ModuleEditor.h"
 #include "ModuleResources.h"
 #include "ModuleFileSystem.h"
+#include "ModuleRenderer3D.h"
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
@@ -409,6 +410,9 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 		component->SetAspectRatio(aspect_ratio);
 
 	ImGui::ColorEdit3("Background", &component->background);
+
+	if (ImGui::Button("Make Active Camera"))
+		App->renderer3D->active_camera = component;
 }
 
 void PanelProperties::DrawBoneComponent(ComponentBone * component)

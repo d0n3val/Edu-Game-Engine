@@ -43,6 +43,7 @@ public:
 	bool vsync = false;
 	bool draw_plane = true;
 	bool debug_draw = true;
+	bool in_game = false;
 };
 
 #endif // __MODULE_RENDERER_3D_H__

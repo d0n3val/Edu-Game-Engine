@@ -4,6 +4,7 @@
 #include "ModuleAudio.h"
 #include "ModuleResources.h"
 #include "ResourceAudio.h"
+#include "GameObject.h"
 
 // ---------------------------------------------------------
 ComponentAudioSource::ComponentAudioSource(GameObject* container) : Component(container, Types::AudioSource)
@@ -12,6 +13,12 @@ ComponentAudioSource::ComponentAudioSource(GameObject* container) : Component(co
 // ---------------------------------------------------------
 ComponentAudioSource::~ComponentAudioSource()
 {}
+
+// ---------------------------------------------------------
+void ComponentAudioSource::GetBoundingBox(AABB & box) const
+{
+	box.Enclose(Sphere(float3::zero, max_distance));
+}
 
 // ---------------------------------------------------------
 void ComponentAudioSource::OnSave(Config& config) const
@@ -51,7 +58,7 @@ bool ComponentAudioSource::SetResource(UID resource)
 	if(current_state != state::unloaded)
 		Unload();
 
-	if (resource != 0)
+	if (resource != 0 && resource != this->resource)
 	{
 		Resource* res = App->resources->Get(resource);
 		if (res != nullptr && res->GetType() == Resource::texture)
@@ -59,6 +66,7 @@ bool ComponentAudioSource::SetResource(UID resource)
 			if(res->LoadToMemory() == true)
 			{
 				this->resource = resource;
+				game_object->RecalculateBoundingBox();
 				current_state = state::stopped;
 				ret = true;
 			}

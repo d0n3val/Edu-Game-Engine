@@ -34,6 +34,23 @@ ComponentRigidBody::~ComponentRigidBody()
 }
 
 // ---------------------------------------------------------
+void ComponentRigidBody::GetBoundingBox(AABB & box) const
+{
+	switch (body_type)
+	{
+		case body_sphere:
+			box.Enclose(sphere);
+		break;
+		case body_box:
+			box.Enclose(this->box);
+		break;
+		case body_capsule:
+			box.Enclose(capsule);
+		break;
+	}
+}
+
+// ---------------------------------------------------------
 void ComponentRigidBody::OnSave(Config& config) const
 {
 	config.AddInt("Behaviour", behaviour);

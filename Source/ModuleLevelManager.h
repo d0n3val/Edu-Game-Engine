@@ -48,8 +48,8 @@ public:
 	GameObject* CastRay(const Ray& ray, float& dist) const;
 
 private:
-	void RecursiveTestRay(const GameObject* go, const LineSegment& segment, float& dist, GameObject** best_candidate) const;
-	void RecursiveTestRay(const GameObject* go, const Ray& ray, float& dist, GameObject** best_candidate) const;
+	void RecursiveTestRay(const LineSegment& segment, float& dist, GameObject** best_candidate) const;
+	void RecursiveTestRay(const Ray& ray, float& dist, GameObject** best_candidate) const;
 	void RecursiveDrawGameObjects(const GameObject* go) const;
 	void RecursiveProcessEvent(GameObject* go, const Event& event) const;
 	void DestroyFlaggedGameObjects();

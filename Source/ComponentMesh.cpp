@@ -50,6 +50,7 @@ bool ComponentMesh::SetResource(UID resource)
 			if(res->LoadToMemory() == true)
 			{
 				this->resource = resource;
+				game_object->RecalculateBoundingBox();
 				ret = true;
 			}
 		}
@@ -68,14 +69,11 @@ void ComponentMesh::OnStart()
 }
 
 // ---------------------------------------------------------
-const AABB & ComponentMesh::GetBoundingBox() const
+void ComponentMesh::GetBoundingBox(AABB & box) const
 {
 	const ResourceMesh* res = (const ResourceMesh*) App->resources->Get(resource);
 	if (res != nullptr)
-		return res->bbox;
-	static AABB inf;
-	inf.SetNegativeInfinity();
-	return inf;
+		return box.Enclose(res->bbox);
 }
 
 // ---------------------------------------------------------

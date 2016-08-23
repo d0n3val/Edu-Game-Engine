@@ -21,7 +21,8 @@ public:
 	bool SetResource(UID resource) override;
 	void OnStart() override;
 
-	const AABB& GetBoundingBox() const;
+	void GetBoundingBox(AABB& box) const override;
+
 	uint CountPotentialBones() const;
 	void AttachBones(const GameObject* go);
 	void DetachBones();

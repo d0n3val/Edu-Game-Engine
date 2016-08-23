@@ -52,9 +52,6 @@ void QuadtreeNode::CreateChilds()
 	float3 size(box.Size());
 	float3 new_size(size.x*0.5f, size.y, size.z*0.5f); // Octree would subdivide y too
 
-	float3 bmin(box.minPoint);
-	float3 bmax(box.maxPoint);
-
 	float3 center(box.CenterPoint());
 	float3 new_center(center);
 	AABB new_box;
@@ -94,30 +91,25 @@ void QuadtreeNode::RedistributeChilds()
 		AABB new_box(go->global_bbox.MinimalEnclosingAABB());
 
 		// Now distribute this new gameobject onto the childs
-		bool all = true;
 		bool intersects[4];
-		all &= intersects[0] = childs[0]->box.Intersects(new_box);
-		all &= intersects[1] = childs[1]->box.Intersects(new_box);
-		all &= intersects[2] = childs[2]->box.Intersects(new_box);
-		all &= intersects[3] = childs[3]->box.Intersects(new_box);
+		for(int i = 0; i < 4; ++i)
+			intersects[i] = childs[i]->box.Intersects(new_box);
 
-		if (all == true)
+		if (intersects[0] && intersects[1] && intersects[2] && intersects[3])
 			++it; // if it hits all childs, better to just keep it here
 		else
 		{
 			it = objects.erase(it);
-			if (intersects[0]) childs[0]->Insert(go);
-			if (intersects[1]) childs[1]->Insert(go);
-			if (intersects[2]) childs[2]->Insert(go);
-			if (intersects[3]) childs[3]->Insert(go);
+			for(int i = 0; i < 4; ++i)
+				if (intersects[i]) childs[i]->Insert(go);
 		}
 	}
 }
 
-void QuadtreeNode::CollectObjects(std::vector<AABB>& objects) const
+void QuadtreeNode::CollectObjects(std::vector<GameObject*>& objects) const
 {
 	for (std::list<GameObject*>::const_iterator it = this->objects.begin(); it != this->objects.end(); ++it)
-		objects.push_back((*it)->global_bbox.MinimalEnclosingAABB());
+		objects.push_back(*it);
 
 	for(int i = 0; i < 4; ++i)
 		if(childs[i] != nullptr) childs[i]->CollectObjects(objects);
@@ -167,7 +159,7 @@ void Quadtree::CollectBoxes(std::vector<const QuadtreeNode*>& nodes) const
 		root->CollectBoxes(nodes);
 }
 
-void Quadtree::CollectObjects(std::vector<AABB>& objects) const
+void Quadtree::CollectObjects(std::vector<GameObject*>& objects) const
 {
 	if(root != nullptr)
 		root->CollectObjects(objects);

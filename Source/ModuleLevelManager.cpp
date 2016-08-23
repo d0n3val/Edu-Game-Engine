@@ -16,9 +16,7 @@
 using namespace std;
 
 ModuleLevelManager::ModuleLevelManager( bool start_enabled) : Module("LevelManager", start_enabled)
-{
-	quadtree.SetBoundaries(AABB(float3::zero, float3(100.f, 100.f, 100.f)));
-}
+{}
 
 // Destructor
 ModuleLevelManager::~ModuleLevelManager()
@@ -41,10 +39,6 @@ bool ModuleLevelManager::Start(Config * config)
 	// Load a default map
 	Load("default.eduscene");
 
-	// Pre-calculate all transformations and bboxes
-	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
-	bool did_recalc;
-	root->RecursiveCalcBoundingBoxes(did_recalc);
 	return true;
 }
 
@@ -53,8 +47,7 @@ update_status ModuleLevelManager::PreUpdate(float dt)
 	DestroyFlaggedGameObjects();
 	// Update transformations tree for this frame
 	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), false);
-	bool did_recalc;
-	root->RecursiveCalcBoundingBoxes(did_recalc);
+	root->RecursiveCalcBoundingBoxes();
 
 	return UPDATE_CONTINUE;
 }
@@ -84,11 +77,11 @@ void ModuleLevelManager::DrawDebug()
 		for (vector<const QuadtreeNode*>::const_iterator it = boxes.begin(); it != boxes.end(); ++it)
 			DebugDraw((*it)->box, Yellow);
 
-		vector<AABB> objects;
+		vector<GameObject*> objects;
 		quadtree.CollectObjects(objects);
 
-		for (vector<AABB>::const_iterator it = objects.begin(); it != objects.end(); ++it)
-			DebugDraw((*it), Red);
+		for (vector<GameObject*>::const_iterator it = objects.begin(); it != objects.end(); ++it)
+			DebugDraw((*it)->global_bbox.MinimalEnclosingAABB(), Red);
 	}
 }
 
@@ -192,9 +185,15 @@ bool ModuleLevelManager::Load(const char * file)
 				}
 			}
 
+			// Reset all info about the level
 			root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
-			bool did_recalc;
-			root->RecursiveCalcBoundingBoxes(did_recalc);
+			root->RecursiveCalcBoundingBoxes();
+			
+			// Fill in the quadtree
+			quadtree.Clear();
+			quadtree.SetBoundaries(AABB(float3(-500,0,-500), float3(500,50,500)));
+			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
+				quadtree.Insert(it->second);
 
 			// Third pass: call OnStart on all new GameObjects
 			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
@@ -258,6 +257,21 @@ GameObject * ModuleLevelManager::Find(uint serialization_id, const GameObject* f
 
 void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const
 {
+	vector<GameObject*> objects;
+
+	// we do frustum culling or not ?
+	ComponentCamera* cam = App->renderer3D->active_camera;
+
+	if (cam != nullptr && cam->frustum_culling == true)
+		quadtree.CollectIntersections(objects, cam->frustum);
+	else
+		quadtree.CollectObjects(objects);
+
+	for (vector<GameObject*>::iterator it = objects.begin(); it != objects.end(); ++it)
+		if((*it)->IsActive())
+			(*it)->Draw();
+	/*
+
 	// Avoid inactive gameobjects
 	if (go->IsActive() == false)
 		return;
@@ -275,9 +289,9 @@ void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const
 
 	go->Draw();
 
-	// Recursive call to all childs keeping matrices
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveDrawGameObjects(*it);
+		*/
 }
 
 void ModuleLevelManager::RecursiveProcessEvent(GameObject * go, const Event & event) const
@@ -319,15 +333,19 @@ GameObject* ModuleLevelManager::CastRay(const LineSegment& segment, float& dist)
 {
 	dist = inf;
 	GameObject* candidate = nullptr;
-	RecursiveTestRay(root, segment, dist, &candidate);
+	RecursiveTestRay(segment, dist, &candidate);
 	return candidate;
 }
 
-void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const LineSegment& segment, float& dist, GameObject** best_candidate) const
+void ModuleLevelManager::RecursiveTestRay(const LineSegment& segment, float& dist, GameObject** best_candidate) const
 {
-	if (go->global_bbox.IsFinite() && segment.Intersects(go->global_bbox))
+	map<float, GameObject*> objects;
+	quadtree.CollectIntersections(objects, segment);
+
+	for (map<float, GameObject*>::const_iterator it = objects.begin(); it != objects.end(); ++it)
 	{
 		// Look for meshes, nothing else can be "picked" from the screen
+		GameObject* go = it->second;
 		vector<Component*> meshes;
 		go->FindComponents(Component::Types::Geometry, meshes);
 
@@ -359,9 +377,6 @@ void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const LineSegme
 				}
 			}
 		}
-
-		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-			RecursiveTestRay(*it, segment, dist, best_candidate);
 	}
 }
 
@@ -369,15 +384,20 @@ GameObject* ModuleLevelManager::CastRay(const Ray & ray, float& dist) const
 {
 	dist = inf;
 	GameObject* candidate = nullptr;
-	RecursiveTestRay(root, ray, dist, &candidate);
+	RecursiveTestRay(ray, dist, &candidate);
 	return candidate;
 }
 
-void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const Ray& ray, float& dist, GameObject** best_candidate) const
+void ModuleLevelManager::RecursiveTestRay(const Ray& ray, float& dist, GameObject** best_candidate) const
 {
-	if (go->global_bbox.IsFinite() && ray.Intersects(go->global_bbox))
+	map<float, GameObject*> objects;
+	quadtree.CollectIntersections(objects, ray);
+
+	for (map<float, GameObject*>::const_iterator it = objects.begin(); it != objects.end(); ++it)
 	{
 		// Look for meshes, nothing else can be "picked" from the screen
+		GameObject* go = it->second;
+
 		vector<Component*> meshes;
 		go->FindComponents(Component::Types::Geometry, meshes);
 
@@ -398,6 +418,7 @@ void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const Ray& ray,
 				tri.a.Set(&mesh->vertices[mesh->indices[i++]*3]);
 				tri.b.Set(&mesh->vertices[mesh->indices[i++]*3]);
 				tri.c.Set(&mesh->vertices[mesh->indices[i++]*3]);
+				// TODO I got a bug twice here, looks like a problem creating the triangle
 
 				float distance;
 				float3 hit_point;
@@ -411,9 +432,6 @@ void ModuleLevelManager::RecursiveTestRay(const GameObject * go, const Ray& ray,
 				}
 			}
 		}
-
-		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-			RecursiveTestRay(*it, ray, dist, best_candidate);
 	}
 }
 

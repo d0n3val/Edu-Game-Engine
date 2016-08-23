@@ -127,29 +127,33 @@ bool ModuleRenderer3D::Init(Config* config)
 	// Projection matrix for
 	OnResize(App->window->GetWidth(), App->window->GetHeight());
 
+	Load(config);
+
 	return ret;
 }
 
 // PreUpdate: clear buffer
 update_status ModuleRenderer3D::PreUpdate(float dt)
 {
+	ComponentCamera* cam = (App->IsPlay()) ? active_camera : App->camera->GetDummy();
+
 	// Adjust projection if needed
-	if (active_camera->projection_changed == true)
+	if (cam->projection_changed == true)
 	{
 		RefreshProjection();
-		active_camera->projection_changed = false;
+		cam->projection_changed = false;
 	}
 
-	Color c = active_camera->background;
+	Color c = cam->background;
 	glClearColor(c.r, c.g, c.b, c.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(active_camera->GetOpenGLViewMatrix());
+	glLoadMatrixf(cam->GetOpenGLViewMatrix());
 
 	// light 0 on cam pos
-	lights[0].position = App->camera->GetPosition();
+	lights[0].position = cam->frustum.pos;
 
 	for(uint i = 0; i < MAX_LIGHTS; ++i)
 		lights[i].Render();
@@ -167,7 +171,7 @@ update_status ModuleRenderer3D::Update(float dt)
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
 	// debug draw ---
-	if (draw_plane == true)
+	if (draw_plane == true && App->IsPlay() == false)
 	{
 		PPlane p(0, 1, 0, 0);
 		p.axis = true;
@@ -179,7 +183,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	App->level->Draw();
 
-	if (debug_draw == true)
+	if (debug_draw == true && App->IsPlay() == false)
 	{
 		BeginDebugDraw();
 		App->DebugDraw();
@@ -228,7 +232,9 @@ void ModuleRenderer3D::Load(Config * config)
 
 void ModuleRenderer3D::OnResize(int width, int height)
 {
-	active_camera->SetAspectRatio((float)width / (float)height);
+	ComponentCamera* cam = (App->IsPlay()) ? active_camera : App->camera->GetDummy();
+
+	cam->SetAspectRatio((float)width / (float)height);
 	glViewport(0, 0, width, height);
 
 	RefreshProjection();
@@ -236,9 +242,11 @@ void ModuleRenderer3D::OnResize(int width, int height)
 
 void ModuleRenderer3D::RefreshProjection()
 {
+	ComponentCamera* cam = (App->IsPlay()) ? active_camera : App->camera->GetDummy();
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glLoadMatrixf((GLfloat*) active_camera->GetOpenGLProjectionMatrix());
+	glLoadMatrixf((GLfloat*) cam->GetOpenGLProjectionMatrix());
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

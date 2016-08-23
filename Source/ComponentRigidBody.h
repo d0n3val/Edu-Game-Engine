@@ -33,6 +33,8 @@ public:
 	ComponentRigidBody (GameObject* container);
 	~ComponentRigidBody () override;
 
+	void GetBoundingBox(AABB& box) const override;
+
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 

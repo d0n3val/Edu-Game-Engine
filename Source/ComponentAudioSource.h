@@ -16,6 +16,8 @@ public:
 	ComponentAudioSource (GameObject* container);
 	~ComponentAudioSource ();
 
+	void GetBoundingBox(AABB& box) const override;
+
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 

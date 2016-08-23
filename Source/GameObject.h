@@ -32,6 +32,8 @@ public:
 	void OnPause();
 	void OnUnPause();
 
+	void RecalculateBoundingBox();
+
 	bool RecursiveRemoveFlagged();
 	Component* CreateComponent(Component::Types type);
 
@@ -56,7 +58,7 @@ public:
 	const float* GetOpenGLGlobalTranform() const;
 
 	void RecursiveCalcGlobalTransform(const float4x4& parent, bool force_recalc);
-	const OBB& RecursiveCalcBoundingBoxes(bool& needs_recalc);
+	void RecursiveCalcBoundingBoxes();
 
 	bool IsActive() const;
 	void SetActive(bool active);
