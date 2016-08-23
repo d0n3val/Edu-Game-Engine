@@ -452,6 +452,7 @@ void GameObject::SetActive(bool active)
 void GameObject::Draw(bool debug) const
 {
 	visible = true;
+	bool transparency = false;
 
 	// push this matrix before drawing
 	glPushMatrix();
@@ -471,8 +472,15 @@ void GameObject::Draw(bool debug) const
 		{
 			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
 			const ResourceTexture* tex = (const ResourceTexture*) cmaterial->GetResource();
-			if(tex != nullptr && tex->gpu_id > 0)
+			if (tex != nullptr && tex->gpu_id > 0)
+			{
+				if (tex->format == ResourceTexture::Format::rgba || tex->format == ResourceTexture::Format::bgra)
+				{
+					glEnable(GL_BLEND);
+					transparency = true;
+				}
 				glBindTexture(GL_TEXTURE_2D, tex->gpu_id);
+			}
 		}
 	}
 
@@ -538,6 +546,9 @@ void GameObject::Draw(bool debug) const
 			glDisableClientState(GL_VERTEX_ARRAY);
 		}
 	}
+
+	if (transparency == true)
+		glDisable(GL_BLEND);
 
 	glPopMatrix();		
 	glUseProgram(0);
