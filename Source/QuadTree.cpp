@@ -115,6 +115,18 @@ void QuadtreeNode::CollectObjects(std::vector<GameObject*>& objects) const
 		if(childs[i] != nullptr) childs[i]->CollectObjects(objects);
 }
 
+void QuadtreeNode::CollectObjects(std::map<float, GameObject*>& objects, const float3& origin) const
+{
+	for (std::list<GameObject*>::const_iterator it = this->objects.begin(); it != this->objects.end(); ++it)
+	{
+		float dist = origin.DistanceSq((*it)->GetGlobalPosition());
+		objects[dist] = *it;
+	}
+
+	for(int i = 0; i < 4; ++i)
+		if(childs[i] != nullptr) childs[i]->CollectObjects(objects, origin);
+}
+
 void QuadtreeNode::CollectBoxes(std::vector<const QuadtreeNode*>& nodes) const
 {
 	nodes.push_back(this);
@@ -163,4 +175,10 @@ void Quadtree::CollectObjects(std::vector<GameObject*>& objects) const
 {
 	if(root != nullptr)
 		root->CollectObjects(objects);
+}
+
+void Quadtree::CollectObjects(std::map<float, GameObject*>& objects, const float3& origin) const
+{
+	if(root != nullptr)
+		root->CollectObjects(objects, origin);
 }

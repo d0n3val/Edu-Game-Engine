@@ -477,6 +477,8 @@ void GameObject::Draw(bool debug) const
 				if (tex->format == ResourceTexture::Format::rgba || tex->format == ResourceTexture::Format::bgra)
 				{
 					glEnable(GL_BLEND);
+					glBlendEquation(GL_FUNC_ADD);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					transparency = true;
 				}
 				glBindTexture(GL_TEXTURE_2D, tex->gpu_id);

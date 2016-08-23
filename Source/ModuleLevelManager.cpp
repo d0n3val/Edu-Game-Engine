@@ -257,41 +257,19 @@ GameObject * ModuleLevelManager::Find(uint serialization_id, const GameObject* f
 
 void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const
 {
-	vector<GameObject*> objects;
+	map<float, GameObject*> objects;
 
 	// we do frustum culling or not ?
 	ComponentCamera* cam = App->renderer3D->active_camera;
 
-	if (cam != nullptr && cam->frustum_culling == true)
+	if (cam->frustum_culling == true)
 		quadtree.CollectIntersections(objects, cam->frustum);
 	else
-		quadtree.CollectObjects(objects);
+		quadtree.CollectObjects(objects, (cam->GetGameObject()) ? cam->GetGameObject()->GetGlobalPosition() : cam->frustum.pos);
 
-	for (vector<GameObject*>::iterator it = objects.begin(); it != objects.end(); ++it)
-		if((*it)->IsActive())
-			(*it)->Draw();
-	/*
-
-	// Avoid inactive gameobjects
-	if (go->IsActive() == false)
-		return;
-
-	ComponentCamera* cam = App->renderer3D->active_camera;
-
-	if (cam != nullptr && cam->frustum_culling == true && go->global_bbox.IsFinite() == true)
-	{
-		if (cam->frustum.Intersects(go->global_bbox) == false)
-		{
-			go->visible = false;
-			return;
-		}
-	}
-
-	go->Draw();
-
-	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-		RecursiveDrawGameObjects(*it);
-		*/
+	for (map<float, GameObject*>::reverse_iterator it = objects.rbegin(); it != objects.rend(); ++it)
+		if(it->second->IsActive())
+			it->second->Draw();
 }
 
 void ModuleLevelManager::RecursiveProcessEvent(GameObject * go, const Event & event) const
