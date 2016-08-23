@@ -28,6 +28,7 @@ public:
 	void OnDisable();
 
 	void OnPlay();
+	void OnUpdate(float dt);
 	void OnStop();
 	void OnPause();
 	void OnUnPause();

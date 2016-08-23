@@ -29,6 +29,8 @@ public:
 	void RecursiveDrawTree(const GameObject* go, const GameObject** selected) const;
 
 	bool InitComponentDraw(Component* component, const char * name);
+
+	// TODO move editor code as a component method like component rigidbody
 	void DrawMeshComponent(ComponentMesh* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawMaterialComponent(ComponentMaterial * component);
@@ -36,7 +38,6 @@ public:
 	void DrawCameraComponent(ComponentCamera * component);
 	void DrawBoneComponent(ComponentBone * component);
 	void DrawAnimationComponent(ComponentAnimation * component);
-	void DrawRigidBodyComponent(ComponentRigidBody * component);
 };
 
 #endif// __PANELPROPERTIES_H__

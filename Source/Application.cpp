@@ -14,6 +14,7 @@
 #include "ModuleLevelManager.h"
 #include "ModuleResources.h"
 #include "ModuleAnimation.h"
+#include "ModuleAI.h"
 #include "Event.h"
 #include "Config.h"
 
@@ -45,7 +46,8 @@ Application::Application()
 	modules.push_back(editor = new ModuleEditor());
 	modules.push_back(input = new ModuleInput());
 	modules.push_back(audio = new ModuleAudio(true));
-	modules.push_back(scene = new ModuleSceneLoader());
+	modules.push_back(scene = new ModuleSceneLoader()); // TODO delete and just create a resource loader
+	modules.push_back(ai = new ModuleAI());
 	modules.push_back(level = new ModuleLevelManager());
 }
 

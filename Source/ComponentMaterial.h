@@ -19,6 +19,9 @@ public:
 	void OnLoad(Config* config) override;
 	bool SetResource(UID resource) override;
 
+public:
+	float alpha_test = 0.5f;
+
 };
 
 #endif // __COMPONENT_MESH_H__

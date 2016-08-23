@@ -52,6 +52,14 @@ update_status ModuleLevelManager::PreUpdate(float dt)
 	return UPDATE_CONTINUE;
 }
 
+update_status ModuleLevelManager::Update(float dt)
+{
+	if(App->IsPlay())
+		RecursiveUpdate(root, dt);
+
+	return UPDATE_CONTINUE;
+}
+
 // Called before quitting
 bool ModuleLevelManager::CleanUp()
 {
@@ -284,6 +292,14 @@ void ModuleLevelManager::RecursiveProcessEvent(GameObject * go, const Event & ev
 
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveProcessEvent(*it, event);
+}
+
+void ModuleLevelManager::RecursiveUpdate(GameObject * go, float dt) const
+{
+	go->OnUpdate(dt);
+
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+		RecursiveUpdate(*it, dt);
 }
 
 void ModuleLevelManager::RecursiveDebugDrawGameObjects(const GameObject* go) const

@@ -108,15 +108,6 @@
     <ClInclude Include="GameObject.h">
       <Filter>Game Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Component.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentMesh.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentMaterial.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>Tools</Filter>
     </ClInclude>
@@ -131,12 +122,6 @@
     </ClInclude>
     <ClInclude Include="ModuleFileSystem.h">
       <Filter>Core Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentAudioListener.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentAudioSource.h">
-      <Filter>Game Objects\Components</Filter>
     </ClInclude>
     <ClInclude Include="ModuleEditor.h">
       <Filter>Core Modules</Filter>
@@ -462,9 +447,6 @@
     <ClInclude Include="DebugDraw.h">
       <Filter>Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentCamera.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleLevelManager.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
@@ -516,14 +498,8 @@
     <ClInclude Include="mmgr\nommgr.h">
       <Filter>3rd Party\mmgr</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentWithResource.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleAnimation.h">
       <Filter>Core Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentBone.h">
-      <Filter>Game Objects\Components</Filter>
     </ClInclude>
     <ClInclude Include="ResourceBone.h">
       <Filter>Resources</Filter>
@@ -537,14 +513,8 @@
     <ClInclude Include="LoaderAnimation.h">
       <Filter>Resources\Loaders</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentAnimation.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleEditorCamera.h">
       <Filter>Core Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentRigidBody.h">
-      <Filter>Game Objects\Components</Filter>
     </ClInclude>
     <ClInclude Include="Bullet\include\btBulletCollisionCommon.h">
       <Filter>3rd Party\bullet</Filter>
@@ -557,6 +527,42 @@
     </ClInclude>
     <ClInclude Include="QuadTree.h">
       <Filter>Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleAI.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentAnimation.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentAudioListener.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentAudioSource.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentBone.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentCamera.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentMaterial.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentMesh.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentRigidBody.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentWithResource.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentSteering.h">
+      <Filter>Game Objects\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -602,15 +608,6 @@
     <ClCompile Include="GameObject.cpp">
       <Filter>Game Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentMesh.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentMaterial.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
@@ -622,12 +619,6 @@
     </ClCompile>
     <ClCompile Include="ModuleFileSystem.cpp">
       <Filter>Core Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentAudioListener.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentAudioSource.cpp">
-      <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ModuleEditor.cpp">
       <Filter>Core Modules</Filter>
@@ -758,9 +749,6 @@
     <ClCompile Include="DebugDraw.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentCamera.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleLevelManager.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
@@ -800,17 +788,11 @@
     <ClCompile Include="ModuleMeshes.cpp">
       <Filter>Resources\Loaders</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentWithResource.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="mmgr\mmgr.cpp">
       <Filter>3rd Party\mmgr</Filter>
     </ClCompile>
     <ClCompile Include="ModuleAnimation.cpp">
       <Filter>Core Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentBone.cpp">
-      <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ResourceBone.cpp">
       <Filter>Resources</Filter>
@@ -824,20 +806,50 @@
     <ClCompile Include="LoaderAnimation.cpp">
       <Filter>Resources\Loaders</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentAnimation.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleEditorCamera.cpp">
       <Filter>Core Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentRigidBody.cpp">
-      <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="PanelQuickBar.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="QuadTree.cpp">
       <Filter>Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleAI.cpp">
+      <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentAnimation.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentAudioListener.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentAudioSource.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentBone.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentCamera.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentMaterial.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentMesh.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentRigidBody.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentWithResource.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentSteering.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

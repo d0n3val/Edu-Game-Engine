@@ -23,6 +23,7 @@ class ModuleEditor;
 class ModuleLevelManager;
 class ModuleResources;
 class ModuleAnimation;
+class ModuleAI;
 struct Event;
 
 class Application
@@ -92,6 +93,7 @@ public:
 	ModuleLevelManager* level = nullptr;
 	ModuleResources* resources = nullptr;
 	ModuleAnimation* animation = nullptr;
+	ModuleAI* ai = nullptr;
 
 private:
 

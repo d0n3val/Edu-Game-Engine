@@ -705,11 +705,14 @@ bool Frustum::Intersects(const OBB & obb, float & in, float & out) const
 	}
 
 	// Calculate approx distances
+	in = obb.ClosestPoint(pos).DistanceSq(pos);
+
+	/*
 	float3 closest = obb.ClosestPoint(pos);
 	float squared = pos.DistanceSq(closest);
 
-	in = squared;// pos.DistanceSq(obb.pos);
-	/*
+	in = pos.DistanceSq(obb.pos);
+	
 	in = squared / (farPlaneDistance * farPlaneDistance);
 	float radius = obb.MinimalEnclosingSphere().r;
 	out = in + (radius / farPlaneDistance * farPlaneDistance);

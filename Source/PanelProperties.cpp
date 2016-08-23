@@ -11,6 +11,7 @@
 #include "ComponentBone.h"
 #include "ComponentRigidBody.h"
 #include "ComponentAnimation.h"
+#include "ComponentSteering.h"
 #include "ModuleMeshes.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
@@ -58,6 +59,7 @@ void PanelProperties::Draw()
 			selected->SetLocalRotation(float3::zero);
 		}
 
+		static_assert(Component::Types::Unknown == 9, "code needs update");
         if (ImGui::BeginMenu("New Component", (selected != nullptr)))
         {
 			if (ImGui::MenuItem("Audio Listener"))
@@ -76,6 +78,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(Component::Types::RigidBody);
 			if (ImGui::MenuItem("Animation"))
 				selected->CreateComponent(Component::Types::Animation);
+			if (ImGui::MenuItem("Steering"))
+				selected->CreateComponent(Component::Types::Steering);
             ImGui::EndMenu();
         }
 
@@ -130,7 +134,7 @@ void PanelProperties::Draw()
 		}
 
 		// Iterate all components and draw
-
+		static_assert(Component::Types::Unknown == 9, "code needs update");
 		for (list<Component*>::iterator it = selected->components.begin(); it != selected->components.end(); ++it)
 		{
 			if (InitComponentDraw(*it, (*it)->GetTypeStr()))
@@ -140,37 +144,32 @@ void PanelProperties::Draw()
 				switch ((*it)->GetType())
 				{
 				case Component::Types::Geometry:
-				{
 					DrawMeshComponent((ComponentMesh*)(*it));
-				}	break;
+				break;
 				case Component::Types::Material:
-				{
 					DrawMaterialComponent((ComponentMaterial*)(*it));
-				}	break;
+				break;
 				case Component::Types::AudioSource:
-				{
 					DrawAudioSourceComponent((ComponentAudioSource*)(*it));
-				}	break;
+				break;
 				case Component::Types::AudioListener:
-				{
 					DrawAudioListenerComponent((ComponentAudioListener*)(*it));
-				}	break;
+				break;
 				case Component::Types::Camera:
-				{
 					DrawCameraComponent((ComponentCamera*)(*it));
-				}	break;
+				break;
 				case Component::Types::Bone:
-				{
 					DrawBoneComponent((ComponentBone*)(*it));
-				}	break;
+				break;
 				case Component::Types::RigidBody:
-				{
-					DrawRigidBodyComponent((ComponentRigidBody*)(*it));
-				}	break;
+					((ComponentRigidBody*)(*it))->DrawEditor();
+				break;
 				case Component::Types::Animation:
-				{
 					DrawAnimationComponent((ComponentAnimation*)(*it));
-				}	break;
+				break;
+				case Component::Types::Steering:
+					((ComponentSteering*)(*it))->DrawEditor();
+				break;
 				}
 				ImGui::PopID();
 			}
@@ -477,6 +476,7 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 
 	ImGui::Text("(%u,%u) %0.1f Mb", info->width, info->height, info->bytes / (1024.f*1024.f));
 	ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->depth, info->bpp, info->mips);
+	ImGui::SliderFloat("Alpha Test", &component->alpha_test, 0.f, 1.0f);
 
 	ImVec2 size((float)info->width, (float)info->height);
 	float max_size = 250.f;
@@ -639,9 +639,4 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 		}
 		ImGui::TreePop();
 	}
-}
-
-void PanelProperties::DrawRigidBodyComponent(ComponentRigidBody * component)
-{
-	component->DrawEditor();
 }

@@ -139,6 +139,7 @@
     <ClInclude Include="ComponentMaterial.h" />
     <ClInclude Include="ComponentMesh.h" />
     <ClInclude Include="ComponentRigidBody.h" />
+    <ClInclude Include="ComponentSteering.h" />
     <ClInclude Include="ComponentWithResource.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="DebugDraw.h" />
@@ -220,6 +221,7 @@
     <ClInclude Include="MemLeaks.h" />
     <ClInclude Include="mmgr\mmgr.h" />
     <ClInclude Include="mmgr\nommgr.h" />
+    <ClInclude Include="ModuleAI.h" />
     <ClInclude Include="ModuleAnimation.h" />
     <ClInclude Include="ModuleEditorCamera.h" />
     <ClInclude Include="ModuleEditor.h" />
@@ -271,6 +273,7 @@
     <ClCompile Include="ComponentMaterial.cpp" />
     <ClCompile Include="ComponentMesh.cpp" />
     <ClCompile Include="ComponentRigidBody.cpp" />
+    <ClCompile Include="ComponentSteering.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="DebugDraw.cpp" />
@@ -317,6 +320,7 @@
     <ClCompile Include="MathGeoLib\include\Math\TransformOps.cpp" />
     <ClCompile Include="MathGeoLib\include\Time\Clock.cpp" />
     <ClCompile Include="mmgr\mmgr.cpp" />
+    <ClCompile Include="ModuleAI.cpp" />
     <ClCompile Include="ModuleAnimation.cpp" />
     <ClCompile Include="ModuleAudio.cpp" />
     <ClCompile Include="ModuleEditorCamera.cpp" />

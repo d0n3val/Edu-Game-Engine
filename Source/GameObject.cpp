@@ -13,6 +13,7 @@
 #include "ComponentBone.h"
 #include "ComponentRigidBody.h"
 #include "ComponentAnimation.h"
+#include "ComponentSteering.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Config.h"
@@ -164,6 +165,13 @@ void GameObject::OnPlay()
 }
 
 // ---------------------------------------------------------
+void GameObject::OnUpdate(float dt)
+{
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnUpdate(dt);
+}
+
+// ---------------------------------------------------------
 void GameObject::OnStop()
 {
 	// go back to the original transform
@@ -240,6 +248,8 @@ bool GameObject::RecursiveRemoveFlagged()
 // ---------------------------------------------------------
 Component* GameObject::CreateComponent(Component::Types type)
 {
+	static_assert(Component::Types::Unknown == 9, "code needs update");
+
 	Component* ret = nullptr;
 
 	switch (type)
@@ -267,6 +277,9 @@ Component* GameObject::CreateComponent(Component::Types type)
 		break;
 		case Component::Types::Animation:
 			ret = new ComponentAnimation(this);
+		break;
+		case Component::Types::Steering:
+			ret = new ComponentSteering(this);
 		break;
 	}
 
@@ -476,9 +489,15 @@ void GameObject::Draw(bool debug) const
 			{
 				if (tex->format == ResourceTexture::Format::rgba || tex->format == ResourceTexture::Format::bgra)
 				{
+					glDisable(GL_CULL_FACE);
 					glEnable(GL_BLEND);
-					glBlendEquation(GL_FUNC_ADD);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					//glBlendEquation(GL_FUNC_ADD);
+					//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					if (cmaterial->alpha_test > 0.0f)
+					{
+						glEnable(GL_ALPHA_TEST);
+						glAlphaFunc(GL_GREATER, cmaterial->alpha_test);
+					}
 					transparency = true;
 				}
 				glBindTexture(GL_TEXTURE_2D, tex->gpu_id);
@@ -548,9 +567,13 @@ void GameObject::Draw(bool debug) const
 			glDisableClientState(GL_VERTEX_ARRAY);
 		}
 	}
-
+	
 	if (transparency == true)
+	{
+		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
+		glDisable(GL_ALPHA_TEST);
+	}
 
 	glPopMatrix();		
 	glUseProgram(0);

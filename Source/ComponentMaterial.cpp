@@ -16,12 +16,14 @@ ComponentMaterial::~ComponentMaterial()
 void ComponentMaterial::OnSave(Config& config) const
 {
 	ComponentWithResource::OnSaveResource(config);
+	config.AddFloat("Alpha Test", alpha_test);
 }
 
 // ---------------------------------------------------------
 void ComponentMaterial::OnLoad(Config * config)
 {
 	ComponentWithResource::OnLoadResource(config);
+	alpha_test = config->GetFloat("Alpha Test", 0.5f);
 }
 
 // ---------------------------------------------------------

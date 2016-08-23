@@ -23,6 +23,7 @@ public:
 		Bone,
 		RigidBody,
 		Animation,
+		Steering,
 		Unknown
 	};
 
@@ -48,7 +49,7 @@ public:
 	virtual void OnDeActivate() {};
 
 	virtual void OnStart() {};
-	virtual void OnUpdate() {};
+	virtual void OnUpdate(float dt) {};
 	virtual void OnFinish() {};
 
 	virtual void OnPlay() {};

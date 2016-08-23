@@ -18,6 +18,7 @@ public:
 	bool Init(Config* config = nullptr) override;
 	bool Start(Config* config = nullptr) override;
 	update_status PreUpdate(float dt) override;
+	update_status Update(float dt) override;
 	bool CleanUp() override;
 
 	void ReceiveEvent(const Event& event) override;
@@ -52,11 +53,12 @@ private:
 	void RecursiveTestRay(const Ray& ray, float& dist, GameObject** best_candidate) const;
 	void RecursiveDrawGameObjects(const GameObject* go) const;
 	void RecursiveProcessEvent(GameObject* go, const Event& event) const;
+	void RecursiveUpdate(GameObject* go, float dt) const;
 	void DestroyFlaggedGameObjects();
 
 public:
 	Quadtree quadtree;
-	bool draw_quadtree = true;
+	bool draw_quadtree = false;
 
 private:
 	GameObject* root = nullptr;

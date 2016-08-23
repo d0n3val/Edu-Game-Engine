@@ -195,8 +195,6 @@ void ModuleEditorCamera::Orbit(float dx, float dy)
 		else
 			point = dummy->frustum.pos + dummy->frustum.front * 50.0f;
 
-		LOG("orbiting around %.2f, %0.2f, %0.2f", point.x, point.y, point.z);
-
 		looking = true;
 		looking_at = point;
 	}
