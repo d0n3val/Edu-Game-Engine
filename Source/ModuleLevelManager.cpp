@@ -30,6 +30,7 @@ bool ModuleLevelManager::Init(Config* config)
 	
 	// create an empty game object to be the root of everything
 	root = new GameObject(nullptr, "root");
+	quadtree.SetBoundaries(AABB(float3(-500,0,-500), float3(500,30,500)));
 
 	return ret;
 }
@@ -198,8 +199,6 @@ bool ModuleLevelManager::Load(const char * file)
 			root->RecursiveCalcBoundingBoxes();
 			
 			// Fill in the quadtree
-			quadtree.Clear();
-			quadtree.SetBoundaries(AABB(float3(-500,0,-500), float3(500,50,500)));
 			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
 				quadtree.Insert(it->second);
 

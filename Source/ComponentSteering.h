@@ -15,6 +15,7 @@ public:
 	{
 		seek,
 		flee,
+		wander,
 		unknown
 	};
 
@@ -36,6 +37,11 @@ public:
 	void DrawEditor();
 
 private:
+	const GameObject* goal = nullptr;
+	float max_mov_speed = 1.0f;
+	float max_rot_speed = 0.1f;
+	float max_distance = 50.0f;
+	float min_distance = 0.5f;
 
 private:
 

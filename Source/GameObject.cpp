@@ -102,10 +102,13 @@ void GameObject::Load(Config * config, map<int, GameObject*>& relations)
 	scale.y = config->GetFloat("Scale", 1.f, 1);
 	scale.z = config->GetFloat("Scale", 1.f, 2);
 
-	rotation.x = config->GetFloat("Rotation", 0.f, 0);
-	rotation.y = config->GetFloat("Rotation", 0.f, 1);
-	rotation.z = config->GetFloat("Rotation", 0.f, 2);
-	rotation.w = config->GetFloat("Rotation", 1.f, 3);
+	Quat r;
+	r.x = config->GetFloat("Rotation", 0.f, 0);
+	r.y = config->GetFloat("Rotation", 0.f, 1);
+	r.z = config->GetFloat("Rotation", 0.f, 2);
+	r.w = config->GetFloat("Rotation", 1.f, 3);
+
+	SetLocalRotation(r);
 
 	// Now Load all my components
 	int count = config->GetArrayCount("Components");
@@ -175,8 +178,7 @@ void GameObject::OnUpdate(float dt)
 void GameObject::OnStop()
 {
 	// go back to the original transform
-	original_transform.Decompose(translation, rotation, scale);
-	local_trans_dirty = true;
+	SetLocalTransform(original_transform);
 
 	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
 		(*it)->OnStop();
@@ -310,10 +312,7 @@ void GameObject::SetNewParent(GameObject * new_parent, bool recalc_transformatio
 	// we want to keep the same global transformation even if we are somewhere else in
 	// transformation hierarchy
 	if (recalc_transformation == true)
-	{
-		float4x4 new_local = current_global * new_parent->GetLocalTransform().Inverted();
-		new_local.Decompose(translation, rotation, scale);
-	}
+		SetLocalTransform(current_global * new_parent->GetLocalTransform().Inverted());
 }
 
 // ---------------------------------------------------------
@@ -337,7 +336,10 @@ float3 GameObject::GetGlobalPosition() const
 // ---------------------------------------------------------
 float3 GameObject::GetLocalRotation() const
 {
-	return rotation.ToEulerXYZ();
+	// We should never go from quat to euler, so we keep a local copy of the angles
+	// exposed to the editor. More info why euler angles are evil:
+	// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
+	return rotation_editor;
 }
 
 // ---------------------------------------------------------
@@ -355,7 +357,11 @@ float3 GameObject::GetLocalScale() const
 // ---------------------------------------------------------
 void GameObject::SetLocalRotation(const float3& XYZ_euler_rotation)
 {
-	rotation = Quat::FromEulerXYZ(XYZ_euler_rotation.x, XYZ_euler_rotation.y, XYZ_euler_rotation.z);
+	float3 diff = XYZ_euler_rotation - rotation_editor;
+	Quat mod = Quat::FromEulerXYZ(diff.x, diff.y, diff.z);
+	//rotation = Quat::FromEulerXYZ(XYZ_euler_rotation.x, XYZ_euler_rotation.y, XYZ_euler_rotation.z);
+	rotation = rotation * mod;
+	rotation_editor = XYZ_euler_rotation;
 	local_trans_dirty = true;
 }
 
@@ -363,6 +369,7 @@ void GameObject::SetLocalRotation(const float3& XYZ_euler_rotation)
 void GameObject::SetLocalRotation(const Quat& rotation)
 {
 	this->rotation = rotation;
+	rotation_editor = rotation.ToEulerXYZ().Abs();
 	local_trans_dirty = true;
 }
 
@@ -370,6 +377,14 @@ void GameObject::SetLocalRotation(const Quat& rotation)
 void GameObject::SetLocalScale(const float3 & scale)
 {
 	this->scale = scale;
+	local_trans_dirty = true;
+}
+
+// ---------------------------------------------------------
+void GameObject::SetLocalTransform(const float4x4 & transform)
+{
+	transform.Decompose(translation, rotation, scale);
+	rotation_editor = rotation.ToEulerXYZ().Abs();
 	local_trans_dirty = true;
 }
 

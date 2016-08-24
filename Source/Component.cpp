@@ -43,7 +43,6 @@ const char * Component::GetTypeStr() const
 	static_assert(Component::Types::Unknown == 9, "String list needs update");
 
 	static const char* names[] = {
-	"Invalid",
 	"Geometry",
 	"Material",
 	"AudioListener",
@@ -51,8 +50,10 @@ const char * Component::GetTypeStr() const
 	"Camera",
 	"Bone",
 	"RigidBody",
+	"Animation",
 	"Steering",
-	"Animation" };
+	"Invalid" 
+	};
 
 	return names[type];
 }

@@ -56,7 +56,7 @@ void PanelProperties::Draw()
 		{
 			selected->SetLocalPosition(float3::zero);
 			selected->SetLocalScale(float3::one);
-			selected->SetLocalRotation(float3::zero);
+			selected->SetLocalRotation(Quat::identity);
 		}
 
 		static_assert(Component::Types::Unknown == 9, "code needs update");
@@ -109,13 +109,32 @@ void PanelProperties::Draw()
 		{
 			float3 pos = selected->GetLocalPosition();
 			float3 rot = selected->GetLocalRotation();
+			rot.x = fabsf(rot.x);
+			rot.y = fabsf(rot.y);
+			rot.z = fabsf(rot.z);
 			float3 scale = selected->GetLocalScale();;
 
 			if (ImGui::DragFloat3("Position", (float*)&pos, 0.25f))
 				selected->SetLocalPosition(pos);
 
-			if(ImGui::SliderFloat3("Rotation", (float*)&rot, -PI, PI))
+			if (ImGui::SliderAngle3("Rotation", (float*)&rot))
+			{
 				selected->SetLocalRotation(rot);
+				/*
+				if (Equal(diff.x, 0.0f) == false)
+				{
+					selected->SetLocalRotation(float3(diff.x + rot.x, current.y, current.z));
+				}
+				else if (Equal(diff.y, 0.0f) == false)
+				{
+					//selected->SetLocalRotation(Quat::FromEulerYXZ(rot.y, rot.x, rot.z));
+				}
+				else if (Equal(diff.z, 0.0f) == false)
+				{
+				}
+				*/
+
+			}
 
 			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
 				selected->SetLocalScale(scale);

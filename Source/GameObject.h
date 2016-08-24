@@ -52,6 +52,7 @@ public:
 	void SetLocalRotation(const float3& XYZ_euler_rotation);
 	void SetLocalRotation(const Quat& rotation);
 	void SetLocalScale(const float3& scale);
+	void SetLocalTransform(const float4x4& transform);
 
 	const float4x4& GetGlobalTransformation() const;
 	const float4x4& GetLocalTransform() const;
@@ -78,6 +79,7 @@ public:
 private:
 	AABB local_bbox;
 	Quat rotation = Quat::identity;
+	float3 rotation_editor = float3::zero;
 	mutable float4x4 transform_cache;
 	float4x4 transform_global;
 	bool calculated_bbox = false;

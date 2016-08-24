@@ -224,8 +224,8 @@ void ModuleRenderer3D::ReceiveEvent(const Event& event)
 void ModuleRenderer3D::Save(Config * config) const
 {
 	config->AddBool("Vertical Sync", GetVSync());
-	config->AddBool("Debug Plane", debug_draw);
-	config->AddBool("Debug Draw", draw_plane);
+	config->AddBool("Debug Plane", draw_plane);
+	config->AddBool("Debug Draw", debug_draw);
 }
 
 void ModuleRenderer3D::Load(Config * config)

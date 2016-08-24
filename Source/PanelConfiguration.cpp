@@ -361,6 +361,8 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 
 void PanelConfiguration::DrawModuleCamera(ModuleEditorCamera * module)
 {
+	ImGui::DragFloat3("Front", &App->camera->GetDummy()->frustum.front.x, 0.1f);
+	ImGui::DragFloat3("Up", &App->camera->GetDummy()->frustum.up.x, 0.1f);
 	ImGui::DragFloat3("Position", &App->camera->GetDummy()->frustum.pos.x, 0.1f);
 	ImGui::DragFloat("Mov Speed", &App->camera->mov_speed, 0.1f, 0.1f);
 	ImGui::DragFloat("Rot Speed", &App->camera->rot_speed, 0.05f, 0.01f);

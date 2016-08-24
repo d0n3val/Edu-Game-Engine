@@ -226,13 +226,18 @@ void ModuleEditorCamera::LookAt(float dx, float dy)
 		dummy->frustum.up = q.Mul(dummy->frustum.up).Normalized();
 	}
 
-	// y motion makes the camera rotate in X local axis 
-	if (dy != 0.f)
+	// y motion makes the camera rotate in X local axis, with tops
+	if(dy != 0.f)
 	{
 		Quat q = Quat::RotateAxisAngle(dummy->frustum.WorldRight(), dy);
 
-		dummy->frustum.up = q.Mul(dummy->frustum.up).Normalized();
-		dummy->frustum.front = q.Mul(dummy->frustum.front).Normalized();
+		float3 new_up = q.Mul(dummy->frustum.up).Normalized();
+
+		if (new_up.y > 0.0f)
+		{
+			dummy->frustum.up = new_up;
+			dummy->frustum.front = q.Mul(dummy->frustum.front).Normalized();
+		}
 	}
 }
 
