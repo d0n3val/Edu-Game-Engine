@@ -19,6 +19,7 @@ public:
 	// TODO: Unload Texture
 	bool Import(const char* file, const char* path, std::string& output_file);
 	bool Import(const void* buffer, uint size, std::string& output_file);
+	bool LoadCheckers(ResourceTexture* resource);
 };
 
 #endif // __MODULETEXTURES_H__

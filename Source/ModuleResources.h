@@ -7,9 +7,13 @@
 #include <map>
 #include <vector>
 
+#define RESERVED_RESOURCES 3 // sube /sphere primitives + checker texture
+
 class Resource;
 class LoaderBone;
 class LoaderAnimation;
+class ResourceMesh;
+class ResourceTexture;
 
 class ModuleResources : public Module
 {
@@ -21,6 +25,7 @@ public:
 	~ModuleResources();
 
 	bool Init(Config* config) override;
+	bool Start(Config* config) override;
 	bool CleanUp() override;
 	void ReceiveEvent(const Event& event) override;
 
@@ -42,7 +47,6 @@ public:
 	const LoaderBone* GetBoneLoader() const;
 	const LoaderAnimation* GetAnimationLoader() const;
 	
-
 private:
 
 	void LoadUID();
@@ -50,10 +54,15 @@ private:
 
 private:
 	std::string asset_folder;
-	UID last_uid = 1;
+	UID last_uid = RESERVED_RESOURCES + 1; // reserve 1 for standard cube mesh
 	std::map<UID, Resource*> resources;
 	LoaderBone* bone_loader = nullptr;
 	LoaderAnimation* anim_loader = nullptr;
+
+	// Presets
+	ResourceMesh* cube = nullptr;
+	ResourceMesh* sphere = nullptr;
+	ResourceTexture* checkers = nullptr;
 };
 
 #endif // __MODULERESOURCES_H__

@@ -37,6 +37,19 @@ void QuadtreeNode::Insert(GameObject* go)
 	}
 }
 
+void QuadtreeNode::Erase(GameObject * go)
+{
+	std::list<GameObject*>::iterator it = std::find(objects.begin(), objects.end(), go);
+	if (it != objects.end())
+		objects.erase(it);
+
+	if (IsLeaf() == false)
+	{
+		for (int i = 0; i < 4; ++i)
+			childs[i]->Erase(go);
+	}
+}
+
 /*
 		----------- MaxPoint
 		| NW | NE |
@@ -158,6 +171,12 @@ void Quadtree::Insert(GameObject* go)
 		if(go->global_bbox.MinimalEnclosingAABB().Intersects(root->box))
 			root->Insert(go);
 	}
+}
+
+void Quadtree::Erase(GameObject * go)
+{
+	if(root != nullptr)
+		root->Erase(go);
 }
 
 void Quadtree::Clear()

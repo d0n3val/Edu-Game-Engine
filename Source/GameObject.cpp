@@ -232,6 +232,7 @@ bool GameObject::RecursiveRemoveFlagged()
 		if ((*it)->flag_for_removal == true)
 		{
 			(*it)->OnFinish();
+			App->level->quadtree.Erase(*it);
 			RELEASE(*it);
 			it = childs.erase(it);
 			ret = true;

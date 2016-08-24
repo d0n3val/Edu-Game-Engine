@@ -4,8 +4,9 @@
 #include "ModuleFileSystem.h"
 #include "ResourceMesh.h"
 #include "Glew/include/glew.h" // extensio lib
-#include "gl/GL.h"
+#include "OpenGL.h"
 #include "Assimp/include/mesh.h"
+#include "Math.h"
 
 #include "mmgr/mmgr.h"
 
@@ -282,7 +283,7 @@ void ModuleMeshes::GenerateVertexBuffer(const ResourceMesh* mesh)
 		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, mesh->texture_coords, GL_STATIC_DRAW);
 	}
 
-	/*
+	/* that when we switch to shaders
 	// Now we pack all buffers using a VAO (Vertex Attribute Object)
 	glGenVertexArrays(1, &ret); // generate one VAO and fill its id in ret
 	glBindVertexArray(ret);	// start using this VAO
@@ -305,5 +306,190 @@ void ModuleMeshes::GenerateVertexBuffer(const ResourceMesh* mesh)
 
 	LOG("New VAO with id %u", ret);
 	*/
+}
+
+bool ModuleMeshes::LoadCube(ResourceMesh * resource)
+{
+	resource->file = "*Cube Preset*";
+	resource->exported_file = "*Cube Preset*";
+
+	//  indices -------------------------
+	/* without extra vertices for texturing:
+	uint indicescw[6 * 6] =
+	{
+		2, 7, 6, 2, 3, 7, // front
+		3, 4, 7, 3, 0, 4, // right
+		1, 4, 0, 1, 5, 4, // back
+		2, 5, 1, 2, 6, 5, // left
+		1, 3, 2, 1, 0, 3, // top
+		7, 5, 6, 7, 4, 5  // bottom
+	};*/
+
+	uint indicescw[6 * 6] =
+	{
+		2, 7, 6, 2, 3, 7, // front
+		11, 9, 10, 11, 8, 9, // right
+		1, 4, 0, 1, 5, 4, // back
+		15, 13, 12, 15, 14, 13, // left
+		1, 3, 2, 1, 0, 3, // top
+		7, 5, 6, 7, 4, 5  // bottom
+	};
+
+	resource->num_indices = 6 * 6;
+	uint bytes = sizeof(uint) * resource->num_indices;
+	resource->indices = new uint[resource->num_indices];
+	memcpy(resource->indices, indicescw, bytes);
+
+	//  vertices ------------------------
+	float vertices[16 * 3] =
+	{
+		1.f,  1.f,  1.f, // 0
+	   -1.f,  1.f,  1.f, // 1
+	   -1.f,  1.f, -1.f, // 2
+		1.f,  1.f, -1.f, // 3
+
+		1.f, -1.f,  1.f, // 4
+	   -1.f, -1.f,  1.f, // 5
+	   -1.f, -1.f, -1.f, // 6
+		1.f, -1.f, -1.f, // 7
+
+		// add repeated vertices for proper texturing
+		1.f,  1.f,  1.f,  // 8
+		1.f, -1.f,  1.f,  // 9
+		1.f, -1.f, -1.f,  //10
+		1.f,  1.f, -1.f,  //11
+
+	   -1.f,  1.f,  1.f,  //12
+	   -1.f, -1.f,  1.f,  //13
+	   -1.f, -1.f, -1.f,  //14
+	   -1.f,  1.f, -1.f,  //15
+	};
+
+	resource->num_vertices = 16;
+	bytes = sizeof(float) * resource->num_vertices * 3;
+	resource->vertices = new float[resource->num_vertices* 3];
+	memcpy(resource->vertices, vertices, bytes);
+
+	// Load texture coords
+	float texture_coords[16 * 3] =
+	{
+		1.f,  1.f,  0.f,
+		0.f,  1.f,  0.f,
+		0.f,  0.f,  0.f,
+		1.f,  0.f,  0.f,
+
+		1.f,  0.f,  0.f,
+		0.f,  0.f,  0.f,
+		0.f,  1.f,  0.f,
+		1.f,  1.f,  0.f,
+		
+		// extra coords for left - right
+		1.f,  1.f,  0.f,
+		0.f,  1.f,  0.f,
+		0.f,  0.f,  0.f,
+		1.f,  0.f,  0.f,
+
+		0.f,  1.f,  0.f,
+		1.f,  1.f,  0.f,
+		1.f,  0.f,  0.f,
+		0.f,  0.f,  0.f,
+	};
+
+	resource->texture_coords = new float[resource->num_vertices * 3];
+	memcpy(resource->texture_coords, texture_coords, bytes);
+
+	// AABB
+	resource->bbox = AABB(float3(-1.f, -1.f, -1.f), float3(1.f, 1.f, 1.f));
+	
+	// Now generate VBOs
+	GenerateVertexBuffer(resource);
+
+	return true;
+}
+
+bool ModuleMeshes::LoadSphere(ResourceMesh * resource)
+{
+	resource->file = "*Sphere Preset*";
+	resource->exported_file = "*Sphere Preset*";
+
+    std::vector<float3> vertices;
+    std::vector<float3> normals;
+    std::vector<float3> tex_coords;
+    std::vector<uint> indicesVector;
+    
+    double latitudeBands = 30;
+    double longitudeBands = 30;
+    double radius = 2;
+    
+	for (double latNumber = 0; latNumber <= latitudeBands; latNumber++) {
+		double theta = latNumber * PI / latitudeBands;
+		double sinTheta = sin(theta);
+		double cosTheta = cos(theta);
+
+		for (double longNumber = 0; longNumber <= longitudeBands; longNumber++) {
+			double phi = longNumber * 2 * PI / longitudeBands;
+			double sinPhi = sin(phi);
+			double cosPhi = cos(phi);
+
+			float3 normal, vertex, tex_coord;
+
+			normal.x = cosPhi * sinTheta;   // x
+			normal.y = cosTheta;            // y
+			normal.z = sinPhi * sinTheta;   // z
+			tex_coord.x = 1 - (longNumber / longitudeBands); // u
+			tex_coord.y = 1 - (latNumber / latitudeBands);   // v
+			tex_coord.z = 0.f;
+			vertex.x = radius * normal.x;
+			vertex.y = radius * normal.y;
+			vertex.z = radius * normal.z;
+
+			normals.push_back(normal);
+			tex_coords.push_back(tex_coord);
+			vertices.push_back(vertex);
+		}
+
+		for (int latNumber = 0; latNumber < latitudeBands; latNumber++) {
+			for (int longNumber = 0; longNumber < longitudeBands; longNumber++) {
+				uint first = (latNumber * (longitudeBands + 1)) + longNumber;
+				uint second = first + longitudeBands + 1;
+
+				indicesVector.push_back(first);
+				indicesVector.push_back(second);
+				indicesVector.push_back(first + 1);
+
+				indicesVector.push_back(second);
+				indicesVector.push_back(second + 1);
+				indicesVector.push_back(first + 1);
+
+			}
+		}
+	}
+
+	// Indicies -------------------------
+	resource->num_indices = indicesVector.size();
+	uint bytes = sizeof(uint) * resource->num_indices;
+	resource->indices = new uint[resource->num_indices];
+	memcpy(resource->indices, &indicesVector[0], bytes);
+    
+	// Vertices -------------------------
+	resource->num_vertices = vertices.size();
+	bytes = sizeof(float) * resource->num_vertices * 3;
+	resource->vertices = new float[resource->num_vertices* 3];
+	memcpy(resource->vertices, &vertices[0], bytes);
+
+	// Normals --------------------------
+	resource->normals = new float[resource->num_vertices * 3];
+	memcpy(resource->normals, &normals[0], bytes);
+
+	// Texture Coords -------------------
+	resource->texture_coords = new float[resource->num_vertices * 3];
+	memcpy(resource->texture_coords, &tex_coords[0], bytes);
+
+	// AABB
+	resource->bbox = AABB(float3(-radius, -radius, -radius), float3(radius, radius, radius));
+	
+	// Now generate VBOs
+	GenerateVertexBuffer(resource);
+	return true;
 }
 

@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "Application.h"
+#include "OpenGL.h"
 #include "ModuleTextures.h"
 #include "ModuleFileSystem.h"
 #include "Devil/include/il.h"
@@ -102,6 +103,7 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file)
 	return ret;
 }
 
+
 // Load new texture from file path
 bool ModuleTextures::Load(ResourceTexture* resource)
 {
@@ -164,4 +166,53 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 	RELEASE_ARRAY(buffer);
 
 	return ret;
+}
+
+//  Create checkerboard texture  
+#define CHECKERS_WIDTH 64
+#define CHECKERS_HEIGHT 64
+
+bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
+{
+	resource->file = "*Checkers Texture Preset*";
+	resource->exported_file = "*Checkers Texture Preset*";
+
+	// http://www.glprogramming.com/red/chapter09.html
+
+	GLubyte checkImage[CHECKERS_HEIGHT][CHECKERS_WIDTH][4];
+
+	for (int i = 0; i < CHECKERS_HEIGHT; i++) {
+		for (int j = 0; j < CHECKERS_WIDTH; j++) {
+			int c = ((((i&0x8)==0)^((j&0x8))==0))*255;
+			checkImage[i][j][0] = (GLubyte) c;
+			checkImage[i][j][1] = (GLubyte) c;
+			checkImage[i][j][2] = (GLubyte) c;
+			checkImage[i][j][3] = (GLubyte) 255;
+		}
+	}
+
+	uint ImageName = 0;
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glGenTextures(1, &ImageName );
+	glBindTexture(GL_TEXTURE_2D, ImageName );
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CHECKERS_WIDTH, CHECKERS_HEIGHT, 
+	   0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
+
+	resource->width = CHECKERS_WIDTH;
+	resource->height = CHECKERS_HEIGHT;
+	resource->bpp = 1;
+	resource->depth = 4;
+	resource->mips = 0;
+	resource->bytes = sizeof(GLubyte) * CHECKERS_HEIGHT * CHECKERS_WIDTH * 4;
+	resource->format = ResourceTexture::rgba;
+	resource->gpu_id = ImageName;
+
+	return true;
 }

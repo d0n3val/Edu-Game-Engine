@@ -20,6 +20,10 @@ public:
 	bool Import(const aiMesh* mesh, std::string& output) const;
 	void GenerateVertexBuffer(const ResourceMesh* mesh);
 
+	// Simple primitives
+	bool LoadCube(ResourceMesh* resource);
+	bool LoadSphere(ResourceMesh* resource);
+
 private:
 	bool Save(const ResourceMesh& mesh, std::string& output) const;
 };

@@ -47,6 +47,26 @@ bool ModuleResources::Init(Config* config)
 	return ret;
 }
 
+bool ModuleResources::Start(Config * config)
+{
+	// Load preset geom shapes in fixed UIDs
+	cube = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 1);
+	App->meshes->LoadCube(cube);
+	cube->loaded = 1;
+
+	// Load preset geom shapes in fixed UIDs
+	sphere = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 3);
+	App->meshes->LoadSphere(sphere);
+	sphere->loaded = 1;
+
+	// Load preset for checkers texture
+	checkers = (ResourceTexture*) CreateNewResource(Resource::Type::texture, 2);
+	App->tex->LoadCheckers(checkers);
+	checkers->loaded = 1;
+
+	return true;
+}
+
 // Called before quitting
 bool ModuleResources::CleanUp()
 {
@@ -87,9 +107,12 @@ void ModuleResources::SaveResources() const
 
 	for (map<UID, Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
 	{
-		Config resource;
-		it->second->Save(resource);
-		save.AddArrayEntry(resource);
+		if (it->first > RESERVED_RESOURCES)
+		{
+			Config resource;
+			it->second->Save(resource);
+			save.AddArrayEntry(resource);
+		}
 	}
 
 	// Finally save to file

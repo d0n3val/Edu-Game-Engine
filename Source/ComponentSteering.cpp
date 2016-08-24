@@ -81,7 +81,6 @@ void ComponentSteering::OnUpdate(float dt)
 			case Behaviour::wander:
 			{
 				float r = RandomBinomial();
-				LOG("rand %f", r);
 				direction = Quat::RotateY(r).Transform(my_front);
 				game_object->SetLocalPosition(my_pos + (direction * speed_dt));
 			} break;
@@ -109,6 +108,11 @@ void ComponentSteering::OnStop()
 // ---------------------------------------------------------
 void ComponentSteering::OnDebugDraw() const
 {
+	float3 pos = game_object->GetGlobalPosition();
+	float3 dir = game_object->GetGlobalTransformation().WorldZ();
+	DebugDraw(Capsule(LineSegment(pos, pos + float3::unitY), 0.5f), Green);
+	DebugDraw(LineSegment(pos, dir), Blue);
+
 	if (goal != nullptr)
 	{
 		DebugDraw(Sphere(float3::zero, min_distance), Green, goal->GetGlobalTransformation());
