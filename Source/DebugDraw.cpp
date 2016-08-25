@@ -11,6 +11,7 @@ void BeginDebugDraw()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+	glColor4f(1.f, 1.f, 1.f, 1.f);
 }
 
 // ------------------------------------------------------------

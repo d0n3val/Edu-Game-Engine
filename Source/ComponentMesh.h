@@ -6,6 +6,7 @@
 #include "Component.h"
 #include "ComponentWithResource.h"
 #include "Math.h"
+#include "Color.h"
 
 class ComponentBone;
 class ResourceMesh;
@@ -37,6 +38,7 @@ public:
 	ResourceMesh* deformable = nullptr;
 	int root_bones_id = 0;
 	const GameObject* root_bones = nullptr;
+	Color tint = White;
 };
 
 #endif // __COMPONENT_MESH_H__

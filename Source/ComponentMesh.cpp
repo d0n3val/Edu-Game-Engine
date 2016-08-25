@@ -28,6 +28,7 @@ void ComponentMesh::OnSave(Config& config) const
 	ComponentWithResource::OnSaveResource(config);
 	// TODO naive approach to bone attachment, simply try on start
 	config.AddInt("Bones Root", (root_bones) ? root_bones->serialization_id : 0);
+	config.AddArrayFloat("Tint", &tint.r, 4);
 }
 
 // ---------------------------------------------------------
@@ -35,6 +36,11 @@ void ComponentMesh::OnLoad(Config * config)
 {
 	ComponentWithResource::OnLoadResource(config);
 	root_bones_id = config->GetInt("Bones Root", 0);
+
+	tint.r = config->GetFloat("Tint", 1.0f, 0);
+	tint.g = config->GetFloat("Tint", 1.0f, 1);
+	tint.b = config->GetFloat("Tint", 1.0f, 2);
+	tint.a = config->GetFloat("Tint", 1.0f, 3);
 }
 
 // ---------------------------------------------------------

@@ -118,28 +118,12 @@ void PanelProperties::Draw()
 				selected->SetLocalPosition(pos);
 
 			if (ImGui::SliderAngle3("Rotation", (float*)&rot))
-			{
 				selected->SetLocalRotation(rot);
-				/*
-				if (Equal(diff.x, 0.0f) == false)
-				{
-					selected->SetLocalRotation(float3(diff.x + rot.x, current.y, current.z));
-				}
-				else if (Equal(diff.y, 0.0f) == false)
-				{
-					//selected->SetLocalRotation(Quat::FromEulerYXZ(rot.y, rot.x, rot.z));
-				}
-				else if (Equal(diff.z, 0.0f) == false)
-				{
-				}
-				*/
-
-			}
 
 			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
 				selected->SetLocalScale(scale);
 
-			DebugDraw(selected->GetGlobalTransformation());
+			//DebugDraw(selected->GetGlobalTransformation());
 
 			ImGui::Text("Bounding Box:");
 			ImGui::SameLine();
@@ -312,6 +296,8 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 	const ResourceMesh* mesh = (const ResourceMesh*) component->GetResource();
 	if (mesh == nullptr)
 		return;
+
+	ImGui::ColorEdit4("Tint", &component->tint.r, true);
 
     ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)",
 		mesh->num_indices / 3,

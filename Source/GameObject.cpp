@@ -534,6 +534,9 @@ void GameObject::Draw(bool debug) const
 			if (mesh == nullptr)
 				continue;
 			
+			if(debug == false)
+				glColor4f(cmesh->tint.r, cmesh->tint.g, cmesh->tint.b, cmesh->tint.a);
+
 			if (cmesh->deformable != nullptr)
 			{
 				glBindBuffer(GL_ARRAY_BUFFER, cmesh->deformable->vbo_vertices);
