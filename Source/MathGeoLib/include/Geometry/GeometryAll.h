@@ -36,6 +36,8 @@
 #include "AABB.h"
 #include "AABB2D.h"
 #include "Capsule.h"
+#include "Cylinder.h"
+#include "Cone.h"
 #include "Circle.h"
 #include "Frustum.h"
 #include "GeometryAll.h"

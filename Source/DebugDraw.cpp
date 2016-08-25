@@ -122,7 +122,6 @@ void DebugDraw(const OBB& obb, Color color, const float4x4& transform)
 // ------------------------------------------------------------
 void DebugDraw(const Capsule & capsule, Color color, const float4x4 & transform)
 {
-	// TODO change that to draw a real capsule and not a cylinder :(
 	glColor3f(color.r, color.g, color.b);
 	glPushMatrix();
 	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
@@ -207,7 +206,7 @@ void DebugDraw(const Frustum & frustum, Color color)
 	DebugDrawBox(vertices, color);
 }
 
-void DebugDraw(const LineSegment & segment, Color color)
+void DebugDraw(const LineSegment & segment, Color color, bool is_arrow)
 {
 	glColor3f(color.r, color.g, color.b);
 	glLineWidth(2.0f);
@@ -215,6 +214,9 @@ void DebugDraw(const LineSegment & segment, Color color)
 
 	glVertex3fv((GLfloat*)&segment.a);
 	glVertex3fv((GLfloat*)&segment.b);
+	
+	Cone cone(segment, 0.5f);
+	DebugDraw(cone, color);
 
 	glEnd();
 	glLineWidth(1.0f);
@@ -243,6 +245,82 @@ void DebugDraw(const float3 & point, Color color)
 
 	glEnd();
 	glPointSize(1.0f);
+}
+
+void DebugDraw(const Cylinder & cylinder, Color color, const float4x4& transform)
+{
+	int n = 20;
+	float height = cylinder.Height();
+	float radius = cylinder.r;
+
+	glColor3f(color.r, color.g, color.b);
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
+
+	// Cylinder Bottom
+	glBegin(GL_POLYGON);
+	
+	for(int i = 360; i >= 0; i -= (360 / n))
+	{
+		float a = (float)i * PI / 180.f; // degrees to radians
+		glVertex3f(-height*0.5f, radius * cosf(a), radius * sinf(a));
+	}
+	glEnd();
+
+	// Cylinder Top
+	glBegin(GL_POLYGON);
+	glNormal3f(0.0f, 0.0f, 1.0f);
+	for(int i = 0; i <= 360; i += (360 / n))
+	{
+		float a = (float)i * PI / 180.f; // degrees to radians
+		glVertex3f(height * 0.5f, radius * cosf(a), radius * sinf(a));
+	}
+	glEnd();
+
+	// Cylinder "Cover"
+	glBegin(GL_QUAD_STRIP);
+	for(int i = 0; i < 480; i += (360 / n))
+	{
+		float a = (float)i * PI / 180.f; // degrees to radians
+
+		glVertex3f(height*0.5f,  radius * cosf(a), radius * sinf(a) );
+		glVertex3f(-height*0.5f, radius * cosf(a), radius * sinf(a) );
+	}
+	glEnd();
+	glPopMatrix();
+}
+
+void DebugDraw(const Cone & cone, Color color, const float4x4 & transform)
+{
+	int n = 20;
+	float height = cone.Height();
+	float radius = cone.r;
+
+	glColor3f(color.r, color.g, color.b);
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
+
+	// Cylinder Bottom
+	glBegin(GL_POLYGON);
+	
+	for(int i = 360; i >= 0; i -= (360 / n))
+	{
+		float a = (float)i * PI / 180.f; // degrees to radians
+		glVertex3f(-height*0.5f, radius * cosf(a), radius * sinf(a));
+	}
+	glEnd();
+
+	// Cylinder "Cover"
+	glBegin(GL_QUAD_STRIP);
+	for(int i = 0; i < 480; i += (360 / n))
+	{
+		float a = (float)i * PI / 180.f; // degrees to radians
+
+		glVertex3f(height*0.5f,  0.f, 0.f );
+		glVertex3f(-height*0.5f, radius * cosf(a), radius * sinf(a) );
+	}
+	glEnd();
+	glPopMatrix();
 }
 
 void DebugDrawBox(const float3* corners, Color color)

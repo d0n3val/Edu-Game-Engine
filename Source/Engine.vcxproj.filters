@@ -567,6 +567,12 @@
     <ClInclude Include="Imgui\imgui_user.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="MathGeoLib\include\Geometry\Cylinder.h">
+      <Filter>3rd Party\mathgeo\src</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\include\Geometry\Cone.h">
+      <Filter>3rd Party\mathgeo\src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -856,6 +862,12 @@
     </ClCompile>
     <ClCompile Include="Imgui\imgui_user2.cpp">
       <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\include\Geometry\Cylinder.cpp">
+      <Filter>3rd Party\mathgeo\src</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\include\Geometry\Cone.cpp">
+      <Filter>3rd Party\mathgeo\src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

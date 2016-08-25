@@ -166,6 +166,8 @@
     <ClInclude Include="MathGeoLib\include\Geometry\AABB2D.h" />
     <ClInclude Include="MathGeoLib\include\Geometry\Capsule.h" />
     <ClInclude Include="MathGeoLib\include\Geometry\Circle.h" />
+    <ClInclude Include="MathGeoLib\include\Geometry\Cone.h" />
+    <ClInclude Include="MathGeoLib\include\Geometry\Cylinder.h" />
     <ClInclude Include="MathGeoLib\include\Geometry\Frustum.h" />
     <ClInclude Include="MathGeoLib\include\Geometry\GeometryAll.h" />
     <ClInclude Include="MathGeoLib\include\Geometry\GeomType.h" />
@@ -295,6 +297,8 @@
     <ClCompile Include="MathGeoLib\include\Geometry\AABB.cpp" />
     <ClCompile Include="MathGeoLib\include\Geometry\Capsule.cpp" />
     <ClCompile Include="MathGeoLib\include\Geometry\Circle.cpp" />
+    <ClCompile Include="MathGeoLib\include\Geometry\Cone.cpp" />
+    <ClCompile Include="MathGeoLib\include\Geometry\Cylinder.cpp" />
     <ClCompile Include="MathGeoLib\include\Geometry\Frustum.cpp" />
     <ClCompile Include="MathGeoLib\include\Geometry\Line.cpp" />
     <ClCompile Include="MathGeoLib\include\Geometry\LineSegment.cpp" />

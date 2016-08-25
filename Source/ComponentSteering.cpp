@@ -108,10 +108,11 @@ void ComponentSteering::OnStop()
 // ---------------------------------------------------------
 void ComponentSteering::OnDebugDraw() const
 {
-	float3 pos = game_object->GetGlobalPosition();
-	float3 dir = game_object->GetGlobalTransformation().WorldZ();
-	DebugDraw(Capsule(LineSegment(pos, pos + float3::unitY), 0.5f), Green);
-	DebugDraw(LineSegment(pos, dir), Blue);
+	float3 pos = game_object->GetLocalPosition();
+	float3 dir = game_object->GetLocalTransform().WorldZ();
+	DebugDraw(Cylinder(LineSegment(pos, pos + float3::unitY), 0.5f), Green, game_object->GetGlobalTransformation());
+	DebugDraw(Cone(LineSegment(pos, pos + float3::unitY), 0.5f), Red, game_object->GetGlobalTransformation());
+	DebugDraw(LineSegment(pos, dir), Blue, true);
 
 	if (goal != nullptr)
 	{
