@@ -21,7 +21,7 @@ public:
 
 	bool SetResource(UID Resource);
 
-	void OnDebugDraw() const override;
+	void OnDebugDraw(bool selected) const override;
 
 public:
 	float4x4 anim_transform = float4x4::identity;

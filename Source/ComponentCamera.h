@@ -16,7 +16,7 @@ public:
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
-	void OnDebugDraw() const override;
+	void OnDebugDraw(bool selected) const override;
 	void OnUpdateTransform() override;
 
 	float GetNearPlaneDist() const;

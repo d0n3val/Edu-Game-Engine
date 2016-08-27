@@ -207,19 +207,22 @@ void DebugDraw(const Frustum & frustum, Color color)
 	DebugDrawBox(vertices, color);
 }
 
-void DebugDraw(const LineSegment & segment, Color color, bool is_arrow)
+void DebugDraw(const LineSegment & segment, Color color, bool is_arrow, const float4x4& transform)
 {
 	glColor3f(color.r, color.g, color.b);
 	glLineWidth(2.0f);
+
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
+
 	glBegin(GL_LINES);
 
 	glVertex3fv((GLfloat*)&segment.a);
 	glVertex3fv((GLfloat*)&segment.b);
 	
-	Cone cone(segment, 0.5f);
-	DebugDraw(cone, color);
-
 	glEnd();
+
+	glPopMatrix();
 	glLineWidth(1.0f);
 }
 
@@ -361,4 +364,32 @@ void DebugDrawBox(const float3* corners, Color color)
 	glVertex3fv((GLfloat*) &corners[1]); //glVertex3f(-sx, -sy,  sz);
 
 	glEnd();
+}
+
+void DebugDrawArrowZ(const float3& offset, float length, Color color, const float4x4 & transform)
+{
+	glColor3f(color.r, color.g, color.b);
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
+	glLineWidth(3.0f);
+	glBegin(GL_LINES);
+
+	glVertex3fv((GLfloat*)&offset.x);
+	float3 dest = offset + (float3::unitZ * length);
+	glVertex3fv((GLfloat*)&dest.x);
+
+	float arrow_head_size = 0.2f;
+	float3 side, up;
+
+	side = float3(offset.x + arrow_head_size, offset.y, offset.z + (length - arrow_head_size));
+	glVertex3fv((GLfloat*)&dest.x);
+	glVertex3fv((GLfloat*)&side.x);
+
+	side = float3(offset.x -arrow_head_size, offset.y, offset.z + (length - arrow_head_size));
+	glVertex3fv((GLfloat*)&dest.x);
+	glVertex3fv((GLfloat*)&side.x);
+
+	glEnd();
+	glLineWidth(1.0f);
+	glPopMatrix();
 }

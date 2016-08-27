@@ -116,8 +116,11 @@ void ComponentRigidBody::OnStop()
 }
 
 // ---------------------------------------------------------
-void ComponentRigidBody::OnDebugDraw() const
+void ComponentRigidBody::OnDebugDraw(bool selected) const
 {
+	if (selected == false)
+		return;
+
 	switch (body_type)
 	{
 		case body_sphere:

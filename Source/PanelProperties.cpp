@@ -138,9 +138,9 @@ void PanelProperties::Draw()
 		static_assert(Component::Types::Unknown == 9, "code needs update");
 		for (list<Component*>::iterator it = selected->components.begin(); it != selected->components.end(); ++it)
 		{
+			ImGui::PushID(*it);
 			if (InitComponentDraw(*it, (*it)->GetTypeStr()))
 			{
-				ImGui::PushID(*it);
 
 				switch ((*it)->GetType())
 				{
@@ -172,8 +172,8 @@ void PanelProperties::Draw()
 					((ComponentSteering*)(*it))->DrawEditor();
 				break;
 				}
-				ImGui::PopID();
 			}
+			ImGui::PopID();
 		}
 
 	}

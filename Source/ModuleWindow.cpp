@@ -75,7 +75,10 @@ bool ModuleWindow::Start(Config * config)
 {
 	SetDefaultIcon();
 
-	SetIcon(config->GetString("Icon", ""));
+	std::string icon_file = config->GetString("Icon", "");
+	if (icon_file.size() > 1)
+		SetIcon(icon_file.c_str());
+
 	SetBrightness(config->GetFloat("Brightness", 1.0f));
 
 	// Force to trigger a chain of events to refresh aspect ratios	

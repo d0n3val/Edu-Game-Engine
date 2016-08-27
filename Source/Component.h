@@ -58,7 +58,7 @@ public:
 	virtual void OnUnPause() {};
 
 	virtual void OnUpdateTransform() {};
-	virtual void OnDebugDraw() const {};
+	virtual void OnDebugDraw(bool selected) const {};
 
 public:
 	bool flag_for_removal = false;

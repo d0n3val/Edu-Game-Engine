@@ -217,9 +217,6 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 
 void ModuleEditor::DrawDebug()
 {
-	GameObject* selected = App->editor->selected;
-	if (selected != nullptr)
-		App->level->RecursiveDebugDrawGameObjects(selected);
 }
 
 void ModuleEditor::OnResize(int width, int height)

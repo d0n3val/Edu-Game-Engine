@@ -29,7 +29,7 @@ public:
 	void OnPlay() override;
 	void OnUpdate(float dt) override;
 	void OnStop() override;
-	void OnDebugDraw() const override;
+	void OnDebugDraw(bool selected) const override;
 
 	void SetBehaviour(Behaviour new_behaviour);
 	Behaviour GetBehaviour() const;

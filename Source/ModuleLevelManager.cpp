@@ -7,6 +7,7 @@
 #include "Config.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleEditorCamera.h"
+#include "ModuleEditor.h"
 #include "ComponentCamera.h"
 #include "ComponentMesh.h"
 #include "ResourceMesh.h"
@@ -92,6 +93,8 @@ void ModuleLevelManager::DrawDebug()
 		for (vector<GameObject*>::const_iterator it = objects.begin(); it != objects.end(); ++it)
 			DebugDraw((*it)->global_bbox.MinimalEnclosingAABB(), Red);
 	}
+
+	RecursiveDebugDrawGameObjects(root);
 }
 
 const GameObject * ModuleLevelManager::GetRoot() const
@@ -269,6 +272,7 @@ void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const
 	// we do frustum culling or not ?
 	ComponentCamera* cam = App->renderer3D->active_camera;
 
+	// TODO first draw all opaque geom then translucent from far to near
 	if (cam->frustum_culling == true)
 		quadtree.CollectIntersections(objects, cam->frustum);
 	else
@@ -303,7 +307,7 @@ void ModuleLevelManager::RecursiveUpdate(GameObject * go, float dt) const
 
 void ModuleLevelManager::RecursiveDebugDrawGameObjects(const GameObject* go) const
 {
-	go->OnDebugDraw();
+	go->OnDebugDraw(go == App->editor->selected);
 
 	// Recursive call to all childs keeping matrices
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)

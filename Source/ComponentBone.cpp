@@ -60,8 +60,11 @@ bool ComponentBone::SetResource(UID resource)
 }
 
 // ---------------------------------------------------------
-void ComponentBone::OnDebugDraw() const
+void ComponentBone::OnDebugDraw(bool selected) const
 {
+	if (selected == false)
+		return;
+
 	math::LineSegment segment;
 	segment.a = game_object->GetGlobalPosition();
 

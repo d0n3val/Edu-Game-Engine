@@ -181,7 +181,7 @@ update_status ModuleRenderer3D::Update(float dt)
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
 	// debug draw ---
-	if (draw_plane == true && App->IsPlay() == false)
+	if (draw_plane == true)
 	{
 		PPlane p(0, 1, 0, 0);
 		p.axis = true;
@@ -193,7 +193,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	App->level->Draw();
 
-	if (debug_draw == true && App->IsPlay() == false)
+	if (debug_draw == true)
 	{
 		BeginDebugDraw();
 		App->DebugDraw();

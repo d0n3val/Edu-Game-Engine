@@ -40,7 +40,7 @@ public:
 
 	void OnPlay() override;
 	void OnStop() override;
-	void OnDebugDraw() const override;
+	void OnDebugDraw(bool selected) const override;
 
 	// from btMotionState
 	void getWorldTransform(btTransform& worldTrans ) const override;

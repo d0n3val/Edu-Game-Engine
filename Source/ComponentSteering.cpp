@@ -106,18 +106,17 @@ void ComponentSteering::OnStop()
 }
 
 // ---------------------------------------------------------
-void ComponentSteering::OnDebugDraw() const
+void ComponentSteering::OnDebugDraw(bool selected) const
 {
-	float3 pos = game_object->GetLocalPosition();
-	float3 dir = game_object->GetLocalTransform().WorldZ();
-	DebugDraw(Cylinder(LineSegment(pos, pos + float3::unitY), 0.5f), Green, game_object->GetGlobalTransformation());
-	DebugDraw(Cone(LineSegment(pos, pos + float3::unitY), 0.5f), Red, game_object->GetGlobalTransformation());
-	DebugDraw(LineSegment(pos, dir), Blue, true);
+	DebugDrawArrowZ(float3(0.f, game_object->GetLocalBBox().HalfSize().y, 0.f), max_mov_speed, Blue, game_object->GetGlobalTransformation());
 
-	if (goal != nullptr)
+	if (selected == true)
 	{
-		DebugDraw(Sphere(float3::zero, min_distance), Green, goal->GetGlobalTransformation());
-		DebugDraw(Sphere(float3::zero, max_distance), Red, goal->GetGlobalTransformation());
+		if (goal != nullptr)
+		{
+			DebugDraw(Sphere(float3::zero, min_distance), Green, goal->GetGlobalTransformation());
+			DebugDraw(Sphere(float3::zero, max_distance), Red, goal->GetGlobalTransformation());
+		}
 	}
 }
 

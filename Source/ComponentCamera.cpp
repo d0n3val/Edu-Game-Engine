@@ -27,9 +27,10 @@ ComponentCamera::~ComponentCamera()
 {}
 
 // ---------------------------------------------------------
-void ComponentCamera::OnDebugDraw() const
+void ComponentCamera::OnDebugDraw(bool selected) const
 {
-	DebugDraw(frustum, Yellow);
+	if(selected == true)
+		DebugDraw(frustum, Yellow);
 }
 
 // ---------------------------------------------------------

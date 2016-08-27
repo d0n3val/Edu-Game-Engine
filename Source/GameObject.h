@@ -57,7 +57,7 @@ public:
 	const float4x4& GetGlobalTransformation() const;
 	const float4x4& GetLocalTransform() const;
 
-	const float* GetOpenGLGlobalTranform() const;
+	const float* GetOpenGLGlobalTransform() const;
 
 	void RecursiveCalcGlobalTransform(const float4x4& parent, bool force_recalc);
 	void RecursiveCalcBoundingBoxes();
@@ -66,7 +66,7 @@ public:
 	void SetActive(bool active);
 
 	void Draw(bool debug = false) const;
-	void OnDebugDraw() const;
+	void OnDebugDraw(bool selected) const;
 
 	bool WasDirty() const;
 	bool WasBBoxDirty() const;

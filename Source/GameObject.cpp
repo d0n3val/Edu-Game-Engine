@@ -360,7 +360,6 @@ void GameObject::SetLocalRotation(const float3& XYZ_euler_rotation)
 {
 	float3 diff = XYZ_euler_rotation - rotation_editor;
 	Quat mod = Quat::FromEulerXYZ(diff.x, diff.y, diff.z);
-	//rotation = Quat::FromEulerXYZ(XYZ_euler_rotation.x, XYZ_euler_rotation.y, XYZ_euler_rotation.z);
 	rotation = rotation * mod;
 	rotation_editor = XYZ_euler_rotation;
 	local_trans_dirty = true;
@@ -405,17 +404,17 @@ const float4x4& GameObject::GetGlobalTransformation() const
 // ---------------------------------------------------------
 const float4x4& GameObject::GetLocalTransform() const
 {
-	if (local_trans_dirty == true)
+	/*if (local_trans_dirty == true)
 	{
 		local_trans_dirty = false;
 		transform_cache = float4x4::FromTRS(translation, rotation, scale);
-	}
+	}*/
 
 	return transform_cache;
 }
 
 // ---------------------------------------------------------
-const float* GameObject::GetOpenGLGlobalTranform() const
+const float* GameObject::GetOpenGLGlobalTransform() const
 {
 	return transform_global.Transposed().ptr();
 }
@@ -427,7 +426,9 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force
 	{
 		force_recalc = true;
 		was_dirty = true;
-		transform_global = parent * GetLocalTransform();
+		local_trans_dirty = false;
+		transform_cache = float4x4::FromTRS(translation, rotation, scale);
+		transform_global = parent * transform_cache;
 		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 			(*it)->OnUpdateTransform();
 	}
@@ -486,7 +487,7 @@ void GameObject::Draw(bool debug) const
 
 	// push this matrix before drawing
 	glPushMatrix();
-	glMultMatrixf(GetOpenGLGlobalTranform());
+	glMultMatrixf(GetOpenGLGlobalTransform());
 
 	if (debug == true)
 		glColor3f(1.0f, 1.0f, 0.0f);
@@ -495,10 +496,7 @@ void GameObject::Draw(bool debug) const
 
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 	{
-		if ((*it)->IsActive() == false)
-			continue;
-
-		if ((*it)->GetType() == Component::Types::Material)
+		if ((*it)->GetType() == Component::Types::Material && (*it)->IsActive() == true)
 		{
 			ComponentMaterial* cmaterial = (ComponentMaterial*)(*it);
 			const ResourceTexture* tex = (const ResourceTexture*) cmaterial->GetResource();
@@ -529,10 +527,7 @@ void GameObject::Draw(bool debug) const
 
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 	{
-		if ((*it)->IsActive() == false)
-			continue;
-
-		if ((*it)->GetType() == Component::Types::Geometry)
+		if ((*it)->GetType() == Component::Types::Geometry && (*it)->IsActive() == true)
 		{
 			ComponentMesh* cmesh = (ComponentMesh*) (*it);
 			const ResourceMesh* mesh = (const ResourceMesh*)  cmesh->GetResource();
@@ -558,10 +553,10 @@ void GameObject::Draw(bool debug) const
 			if (debug == false && mesh->vbo_normals > 0)
 			{
 				glEnable(GL_LIGHTING);
-				//glEnableClientState(GL_NORMAL_ARRAY);
+				glEnableClientState(GL_NORMAL_ARRAY);
 
 				glBindBuffer(GL_ARRAY_BUFFER, (cmesh->deformable) ? cmesh->deformable->vbo_normals : mesh->vbo_normals);
-				glNormalPointer(3, GL_FLOAT, NULL);
+				glNormalPointer(GL_FLOAT, 0, NULL);
 			}
 			else
 				glDisable(GL_LIGHTING);
@@ -612,17 +607,20 @@ void GameObject::Draw(bool debug) const
 }
 
 // ---------------------------------------------------------
-void GameObject::OnDebugDraw() const
+void GameObject::OnDebugDraw(bool selected) const
 {
-	DebugDraw(GetGlobalTransformation());
+	if (selected == true)
+	{
+		DebugDraw(GetGlobalTransformation());
 
-	if (global_bbox.IsFinite() == true) 
-		DebugDraw(global_bbox, Green);
+		if (global_bbox.IsFinite() == true)
+			DebugDraw(global_bbox, Green);
 
-	Draw(true);
+		Draw(true);
+	}
 
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
-		(*it)->OnDebugDraw();
+		(*it)->OnDebugDraw(selected);
 }
 
 // ---------------------------------------------------------
