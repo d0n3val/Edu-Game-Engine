@@ -129,12 +129,17 @@ bool ModuleRenderer3D::Init(Config* config)
 		glShadeModel(GL_SMOOTH);		 // Enables Smooth Shading
 	}
 
-	// Projection matrix for
-	OnResize(App->window->GetWidth(), App->window->GetHeight());
-
 	Load(config);
 
 	return ret;
+}
+
+bool ModuleRenderer3D::Start(Config * config)
+{
+	// Projection matrix for
+	//OnResize(App->window->GetWidth(), App->window->GetHeight());
+
+	return true;
 }
 
 // PreUpdate: clear buffer

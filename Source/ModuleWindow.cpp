@@ -73,8 +73,13 @@ bool ModuleWindow::Init(Config* config)
 
 bool ModuleWindow::Start(Config * config)
 {
+	SetDefaultIcon();
+
 	SetIcon(config->GetString("Icon", ""));
 	SetBrightness(config->GetFloat("Brightness", 1.0f));
+
+	// Force to trigger a chain of events to refresh aspect ratios	
+	SDL_SetWindowSize(window, screen_width, screen_height);
 
 	return true;
 }
@@ -293,4 +298,17 @@ void ModuleWindow::SetIcon(const char * file)
 uint ModuleWindow::GetWidth() const
 {
 	return screen_width;
+}
+
+void ModuleWindow::SetDefaultIcon()
+{
+	icon_file = "*default*";
+
+	#include "default_icon.h"
+
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*) image32, 32, 32, 32, sizeof(unsigned long) * 32,0,0,0,0);
+	if(!surface)
+		LOG("Could not set default icon for app: %s\n", SDL_GetError());
+	SDL_SetWindowIcon(window, surface);
+	SDL_FreeSurface(surface);
 }

@@ -481,6 +481,7 @@ void GameObject::SetActive(bool active)
 void GameObject::Draw(bool debug) const
 {
 	visible = true;
+	bool texture = false;
 	bool transparency = false;
 
 	// push this matrix before drawing
@@ -503,12 +504,17 @@ void GameObject::Draw(bool debug) const
 			const ResourceTexture* tex = (const ResourceTexture*) cmaterial->GetResource();
 			if (tex != nullptr && tex->gpu_id > 0)
 			{
+				texture = true;
+				glMatrixMode(GL_TEXTURE);
+				glPushMatrix();
+				glMultMatrixf(cmaterial->tex_transform.Transposed().ptr());
+				glMatrixMode(GL_MODELVIEW);
+				//glPushMatrix();
+
 				if (tex->format == ResourceTexture::Format::rgba || tex->format == ResourceTexture::Format::bgra)
 				{
 					glDisable(GL_CULL_FACE);
 					glEnable(GL_BLEND);
-					//glBlendEquation(GL_FUNC_ADD);
-					//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					if (cmaterial->alpha_test > 0.0f)
 					{
 						glEnable(GL_ALPHA_TEST);
@@ -585,6 +591,13 @@ void GameObject::Draw(bool debug) const
 			glDisableClientState(GL_NORMAL_ARRAY);
 			glDisableClientState(GL_VERTEX_ARRAY);
 		}
+	}
+
+	if (texture == true)
+	{
+		glMatrixMode(GL_TEXTURE);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
 	}
 	
 	if (transparency == true)

@@ -23,9 +23,13 @@ public:
 	// Simple primitives
 	bool LoadCube(ResourceMesh* resource);
 	bool LoadSphere(ResourceMesh* resource);
+	bool LoadCone(ResourceMesh* resource);
+	bool LoadCylinder(ResourceMesh* resource);
+	bool LoadPyramid(ResourceMesh* resource);
 
 private:
 	bool Save(const ResourceMesh& mesh, std::string& output) const;
+	void BuildCone(ResourceMesh* resource, float height, float bottom_radius, float top_radius, uint sides) const;
 };
 
 #endif // __MODULE_MESHES_H__

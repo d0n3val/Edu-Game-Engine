@@ -12,6 +12,8 @@ class ResourceTexture;
 class ComponentMaterial : public Component, public ComponentWithResource
 {
 public:
+	ALIGN_CLASS_TO_16
+
 	ComponentMaterial (GameObject* container);
 	~ComponentMaterial ();
 
@@ -21,6 +23,7 @@ public:
 
 public:
 	float alpha_test = 0.5f;
+	float4x4 tex_transform = float4x4::identity;
 
 };
 

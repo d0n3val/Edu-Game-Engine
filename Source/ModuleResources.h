@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 
-#define RESERVED_RESOURCES 3 // sube /sphere primitives + checker texture
+#define RESERVED_RESOURCES 6 // cube/sphere/cylinde/cone/pyramid primitives + checker texture
 
 class Resource;
 class LoaderBone;
@@ -62,6 +62,9 @@ private:
 	// Presets
 	ResourceMesh* cube = nullptr;
 	ResourceMesh* sphere = nullptr;
+	ResourceMesh* cone = nullptr;
+	ResourceMesh* pyramid = nullptr;
+	ResourceMesh* cylinder = nullptr;
 	ResourceTexture* checkers = nullptr;
 };
 

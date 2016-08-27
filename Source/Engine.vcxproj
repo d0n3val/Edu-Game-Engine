@@ -143,6 +143,7 @@
     <ClInclude Include="ComponentWithResource.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="DebugDraw.h" />
+    <ClInclude Include="default_icon.h" />
     <ClInclude Include="dxgi1_4.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="GameObject.h" />

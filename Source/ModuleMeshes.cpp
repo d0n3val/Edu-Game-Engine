@@ -343,26 +343,26 @@ bool ModuleMeshes::LoadCube(ResourceMesh * resource)
 	//  vertices ------------------------
 	float vertices[16 * 3] =
 	{
-		1.f,  1.f,  1.f, // 0
-	   -1.f,  1.f,  1.f, // 1
-	   -1.f,  1.f, -1.f, // 2
-		1.f,  1.f, -1.f, // 3
+		0.5f,  0.5f,  0.5f, // 0
+	   -0.5f,  0.5f,  0.5f, // 1
+	   -0.5f,  0.5f, -0.5f, // 2
+		0.5f,  0.5f, -0.5f, // 3
 
-		1.f, -1.f,  1.f, // 4
-	   -1.f, -1.f,  1.f, // 5
-	   -1.f, -1.f, -1.f, // 6
-		1.f, -1.f, -1.f, // 7
+		0.5f, -0.5f,  0.5f, // 4
+	   -0.5f, -0.5f,  0.5f, // 5
+	   -0.5f, -0.5f, -0.5f, // 6
+		0.5f, -0.5f, -0.5f, // 7
 
 		// add repeated vertices for proper texturing
-		1.f,  1.f,  1.f,  // 8
-		1.f, -1.f,  1.f,  // 9
-		1.f, -1.f, -1.f,  //10
-		1.f,  1.f, -1.f,  //11
+		0.5f,  0.5f,  0.5f,  // 8
+		0.5f, -0.5f,  0.5f,  // 9
+		0.5f, -0.5f, -0.5f,  //10
+		0.5f,  0.5f, -0.5f,  //11
 
-	   -1.f,  1.f,  1.f,  //12
-	   -1.f, -1.f,  1.f,  //13
-	   -1.f, -1.f, -1.f,  //14
-	   -1.f,  1.f, -1.f,  //15
+	   -0.5f,  0.5f,  0.5f,  //12
+	   -0.5f, -0.5f,  0.5f,  //13
+	   -0.5f, -0.5f, -0.5f,  //14
+	   -0.5f,  0.5f, -0.5f,  //15
 	};
 
 	resource->num_vertices = 16;
@@ -399,7 +399,7 @@ bool ModuleMeshes::LoadCube(ResourceMesh * resource)
 	memcpy(resource->texture_coords, texture_coords, bytes);
 
 	// AABB
-	resource->bbox = AABB(float3(-1.f, -1.f, -1.f), float3(1.f, 1.f, 1.f));
+	resource->bbox = AABB(float3(-0.5f, -0.5f, -0.5f), float3(0.5f, 0.5f, 0.5f));
 	
 	// Now generate VBOs
 	GenerateVertexBuffer(resource);
@@ -417,19 +417,19 @@ bool ModuleMeshes::LoadSphere(ResourceMesh * resource)
     std::vector<float3> tex_coords;
     std::vector<uint> indicesVector;
     
-    double latitudeBands = 30;
-    double longitudeBands = 30;
-    double radius = 2;
+    float latitudeBands = 20;
+    float longitudeBands = 20;
+    float radius = 1;
     
-	for (double latNumber = 0; latNumber <= latitudeBands; latNumber++) {
-		double theta = latNumber * PI / latitudeBands;
-		double sinTheta = sin(theta);
-		double cosTheta = cos(theta);
+	for (float latNumber = 0; latNumber <= latitudeBands; latNumber++) {
+		float theta = latNumber * PI / latitudeBands;
+		float sinTheta = sin(theta);
+		float cosTheta = cos(theta);
 
-		for (double longNumber = 0; longNumber <= longitudeBands; longNumber++) {
-			double phi = longNumber * 2 * PI / longitudeBands;
-			double sinPhi = sin(phi);
-			double cosPhi = cos(phi);
+		for (float longNumber = 0; longNumber <= longitudeBands; longNumber++) {
+			float phi = longNumber * 2 * PI / longitudeBands;
+			float sinPhi = sin(phi);
+			float cosPhi = cos(phi);
 
 			float3 normal, vertex, tex_coord;
 
@@ -450,8 +450,8 @@ bool ModuleMeshes::LoadSphere(ResourceMesh * resource)
 
 		for (int latNumber = 0; latNumber < latitudeBands; latNumber++) {
 			for (int longNumber = 0; longNumber < longitudeBands; longNumber++) {
-				uint first = (latNumber * (longitudeBands + 1)) + longNumber;
-				uint second = first + longitudeBands + 1;
+				uint first = (latNumber * ((uint)longitudeBands + 1)) + longNumber;
+				uint second = first + (uint)longitudeBands + 1;
 
 				indicesVector.push_back(first);
 				indicesVector.push_back(second);
@@ -493,3 +493,242 @@ bool ModuleMeshes::LoadSphere(ResourceMesh * resource)
 	return true;
 }
 
+bool ModuleMeshes::LoadCone(ResourceMesh * resource)
+{
+	resource->file = "*Cone Preset*";
+	resource->exported_file = "*Cone Preset*";
+	BuildCone(resource, 2, 1, 0.f, 10);
+	GenerateVertexBuffer(resource);
+	return true;
+}
+
+bool ModuleMeshes::LoadCylinder(ResourceMesh * resource)
+{
+	resource->file = "*Cylinder Preset*";
+	resource->exported_file = "*Cylinder Preset*";
+	BuildCone(resource, 2, 1, 1, 10);
+	GenerateVertexBuffer(resource);
+	return true;
+}
+
+bool ModuleMeshes::LoadPyramid(ResourceMesh * resource)
+{
+	resource->file = "*Pyramid Preset*";
+	resource->exported_file = "*Pyramid Preset*";
+	BuildCone(resource, 2, 1, 0.f, 4);
+	GenerateVertexBuffer(resource);
+	return true;
+}
+
+// Procedurally generate cones cylinders or pyramids
+// http://wiki.unity3d.com/index.php/ProceduralPrimitives
+void ModuleMeshes::BuildCone(ResourceMesh * resource, float height, float bottom_radius, float top_radius, uint sides) const
+{
+	int nbHeightSeg = 1; // Not implemented yet
+	int nbVerticesCap = sides + 1;
+	height = height * 0.5f;
+	float ybottom = -height;
+	 
+	// Vertices ------------------------------------------------------------
+
+	// bottom + top + sides
+	resource->num_vertices = nbVerticesCap + nbVerticesCap + sides * nbHeightSeg * 2 + 2;
+	resource->vertices = new float[resource->num_vertices * 3];
+	uint vert = 0;
+	float _2pi = PI * 2.f;
+	 
+	// Bottom cap
+	resource->vertices[vert * 3 + 0] = 0.f;
+	resource->vertices[vert * 3 + 1] = ybottom;
+	resource->vertices[vert * 3 + 2] = 0.f;
+	vert++;
+	while( vert <= sides )
+	{
+		float rad = (float)vert / sides * _2pi;
+		resource->vertices[vert * 3 + 0] = cosf(rad) * bottom_radius;
+		resource->vertices[vert * 3 + 1] = ybottom;
+		resource->vertices[vert * 3 + 2] = sinf(rad) * bottom_radius;
+		vert++;
+	}
+	 
+	// Top cap
+	resource->vertices[vert * 3 + 0] = 0.f;
+	resource->vertices[vert * 3 + 1] = height;
+	resource->vertices[vert * 3 + 2] = 0.f;
+	while (vert <= sides * 2 + 1)
+	{
+		float rad = (float)(vert - sides - 1)  / sides * _2pi;
+		resource->vertices[vert * 3 + 0] = cosf(rad) * top_radius;
+		resource->vertices[vert * 3 + 1] = height;
+		resource->vertices[vert * 3 + 2] = sinf(rad) * top_radius;
+		vert++;
+	}
+	 
+	// Sides
+	int v = 0;
+	while (vert <= (resource->num_vertices) - 2 )
+	{
+		float rad = (float)v / sides * _2pi;
+		resource->vertices[vert * 3 + 0] = cosf(rad) * top_radius;
+		resource->vertices[vert * 3 + 1] = height;
+		resource->vertices[vert * 3 + 2] = sinf(rad) * top_radius;
+		vert++;
+		resource->vertices[vert * 3 + 0] = cosf(rad) * bottom_radius;
+		resource->vertices[vert * 3 + 1] = ybottom;
+		resource->vertices[vert * 3 + 2] = sinf(rad) * bottom_radius;
+		vert++;
+		v++;
+	}
+
+	// Normals ------------------------------------------------------------
+
+	// bottom + top + sides
+	resource->normals = new float[resource->num_vertices * 3];
+	vert = 0;
+	 
+	// Bottom cap
+	while( vert  <= sides )
+	{
+		resource->normals[vert * 3 + 0] = 0.f;
+		resource->normals[vert * 3 + 1] = -1.f;
+		resource->normals[vert * 3 + 2] = 0.f;
+		vert++;
+	}
+	 
+	// Top cap
+	while( vert <= sides * 2 + 1 )
+	{
+		resource->normals[vert * 3 + 0] = 0.f;
+		resource->normals[vert * 3 + 1] = 1.f;
+		resource->normals[vert * 3 + 2] = 0.f;
+		vert++;
+	}
+	 
+	// Sides
+	v = 0;
+	while (vert <= resource->num_vertices - 2 )
+	{			
+		float rad = (float)v / sides * _2pi;
+		float cos = cosf(rad);
+		float sin = sinf(rad);
+	 
+		resource->normals[vert * 3 + 0] = cos;
+		resource->normals[vert * 3 + 1] = 0.f;
+		resource->normals[vert * 3 + 2] = sin;
+		vert++;
+		resource->normals[vert * 3 + 0] = cos;
+		resource->normals[vert * 3 + 1] = 0.f;
+		resource->normals[vert * 3 + 2] = sin;
+		vert++;
+		v++;
+	}
+
+	// Texture Coords ------------------------------------------------
+
+	resource->texture_coords = new float[resource->num_vertices * 3];
+	 
+	// Bottom cap
+	uint u = 0;
+	resource->texture_coords[u * 3 + 0] = 0.5f;
+	resource->texture_coords[u * 3 + 1] = 0.5f;
+	resource->texture_coords[u * 3 + 2] = 0.0f;
+	u++;
+	while (u <= sides)
+	{
+	    float rad = (float)u / sides * _2pi;
+		resource->texture_coords[u * 3 + 0] = cosf(rad) * 0.5f + 0.5f;
+		resource->texture_coords[u * 3 + 1] = sinf(rad) * 0.5f + 0.5f;
+		resource->texture_coords[u * 3 + 2] = 0.f;
+	    u++;
+	}
+	 
+	// Top cap
+	resource->texture_coords[u * 3 + 0] = 0.5f;
+	resource->texture_coords[u * 3 + 1] = 0.5f;
+	resource->texture_coords[u * 3 + 2] = 0.0f;
+	u++;
+	while (u <= sides * 2 + 1)
+	{
+	    float rad = (float)u / sides * _2pi;
+		resource->texture_coords[u * 3 + 0] = cosf(rad) * 0.5f + 0.5f;
+		resource->texture_coords[u * 3 + 1] = sinf(rad) * 0.5f + 0.5f;
+		resource->texture_coords[u * 3 + 2] = 0.f;
+	    u++;
+	}
+	 
+	// Sides
+	int u_sides = 0;
+	while (u <= resource->num_vertices - 2)
+	{
+		float t = (float)u_sides * 4 / sides;
+		resource->texture_coords[u * 3 + 0] = t;
+		resource->texture_coords[u * 3 + 1] = 1.f;
+		resource->texture_coords[u * 3 + 2] = 0.f;
+		u++;
+		resource->texture_coords[u * 3 + 0] = t;
+		resource->texture_coords[u * 3 + 1] = 0.f;
+		resource->texture_coords[u * 3 + 2] = 0.f;
+		u++;
+		u_sides++;
+	}
+
+	// Indices -------------------------------------------------------
+
+	uint nbTriangles = sides + sides + sides * 2;
+	resource->num_indices = (nbTriangles) * 3 +3;
+	resource->indices = new uint[resource->num_indices];
+	 
+	// Bottom cap
+	uint tri = 0;
+	int i = 0;
+	while (tri < sides - 1)
+	{
+		resource->indices[ i + 0 ] = 0;
+		resource->indices[ i + 1 ] = tri + 1;
+		resource->indices[ i + 2 ] = tri + 2;
+		tri++;
+		i += 3;
+	}
+	resource->indices[i + 0] = 0;
+	resource->indices[i + 1] = tri + 1;
+	resource->indices[i + 2] = 1;
+	tri++;
+	i += 3;
+	 
+	// Top cap
+	while (tri < sides * 2)
+	{
+		resource->indices[i + 0] = tri + 2;
+		resource->indices[i + 1] = tri + 1;
+		resource->indices[i + 2] = nbVerticesCap;
+		tri++;
+		i += 3;
+	}
+	 
+	resource->indices[i + 0] = nbVerticesCap + 1;
+	resource->indices[i + 1] = tri + 1;
+	resource->indices[i + 2] = nbVerticesCap;		
+	tri++;
+	i += 3;
+	tri++;
+	 
+	// Sides
+	while( tri <= nbTriangles)
+	{
+		resource->indices[ i + 0 ] = tri + 2;
+		resource->indices[ i + 1 ] = tri + 1;
+		resource->indices[ i + 2 ] = tri + 0;
+		tri++;
+		i += 3;
+	 
+		resource->indices[ i + 0 ] = tri + 1;
+		resource->indices[ i + 1 ] = tri + 2;
+		resource->indices[ i + 2 ] = tri + 0;
+		tri++;
+		i += 3;
+	}
+
+	// AABB
+	float radius = MAX(bottom_radius, top_radius);
+	resource->bbox = AABB(float3(-radius, ybottom, -radius), float3(radius, height, radius));
+}

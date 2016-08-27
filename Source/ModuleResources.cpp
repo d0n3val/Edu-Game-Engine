@@ -59,6 +59,21 @@ bool ModuleResources::Start(Config * config)
 	App->meshes->LoadSphere(sphere);
 	sphere->loaded = 1;
 
+	// Load preset geom shapes in fixed UIDs
+	cone = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 4);
+	App->meshes->LoadCone(cone);
+	cone->loaded = 1;
+
+	// Load preset geom shapes in fixed UIDs
+	cylinder = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 5);
+	App->meshes->LoadCylinder(cylinder);
+	cylinder->loaded = 1;
+
+	// Load preset geom shapes in fixed UIDs
+	pyramid = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 6);
+	App->meshes->LoadPyramid(pyramid);
+	pyramid->loaded = 1;
+
 	// Load preset for checkers texture
 	checkers = (ResourceTexture*) CreateNewResource(Resource::Type::texture, 2);
 	App->tex->LoadCheckers(checkers);

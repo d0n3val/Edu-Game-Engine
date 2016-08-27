@@ -27,7 +27,6 @@ public:
 	UID PickResource(UID resource, int type = -1);
 	const GameObject* PickGameObject(const GameObject* current) const;
 	void RecursiveDrawTree(const GameObject* go, const GameObject** selected) const;
-
 	bool InitComponentDraw(Component* component, const char * name);
 
 	// TODO move editor code as a component method like component rigidbody

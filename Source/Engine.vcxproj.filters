@@ -573,6 +573,9 @@
     <ClInclude Include="MathGeoLib\include\Geometry\Cone.h">
       <Filter>3rd Party\mathgeo\src</Filter>
     </ClInclude>
+    <ClInclude Include="default_icon.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">

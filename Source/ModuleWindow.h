@@ -29,6 +29,7 @@ public:
 	SDL_Window* GetWindow() const;
 
 	uint GetWidth() const;
+	void SetDefaultIcon();
 	uint GetHeight() const;
 	void SetWidth(uint width);
 	void SetHeigth(uint height);

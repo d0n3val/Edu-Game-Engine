@@ -123,8 +123,6 @@ void PanelProperties::Draw()
 			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
 				selected->SetLocalScale(scale);
 
-			//DebugDraw(selected->GetGlobalTransformation());
-
 			ImGui::Text("Bounding Box:");
 			ImGui::SameLine();
 			if (selected->global_bbox.IsFinite())
@@ -475,6 +473,26 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 		component->SetResource(new_res);
 
 	const ResourceTexture* info = (const ResourceTexture*) component->GetResource();
+
+	float3 pos, scale;
+	Quat qrot;
+
+	component->tex_transform.Decompose(pos, qrot, scale);
+	float3 rot = qrot.ToEulerXYZ();
+	bool change = false;
+
+	change |= ImGui::DragFloat2("Position", (float*)&pos, 0.05f);
+	change |= ImGui::SliderAngle3("Rotation", (float*)&rot);
+	change |= ImGui::DragFloat2("Scale", (float*)&scale, 0.05f, 0.01f);
+
+	if (change == true)
+	{
+		qrot = Quat::FromEulerXYZ(rot.x, rot.y, rot.z);
+		component->tex_transform = float4x4::FromTRS(pos, qrot, scale);
+	}
+
+	if (ImGui::Button("Reset Transform"))
+		component->tex_transform = float4x4::identity;
 
 	if (info == nullptr)
 		return;
