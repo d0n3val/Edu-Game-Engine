@@ -20,7 +20,7 @@ public:
 	virtual ~GameObject();
 
 	bool Save(Config& config, int&, const GameObject* parent) const;
-	void Load(Config* config, std::map<int, GameObject*>& relations);
+	void Load(Config* config, std::map<GameObject*, uint>& relations);
 
 	void OnStart();
 	void OnFinish();
@@ -32,6 +32,8 @@ public:
 	void OnStop();
 	void OnPause();
 	void OnUnPause();
+
+	uint GetUID() const;
 
 	void RecalculateBoundingBox();
 
@@ -90,6 +92,7 @@ private:
 	bool active = true;
 	GameObject* parent = nullptr;
 	float4x4 original_transform;
+	uint uid = 0;
 
 public:
 	std::string name;
@@ -98,7 +101,6 @@ public:
 	OBB global_bbox;
 	mutable bool visible = false;
 	bool flag_for_removal = false;
-	mutable int serialization_id = 0;
 };
 
 #endif // __GAMEOBJECT_H__

@@ -95,6 +95,16 @@ int Config::GetInt(const char * field, int default, int index) const
 	return default;
 }
 
+uint Config::GetUInt(const char * field, uint default, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	if (value && json_value_get_type(value) == JSONNumber)
+		return (uint) json_value_get_number(value);
+
+	return default;
+}
+
 UID Config::GetUID(const char * field, UID default, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
@@ -162,6 +172,11 @@ bool Config::AddInt(const char * field, int value)
 	return json_object_set_number(root, field, (double) value) == JSONSuccess;
 }
 
+bool Config::AddUInt(const char * field, uint value)
+{
+	return json_object_set_number(root, field, (double) value) == JSONSuccess;
+}
+
 bool Config::AddUID(const char * field, UID value)
 {
 	return json_object_set_number(root, field, (double) value) == JSONSuccess;
@@ -214,6 +229,21 @@ bool Config::AddArrayBool(const char * field, const bool * values, int size)
 }
 
 bool Config::AddArrayInt(const char * field, const int * values, int size)
+{
+	if (values != nullptr && size > 0)
+	{
+		JSON_Value* va = json_value_init_array();
+		array = json_value_get_array(va);
+		json_object_set_value(root, field, va);
+
+		for(int i=0; i < size; ++i)
+			json_array_append_number(array, values[i]);
+		return true;
+	}
+	return false;
+}
+
+bool Config::AddArrayUInt(const char * field, const uint * values, int size)
 {
 	if (values != nullptr && size > 0)
 	{

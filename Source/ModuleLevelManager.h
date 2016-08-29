@@ -27,13 +27,14 @@ public:
 	// Utils
 	const GameObject* GetRoot() const;
 	GameObject* GetRoot();
+	const GameObject* Find(uint uid) const;
+	GameObject* Find(uint uid);
 
 	// Manage whole levels
 	bool CreateNewEmpty(const char* name);
 	bool Load(const char* file);
 	bool Save(const char* file = nullptr);
 	void UnloadCurrent();
-	GameObject* Find(uint serialization_id, const GameObject* from) const;
 	
 	// Draw
 	void Draw() const;
@@ -54,6 +55,7 @@ private:
 	void RecursiveDrawGameObjects(const GameObject* go) const;
 	void RecursiveProcessEvent(GameObject* go, const Event& event) const;
 	void RecursiveUpdate(GameObject* go, float dt) const;
+	GameObject* RecursiveFind(uint uid, GameObject* go) const;
 	void DestroyFlaggedGameObjects();
 
 public:

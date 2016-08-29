@@ -26,8 +26,7 @@ ComponentMesh::~ComponentMesh()
 void ComponentMesh::OnSave(Config& config) const
 {
 	ComponentWithResource::OnSaveResource(config);
-	// TODO naive approach to bone attachment, simply try on start
-	config.AddInt("Bones Root", (root_bones) ? root_bones->serialization_id : 0);
+	config.AddUInt("Bones Root", (root_bones) ? root_bones->GetUID() : 0);
 	config.AddArrayFloat("Tint", &tint.r, 4);
 }
 
@@ -35,7 +34,7 @@ void ComponentMesh::OnSave(Config& config) const
 void ComponentMesh::OnLoad(Config * config)
 {
 	ComponentWithResource::OnLoadResource(config);
-	root_bones_id = config->GetInt("Bones Root", 0);
+	root_bones_uid = config->GetUInt("Bones Root", 0);
 
 	tint.r = config->GetFloat("Tint", 1.0f, 0);
 	tint.g = config->GetFloat("Tint", 1.0f, 1);
@@ -68,10 +67,8 @@ bool ComponentMesh::SetResource(UID resource)
 // ---------------------------------------------------------
 void ComponentMesh::OnStart()
 {
-	const GameObject* go = App->level->Find(root_bones_id, App->level->GetRoot());
-
-	if (go != nullptr)
-		AttachBones(go);
+	if (root_bones_uid > 0)
+		AttachBones(App->level->Find(root_bones_uid));
 }
 
 // ---------------------------------------------------------

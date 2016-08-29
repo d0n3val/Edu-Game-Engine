@@ -25,6 +25,7 @@ using namespace std;
 // ---------------------------------------------------------
 GameObject::GameObject(GameObject* parent, const char* name) : name(name)
 {
+	uid = App->random->Int();
 	SetNewParent(parent);
 }
 
@@ -32,6 +33,7 @@ GameObject::GameObject(GameObject* parent, const char* name) : name(name)
 GameObject::GameObject(GameObject* parent, const char * name, const float3 & translation, const float3 & scale, const Quat & rotation) :
 	name(name), translation(translation), scale(scale), rotation(rotation)
 {
+	uid = App->random->Int();
 	SetNewParent(parent);
 }
 
@@ -51,9 +53,9 @@ bool GameObject::Save(Config& parent_config, int& serialization_id, const GameOb
 	Config config;
 
 	// Save my info
-	this->serialization_id = serialization_id++;
-	config.AddInt("File UID", this->serialization_id);
-	config.AddInt("Parent UID", parent->serialization_id);
+	config.AddUInt("UID", uid);
+	config.AddUInt("ParentUID", (parent) ? parent->GetUID() : 0);
+
 	config.AddString("Name", name.c_str());
 
 	config.AddArrayFloat("Translation", (float*) &translation, 3);
@@ -82,13 +84,18 @@ bool GameObject::Save(Config& parent_config, int& serialization_id, const GameOb
 }
 
 // ---------------------------------------------------------
-void GameObject::Load(Config * config, map<int, GameObject*>& relations)
+void GameObject::Load(Config * config, map<GameObject*, uint>& relations)
 {
 	static int num = 0;
 
 	// Store me for later reference
-	relations[config->GetInt("File UID")] = this;
-	serialization_id = config->GetInt("Parent UID");
+	//relations[config->GetInt("File UID")] = this;
+	//serialization_id = config->GetInt("Parent UID");
+
+	 // UID
+	uid = config->GetUInt("UID", uid);
+	uint parent = config->GetUInt("ParentUID", 0);
+	relations[this] = parent;
 
 	// Name
 	name = config->GetString("Name", "Unnamed");
@@ -196,6 +203,12 @@ void GameObject::OnUnPause()
 {
 	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
 		(*it)->OnUnPause();
+}
+
+// ---------------------------------------------------------
+uint GameObject::GetUID() const
+{
+	return uid;
 }
 
 // ---------------------------------------------------------

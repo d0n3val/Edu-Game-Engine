@@ -107,6 +107,22 @@ GameObject * ModuleLevelManager::GetRoot()
 	return root;
 }
 
+const GameObject * ModuleLevelManager::Find(uint uid) const
+{
+	if (uid > 0)
+		return RecursiveFind(uid, root);
+
+	return nullptr;
+}
+
+GameObject * ModuleLevelManager::Find(uint uid)
+{
+	if (uid > 0)
+		return RecursiveFind(uid, root);
+
+	return nullptr;
+}
+
 bool ModuleLevelManager::CreateNewEmpty(const char * name)
 {
 	UnloadCurrent();
@@ -175,7 +191,7 @@ bool ModuleLevelManager::Load(const char * file)
 			App->camera->Load(&desc);
 
 			int count = config.GetArrayCount("Game Objects");
-			map<int, GameObject*> relations;
+			map<GameObject*, uint> relations;
 			for (int i = 0; i < count; ++i)
 			{
 				GameObject* go = CreateGameObject();
@@ -183,17 +199,16 @@ bool ModuleLevelManager::Load(const char * file)
 			}
 
 			// Second pass to tide up the hierarchy
-			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
+			for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
 			{
-				int my_id = it->first;
-				GameObject* go = it->second;
-				int parent_id = go->serialization_id;
+				uint parent_id = it->second;
+				GameObject* go = it->first;
 
 				if (parent_id > 0)
 				{
-					GameObject* parent_go = relations[parent_id];
-					go->SetNewParent(parent_go);
-					//parent_go->childs.push_back(go);
+					GameObject* parent_go = Find(parent_id);
+					if (parent_go != nullptr)
+						go->SetNewParent(parent_go);
 				}
 			}
 
@@ -202,13 +217,12 @@ bool ModuleLevelManager::Load(const char * file)
 			root->RecursiveCalcBoundingBoxes();
 			
 			// Fill in the quadtree
-			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
-				quadtree.Insert(it->second);
+			for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
+				quadtree.Insert(it->first);
 
 			// Third pass: call OnStart on all new GameObjects
-			for (map<int, GameObject*>::iterator it = relations.begin(); it != relations.end(); ++it)
-				it->second->OnStart();
-
+			for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
+				it->first->OnStart();
 		}
 
 		RELEASE_ARRAY(buffer); 
@@ -250,21 +264,6 @@ void ModuleLevelManager::UnloadCurrent()
 {
 }
 
-// TODO that should be a combination of the UID of the scene resource + the local serialization_id
-GameObject * ModuleLevelManager::Find(uint serialization_id, const GameObject* from) const
-{
-	if (serialization_id > 0)
-	{
-		if (from->serialization_id == serialization_id)
-			return (GameObject *) from;
-
-		for (list<GameObject*>::const_iterator it = from->childs.begin(); it != from->childs.end(); ++it)
-			return Find(serialization_id, *it);
-	}
-
-	return nullptr;
-}
-
 void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const
 {
 	map<float, GameObject*> objects;
@@ -303,6 +302,19 @@ void ModuleLevelManager::RecursiveUpdate(GameObject * go, float dt) const
 
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveUpdate(*it, dt);
+}
+
+GameObject* ModuleLevelManager::RecursiveFind(uint uid, GameObject * go) const
+{
+	if (uid == go->GetUID())
+		return go;
+
+	GameObject* ret = nullptr;
+
+	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end() && ret == nullptr; ++it)
+		ret = RecursiveFind(uid, *it);
+
+	return ret;
 }
 
 void ModuleLevelManager::RecursiveDebugDrawGameObjects(const GameObject* go) const

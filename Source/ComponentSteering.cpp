@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Component.h"
 #include "ModuleAI.h"
+#include "ModuleLevelManager.h"
 #include "DebugDraw.h"
 #include "ModuleEditor.h"
 #include "PanelProperties.h"
@@ -24,11 +25,37 @@ ComponentSteering::~ComponentSteering()
 // ---------------------------------------------------------
 void ComponentSteering::OnSave(Config& config) const
 {
+	/*
+	
+	const GameObject* goal = nullptr;
+	float max_mov_speed = 1.0f;
+	float max_rot_speed = 0.1f;
+	float max_distance = 50.0f;
+	float min_distance = 0.5f;
+	*/
+
+	config.AddUID("Goal", (goal) ? goal->GetUID() : 0);
+	config.AddFloat("Mov Speed", max_mov_speed);
+	config.AddFloat("Rot Speed", max_rot_speed);
+	config.AddFloat("Max Distance", max_distance);
+	config.AddFloat("Min Distance", min_distance);
 }
 
 // ---------------------------------------------------------
 void ComponentSteering::OnLoad(Config * config)
 {
+	goal_uid = config->GetInt("Goal");
+	max_mov_speed = config->GetFloat("Mov Speed", 1.0f);
+	max_rot_speed = config->GetFloat("Rot Speed", 0.1f);
+	max_distance = config->GetFloat("Max Distance", 50.0f);
+	min_distance = config->GetFloat("Min Distance", 1.0f);
+}
+
+// ---------------------------------------------------------
+void ComponentSteering::OnStart()
+{
+	if (goal_uid != 0)
+		goal = App->level->Find(goal_uid);
 }
 
 // ---------------------------------------------------------
@@ -36,6 +63,7 @@ void ComponentSteering::OnPlay()
 {
 }
 
+// ---------------------------------------------------------
 float RandomBinomial()
 {
 	return ((float)rand() / (float)RAND_MAX) - ((float)rand() / (float)RAND_MAX);

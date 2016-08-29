@@ -5,6 +5,7 @@
 #include <list>
 #include <string>
 #include "Timer.h"
+#include "MathGeoLib/include/Algorithm/Random/LCG.h"
 
 class Config;
 class Module;
@@ -24,6 +25,7 @@ class ModuleLevelManager;
 class ModuleResources;
 class ModuleAnimation;
 class ModuleAI;
+
 struct Event;
 
 class Application
@@ -77,6 +79,8 @@ private:
 	void FinishUpdate();
 
 public:
+
+	LCG*	random = nullptr;
 
 	ModuleHardware* hw = nullptr;
 	ModuleFileSystem* fs = nullptr;

@@ -28,6 +28,7 @@ Application::Application()
 	last_fps = -1;
 	capped_ms = 1000 / 60;
 	fps_counter = 0;
+	random = new math::LCG();
 
 	// The order of calls is very important!
 	// Modules will Init() Start() and Update in this order
@@ -56,6 +57,8 @@ Application::~Application()
 {
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
 		RELEASE(*it);
+
+	RELEASE(random);
 }
 
 void Application::ReadConfiguration(const Config& config)

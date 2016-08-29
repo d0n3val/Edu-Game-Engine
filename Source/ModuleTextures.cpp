@@ -183,7 +183,7 @@ bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
 
 	for (int i = 0; i < CHECKERS_HEIGHT; i++) {
 		for (int j = 0; j < CHECKERS_WIDTH; j++) {
-			int c = ((((i&0x8)==0)^((j&0x8))==0))*255;
+			int c = ((((i&0x8)==0)^(((j&0x8))==0)))*255;
 			checkImage[i][j][0] = (GLubyte) c;
 			checkImage[i][j][1] = (GLubyte) c;
 			checkImage[i][j][2] = (GLubyte) c;

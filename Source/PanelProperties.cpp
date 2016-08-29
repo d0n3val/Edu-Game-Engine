@@ -94,6 +94,9 @@ void PanelProperties::Draw()
 		ImGui::Checkbox(" ", &active);
 		selected->SetActive(active);
 
+		if(ImGui::IsItemHovered())
+			ImGui::SetTooltip("UID: %u", selected->GetUID());
+
 		ImGui::SameLine();
 
 		// Text Input for the name

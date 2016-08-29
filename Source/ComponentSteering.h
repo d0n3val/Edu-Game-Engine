@@ -26,6 +26,7 @@ public:
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
+	void OnStart() override;
 	void OnPlay() override;
 	void OnUpdate(float dt) override;
 	void OnStop() override;
@@ -37,6 +38,7 @@ public:
 	void DrawEditor();
 
 private:
+	uint goal_uid = 0;
 	const GameObject* goal = nullptr;
 	float max_mov_speed = 1.0f;
 	float max_rot_speed = 0.1f;

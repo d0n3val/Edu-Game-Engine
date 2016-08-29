@@ -36,7 +36,7 @@ private:
 public:
 	std::vector<ComponentBone*> attached_bones;
 	ResourceMesh* deformable = nullptr;
-	int root_bones_id = 0;
+	uint root_bones_uid = 0;
 	const GameObject* root_bones = nullptr;
 	Color tint = White;
 };
