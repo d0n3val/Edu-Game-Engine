@@ -38,6 +38,20 @@ GameObject::GameObject(GameObject* parent, const char * name, const float3 & tra
 }
 
 // ---------------------------------------------------------
+GameObject::GameObject(const GameObject& other)
+{
+	Config config;
+
+	other.Save(config);
+	map<GameObject*, uint> dummy;
+	Load(&config, dummy);
+
+	// now for the unique parts
+	uid = App->random->Int();
+	name += "_copy";
+}
+
+// ---------------------------------------------------------
 GameObject::~GameObject()
 {
 	for(list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
@@ -48,13 +62,27 @@ GameObject::~GameObject()
 }
 
 // ---------------------------------------------------------
-bool GameObject::Save(Config& parent_config, int& serialization_id, const GameObject* parent) const
+bool GameObject::Save(Config& parent_config, map<uint,uint>* duplicate) const
 {
 	Config config;
 
+	// This is only useful when we are duplicating already existing gameobjects
+	uint uid_to_save = uid;
+	uint parent_uid = (parent) ? parent->GetUID() : 0;
+
+	if (duplicate != nullptr)
+	{
+		uid_to_save = App->random->Int();
+		(*duplicate)[uid] = uid_to_save;
+
+		map<uint, uint>::iterator it = duplicate->find(parent_uid);
+		if (it != duplicate->end())
+			parent_uid = it->second;
+	}
+
 	// Save my info
-	config.AddUInt("UID", uid);
-	config.AddUInt("ParentUID", (parent) ? parent->GetUID() : 0);
+	config.AddUInt("UID", uid_to_save);
+	config.AddUInt("ParentUID", parent_uid);
 
 	config.AddString("Name", name.c_str());
 
@@ -77,7 +105,7 @@ bool GameObject::Save(Config& parent_config, int& serialization_id, const GameOb
 	// Recursively all children
 	for (list<GameObject*>::const_iterator it = childs.begin(); it != childs.end(); ++it)
 	{
-		(*it)->Save(parent_config, serialization_id, this);
+		(*it)->Save(parent_config, duplicate);
 	}
 
 	return true;
@@ -87,10 +115,6 @@ bool GameObject::Save(Config& parent_config, int& serialization_id, const GameOb
 void GameObject::Load(Config * config, map<GameObject*, uint>& relations)
 {
 	static int num = 0;
-
-	// Store me for later reference
-	//relations[config->GetInt("File UID")] = this;
-	//serialization_id = config->GetInt("Parent UID");
 
 	 // UID
 	uid = config->GetUInt("UID", uid);

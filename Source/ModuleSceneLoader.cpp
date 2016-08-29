@@ -250,14 +250,11 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 		aiReleaseImport(scene);
 
 		// Serialize GameObjects recursively
-		int file_uid = 1;
 		Config save;
 		save.AddArray("Game Objects");
 
 		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-		{
-			(*it)->Save(save, file_uid, go);
-		}
+			(*it)->Save(save);
 
 		// Finally save to file
 		char* buf = nullptr;

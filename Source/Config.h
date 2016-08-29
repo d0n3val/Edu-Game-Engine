@@ -28,7 +28,7 @@ public:
 	size_t Save(char** buf, const char* title_comment) const;
 
 	int Size() const;
-	Config GetSection(const char* section_name);
+	Config GetSection(const char* section_name) const;
 	Config AddSection(const char* section_name);
 
 	bool GetBool(const char * field, bool default = false, int index = -1) const;

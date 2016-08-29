@@ -43,6 +43,7 @@ public:
 	// Add or remove from the hierarchy
 	GameObject* CreateGameObject(GameObject * parent, const float3& pos, const float3& scale, const Quat& rot, const char* name = nullptr);
 	GameObject* CreateGameObject(GameObject * parent = nullptr);
+	GameObject* Duplicate(const GameObject* original);
 
 	// Utils
 	GameObject* Validate(const GameObject* pointer) const;
@@ -57,6 +58,8 @@ private:
 	void RecursiveUpdate(GameObject* go, float dt) const;
 	GameObject* RecursiveFind(uint uid, GameObject* go) const;
 	void DestroyFlaggedGameObjects();
+
+	void LoadGameObjects(const Config& config);
 
 public:
 	Quadtree quadtree;

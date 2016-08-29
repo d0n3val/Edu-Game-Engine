@@ -7,7 +7,7 @@
 PanelQuickBar::PanelQuickBar() : Panel("About")
 {
 	width = 300;
-	height = 25;
+	height = 28;
 	posx = 325;
 	posy = 20;
 }

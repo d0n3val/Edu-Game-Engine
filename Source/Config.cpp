@@ -51,7 +51,7 @@ int Config::Size() const
 	return (root) ? json_object_get_count(root) : 0;
 }
 
-Config Config::GetSection(const char * section_name)
+Config Config::GetSection(const char * section_name) const
 {
 	return Config(json_object_get_object(root, section_name));
 }

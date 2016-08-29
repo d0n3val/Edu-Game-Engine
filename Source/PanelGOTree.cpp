@@ -150,7 +150,9 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 
 		if (ImGui::BeginPopup("GameObject Options"))
 		{
-			if (ImGui::MenuItem("Delete"))
+			if (ImGui::MenuItem("Duplicate"))
+				App->level->Duplicate(go);
+			if (ImGui::MenuItem("Remove"))
 				go->Remove();
 			ImGui::EndPopup();
 		}

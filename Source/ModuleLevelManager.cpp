@@ -149,6 +149,23 @@ GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent)
 	return new GameObject(parent, "Unnamed");
 }
 
+GameObject * ModuleLevelManager::Duplicate(const GameObject * original)
+{
+	GameObject* ret = nullptr;
+
+	if (original != nullptr)
+	{
+		Config save;
+		save.AddArray("Game Objects");
+		map<uint, uint> new_uids;
+		original->Save(save, &new_uids);
+	
+		LoadGameObjects(save);
+	}
+
+	return ret;
+}
+
 void ModuleLevelManager::DestroyFlaggedGameObjects()
 {
 	// we never really have to remove root, but we remove all its childs
@@ -168,6 +185,43 @@ void ModuleLevelManager::DestroyFlaggedGameObjects()
 		Event event(Event::gameobject_destroyed);
 		App->BroadcastEvent(event);
 	}
+}
+
+void ModuleLevelManager::LoadGameObjects(const Config & config)
+{
+	int count = config.GetArrayCount("Game Objects");
+	map<GameObject*, uint> relations;
+	for (int i = 0; i < count; ++i)
+	{
+		GameObject* go = CreateGameObject();
+		go->Load(&config.GetArray("Game Objects", i), relations);
+	}
+
+	// Second pass to tide up the hierarchy
+	for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
+	{
+		uint parent_id = it->second;
+		GameObject* go = it->first;
+
+		if (parent_id > 0)
+		{
+			GameObject* parent_go = Find(parent_id);
+			if (parent_go != nullptr)
+				go->SetNewParent(parent_go);
+		}
+	}
+
+	// Reset all info about the level
+	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
+	root->RecursiveCalcBoundingBoxes();
+	
+	// Fill in the quadtree
+	for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
+		quadtree.Insert(it->first);
+
+	// Third pass: call OnStart on all new GameObjects
+	for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
+		it->first->OnStart();
 }
 
 bool ModuleLevelManager::Load(const char * file)
@@ -190,39 +244,7 @@ bool ModuleLevelManager::Load(const char * file)
 			name = desc.GetString("Name", "Unnamed level");
 			App->camera->Load(&desc);
 
-			int count = config.GetArrayCount("Game Objects");
-			map<GameObject*, uint> relations;
-			for (int i = 0; i < count; ++i)
-			{
-				GameObject* go = CreateGameObject();
-				go->Load(&config.GetArray("Game Objects", i), relations);
-			}
-
-			// Second pass to tide up the hierarchy
-			for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
-			{
-				uint parent_id = it->second;
-				GameObject* go = it->first;
-
-				if (parent_id > 0)
-				{
-					GameObject* parent_go = Find(parent_id);
-					if (parent_go != nullptr)
-						go->SetNewParent(parent_go);
-				}
-			}
-
-			// Reset all info about the level
-			root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
-			root->RecursiveCalcBoundingBoxes();
-			
-			// Fill in the quadtree
-			for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
-				quadtree.Insert(it->first);
-
-			// Third pass: call OnStart on all new GameObjects
-			for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
-				it->first->OnStart();
+			LoadGameObjects(config);
 		}
 
 		RELEASE_ARRAY(buffer); 
@@ -234,7 +256,6 @@ bool ModuleLevelManager::Load(const char * file)
 bool ModuleLevelManager::Save(const char * file)
 {
 	bool ret = true;
-	int file_uid = 1;
 
 	Config save;
 
@@ -247,9 +268,7 @@ bool ModuleLevelManager::Save(const char * file)
 	save.AddArray("Game Objects");
 
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
-	{
-		(*it)->Save(save, file_uid, root);
-	}
+		(*it)->Save(save);
 
 	// Finally save to file
 	char* buf = nullptr;
