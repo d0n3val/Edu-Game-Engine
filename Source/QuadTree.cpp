@@ -7,6 +7,9 @@
 #define SW 2
 #define NW 3
 
+#define QUADTREE_MAX_ITEMS 8
+#define QUADTREE_MIN_SIZE 10.0f 
+
 QuadtreeNode::QuadtreeNode(const AABB& box) : box(box)
 {
 	parent = childs[NE] = childs[SE] = childs[SW] = childs[NW] = nullptr;
@@ -25,7 +28,9 @@ bool QuadtreeNode::IsLeaf() const
  
 void QuadtreeNode::Insert(GameObject* go)
 {
-	if (IsLeaf() == true && objects.size() < QUADTREE_MAX_ITEMS)
+	if (IsLeaf() == true && 
+		(objects.size() < QUADTREE_MAX_ITEMS || 
+		(box.HalfSize().LengthSq() <= QUADTREE_MIN_SIZE * QUADTREE_MIN_SIZE)))
 			objects.push_back(go);
 	else
 	{

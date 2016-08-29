@@ -11,8 +11,6 @@
 
 class GameObject;
 
-#define QUADTREE_MAX_ITEMS 2
-
 // Tree node -------------------------------------------------------
 class QuadtreeNode
 {

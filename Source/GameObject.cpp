@@ -38,20 +38,6 @@ GameObject::GameObject(GameObject* parent, const char * name, const float3 & tra
 }
 
 // ---------------------------------------------------------
-GameObject::GameObject(const GameObject& other)
-{
-	Config config;
-
-	other.Save(config);
-	map<GameObject*, uint> dummy;
-	Load(&config, dummy);
-
-	// now for the unique parts
-	uid = App->random->Int();
-	name += "_copy";
-}
-
-// ---------------------------------------------------------
 GameObject::~GameObject()
 {
 	for(list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
@@ -114,8 +100,6 @@ bool GameObject::Save(Config& parent_config, map<uint,uint>* duplicate) const
 // ---------------------------------------------------------
 void GameObject::Load(Config * config, map<GameObject*, uint>& relations)
 {
-	static int num = 0;
-
 	 // UID
 	uid = config->GetUInt("UID", uid);
 	uint parent = config->GetUInt("ParentUID", 0);
@@ -441,12 +425,6 @@ const float4x4& GameObject::GetGlobalTransformation() const
 // ---------------------------------------------------------
 const float4x4& GameObject::GetLocalTransform() const
 {
-	/*if (local_trans_dirty == true)
-	{
-		local_trans_dirty = false;
-		transform_cache = float4x4::FromTRS(translation, rotation, scale);
-	}*/
-
 	return transform_cache;
 }
 
@@ -468,6 +446,10 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force
 		transform_global = parent * transform_cache;
 		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 			(*it)->OnUpdateTransform();
+
+		// mmmm ... too brute ?
+		App->level->quadtree.Erase(this);
+		App->level->quadtree.Insert(this);
 	}
 	else
 		was_dirty = false;

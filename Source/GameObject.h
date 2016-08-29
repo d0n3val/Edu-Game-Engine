@@ -17,7 +17,6 @@ public:
 
 	GameObject(GameObject* parent, const char* name);
 	GameObject(GameObject* parent, const char* name, const float3& translation, const float3& scale, const Quat& rotation );
-	GameObject(const GameObject& other);
 	virtual ~GameObject();
 
 	bool Save(Config& config, std::map<uint,uint>* duplicate = nullptr) const;
