@@ -10,7 +10,7 @@ void BeginDebugDraw()
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
 	glColor4f(1.f, 1.f, 1.f, 1.f);
 }
 
@@ -424,4 +424,76 @@ void DebugDrawArrow(const float3& dir, const float3& offset, Color color, const 
 	glEnd();
 	glLineWidth(1.0f);
 	glPopMatrix();
+}
+
+void DebugDrawCircle(const float3 & pos, float radius, Color color)
+{
+	int num_segments = MAX(10, ((int) radius/10 * 5));
+
+	glEnable(GL_BLEND);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glColor4f(color.r, color.g, color.b, 0.25f);
+
+    glBegin( GL_TRIANGLE_FAN );
+    glVertex3f(pos.x, pos.y, pos.z);
+    for( int n = 0; n <= num_segments; ++n ) 
+	{
+        float const t = TWO_PI * (float)n / (float)num_segments;
+        glVertex3f(pos.x + sinf(t) * radius, pos.y, pos.z + cosf(t) * radius);
+    }
+
+    glEnd();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDisable(GL_BLEND);
+}
+
+void DebugDrawRing(const float3& pos, float radius, float inner_radius, Color color)
+{
+	int num_segments = MAX(10, ((int) radius/10 * 5));
+
+	glEnable(GL_BLEND);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glColor4f(color.r, color.g, color.b, 0.25f);
+
+	glBegin(GL_TRIANGLE_STRIP);
+	for(int i = 0; i <= num_segments; ++i)
+	{
+		float t = (float) i * TWO_PI / (float)num_segments;
+
+		glVertex3f(pos.x + inner_radius * cosf(t), pos.y, pos.z + inner_radius * sinf(t));
+		glVertex3f(pos.x + radius * cosf(t), pos.y, pos.z + radius * sinf(t));
+	}
+		
+	glEnd();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDisable(GL_BLEND);
+}
+
+void DebugDrawArc(const float3 & pos, float radius, float angle_left, float angle_right, float inner_radius, Color color, const float4x4& transform)
+{
+	int num_segments = MAX(5, ((int) radius/10 * 5));
+
+	glEnable(GL_BLEND);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glColor4f(color.r, color.g, color.b, 0.25f);
+
+	float step = (angle_right - angle_left) / num_segments;
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
+	glBegin(GL_TRIANGLE_STRIP);
+	for(int i = 0; i <= num_segments; ++i)
+	{
+		float t = angle_left + step * (float)i;
+
+		glVertex3f(pos.x + inner_radius * cosf(t), pos.y, pos.z + inner_radius * sinf(t));
+		glVertex3f(pos.x + radius * cosf(t), pos.y, pos.z + radius * sinf(t));
+	}
+		
+	glEnd();
+	glPopMatrix();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDisable(GL_BLEND);
 }

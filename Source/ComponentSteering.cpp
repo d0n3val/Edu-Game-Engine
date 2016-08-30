@@ -167,8 +167,8 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 	{
 		if (goal != nullptr)
 		{
-			//DebugDraw(Sphere(float3::zero, min_distance), Green, goal->GetGlobalTransformation());
-			//DebugDraw(Sphere(float3::zero, max_distance), Red, goal->GetGlobalTransformation());
+			DebugDrawCircle(game_object->GetGlobalPosition(), min_distance, Green);
+			DebugDrawRing(game_object->GetGlobalPosition(), max_distance, min_distance, Blue);
 		}
 	}
 }

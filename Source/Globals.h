@@ -8,6 +8,9 @@ void _log(const char file[], int line, const char* format, ...);
 #define DEGTORAD 0.0174532925199432957f
 #define RADTODEG 57.295779513082320876f
 #define PI 3.14159265358979323846f
+#define TWO_PI 6.28318530717958647692f
+#define HALF_PI 1.57079632679489661923f
+#define QUARTER_PI 0.78539816339744830961f
 #define HAVE_M_PI
 
 // New useful types
