@@ -27,11 +27,17 @@ void ComponentSteering::OnSave(Config& config) const
 {
 	config.AddInt("Behaviour", behaviour);
 	config.AddUID("Goal", (goal) ? goal->GetUID() : 0);
+
 	config.AddFloat("Mov Acceleration", mov_acceleration);
 	config.AddFloat("Mov Speed", max_mov_speed);
-	config.AddFloat("Rot Speed", max_rot_speed);
 	config.AddFloat("Max Distance", max_distance);
 	config.AddFloat("Min Distance", min_distance);
+	config.AddFloat("Slow Distance", slow_distance);
+
+	config.AddFloat("Rot Acceleration", rot_acceleration);
+	config.AddFloat("Rot Speed", max_rot_speed);
+	config.AddFloat("Min Angle", min_angle);
+	config.AddFloat("Slow Angle", slow_angle);
 }
 
 // ---------------------------------------------------------
@@ -41,9 +47,14 @@ void ComponentSteering::OnLoad(Config * config)
 	goal_uid = config->GetInt("Goal");
 	mov_acceleration = config->GetFloat("Mov Acceleration", 0.1f);
 	max_mov_speed = config->GetFloat("Mov Speed", 1.0f);
-	max_rot_speed = config->GetFloat("Rot Speed", 0.1f);
 	max_distance = config->GetFloat("Max Distance", 50.0f);
 	min_distance = config->GetFloat("Min Distance", 1.0f);
+	slow_distance = config->GetFloat("Slow Distance", 5.0f);
+
+	rot_acceleration = config->GetFloat("Rot Acceleration", 0.01f);
+	max_rot_speed = config->GetFloat("Rot Speed", 0.1f);
+	min_angle = config->GetFloat("Min Angle", 0.01f);
+	slow_angle = config->GetFloat("Slow Angle", 0.2f);
 }
 
 // ---------------------------------------------------------
@@ -71,15 +82,19 @@ void ComponentSteering::OnUpdate(float dt)
 	{
 	case ComponentSteering::seek:
 		if (goal != nullptr)
-			velocity += Seek(goal->GetGlobalPosition());
+			mov_velocity += Seek(goal->GetGlobalPosition());
 		break;
 	case ComponentSteering::flee:
 		if (goal != nullptr)
-			velocity += Flee(goal->GetGlobalPosition());
+			mov_velocity += Flee(goal->GetGlobalPosition());
 		break;
 	case ComponentSteering::arrive:
 		if (goal != nullptr)
-			velocity = Arrive(goal->GetGlobalPosition());
+			mov_velocity = Arrive(goal->GetGlobalPosition());
+		break;
+	case ComponentSteering::align:
+		if (goal != nullptr)
+			rot_velocity = Align(goal->GetGlobalTransformation().WorldZ());
 		break;
 	case ComponentSteering::wander:
 		break;
@@ -89,15 +104,22 @@ void ComponentSteering::OnUpdate(float dt)
 		break;
 	}
 
-	// Trim down velocity
-	if (velocity.Length() > max_mov_speed)
+	// Trim down movement velocity
+	if (mov_velocity.Length() > max_mov_speed)
 	{
-		velocity.Normalize();
-		velocity *= max_mov_speed;
+		mov_velocity.Normalize();
+		mov_velocity *= max_mov_speed;
 	}
 
-	// Finally update position
-	game_object->Move(velocity * dt);
+	// Trim down roation velocity
+	if (rot_velocity > max_rot_speed)
+		rot_velocity = max_rot_speed;
+	else if (rot_velocity < -max_rot_speed)
+		rot_velocity = -max_rot_speed;
+
+	// Finally update position & rotation
+	game_object->Move(mov_velocity * dt);
+	game_object->Rotate(rot_velocity * dt);
 
 	/*
 	if (goal != nullptr)
@@ -165,16 +187,25 @@ void ComponentSteering::OnStop()
 // ---------------------------------------------------------
 void ComponentSteering::OnDebugDraw(bool selected) const
 {
-	DebugDrawArrow(velocity, float3(0.f, game_object->GetLocalBBox().HalfSize().y, 0.f), Blue, game_object->GetGlobalTransformation());
+	DebugDrawArrow(mov_velocity, float3(0.f, game_object->GetLocalBBox().HalfSize().y, 0.f), Blue, game_object->GetGlobalTransformation());
 
-	if (selected == true)
+	if (behaviour == seek || behaviour == flee || behaviour == arrive)
 	{
-		if (goal != nullptr)
+		if (selected == true && goal != nullptr)
 		{
 			DebugDrawCircle(goal->GetGlobalPosition(), min_distance, Green);
 			DebugDrawCircle(goal->GetGlobalPosition(), slow_distance, Red);
 			DebugDrawRing(goal->GetGlobalPosition(), max_distance, min_distance, Blue);
 		}
+	}
+	else if (behaviour == align && goal != nullptr)
+	{
+		float3 orientation = goal->GetGlobalTransformation().WorldZ();
+		float3 offset(0.f, goal->GetLocalBBox().HalfSize().y, 0.f);
+		float inner_radius = MAX(goal->GetLocalBBox().HalfSize().x, goal->GetLocalBBox().HalfSize().z);
+		DebugDrawArrow(float3::unitZ, offset, Red, goal->GetGlobalTransformation());
+		DebugDrawArc(offset, inner_radius * 2.0f, min_angle*0.5f, -min_angle*0.5f, inner_radius, Green, goal->GetGlobalTransformation());
+		DebugDrawArc(offset, inner_radius * 3.0f, slow_angle*0.5f, -slow_angle*0.5f, inner_radius*2.0f, Red, goal->GetGlobalTransformation());
 	}
 }
 
@@ -221,8 +252,8 @@ float3 ComponentSteering::Arrive(const float3 & target) const
 	static float entrance_velocity = 1.0f;
 	if (distance > slow_distance)
 	{
-		entrance_velocity = velocity.Length();
-		return velocity + (dir.Normalized() * mov_acceleration);
+		entrance_velocity = mov_velocity.Length();
+		return mov_velocity + (dir.Normalized() * mov_acceleration);
 	}
 	else 
 	{
@@ -232,14 +263,42 @@ float3 ComponentSteering::Arrive(const float3 & target) const
 }
 
 // ---------------------------------------------------------
+float ComponentSteering::Align(const float3 & target_dir) const
+{
+	float3 dir = game_object->GetGlobalTransformation().WorldZ();
+	float my_rotation = atan2f(dir.x, dir.z);
+	float target_rotation = atan2f(target_dir.x, target_dir.z);
+	float diff = my_rotation - target_rotation;
+	float absolute_diff = fabsf(diff);
+
+	// Are we there yet ?
+	if(absolute_diff < min_angle)
+		return 0.0f;
+
+	static float entrance_velocity = 0.2f;
+	if (absolute_diff > slow_angle)
+	{
+		entrance_velocity = rot_velocity;
+		if (diff < 0.0f)
+			return rot_velocity + rot_acceleration;
+		else
+			return rot_velocity - rot_acceleration;
+	}
+	else
+	{
+		return entrance_velocity * (absolute_diff / slow_angle);
+	}
+}
+
+// ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 4, "code needs update");
+	static_assert(Behaviour::unknown == 5, "code needs update");
 
-	static const char* behaviours[] = { "Seek", "Flee", "Arrive", "Wander", "Unknown" };
+	static const char* behaviours[] = { "Seek", "Flee", "Arrive", "Align", "Wander", "Unknown" };
 
 	int behaviour_type = behaviour;
-	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, 3))
+	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, (int) Behaviour::unknown))
 		SetBehaviour((Behaviour) behaviour_type);
 
 	ImGui::Text("Target:");
@@ -247,15 +306,17 @@ void ComponentSteering::DrawEditor()
 	if (selected != nullptr)
 		goal = selected;
 
+	// Editor for moving stuff -------------
 	ImGui::DragFloat("Mov Acceleration", &mov_acceleration, 0.01f);
 	ImGui::DragFloat("Mov Velocity", &max_mov_speed, 0.1f);
-	ImGui::SliderAngle("Rot Velocity", &max_rot_speed, 0.01f);
 	ImGui::DragFloatRange2("Range", &min_distance, &max_distance, 0.1f, 0.1f);
 	ImGui::DragFloat("Slow Radius", &slow_distance, 0.1f, 0.1f);
 
-	float dist = (goal->GetGlobalPosition() - game_object->GetGlobalPosition()).Length();
+	float dist = 0.0f;
+	if(goal)
+		dist = (goal->GetGlobalPosition() - game_object->GetGlobalPosition()).Length();
 	dist -= min_distance;
-	ImGui::Text("Dist: %0.3f ETA: %0.3f", dist, dist / velocity.Length());
+	ImGui::Text("Dist: %0.3f ETA: %0.3f", dist, dist / mov_velocity.Length());
 
 	static vector<float> velocities(50);
 	if (velocities.size() == 50)
@@ -263,12 +324,44 @@ void ComponentSteering::DrawEditor()
 		for (uint i = 0; i < 50 - 1; ++i)
 			velocities[i] = velocities[i + 1];
 
-		velocities[49] = velocity.Length();
+		velocities[49] = mov_velocity.Length();
 	}
 	else
-		velocities.push_back(velocity.Length());
+		velocities.push_back(mov_velocity.Length());
 	
-	ImGui::PlotHistogram("##velocity", &velocities[0], velocities.size(), 0, "Velocity", 0.0f, max_mov_speed, ImVec2(310,100));
+	ImGui::PlotHistogram("##velocity", &velocities[0], velocities.size(), 0, "Movement Velocity", 0.0f, max_mov_speed, ImVec2(310,75));
+
+	// Editor for rotation stuff --------------------
+	ImGui::Separator();
+	ImGui::SliderAngle("Rot Acceleration", &rot_acceleration, 0.01f);
+	ImGui::SliderAngle("Rot Velocity", &max_rot_speed, 0.01f);
+	ImGui::SliderAngle("Min Angle", &min_angle, 0.01f);
+	ImGui::SliderAngle("Slow Angle", &slow_angle, 0.01f);
+
+	dist = 0.0f;
+	if (goal != nullptr) {
+		float3 target_dir = goal->GetGlobalTransformation().WorldZ();
+		float3 dir = game_object->GetGlobalTransformation().WorldZ();
+		float my_rotation = atan2f(dir.x, dir.z);
+		float target_rotation = atan2f(target_dir.x, target_dir.z);
+		float diff = my_rotation - target_rotation;
+		dist = fabsf(diff);
+	}
+	dist -= min_angle;
+	ImGui::Text("Dist: %0.3f ETA: %0.3f", dist, dist / rot_velocity);
+
+	static vector<float> rot_velocities(50);
+	if (rot_velocities.size() == 50)
+	{
+		for (uint i = 0; i < 50 - 1; ++i)
+			rot_velocities[i] = rot_velocities[i + 1];
+
+		rot_velocities[49] = fabsf(rot_velocity);
+	}
+	else
+		rot_velocities.push_back(fabsf(rot_velocity));
+	
+	ImGui::PlotHistogram("##rot_velocity", &rot_velocities[0], rot_velocities.size(), 0, "Angular Velocity", 0.0f, max_rot_speed, ImVec2(310,75));
 
 	/*
 	static ImVec2 foo[10] = { {-1,0} };

@@ -424,6 +424,13 @@ void GameObject::Move(const float3 & velocity)
 }
 
 // ---------------------------------------------------------
+void GameObject::Rotate(float angular_velocity)
+{
+	rotation = rotation * Quat::RotateY(angular_velocity);
+	local_trans_dirty = true;
+}
+
+// ---------------------------------------------------------
 const float4x4& GameObject::GetGlobalTransformation() const
 {
 	return transform_global;

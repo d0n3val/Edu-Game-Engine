@@ -16,6 +16,7 @@ public:
 		seek,
 		flee,
 		arrive,
+		align,
 		wander,
 		unknown
 	};
@@ -43,17 +44,28 @@ private:
 	float3 Seek(const float3 & target) const;
 	float3 Flee(const float3 & target) const;
 	float3 Arrive(const float3 & target) const;
+	float Align(const float3 & target_dir) const;
 
 private:
 	uint goal_uid = 0;
 	const GameObject* goal = nullptr;
+
+	// Movement ---
+	float3 mov_velocity = float3::zero;
+
 	float mov_acceleration = 0.1f;
 	float max_mov_speed = 1.0f;
-	float max_rot_speed = 0.1f;
 	float max_distance = 50.0f;
 	float min_distance = 1.0f;
 	float slow_distance = 5.0f;
-	float3 velocity = float3::zero;
+
+	// Rotation ---
+	float rot_velocity = 0.f;
+
+	float rot_acceleration = 0.01f;
+	float max_rot_speed = 0.3f;
+	float min_angle = 0.01f;
+	float slow_angle = 0.2f;
 
 private:
 

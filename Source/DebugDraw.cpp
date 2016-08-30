@@ -169,6 +169,7 @@ void DebugDraw(const float4x4 & transform)
 	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
 	glLineWidth(2.0f);
 
+	glDisable(GL_DEPTH_TEST);
 	glBegin(GL_LINES);
 
 	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
@@ -192,6 +193,7 @@ void DebugDraw(const float4x4 & transform)
 	glVertex3f(-0.05f, -0.1f, 1.05f); glVertex3f(0.05f, -0.1f, 1.05f);
 
 	glEnd();
+	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 	glPopMatrix();
 }
@@ -363,33 +365,6 @@ void DebugDrawBox(const float3* corners, Color color)
 	glEnd();
 }
 
-void DebugDrawArrowZ(const float3& offset, float length, Color color, const float4x4 & transform)
-{
-	glColor3f(color.r, color.g, color.b);
-	glPushMatrix();
-	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
-	glLineWidth(3.0f);
-	glBegin(GL_LINES);
-
-	glVertex3fv((GLfloat*)&offset.x);
-	float3 dest = offset + (float3::unitZ * length);
-	glVertex3fv((GLfloat*)&dest.x);
-
-	float arrow_head_size = 0.2f;
-	float3 side, up;
-
-	side = float3(offset.x + arrow_head_size, offset.y, offset.z + (length - arrow_head_size));
-	glVertex3fv((GLfloat*)&dest.x);
-	glVertex3fv((GLfloat*)&side.x);
-
-	side = float3(offset.x -arrow_head_size, offset.y, offset.z + (length - arrow_head_size));
-	glVertex3fv((GLfloat*)&dest.x);
-	glVertex3fv((GLfloat*)&side.x);
-
-	glEnd();
-	glLineWidth(1.0f);
-	glPopMatrix();
-}
 
 void DebugDrawArrow(const float3& dir, const float3& offset, Color color, const float4x4 & transform)
 {
@@ -397,6 +372,7 @@ void DebugDrawArrow(const float3& dir, const float3& offset, Color color, const 
 	glPushMatrix();
 	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
 	glLineWidth(3.0f);
+	glDisable(GL_DEPTH_TEST);
 	glBegin(GL_LINES);
 
 	glVertex3fv((GLfloat*)&offset.x);
@@ -419,6 +395,7 @@ void DebugDrawArrow(const float3& dir, const float3& offset, Color color, const 
 	glVertex3fv((GLfloat*)&side.x);
 
 	glEnd();
+	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 	glPopMatrix();
 }
@@ -481,6 +458,8 @@ void DebugDrawArc(const float3 & pos, float radius, float angle_left, float angl
 	glPushMatrix();
 	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
 	glBegin(GL_TRIANGLE_STRIP);
+	angle_left += HALF_PI;
+	angle_right += HALF_PI;
 	for(int i = 0; i <= num_segments; ++i)
 	{
 		float t = angle_left + step * (float)i;

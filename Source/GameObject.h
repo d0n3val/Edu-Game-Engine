@@ -52,6 +52,7 @@ public:
 
 	void SetLocalPosition(const float3& position);
 	void Move(const float3& velocity);
+	void Rotate(float angular_velocity);
 	void SetLocalRotation(const float3& XYZ_euler_rotation);
 	void SetLocalRotation(const Quat& rotation);
 	void SetLocalScale(const float3& scale);
