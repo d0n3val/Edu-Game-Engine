@@ -11,6 +11,8 @@ void _log(const char file[], int line, const char* format, ...);
 #define TWO_PI 6.28318530717958647692f
 #define HALF_PI 1.57079632679489661923f
 #define QUARTER_PI 0.78539816339744830961f
+#define INV_PI 0.31830988618379067154f
+#define INV_TWO_PI 0.15915494309189533576f
 #define HAVE_M_PI
 
 // New useful types

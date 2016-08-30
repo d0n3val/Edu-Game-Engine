@@ -17,6 +17,7 @@ public:
 		flee,
 		arrive,
 		align,
+		unalign,
 		wander,
 		unknown
 	};

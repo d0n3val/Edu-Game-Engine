@@ -96,6 +96,10 @@ void ComponentSteering::OnUpdate(float dt)
 		if (goal != nullptr)
 			rot_velocity = Align(goal->GetGlobalTransformation().WorldZ());
 		break;
+	case ComponentSteering::unalign:
+		if (goal != nullptr)
+			rot_velocity = Align(-goal->GetGlobalTransformation().WorldZ());
+		break;
 	case ComponentSteering::wander:
 		break;
 	case ComponentSteering::unknown:
@@ -189,23 +193,26 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 {
 	DebugDrawArrow(mov_velocity, float3(0.f, game_object->GetLocalBBox().HalfSize().y, 0.f), Blue, game_object->GetGlobalTransformation());
 
-	if (behaviour == seek || behaviour == flee || behaviour == arrive)
+	if (selected == true && goal != nullptr)
 	{
-		if (selected == true && goal != nullptr)
+		if (behaviour == seek || behaviour == flee || behaviour == arrive)
 		{
 			DebugDrawCircle(goal->GetGlobalPosition(), min_distance, Green);
 			DebugDrawCircle(goal->GetGlobalPosition(), slow_distance, Red);
 			DebugDrawRing(goal->GetGlobalPosition(), max_distance, min_distance, Blue);
 		}
-	}
-	else if (behaviour == align && goal != nullptr)
-	{
-		float3 orientation = goal->GetGlobalTransformation().WorldZ();
-		float3 offset(0.f, goal->GetLocalBBox().HalfSize().y, 0.f);
-		float inner_radius = MAX(goal->GetLocalBBox().HalfSize().x, goal->GetLocalBBox().HalfSize().z);
-		DebugDrawArrow(float3::unitZ, offset, Red, goal->GetGlobalTransformation());
-		DebugDrawArc(offset, inner_radius * 2.0f, min_angle*0.5f, -min_angle*0.5f, inner_radius, Green, goal->GetGlobalTransformation());
-		DebugDrawArc(offset, inner_radius * 3.0f, slow_angle*0.5f, -slow_angle*0.5f, inner_radius*2.0f, Red, goal->GetGlobalTransformation());
+		else if (behaviour == align || behaviour == unalign)
+		{
+			float3 orientation = float3::unitZ;
+			if (behaviour == unalign)
+				orientation = -orientation;
+
+			float3 offset(0.f, goal->GetLocalBBox().HalfSize().y, 0.f);
+			float inner_radius = MAX(goal->GetLocalBBox().HalfSize().x, goal->GetLocalBBox().HalfSize().z);
+			DebugDrawArrow(orientation, offset, Red, goal->GetGlobalTransformation());
+			DebugDrawArc(offset, inner_radius * 2.0f, min_angle*0.5f, -min_angle*0.5f, inner_radius, Green, goal->GetGlobalTransformation());
+			DebugDrawArc(offset, inner_radius * 3.0f, slow_angle*0.5f, -slow_angle*0.5f, inner_radius*2.0f, Red, goal->GetGlobalTransformation());
+		}
 	}
 }
 
@@ -269,6 +276,13 @@ float ComponentSteering::Align(const float3 & target_dir) const
 	float my_rotation = atan2f(dir.x, dir.z);
 	float target_rotation = atan2f(target_dir.x, target_dir.z);
 	float diff = my_rotation - target_rotation;
+
+	// wrap diff around [-pi, pi]
+	diff += PI;
+	diff -= floorf( diff * INV_TWO_PI ) * TWO_PI;
+	diff -= PI;
+	// ---
+
 	float absolute_diff = fabsf(diff);
 
 	// Are we there yet ?
@@ -276,10 +290,11 @@ float ComponentSteering::Align(const float3 & target_dir) const
 		return 0.0f;
 
 	static float entrance_velocity = 0.2f;
+	LOG("%f", absolute_diff);
 	if (absolute_diff > slow_angle)
 	{
 		entrance_velocity = rot_velocity;
-		if (diff < 0.0f)
+		if (diff < 0.0f || diff > PI)
 			return rot_velocity + rot_acceleration;
 		else
 			return rot_velocity - rot_acceleration;
@@ -293,9 +308,9 @@ float ComponentSteering::Align(const float3 & target_dir) const
 // ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 5, "code needs update");
+	static_assert(Behaviour::unknown == 6, "code needs update");
 
-	static const char* behaviours[] = { "Seek", "Flee", "Arrive", "Align", "Wander", "Unknown" };
+	static const char* behaviours[] = { "Seek", "Flee", "Arrive", "Align", "UnAlign", "Wander", "Unknown" };
 
 	int behaviour_type = behaviour;
 	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, (int) Behaviour::unknown))
