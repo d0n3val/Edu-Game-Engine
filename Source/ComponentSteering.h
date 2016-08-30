@@ -15,6 +15,7 @@ public:
 	{
 		seek,
 		flee,
+		arrive,
 		wander,
 		unknown
 	};
@@ -41,6 +42,7 @@ public:
 private:
 	float3 Seek(const float3 & target) const;
 	float3 Flee(const float3 & target) const;
+	float3 Arrive(const float3 & target) const;
 
 private:
 	uint goal_uid = 0;
@@ -49,7 +51,8 @@ private:
 	float max_mov_speed = 1.0f;
 	float max_rot_speed = 0.1f;
 	float max_distance = 50.0f;
-	float min_distance = 0.5f;
+	float min_distance = 1.0f;
+	float slow_distance = 5.0f;
 	float3 velocity = float3::zero;
 
 private:

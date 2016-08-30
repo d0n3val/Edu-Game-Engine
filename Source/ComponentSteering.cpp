@@ -77,6 +77,10 @@ void ComponentSteering::OnUpdate(float dt)
 		if (goal != nullptr)
 			velocity += Flee(goal->GetGlobalPosition());
 		break;
+	case ComponentSteering::arrive:
+		if (goal != nullptr)
+			velocity = Arrive(goal->GetGlobalPosition());
+		break;
 	case ComponentSteering::wander:
 		break;
 	case ComponentSteering::unknown:
@@ -167,8 +171,9 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 	{
 		if (goal != nullptr)
 		{
-			DebugDrawCircle(game_object->GetGlobalPosition(), min_distance, Green);
-			DebugDrawRing(game_object->GetGlobalPosition(), max_distance, min_distance, Blue);
+			DebugDrawCircle(goal->GetGlobalPosition(), min_distance, Green);
+			DebugDrawCircle(goal->GetGlobalPosition(), slow_distance, Red);
+			DebugDrawRing(goal->GetGlobalPosition(), max_distance, min_distance, Blue);
 		}
 	}
 }
@@ -203,11 +208,35 @@ float3 ComponentSteering::Flee(const float3& target) const
 }
 
 // ---------------------------------------------------------
+float3 ComponentSteering::Arrive(const float3 & target) const
+{
+	float3 dir = target - game_object->GetGlobalPosition();
+	float distance = dir.Length();
+
+	// Are we there yet ?
+	if (distance < min_distance)
+		return float3::zero;
+
+	// Return new velocity, we could be slowing down if we are near
+	static float entrance_velocity = 1.0f;
+	if (distance > slow_distance)
+	{
+		entrance_velocity = velocity.Length();
+		return velocity + (dir.Normalized() * mov_acceleration);
+	}
+	else 
+	{
+		float3 max_velocity = (dir.Normalized() * entrance_velocity);
+		return max_velocity * (distance / slow_distance);
+	}
+}
+
+// ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 3, "code needs update");
+	static_assert(Behaviour::unknown == 4, "code needs update");
 
-	static const char* behaviours[] = { "Seek", "Flee", "Wander", "Unknown" };
+	static const char* behaviours[] = { "Seek", "Flee", "Arrive", "Wander", "Unknown" };
 
 	int behaviour_type = behaviour;
 	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, 3))
@@ -222,6 +251,11 @@ void ComponentSteering::DrawEditor()
 	ImGui::DragFloat("Mov Velocity", &max_mov_speed, 0.1f);
 	ImGui::SliderAngle("Rot Velocity", &max_rot_speed, 0.01f);
 	ImGui::DragFloatRange2("Range", &min_distance, &max_distance, 0.1f, 0.1f);
+	ImGui::DragFloat("Slow Radius", &slow_distance, 0.1f, 0.1f);
+
+	float dist = (goal->GetGlobalPosition() - game_object->GetGlobalPosition()).Length();
+	dist -= min_distance;
+	ImGui::Text("Dist: %0.3f ETA: %0.3f", dist, dist / velocity.Length());
 
 	static vector<float> velocities(50);
 	if (velocities.size() == 50)

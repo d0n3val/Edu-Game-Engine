@@ -10,21 +10,18 @@ void BeginDebugDraw()
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);
-	//glDisable(GL_DEPTH_TEST);
 	glColor4f(1.f, 1.f, 1.f, 1.f);
 }
 
 // ------------------------------------------------------------
 void EndDebugDraw()
 {
-	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
-
 
  /*scalex - scaling of sphere around x-axis
    scaley - scaling of sphere around y-axis
