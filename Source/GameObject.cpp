@@ -417,6 +417,13 @@ void GameObject::SetLocalPosition(const float3 & position)
 }
 
 // ---------------------------------------------------------
+void GameObject::Move(const float3 & velocity)
+{
+	translation += velocity;
+	local_trans_dirty = true;
+}
+
+// ---------------------------------------------------------
 const float4x4& GameObject::GetGlobalTransformation() const
 {
 	return transform_global;

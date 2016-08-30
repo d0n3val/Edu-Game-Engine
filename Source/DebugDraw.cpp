@@ -393,3 +393,36 @@ void DebugDrawArrowZ(const float3& offset, float length, Color color, const floa
 	glLineWidth(1.0f);
 	glPopMatrix();
 }
+
+void DebugDrawArrow(const float3& dir, const float3& offset, Color color, const float4x4 & transform)
+{
+	glColor3f(color.r, color.g, color.b);
+	glPushMatrix();
+	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
+	glLineWidth(3.0f);
+	glBegin(GL_LINES);
+
+	glVertex3fv((GLfloat*)&offset.x);
+	float3 dest = offset + dir;
+	glVertex3fv((GLfloat*)&dest.x);
+
+	float arrow_head_size = 0.2f;
+	float length = dir.Length();
+	float3 side, up;
+	float angle = dir.AngleBetween(float3::unitZ);
+	//LOG("%f", angle);
+	Quat q(float3::unitY, angle);
+	
+	side = q* float3(offset.x + arrow_head_size, offset.y, offset.z + (length - arrow_head_size));
+
+	glVertex3fv((GLfloat*)&dest.x);
+	glVertex3fv((GLfloat*)&side.x);
+
+	side = q* float3(offset.x -arrow_head_size, offset.y, offset.z + (length - arrow_head_size));
+	glVertex3fv((GLfloat*)&dest.x);
+	glVertex3fv((GLfloat*)&side.x);
+
+	glEnd();
+	glLineWidth(1.0f);
+	glPopMatrix();
+}

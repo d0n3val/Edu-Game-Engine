@@ -35,15 +35,22 @@ public:
 	void SetBehaviour(Behaviour new_behaviour);
 	Behaviour GetBehaviour() const;
 
+
 	void DrawEditor();
+
+private:
+	float3 Seek(const float3 & target) const;
+	float3 Flee(const float3 & target) const;
 
 private:
 	uint goal_uid = 0;
 	const GameObject* goal = nullptr;
+	float mov_acceleration = 0.1f;
 	float max_mov_speed = 1.0f;
 	float max_rot_speed = 0.1f;
 	float max_distance = 50.0f;
 	float min_distance = 0.5f;
+	float3 velocity = float3::zero;
 
 private:
 

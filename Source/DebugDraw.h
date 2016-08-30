@@ -20,5 +20,6 @@ void DebugDraw(const Cylinder& cylinder, Color color = White, const float4x4& tr
 void DebugDraw(const Cone& cone, Color color = White, const float4x4& transform = float4x4::identity);
 void DebugDrawBox(const float3* box_8_vertices, Color color = White);
 void DebugDrawArrowZ(const float3& offset = float3::zero, float length = 1.0f, Color color = White, const float4x4& transform = float4x4::identity);
+void DebugDrawArrow(const float3 & dir, const float3 & offset, Color color, const float4x4 & transform);
 
 #endif // __DEBUGDRAW_H__

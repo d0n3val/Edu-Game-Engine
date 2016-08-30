@@ -19,6 +19,7 @@
 #include "ModuleResources.h"
 #include "ModuleFileSystem.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleEditorCamera.h"
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
@@ -416,8 +417,18 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 	ImGui::ColorEdit3("Background", &component->background);
 
-	if (ImGui::Button("Make Active Camera"))
-		App->renderer3D->active_camera = component;
+	const GameObject* go = PickGameObject(component->looking_at);
+	if (go != nullptr)
+		component->looking_at = go;
+
+	bool is_active = App->renderer3D->active_camera == component;
+	if (ImGui::Checkbox("Is Active Camera", &is_active))
+	{
+		if(is_active == true)
+			App->renderer3D->active_camera = component;
+		else
+			App->renderer3D->active_camera = App->camera->GetDummy();
+	}
 }
 
 void PanelProperties::DrawBoneComponent(ComponentBone * component)

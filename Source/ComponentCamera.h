@@ -16,6 +16,8 @@ public:
 	void OnSave(Config& config) const override;
 	void OnLoad(Config* config) override;
 
+	void OnStart() override;
+	void OnUpdate(float dt) override;
 	void OnDebugDraw(bool selected) const override;
 	void OnUpdateTransform() override;
 
@@ -39,6 +41,8 @@ public:
 	Color background;
 	bool frustum_culling = false;
 	bool projection_changed = false;
+	const GameObject* looking_at = nullptr;
+	uint looking_at_uid = 0;
 };
 
 #endif // __COMPONENT_AUDIOCAMERA_H__

@@ -2,6 +2,7 @@
 #include "ComponentCamera.h"
 #include "Application.h"
 #include "GameObject.h"
+#include "ModuleLevelManager.h"
 #include "DebugDraw.h"
 
 // ---------------------------------------------------------
@@ -27,6 +28,20 @@ ComponentCamera::~ComponentCamera()
 {}
 
 // ---------------------------------------------------------
+void ComponentCamera::OnStart()
+{
+	if (looking_at_uid != 0)
+		looking_at = App->level->Find(looking_at_uid);
+}
+
+// ---------------------------------------------------------
+void ComponentCamera::OnUpdate(float dt)
+{
+	if (looking_at != nullptr)
+		Look(looking_at->GetGlobalPosition());
+}
+
+// ---------------------------------------------------------
 void ComponentCamera::OnDebugDraw(bool selected) const
 {
 	if(selected == true)
@@ -36,6 +51,7 @@ void ComponentCamera::OnDebugDraw(bool selected) const
 // ---------------------------------------------------------
 void ComponentCamera::OnSave(Config& config) const
 {
+	config.AddUInt("Looking At", (looking_at) ? looking_at->GetUID() : 0);
 	config.AddArrayFloat("Background", (float*) &background, 4);
 	config.AddArrayFloat("Frustum", (float*)&frustum.pos.x, 13);
 }
@@ -43,6 +59,8 @@ void ComponentCamera::OnSave(Config& config) const
 // ---------------------------------------------------------
 void ComponentCamera::OnLoad(Config * config)
 {
+	uint looking_at_uid = config->GetUInt("Looking At", 0);
+
 	background.r = config->GetFloat("Background", 0.f, 0);
 	background.g = config->GetFloat("Background", 0.f, 1);
 	background.b = config->GetFloat("Background", 0.f, 2);
