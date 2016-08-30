@@ -15,7 +15,7 @@
 using namespace std;
 
 // ---------------------------------------------------------
-PanelResources::PanelResources() : Panel("Resources", SDL_SCANCODE_F5)
+PanelResources::PanelResources() : Panel("Resources", SDL_SCANCODE_5)
 {
 	width = 325;
 	height = 500;

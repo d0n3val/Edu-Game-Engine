@@ -102,12 +102,12 @@ update_status ModuleEditor::Update(float dt)
 
 			if (ImGui::BeginMenu("View"))
 			{
-				ImGui::MenuItem("Console", "F1", &console->active);
-				ImGui::MenuItem("Scene Hierarchy", "F2", &tree->active);
-				ImGui::MenuItem("Properties", "F3", &props->active);
-				ImGui::MenuItem("Configuration", "F4", &conf->active);
-				ImGui::MenuItem("Resource Browser", "F5", &res->active);
-				ImGui::MenuItem("Quick Bar", "F6", &res->active);
+				ImGui::MenuItem("Console", "1", &console->active);
+				ImGui::MenuItem("Scene Hierarchy", "2", &tree->active);
+				ImGui::MenuItem("Properties", "3", &props->active);
+				ImGui::MenuItem("Configuration", "4", &conf->active);
+				ImGui::MenuItem("Resource Browser", "5", &res->active);
+				ImGui::MenuItem("Quick Bar", "6", &res->active);
 
 				ImGui::EndMenu();
 			}
@@ -187,6 +187,7 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 {
 	switch (event.type)
 	{
+#ifndef _DEBUG
 		case Event::play:
 		case Event::unpause:
 			draw_menu = false;
@@ -205,6 +206,7 @@ void ModuleEditor::ReceiveEvent(const Event& event)
             conf->active = true;
             res->active = true;
 		break;
+#endif
 		case Event::gameobject_destroyed:
 			selected = App->level->Validate(selected);
 			tree->drag = App->level->Validate(tree->drag);

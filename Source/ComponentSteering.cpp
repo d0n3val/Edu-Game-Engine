@@ -188,7 +188,6 @@ ComponentSteering::Behaviour ComponentSteering::GetBehaviour() const
 	return behaviour;
 }
 
-
 // ---------------------------------------------------------
 float3 ComponentSteering::Seek(const float3& target) const
 {
@@ -236,7 +235,6 @@ void ComponentSteering::DrawEditor()
 		velocities.push_back(velocity.Length());
 	
 	ImGui::PlotHistogram("##velocity", &velocities[0], velocities.size(), 0, "Velocity", 0.0f, max_mov_speed, ImVec2(310,100));
-
 
 	/*
 	static ImVec2 foo[10] = { {-1,0} };

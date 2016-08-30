@@ -2,7 +2,7 @@
 #include "ModuleInput.h"
 
 // ---------------------------------------------------------
-PanelConsole::PanelConsole() : Panel("Console", SDL_SCANCODE_F1)
+PanelConsole::PanelConsole() : Panel("Console", SDL_SCANCODE_1)
 {
 	width = 658;
 	height = 105;

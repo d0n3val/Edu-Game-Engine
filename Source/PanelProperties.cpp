@@ -33,7 +33,7 @@
 using namespace std;
 
 // ---------------------------------------------------------
-PanelProperties::PanelProperties() : Panel("Properties", SDL_SCANCODE_F3)
+PanelProperties::PanelProperties() : Panel("Properties", SDL_SCANCODE_3)
 {
 	width = 325;
 	height = 578;

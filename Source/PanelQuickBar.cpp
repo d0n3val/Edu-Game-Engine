@@ -1,6 +1,7 @@
 #include "PanelQuickBar.h"
 #include "Application.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleInput.h"
 #include "Imgui/imgui.h"
 
 // ---------------------------------------------------------
@@ -29,12 +30,12 @@ void PanelQuickBar::Draw()
 
 	if (state != Application::play && state != Application::pause)
 	{
-		if (ImGui::Button("PLAY", ImVec2(60, 22)))
+		if (ImGui::Button("PLAY", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
 			App->Play();
 	}
 	else
 	{
-		if (ImGui::Button("STOP", ImVec2(60, 22)))
+		if (ImGui::Button("STOP", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
 			App->Stop();
 	}
 
@@ -42,12 +43,12 @@ void PanelQuickBar::Draw()
 
 	if (state == Application::play)
 	{
-		if (ImGui::Button("PAUSE", ImVec2(60, 22)))
+		if (ImGui::Button("PAUSE", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
 			App->Pause();
 	}
 	else if(state == Application::pause)
 	{
-		if (ImGui::Button("CONTINUE", ImVec2(60, 22)))
+		if (ImGui::Button("CONTINUE", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
 			App->UnPause();
 	}
 

@@ -409,8 +409,7 @@ void DebugDrawArrow(const float3& dir, const float3& offset, Color color, const 
 	float arrow_head_size = 0.2f;
 	float length = dir.Length();
 	float3 side, up;
-	float angle = dir.AngleBetween(float3::unitZ);
-	//LOG("%f", angle);
+	float angle = atan2f(dir.x, dir.z);
 	Quat q(float3::unitY, angle);
 	
 	side = q* float3(offset.x + arrow_head_size, offset.y, offset.z + (length - arrow_head_size));
