@@ -177,6 +177,7 @@ void GameObject::OnPlay()
 {
 	// Save transform setup from the editor
 	original_transform = float4x4::FromTRS(translation, rotation, scale);
+	last_translation = translation;
 
 	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
 		(*it)->OnPlay();
@@ -187,6 +188,9 @@ void GameObject::OnUpdate(float dt)
 {
 	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
 		(*it)->OnUpdate(dt);
+
+	velocity = (last_translation - translation) / dt;
+	last_translation = translation;
 }
 
 // ---------------------------------------------------------
@@ -194,6 +198,7 @@ void GameObject::OnStop()
 {
 	// go back to the original transform
 	SetLocalTransform(original_transform);
+	velocity = float3::zero;
 
 	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
 		(*it)->OnStop();
@@ -698,4 +703,10 @@ void GameObject::FindComponents(Component::Types type, vector<Component*>& resul
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 		if ((*it)->GetType() == type)
 			results.push_back(*it);
+}
+
+// ---------------------------------------------------------
+float3 GameObject::GetVelocity() const
+{
+	return velocity;
 }

@@ -127,7 +127,7 @@ void PanelProperties::Draw()
 			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
 				selected->SetLocalScale(scale);
 
-			ImGui::Text("Bounding Box:");
+			ImGui::Text("Bounding Box: ");
 			ImGui::SameLine();
 			if (selected->global_bbox.IsFinite())
 			{
@@ -136,6 +136,11 @@ void PanelProperties::Draw()
 			}
 			else
 				ImGui::TextColored(IMGUI_YELLOW, "- not generated -");
+
+			ImGui::Text("Velocity: ");
+			ImGui::SameLine();
+			float3 vel = selected->GetVelocity();
+			ImGui::TextColored(IMGUI_YELLOW, "%.2f %.2f %.2f (%.2f m/s)", vel.x, vel.y, vel.x, vel.Length());
 		}
 
 		// Iterate all components and draw

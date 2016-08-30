@@ -18,6 +18,7 @@ public:
 		arrive,
 		align,
 		unalign,
+		match_velocity,
 		wander,
 		unknown
 	};
@@ -46,6 +47,7 @@ private:
 	float3 Flee(const float3 & target) const;
 	float3 Arrive(const float3 & target) const;
 	float Align(const float3 & target_dir) const;
+	float3 MatchVelocity(const float3 & target_velocity) const;
 
 private:
 	uint goal_uid = 0;

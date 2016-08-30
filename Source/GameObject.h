@@ -80,6 +80,8 @@ public:
 	bool IsUnder(const GameObject* go) const;
 	void FindComponents(Component::Types type, std::vector<Component*>& results) const;
 
+	float3 GetVelocity() const;
+
 private:
 	AABB local_bbox;
 	Quat rotation = Quat::identity;
@@ -89,6 +91,8 @@ private:
 	bool calculated_bbox = false;
 	bool was_dirty = true;
 	mutable bool local_trans_dirty = true;
+	float3 velocity = float3::zero;
+	float3 last_translation = float3::zero;
 	float3 translation = float3::zero;
 	float3 scale = float3::one;
 	bool active = true;

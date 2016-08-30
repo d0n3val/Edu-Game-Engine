@@ -100,6 +100,11 @@ void ComponentSteering::OnUpdate(float dt)
 		if (goal != nullptr)
 			rot_velocity = Align(-goal->GetGlobalTransformation().WorldZ());
 		break;
+	case ComponentSteering::match_velocity:
+		if (goal != nullptr)
+			mov_velocity += MatchVelocity(goal->GetVelocity());
+		break;
+		break;
 	case ComponentSteering::wander:
 		break;
 	case ComponentSteering::unknown:
@@ -124,68 +129,13 @@ void ComponentSteering::OnUpdate(float dt)
 	// Finally update position & rotation
 	game_object->Move(mov_velocity * dt);
 	game_object->Rotate(rot_velocity * dt);
-
-	/*
-	if (goal != nullptr)
-	{
-		float3 my_pos = game_object->GetGlobalPosition();
-		float3 goal_pos = goal->GetGlobalPosition();
-		float distance = goal_pos.Distance(my_pos);
-		
-		float3 direction = goal_pos - my_pos;
-		direction.Normalize();
-		Quat my_rot = game_object->GetLocalRotationQ();
-		float3 my_front = game_object->GetGlobalTransformation().WorldZ();
-		float3 my_right = game_object->GetGlobalTransformation().WorldX();
-
-		float speed_dt = max_mov_speed * dt;
-
-		switch (behaviour)
-		{
-			case Behaviour::seek:
-			{
-				if (distance < max_distance && distance > min_distance) 
-				{
-					game_object->SetLocalPosition(my_pos + (direction * speed_dt));
-				}
-			} break;
-
-			case Behaviour::flee:
-			{
-				if (distance < max_distance) 
-				{
-					direction = my_pos - goal_pos;
-					direction.Normalize();
-					game_object->SetLocalPosition(my_pos + (direction * speed_dt));
-				}
-			} break;
-
-			case Behaviour::wander:
-			{
-				float r = RandomBinomial();
-				direction = Quat::RotateY(r).Transform(my_front);
-				game_object->SetLocalPosition(my_pos + (direction * speed_dt));
-			} break;
-		}
-
-		// rotate to look in our current movement direction (Z)
-		float angle = direction.AngleBetweenNorm(my_right);
-
-		if (angle > 0.01f)
-		{
-			bool left = direction.Dot(my_right) >= 0.f;
-			float rotation = MIN(angle*dt, max_rot_speed*dt);
-			if (!left)
-				rotation = -rotation;
-			game_object->SetLocalRotation(my_rot * Quat::RotateY(rotation));
-		}
-	}
-	*/
 }
 
 // ---------------------------------------------------------
 void ComponentSteering::OnStop()
 {
+	mov_velocity = float3::zero;
+	rot_velocity = 0.f;
 }
 
 // ---------------------------------------------------------
@@ -306,11 +256,26 @@ float ComponentSteering::Align(const float3 & target_dir) const
 }
 
 // ---------------------------------------------------------
+float3 ComponentSteering::MatchVelocity(const float3 & target_velocity) const
+{
+	float3 ret = mov_velocity - target_velocity;
+
+	// Trim down movement velocity
+	if (ret.Length() > mov_acceleration)
+	{
+		ret.Normalize();
+		ret *= mov_acceleration;
+	}
+
+	return ret;
+}
+
+// ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 6, "code needs update");
+	static_assert(Behaviour::unknown == 7, "code needs update");
 
-	static const char* behaviours[] = { "Seek", "Flee", "Arrive", "Align", "UnAlign", "Wander", "Unknown" };
+	static const char* behaviours[] = { "Seek", "Flee", "Arrive", "Align", "UnAlign", "Match Velocity", "Wander", "Unknown" };
 
 	int behaviour_type = behaviour;
 	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, (int) Behaviour::unknown))
