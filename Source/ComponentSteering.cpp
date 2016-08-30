@@ -141,7 +141,9 @@ void ComponentSteering::OnStop()
 // ---------------------------------------------------------
 void ComponentSteering::OnDebugDraw(bool selected) const
 {
-	DebugDrawArrow(mov_velocity, float3(0.f, game_object->GetLocalBBox().HalfSize().y, 0.f), Blue, game_object->GetGlobalTransformation());
+	float4x4 m;
+	m.Translate(game_object->GetGlobalPosition());
+
 
 	if (selected == true && goal != nullptr)
 	{
@@ -240,7 +242,6 @@ float ComponentSteering::Align(const float3 & target_dir) const
 		return 0.0f;
 
 	static float entrance_velocity = 0.2f;
-	LOG("%f", absolute_diff);
 	if (absolute_diff > slow_angle)
 	{
 		entrance_velocity = rot_velocity;
@@ -258,7 +259,10 @@ float ComponentSteering::Align(const float3 & target_dir) const
 // ---------------------------------------------------------
 float3 ComponentSteering::MatchVelocity(const float3 & target_velocity) const
 {
-	float3 ret = mov_velocity - target_velocity;
+	float3 ret = target_velocity - mov_velocity;
+
+	if (target_velocity.LengthSq() > mov_velocity.LengthSq())
+		ret = -ret;
 
 	// Trim down movement velocity
 	if (ret.Length() > mov_acceleration)

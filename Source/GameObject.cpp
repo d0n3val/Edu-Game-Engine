@@ -647,6 +647,12 @@ void GameObject::Draw(bool debug) const
 // ---------------------------------------------------------
 void GameObject::OnDebugDraw(bool selected) const
 {
+	float3 pos = GetGlobalPosition();
+	float4x4 m = float4x4::Translate(GetGlobalPosition());
+
+	if(velocity.LengthSq() > 0.0f)
+		DebugDrawArrow(-velocity, float3(0.f, local_bbox.HalfSize().y, 0.f), Blue, m);
+
 	if (selected == true)
 	{
 		DebugDraw(GetGlobalTransformation());
