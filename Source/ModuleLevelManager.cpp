@@ -216,8 +216,8 @@ void ModuleLevelManager::LoadGameObjects(const Config & config)
 	root->RecursiveCalcBoundingBoxes();
 	
 	// Fill in the quadtree
-	for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
-		quadtree.Insert(it->first);
+	//for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
+		//quadtree.Insert(it->first);
 
 	// Third pass: call OnStart on all new GameObjects
 	for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
