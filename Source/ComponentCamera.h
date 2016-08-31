@@ -45,4 +45,4 @@ public:
 	uint looking_at_uid = 0;
 };
 
-#endif // __COMPONENT_AUDIOCAMERA_H__
+#endif // __COMPONENT_CAMERA_H__

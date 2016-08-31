@@ -244,6 +244,19 @@ void ModuleEditorCamera::LookAt(float dx, float dy)
 // -----------------------------------------------------------------
 void ModuleEditorCamera::Zoom(float zoom)
 {
+	if (looking == true)
+	{
+		float dist = looking_at.Distance(dummy->frustum.pos);
+
+		// Slower on closer distances
+		if (dist < 15.0f)
+			zoom *= 0.5f;
+		if (dist < 7.5f)
+			zoom *= 0.25f;
+		if (dist < 1.0f && zoom > 0)
+			zoom = 0;
+	}
+
 	if (App->input->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) 
 		zoom *= 5.0f;
 

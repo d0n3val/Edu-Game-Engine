@@ -61,8 +61,8 @@ void DebugDraw(const Sphere & sphere, Color color, const float4x4 & transform)
 	glPushMatrix();
 	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
 
-	int stacks = 10;
-	int slices = 10;
+	int stacks = MAX(5, sphere.r*10);
+	int slices = MAX(5, sphere.r*10);
 
     int i,j;
     for (j = 0; j < stacks; j++) {
@@ -84,9 +84,9 @@ void DebugDraw(const Sphere & sphere, Color color, const float4x4 & transform)
             double y2 = sinLong * cosLat2;
             double z2 = sinLat2;
             glNormal3d(x2,y2,z2);
-            glVertex3d(sphere.r*x2,sphere.r*y2,sphere.r*z2);
+            glVertex3d(sphere.pos.x + sphere.r*x2, sphere.pos.y + sphere.r*y2,sphere.pos.z + sphere.r*z2);
             glNormal3d(x1,y1,z1);
-            glVertex3d(sphere.r*x1,sphere.r*y1,sphere.r*z1);
+            glVertex3d(sphere.pos.x + sphere.r*x1,sphere.pos.y + sphere.r*y1,sphere.pos.z + sphere.r*z1);
         }
         glEnd();
     }

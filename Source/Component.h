@@ -24,6 +24,7 @@ public:
 		RigidBody,
 		Animation,
 		Steering,
+		Path,
 		Unknown
 	};
 

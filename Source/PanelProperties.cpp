@@ -8,6 +8,7 @@
 #include "ComponentAudioSource.h"
 #include "ComponentAudioListener.h"
 #include "ComponentCamera.h"
+#include "ComponentPath.h"
 #include "ComponentBone.h"
 #include "ComponentRigidBody.h"
 #include "ComponentAnimation.h"
@@ -60,7 +61,7 @@ void PanelProperties::Draw()
 			selected->SetLocalRotation(Quat::identity);
 		}
 
-		static_assert(Component::Types::Unknown == 9, "code needs update");
+		static_assert(Component::Types::Unknown == 10, "code needs update");
         if (ImGui::BeginMenu("New Component", (selected != nullptr)))
         {
 			if (ImGui::MenuItem("Audio Listener"))
@@ -81,6 +82,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(Component::Types::Animation);
 			if (ImGui::MenuItem("Steering"))
 				selected->CreateComponent(Component::Types::Steering);
+			if (ImGui::MenuItem("Path"))
+				selected->CreateComponent(Component::Types::Path);
             ImGui::EndMenu();
         }
 
@@ -144,7 +147,7 @@ void PanelProperties::Draw()
 		}
 
 		// Iterate all components and draw
-		static_assert(Component::Types::Unknown == 9, "code needs update");
+		static_assert(Component::Types::Unknown == 10, "code needs update");
 		for (list<Component*>::iterator it = selected->components.begin(); it != selected->components.end(); ++it)
 		{
 			ImGui::PushID(*it);
@@ -179,6 +182,9 @@ void PanelProperties::Draw()
 				break;
 				case Component::Types::Steering:
 					((ComponentSteering*)(*it))->DrawEditor();
+				break;
+				case Component::Types::Path:
+					((ComponentPath*)(*it))->DrawEditor();
 				break;
 				}
 			}

@@ -138,6 +138,7 @@
     <ClInclude Include="ComponentCamera.h" />
     <ClInclude Include="ComponentMaterial.h" />
     <ClInclude Include="ComponentMesh.h" />
+    <ClInclude Include="ComponentPath.h" />
     <ClInclude Include="ComponentRigidBody.h" />
     <ClInclude Include="ComponentSteering.h" />
     <ClInclude Include="ComponentWithResource.h" />
@@ -222,7 +223,6 @@
     <ClInclude Include="MathGeoLib\include\Math\sse_mathfun.h" />
     <ClInclude Include="MathGeoLib\include\Math\TransformOps.h" />
     <ClInclude Include="MathGeoLib\include\Time\Clock.h" />
-    <ClInclude Include="MemLeaks.h" />
     <ClInclude Include="mmgr\mmgr.h" />
     <ClInclude Include="mmgr\nommgr.h" />
     <ClInclude Include="ModuleAI.h" />
@@ -264,6 +264,8 @@
     <ClInclude Include="ResourceTexture.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="PhysVehicle3D.h" />
+    <ClInclude Include="tinyspline\include\tinyspline.h" />
+    <ClInclude Include="tinyspline\include\tinysplinecpp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -276,6 +278,7 @@
     <ClCompile Include="ComponentCamera.cpp" />
     <ClCompile Include="ComponentMaterial.cpp" />
     <ClCompile Include="ComponentMesh.cpp" />
+    <ClCompile Include="ComponentPath.cpp" />
     <ClCompile Include="ComponentRigidBody.cpp" />
     <ClCompile Include="ComponentSteering.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
@@ -364,6 +367,8 @@
     <ClCompile Include="ResourceTexture.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="PhysVehicle3D.cpp" />
+    <ClCompile Include="tinyspline\include\tinyspline.c" />
+    <ClCompile Include="tinyspline\include\tinysplinecpp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\appveyor.yml" />

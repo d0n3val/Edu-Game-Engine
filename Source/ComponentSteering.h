@@ -43,7 +43,6 @@ public:
 	void SetBehaviour(Behaviour new_behaviour);
 	Behaviour GetBehaviour() const;
 
-
 	void DrawEditor();
 
 private:

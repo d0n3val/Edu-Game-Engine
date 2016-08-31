@@ -61,6 +61,9 @@
     <Filter Include="3rd Party\bullet">
       <UniqueIdentifier>{b8dd2996-a988-4934-9ec5-2796b986b47b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\tinyspline">
+      <UniqueIdentifier>{1bdcda1d-5afb-40fa-918e-c065b28e78ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -109,9 +112,6 @@
       <Filter>Game Objects</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
-    <ClInclude Include="MemLeaks.h">
       <Filter>Tools</Filter>
     </ClInclude>
     <ClInclude Include="OpenGL.h">
@@ -576,6 +576,15 @@
     <ClInclude Include="default_icon.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentPath.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyspline\include\tinyspline.h">
+      <Filter>3rd Party\tinyspline</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyspline\include\tinysplinecpp.h">
+      <Filter>3rd Party\tinyspline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -871,6 +880,15 @@
     </ClCompile>
     <ClCompile Include="MathGeoLib\include\Geometry\Cone.cpp">
       <Filter>3rd Party\mathgeo\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentPath.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyspline\include\tinyspline.c">
+      <Filter>3rd Party\tinyspline</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyspline\include\tinysplinecpp.cpp">
+      <Filter>3rd Party\tinyspline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
