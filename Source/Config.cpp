@@ -287,3 +287,16 @@ bool Config::AddArrayString(const char * field, const char ** values, int size)
 	}
 	return false;
 }
+
+bool Config::AddFloat3(const char * field, const float3 & value)
+{
+	return AddArrayFloat(field, &value.x, 3);
+}
+
+float3 Config::GetFloat3(const char * field, const float3 & default)
+{
+	return float3(
+		GetFloat(field, default.x, 0),
+		GetFloat(field, default.y, 1),
+		GetFloat(field, default.z, 2));
+}

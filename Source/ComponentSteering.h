@@ -55,7 +55,7 @@ private:
 	float3 Pursue(const float3& position, const float3& velocity) const;
 	float3 Face(const float3& position) const;
 	float3 LookAhead() const;
-	float3 Wander() const;
+	float3 Wander();
 
 private:
 	uint goal_uid = 0;

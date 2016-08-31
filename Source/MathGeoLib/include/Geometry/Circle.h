@@ -106,6 +106,10 @@ public:
 		@see class Plane. */
 	Plane ContainingPlane() const;
 
+	/// Generates a random point inside this Circle.
+	/** @see class LCG */
+	float3 RandomPointInside(LCG &rng) const;
+
 	/// Translates this Circle in world space.
 	/** @param offset The amount of displacement to apply to this Circle, in world space coordinates.
 		@see Transform(). */

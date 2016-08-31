@@ -400,9 +400,9 @@ void DebugDrawArrow(const float3& dir, const float3& offset, Color color, const 
 	glPopMatrix();
 }
 
-void DebugDrawCircle(const float3 & pos, float radius, Color color)
+void DebugDraw(const Circle & circle, Color color)
 {
-	int num_segments = MAX(10, ((int) radius/10 * 5));
+	int num_segments = MAX(10, ((int) circle.r/10 * 5));
 
 	glEnable(GL_BLEND);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -410,11 +410,11 @@ void DebugDrawCircle(const float3 & pos, float radius, Color color)
 	glColor4f(color.r, color.g, color.b, 0.25f);
 
     glBegin( GL_TRIANGLE_FAN );
-    glVertex3f(pos.x, pos.y, pos.z);
+    glVertex3f(circle.pos.x, circle.pos.y, circle.pos.z);
     for( int n = 0; n <= num_segments; ++n ) 
 	{
         float const t = TWO_PI * (float)n / (float)num_segments;
-        glVertex3f(pos.x + sinf(t) * radius, pos.y, pos.z + cosf(t) * radius);
+        glVertex3f(circle.pos.x + sinf(t) * circle.r, circle.pos.y, circle.pos.z + cosf(t) * circle.r);
     }
 
     glEnd();
@@ -422,9 +422,9 @@ void DebugDrawCircle(const float3 & pos, float radius, Color color)
 	glDisable(GL_BLEND);
 }
 
-void DebugDrawRing(const float3& pos, float radius, float inner_radius, Color color)
+void DebugDraw(const Circle& circle, float inner_radius, Color color)
 {
-	int num_segments = MAX(10, ((int) radius/10 * 5));
+	int num_segments = MAX(10, ((int) circle.r/10 * 5));
 
 	glEnable(GL_BLEND);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -436,8 +436,8 @@ void DebugDrawRing(const float3& pos, float radius, float inner_radius, Color co
 	{
 		float t = (float) i * TWO_PI / (float)num_segments;
 
-		glVertex3f(pos.x + inner_radius * cosf(t), pos.y, pos.z + inner_radius * sinf(t));
-		glVertex3f(pos.x + radius * cosf(t), pos.y, pos.z + radius * sinf(t));
+		glVertex3f(circle.pos.x + inner_radius * cosf(t), circle.pos.y, circle.pos.z + inner_radius * sinf(t));
+		glVertex3f(circle.pos.x + circle.r * cosf(t), circle.pos.y, circle.pos.z + circle.r * sinf(t));
 	}
 		
 	glEnd();

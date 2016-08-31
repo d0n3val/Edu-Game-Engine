@@ -20,8 +20,8 @@ void DebugDraw(const Cylinder& cylinder, Color color = White, const float4x4& tr
 void DebugDraw(const Cone& cone, Color color = White, const float4x4& transform = float4x4::identity);
 void DebugDrawBox(const float3* box_8_vertices, Color color = White);
 void DebugDrawArrow(const float3 & dir, const float3 & offset, Color color, const float4x4 & transform = float4x4::identity);
-void DebugDrawCircle(const float3& pos, float radius, Color color = White);
-void DebugDrawRing(const float3& pos, float radius, float inner_radius, Color color = White);
+void DebugDraw(const Circle& circle, Color color = White);
+void DebugDraw(const Circle& pos, float inner_radius, Color color = White);
 void DebugDrawArc(const float3& pos, float radius, float angle_left, float angle_right, float inner_radius = 0.0f, Color color = White, const float4x4& transform = float4x4::identity);
 
 #endif // __DEBUGDRAW_H__

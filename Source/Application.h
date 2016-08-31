@@ -65,6 +65,7 @@ public:
 	void RequestBrowser(const char* url) const;
 	void BroadcastEvent(const Event& event);
 	State GetState() const;
+	LCG& Random();
 	void Play();
 	void Pause();
 	void UnPause();

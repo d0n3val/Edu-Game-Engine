@@ -38,6 +38,11 @@ void ComponentSteering::OnSave(Config& config) const
 	config.AddFloat("Rot Speed", max_rot_speed);
 	config.AddFloat("Min Angle", min_angle);
 	config.AddFloat("Slow Angle", slow_angle);
+
+	config.AddFloat("Max Prediction", max_mov_prediction);
+	config.AddFloat3("Wander Offset", wander_offset);
+	config.AddFloat("Wander Radius", wander_radius);
+	config.AddFloat("Wander Rate", wander_change_rate);
 }
 
 // ---------------------------------------------------------
@@ -55,6 +60,9 @@ void ComponentSteering::OnLoad(Config * config)
 	max_rot_speed = config->GetFloat("Rot Speed", 0.1f);
 	min_angle = config->GetFloat("Min Angle", 0.01f);
 	slow_angle = config->GetFloat("Slow Angle", 0.2f);
+	wander_offset = config->GetFloat3("Wander Offset");
+	wander_radius = config->GetFloat("Wander Radius", 1.0f);
+	wander_change_rate = config->GetFloat("Wander Rate", 0.1f);
 }
 
 // ---------------------------------------------------------
@@ -169,9 +177,9 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 			case flee:
 			case arrive:
 			{
-				DebugDrawCircle(goal->GetGlobalPosition(), min_distance, Green);
-				DebugDrawCircle(goal->GetGlobalPosition(), slow_distance, Red);
-				DebugDrawRing(goal->GetGlobalPosition(), max_distance, min_distance, Blue);
+				DebugDraw(Circle(goal->GetGlobalPosition(), float3::unitY, min_distance), Green);
+				DebugDraw(Circle(goal->GetGlobalPosition(), float3::unitY, slow_distance), Red);
+				DebugDraw(Circle(goal->GetGlobalPosition(), float3::unitY, max_distance), min_distance, Blue);
 			} break;
 			case align:
 			case unalign:
@@ -194,7 +202,12 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 			} break;
 			case wander:
 			{
-				DebugDraw(Sphere(float3::zero, 1.0f), Green, float4x4::Translate(last_wander_target));
+				// Circle to generate the wander position
+				float3 center = game_object->GetGlobalTransformation().TransformPos(wander_offset);
+				DebugDraw(Circle(center, float3::unitY, wander_radius));
+
+				// Last generated position
+				DebugDraw(Circle(last_wander_target, float3::unitY, 0.5f), Red);
 			} break;
 
 		}
@@ -337,10 +350,18 @@ float3 ComponentSteering::LookAhead() const
 }
 
 // ---------------------------------------------------------
-float3 ComponentSteering::Wander() const
+float3 ComponentSteering::Wander() 
 {
 	// Calculate a dummy position ahead with some randomness
-	return float3();
+	if (App->Random().Float() < wander_change_rate)
+	{
+		float3 center = game_object->GetGlobalTransformation().TransformPos(wander_offset);
+		Circle circle(center, float3::unitY, wander_radius);
+		float3 rnd = circle.RandomPointInside(App->Random());
+		last_wander_target = float3(rnd.x, game_object->GetGlobalPosition().y, rnd.z);
+	}
+
+	return last_wander_target;
 }
 
 // ---------------------------------------------------------
@@ -420,6 +441,18 @@ void ComponentSteering::DrawEditor()
 
 	// Others stuff --------------------
 	ImGui::Separator();
+
+	if (behaviour == wander)
+	{
+		if (ImGui::CollapsingHeader("Wander Behavior"))
+		{
+			ImGui::DragFloat3("Offset", &wander_offset.x, 0.1f);
+			ImGui::DragFloat("Radius", &wander_radius, 0.1f);
+			ImGui::SliderFloat("Rate", &wander_change_rate, 0.01f, 1.0f);
+		}
+	}
+
+	// Curve editor! ---
 	/*
 	static ImVec2 foo[10] = { {-1,0} };
 	//foo[0].x = -1; // init data so editor knows to take it from here

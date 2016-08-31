@@ -2,6 +2,7 @@
 #define __CONFIG_H__
 
 #include "Globals.h"
+#include "Math.h"
 
 // C++ wrapper for JSON parser library "Parson"
 // http://www.w3schools.com/json/json_syntax.asp
@@ -57,6 +58,10 @@ public:
 	bool AddArrayUInt(const char* field, const uint* values, int size);
 	bool AddArrayFloat(const char* field, const float* values, int size);
 	bool AddArrayString(const char* field, const char** values, int size);
+
+	// Custom
+	bool AddFloat3(const char* field, const float3& value);
+	float3 GetFloat3(const char* field, const float3& default = float3::zero);
 
 private:
 	JSON_Value* FindValue(const char* field, int index) const;

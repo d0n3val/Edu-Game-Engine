@@ -333,6 +333,12 @@ Application::State Application::GetState() const
 }
 
 // ---------------------------------------------
+LCG & Application::Random()
+{
+	return *random;
+}
+
+// ---------------------------------------------
 void Application::Play()
 {
 	if (state == State::stop)
