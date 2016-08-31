@@ -104,8 +104,24 @@ void ComponentSteering::OnUpdate(float dt)
 		if (goal != nullptr)
 			mov_velocity += MatchVelocity(goal->GetVelocity());
 		break;
+	case ComponentSteering::pursue:
+		if (goal != nullptr)
+			mov_velocity += Arrive(Pursue(goal->GetGlobalPosition(), goal->GetVelocity()));
+		break;
+	case ComponentSteering::evade:
+		if (goal != nullptr)
+			mov_velocity += Flee(Pursue(goal->GetGlobalPosition(), goal->GetVelocity()));
+		break;
+	case ComponentSteering::face:
+		if (goal != nullptr)
+			rot_velocity = Align(Face(goal->GetGlobalPosition()));
+		break;
+	case ComponentSteering::look_ahead:
+		rot_velocity = Align(LookAhead());
 		break;
 	case ComponentSteering::wander:
+		mov_velocity += Seek(Wander());
+		rot_velocity = Align(LookAhead());
 		break;
 	case ComponentSteering::unknown:
 		break;
@@ -147,23 +163,40 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 
 	if (selected == true && goal != nullptr)
 	{
-		if (behaviour == seek || behaviour == flee || behaviour == arrive)
+		switch (behaviour)
 		{
-			DebugDrawCircle(goal->GetGlobalPosition(), min_distance, Green);
-			DebugDrawCircle(goal->GetGlobalPosition(), slow_distance, Red);
-			DebugDrawRing(goal->GetGlobalPosition(), max_distance, min_distance, Blue);
-		}
-		else if (behaviour == align || behaviour == unalign)
-		{
-			float3 orientation = float3::unitZ;
-			if (behaviour == unalign)
-				orientation = -orientation;
+			case seek:
+			case flee:
+			case arrive:
+			{
+				DebugDrawCircle(goal->GetGlobalPosition(), min_distance, Green);
+				DebugDrawCircle(goal->GetGlobalPosition(), slow_distance, Red);
+				DebugDrawRing(goal->GetGlobalPosition(), max_distance, min_distance, Blue);
+			} break;
+			case align:
+			case unalign:
+			{
+				float3 orientation = float3::unitZ;
+				if (behaviour == unalign)
+					orientation = -orientation;
 
-			float3 offset(0.f, goal->GetLocalBBox().HalfSize().y, 0.f);
-			float inner_radius = MAX(goal->GetLocalBBox().HalfSize().x, goal->GetLocalBBox().HalfSize().z);
-			DebugDrawArrow(orientation, offset, Red, goal->GetGlobalTransformation());
-			DebugDrawArc(offset, inner_radius * 2.0f, min_angle*0.5f, -min_angle*0.5f, inner_radius, Green, goal->GetGlobalTransformation());
-			DebugDrawArc(offset, inner_radius * 3.0f, slow_angle*0.5f, -slow_angle*0.5f, inner_radius*2.0f, Red, goal->GetGlobalTransformation());
+				float3 offset(0.f, goal->GetLocalBBox().HalfSize().y, 0.f);
+				float inner_radius = MAX(goal->GetLocalBBox().HalfSize().x, goal->GetLocalBBox().HalfSize().z);
+				DebugDrawArrow(orientation, offset, Red, goal->GetGlobalTransformation());
+				DebugDrawArc(offset, inner_radius * 2.0f, min_angle*0.5f, -min_angle*0.5f, inner_radius, Green, goal->GetGlobalTransformation());
+				DebugDrawArc(offset, inner_radius * 3.0f, slow_angle*0.5f, -slow_angle*0.5f, inner_radius*2.0f, Red, goal->GetGlobalTransformation());
+			} break;
+			case pursue:
+			case evade:
+			{
+				float3 target = Pursue(goal->GetGlobalPosition(), goal->GetVelocity());
+				DebugDraw(Sphere(target, 1.0f), Green, float4x4::Translate(target));
+			} break;
+			case wander:
+			{
+				DebugDraw(Sphere(float3::zero, 1.0f), Green, float4x4::Translate(last_wander_target));
+			} break;
+
 		}
 	}
 }
@@ -275,11 +308,49 @@ float3 ComponentSteering::MatchVelocity(const float3 & target_velocity) const
 }
 
 // ---------------------------------------------------------
+float3 ComponentSteering::Pursue(const float3 & position, const float3 & velocity) const
+{
+	float3 dir = position - game_object->GetGlobalPosition();
+	float distance = dir.Length();
+	float my_velocity = mov_velocity.Length();
+	float prediction;
+	
+	if (my_velocity < distance / max_mov_prediction)
+		prediction = max_mov_prediction;
+	else
+		prediction = distance / my_velocity;
+
+	return position + (velocity * -prediction);
+}
+
+// ---------------------------------------------------------
+float3 ComponentSteering::Face(const float3 & position) const
+{
+	float3 dir = position - game_object->GetGlobalPosition();
+	return dir.Normalized();
+}
+
+// ---------------------------------------------------------
+float3 ComponentSteering::LookAhead() const
+{
+	return mov_velocity.Normalized();
+}
+
+// ---------------------------------------------------------
+float3 ComponentSteering::Wander() const
+{
+	// Calculate a dummy position ahead with some randomness
+	return float3();
+}
+
+// ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 7, "code needs update");
+	static_assert(Behaviour::unknown == 11, "code needs update");
 
-	static const char* behaviours[] = { "Seek", "Flee", "Arrive", "Align", "UnAlign", "Match Velocity", "Wander", "Unknown" };
+	static const char* behaviours[] = { 
+		"Seek", "Flee", "Arrive", "Align", "UnAlign", "Match Velocity", 
+		"Pursue", "Evade", "Face", "Look Ahead", "Wander", "Unknown" };
 
 	int behaviour_type = behaviour;
 	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, (int) Behaviour::unknown))
@@ -347,6 +418,8 @@ void ComponentSteering::DrawEditor()
 	
 	ImGui::PlotHistogram("##rot_velocity", &rot_velocities[0], rot_velocities.size(), 0, "Angular Velocity", 0.0f, max_rot_speed, ImVec2(310,75));
 
+	// Others stuff --------------------
+	ImGui::Separator();
 	/*
 	static ImVec2 foo[10] = { {-1,0} };
 	//foo[0].x = -1; // init data so editor knows to take it from here

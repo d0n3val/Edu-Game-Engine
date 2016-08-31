@@ -19,6 +19,10 @@ public:
 		align,
 		unalign,
 		match_velocity,
+		pursue,
+		evade,
+		face,
+		look_ahead,
 		wander,
 		unknown
 	};
@@ -48,6 +52,10 @@ private:
 	float3 Arrive(const float3 & target) const;
 	float Align(const float3 & target_dir) const;
 	float3 MatchVelocity(const float3 & target_velocity) const;
+	float3 Pursue(const float3& position, const float3& velocity) const;
+	float3 Face(const float3& position) const;
+	float3 LookAhead() const;
+	float3 Wander() const;
 
 private:
 	uint goal_uid = 0;
@@ -69,6 +77,13 @@ private:
 	float max_rot_speed = 0.3f;
 	float min_angle = 0.01f;
 	float slow_angle = 0.2f;
+
+	// Others ---
+	float max_mov_prediction = 10.0f;
+	float3 wander_offset = float3::unitZ;
+	float wander_radius = 3.0f;
+	float wander_change_rate = 0.5f;
+	float3 last_wander_target = float3::zero;
 
 private:
 
