@@ -57,6 +57,7 @@ public:
 	virtual void OnStop() {};
 	virtual void OnPause() {};
 	virtual void OnUnPause() {};
+	virtual void OnGoDestroyed() {};
 
 	virtual void OnUpdateTransform() {};
 	virtual void OnDebugDraw(bool selected) const {};

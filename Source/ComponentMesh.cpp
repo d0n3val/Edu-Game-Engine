@@ -72,6 +72,13 @@ void ComponentMesh::OnStart()
 }
 
 // ---------------------------------------------------------
+void ComponentMesh::OnGoDestroyed()
+{
+	if(root_bones != nullptr)
+		root_bones = App->level->Validate(root_bones);
+}
+
+// ---------------------------------------------------------
 void ComponentMesh::GetBoundingBox(AABB & box) const
 {
 	const ResourceMesh* res = (const ResourceMesh*) App->resources->Get(resource);

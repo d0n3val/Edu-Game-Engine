@@ -215,6 +215,12 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 }
 
 // ---------------------------------------------------------
+void ComponentSteering::OnGoDestroyed()
+{
+	if(goal != nullptr)
+		goal = App->level->Validate(goal);
+}
+// ---------------------------------------------------------
 void ComponentSteering::SetBehaviour(Behaviour new_behaviour)
 {
 	if (new_behaviour != behaviour)

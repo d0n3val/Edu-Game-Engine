@@ -211,14 +211,10 @@ void ModuleLevelManager::LoadGameObjects(const Config & config)
 		}
 	}
 
-	// Reset all info about the level
+	// Reset all info about the level (this also fill in the quadtree)
 	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), true);
 	root->RecursiveCalcBoundingBoxes();
 	
-	// Fill in the quadtree
-	//for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
-		//quadtree.Insert(it->first);
-
 	// Third pass: call OnStart on all new GameObjects
 	for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)
 		it->first->OnStart();
@@ -309,6 +305,7 @@ void ModuleLevelManager::RecursiveProcessEvent(GameObject * go, const Event & ev
 		case Event::EventType::stop: go->OnStop(); break;
 		case Event::EventType::pause: go->OnPause(); break;
 		case Event::EventType::unpause: go->OnUnPause(); break;
+		case Event::EventType::gameobject_destroyed: go->OnGoDestroyed(); break;
 	}
 
 	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)

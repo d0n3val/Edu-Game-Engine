@@ -21,6 +21,7 @@ public:
 	void OnLoad(Config* config) override;
 	bool SetResource(UID resource) override;
 	void OnStart() override;
+	void OnGoDestroyed() override;
 
 	void GetBoundingBox(AABB& box) const override;
 

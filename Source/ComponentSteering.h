@@ -39,6 +39,7 @@ public:
 	void OnUpdate(float dt) override;
 	void OnStop() override;
 	void OnDebugDraw(bool selected) const override;
+	void OnGoDestroyed() override;
 
 	void SetBehaviour(Behaviour new_behaviour);
 	Behaviour GetBehaviour() const;

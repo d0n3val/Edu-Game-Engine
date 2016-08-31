@@ -220,6 +220,13 @@ void GameObject::OnUnPause()
 }
 
 // ---------------------------------------------------------
+void GameObject::OnGoDestroyed()
+{
+	for (list<Component*>::iterator it = components.begin(); it != components.end(); ++it)
+		(*it)->OnGoDestroyed();
+}
+
+// ---------------------------------------------------------
 uint GameObject::GetUID() const
 {
 	return uid;

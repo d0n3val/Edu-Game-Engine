@@ -32,6 +32,7 @@ public:
 	void OnStop();
 	void OnPause();
 	void OnUnPause();
+	void OnGoDestroyed();
 
 	uint GetUID() const;
 
