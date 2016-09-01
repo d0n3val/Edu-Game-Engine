@@ -156,6 +156,10 @@ void ComponentSteering::OnUpdate(float dt)
 	case ComponentSteering::separation:
 		mov_velocity += Separation();
 		break;
+	case ComponentSteering::collision_avoidance:
+		//mov_velocity += Arrive(Pursue(goal->GetGlobalPosition(), goal->GetVelocity()));
+		mov_velocity += CollisionAvoidance();
+		break;
 	case ComponentSteering::unknown:
 		break;
 	default:
@@ -266,6 +270,11 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 						DebugDrawArrow(direction.Normalized() * force, offset, Green, game_object->GetGlobalTransformation());
 					}
 				}
+			} break;
+			case collision_avoidance:
+			{
+				DebugDraw(Circle(game_object->GetGlobalPosition(), float3::unitY, separation_radius));
+
 			} break;
 		}
 	}
@@ -479,14 +488,83 @@ float3 ComponentSteering::Separation() const
 }
 
 // ---------------------------------------------------------
+float3 ComponentSteering::CollisionAvoidance() const
+{
+	float3 ret = float3::zero;
+
+	vector<GameObject*> results;
+	App->level->FindNear(game_object->GetGlobalPosition(), separation_radius, results);
+
+	float smallest_collision_time = -inf;
+	const GameObject* go_to_avoid = nullptr;
+	float3 smallest_relative_vel;
+	float3 smallest_relative_pos;
+	float smallest_min_separation;
+	float smallest_distance;
+
+	// find the gameobject that has a shortest time to collision and focus only on this one
+	for (vector<GameObject*>::const_iterator it = results.begin(); it != results.end(); ++it)
+	{
+		const GameObject* go = *it;
+		if (go->HasComponent(Component::Steering) == true && go != game_object)
+		{
+			// Predict time of collision
+			float3 relative_pos = go->GetGlobalPosition() - game_object->GetGlobalPosition();
+			float3 relative_vel = go->GetVelocity() - game_object->GetVelocity();
+			float relative_speed = relative_vel.Length();
+			float time_to_collision = relative_pos.Dot(relative_vel) / (relative_speed * relative_speed);
+
+			// Check if there will be collision at all
+			float distance = relative_pos.Length();
+			float min_separation = distance - relative_speed * time_to_collision;
+
+			if (min_separation > separation_radius * 2.0f)
+				continue; // no collision
+
+			if (time_to_collision > 0 && time_to_collision < smallest_collision_time)
+			{
+				smallest_collision_time = time_to_collision;
+				go_to_avoid = go;
+
+				smallest_relative_vel = relative_vel;
+				smallest_relative_pos = relative_pos;
+				smallest_min_separation = min_separation;
+				smallest_distance = distance;
+			}
+		}
+	}
+
+	// now avoid the selected gameobject
+	if (go_to_avoid != nullptr)
+	{
+		LOG("Avoiding %s", go_to_avoid->name.c_str());
+
+		// colliding or hitting exactly
+		if (smallest_min_separation <= 0.0f || smallest_distance < separation_radius * 2.0f)
+		{
+			ret = go_to_avoid->GetGlobalPosition() - game_object->GetGlobalPosition();
+		}
+		else // calculate the future relative position
+		{
+			ret = smallest_relative_pos + smallest_relative_vel * smallest_collision_time;
+		}
+
+		ret.Normalize();
+		ret *= mov_acceleration;
+	}
+
+	return ret;
+}
+
+// ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 13, "code needs update");
+	static_assert(Behaviour::unknown == 14, "code needs update");
 
 	static const char* behaviours[] = { 
 		"Seek", "Flee", "Arrive", "Align", "UnAlign", "Match Velocity", 
 		"Pursue", "Evade", "Face", "Look Ahead", "Wander", "Follow Path",
-		"Separation", "Unknown" };
+		"Separation", "Collision Avoidance", "Unknown" };
 
 	int behaviour_type = behaviour;
 	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, (int) Behaviour::unknown))
@@ -587,10 +665,14 @@ void ComponentSteering::DrawEditor()
 			}
 		} break;
 
+		case collision_avoidance:
+		{
+
+		} // fallback
 		case separation:
 		{
 			ImGui::DragFloat("Radius", &separation_radius, 0.1f, 0.1f);
-		} break;
+		} break; 
 	}
 
 	// Curve editor! ---

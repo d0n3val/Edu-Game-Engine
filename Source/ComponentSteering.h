@@ -28,6 +28,7 @@ public:
 		wander,
 		follow_path,
 		separation,
+		collision_avoidance,
 		unknown
 	};
 
@@ -62,6 +63,7 @@ private:
 	float3 Wander();
 	float3 FollowPath() const;
 	float3 Separation() const;
+	float3 CollisionAvoidance() const;
 
 private:
 	uint goal_uid = 0;
