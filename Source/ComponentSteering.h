@@ -29,6 +29,7 @@ public:
 		follow_path,
 		separation,
 		collision_avoidance,
+		obstacle_avoidance,
 		unknown
 	};
 
@@ -64,6 +65,7 @@ private:
 	float3 FollowPath() const;
 	float3 Separation() const;
 	float3 CollisionAvoidance() const;
+	float3 ObstacleAvoidance() const;
 
 private:
 	uint goal_uid = 0;
@@ -101,6 +103,9 @@ private:
 	float path_prediction = 0.0f;
 
 	float separation_radius = 10.0f;
+
+	float obstacle_detector_len = 5.0f;
+	float obstacle_avoid_distance = 5.0f;
 
 private:
 

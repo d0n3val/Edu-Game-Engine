@@ -362,6 +362,36 @@ GameObject* ModuleLevelManager::CastRay(const LineSegment& segment, float& dist)
 	return candidate;
 }
 
+void ModuleLevelManager::RecursiveTestRayBBox(const LineSegment & segment, float & dist, float3 & normal, GameObject ** best_candidate) const
+{
+	map<float, GameObject*> objects;
+	quadtree.CollectIntersections(objects, segment);
+
+	for (map<float, GameObject*>::const_iterator it = objects.begin(); it != objects.end(); ++it)
+	{
+		// Look for meshes
+		GameObject* go = it->second;
+		if (go->HasComponent(Component::Types::Geometry) == true)
+		{
+			float closer = inf;
+			*best_candidate = (GameObject*) go;
+			dist = it->first;
+
+			// let's find out the plane that hit the segment and fill in the normal
+			for (int i = 0; i < 6; ++i)
+			{
+				Plane p(go->global_bbox.FacePlane(i));
+				float d;
+				if (p.Intersects(segment, &d))
+				{
+					if (d < closer)
+						normal = p.normal;
+				}
+			}
+		}
+	}
+}
+
 void ModuleLevelManager::RecursiveTestRay(const LineSegment& segment, float& dist, GameObject** best_candidate) const
 {
 	map<float, GameObject*> objects;
@@ -410,6 +440,15 @@ GameObject* ModuleLevelManager::CastRay(const Ray & ray, float& dist) const
 	dist = inf;
 	GameObject* candidate = nullptr;
 	RecursiveTestRay(ray, dist, &candidate);
+	return candidate;
+}
+
+GameObject * ModuleLevelManager::CastRayOnBoundingBoxes(const LineSegment & segment, float & dist, float3 & normal) const
+{
+	dist = inf;
+	normal = float3::zero;
+	GameObject* candidate = nullptr;
+	RecursiveTestRayBBox(segment, dist, normal, &candidate);
 	return candidate;
 }
 

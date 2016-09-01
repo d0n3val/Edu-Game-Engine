@@ -83,6 +83,7 @@ public:
 	bool HasComponent(Component::Types type) const;
 
 	float3 GetVelocity() const;
+	float GetRadius() const;
 
 private:
 	AABB local_bbox;

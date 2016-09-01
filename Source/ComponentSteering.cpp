@@ -48,6 +48,11 @@ void ComponentSteering::OnSave(Config& config) const
 	config.AddUInt("Path", (path) ? path->GetGameObject()->GetUID() : 0);
 	config.AddFloat("Path Offset", path_offset);
 	config.AddFloat("Path Prediction", path_prediction);
+
+	config.AddFloat("Separation Radius", separation_radius);
+
+	config.AddFloat("Obstacle Distance", obstacle_avoid_distance);
+	config.AddFloat("Obstacle Detector", obstacle_detector_len);
 }
 
 // ---------------------------------------------------------
@@ -72,6 +77,9 @@ void ComponentSteering::OnLoad(Config * config)
 
 	path_offset = config->GetFloat("Path Offset", 0.1f);
 	path_prediction = config->GetFloat("Path Prediction", 0.0f);
+	separation_radius = config->GetFloat("Separation Radius", 10.0f);
+	obstacle_avoid_distance = config->GetFloat("Obstacle Distance", 3.0f);
+	obstacle_detector_len = config->GetFloat("Obstacle Detector", 3.0f);
 }
 
 // ---------------------------------------------------------
@@ -157,8 +165,10 @@ void ComponentSteering::OnUpdate(float dt)
 		mov_velocity += Separation();
 		break;
 	case ComponentSteering::collision_avoidance:
-		//mov_velocity += Arrive(Pursue(goal->GetGlobalPosition(), goal->GetVelocity()));
 		mov_velocity += CollisionAvoidance();
+		break;
+	case ComponentSteering::obstacle_avoidance:
+		mov_velocity += ObstacleAvoidance();
 		break;
 	case ComponentSteering::unknown:
 		break;
@@ -253,8 +263,6 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 			} break;
 			case separation:
 			{
-				DebugDraw(Circle(game_object->GetGlobalPosition(), float3::unitY, separation_radius));
-
 				vector<GameObject*> results;
 				App->level->FindNear(game_object->GetGlobalPosition(), separation_radius, results);
 
@@ -270,11 +278,30 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 						DebugDrawArrow(direction.Normalized() * force, offset, Green, game_object->GetGlobalTransformation());
 					}
 				}
-			} break;
+			} // fallback
 			case collision_avoidance:
 			{
 				DebugDraw(Circle(game_object->GetGlobalPosition(), float3::unitY, separation_radius));
+			} break;
+			case obstacle_avoidance:
+			{
+				float3 a = game_object->GetGlobalTransformation().TransformPos(float3::unitZ * game_object->GetRadius());
+				float3 b = game_object->GetGlobalTransformation().TransformPos(float3::unitZ * (game_object->GetRadius() + obstacle_detector_len));
+				
+				LineSegment detector(a, b);
+				DebugDraw(detector, Yellow);
 
+				float dist;
+				float3 normal;
+				const GameObject* go = App->level->CastRayOnBoundingBoxes(detector, dist, normal);
+				
+				if (go != nullptr)
+				{
+					float3 hit_pos = detector.GetPoint(dist);
+					float3 ret = hit_pos + normal * obstacle_avoid_distance;
+					DebugDraw(LineSegment(hit_pos, ret), Yellow);
+					DebugDraw(Circle(ret, float3::unitY, 2.0f), Red);
+				}
 			} break;
 		}
 	}
@@ -495,7 +522,7 @@ float3 ComponentSteering::CollisionAvoidance() const
 	vector<GameObject*> results;
 	App->level->FindNear(game_object->GetGlobalPosition(), separation_radius, results);
 
-	float smallest_collision_time = -inf;
+	float smallest_collision_time = inf;
 	const GameObject* go_to_avoid = nullptr;
 	float3 smallest_relative_vel;
 	float3 smallest_relative_pos;
@@ -557,14 +584,37 @@ float3 ComponentSteering::CollisionAvoidance() const
 }
 
 // ---------------------------------------------------------
+float3 ComponentSteering::ObstacleAvoidance() const
+{
+	float3 ret = float3::zero;
+
+	float3 a = game_object->GetGlobalTransformation().TransformPos(float3::unitZ * game_object->GetRadius());
+	float3 b = game_object->GetGlobalTransformation().TransformPos(float3::unitZ * (game_object->GetRadius() + obstacle_detector_len));
+	
+	LineSegment detector(a, b);
+
+	float dist;
+	float3 normal;
+	const GameObject* go = App->level->CastRayOnBoundingBoxes(detector, dist, normal);
+	
+	if (go != nullptr)
+	{
+		float3 hit_pos = detector.GetPoint(dist);
+		ret = hit_pos + normal * obstacle_avoid_distance;
+	}
+
+	return ret;
+}
+
+// ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 14, "code needs update");
+	static_assert(Behaviour::unknown == 15, "code needs update");
 
 	static const char* behaviours[] = { 
 		"Seek", "Flee", "Arrive", "Align", "UnAlign", "Match Velocity", 
 		"Pursue", "Evade", "Face", "Look Ahead", "Wander", "Follow Path",
-		"Separation", "Collision Avoidance", "Unknown" };
+		"Separation", "Collision Avoidance", "Obstacle Avoidance", "Unknown" };
 
 	int behaviour_type = behaviour;
 	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, (int) Behaviour::unknown))
@@ -673,6 +723,12 @@ void ComponentSteering::DrawEditor()
 		{
 			ImGui::DragFloat("Radius", &separation_radius, 0.1f, 0.1f);
 		} break; 
+
+		case obstacle_avoidance:
+		{
+			ImGui::DragFloat("Detector Len", &obstacle_detector_len, 0.01f, 1.0f, 50.0f);
+			ImGui::DragFloat("Distance", &obstacle_avoid_distance, 0.01f, 1.0f, 10.0f);
+		}
 	}
 
 	// Curve editor! ---

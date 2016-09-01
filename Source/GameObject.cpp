@@ -737,3 +737,11 @@ float3 GameObject::GetVelocity() const
 {
 	return velocity;
 }
+
+// ---------------------------------------------------------
+float GameObject::GetRadius() const
+{
+	if(global_bbox.IsFinite())
+		return global_bbox.HalfDiagonal().Length();
+	return 0.0f;
+}
