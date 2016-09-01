@@ -460,3 +460,7 @@ void ModuleLevelManager::RecursiveTestRay(const Ray& ray, float& dist, GameObjec
 	}
 }
 
+void ModuleLevelManager::FindNear(const float3 & position, float radius, std::vector<GameObject*>& results) const
+{
+	quadtree.CollectIntersections(results, Sphere(position, radius));
+}

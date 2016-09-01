@@ -723,6 +723,16 @@ void GameObject::FindComponents(Component::Types type, vector<Component*>& resul
 }
 
 // ---------------------------------------------------------
+bool GameObject::HasComponent(Component::Types type) const
+{
+	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+		if ((*it)->GetType() == type)
+			return true;
+
+	return false;
+}
+
+// ---------------------------------------------------------
 float3 GameObject::GetVelocity() const
 {
 	return velocity;

@@ -153,6 +153,9 @@ void ComponentSteering::OnUpdate(float dt)
 		mov_velocity += Seek(FollowPath());
 		rot_velocity = Align(LookAhead());
 		break;
+	case ComponentSteering::separation:
+		mov_velocity += Separation();
+		break;
 	case ComponentSteering::unknown:
 		break;
 	default:
@@ -242,6 +245,26 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 
 					float3 future_pos = game_object->GetGlobalPosition() + mov_velocity * path_prediction;
 					DebugDraw(Circle(future_pos, float3::unitY, 0.5f), Green);
+				}
+			} break;
+			case separation:
+			{
+				DebugDraw(Circle(game_object->GetGlobalPosition(), float3::unitY, separation_radius));
+
+				vector<GameObject*> results;
+				App->level->FindNear(game_object->GetGlobalPosition(), separation_radius, results);
+
+				for (vector<GameObject*>::const_iterator it = results.begin(); it != results.end(); ++it)
+				{
+					if ((*it)->HasComponent(Component::Steering) == true && *it != game_object)
+					{
+						DebugDraw(Sphere(float3::zero, 2.0f), White, (*it)->GetGlobalTransformation());
+						float3 direction =  game_object->GetGlobalPosition() - (*it)->GetGlobalPosition();
+						// Linear
+						float force = mov_acceleration * ((separation_radius - direction.Length()) / separation_radius);
+						float3 offset(0.f, goal->GetLocalBBox().HalfSize().y, 0.f);
+						DebugDrawArrow(direction.Normalized() * force, offset, Green, game_object->GetGlobalTransformation());
+					}
 				}
 			} break;
 		}
@@ -434,14 +457,36 @@ float3 ComponentSteering::FollowPath() const
 }
 
 // ---------------------------------------------------------
+float3 ComponentSteering::Separation() const
+{
+	float3 ret = float3::zero;
+
+	vector<GameObject*> results;
+	App->level->FindNear(game_object->GetGlobalPosition(), separation_radius, results);
+
+	for (vector<GameObject*>::const_iterator it = results.begin(); it != results.end(); ++it)
+	{
+		if ((*it)->HasComponent(Component::Steering) == true && *it != game_object)
+		{
+			float3 direction =  game_object->GetGlobalPosition() - (*it)->GetGlobalPosition();
+			// Linear
+			float force = mov_acceleration * ((separation_radius - direction.Length()) / separation_radius);
+			ret += direction.Normalized() * force;
+		}
+	}
+
+	return ret;
+}
+
+// ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 12, "code needs update");
+	static_assert(Behaviour::unknown == 13, "code needs update");
 
 	static const char* behaviours[] = { 
 		"Seek", "Flee", "Arrive", "Align", "UnAlign", "Match Velocity", 
 		"Pursue", "Evade", "Face", "Look Ahead", "Wander", "Follow Path",
-		"Unknown" };
+		"Separation", "Unknown" };
 
 	int behaviour_type = behaviour;
 	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, (int) Behaviour::unknown))
@@ -540,6 +585,11 @@ void ComponentSteering::DrawEditor()
 				ImGui::DragFloat("Offset", &path_offset, 0.01f, 0.01f, 1.0f);
 				ImGui::DragFloat("Prediction", &path_prediction, 0.01f, 0.01f, 10.0f);
 			}
+		} break;
+
+		case separation:
+		{
+			ImGui::DragFloat("Radius", &separation_radius, 0.1f, 0.1f);
 		} break;
 	}
 

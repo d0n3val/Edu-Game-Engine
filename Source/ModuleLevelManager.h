@@ -49,6 +49,7 @@ public:
 	GameObject* Validate(const GameObject* pointer) const;
 	GameObject* CastRay(const LineSegment& segment, float& dist) const;
 	GameObject* CastRay(const Ray& ray, float& dist) const;
+	void FindNear(const float3& position, float radius, std::vector<GameObject*>& results) const;
 
 private:
 	void RecursiveTestRay(const LineSegment& segment, float& dist, GameObject** best_candidate) const;

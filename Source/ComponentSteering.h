@@ -27,6 +27,7 @@ public:
 		look_ahead,
 		wander,
 		follow_path,
+		separation,
 		unknown
 	};
 
@@ -60,6 +61,7 @@ private:
 	float3 LookAhead() const;
 	float3 Wander();
 	float3 FollowPath() const;
+	float3 Separation() const;
 
 private:
 	uint goal_uid = 0;
@@ -95,6 +97,8 @@ private:
 	float path_offset = 0.1f;
 	mutable float last_closest = 0.0f;
 	float path_prediction = 0.0f;
+
+	float separation_radius = 10.0f;
 
 private:
 
