@@ -24,7 +24,8 @@ public:
 
 	void GenerateSpline();
 	float3 GetPos(float range) const;
-	float3 GetClosestPoint(const float3& position, const float3* previous = nullptr, uint resolution = 25) const;
+	float3 GetClosestPoint(const float3& position, const float3* previous = nullptr, uint resolution = 0) const;
+	float GetClosestPoint(const float3& position, const float* previous = nullptr, uint resolution = 0) const;
 
 private:
 	void RecalculateLength();
@@ -38,6 +39,7 @@ private:
 	float path_lenght = 0.0f;
 	float test_point = 0.0f;
 	float3 test_close = float3::zero;
+	float test_close_factor = 0.0f;
 	mutable float3 test_close_prev = float3::zero;
 };
 

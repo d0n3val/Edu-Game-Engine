@@ -92,6 +92,9 @@ private:
 
 	uint path_uid = 0;
 	const ComponentPath* path = nullptr;
+	float path_offset = 0.1f;
+	mutable float last_closest = 0.0f;
+	float path_prediction = 0.0f;
 
 private:
 

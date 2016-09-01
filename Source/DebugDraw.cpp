@@ -61,8 +61,8 @@ void DebugDraw(const Sphere & sphere, Color color, const float4x4 & transform)
 	glPushMatrix();
 	glMultMatrixf((GLfloat*) transform.Transposed().ptr());
 
-	int stacks = MAX(5, sphere.r*10);
-	int slices = MAX(5, sphere.r*10);
+	int stacks = MAX(5, (int)sphere.r*10);
+	int slices = MAX(5, (int)sphere.r*10);
 
     int i,j;
     for (j = 0; j < stacks; j++) {
@@ -407,7 +407,7 @@ void DebugDraw(const Circle & circle, Color color)
 	glEnable(GL_BLEND);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glColor4f(color.r, color.g, color.b, 0.25f);
+	glColor4f(color.r, color.g, color.b, 0.5f);
 
     glBegin( GL_TRIANGLE_FAN );
     glVertex3f(circle.pos.x, circle.pos.y, circle.pos.z);

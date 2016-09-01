@@ -16,6 +16,7 @@ ComponentPath::ComponentPath(GameObject* container) : Component(container, Types
 	points.push_back(float3::zero);
 	points.push_back(float3::one);
 	points.push_back(float3::zero);
+	GenerateSpline();
 }
 
 // ---------------------------------------------------------
@@ -71,7 +72,7 @@ void ComponentPath::OnDebugDraw(bool selected) const
 
 		if (degrees > 1)
 		{
-			uint total = 25;
+			uint total = (uint) path_lenght;
 			for (uint i = 0; i < total;)
 			{
 				float3 a(spline->evaluate((float)i / (float)total).result_ptr());
@@ -116,6 +117,9 @@ void ComponentPath::DrawEditor()
 
 	ImGui::SliderFloat("Test Point", &test_point, 0.0f, 1.0f);
 	ImGui::DragFloat3("Test Close", &test_close.x);
+
+	test_close_factor = GetClosestPoint(test_close, &test_close_factor);
+	IMGUI_PRINT("Close %: ", "%.3f", test_close_factor);
 }
 
 // ---------------------------------------------------------
@@ -135,8 +139,12 @@ float3 ComponentPath::GetPos(float range) const
 {
 	float3 ret = float3::zero;
 
-	if(spline != nullptr)
+	if (spline != nullptr)
+	{
+		if (range < 0.0f || range > 1.0f)
+			range = ModPos(range, 1.0f);
 		ret = float3(spline->evaluate(range).result_ptr());
+	}
 
 	return ret;
 }
@@ -146,6 +154,9 @@ float3 ComponentPath::GetClosestPoint(const float3 & position, const float3 * pr
 {
 	float3 ret = float3::zero;
 
+	if (resolution == 0)
+		resolution = (uint)path_lenght;
+
 	std::map<float, LineSegment> closest_segment;
 
 	for (uint i = 0; i < resolution;)
@@ -154,14 +165,49 @@ float3 ComponentPath::GetClosestPoint(const float3 & position, const float3 * pr
 		float3 b(spline->evaluate((float)++i / (float)resolution).result_ptr());
 		LineSegment ls(a, b);
 		float3 closest = ls.ClosestPoint(position);
-		float dist = closest.DistanceSq(position);
+
+		float dist = closest.Distance(position);
 		if(previous != nullptr)
-			dist += closest.DistanceSq(*previous);
+			dist += closest.Distance(*previous);
 		closest_segment[dist] = ls;
 	}
 
 	if (closest_segment.size() > 0)
 		ret = closest_segment.begin()->second.ClosestPoint(position);
+
+	return ret;
+}
+
+// ---------------------------------------------------------
+float ComponentPath::GetClosestPoint(const float3 & position, const float * previous, uint resolution) const
+{
+	float ret = 0.0f;
+
+	if (resolution == 0)
+		resolution = (uint)path_lenght;
+
+	std::map<float, float> closest_segment;
+
+	float f1, f2, f3;
+	for (uint i = 0; i < resolution; ++i)
+	{
+		f1 = ((float)i / (float)resolution);
+		f2 = ((float)++i / (float)resolution);
+
+		float3 a(spline->evaluate(f1).result_ptr());
+		float3 b(spline->evaluate(f2).result_ptr());
+		LineSegment ls(a, b);
+		float3 closest = ls.ClosestPoint(position, &f3);
+
+		float dist = closest.DistanceSq(position);
+		if(previous != nullptr)
+			dist += closest.DistanceSq(GetPos(*previous));
+
+		closest_segment[dist] = f1 + ((f2-f1)*f3);
+	}
+
+	if (closest_segment.size() > 0)
+		ret = closest_segment.begin()->second;
 
 	return ret;
 }

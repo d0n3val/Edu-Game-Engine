@@ -46,6 +46,8 @@ void ComponentSteering::OnSave(Config& config) const
 	config.AddFloat("Wander Rate", wander_change_rate);
 
 	config.AddUInt("Path", (path) ? path->GetGameObject()->GetUID() : 0);
+	config.AddFloat("Path Offset", path_offset);
+	config.AddFloat("Path Prediction", path_prediction);
 }
 
 // ---------------------------------------------------------
@@ -67,6 +69,9 @@ void ComponentSteering::OnLoad(Config * config)
 	wander_radius = config->GetFloat("Wander Radius", 1.0f);
 	wander_change_rate = config->GetFloat("Wander Rate", 0.1f);
 	path_uid = config->GetUInt("Path");
+
+	path_offset = config->GetFloat("Path Offset", 0.1f);
+	path_prediction = config->GetFloat("Path Prediction", 0.0f);
 }
 
 // ---------------------------------------------------------
@@ -185,7 +190,6 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 	float4x4 m;
 	m.Translate(game_object->GetGlobalPosition());
 
-
 	if (selected == true && goal != nullptr)
 	{
 		switch (behaviour)
@@ -226,7 +230,20 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 				// Last generated position
 				DebugDraw(Circle(last_wander_target, float3::unitY, 0.5f), Red);
 			} break;
+			case follow_path:
+			{
+				if (path != nullptr)
+				{
+					path->OnDebugDraw(true);
 
+					// Last generated closest position to path
+					DebugDraw(Circle(path->GetPos(last_closest), float3::unitY, 0.5f), Red);
+					DebugDraw(Circle(path->GetPos(last_closest + path_offset), float3::unitY, 0.5f), Yellow);
+
+					float3 future_pos = game_object->GetGlobalPosition() + mov_velocity * path_prediction;
+					DebugDraw(Circle(future_pos, float3::unitY, 0.5f), Green);
+				}
+			} break;
 		}
 	}
 }
@@ -249,6 +266,14 @@ void ComponentSteering::SetBehaviour(Behaviour new_behaviour)
 	if (new_behaviour != behaviour)
 	{
 		behaviour = new_behaviour;
+
+		// Add here initial settings when we switch behaviours
+		switch (behaviour)
+		{
+			case follow_path:
+				last_closest = 0.0f;
+			break;
+		}
 	}
 }
 
@@ -397,6 +422,14 @@ float3 ComponentSteering::Wander()
 float3 ComponentSteering::FollowPath() const
 {
 	float3 ret = float3::zero;
+
+	if (path != nullptr)
+	{
+		float3 pos_to_evaluate = game_object->GetGlobalPosition() + mov_velocity * path_prediction;
+		last_closest = path->GetClosestPoint(pos_to_evaluate, &last_closest);
+		return path->GetPos(last_closest + path_offset);
+	}
+
 	return ret;
 }
 
@@ -504,6 +537,8 @@ void ComponentSteering::DrawEditor()
 						path = (ComponentPath*) results[0];
 				}
 				ImGui::PopID();
+				ImGui::DragFloat("Offset", &path_offset, 0.01f, 0.01f, 1.0f);
+				ImGui::DragFloat("Prediction", &path_prediction, 0.01f, 0.01f, 10.0f);
 			}
 		} break;
 	}
