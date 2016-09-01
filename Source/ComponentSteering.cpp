@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "ComponentSteering.h"
+#include "ComponentPath.h"
 #include "GameObject.h"
 #include "Component.h"
 #include "ModuleAI.h"
@@ -26,7 +27,7 @@ ComponentSteering::~ComponentSteering()
 void ComponentSteering::OnSave(Config& config) const
 {
 	config.AddInt("Behaviour", behaviour);
-	config.AddUID("Goal", (goal) ? goal->GetUID() : 0);
+	config.AddUInt("Goal", (goal) ? goal->GetUID() : 0);
 
 	config.AddFloat("Mov Acceleration", mov_acceleration);
 	config.AddFloat("Mov Speed", max_mov_speed);
@@ -43,13 +44,15 @@ void ComponentSteering::OnSave(Config& config) const
 	config.AddFloat3("Wander Offset", wander_offset);
 	config.AddFloat("Wander Radius", wander_radius);
 	config.AddFloat("Wander Rate", wander_change_rate);
+
+	config.AddUInt("Path", (path) ? path->GetGameObject()->GetUID() : 0);
 }
 
 // ---------------------------------------------------------
 void ComponentSteering::OnLoad(Config * config)
 {
 	behaviour = (Behaviour) config->GetInt("Behaviour", Behaviour::seek);
-	goal_uid = config->GetInt("Goal");
+	goal_uid = config->GetUInt("Goal");
 	mov_acceleration = config->GetFloat("Mov Acceleration", 0.1f);
 	max_mov_speed = config->GetFloat("Mov Speed", 1.0f);
 	max_distance = config->GetFloat("Max Distance", 50.0f);
@@ -63,6 +66,7 @@ void ComponentSteering::OnLoad(Config * config)
 	wander_offset = config->GetFloat3("Wander Offset");
 	wander_radius = config->GetFloat("Wander Radius", 1.0f);
 	wander_change_rate = config->GetFloat("Wander Rate", 0.1f);
+	path_uid = config->GetUInt("Path");
 }
 
 // ---------------------------------------------------------
@@ -70,6 +74,15 @@ void ComponentSteering::OnStart()
 {
 	if (goal_uid != 0)
 		goal = App->level->Find(goal_uid);
+
+	if (path_uid != 0)
+	{
+		GameObject* path_go = App->level->Find(path_uid);
+		vector<Component*> results;
+		path_go->FindComponents(Component::Path, results);
+		if (results.size() > 0)
+			path = (ComponentPath*) results[0];
+	}
 }
 
 // ---------------------------------------------------------
@@ -129,6 +142,10 @@ void ComponentSteering::OnUpdate(float dt)
 		break;
 	case ComponentSteering::wander:
 		mov_velocity += Seek(Wander());
+		rot_velocity = Align(LookAhead());
+		break;
+	case ComponentSteering::follow_path:
+		mov_velocity += Seek(FollowPath());
 		rot_velocity = Align(LookAhead());
 		break;
 	case ComponentSteering::unknown:
@@ -219,6 +236,12 @@ void ComponentSteering::OnGoDestroyed()
 {
 	if(goal != nullptr)
 		goal = App->level->Validate(goal);
+
+	if (path != nullptr)
+	{
+		if(App->level->Validate(path->GetGameObject()) == nullptr)
+			path = nullptr;
+	}
 }
 // ---------------------------------------------------------
 void ComponentSteering::SetBehaviour(Behaviour new_behaviour)
@@ -371,13 +394,21 @@ float3 ComponentSteering::Wander()
 }
 
 // ---------------------------------------------------------
+float3 ComponentSteering::FollowPath() const
+{
+	float3 ret = float3::zero;
+	return ret;
+}
+
+// ---------------------------------------------------------
 void ComponentSteering::DrawEditor()
 {
-	static_assert(Behaviour::unknown == 11, "code needs update");
+	static_assert(Behaviour::unknown == 12, "code needs update");
 
 	static const char* behaviours[] = { 
 		"Seek", "Flee", "Arrive", "Align", "UnAlign", "Match Velocity", 
-		"Pursue", "Evade", "Face", "Look Ahead", "Wander", "Unknown" };
+		"Pursue", "Evade", "Face", "Look Ahead", "Wander", "Follow Path",
+		"Unknown" };
 
 	int behaviour_type = behaviour;
 	if (ImGui::Combo("Behaviour", &behaviour_type, behaviours, (int) Behaviour::unknown))
@@ -448,14 +479,33 @@ void ComponentSteering::DrawEditor()
 	// Others stuff --------------------
 	ImGui::Separator();
 
-	if (behaviour == wander)
+	switch (behaviour)
 	{
-		if (ImGui::CollapsingHeader("Wander Behavior"))
+		case wander:
 		{
-			ImGui::DragFloat3("Offset", &wander_offset.x, 0.1f);
-			ImGui::DragFloat("Radius", &wander_radius, 0.1f);
-			ImGui::SliderFloat("Rate", &wander_change_rate, 0.01f, 1.0f);
-		}
+			if (ImGui::CollapsingHeader("Wander Behavior"))
+			{
+				ImGui::DragFloat3("Offset", &wander_offset.x, 0.1f);
+				ImGui::DragFloat("Radius", &wander_radius, 0.1f);
+				ImGui::SliderFloat("Rate", &wander_change_rate, 0.01f, 1.0f);
+			}
+		} break;
+		case follow_path:
+		{
+			if (ImGui::CollapsingHeader("Follow Path"))
+			{
+				ImGui::PushID("PickPath");
+				const GameObject* go = App->editor->props->PickGameObject((path) ? path->GetGameObject() : nullptr);
+				if (go != nullptr)
+				{
+					vector<Component*> results;
+					go->FindComponents(Component::Path, results);
+					if (results.size() > 0)
+						path = (ComponentPath*) results[0];
+				}
+				ImGui::PopID();
+			}
+		} break;
 	}
 
 	// Curve editor! ---

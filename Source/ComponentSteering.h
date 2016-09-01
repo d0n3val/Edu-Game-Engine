@@ -6,6 +6,8 @@
 #include "Component.h"
 #include "Math.h"
 
+class ComponentPath;
+
 class ComponentSteering : public Component
 {
 	friend class ModuleAI;
@@ -24,6 +26,7 @@ public:
 		face,
 		look_ahead,
 		wander,
+		follow_path,
 		unknown
 	};
 
@@ -56,6 +59,7 @@ private:
 	float3 Face(const float3& position) const;
 	float3 LookAhead() const;
 	float3 Wander();
+	float3 FollowPath() const;
 
 private:
 	uint goal_uid = 0;
@@ -80,10 +84,14 @@ private:
 
 	// Others ---
 	float max_mov_prediction = 10.0f;
+
 	float3 wander_offset = float3::unitZ;
 	float wander_radius = 3.0f;
 	float wander_change_rate = 0.5f;
 	float3 last_wander_target = float3::zero;
+
+	uint path_uid = 0;
+	const ComponentPath* path = nullptr;
 
 private:
 

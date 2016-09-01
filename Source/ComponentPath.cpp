@@ -13,6 +13,9 @@ using namespace ts;
 // ---------------------------------------------------------
 ComponentPath::ComponentPath(GameObject* container) : Component(container, Types::Path)
 {
+	points.push_back(float3::zero);
+	points.push_back(float3::one);
+	points.push_back(float3::zero);
 }
 
 // ---------------------------------------------------------
@@ -34,6 +37,7 @@ void ComponentPath::OnLoad(Config * config)
 	int num_points = config->GetArrayCount("Points");
 	if (num_points > 0)
 	{
+		points.clear();
 		points.reserve(num_points / 3);
 		for (int i = 0; i < num_points;)
 		{
@@ -51,52 +55,67 @@ void ComponentPath::OnDebugDraw(bool selected) const
 {
 	if (selected == true)
 	{
-		if (points.size() >= 2)
+		vector<float3>::const_iterator last = points.end();
+		--last;
+
+		for (vector<float3>::const_iterator it = points.begin(); it != last;)
 		{
-			vector<float3>::const_iterator last = points.end();
-			--last;
+			float3 a = *it;
+			float3 b = *(++it);
 
-			for (vector<float3>::const_iterator it = points.begin(); it != last;)
-			{
-				float3 a = *it;
-				float3 b = *(++it);
-
-				DebugDraw(LineSegment(a,b), Red);
-				DebugDraw(Sphere(a, 0.1f), Yellow);
-			}
+			DebugDraw(LineSegment(a,b), Red);
+			DebugDraw(Sphere(a, 0.1f), Yellow);
+			if(it == last)
+				DebugDraw(Sphere(b, 0.1f), Yellow);
 		}
 
-		if (spline != nullptr)
+		if (degrees > 1)
 		{
 			uint total = 25;
-			for (uint i = 0; i < total - 1;)
+			for (uint i = 0; i < total;)
 			{
 				float3 a(spline->evaluate((float)i / (float)total).result_ptr());
 				float3 b(spline->evaluate((float)++i / (float)total).result_ptr());
 				DebugDraw(LineSegment(a, b), Green);
 			}
 		}
+
+		DebugDraw(Sphere(GetPos(test_point), 0.2f));
+		DebugDraw(Sphere(test_close, 0.2f), Yellow);
+
+		test_close_prev = GetClosestPoint(test_close, &test_close_prev);
+		DebugDraw(Sphere(GetClosestPoint(test_close, &test_close_prev), 0.2f), Yellow);
 	}
 }
 
 // ---------------------------------------------------------
 void ComponentPath::DrawEditor()
 {
+	IMGUI_PRINT("Length: ", "%.3f", path_lenght);
+
 	int num_points = points.size();
 	if (ImGui::InputInt("# Points", &num_points))
-		points.resize(num_points, float3::zero);
+	{
+		if (num_points > 2)
+		{
+			points.resize(num_points, float3::zero);
+			GenerateSpline();
+		}
+	}
 
 	char name[25];
 	for (uint i = 0; i < points.size(); ++i)
 	{
 		sprintf_s(name, 25, "Point %i", i);
-		ImGui::DragFloat3(name, &points[i].x);
+		if (ImGui::DragFloat3(name, &points[i].x))
+			GenerateSpline();
 	}
 
-	ImGui::SliderInt("Spline Degrees", &degrees, 1, points.size() - 1);
-
-	if (ImGui::Button("Generate Spline"))
+	if (ImGui::SliderInt("Degrees", &degrees, 1, points.size()-1))
 		GenerateSpline();
+
+	ImGui::SliderFloat("Test Point", &test_point, 0.0f, 1.0f);
+	ImGui::DragFloat3("Test Close", &test_close.x);
 }
 
 // ---------------------------------------------------------
@@ -104,6 +123,7 @@ void ComponentPath::GenerateSpline()
 {
 	if (points.size() > 2)
 	{
+		RecalculateLength();
 		RELEASE(spline);
 		spline = new ts::BSpline(degrees, 3, points.size(), TS_CLAMPED);
 		spline->setCtrlp(&points[0].x);
@@ -113,5 +133,52 @@ void ComponentPath::GenerateSpline()
 // ---------------------------------------------------------
 float3 ComponentPath::GetPos(float range) const
 {
-	return float3(spline->evaluate(range).result_ptr());
+	float3 ret = float3::zero;
+
+	if(spline != nullptr)
+		ret = float3(spline->evaluate(range).result_ptr());
+
+	return ret;
+}
+
+// ---------------------------------------------------------
+float3 ComponentPath::GetClosestPoint(const float3 & position, const float3 * previous, uint resolution) const
+{
+	float3 ret = float3::zero;
+
+	std::map<float, LineSegment> closest_segment;
+
+	for (uint i = 0; i < resolution;)
+	{
+		float3 a(spline->evaluate((float)i / (float)resolution).result_ptr());
+		float3 b(spline->evaluate((float)++i / (float)resolution).result_ptr());
+		LineSegment ls(a, b);
+		float3 closest = ls.ClosestPoint(position);
+		float dist = closest.DistanceSq(position);
+		if(previous != nullptr)
+			dist += closest.DistanceSq(*previous);
+		closest_segment[dist] = ls;
+	}
+
+	if (closest_segment.size() > 0)
+		ret = closest_segment.begin()->second.ClosestPoint(position);
+
+	return ret;
+}
+
+// ---------------------------------------------------------
+void ComponentPath::RecalculateLength()
+{
+	path_lenght = 0.0f;
+
+	vector<float3>::const_iterator last = points.end();
+	--last;
+
+	for (vector<float3>::const_iterator it = points.begin(); it != last;) 
+	{
+		float3 a = *it;
+		float3 b = *(++it);
+
+		path_lenght += a.Distance(b);
+	}
 }
