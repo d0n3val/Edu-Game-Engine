@@ -585,6 +585,12 @@
     <ClInclude Include="tinyspline\include\tinysplinecpp.h">
       <Filter>3rd Party\tinyspline</Filter>
     </ClInclude>
+    <ClInclude Include="HashString.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="ModulePrograms.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -889,6 +895,12 @@
     </ClCompile>
     <ClCompile Include="tinyspline\include\tinysplinecpp.cpp">
       <Filter>3rd Party\tinyspline</Filter>
+    </ClCompile>
+    <ClCompile Include="HashString.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ModulePrograms.cpp">
+      <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

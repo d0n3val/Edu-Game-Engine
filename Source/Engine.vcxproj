@@ -151,6 +151,7 @@
     <ClInclude Include="glmath.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="gpudetect\DeviceId.h" />
+    <ClInclude Include="HashString.h" />
     <ClInclude Include="Imgui\imconfig.h" />
     <ClInclude Include="Imgui\imgui.h" />
     <ClInclude Include="Imgui\imgui_impl_sdl_gl3.h" />
@@ -234,6 +235,7 @@
     <ClInclude Include="ModuleLevelManager.h" />
     <ClInclude Include="ModuleMeshes.h" />
     <ClInclude Include="ModulePhysics3D.h" />
+    <ClInclude Include="ModulePrograms.h" />
     <ClInclude Include="ModuleRenderer3D.h" />
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="ModuleSceneLoader.h" />
@@ -287,6 +289,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="glmath.cpp" />
     <ClCompile Include="gpudetect\DeviceId.cpp" />
+    <ClCompile Include="HashString.cpp" />
     <ClCompile Include="Imgui\imgui_user2.cpp" />
     <ClCompile Include="Imgui\imgui.cpp" />
     <ClCompile Include="Imgui\imgui_demo.cpp" />
@@ -341,6 +344,7 @@
     <ClCompile Include="ModuleLevelManager.cpp" />
     <ClCompile Include="ModuleMeshes.cpp" />
     <ClCompile Include="ModulePhysics3D.cpp" />
+    <ClCompile Include="ModulePrograms.cpp" />
     <ClCompile Include="ModuleRenderer3D.cpp" />
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="ModuleSceneLoader.cpp" />
