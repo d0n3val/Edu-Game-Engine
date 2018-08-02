@@ -271,6 +271,35 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 	return ret;
 }
 
+bool ModuleSceneLoader::ImportNew(const char* full_path, std::string& output)
+{
+	GameObject* node = nullptr;
+
+	unsigned flags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_OptimizeGraph;
+
+	const aiScene* scene = aiImportFile(full_path.data,  flags);
+
+	if (scene)
+	{
+		node = GenerateGameObjects(scene);
+
+		if(node)
+		{
+			LinkNode(node, &root);
+		}
+
+		unsigned first_material = materials.size();
+
+		GenerateMaterials(scene, path);
+		GenerateMeshes(scene, first_material);
+
+		aiReleaseImport(scene);
+	}
+
+	return node;
+}
+
+
 UID ModuleSceneLoader::FindBoneFromLastImport(const char * name) const
 {
 	if (imported_bones.find(name) != imported_bones.end())
