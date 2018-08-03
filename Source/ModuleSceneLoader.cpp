@@ -300,6 +300,369 @@ bool ModuleSceneLoader::ImportNew(const char* full_path, std::string& output)
 }
 
 
+GameObject* ModuleSceneLoader::GenerateGameObjects(const aiScene* scene)
+{
+	GameObject* node = new GameObject;
+	GenerateGameObjectsRecursive(scene->mRootNode, node);
+
+	return node;
+}
+
+void ModuleSceneLoader::GenerateGameObjectsRecursive(const aiNode* src, Node* dst)
+{
+	dst->name = HashString(src->mName.C_Str());
+
+    aiQuaternion quat;
+	src->mTransformation.Decompose(*reinterpret_cast<aiVector3D*>(&dst->scale), quat, *reinterpret_cast<aiVector3D*>(&dst->position));
+
+    dst->rotation = math::float4(quat.x, quat.y, quat.z, quat.w);
+
+    // \todo: add mesh components
+
+	dst->childs.resize(src->mNumChildren);
+
+	for(unsigned i=0; i < src->mNumChildren; ++i)
+	{
+		dst->childs[i] = new GameObject;
+		dst->childs[i]->parent = dst;
+
+		GenerateNodesRecursive(src->mChildren[i], dst->childs[i]);
+	}
+}
+
+void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* path)
+{
+	unsigned mat_offset = materials.size();
+	materials.resize(mat_offset+scene->mNumMaterials);
+	aiString base_path;
+	base_path.Set(path);
+
+    Textures* textures = Textures::GetService();
+
+	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
+	{
+		const aiMaterial* material = scene->mMaterials[i];
+		Material* dst_material = materials[mat_offset+i] = new Material; 
+
+		float shine_strength = 1.0f;
+
+		material->Get(AI_MATKEY_NAME, dst_material->name);
+		material->Get(AI_MATKEY_COLOR_AMBIENT, dst_material->ambient);
+		material->Get(AI_MATKEY_COLOR_DIFFUSE, dst_material->diffuse);
+		material->Get(AI_MATKEY_COLOR_SPECULAR, dst_material->specular);
+		material->Get(AI_MATKEY_SHININESS, dst_material->shininess);
+		material->Get(AI_MATKEY_SHININESS_STRENGTH, shine_strength);
+
+		dst_material->specular *= shine_strength;
+
+		aiString file;
+		aiTextureMapping mapping;
+		unsigned uvindex = 0;
+		if(material->GetTexture(aiTextureType_DIFFUSE, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
+		{
+			assert(mapping == aiTextureMapping_UV);
+			assert(uvindex == 0);
+
+			aiString full_path = base_path;
+			full_path.Append(file.data);
+
+			dst_material->albedo_map = textures->Load(full_path.C_Str());
+		}
+
+		if (material->GetTexture(aiTextureType_NORMALS, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
+		{
+			assert(mapping == aiTextureMapping_UV);
+			assert(uvindex == 0);
+
+			aiString full_path = base_path;
+			full_path.Append(file.data);
+
+			dst_material->normal_map = textures->Load(full_path.C_Str());
+		}
+
+		if (material->GetTexture(aiTextureType_SPECULAR, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
+		{
+			assert(mapping == aiTextureMapping_UV);
+			assert(uvindex == 0);
+
+			aiString full_path = base_path;
+			full_path.Append(file.data);
+
+			dst_material->specular_map = textures->Load(full_path.C_Str());
+		}
+	}
+}
+
+void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const std::vector<UID>& materials, std::vector<UID>& meshes)
+{
+	meshes.resize(scene->mNumMeshes);
+
+	for(unsigned i=0; i < scene->mNumMeshes; ++i)
+	{
+		const aiMesh* orig = scene->mMeshes[i];
+		Mesh* dst = meshes[i] = new Mesh;
+
+        dst->name = orig->mName.length > 0 ? HashString(orig->mName.C_Str()) : HashString();
+		dst->material = orig->mMaterialIndex+first_material;
+
+        GenerateAttribInfo(dst, orig);
+        GenerateCPUBuffers(dst, orig);
+
+        if((dst->attribs & ATTRIB_BONES) != 0)
+        {
+            GenerateBoneData(dst, orig);
+        }
+
+        GenerateVBO(dst, false);
+        GenerateVAO(dst);
+	}
+}
+
+void Scene::GenerateAttribInfo(Mesh* dst, const aiMesh* orig)
+{
+    dst->vertex_size     = sizeof(math::float3);
+    dst->texcoord_offset = 0;
+    dst->normal_offset   = 0;
+
+    if(orig->HasNormals())
+    {
+        dst->attribs |= ATTRIB_NORMALS;
+        dst->normal_offset = dst->vertex_size*orig->mNumVertices;
+        dst->vertex_size += sizeof(math::float3);
+    }
+
+    if(orig->HasTextureCoords(0))
+    {
+        dst->attribs |= ATTRIB_TEX_COORDS_0;
+        dst->texcoord_offset = dst->vertex_size*orig->mNumVertices;
+        dst->vertex_size += sizeof(aiVector2D);
+    }
+
+    if(orig->HasTangentsAndBitangents())
+    {
+        dst->attribs |= ATTRIB_TANGENTS;
+        dst->tangent_offset = dst->vertex_size*orig->mNumVertices;
+        dst->vertex_size += sizeof(math::float3);
+    }
+
+    if(orig->HasBones())
+    {
+        dst->attribs |= ATTRIB_BONES;
+        dst->bone_idx_offset = dst->vertex_size*orig->mNumVertices;
+        dst->vertex_size += sizeof(unsigned)*4;
+        dst->bone_weight_offset = dst->vertex_size*orig->mNumVertices;
+        dst->vertex_size += sizeof(float)*4;
+    }
+}
+
+void Scene::GenerateCPUBuffers(Mesh* dst, const aiMesh* orig)
+{
+    dst->num_vertices = orig->mNumVertices;
+
+    dst->src_vertices = new math::float3[orig->mNumVertices];
+
+    math::float3 min(FLT_MAX);
+    math::float3 max(-FLT_MAX);
+
+    for(unsigned i=0; i< orig->mNumVertices; ++i)
+    {
+        dst->src_vertices[i] = *((math::float3*)&orig->mVertices[i]);
+
+        for(unsigned j=0; j<3; ++j)
+        {
+            min[j] = std::min(min[j], dst->src_vertices[i][j]);
+            max[j] = std::max(max[j], dst->src_vertices[i][j]);
+        }
+    }
+
+    dst->oobb.center    = (min+max)*0.5f;
+    dst->oobb.half_size = (max-min)*0.5f;
+
+    if(orig->HasTextureCoords(0))
+    {
+        dst->src_texcoord0 = new math::float2[orig->mNumVertices];
+
+        for(unsigned i=0; i < orig->mNumVertices; ++i) 
+        {
+            dst->src_texcoord0[i] = math::float2(orig->mTextureCoords[0][i].x, orig->mTextureCoords[0][i].y);
+        }
+    }
+
+    if(orig->HasNormals())
+    {
+        dst->src_normals = new math::float3[orig->mNumVertices];
+        memcpy(dst->src_normals, orig->mNormals, sizeof(math::float3)*orig->mNumVertices);
+    }
+
+    dst->src_indices = new unsigned[orig->mNumFaces*3];
+    dst->num_indices = orig->mNumFaces*3;
+
+    for(unsigned j=0; j < orig->mNumFaces; ++j)
+    {
+        const aiFace& face = orig->mFaces[j];
+
+        assert(face.mNumIndices == 3);
+
+        dst->src_indices[j * 3] = face.mIndices[0];
+        dst->src_indices[j * 3 + 1] = face.mIndices[1];
+        dst->src_indices[j * 3 + 2] = face.mIndices[2];
+    }
+
+    if(orig->HasTangentsAndBitangents())
+    {
+        // uncomment iif copy form assimp
+        dst->src_tangents = new math::float3[orig->mNumVertices];
+        memcpy(dst->src_tangents, orig->mTangents, sizeof(math::float3)*orig->mNumVertices);
+        //GenerateTangentSpace(dst);
+    }
+}
+
+void Scene::GenerateVBO(Mesh* dst, bool dynamic)
+{
+    glGenBuffers(1, &dst->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, dst->vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, dst->vertex_size*dst->num_vertices, nullptr, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(math::float3)*dst->num_vertices, dst->src_vertices);
+
+    if((dst->attribs & ATTRIB_TEX_COORDS_0) != 0)
+    {
+        glBufferSubData(GL_ARRAY_BUFFER, dst->texcoord_offset, sizeof(aiVector2D)*dst->num_vertices, dst->src_texcoord0);
+    }
+
+    if((dst->attribs & ATTRIB_NORMALS) != 0)
+    {
+        glBufferSubData(GL_ARRAY_BUFFER, dst->normal_offset, sizeof(math::float3)*dst->num_vertices, dst->src_normals);
+    }
+
+    if((dst->attribs & ATTRIB_TANGENTS) != 0)
+    {
+        glBufferSubData(GL_ARRAY_BUFFER, dst->tangent_offset, sizeof(math::float3)*dst->num_vertices, dst->src_tangents);
+    }
+
+    if((dst->attribs & ATTRIB_BONES) != 0)
+    {
+        unsigned* bone_indices = (unsigned*)glMapBufferRange(GL_ARRAY_BUFFER, dst->bone_idx_offset, 
+                                                             (sizeof(unsigned)*4+sizeof(float)*4)*dst->num_vertices, 
+                                                             GL_MAP_WRITE_BIT);
+        float* bone_weights    = (float*)(bone_indices+dst->num_vertices*4);
+
+        for(unsigned i=0; i < dst->num_vertices*4; ++i) 
+        {
+            bone_indices[i] = 0;
+            bone_weights[i] = 0.0f;
+        }
+
+        for(unsigned i=0; i< dst->num_bones; ++i)
+        {
+            const Bone& bone = dst->bones[i];
+
+            for(unsigned j=0; j < bone.num_weights; ++j)
+            {
+                unsigned index = bone.weights[j].vertex;
+                float weight   = bone.weights[j].weight;
+
+                unsigned* bone_idx = &bone_indices[index*4];
+                float* bone_weight = &bone_weights[index*4];
+
+                assert(bone_weight[3] == 0.0f);
+                for(unsigned l=0; l < 4; ++l)
+                {
+                    if(bone_weight[l] == 0.0f)
+                    {
+                        bone_idx[l] = i;
+                        bone_weight[l] = weight;
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        glUnmapBuffer(GL_ARRAY_BUFFER);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &dst->ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dst->ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, dst->num_indices*sizeof(unsigned), dst->src_indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void Scene::GenerateBoneData(Mesh* dst, const aiMesh* orig)
+{
+    assert((dst->attribs & ATTRIB_BONES) != 0);
+
+    dst->bones      = new Bone[orig->mNumBones];
+    dst->num_bones  = orig->mNumBones;
+
+    dst->palette    = new math::float4x4[dst->num_bones];
+    dst->node_cache = new Node*[dst->num_bones];
+
+    for(unsigned i=0; i< orig->mNumBones; ++i)
+    {
+        const aiBone* bone   = orig->mBones[i];
+        Bone& dst_bone       = dst->bones[i];
+
+        dst_bone.name 	     = HashString(bone->mName.C_Str());
+        dst_bone.weights     = new Weight[bone->mNumWeights];
+        dst_bone.num_weights = bone->mNumWeights;
+        dst_bone.bind 	     = math::float4x4(math::float4(bone->mOffsetMatrix.a1, bone->mOffsetMatrix.b1, bone->mOffsetMatrix.c1, bone->mOffsetMatrix.d1),
+											  math::float4(bone->mOffsetMatrix.a2, bone->mOffsetMatrix.b2, bone->mOffsetMatrix.c2, bone->mOffsetMatrix.d2),
+                                              math::float4(bone->mOffsetMatrix.a3, bone->mOffsetMatrix.b3, bone->mOffsetMatrix.c3, bone->mOffsetMatrix.d3),
+                                              math::float4(bone->mOffsetMatrix.a4, bone->mOffsetMatrix.b4, bone->mOffsetMatrix.c4, bone->mOffsetMatrix.d4));
+
+        for(unsigned j=0; j < bone->mNumWeights; ++j)
+        {
+            dst_bone.weights[j].vertex = bone->mWeights[j].mVertexId;
+            dst_bone.weights[j].weight = bone->mWeights[j].mWeight;
+        }
+
+        dst->node_cache[i] = nullptr;
+    }
+
+}
+
+void Scene::GenerateVAO(Mesh* dst)
+{
+    glGenVertexArrays(1, &dst->vao);
+    glBindVertexArray(dst->vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, dst->vbo);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(math::float3), (void*)0);
+
+	if ((dst->attribs & ATTRIB_NORMALS) != 0)
+	{
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(math::float3), (void*)(dst->normal_offset));
+	}
+
+	if ((dst->attribs & ATTRIB_TEX_COORDS_0) != 0)
+	{
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(aiVector2D), (void*)(dst->texcoord_offset));
+	}
+
+	if((dst->attribs & ATTRIB_BONES) != 0)
+	{
+		glEnableVertexAttribArray(3);
+		glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT, sizeof(unsigned)*4, (void*)dst->bone_idx_offset);
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)dst->bone_weight_offset);
+	}
+
+    if((dst->attribs & ATTRIB_TANGENTS) != 0)
+    {
+		glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(math::float3), (void*)(dst->tangent_offset));
+    }
+
+    glBindVertexArray(0);
+}
+
 UID ModuleSceneLoader::FindBoneFromLastImport(const char * name) const
 {
 	if (imported_bones.find(name) != imported_bones.end())

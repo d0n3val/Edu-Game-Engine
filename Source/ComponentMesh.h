@@ -9,6 +9,7 @@
 #include "Color.h"
 
 class ComponentBone;
+class ComponentMaterial;
 class ResourceMesh;
 
 class ComponentMesh : public Component, public ComponentWithResource
@@ -25,6 +26,7 @@ public:
 
 	void GetBoundingBox(AABB& box) const override;
 
+    uint GetMaterialIndex() const;
 	uint CountPotentialBones() const;
 	void AttachBones(const GameObject* go);
 	void DetachBones();
@@ -35,11 +37,18 @@ private:
 	void RecursiveFindBones(const GameObject* go, std::vector<ComponentBone*>& found) const;
 
 public:
+    uint material_index;
 	std::vector<ComponentBone*> attached_bones;
 	ResourceMesh* deformable = nullptr;
 	uint root_bones_uid = 0;
 	const GameObject* root_bones = nullptr;
 	Color tint = White;
 };
+
+// ---------------------------------------------------------
+inline uint ComponentMesh::GetMaterialIndex() const
+{
+    return material_index;
+}
 
 #endif // __COMPONENT_MESH_H__

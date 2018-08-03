@@ -36,6 +36,10 @@ private:
 	void RecursiveProcessBones(const aiScene* scene, const aiNode* node);
 
 private:
+
+    std::vector<ResourceMesh*> meshes;
+    std::vector<ResourceMaterial*> materials;
+
 	// TODO clean up this mess :(
 	std::map<aiBone*, UID> mesh_bone;
 	std::map<std::string, aiBone*> bones;

@@ -40,6 +40,8 @@ void ComponentMesh::OnLoad(Config * config)
 	tint.g = config->GetFloat("Tint", 1.0f, 1);
 	tint.b = config->GetFloat("Tint", 1.0f, 2);
 	tint.a = config->GetFloat("Tint", 1.0f, 3);
+
+	material_index = config->GetUInt("Material", UINTMAX_MAX);
 }
 
 // ---------------------------------------------------------
