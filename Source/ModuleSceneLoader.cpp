@@ -281,6 +281,7 @@ bool ModuleSceneLoader::ImportNew(const char* full_path, std::string& output)
 
 	if (scene)
 	{
+		GenerateMaterials(scene, path);
 		node = GenerateGameObjects(scene);
 
 		if(node)
@@ -290,7 +291,6 @@ bool ModuleSceneLoader::ImportNew(const char* full_path, std::string& output)
 
 		unsigned first_material = materials.size();
 
-		GenerateMaterials(scene, path);
 		GenerateMeshes(scene, first_material);
 
 		aiReleaseImport(scene);
@@ -330,66 +330,13 @@ void ModuleSceneLoader::GenerateGameObjectsRecursive(const aiNode* src, Node* ds
 	}
 }
 
-void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* path)
+void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file, dtl::vector<UID>& materials)
 {
-	unsigned mat_offset = materials.size();
-	materials.resize(mat_offset+scene->mNumMaterials);
-	aiString base_path;
-	base_path.Set(path);
-
-    Textures* textures = Textures::GetService();
+	materials.reserve(scene->mNumMaterials);
 
 	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
 	{
-		const aiMaterial* material = scene->mMaterials[i];
-		Material* dst_material = materials[mat_offset+i] = new Material; 
-
-		float shine_strength = 1.0f;
-
-		material->Get(AI_MATKEY_NAME, dst_material->name);
-		material->Get(AI_MATKEY_COLOR_AMBIENT, dst_material->ambient);
-		material->Get(AI_MATKEY_COLOR_DIFFUSE, dst_material->diffuse);
-		material->Get(AI_MATKEY_COLOR_SPECULAR, dst_material->specular);
-		material->Get(AI_MATKEY_SHININESS, dst_material->shininess);
-		material->Get(AI_MATKEY_SHININESS_STRENGTH, shine_strength);
-
-		dst_material->specular *= shine_strength;
-
-		aiString file;
-		aiTextureMapping mapping;
-		unsigned uvindex = 0;
-		if(material->GetTexture(aiTextureType_DIFFUSE, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
-		{
-			assert(mapping == aiTextureMapping_UV);
-			assert(uvindex == 0);
-
-			aiString full_path = base_path;
-			full_path.Append(file.data);
-
-			dst_material->albedo_map = textures->Load(full_path.C_Str());
-		}
-
-		if (material->GetTexture(aiTextureType_NORMALS, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
-		{
-			assert(mapping == aiTextureMapping_UV);
-			assert(uvindex == 0);
-
-			aiString full_path = base_path;
-			full_path.Append(file.data);
-
-			dst_material->normal_map = textures->Load(full_path.C_Str());
-		}
-
-		if (material->GetTexture(aiTextureType_SPECULAR, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
-		{
-			assert(mapping == aiTextureMapping_UV);
-			assert(uvindex == 0);
-
-			aiString full_path = base_path;
-			full_path.Append(file.data);
-
-			dst_material->specular_map = textures->Load(full_path.C_Str());
-		}
+        materials.push_back(App->resources->ImportBuffer(scene->mMaterials[i], 0, Resource::material, file));
 	}
 }
 

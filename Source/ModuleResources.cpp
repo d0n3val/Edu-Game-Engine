@@ -8,6 +8,7 @@
 #include "ModuleSceneLoader.h"
 #include "Event.h"
 #include "ResourceTexture.h"
+#include "ResourceMaterial.h"
 #include "ResourceMesh.h"
 #include "ResourceAudio.h"
 #include "ResourceScene.h"
@@ -284,8 +285,16 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 	bool import_ok = false;
 	string output;
 
+
 	switch (type)
 	{
+        case Resource::material:
+            {
+                std::string base_path;
+                App->fs->SplitFilePath(source_file, base_path, nullptr, nullptr);
+                import_ok = ResourceMaterial::Import((const aiMaterial*)buffer, base_path.c_str(), output);
+            }
+        break;
 		case Resource::texture:
 			import_ok = App->tex->Import(buffer, size, output);
 		break;
