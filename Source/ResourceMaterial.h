@@ -12,9 +12,9 @@ public:
     virtual ~ResourceMaterial();
 
 	bool        LoadInMemory   () override;
-    bool        Save           (string& output) const
+    bool        Save           (string& output) const;
 
-    static bool Import          (const aiMaterial* material, const char* base_path, bool std::string& output);
+    static UID  Import          (const aiMaterial* material, const char* source_file);
 
 public:
 

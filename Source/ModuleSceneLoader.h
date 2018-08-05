@@ -35,6 +35,8 @@ private:
 	void RecursiveCreateGameObjects(const aiScene* scene, const aiNode* node, GameObject* parent, const std::string& basePath, const std::string& file);
 	void RecursiveProcessBones(const aiScene* scene, const aiNode* node);
 
+    void GenerateMaterials(const aiScene* scene, const char* file, dtl::vector<UID>& materials);
+
 private:
 
     std::vector<ResourceMesh*> meshes;

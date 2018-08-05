@@ -27,23 +27,23 @@ public:
 	Resource(UID uid, Resource::Type type);
 	virtual ~Resource();
 
-	Resource::Type GetType() const;
-	const char* GetTypeStr() const;
-	UID GetUID() const;
-	const char* GetFile() const;
-	const char* GetExportedFile() const;
+	Resource::Type  GetType() const;
+	const char*     GetTypeStr() const;
+	UID             GetUID() const;
+	const char*     GetFile() const;
+	const char*     GetExportedFile() const;
 
-	bool IsLoadedToMemory() const;
-	bool LoadToMemory();
+	bool            IsLoadedToMemory() const;
+	bool            LoadToMemory();
 
-	uint CountReferences() const;
+	uint            CountReferences() const;
 
-	virtual void Save(Config& config) const;
-	virtual void Load(const Config& config);
+	virtual void    Save(Config& config) const;
+	virtual void    Load(const Config& config);
 
 protected:
 
-	virtual bool LoadInMemory() = 0;
+	virtual bool    LoadInMemory() = 0;
 
 protected:
 

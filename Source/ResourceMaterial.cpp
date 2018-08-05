@@ -61,17 +61,20 @@ bool ResourceMaterial::Save(string& output) const
 	return App->fs->SaveUnique(output, buffer, write_stream.tellp(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
 }
 
-bool ResourceMaterial::Import(const aiMaterial* material, const char* base_path, std::string& output)
+UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file)
 {
-    ResourceMaterial m;
+    std::string base_path;
+    App->fs->SplitFilePath(source_file, base_path, nullptr, nullptr);
+
+    ResourceMaterial* m = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material));
 
     float shine_strength = 1.0f;
 
-    material->Get(AI_MATKEY_COLOR_AMBIENT, m.ambient);
-    material->Get(AI_MATKEY_COLOR_DIFFUSE, m.diffuse);
-    material->Get(AI_MATKEY_COLOR_SPECULAR, m.specular);
-    material->Get(AI_MATKEY_SHININESS, m.shininess);
-    material->Get(AI_MATKEY_SHININESS_STRENGTH, m.shine_strength);
+    material->Get(AI_MATKEY_COLOR_AMBIENT, m->ambient);
+    material->Get(AI_MATKEY_COLOR_DIFFUSE, m->diffuse);
+    material->Get(AI_MATKEY_COLOR_SPECULAR, m->specular);
+    material->Get(AI_MATKEY_SHININESS, m->shininess);
+    material->Get(AI_MATKEY_SHININESS_STRENGTH, m->shine_strength);
 
     specular *= shine_strength;
 
@@ -83,10 +86,10 @@ bool ResourceMaterial::Import(const aiMaterial* material, const char* base_path,
         assert(mapping == aiTextureMapping_UV);
         assert(uvindex == 0);
 
-        aiString full_path = base_path;
+        aiString full_path = base_path.c_str();
         full_path.Append(file.data);
 
-        m.albedo_map = App->resources->ImportFile(full_path.C_Str(), true);
+        m->albedo_map = App->resources->ImportFile(full_path.C_Str(), true);
     }
 
     if (material->GetTexture(aiTextureType_NORMALS, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -94,10 +97,10 @@ bool ResourceMaterial::Import(const aiMaterial* material, const char* base_path,
         assert(mapping == aiTextureMapping_UV);
         assert(uvindex == 0);
 
-        aiString full_path = base_path;
+        aiString full_path = base_path.c_str();
         full_path.Append(file.data);
 
-        m.normal_map = App->resources->ImportFile(full_path.C_Str(), true);
+        m->normal_map = App->resources->ImportFile(full_path.C_Str(), true);
     }
 
     if (material->GetTexture(aiTextureType_SPECULAR, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -105,12 +108,35 @@ bool ResourceMaterial::Import(const aiMaterial* material, const char* base_path,
         assert(mapping == aiTextureMapping_UV);
         assert(uvindex == 0);
 
-        aiString full_path = base_path;
+        aiString full_path = base_path.c_str();
         full_path.Append(file.data);
 
-        m.specular_map = App->resources->ImportFile(full_path.C_Str(), true);
+        m->specular_map = App->resources->ImportFile(full_path.C_Str(), true);
     }
 
-    return Save(m, output);
+    std::string output;
+
+    if(m->Save(output))
+    {
+		if (source_file != nullptr) 
+        {
+			m->file = source_file;
+			App->fs->NormalizePath(m->file);
+		}
+
+		string file;
+		App->fs->SplitFilePath(output.c_str(), nullptr, &file);
+		m->exported_file = file;
+
+		LOG("Imported successful from aiMaterial [%s] to [%s]", m->GetFile(), m->GetExportedFile());
+
+        return m->uid;
+    }
+
+    // \todo: remove resource
+
+    LOG("Importing of BUFFER aiMaterial [%s] FAILED", source_file);
+
+    return 0;
 }
 
