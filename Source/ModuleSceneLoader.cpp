@@ -308,9 +308,9 @@ GameObject* ModuleSceneLoader::GenerateGameObjects(const aiScene* scene)
 	return node;
 }
 
-void ModuleSceneLoader::GenerateGameObjectsRecursive(const aiNode* src, Node* dst)
+void ModuleSceneLoader::GenerateGameObjectsRecursive(const aiNode* src, GameObject* dst)
 {
-	dst->name = HashString(src->mName.C_Str());
+	dst->name = src->mName.C_Str();
 
     aiQuaternion quat;
 	src->mTransformation.Decompose(*reinterpret_cast<aiVector3D*>(&dst->scale), quat, *reinterpret_cast<aiVector3D*>(&dst->position));

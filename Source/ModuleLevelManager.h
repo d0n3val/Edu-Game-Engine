@@ -46,20 +46,17 @@ public:
 	GameObject* Duplicate(const GameObject* original);
 
 	// Utils
-	GameObject*         Validate(const GameObject* pointer) const;
-	GameObject*         CastRay(const LineSegment& segment, float& dist) const;
-	GameObject*         CastRay(const Ray& ray, float& dist) const;
-	GameObject*         CastRayOnBoundingBoxes(const LineSegment& segment, float& dist, float3& normal) const;
-	void                FindNear(const float3& position, float radius, std::vector<GameObject*>& results) const;
+	GameObject*         Validate                (const GameObject* pointer) const;
+	GameObject*         CastRay                 (const LineSegment& segment, float& dist) const;
+	GameObject*         CastRay                 (const Ray& ray, float& dist) const;
+	GameObject*         CastRayOnBoundingBoxes  (const LineSegment& segment, float& dist, float3& normal) const;
+	void                FindNear                (const float3& position, float radius, std::vector<GameObject*>& results) const;
 
-	unsigned  	        AddPointLight 	        (const float3& position);
-	unsigned  	        AddDirectionalLight 	(const float3& direction, const float3& up);
-
-	void 		        SetActiveLight          (uint index); 
-	const Light*        GetActiveLight          () const;
-	Light* 	            GetActiveLight          ();
+	GameObject*  	    AddPointLight 	        (const float3& position);
+	GameObject*  	    AddDirectionalLight 	(const float3& direction, const float3& up);
 
 private:
+
 	void RecursiveTestRayBBox(const LineSegment& segment, float& dist, float3& normal, GameObject** best_candidate) const;
 	void RecursiveTestRay(const LineSegment& segment, float& dist, GameObject** best_candidate) const;
 	void RecursiveTestRay(const Ray& ray, float& dist, GameObject** best_candidate) const;
@@ -77,7 +74,6 @@ public:
 
 private:
 	GameObject* root = nullptr;
-    GameObject* active_light = nullptr;
 	std::string name;
 };
 

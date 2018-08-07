@@ -503,3 +503,28 @@ void ModuleLevelManager::FindNear(const float3 & position, float radius, std::ve
 {
 	quadtree.CollectIntersections(results, Sphere(position, radius));
 }
+
+GameObject* ModuleLevelManager::AddPointLight(const char* name, const float3& position)
+{
+	GameObject* ret = new GameObject(parent, name, position, float3::zero, Quat::identity);
+
+    ComponentLight* light = new ComponentLight;
+    light->type = POINT;
+
+    ret->components->push_back(light);
+
+    return ret;
+}
+
+GameObject* ModuleLevelManager::AddDirectionalLight(const float3& direction, const float3& up)
+{
+	GameObject* ret = new GameObject(parent, name, float3::zero, float3::zero, Quat::LookAt(float3(0.0f, 0.0f, -1.0f), direction, float3(0.0f, 1.0f, 0.0f), up));
+
+    ComponentLight* light = new ComponentLight;
+    light->type = DIRECTIONAL;
+
+    ret->components->push_back(light);
+
+    return ret;
+}
+

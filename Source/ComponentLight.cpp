@@ -16,17 +16,13 @@ ComponentLight::~ComponentLight()
 void ComponentLight::OnSave(Config& config) const
 {
 	config.AddUInt("type", uint(type));
-	config.AddArrayFloat("position", reinterpret_cast<float*>(&position), 3);
-	config.AddArrayFloat("direction", reinterpret_cast<float*>(&direction), 3);
-	config.AddArrayFloat("up", reinterpret_cast<float*>(&up), 3);
+	config.AddFloat3("color", color);
 }
 
 // ---------------------------------------------------------
 void ComponentLight::OnLoad(Config* config) 
 {
-	config.AddUInt("type", uint(type));
-	config.AddArrayFloat("position", reinterpret_cast<float*>(&position), 3);
-	config.AddArrayFloat("direction", reinterpret_cast<float*>(&direction), 3);
-	config.AddArrayFloat("up", reinterpret_cast<float*>(&up), 3);
+	type  = Type(config.GetUInt("type", uint(POINT)));
+    color = config.GetFloat3("color", float3(1.0f, 1.0f, 1.0f));
 }
 
