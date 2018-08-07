@@ -45,6 +45,12 @@ public:
 		ATTRIB_BONES        = 1 << 3,
 	};
 
+	struct Weight
+	{
+		unsigned vertex = 0;
+		float weight    = 0.0f;
+	};
+
 	struct Bone
 	{
 		HashString	name;

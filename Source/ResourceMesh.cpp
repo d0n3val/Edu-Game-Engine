@@ -4,23 +4,14 @@
 
 // ---------------------------------------------------------
 ResourceMesh::ResourceMesh(UID uid) : Resource(uid, Resource::Type::mesh)
-{} 
+{
+    // \todo: initialization
+} 
 
 // ---------------------------------------------------------
 ResourceMesh::~ResourceMesh()
 {
-	// TODO: deallocate opengl buffers
-	RELEASE_ARRAY(indices);
-	RELEASE_ARRAY(vertices);
-	RELEASE_ARRAY(colors);
-	RELEASE_ARRAY(normals);
-	RELEASE_ARRAY(texture_coords);
-}
-
-// ---------------------------------------------------------
-bool ResourceMesh::LoadInMemory()
-{
-	return App->meshes->Load(this);
+    // \todo: deallocation
 }
 
 // ---------------------------------------------------------
@@ -36,6 +27,94 @@ void ResourceMesh::Load(const Config & config)
 }
 
 // ---------------------------------------------------------
+bool ResourceMesh::LoadInMemory()
+{
+	if (GetExportedFile() != nullptr)
+    {
+        char* buffer = nullptr;
+
+        uint size = App->fs->Load(LIBRARY_MESH_FOLDER, GetExportedFile(), &buffer);
+
+        std::stringbuf strbuf;
+        buffer.pubsetbuf(buffer, size);
+
+        std::istream read_stream(&strbuf);
+
+        std::string tmp;
+        read_stream >> tmp;
+        name = HashString(tmp.c_str());
+
+        read_stream >> mat_id;
+        read_stream >> vertex_size;
+        read_stream >> attribs;
+        read_stream >> texcoord_offset;
+        read_stream >> normal_offset;
+        read_stream >> tangent_offset;
+        read_stream >> bone_weight_offset;
+
+        read_stream >> num_vertices;
+
+        for(uint i=0; i< num_vertices; ++i)
+        {
+            read_stream >> src_vertices[i];
+        }
+
+        if((attribs & ATTRIB_TEX_COORDS_0) != 0)
+        {
+            for(uint i=0; i< num_vertices; ++i)
+            {
+                read_stream >> src_texcoord0[i];
+            }
+        }
+
+        if((attribs & ATTRIB_NORMALS) != 0)
+        {
+            for(uint i=0; i< num_vertices; ++i)
+            {
+                read_stream >> src_normals[i];
+            }
+        }
+
+        if((attribs & ATTRIB_TANGENTS) != 0)
+        {
+            for(uint i=0; i< num_vertices; ++i)
+            {
+                read_stream >> src_tangents[i];
+            }
+        }
+
+        read_stream >> num_indices;
+
+        for(uint i=0; i< num_indices; ++i)
+        {
+            read_stream >> src_indices[i];
+        }
+
+        if((attribs & ATTRIB_BONES) != 0)
+        {
+            read_stream >> num_bones;
+
+            for(uint i=0; i< num_bones; ++i)
+            {
+                read_stream >> tmp;
+                bones[i].name = HashString(tmp.c_str());
+                read_stream >> bones[i].bind;
+                read_stream >> bones[i].num_weights;
+
+                for(uint j=0; j< bones[i].num_weights; ++j)
+                {
+                    read_stream >> bones[i].weights[j].vertex;
+                    read_stream >> bones[i].weights[j].weight;
+                }
+            }
+        }
+
+        GenerateVBO(false);
+        GenerateVAO();
+    }
+}
+
+// ---------------------------------------------------------
 bool ResourceMesh::Save(string& output) const
 {
     string data;
@@ -47,13 +126,67 @@ bool ResourceMesh::Save(string& output) const
     write_stream << name.C_str();
     write_stream << mat_id;
     write_stream << vertex_size;
+    write_stream << attribs;
     write_stream << texcoord_offset;
     write_stream << normal_offset;
     write_stream << tangent_offset;
     write_stream << bone_weight_offset;
+
     write_stream << num_vertices;
 
+    for(uint i=0; i< num_vertices; ++i)
+    {
+        write_stream << src_vertices[i];
+    }
+
+    if((attribs & ATTRIB_TEX_COORDS_0) != 0)
+    {
+        for(uint i=0; i< num_vertices; ++i)
+        {
+            write_stream << src_texcoord0[i];
+        }
+    }
+
+    if((attribs & ATTRIB_NORMALS) != 0)
+    {
+        for(uint i=0; i< num_vertices; ++i)
+        {
+            write_stream << src_normals[i];
+        }
+    }
+
+    if((attribs & ATTRIB_TANGENTS) != 0)
+    {
+        for(uint i=0; i< num_vertices; ++i)
+        {
+            write_stream << src_tangents[i];
+        }
+    }
+
     write_stream << num_indices;
+
+    for(uint i=0; i< num_indices; ++i)
+    {
+        write_stream << src_indices[i];
+    }
+
+    if((attribs & ATTRIB_BONES) != 0)
+    {
+        write_stream << num_bones;
+
+        for(uint i=0; i< num_bones; ++i)
+        {
+            write_stream << bones[i].name.C_Str();
+            write_stream << bones[i].bind;
+            write_stream << bones[i].num_weights;
+
+            for(uint j=0; j< bones[i].num_weights; ++j)
+            {
+                write_stream << bones[i].weights[j].vertex;
+                write_stream << bones[i].weights[j].weight;
+            }
+        }
+    }
 
 	return App->fs->SaveUnique(output, data.c_str(), data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
 }

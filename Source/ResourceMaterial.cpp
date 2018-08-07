@@ -17,7 +17,7 @@ bool ResourceMaterial::LoadInMemory()
     {
         char* buffer = nullptr;
 
-        uint size = App->fs->Load(LIBRARY_MESH_FOLDER, GetExportedFile(), &buffer);
+        uint size = App->fs->Load(LIBRARY_MATERIAL_FOLDER, GetExportedFile(), &buffer);
 
         std::stringbuf strbuf;
         buffer.pubsetbuf(buffer, size);
