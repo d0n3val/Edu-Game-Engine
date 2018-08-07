@@ -99,6 +99,8 @@ public:
 	ModuleResources* resources = nullptr;
 	ModuleAnimation* animation = nullptr;
 	ModuleAI* ai = nullptr;
+    ModulePrograms* programs = nullptr;
+    ModuleRenderer* renderer = nullptr;
 
 private:
 

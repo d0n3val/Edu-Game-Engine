@@ -1,5 +1,5 @@
 #include "ModuleRenderer.h"
-#include "Programs.h"
+#include "ModulePrograms.h"
 #include "Camera.h"
 #include "Hints.h"
 #include "DemoMgr.h"
@@ -86,13 +86,11 @@ void ModuleRenderer::DrawSkybox()
 
     if(skybox->vao != 0)
     {
-        Programs* programs = Programs::GetService();
-
-        programs->UseProgram("skybox", 0);
+        App->programs->UseProgram("skybox", 0);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->cubemap);
-        glUniform1i(programs->GetUniformLocation("cubemap"), 0);
+        glUniform1i(App->programs->GetUniformLocation("cubemap"), 0);
 
         glBindVertexArray(skybox->vao);
         glDrawArrays(GL_TRIANGLES, 0, 6*6);
@@ -107,31 +105,22 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& tr
 	{
 		GameObject* node = *it;
 
-        tmp_meshes.clear();
-        node->FindComponents(Component::Geometry, tmp_meshes) const;
+        ComponentGeometry* geometry = node->FindFirstComponent(Component::Geometry) const;
 
-		for (MeshList::const_iterator it_mesh = tmp_meshes.begin(), end_mesh = tmp_meshes.end(); it_mesh != end_mesh; ++it_mesh)
+		for (uint i=0, count = geometry->GetNumMeshes(); i < count; ++i)
 		{
-            //\todo: create mesh instance if(it_mesh->visible)
-            {
-				//assert(it_mesh->index < scene->GetNumMeshes());
-
-                (this->*drawer)(node->global, *it_mesh);
-            }
+            (this->*drawer)(node->GetGlobalTransformation(), static_cast<ResourceMesh*>(App->res->Get(geometry->GetMesh(i))));
         }
 
 	}
 }
 
-void ModuleRenderer::DrawMeshColor(const float4x4& transform, ComponentMesh* mesh)
+void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ResourceMesh* mesh)
 {
-    Scene* scene = Scene::GetService();
     Hints* hints = Hints::GetService();
 
-	const Scene::Material* material = scene->GetMaterial(mesh->material);
+	const ResourceMaterial* material = App->res->Get(scene->GetMaterial(mesh->material));
     const Scene::Light* light = scene->GetActiveLight();
-
-	Programs* programs = Programs::GetService();
 
     unsigned variation = PIXEL_LIGHTING;
 
@@ -160,32 +149,32 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, ComponentMesh* mes
         variation |= RECEIVE_SHADOWS;
     }
 
-	programs->UseProgram("default", variation);
+	App->programs->UseProgram("default", variation);
 
-    glUniformMatrix4fv(programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
-    glUniform1f(programs->GetUniformLocation("shininess"), material->shininess);
+    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
+    glUniform1f(App->programs->GetUniformLocation("shininess"), material->shininess);
 
-    glUniform1f(programs->GetUniformLocation("shadow_bias"), hints->GetFloatValue(Hint::SHADOW_BIAS));
+    glUniform1f(App->programs->GetUniformLocation("shadow_bias"), hints->GetFloatValue(Hint::SHADOW_BIAS));
 
     glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, shadow.tex);
-	glUniform1i(programs->GetUniformLocation("shadow_map"), 3);
+	glUniform1i(App->programs->GetUniformLocation("shadow_map"), 3);
 
     glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, material->specular_map);
-	glUniform1i(programs->GetUniformLocation("specular_map"), 2);
+	glBindTexture(GL_TEXTURE_2D, App->res->Get(material->specular_map)->gpu_id);
+	glUniform1i(App->programs->GetUniformLocation("specular_map"), 2);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, material->normal_map);
-	glUniform1i(programs->GetUniformLocation("normal_map"), 1);
+	glBindTexture(GL_TEXTURE_2D, App->res->Get(material->normal_map)->gpu_id);
+	glUniform1i(App->programs->GetUniformLocation("normal_map"), 1);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, material->albedo_map);
-	glUniform1i(programs->GetUniformLocation("diffuse"), 0);
+	glBindTexture(GL_TEXTURE_2D, App->res->Get(material->albedo_map)->gpu_id);
+	glUniform1i(App->programs->GetUniformLocation("diffuse"), 0);
 
 	if((mesh->attribs & Scene::ATTRIB_BONES))
 	{
-		glUniformMatrix4fv(programs->GetUniformLocation("palette"), mesh->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh->palette));
+		glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh->palette));
 	}
 
     glBindVertexArray(mesh->vao);
@@ -201,7 +190,6 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, ComponentMesh* mes
 
 void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ComponentMesh* mesh)
 {
-    Programs* programs = Programs::GetService();
 	Scene* scene = Scene::GetService();
 
 	if (scene->GetMaterial(mesh->material)->cast_shadows)
@@ -212,14 +200,14 @@ void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ComponentMesh* me
 			variation |= SKINNING;
 		}
 
-		programs->UseProgram("shadow", variation);
+		App->programs->UseProgram("shadow", variation);
 
 		if ((variation & SKINNING))
 		{
-			glUniformMatrix4fv(programs->GetUniformLocation("palette"), mesh->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh->palette));
+			glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh->palette));
 		}
 
-		glUniformMatrix4fv(programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
+		glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
 
 		glBindVertexArray(mesh->vao);
 
@@ -280,13 +268,12 @@ void ModuleRenderer::ColorPass(unsigned width, unsigned height)
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    Programs::GetService()->UnuseProgram();
+    App->programs->UnuseProgram();
 }
 
 void ModuleRenderer::ShadowPass(unsigned width, unsigned height)
 {
 	Hints* hints = Hints::GetService();
-	Programs* programs = Programs::GetService();
 
     if(hints->GetBoolValue(Hint::ENABLE_SHADOW_FRONT_CULLING))
     {
@@ -305,11 +292,11 @@ void ModuleRenderer::ShadowPass(unsigned width, unsigned height)
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-    programs->UseProgram("shadow", 0);
+    App->programs->UseProgram("shadow", 0);
 
 	DrawNodes(&ModuleRenderer::DrawMeshShadow);
 
-	programs->UnuseProgram();
+	App->programs->UnuseProgram();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     if(hints->GetBoolValue(Hint::ENABLE_SHADOW_FRONT_CULLING))
@@ -380,8 +367,8 @@ void ModuleRenderer::LoadDefaultShaders()
 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
 
-    Programs::GetService()->Load("default", "data/default.vs", "data/default.fs", macros, num_macros, binding, UNIFORM_COUNT);
-    Programs::GetService()->Load("skybox", "data/skybox.vs", "data/skybox.fs", 0, 0, binding, 1);
+    App->programs->Load("default", "data/default.vs", "data/default.fs", macros, num_macros, binding, UNIFORM_COUNT);
+    App->programs->Load("skybox", "data/skybox.vs", "data/skybox.fs", 0, 0, binding, 1);
 
 }
 
@@ -393,7 +380,7 @@ void ModuleRenderer::LoadShadowShaders()
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
     const PairUniform binding[]   = { { "camera", UNIFORM_CAMERA } , { "light", UNIFORM_LIGHT } };
 
-	Programs::GetService()->Load("shadow", "data/shadow.vs", "data/shadow.fs", macros, num_macros, binding, UNIFORM_COUNT);
+	App->programs->Load("shadow", "data/shadow.vs", "data/shadow.fs", macros, num_macros, binding, UNIFORM_COUNT);
 }
 
 void ModuleRenderer::DrawClippingSpace(const float4x4& proj, const float4x4& view) const

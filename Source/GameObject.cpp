@@ -723,6 +723,20 @@ void GameObject::FindComponents(Component::Types type, vector<Component*>& resul
 }
 
 // ---------------------------------------------------------
+Component* GameObject::FindFirstComponent(Component::Types type)
+{
+	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
+    {
+		if ((*it)->GetType() == type)
+        {
+			return *it;
+        }
+    }
+
+    return nullptr;
+}
+
+// ---------------------------------------------------------
 bool GameObject::HasComponent(Component::Types type) const
 {
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)

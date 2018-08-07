@@ -4,7 +4,10 @@
 #include "Resource.h"
 #include "Math.h"
 
+#include <string>
+
 class Resource;
+struct aiMesh;
 
 class ResourceMesh : public Resource
 {
@@ -21,7 +24,7 @@ public:
 	void        Load        (const Config& config) override;
 
 	bool        LoadInMemory() override;
-    bool        Save        (string& output) const;
+    bool        Save        (std::string& output) const;
     static UID  Import      (const aiMesh* mesh, UID material, const char* source_file);
 
 private:

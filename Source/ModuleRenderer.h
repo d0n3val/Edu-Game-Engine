@@ -12,7 +12,6 @@ class ComponentMesh;
 class ModuleRenderer : public Module
 {
 	typedef std::vector<GameObject*> NodeList;
-    typedef std::vector<ComponentMesh*> MeshList;
 
     enum ShaderVariation 
     {
@@ -40,7 +39,6 @@ class ModuleRenderer : public Module
     };
 
     NodeList        draw_nodes;
-    MeshList        tmp_meshes;
 
     static unsigned uniforms[UNIFORM_COUNT];
     static unsigned renderer_count;
