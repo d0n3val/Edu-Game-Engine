@@ -9,7 +9,7 @@ public:
     ComponentGeometry();
     ~ComponentGeometry();
 
-    void Initialize(const std::vector<UID>& m);
+    void Initialize(const UID* ids, const unsigned* mesh_indices, unsigned count);
 
     virtual void OnSave(Config& config) const override;
     virtual void OnLoad(Config* config) override;

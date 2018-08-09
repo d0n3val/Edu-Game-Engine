@@ -5,6 +5,7 @@
 #include "ModuleMeshes.h"
 #include "ModuleFileSystem.h"
 #include "GameObject.h"
+#include "ComponentGeometry.h"
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
 #include "ComponentBone.h"
@@ -285,7 +286,7 @@ bool ModuleSceneLoader::ImportNew(const char* full_path, std::string& output)
 		GenerateMaterials(scene, full_path.data, materials);
 		GenerateMeshes(scene, full_path.data, materials, meshes);
 
-		node = GenerateGameObjects(scene, materials, meshes);
+		node = GenerateGameObjects(scene, meshes);
 
 		if(node)
 		{
@@ -300,30 +301,34 @@ bool ModuleSceneLoader::ImportNew(const char* full_path, std::string& output)
 }
 
 
-GameObject* ModuleSceneLoader::GenerateGameObjects(const aiScene* scene)
+GameObject* ModuleSceneLoader::GenerateGameObjects(const aiScene* scene, const std::vector<UID>& materials, const std::vector<UID>& meshes)
 {
-	GameObject* node = new GameObject;
+	GameObject* node = new GameObject(nullptr, scene->mRootNode.mName.C_Str);
 	GenerateGameObjectsRecursive(scene->mRootNode, node);
 
 	return node;
 }
 
-void ModuleSceneLoader::GenerateGameObjectsRecursive(const aiNode* src, GameObject* dst)
+void ModuleSceneLoader::GenerateGameObjectsRecursive(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes)
 {
-	dst->name = src->mName.C_Str();
-
     aiQuaternion quat;
 	src->mTransformation.Decompose(*reinterpret_cast<aiVector3D*>(&dst->scale), quat, *reinterpret_cast<aiVector3D*>(&dst->position));
-
     dst->rotation = math::float4(quat.x, quat.y, quat.z, quat.w);
 
-    // \todo: add mesh components
+
+    if(src->mNumMeshes > 0)
+    {
+        ComponentGeometry* geometry = new ComponentGeometry;
+        geometry->Initialize(meshes, src->mMeshes, src->mNumMeshes);
+
+        dst->components.push_back(geometry);
+    }
 
 	dst->childs.resize(src->mNumChildren);
 
 	for(unsigned i=0; i < src->mNumChildren; ++i)
 	{
-		dst->childs[i] = new GameObject;
+		dst->childs[i] = new GameObject(dst, src->mChildren[i]->mName.C_Str());
 		dst->childs[i]->parent = dst;
 
 		GenerateNodesRecursive(src->mChildren[i], dst->childs[i]);
