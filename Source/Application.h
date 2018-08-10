@@ -27,6 +27,7 @@ class ModuleAnimation;
 class ModuleAI;
 class ModulePrograms;
 class ModuleRenderer;
+class ModuleHints;
 
 struct Event;
 
@@ -103,6 +104,7 @@ public:
 	ModuleAI* ai = nullptr;
     ModulePrograms* programs = nullptr;
     ModuleRenderer* renderer = nullptr;
+	ModuleHints* hints = nullptr;
 
 private:
 

@@ -591,6 +591,9 @@
     <ClInclude Include="ModulePrograms.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleRenderer.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -900,6 +903,9 @@
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="ModulePrograms.cpp">
+      <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleRenderer.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>

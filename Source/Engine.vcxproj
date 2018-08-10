@@ -236,6 +236,7 @@
     <ClInclude Include="ModuleMeshes.h" />
     <ClInclude Include="ModulePhysics3D.h" />
     <ClInclude Include="ModulePrograms.h" />
+    <ClInclude Include="ModuleRenderer.h" />
     <ClInclude Include="ModuleRenderer3D.h" />
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="ModuleSceneLoader.h" />
@@ -345,6 +346,7 @@
     <ClCompile Include="ModuleMeshes.cpp" />
     <ClCompile Include="ModulePhysics3D.cpp" />
     <ClCompile Include="ModulePrograms.cpp" />
+    <ClCompile Include="ModuleRenderer.cpp" />
     <ClCompile Include="ModuleRenderer3D.cpp" />
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="ModuleSceneLoader.cpp" />

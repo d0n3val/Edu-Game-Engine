@@ -319,15 +319,12 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 		mesh->num_indices,
 		mesh->num_vertices);
 
-	bool uvs	 = mesh->texture_coords != nullptr;
-	bool normals = mesh->normals != nullptr;
-	bool colors  = mesh->colors != nullptr;
+	bool uvs = mesh->src_texcoord0 != nullptr;
+	bool normals = mesh->src_normals != nullptr;
 
 	ImGui::Checkbox("UVs", &uvs);
 	ImGui::SameLine();
 	ImGui::Checkbox("Normals", &normals);
-	ImGui::SameLine();
-	ImGui::Checkbox("Colors", &colors);
 
 	ImGui::Text("Potential Bones: %i", component->CountPotentialBones());
 	ImGui::Text("Attached to %i bones", component->CountAttachedBones());

@@ -7,11 +7,12 @@
 #include<vector>
 
 class GameObject;
-class ComponentMesh;
+class ResourceMesh;
 
 class ModuleRenderer : public Module
 {
 	typedef std::vector<GameObject*> NodeList;
+	typedef std::pair<uint, uint> Size;
 
     enum ShaderVariation 
     {
@@ -35,7 +36,7 @@ class ModuleRenderer : public Module
         unsigned  fbo   = 0;
         unsigned  depth = 0;
         unsigned  tex   = 0;
-        uint2     size = uint2(0, 0);
+		Size	  size  = { 0, 0 };
     };
 
     NodeList        draw_nodes;
@@ -48,8 +49,8 @@ class ModuleRenderer : public Module
 
 public:
 
-    Renderer();
-    ~Renderer();
+    ModuleRenderer();
+    ~ModuleRenderer();
 
     void                Draw                    (unsigned width, unsigned height);
     void                DebugDrawTangentSpace   (float size);
@@ -59,9 +60,9 @@ public:
 
     unsigned            GetColorFB              () const;
     unsigned            GetColorFBTexture       () const;
-    const uint2&        GetColorFBSize          () const;
+    const Size&         GetColorFBSize          () const;
     unsigned            GetShadowFBTexture      () const;
-    const uint2&        GetShadowFBSize         () const;
+    const Size&         GetShadowFBSize         () const;
 
 private:
 
@@ -70,9 +71,9 @@ private:
     void                CollectNodes            ();
     void                CollectNodesRec         (GameObject* node);
     //\todo: void                DrawSkybox              ();
-    void                DrawNodes               (void (Renderer::*drawer)(const float4x4& transform, ComponentMesh* mesh));
-    void                DrawMeshColor           (const float4x4& transform, ComponentMesh* mesh);
-    void                DrawMeshShadow          (const float4x4& transform, ComponentMesh* mesh);
+    void                DrawNodes               (void (ModuleRenderer::*drawer)(const float4x4& transform, ResourceMesh* mesh));
+    void                DrawMeshColor           (const float4x4& transform, const ResourceMesh* mesh);
+    void                DrawMeshShadow          (const float4x4& transform, const ResourceMesh* mesh);
     void                ShadowPass              (unsigned width, unsigned height);
     void                ColorPass               (unsigned width, unsigned height);
     void                GenerateFBOTexture      (R2TInfo& info, unsigned width, unsigned height, bool aColor); 
@@ -80,41 +81,41 @@ private:
     void                GetClippingPoints       (const float4x4& proj, const float4x4& view, float3 points[8]) const;
     void                UpdateLightUniform      () const;
     void                UpdateCameraUniform     () const;
-    void                CalcLightSpaceBBox      (const float4& light_rotation, Scene::AABB& aabb) const;
+    void                CalcLightSpaceBBox      (const float4& light_rotation, AABB& aabb) const;
 };
 
 
-inline unsigned Renderer::GetNumDrawNodes() const
+inline unsigned ModuleRenderer::GetNumDrawNodes() const
 {
     return draw_nodes.size();
 }
 
-inline const GameObject* Renderer::GetDrawNode(unsigned index) const
+inline const GameObject* ModuleRenderer::GetDrawNode(unsigned index) const
 {
     return draw_nodes[index];
 }
 
-inline unsigned Renderer::GetColorFBTexture() const
+inline unsigned ModuleRenderer::GetColorFBTexture() const
 {
     return color.tex;
 }
 
-inline const uint2& Renderer::GetColorFBSize() const
+inline const ModuleRenderer::Size& ModuleRenderer::GetColorFBSize() const
 {
     return color.size;
 }
 
-inline unsigned Renderer::GetShadowFBTexture() const
+inline unsigned ModuleRenderer::GetShadowFBTexture() const
 {
     return shadow.tex;
 }
 
-inline const uint2& Renderer::GetShadowFBSize() const
+inline const ModuleRenderer::Size& ModuleRenderer::GetShadowFBSize() const
 {
     return shadow.size;
 }
 
-inline unsigned Renderer::GetColorFB() const
+inline unsigned ModuleRenderer::GetColorFB() const
 {
     return color.fbo;
 }

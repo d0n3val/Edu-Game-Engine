@@ -13,8 +13,8 @@ public:
 
     virtual void OnSave(Config& config) const override;
     virtual void OnLoad(Config* config) override;
-
-private:
+	
+public:
     std::vector<UID> meshes;
 };
 

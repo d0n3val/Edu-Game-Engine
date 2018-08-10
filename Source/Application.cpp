@@ -14,6 +14,9 @@
 #include "ModuleLevelManager.h"
 #include "ModuleResources.h"
 #include "ModuleAnimation.h"
+#include "ModulePrograms.h"
+#include "ModuleRenderer.h"
+#include "ModuleHints.h"
 #include "ModuleAI.h"
 #include "Event.h"
 #include "Config.h"
@@ -52,6 +55,7 @@ Application::Application()
 	modules.push_back(level = new ModuleLevelManager());
     modules.push_back(programs = new ModulePrograms(true));
     modules.push_back(renderer = new ModuleRenderer());
+	modules.push_back(hints = new ModuleHints());
 }
 
 // ---------------------------------------------

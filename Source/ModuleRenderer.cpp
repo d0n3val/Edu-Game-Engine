@@ -1,17 +1,26 @@
+#include "Globals.h"
+
 #include "ModuleRenderer.h"
 #include "ModulePrograms.h"
-#include "Camera.h"
-#include "Hints.h"
-#include "DemoMgr.h"
+#include "ModuleLevelManager.h"
+#include "ModuleResources.h"
+#include "ModuleHints.h"
 
-#include "DebugDraw.h"
+#include "GameObject.h"
 
-#include <glad/glad.h>
+#include "ComponentGeometry.h"
+
+#include "ResourceMesh.h"
+#include "ResourceMaterial.h"
+
+#include "Application.h"
+
+#include "OpenGL.h"
 
 unsigned ModuleRenderer::renderer_count = 0;
 unsigned ModuleRenderer::uniforms[UNIFORM_COUNT];
 
-ModuleRenderer::ModuleRenderer() 
+ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
     LoadDefaultShaders();
     LoadShadowShaders();
@@ -99,47 +108,45 @@ void ModuleRenderer::DrawSkybox()
 }
 */
 
-void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& transform, ComponentMesh* mesh))
+void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& transform, ResourceMesh* mesh))
 {
 	for(NodeList::iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
 	{
 		GameObject* node = *it;
 
-        ComponentGeometry* geometry = node->FindFirstComponent(Component::Geometry) const;
+        ComponentGeometry* geometry = static_cast<ComponentGeometry*>(node->FindFirstComponent(Component::Geometry));
 
-		for (uint i=0, count = geometry->GetNumMeshes(); i < count; ++i)
+		for (uint i=0, count = geometry->meshes.size(); i < count; ++i)
 		{
-            (this->*drawer)(node->GetGlobalTransformation(), static_cast<ResourceMesh*>(App->res->Get(geometry->GetMesh(i))));
+            (this->*drawer)(node->GetGlobalTransformation(), static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i])));
         }
 
 	}
 }
 
 void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ResourceMesh* mesh)
-{
-    Hints* hints = Hints::GetService();
-
-	const ResourceMaterial* material = App->res->Get(scene->GetMaterial(mesh->material));
-    const Scene::Light* light = scene->GetActiveLight();
+{    
+	const ResourceMaterial* material = static_cast<const ResourceMaterial*>(App->resources->Get(mesh->mat_id));
+    const ComponentLight* light = App->level->GetActiveLight();
 
     unsigned variation = PIXEL_LIGHTING;
 
-	if(mesh->attribs & Scene::ATTRIB_BONES)
+	if(mesh->attribs & ResourceMesh::ATTRIB_BONES)
 	{
         variation |= SKINNING;
 	}
 
-    if(hints->GetBoolValue(Hint::ENABLE_NORMAL_MAPPING) && mesh->attribs & Scene::ATTRIB_TANGENTS && material->normal_map != 0)
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) && mesh->attribs & ResourceMesh::ATTRIB_TANGENTS && material->normal_map != 0)
     {
         variation |= NORMAL_MAP;
     }
 
-    if(hints->GetBoolValue(Hint::ENABLE_SPECULAR_MAPPING) && material->specular_map != 0)
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) && material->specular_map != 0)
     {
         variation |= SPECULAR_MAP;
     }
 
-    if(light != nullptr && light->type == Scene::LIGHT_DIRECTIONAL)
+    if(light != nullptr && light->type == ComponentLight::LIGHT_DIRECTIONAL)
     {
         variation |= LIGHT_DIRECTIONAL;
     }
