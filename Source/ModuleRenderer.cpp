@@ -9,6 +9,7 @@
 #include "GameObject.h"
 
 #include "ComponentGeometry.h"
+#include "ComponentLight.h"
 
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
@@ -127,7 +128,7 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& tr
 void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ResourceMesh* mesh)
 {    
 	const ResourceMaterial* material = static_cast<const ResourceMaterial*>(App->resources->Get(mesh->mat_id));
-    const ComponentLight* light = App->level->GetActiveLight();
+    const ComponentLight* light = App->level->GetActiveLight() ? static_cast<const ComponentLight*>(App->level->GetActiveLight()->FindFirstComponent(Component::Light)) : nullptr;
 
     unsigned variation = PIXEL_LIGHTING;
 
@@ -146,14 +147,14 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ResourceMesh
         variation |= SPECULAR_MAP;
     }
 
-    if(light != nullptr && light->type == ComponentLight::LIGHT_DIRECTIONAL)
+    if(light != nullptr && light->type == ComponentLight::DIRECTIONAL)
     {
         variation |= LIGHT_DIRECTIONAL;
-    }
 
-    if(material->recv_shadows)
-    {
-        variation |= RECEIVE_SHADOWS;
+        if(material->recv_shadows)
+        {
+            variation |= RECEIVE_SHADOWS;
+        }
     }
 
 	App->programs->UseProgram("default", variation);
@@ -161,25 +162,25 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ResourceMesh
     glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
     glUniform1f(App->programs->GetUniformLocation("shininess"), material->shininess);
 
-    glUniform1f(App->programs->GetUniformLocation("shadow_bias"), hints->GetFloatValue(Hint::SHADOW_BIAS));
+    glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
 
     glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, shadow.tex);
 	glUniform1i(App->programs->GetUniformLocation("shadow_map"), 3);
 
     glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, App->res->Get(material->specular_map)->gpu_id);
+	glBindTexture(GL_TEXTURE_2D, static_cast<ResourceTexture*>(App->resources->Get(material->specular_map))->gpu_id);
 	glUniform1i(App->programs->GetUniformLocation("specular_map"), 2);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, App->res->Get(material->normal_map)->gpu_id);
+	glBindTexture(GL_TEXTURE_2D, static_cast<ResourceTexture*>(App->resources->Get(material->normal_map))->gpu_id);
 	glUniform1i(App->programs->GetUniformLocation("normal_map"), 1);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, App->res->Get(material->albedo_map)->gpu_id);
+	glBindTexture(GL_TEXTURE_2D, static_cast<ResourceTexture*>(App->resources->Get(material->albedo_map))->gpu_id);
 	glUniform1i(App->programs->GetUniformLocation("diffuse"), 0);
 
-	if((mesh->attribs & Scene::ATTRIB_BONES))
+	if((mesh->attribs & ResourceMesh::ATTRIB_BONES))
 	{
 		glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh->palette));
 	}
@@ -195,14 +196,12 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ResourceMesh
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ComponentMesh* mesh)
+void ModuleRenderer::DrawMeshShadow(const float4x4& transform, const ResourceMesh* mesh)
 {
-	Scene* scene = Scene::GetService();
-
-	if (scene->GetMaterial(mesh->material)->cast_shadows)
+	if (static_cast<ResourceMaterial*>(App->resources->GetMaterial(mesh->material))->cast_shadows)
 	{
 		unsigned variation = 0;
-		if ((mesh->attribs & Scene::ATTRIB_BONES))
+		if ((mesh->attribs & ResourceMesh::ATTRIB_BONES))
 		{
 			variation |= SKINNING;
 		}
@@ -230,8 +229,6 @@ void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ComponentMesh* me
 
 void ModuleRenderer::DebugDrawTangentSpace(float size)
 {
-	Scene* scene = Scene::GetService();
-
     for(NodeList::const_iterator it_node = draw_nodes.begin(), node_end = draw_nodes.end(); it_node != node_end; ++it_node)
     {
         const Scene::Node* node = *it_node;
@@ -447,9 +444,7 @@ void ModuleRenderer::UpdateCameraUniform() const
 
 void ModuleRenderer::UpdateLightUniform() const
 {
-    Scene* scene        = Scene::GetService();	
-    Hints* hints        = Hints::GetService();	
-    Scene::Light* light = scene->GetActiveLight();
+    const ComponentLight* light = App->level->GetActiveLight() ? App->level->GetActiveLight()->FindFirstComponent(Component::Light) : nullptr;
 
     float4x4 proj = identity;
     float4x4 view = identity;

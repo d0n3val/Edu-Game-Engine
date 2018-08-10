@@ -54,6 +54,8 @@ public:
 
 	GameObject*  	    AddPointLight 	        (const float3& position);
 	GameObject*  	    AddDirectionalLight 	(const float3& direction, const float3& up);
+    GameObject*         GetActiveLight          ();
+    const GameObject*   GetActiveLight          () const ;
 
 private:
 
@@ -74,7 +76,18 @@ public:
 
 private:
 	GameObject* root = nullptr;
+	GameObject* active_light = nullptr;
 	std::string name;
 };
+
+inline GameObject* ModuleLevelManager::GetActiveLight()
+{
+    return active_light;
+}
+
+inline const GameObject* ModuleLevelManager::GetActiveLight() const 
+{
+    return active_light;
+}
 
 #endif // __MODULE_LEVELMANAGER_H__
