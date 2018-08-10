@@ -25,7 +25,8 @@ public:
 	bool CleanUp() override;
 
 	bool Import(const char* file, std::string& output);
-
+	bool ImportNew(const char* full_path, std::string& output);
+	
 	UID FindBoneFromLastImport(const char* name) const;
 
 private:
@@ -35,12 +36,12 @@ private:
 	void RecursiveCreateGameObjects(const aiScene* scene, const aiNode* node, GameObject* parent, const std::string& basePath, const std::string& file);
 	void RecursiveProcessBones(const aiScene* scene, const aiNode* node);
 
-    void GenerateMaterials(const aiScene* scene, const char* file, dtl::vector<UID>& materials);
+    void GenerateMaterials  (const aiScene* scene, const char* file, std::vector<UID>& materials);
+	void GenerateMeshes     (const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes);
+	void GenerateGameObjects(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes);
 
 private:
 
-    std::vector<ResourceMesh*> meshes;
-    std::vector<ResourceMaterial*> materials;
 
 	// TODO clean up this mess :(
 	std::map<aiBone*, UID> mesh_bone;

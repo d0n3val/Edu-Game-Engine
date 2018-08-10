@@ -69,6 +69,7 @@ public:
     uint        texcoord_offset     = 0;
     uint        normal_offset       = 0;
     uint        tangent_offset      = 0;
+	uint        bone_idx_offset		= 0;
     uint        bone_weight_offset  = 0;
 
     uint        num_vertices        = 0;
@@ -80,8 +81,9 @@ public:
     uint        num_indices 	    = 0;
     uint*       src_indices 	    = nullptr;
 
-    Bone*       bones 		        = nullptr;
-    uint        num_bones 	        = 0;
+	uint        num_bones			= 0;
+	Bone*       bones 		        = nullptr;
+	float4x4*   palette				= 0;
 
     uint        vao 	            = 0;
     uint        vbo 	            = 0;

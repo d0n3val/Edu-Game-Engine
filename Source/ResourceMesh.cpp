@@ -2,7 +2,11 @@
 #include "Application.h"
 #include "ModuleMeshes.h"
 #include "ModuleFileSystem.h"
+#include "ModuleResources.h"
 
+#include "OpenGL.h"
+
+#include "Assimp/include/mesh.h"
 
 #include<sstream>
 
@@ -54,6 +58,7 @@ bool ResourceMesh::LoadInMemory()
         read_stream >> texcoord_offset;
         read_stream >> normal_offset;
         read_stream >> tangent_offset;
+		read_stream >> bone_idx_offset;
         read_stream >> bone_weight_offset;
 
         read_stream >> num_vertices;
@@ -119,7 +124,11 @@ bool ResourceMesh::LoadInMemory()
 
         GenerateVBO(false);
         GenerateVAO();
+
+		return true;
     }
+
+	return false;
 }
 
 // ---------------------------------------------------------
@@ -138,6 +147,7 @@ bool ResourceMesh::Save(std::string& output) const
     write_stream << texcoord_offset;
     write_stream << normal_offset;
     write_stream << tangent_offset;
+	write_stream << bone_idx_offset;
     write_stream << bone_weight_offset;
 
     write_stream << num_vertices;
@@ -204,15 +214,15 @@ UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file
 {
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
-    m->name     = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : std::string();
-    m->material = mat_id;
+    m->name   = mesh->mName.length > 0 ? HashString(mesh->mName.C_Str()) : HashString();
+    m->mat_id = mat_id;
 
-    m->GenerateAttribInfo(orig);
-    m->GenerateCPUBuffers(orig);
+    m->GenerateAttribInfo(mesh);
+    m->GenerateCPUBuffers(mesh);
 
     if((m->attribs & ATTRIB_BONES) != 0)
     {
-        m->GenerateBoneData(orig);
+        m->GenerateBoneData(mesh);
     }
 
     m->GenerateVBO(false);
@@ -228,7 +238,7 @@ UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file
 			App->fs->NormalizePath(m->file);
 		}
 
-		string file;
+		std::string file;
 		App->fs->SplitFilePath(output.c_str(), nullptr, &file);
 		m->exported_file = file;
 

@@ -33,3 +33,4 @@ public:
 };
 
 
+#endif /* __RESOURCE_MATERIAL_H__ */

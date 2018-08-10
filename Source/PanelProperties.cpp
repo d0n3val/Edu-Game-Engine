@@ -61,7 +61,7 @@ void PanelProperties::Draw()
 			selected->SetLocalRotation(Quat::identity);
 		}
 
-		static_assert(Component::Types::Unknown == 10, "code needs update");
+		static_assert(Component::Types::Unknown == 11, "code needs update");
         if (ImGui::BeginMenu("New Component", (selected != nullptr)))
         {
 			if (ImGui::MenuItem("Audio Listener"))
@@ -84,6 +84,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(Component::Types::Steering);
 			if (ImGui::MenuItem("Path"))
 				selected->CreateComponent(Component::Types::Path);
+			if (ImGui::MenuItem("Geometry"))
+				selected->CreateComponent(Component::Types::Geometry);
             ImGui::EndMenu();
         }
 
@@ -147,7 +149,7 @@ void PanelProperties::Draw()
 		}
 
 		// Iterate all components and draw
-		static_assert(Component::Types::Unknown == 10, "code needs update");
+		static_assert(Component::Types::Unknown == 11, "code needs update");
 		for (list<Component*>::iterator it = selected->components.begin(); it != selected->components.end(); ++it)
 		{
 			ImGui::PushID(*it);
@@ -317,9 +319,9 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 		mesh->num_indices,
 		mesh->num_vertices);
 
-	bool uvs = mesh->texture_coords != nullptr;
+	bool uvs	 = mesh->texture_coords != nullptr;
 	bool normals = mesh->normals != nullptr;
-	bool colors = mesh->colors != nullptr;
+	bool colors  = mesh->colors != nullptr;
 
 	ImGui::Checkbox("UVs", &uvs);
 	ImGui::SameLine();

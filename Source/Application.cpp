@@ -50,7 +50,7 @@ Application::Application()
 	modules.push_back(scene = new ModuleSceneLoader()); // TODO delete and just create a resource loader
 	modules.push_back(ai = new ModuleAI());
 	modules.push_back(level = new ModuleLevelManager());
-    modules.push_back(programs = new ModulePrograms());
+    modules.push_back(programs = new ModulePrograms(true));
     modules.push_back(renderer = new ModuleRenderer());
 }
 

@@ -12,6 +12,8 @@
 #include "Config.h"
 #include "ModuleLevelManager.h"
 #include "ModuleResources.h"
+#include "ResourceMaterial.h"
+#include "ResourceMesh.h"
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
 #include "Assimp/include/postprocess.h"
@@ -278,64 +280,49 @@ bool ModuleSceneLoader::ImportNew(const char* full_path, std::string& output)
 
 	unsigned flags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_OptimizeGraph;
 
-	const aiScene* scene = aiImportFile(full_path.data,  flags);
+	const aiScene* scene = aiImportFile(full_path,  flags);
 
 	if (scene)
 	{
-        dtl::vector<UID> materials, meshes;
-		GenerateMaterials(scene, full_path.data, materials);
-		GenerateMeshes(scene, full_path.data, materials, meshes);
-
-		node = GenerateGameObjects(scene, meshes);
-
-		if(node)
-		{
-			LinkNode(node, &root);
-		}
-
+        std::vector<UID> materials, meshes;
+		GenerateMaterials(scene, full_path, materials);
+		GenerateMeshes(scene, full_path, materials, meshes);
+		GenerateGameObjects(scene->mRootNode, App->level->CreateGameObject(nullptr), meshes);
 
 		aiReleaseImport(scene);
+
+		return true;
 	}
 
-	return node;
+	return false;
 }
 
 
-GameObject* ModuleSceneLoader::GenerateGameObjects(const aiScene* scene, const std::vector<UID>& materials, const std::vector<UID>& meshes)
-{
-	GameObject* node = new GameObject(nullptr, scene->mRootNode.mName.C_Str);
-	GenerateGameObjectsRecursive(scene->mRootNode, node);
-
-	return node;
-}
-
-void ModuleSceneLoader::GenerateGameObjectsRecursive(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes)
+void ModuleSceneLoader::GenerateGameObjects(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes)
 {
     aiQuaternion quat;
-	src->mTransformation.Decompose(*reinterpret_cast<aiVector3D*>(&dst->scale), quat, *reinterpret_cast<aiVector3D*>(&dst->position));
-    dst->rotation = math::float4(quat.x, quat.y, quat.z, quat.w);
-
+	dst->SetLocalTransform(reinterpret_cast<const float4x4&>(src->mTransformation));
+    dst->name = src->mName.C_Str();
 
     if(src->mNumMeshes > 0)
     {
         ComponentGeometry* geometry = new ComponentGeometry;
-        geometry->Initialize(meshes, src->mMeshes, src->mNumMeshes);
+        geometry->Initialize(&meshes[0], src->mMeshes, src->mNumMeshes);
 
         dst->components.push_back(geometry);
     }
 
-	dst->childs.resize(src->mNumChildren);
 
 	for(unsigned i=0; i < src->mNumChildren; ++i)
 	{
-		dst->childs[i] = new GameObject(dst, src->mChildren[i]->mName.C_Str());
-		dst->childs[i]->parent = dst;
-
-		GenerateNodesRecursive(src->mChildren[i], dst->childs[i]);
+		GameObject* child = App->level->CreateGameObject(dst);
+		dst->childs.push_back(child);
+		
+		GenerateGameObjects(src->mChildren[i], child, meshes);
 	}
 }
 
-void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file, dtl::vector<UID>& materials)
+void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file, std::vector<UID>& materials)
 {
 	materials.reserve(scene->mNumMaterials);
 
