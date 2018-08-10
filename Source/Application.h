@@ -25,6 +25,8 @@ class ModuleLevelManager;
 class ModuleResources;
 class ModuleAnimation;
 class ModuleAI;
+class ModulePrograms;
+class ModuleRenderer;
 
 struct Event;
 

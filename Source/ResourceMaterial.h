@@ -4,6 +4,8 @@
 #include "Resource.h"
 #include "Math.h"
 
+struct aiMaterial;
+
 class ResourceMaterial : public Resource
 {
 public:
@@ -12,7 +14,7 @@ public:
     virtual ~ResourceMaterial();
 
 	bool        LoadInMemory   () override;
-    bool        Save           (string& output) const;
+    bool        Save           (std::string& output) const;
 
     static UID  Import          (const aiMaterial* material, const char* source_file);
 

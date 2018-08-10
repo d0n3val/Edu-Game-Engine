@@ -1,6 +1,10 @@
 #include "ResourceMesh.h"
 #include "Application.h"
 #include "ModuleMeshes.h"
+#include "ModuleFileSystem.h"
+
+
+#include<sstream>
 
 // ---------------------------------------------------------
 ResourceMesh::ResourceMesh(UID uid) : Resource(uid, Resource::Type::mesh)
@@ -36,7 +40,7 @@ bool ResourceMesh::LoadInMemory()
         uint size = App->fs->Load(LIBRARY_MESH_FOLDER, GetExportedFile(), &buffer);
 
         std::stringbuf strbuf;
-        buffer.pubsetbuf(buffer, size);
+        strbuf.pubsetbuf(buffer, size);
 
         std::istream read_stream(&strbuf);
 
@@ -56,14 +60,14 @@ bool ResourceMesh::LoadInMemory()
 
         for(uint i=0; i< num_vertices; ++i)
         {
-            read_stream >> src_vertices[i];
+            read_stream >> src_vertices[i].x >> src_vertices[i].y >> src_vertices[i].z;
         }
 
         if((attribs & ATTRIB_TEX_COORDS_0) != 0)
         {
             for(uint i=0; i< num_vertices; ++i)
             {
-                read_stream >> src_texcoord0[i];
+                read_stream >> src_texcoord0[i].x >> src_texcoord0[i].y;
             }
         }
 
@@ -71,7 +75,7 @@ bool ResourceMesh::LoadInMemory()
         {
             for(uint i=0; i< num_vertices; ++i)
             {
-                read_stream >> src_normals[i];
+                read_stream >> src_normals[i].x >> src_normals[i].y >> src_normals[i].z;
             }
         }
 
@@ -79,7 +83,7 @@ bool ResourceMesh::LoadInMemory()
         {
             for(uint i=0; i< num_vertices; ++i)
             {
-                read_stream >> src_tangents[i];
+                read_stream >> src_tangents[i].x >> src_tangents[i].y >> src_tangents[i].z;
             }
         }
 
@@ -98,8 +102,12 @@ bool ResourceMesh::LoadInMemory()
             {
                 read_stream >> tmp;
                 bones[i].name = HashString(tmp.c_str());
-                read_stream >> bones[i].bind;
-                read_stream >> bones[i].num_weights;
+				for (uint j = 0; j < 16; ++j)
+				{
+					read_stream >> bones[i].bind.ptr()[j];
+				}
+
+				read_stream >> bones[i].num_weights;
 
                 for(uint j=0; j< bones[i].num_weights; ++j)
                 {
@@ -115,13 +123,13 @@ bool ResourceMesh::LoadInMemory()
 }
 
 // ---------------------------------------------------------
-bool ResourceMesh::Save(string& output) const
+bool ResourceMesh::Save(std::string& output) const
 {
-    string data;
+    std::string data;
 
     // \todo: reserve string data
 
-    stringstream write_string(data);
+    std::stringstream write_stream(data);
 
     write_stream << name.C_str();
     write_stream << mat_id;
@@ -136,14 +144,14 @@ bool ResourceMesh::Save(string& output) const
 
     for(uint i=0; i< num_vertices; ++i)
     {
-        write_stream << src_vertices[i];
+        write_stream << src_vertices[i].x << src_vertices[i].y << src_vertices[i].z;
     }
 
     if((attribs & ATTRIB_TEX_COORDS_0) != 0)
     {
         for(uint i=0; i< num_vertices; ++i)
         {
-            write_stream << src_texcoord0[i];
+            write_stream << src_texcoord0[i].x << src_texcoord0[i].y;
         }
     }
 
@@ -151,7 +159,7 @@ bool ResourceMesh::Save(string& output) const
     {
         for(uint i=0; i< num_vertices; ++i)
         {
-            write_stream << src_normals[i];
+            write_stream << src_normals[i].x << src_normals[i].y << src_normals[i].z;
         }
     }
 
@@ -159,7 +167,7 @@ bool ResourceMesh::Save(string& output) const
     {
         for(uint i=0; i< num_vertices; ++i)
         {
-            write_stream << src_tangents[i];
+            write_stream << src_tangents[i].x << src_tangents[i].y << src_tangents[i].z;
         }
     }
 
@@ -176,7 +184,7 @@ bool ResourceMesh::Save(string& output) const
 
         for(uint i=0; i< num_bones; ++i)
         {
-            write_stream << bones[i].name.C_Str();
+            write_stream << bones[i].name.C_str();
             write_stream << bones[i].bind;
             write_stream << bones[i].num_weights;
 
@@ -188,13 +196,13 @@ bool ResourceMesh::Save(string& output) const
         }
     }
 
-	return App->fs->SaveUnique(output, data.c_str(), data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
+	return App->fs->SaveUnique(output, data.c_str(), data.size(), LIBRARY_MESH_FOLDER, "mesh", "edumesh");
 }
 
 // ---------------------------------------------------------
 UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file)
 {
-    ResourceMaterial* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
+    ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
     m->name     = mesh->mName.length > 0 ? std::string(mesh->mName.C_Str()) : std::string();
     m->material = mat_id;
@@ -284,13 +292,7 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
     for(unsigned i=0; i< mesh->mNumVertices; ++i)
     {
         src_vertices[i] = *((float3*)&mesh->mVertices[i]);
-
-        for(unsigned j=0; j<3; ++j)
-        {
-            min[j] = std::min(min[j], src_vertices[i][j]);
-            max[j] = std::max(max[j], src_vertices[i][j]);
-        }
-    }
+	}
 
     if(mesh->HasTextureCoords(0))
     {

@@ -3,6 +3,7 @@
 
 #include "Resource.h"
 #include "Math.h"
+#include "HashString.h"
 
 #include <string>
 
@@ -58,7 +59,6 @@ public:
 		unsigned	num_weights = 0;
 		float4x4	bind		= float4x4::identity;
 	};
-
 
     HashString  name;
 
