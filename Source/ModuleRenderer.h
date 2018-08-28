@@ -52,7 +52,7 @@ public:
     ModuleRenderer();
     ~ModuleRenderer();
 
-    void                Draw                    (unsigned width, unsigned height);
+    void                Draw                    (GameObject* camera, unsigned width, unsigned height);
     void                DebugDrawTangentSpace   (float size);
     
     unsigned            GetNumDrawNodes         () const;
@@ -72,16 +72,16 @@ private:
     void                CollectNodesRec         (GameObject* node);
     //\todo: void                DrawSkybox              ();
     void                DrawNodes               (void (ModuleRenderer::*drawer)(const float4x4& transform, ResourceMesh* mesh));
-    void                DrawMeshColor           (const float4x4& transform, const ResourceMesh* mesh);
-    void                DrawMeshShadow          (const float4x4& transform, const ResourceMesh* mesh);
+    void                DrawMeshColor           (const float4x4& transform, ResourceMesh* mesh);
+    void                DrawMeshShadow          (const float4x4& transform, ResourceMesh* mesh);
     void                ShadowPass              (unsigned width, unsigned height);
     void                ColorPass               (unsigned width, unsigned height);
     void                GenerateFBOTexture      (R2TInfo& info, unsigned width, unsigned height, bool aColor); 
     void                DrawClippingSpace       (const float4x4& proj, const float4x4& view) const;
     void                GetClippingPoints       (const float4x4& proj, const float4x4& view, float3 points[8]) const;
     void                UpdateLightUniform      () const;
-    void                UpdateCameraUniform     () const;
-    void                CalcLightSpaceBBox      (const float4& light_rotation, AABB& aabb) const;
+    void                UpdateCameraUniform     (GameObject* camera) const;
+    void                CalcLightSpaceBBox      (const Quat& light_rotation, AABB& aabb) const;
 };
 
 
