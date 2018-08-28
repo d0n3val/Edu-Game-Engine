@@ -213,28 +213,24 @@ void ModuleAnimation::DeformMesh(const ComponentBone* bone)
 		for (uint i = 0; i < rbone->num_weigths; ++i)
 		{
 			uint index = rbone->weigth_indices[i];
-			float3 original(&roriginal->vertices[index * 3]);
-			float3 vertex(&rmesh->vertices[index*3]);
+			float3 original(roriginal->src_vertices[index * 3]);
+			float3 vertex(rmesh->src_vertices[index*3]);
 
-			if (rmesh->indices[index]++ == 0) 
+			if (rmesh->src_indices[index]++ == 0) 
 			{
-				memset(&rmesh->vertices[index*3], 0, sizeof(float) * 3);
-				if(roriginal->normals)
-					memset(&rmesh->normals[index*3], 0, sizeof(float) * 3);
+				memset(&rmesh->src_vertices[index*3], 0, sizeof(float) * 3);
+				if(roriginal->src_normals)
+					memset(&rmesh->src_normals[index*3], 0, sizeof(float) * 3);
 			}
 			
 			vertex = trans.TransformPos(original);
 
-			rmesh->vertices[index * 3] += vertex.x * rbone->weigths[i];
-			rmesh->vertices[index * 3 + 1] += vertex.y * rbone->weigths[i];
-			rmesh->vertices[index * 3 + 2] += vertex.z * rbone->weigths[i];
+			rmesh->src_vertices[index * 3] += vertex * rbone->weigths[i];
 
-			if (roriginal->normals)
+			if (roriginal->src_normals)
 			{
-				vertex = trans.TransformPos(float3(&roriginal->normals[index*3]));
-				rmesh->normals[index * 3] += vertex.x * rbone->weigths[i];
-				rmesh->normals[index * 3 + 1] += vertex.y * rbone->weigths[i];
-				rmesh->normals[index * 3 + 2] += vertex.z * rbone->weigths[i];
+				vertex = trans.TransformPos(float3(roriginal->src_normals[index*3]));
+				rmesh->src_normals[index * 3] += vertex * rbone->weigths[i];
 			}
 		}
 	}

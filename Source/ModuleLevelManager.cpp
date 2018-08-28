@@ -10,6 +10,7 @@
 #include "ModuleEditor.h"
 #include "ComponentCamera.h"
 #include "ComponentMesh.h"
+#include "ComponentLight.h"
 #include "ResourceMesh.h"
 #include "DebugDraw.h"
 #include "Event.h"
@@ -416,9 +417,9 @@ void ModuleLevelManager::RecursiveTestRay(const LineSegment& segment, float& dis
 			Triangle tri;
 			for (uint i = 0; i < mesh->num_indices;)
 			{
-				tri.a.Set(&mesh->vertices[mesh->indices[i++]*3]);
-				tri.b.Set(&mesh->vertices[mesh->indices[i++]*3]);
-				tri.c.Set(&mesh->vertices[mesh->indices[i++]*3]);
+				tri.a = mesh->src_vertices[mesh->src_indices[i++]*3];
+				tri.b = mesh->src_vertices[mesh->src_indices[i++]*3];
+				tri.c = mesh->src_vertices[mesh->src_indices[i++]*3];
 
 				float distance;
 				float3 hit_point;
@@ -479,9 +480,9 @@ void ModuleLevelManager::RecursiveTestRay(const Ray& ray, float& dist, GameObjec
 			Triangle tri;
 			for (uint i = 0; i < mesh->num_indices;)
 			{
-				tri.a.Set(&mesh->vertices[mesh->indices[i++]*3]);
-				tri.b.Set(&mesh->vertices[mesh->indices[i++]*3]);
-				tri.c.Set(&mesh->vertices[mesh->indices[i++]*3]);
+				tri.a = mesh->src_vertices[mesh->src_indices[i++]*3];
+				tri.b = mesh->src_vertices[mesh->src_indices[i++]*3];
+				tri.c = mesh->src_vertices[mesh->src_indices[i++]*3];
 				// TODO I got a bug twice here, looks like a problem creating the triangle
 
 				float distance;
@@ -506,24 +507,24 @@ void ModuleLevelManager::FindNear(const float3 & position, float radius, std::ve
 
 GameObject* ModuleLevelManager::AddPointLight(const char* name, const float3& position)
 {
-	GameObject* ret = new GameObject(parent, name, position, float3::zero, Quat::identity);
+	GameObject* ret = new GameObject(root, name, position, float3::zero, Quat::identity);
 
     ComponentLight* light = new ComponentLight;
-    light->type = POINT;
+    light->type = ComponentLight::POINT;
 
-    ret->components->push_back(light);
+    ret->components.push_back(light);
 
     return ret;
 }
 
-GameObject* ModuleLevelManager::AddDirectionalLight(const float3& direction, const float3& up)
+GameObject* ModuleLevelManager::AddDirectionalLight(const char* name, const float3& direction, const float3& up)
 {
-	GameObject* ret = new GameObject(parent, name, float3::zero, float3::zero, Quat::LookAt(float3(0.0f, 0.0f, -1.0f), direction, float3(0.0f, 1.0f, 0.0f), up));
+	GameObject* ret = new GameObject(root, name, float3::zero, float3::zero, Quat::LookAt(float3(0.0f, 0.0f, -1.0f), direction, float3(0.0f, 1.0f, 0.0f), up));
 
     ComponentLight* light = new ComponentLight;
-    light->type = DIRECTIONAL;
+    light->type = ComponentLight::DIRECTIONAL;
 
-    ret->components->push_back(light);
+    ret->components.push_back(light);
 
     return ret;
 }

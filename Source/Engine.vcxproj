@@ -137,7 +137,6 @@
     <ClInclude Include="ComponentBone.h" />
     <ClInclude Include="ComponentCamera.h" />
     <ClInclude Include="ComponentMaterial.h" />
-    <ClInclude Include="ComponentMesh.h" />
     <ClInclude Include="ComponentPath.h" />
     <ClInclude Include="ComponentRigidBody.h" />
     <ClInclude Include="ComponentSteering.h" />
@@ -233,7 +232,6 @@
     <ClInclude Include="ModuleFileSystem.h" />
     <ClInclude Include="ModuleHardware.h" />
     <ClInclude Include="ModuleLevelManager.h" />
-    <ClInclude Include="ModuleMeshes.h" />
     <ClInclude Include="ModulePhysics3D.h" />
     <ClInclude Include="ModulePrograms.h" />
     <ClInclude Include="ModuleRenderer.h" />
@@ -280,7 +278,6 @@
     <ClCompile Include="ComponentBone.cpp" />
     <ClCompile Include="ComponentCamera.cpp" />
     <ClCompile Include="ComponentMaterial.cpp" />
-    <ClCompile Include="ComponentMesh.cpp" />
     <ClCompile Include="ComponentPath.cpp" />
     <ClCompile Include="ComponentRigidBody.cpp" />
     <ClCompile Include="ComponentSteering.cpp" />
@@ -343,7 +340,6 @@
     <ClCompile Include="ModuleHardware.cpp" />
     <ClCompile Include="ModuleInput.cpp" />
     <ClCompile Include="ModuleLevelManager.cpp" />
-    <ClCompile Include="ModuleMeshes.cpp" />
     <ClCompile Include="ModulePhysics3D.cpp" />
     <ClCompile Include="ModulePrograms.cpp" />
     <ClCompile Include="ModuleRenderer.cpp" />

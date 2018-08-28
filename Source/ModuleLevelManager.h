@@ -52,8 +52,8 @@ public:
 	GameObject*         CastRayOnBoundingBoxes  (const LineSegment& segment, float& dist, float3& normal) const;
 	void                FindNear                (const float3& position, float radius, std::vector<GameObject*>& results) const;
 
-	GameObject*  	    AddPointLight 	        (const float3& position);
-	GameObject*  	    AddDirectionalLight 	(const float3& direction, const float3& up);
+	GameObject*  	    AddPointLight 	        (const char* name, const float3& position);
+	GameObject*  	    AddDirectionalLight 	(const char* name, const float3& direction, const float3& up);
     GameObject*         GetActiveLight          ();
     const GameObject*   GetActiveLight          () const ;
 

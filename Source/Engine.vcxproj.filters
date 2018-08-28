@@ -489,9 +489,6 @@
     <ClInclude Include="ModuleTextures.h">
       <Filter>Resources\Loaders</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleMeshes.h">
-      <Filter>Resources\Loaders</Filter>
-    </ClInclude>
     <ClInclude Include="mmgr\mmgr.h">
       <Filter>3rd Party\mmgr</Filter>
     </ClInclude>
@@ -550,9 +547,6 @@
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
     <ClInclude Include="ComponentMaterial.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentMesh.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
     <ClInclude Include="ComponentRigidBody.h">
@@ -815,9 +809,6 @@
     <ClCompile Include="ModuleTextures.cpp">
       <Filter>Resources\Loaders</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleMeshes.cpp">
-      <Filter>Resources\Loaders</Filter>
-    </ClCompile>
     <ClCompile Include="mmgr\mmgr.cpp">
       <Filter>3rd Party\mmgr</Filter>
     </ClCompile>
@@ -867,9 +858,6 @@
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ComponentMaterial.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentMesh.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ComponentRigidBody.cpp">
