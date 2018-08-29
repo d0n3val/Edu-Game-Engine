@@ -469,14 +469,23 @@ void ModuleRenderer::UpdateLightUniform() const
 
 			// Setting light params
 
-			float2 center((aabb.min.x + aabb.max.x)*0.5f, (aabb.min.y + aabb.max.y)*0.5f);
-			float2 size((aabb.max.x - aabb.min.x)*0.5f, (aabb.max.y - aabb.min.y)*0.5f);
+			float3 center = aabb.CenterPoint();
+			float3 size = aabb.Size();
 
-			float3 light_pos = qrot(light_rotation, float3(center.x, center.y, aabb.max.z + 0.1f));
+			float3 light_pos = light_rotation*float3(center.x, center.y, aabb.maxPoint.z + 0.1f);
 			float nearP = 0.1f;
-			float farP = (aabb.max.z - aabb.min.z)*2.0f;
+			float farP = (aabb.maxPoint.z - aabb.minPoint.z)*2.0f;
 
-			Camera light;
+			Frustum light;
+
+			frustum.type = FrustumType::OrthographicFrustum;
+
+			light.pos				= light_pos;
+			frustum.front			= float3::unitZ;
+			frustum.up				= float3::unitY;
+			light.nearPlaneDistance = 0.1f;
+			light.farPlaneDistance  = farP;
+
 			light.SetRotation(light_rotation);
 			light.SetPosition(light_pos);
 			light.SetOrtho(-size.x, size.x, -size.y, size.y, nearP, farP);
@@ -486,7 +495,7 @@ void ModuleRenderer::UpdateLightUniform() const
 		}
 		else if (light->type == Scene::LIGHT_POINT)
 		{
-			view.w = float4(-light->position, 1.0);
+			view.w = float4(-light_go->position, 1.0);
 		}
 	}
 
