@@ -470,7 +470,7 @@ void ModuleRenderer::UpdateLightUniform() const
 			// Setting light params
 
 			float3 center = aabb.CenterPoint();
-			float3 size = aabb.Size();
+			float3 size = aabb.HalfSize();
 
 			float3 light_pos = light_rotation*float3(center.x, center.y, aabb.maxPoint.z + 0.1f);
 			float nearP = 0.1f;
@@ -478,30 +478,29 @@ void ModuleRenderer::UpdateLightUniform() const
 
 			Frustum light;
 
-			frustum.type = FrustumType::OrthographicFrustum;
+			light.type = FrustumType::OrthographicFrustum;
 
-			light.pos				= light_pos;
-			frustum.front			= float3::unitZ;
-			frustum.up				= float3::unitY;
-			light.nearPlaneDistance = 0.1f;
-			light.farPlaneDistance  = farP;
+			light.pos				 = light_pos;
+			light.front			     = float3::unitZ;
+			light.up				 = float3::unitY;
+			light.nearPlaneDistance  = 0.1f;
+			light.farPlaneDistance   = farP;
+			light.orthographicWidth  = size.x*2.0f;
+			light.orthographicHeight = size.y*2.0f;
+			light.Transform(light_rotation);
 
-			light.SetRotation(light_rotation);
-			light.SetPosition(light_pos);
-			light.SetOrtho(-size.x, size.x, -size.y, size.y, nearP, farP);
-
-			proj = light.GetProjMatrix();
-			view = light.GetViewMatrix();
+			proj = light.ProjectionMatrix();
+			view = light.ViewMatrix();
 		}
-		else if (light->type == Scene::LIGHT_POINT)
+		else if (light->type == ComponentLight::POINT)
 		{
-			view.w = float4(-light_go->position, 1.0);
+			view.SetCol3(3, light_go->GetGlobalPosition());
 		}
 	}
 
     glBindBuffer(GL_UNIFORM_BUFFER, uniforms[UNIFORM_LIGHT]);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float4x4), reinterpret_cast<const void*>(&proj));
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float4x4), sizeof(aiMatrix4x4), reinterpret_cast<const void*>(&view));
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float4x4), sizeof(float4x4), reinterpret_cast<const void*>(&view));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
@@ -515,23 +514,16 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb) 
 {
     float4x4 light_mat(light_rotation.Inverted());
 
-    ComponentGeometry* geometry = static_cast<ComponentGeometry*>(node->FindFirstComponent(Component::Geometry));
-
-    for (uint i=0, count = geometry->meshes.size(); i < count; ++i)
+    for(NodeList::const_iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
     {
-        (this->*drawer)(node->GetGlobalTransformation(), static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i])));
-    }
+        const GameObject* node = *it;
 
-    for(NodeList::iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
-    {
-        GameObject* node = *it;
-
-        ComponentGeometry* geometry = static_cast<ComponentGeometry*>(node->FindFirstComponent(Component::Geometry));
+        const ComponentGeometry* geometry = static_cast<const ComponentGeometry*>(node->FindFirstComponent(Component::Geometry));
 
         for (uint i=0, count = geometry->meshes.size(); i < count; ++i)
         {
-            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(geometry->GetMesh(i)));
-            ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->Get(mesh->GetMaterial()));
+            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i]));
+            ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->Get(mesh->mat_id));
 
             if(material->cast_shadows)
             {

@@ -6,7 +6,7 @@
 class ComponentLight : public Component
 {
 public:
-    ComponentLight();
+    explicit ComponentLight(GameObject* container);
     ~ComponentLight();
 
     virtual void OnSave(Config& config) const override;

@@ -509,7 +509,7 @@ GameObject* ModuleLevelManager::AddPointLight(const char* name, const float3& po
 {
 	GameObject* ret = new GameObject(root, name, position, float3::zero, Quat::identity);
 
-    ComponentLight* light = new ComponentLight;
+    ComponentLight* light = new ComponentLight(ret);
     light->type = ComponentLight::POINT;
 
     ret->components.push_back(light);
@@ -521,7 +521,7 @@ GameObject* ModuleLevelManager::AddDirectionalLight(const char* name, const floa
 {
 	GameObject* ret = new GameObject(root, name, float3::zero, float3::zero, Quat::LookAt(float3(0.0f, 0.0f, -1.0f), direction, float3(0.0f, 1.0f, 0.0f), up));
 
-    ComponentLight* light = new ComponentLight;
+    ComponentLight* light = new ComponentLight(ret);
     light->type = ComponentLight::DIRECTIONAL;
 
     ret->components.push_back(light);

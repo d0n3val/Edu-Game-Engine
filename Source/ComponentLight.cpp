@@ -3,7 +3,7 @@
 #include "ComponentLight.h"
 
 // ---------------------------------------------------------
-ComponentLight::ComponentLight()
+ComponentLight::ComponentLight(GameObject* container) : Component(container, Type::Light)
 {
 }
 

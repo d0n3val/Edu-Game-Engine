@@ -15,6 +15,7 @@
 #include "ComponentAnimation.h"
 #include "ComponentSteering.h"
 #include "ComponentPath.h"
+#include "ComponentLight.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Config.h"
@@ -285,7 +286,7 @@ bool GameObject::RecursiveRemoveFlagged()
 // ---------------------------------------------------------
 Component* GameObject::CreateComponent(Component::Types type)
 {
-	static_assert(Component::Types::Unknown == 10, "code needs update");
+	static_assert(Component::Types::Unknown == 11, "code needs update");
 
 	Component* ret = nullptr;
 
@@ -321,6 +322,8 @@ Component* GameObject::CreateComponent(Component::Types type)
 		case Component::Types::Path:
 			ret = new ComponentPath(this);
 		break;
+		case Component::Types::Light:
+			ret = new ComponentLight(this);
 	}
 
 	if (ret != nullptr)
@@ -526,10 +529,12 @@ void GameObject::SetActive(bool active)
 	}
 }
 
+// \todo: remove
 // ---------------------------------------------------------
 // TODO: move the draw to ModuleRenderer
 void GameObject::Draw(bool debug) const
 {
+#if 0
 	visible = true;
 	bool texture = false;
 	bool transparency = false;
@@ -592,7 +597,7 @@ void GameObject::Draw(bool debug) const
 				glBindBuffer(GL_ARRAY_BUFFER, cmesh->deformable->vbo_vertices);
 				glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, cmesh->deformable->vertices, GL_STATIC_DRAW);
 
-				if (mesh->normals != nullptr)
+				if (mesh->src_normals != nullptr)
 				{
 					glBindBuffer(GL_ARRAY_BUFFER, cmesh->deformable->vbo_normals);
 					glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->num_vertices * 3, cmesh->deformable->vertices, GL_STATIC_DRAW);
@@ -653,6 +658,8 @@ void GameObject::Draw(bool debug) const
 
 	glPopMatrix();		
 	glUseProgram(0);
+
+#endif
 }
 
 // ---------------------------------------------------------
@@ -737,7 +744,7 @@ Component* GameObject::FindFirstComponent(Component::Types type)
 }
 
 // ---------------------------------------------------------
-const Component* GameObject::FindFirstComponent(Component::Types type)
+const Component* GameObject::FindFirstComponent(Component::Types type) const
 {
 	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
     {
