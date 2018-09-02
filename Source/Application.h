@@ -19,7 +19,6 @@ class ModuleRenderer3D;
 class ModuleEditorCamera;
 class ModuleSceneLoader;
 class ModuleTextures;
-class ModuleMeshes;
 class ModuleEditor;
 class ModuleLevelManager;
 class ModuleResources;
@@ -96,7 +95,6 @@ public:
 	ModuleEditorCamera* camera = nullptr;
 	ModuleSceneLoader* scene = nullptr;
 	ModuleTextures* tex = nullptr;
-	ModuleMeshes* meshes = nullptr;
 	ModuleEditor* editor = nullptr;
 	ModuleLevelManager* level = nullptr;
 	ModuleResources* resources = nullptr;

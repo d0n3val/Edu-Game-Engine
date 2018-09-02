@@ -50,6 +50,7 @@ bool ModuleResources::Init(Config* config)
 
 bool ModuleResources::Start(Config * config)
 {
+/* \todo: 
 	// Load preset geom shapes in fixed UIDs
 	cube = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 1);
 	App->meshes->LoadCube(cube);
@@ -79,6 +80,7 @@ bool ModuleResources::Start(Config * config)
 	checkers = (ResourceTexture*) CreateNewResource(Resource::Type::texture, 2);
 	App->tex->LoadCheckers(checkers);
 	checkers->loaded = 1;
+*/
 
 	return true;
 }
@@ -294,7 +296,8 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 		case Resource::mesh:
 			// Old school trick: if it is a Mesh, buffer will be treated as an AiMesh*
 			// TODO: this can go bad in so many ways :)
-			import_ok = App->meshes->Import((aiMesh*) buffer, output);
+			// \todo: import_ok = App->meshes->Import((aiMesh*) buffer, output);
+            
 		break;
 		case Resource::bone:
 			// Old school trick: if it is a Mesh, buffer will be treated as an AiBone*

@@ -69,6 +69,7 @@ enum update_status
 #define LIBRARY_BONE_FOLDER "/Library/Bones/"
 #define LIBRARY_ANIMATION_FOLDER "/Library/Animations/"
 #define LIBRARY_SCENE_FOLDER "/Library/Scenes/"
+#define LIBRARY_MATERIAL_FOLDER "/Library/Materials/"
 
 
 // Warning disabled ---

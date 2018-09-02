@@ -6,7 +6,7 @@
 class ComponentGeometry : public Component
 {
 public:
-    ComponentGeometry();
+    explicit ComponentGeometry(GameObject* go);
     ~ComponentGeometry();
 
     void Initialize(const UID* ids, const unsigned* mesh_indices, unsigned count);

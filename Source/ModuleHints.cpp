@@ -1,5 +1,5 @@
+#include "Globals.h"
 #include "ModuleHints.h"
-#include "DemoMgr.h"
 
 ModuleHints::ModuleHints() : Module("hints")
 {

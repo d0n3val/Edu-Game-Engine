@@ -66,6 +66,8 @@ bool ModuleSceneLoader::CleanUp()
 
 void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const aiNode* node, GameObject* parent, const string& basePath, const string& file)
 {
+#if 0 
+    // \todo: 
 	static string name;
 	name = (node->mName.length > 0) ? node->mName.C_Str() : "Unnamed";
 	aiVector3D translation;
@@ -197,6 +199,7 @@ void ModuleSceneLoader::RecursiveCreateGameObjects(const aiScene* scene, const a
 	// recursive call to generate the rest of the scene tree
 	for (uint i = 0; i < node->mNumChildren; ++i)
 		RecursiveCreateGameObjects(scene, node->mChildren[i], go, basePath, file);
+#endif
 }
 
 void ModuleSceneLoader::RecursiveProcessBones(const aiScene * scene, const aiNode * node)
@@ -306,7 +309,7 @@ void ModuleSceneLoader::GenerateGameObjects(const aiNode* src, GameObject* dst, 
 
     if(src->mNumMeshes > 0)
     {
-        ComponentGeometry* geometry = new ComponentGeometry;
+        ComponentGeometry* geometry = new ComponentGeometry(dst);
         geometry->Initialize(&meshes[0], src->mMeshes, src->mNumMeshes);
 
         dst->components.push_back(geometry);

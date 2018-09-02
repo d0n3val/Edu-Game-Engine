@@ -56,12 +56,15 @@ public:
 	bool AddArrayBool(const char* field, const bool* values, int size);
 	bool AddArrayInt(const char* field, const int* values, int size);
 	bool AddArrayUInt(const char* field, const uint* values, int size);
+	bool AddArrayUID(const char* field, const UID* values, int size);
 	bool AddArrayFloat(const char* field, const float* values, int size);
 	bool AddArrayString(const char* field, const char** values, int size);
 
 	// Custom
-	bool AddFloat3(const char* field, const float3& value);
-	float3 GetFloat3(const char* field, const float3& default = float3::zero);
+	bool    AddFloat3(const char* field, const float3& value);
+	float3  GetFloat3(const char* field, const float3& default = float3::zero);
+	bool    AddFloat4(const char* field, const float4& value);
+	float4  GetFloat4(const char* field, const float4& default = float4::zero);
 
 private:
 	JSON_Value* FindValue(const char* field, int index) const;

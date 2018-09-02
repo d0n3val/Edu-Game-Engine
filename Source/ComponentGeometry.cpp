@@ -3,7 +3,7 @@
 #include "ComponentGeometry.h"
 
 
-ComponentGeometry::ComponentGeometry()
+ComponentGeometry::ComponentGeometry(GameObject* go) : Component(go, Types::Geometry)
 {
 }
 
@@ -24,7 +24,7 @@ void ComponentGeometry::Initialize(const UID* ids, const unsigned* mesh_indices,
 
 void ComponentGeometry::OnSave(Config& config) const 
 {
-    config.AddArrayUInt("Meshes", &meshes[0], meshes.size());
+    config.AddArrayUID("Meshes", &meshes[0], meshes.size());
 }
 
 void ComponentGeometry::OnLoad(Config* config) 

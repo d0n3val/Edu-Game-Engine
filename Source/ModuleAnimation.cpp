@@ -73,9 +73,12 @@ void ModuleAnimation::RecursiveResetMeshes(GameObject * go)
 		if((*it)->IsActive())
 			RecursiveResetMeshes(*it);
 
+#if 0 
+    // \todo:
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
 		if ((*it)->IsActive() && (*it)->GetType() == Component::Types::Geometry)
 			((ComponentMesh*)*it)->ResetDeformableMesh();
+#endif
 }
 // ---------------------------------------------------------
 void ModuleAnimation::RecursiveDeformMeshes(GameObject * go)

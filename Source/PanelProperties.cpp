@@ -326,6 +326,8 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 	ImGui::SameLine();
 	ImGui::Checkbox("Normals", &normals);
 
+#if 0 
+    \todo:
 	ImGui::Text("Potential Bones: %i", component->CountPotentialBones());
 	ImGui::Text("Attached to %i bones", component->CountAttachedBones());
 
@@ -339,6 +341,7 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 		if (ImGui::Button("Dettach"))
 			component->DetachBones();
 	}
+#endif
 }
 
 void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)

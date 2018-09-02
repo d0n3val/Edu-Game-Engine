@@ -588,6 +588,12 @@
     <ClInclude Include="ModuleRenderer.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="modulehints.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentLight.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -895,6 +901,18 @@
     </ClCompile>
     <ClCompile Include="ModuleRenderer.cpp">
       <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleHints.cpp">
+      <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceMaterial.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentGeometry.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentLight.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

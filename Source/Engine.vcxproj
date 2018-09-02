@@ -136,6 +136,7 @@
     <ClInclude Include="ComponentAudioSource.h" />
     <ClInclude Include="ComponentBone.h" />
     <ClInclude Include="ComponentCamera.h" />
+    <ClInclude Include="ComponentLight.h" />
     <ClInclude Include="ComponentMaterial.h" />
     <ClInclude Include="ComponentPath.h" />
     <ClInclude Include="ComponentRigidBody.h" />
@@ -231,6 +232,7 @@
     <ClInclude Include="ModuleEditor.h" />
     <ClInclude Include="ModuleFileSystem.h" />
     <ClInclude Include="ModuleHardware.h" />
+    <ClInclude Include="modulehints.h" />
     <ClInclude Include="ModuleLevelManager.h" />
     <ClInclude Include="ModulePhysics3D.h" />
     <ClInclude Include="ModulePrograms.h" />
@@ -277,6 +279,8 @@
     <ClCompile Include="ComponentAudioSource.cpp" />
     <ClCompile Include="ComponentBone.cpp" />
     <ClCompile Include="ComponentCamera.cpp" />
+    <ClCompile Include="ComponentGeometry.cpp" />
+    <ClCompile Include="ComponentLight.cpp" />
     <ClCompile Include="ComponentMaterial.cpp" />
     <ClCompile Include="ComponentPath.cpp" />
     <ClCompile Include="ComponentRigidBody.cpp" />
@@ -338,6 +342,7 @@
     <ClCompile Include="ModuleEditor.cpp" />
     <ClCompile Include="ModuleFileSystem.cpp" />
     <ClCompile Include="ModuleHardware.cpp" />
+    <ClCompile Include="ModuleHints.cpp" />
     <ClCompile Include="ModuleInput.cpp" />
     <ClCompile Include="ModuleLevelManager.cpp" />
     <ClCompile Include="ModulePhysics3D.cpp" />
@@ -364,6 +369,7 @@
     <ClCompile Include="ResourceAnimation.cpp" />
     <ClCompile Include="ResourceAudio.cpp" />
     <ClCompile Include="ResourceBone.cpp" />
+    <ClCompile Include="ResourceMaterial.cpp" />
     <ClCompile Include="ResourceMesh.cpp" />
     <ClCompile Include="ResourceScene.cpp" />
     <ClCompile Include="ResourceTexture.cpp" />

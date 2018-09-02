@@ -258,6 +258,21 @@ bool Config::AddArrayUInt(const char * field, const uint * values, int size)
 	return false;
 }
 
+bool Config::AddArrayUID(const char * field, const UID * values, int size)
+{
+	if (values != nullptr && size > 0)
+	{
+		JSON_Value* va = json_value_init_array();
+		array = json_value_get_array(va);
+		json_object_set_value(root, field, va);
+
+		for(int i=0; i < size; ++i)
+			json_array_append_number(array, (double)values[i]);
+		return true;
+	}
+	return false;
+}
+
 bool Config::AddArrayFloat(const char * field, const float * values, int size)
 {
 	if (values != nullptr && size > 0)
@@ -299,4 +314,18 @@ float3 Config::GetFloat3(const char * field, const float3 & default)
 		GetFloat(field, default.x, 0),
 		GetFloat(field, default.y, 1),
 		GetFloat(field, default.z, 2));
+}
+
+bool Config::AddFloat4(const char * field, const float4 & value)
+{
+	return AddArrayFloat(field, &value.x, 4);
+}
+
+float4 Config::GetFloat4(const char * field, const float4 & default)
+{
+	return float4(
+		GetFloat(field, default.x, 0),
+		GetFloat(field, default.y, 1),
+		GetFloat(field, default.z, 2),
+		GetFloat(field, default.w, 3));
 }
