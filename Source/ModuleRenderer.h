@@ -49,9 +49,10 @@ class ModuleRenderer : public Module
 
 public:
 
-    ModuleRenderer();
+    explicit ModuleRenderer();
     ~ModuleRenderer();
 
+	bool                Init                    (Config* config = nullptr);
     void                Draw                    (GameObject* camera, unsigned width, unsigned height);
     void                DebugDrawTangentSpace   (float size);
     

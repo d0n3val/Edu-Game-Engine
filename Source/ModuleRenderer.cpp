@@ -25,6 +25,10 @@ unsigned ModuleRenderer::uniforms[UNIFORM_COUNT];
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
+}
+
+bool ModuleRenderer::Init(Config* config /*= nullptr*/)
+{
     LoadDefaultShaders();
     LoadShadowShaders();
 
@@ -46,8 +50,10 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
 
     glGenFramebuffers(1, &color.fbo);
     glGenFramebuffers(1, &shadow.fbo);
+	
+	return true;
 }
-
+   
 ModuleRenderer::~ModuleRenderer()
 {
     if(--renderer_count == 0)
