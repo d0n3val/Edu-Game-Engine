@@ -378,8 +378,8 @@ void ModuleRenderer::LoadDefaultShaders()
 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
 
-    App->programs->Load("default", "data/default.vs", "data/default.fs", macros, num_macros, binding, UNIFORM_COUNT);
-    App->programs->Load("skybox", "data/skybox.vs", "data/skybox.fs", 0, 0, binding, 1);
+    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", macros, num_macros, binding, UNIFORM_COUNT);
+    App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", 0, 0, binding, 1);
 
 }
 
@@ -391,7 +391,7 @@ void ModuleRenderer::LoadShadowShaders()
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
     const PairUniform binding[]   = { { "camera", UNIFORM_CAMERA } , { "light", UNIFORM_LIGHT } };
 
-	App->programs->Load("shadow", "data/shadow.vs", "data/shadow.fs", macros, num_macros, binding, UNIFORM_COUNT);
+	App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", macros, num_macros, binding, UNIFORM_COUNT);
 }
 
 void ModuleRenderer::DrawClippingSpace(const float4x4& proj, const float4x4& view) const
