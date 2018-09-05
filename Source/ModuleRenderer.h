@@ -7,6 +7,7 @@
 #include<vector>
 
 class GameObject;
+class ComponentCamera;
 class ResourceMesh;
 
 class ModuleRenderer : public Module
@@ -53,7 +54,7 @@ public:
     ~ModuleRenderer();
 
 	bool                Init                    (Config* config = nullptr);
-    void                Draw                    (GameObject* camera, unsigned width, unsigned height);
+    void                Draw                    (ComponentCamera* camera, unsigned width, unsigned height);
     void                DebugDrawTangentSpace   (float size);
     
     unsigned            GetNumDrawNodes         () const;
@@ -81,7 +82,7 @@ private:
     void                DrawClippingSpace       (const float4x4& proj, const float4x4& view) const;
     void                GetClippingPoints       (const float4x4& proj, const float4x4& view, float3 points[8]) const;
     void                UpdateLightUniform      () const;
-    void                UpdateCameraUniform     (GameObject* camera) const;
+    void                UpdateCameraUniform     (ComponentCamera* camera) const;
     void                CalcLightSpaceBBox      (const Quat& light_rotation, AABB& aabb) const;
 };
 

@@ -65,7 +65,7 @@ ModuleRenderer::~ModuleRenderer()
     glDeleteFramebuffers(1, &color.fbo);
 }
 
-void ModuleRenderer::Draw(GameObject* camera, unsigned width, unsigned height)
+void ModuleRenderer::Draw(ComponentCamera* camera, unsigned width, unsigned height)
 {
     // \todo: culling
     CollectNodes();
@@ -440,10 +440,8 @@ void ModuleRenderer::GetClippingPoints(const float4x4& proj, const float4x4& vie
 
 }
 
-void ModuleRenderer::UpdateCameraUniform(GameObject* camera_go) const
+void ModuleRenderer::UpdateCameraUniform(ComponentCamera* camera) const
 {
-	ComponentCamera* camera	   = static_cast<ComponentCamera*>(camera_go->FindFirstComponent(Component::Camera));
-
     glBindBuffer(GL_UNIFORM_BUFFER, uniforms[UNIFORM_CAMERA]);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float4x4), reinterpret_cast<const void*>(camera->GetOpenGLProjectionMatrix()));
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float4x4), sizeof(float4x4), reinterpret_cast<const void*>(camera->GetOpenGLViewMatrix()));

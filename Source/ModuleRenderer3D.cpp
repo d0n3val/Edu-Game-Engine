@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "ModuleWindow.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleRenderer.h"
 #include "ModuleEditorCamera.h"
 #include "ModuleLevelManager.h"
 #include "ModuleEditor.h"
@@ -191,7 +192,8 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	// TODO: need to find out who is messing with the colors so I do not need this
 	glColor3f(1.f,1.f,1.f);
 
-	App->level->Draw();
+	//App->level->Draw();
+	App->renderer->Draw(active_camera, App->window->GetWidth(), App->window->GetHeight());
 
 	if (debug_draw == true)
 	{
