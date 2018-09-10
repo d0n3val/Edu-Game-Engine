@@ -397,7 +397,7 @@ void ModuleEditor::DrawDirectoryRecursive(const char* directory, const char* fil
 		if (ok && ImGui::TreeNodeEx(str.c_str(), ImGuiTreeNodeFlags_Leaf))
 		{
 			if (ImGui::IsItemClicked()) {
-				sprintf_s(selected_file, FILE_MAX, "%s%s", dir.c_str(), str.c_str());
+				sprintf_s(selected_file, FILE_MAX, ".%s%s", dir.c_str(), str.c_str());
 
 				if (ImGui::IsMouseDoubleClicked(0))
 					file_dialog = ready_to_close;

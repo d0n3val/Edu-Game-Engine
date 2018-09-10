@@ -325,12 +325,12 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 	ImGui::Checkbox("UVs", &uvs);
 	ImGui::SameLine();
 	ImGui::Checkbox("Normals", &normals);
-
 #if 0 
-    \todo:
+
 	ImGui::Text("Potential Bones: %i", component->CountPotentialBones());
 	ImGui::Text("Attached to %i bones", component->CountAttachedBones());
 
+	// \todo:
 	const GameObject* selected = PickGameObject(component->root_bones);
 	if (selected != nullptr)
 		component->AttachBones(selected);
