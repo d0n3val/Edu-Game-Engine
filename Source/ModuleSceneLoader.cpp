@@ -337,11 +337,12 @@ void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file
 
 void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes)
 {
-	meshes.resize(scene->mNumMeshes);
+	meshes.reserve(scene->mNumMeshes);
 
 	for(unsigned i=0; i < scene->mNumMeshes; ++i)
 	{
         meshes.push_back(ResourceMesh::Import(scene->mMeshes[i],  materials[i], file)); 
+		assert(meshes.back() != 0);
 	}
 }
 

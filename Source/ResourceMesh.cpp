@@ -134,11 +134,9 @@ bool ResourceMesh::LoadInMemory()
 // ---------------------------------------------------------
 bool ResourceMesh::Save(std::string& output) const
 {
-    std::string data;
+	std::stringbuf buffer;
 
-    // \todo: reserve string data
-
-    std::stringstream write_stream(data);
+    std::ostream write_stream(&buffer);
 
     write_stream << name.C_str();
     write_stream << mat_id;
@@ -206,6 +204,7 @@ bool ResourceMesh::Save(std::string& output) const
         }
     }
 
+	std::string data = buffer.str();
 	return App->fs->SaveUnique(output, data.c_str(), data.size(), LIBRARY_MESH_FOLDER, "mesh", "edumesh");
 }
 

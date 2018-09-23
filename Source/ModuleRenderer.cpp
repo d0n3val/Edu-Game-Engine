@@ -127,7 +127,10 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& tr
 
 		for (uint i=0, count = geometry->meshes.size(); i < count; ++i)
 		{
-            (this->*drawer)(node->GetGlobalTransformation(), static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i])));
+            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i]));
+            assert(mesh != nullptr);
+
+            (this->*drawer)(node->GetGlobalTransformation(), mesh);
         }
 
 	}

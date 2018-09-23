@@ -18,7 +18,8 @@ void ComponentGeometry::Initialize(const UID* ids, const unsigned* mesh_indices,
 
     for(unsigned i=0; i < count; ++i)
     {
-        meshes.push_back(mesh_indices[i]);
+		assert(ids[mesh_indices[i]] != 0);
+        meshes.push_back(ids[mesh_indices[i]]);
     }
 }
 
