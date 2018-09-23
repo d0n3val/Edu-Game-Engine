@@ -214,7 +214,7 @@ UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file
 {
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
-    m->name   = mesh->mName.length > 0 ? HashString(mesh->mName.C_Str()) : HashString();
+    m->name   = HashString(mesh->mName.C_Str());
     m->mat_id = mat_id;
 
     m->GenerateAttribInfo(mesh);

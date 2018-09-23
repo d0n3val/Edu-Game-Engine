@@ -382,6 +382,9 @@ Resource * ModuleResources::CreateNewResource(Resource::Type type, UID force_uid
 		case Resource::animation:
 			ret = (Resource*) new ResourceAnimation(uid);
 		break;
+        case Resource::material:
+            ret = new ResourceMaterial(uid);
+        break;
 	}
 
 	if (ret != nullptr)
