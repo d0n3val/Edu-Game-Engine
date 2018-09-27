@@ -211,6 +211,8 @@ bool ResourceMesh::Save(std::string& output) const
 // ---------------------------------------------------------
 UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file)
 {
+    assert(mat_id != 0);
+
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
     m->name   = HashString(mesh->mName.C_Str());

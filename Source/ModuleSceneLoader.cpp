@@ -318,10 +318,7 @@ void ModuleSceneLoader::GenerateGameObjects(const aiNode* src, GameObject* dst, 
 
 	for(unsigned i=0; i < src->mNumChildren; ++i)
 	{
-		GameObject* child = App->level->CreateGameObject(dst);
-		dst->childs.push_back(child);
-		
-		GenerateGameObjects(src->mChildren[i], child, meshes);
+		GenerateGameObjects(src->mChildren[i], App->level->CreateGameObject(dst), meshes);
 	}
 }
 
@@ -332,6 +329,7 @@ void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file
 	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
 	{
         materials.push_back(ResourceMaterial::Import(scene->mMaterials[i], file));
+		assert(materials.back() != 0);
 	}
 }
 
