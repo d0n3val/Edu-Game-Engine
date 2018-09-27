@@ -181,15 +181,15 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, ResourceMesh* mesh
 	glUniform1i(App->programs->GetUniformLocation("shadow_map"), 3);
 
     glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, static_cast<ResourceTexture*>(App->resources->Get(material->specular_map))->gpu_id);
+	glBindTexture(GL_TEXTURE_2D, material->specular_map != 0 ? static_cast<ResourceTexture*>(App->resources->Get(material->specular_map))->gpu_id : 0);
 	glUniform1i(App->programs->GetUniformLocation("specular_map"), 2);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, static_cast<ResourceTexture*>(App->resources->Get(material->normal_map))->gpu_id);
+	glBindTexture(GL_TEXTURE_2D, material->normal_map != 0 ? static_cast<ResourceTexture*>(App->resources->Get(material->normal_map))->gpu_id : 0);
 	glUniform1i(App->programs->GetUniformLocation("normal_map"), 1);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, static_cast<ResourceTexture*>(App->resources->Get(material->albedo_map))->gpu_id);
+	glBindTexture(GL_TEXTURE_2D, material->albedo_map != 0 ? static_cast<ResourceTexture*>(App->resources->Get(material->albedo_map))->gpu_id : 0);
 	glUniform1i(App->programs->GetUniformLocation("diffuse"), 0);
 
 	if((mesh->attribs & ResourceMesh::ATTRIB_BONES))
@@ -210,7 +210,7 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, ResourceMesh* mesh
 
 void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ResourceMesh* mesh)
 {
-	if (static_cast<ResourceMaterial*>(App->resources->Get(mesh->material))->cast_shadows)
+	if (static_cast<ResourceMaterial*>(App->resources->Get(mesh->mat_id))->cast_shadows)
 	{
 		unsigned variation = 0;
 		if ((mesh->attribs & ResourceMesh::ATTRIB_BONES))

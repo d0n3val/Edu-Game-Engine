@@ -362,7 +362,7 @@ bool ModuleFileSystem::SaveUnique(string& name, const void * buffer, uint size, 
 {
 	char result[250];
 
-	sprintf_s(result, 250, ".%s%s_%llu.%s", path, prefix, App->resources->GenerateNewUID(), extension);
+	sprintf_s(result, 250, "%s%s_%llu.%s", path, prefix, App->resources->GenerateNewUID(), extension);
 	NormalizePath(result);
 	if (Save(result, buffer, size) > 0)
 	{
