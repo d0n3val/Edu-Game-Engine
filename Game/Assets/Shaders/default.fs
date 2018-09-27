@@ -86,7 +86,7 @@ void main()
 
 	frag_color = vec4(((AMBIENT_AMOUNT+diffuse_amount)*diffuse_color.rgb+
                      specular_color.rgb*specular_amount)*visibility, diffuse_color.a);
-    frag_color = vec2(1.0, 1.0, 1.0, 1.0);
+    frag_color = vec4(1.0, 1.0, 1.0, 1.0);
 }
 
 
