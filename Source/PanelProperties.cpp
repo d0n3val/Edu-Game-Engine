@@ -159,7 +159,7 @@ void PanelProperties::Draw()
 				switch ((*it)->GetType())
 				{
 				case Component::Types::Geometry:
-					DrawMeshComponent((ComponentMesh*)(*it));
+					// \todo: DrawMeshComponent((ComponentMesh*)(*it));
 				break;
 				case Component::Types::Material:
 					DrawMaterialComponent((ComponentMaterial*)(*it));

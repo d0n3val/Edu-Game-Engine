@@ -133,7 +133,7 @@ void ModulePrograms::GenerateVariation(const char* name, unsigned variations)
 
             glGetProgramInfoLog(program_id, len, &written, info);
 
-            printf("Program Log Info: %s", info);
+            LOG("Program Log Info: %s", info);
 
             free(info);
         }
@@ -184,7 +184,7 @@ void ModulePrograms::Compile(char** data,  char* shader_data, unsigned id, unsig
 
             glGetShaderInfoLog(id, len, &written, info);
 
-            printf("Log Info: %s", info);
+            LOG("Log Info: %s", info);
 
             free(info);
         }

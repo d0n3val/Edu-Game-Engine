@@ -48,8 +48,8 @@ bool ModuleRenderer::Init(Config* config /*= nullptr*/)
         }
     }
 
-    glGenFramebuffers(1, &color.fbo);
-    glGenFramebuffers(1, &shadow.fbo);
+    // \todo: glGenFramebuffers(1, &color.fbo);
+    // \todo: glGenFramebuffers(1, &shadow.fbo);
 	
 	return true;
 }
@@ -61,8 +61,8 @@ ModuleRenderer::~ModuleRenderer()
         glDeleteBuffers(UNIFORM_COUNT, uniforms);
     }
 
-    glDeleteFramebuffers(1, &shadow.fbo);
-    glDeleteFramebuffers(1, &color.fbo);
+    // \todo: glDeleteFramebuffers(1, &shadow.fbo);
+    // \todo: glDeleteFramebuffers(1, &color.fbo);
 }
 
 void ModuleRenderer::Draw(ComponentCamera* camera, unsigned width, unsigned height)
@@ -73,7 +73,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned width, unsigned heig
     UpdateCameraUniform(camera);
     UpdateLightUniform();
 
-    ShadowPass(width, height);
+    // \todo: ShadowPass(width, height);
     ColorPass(width, height);
 }
 
@@ -146,7 +146,7 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, ResourceMesh* mesh
 
 	if(mesh->attribs & ResourceMesh::ATTRIB_BONES)
 	{
-        variation |= SKINNING;
+        // \todo: variation |= SKINNING;
 	}
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) && mesh->attribs & ResourceMesh::ATTRIB_TANGENTS && material->normal_map != 0)
@@ -272,17 +272,17 @@ void ModuleRenderer::DebugDrawTangentSpace(float size)
 
 void ModuleRenderer::ColorPass(unsigned width, unsigned height)
 {
-    GenerateFBOTexture(color, width, height, true);
+    // \todo: GenerateFBOTexture(color, width, height, true);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, color.fbo);
+    // \todo: glBindFramebuffer(GL_FRAMEBUFFER, color.fbo);
 
-	glViewport(0, 0, width, height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// \todo: glViewport(0, 0, width, height);
+    // \todo: glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     DrawNodes(&ModuleRenderer::DrawMeshColor);
     //\todo: DrawSkybox();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // \todo: glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     App->programs->UnuseProgram();
 }
@@ -301,8 +301,8 @@ void ModuleRenderer::ShadowPass(unsigned width, unsigned height)
 
 	glViewport(0, 0, width, height);	
 
-    GenerateFBOTexture(shadow, width, height, false);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow.fbo);
+    // \todo: GenerateFBOTexture(shadow, width, height, false);
+    // \todo: glBindFramebuffer(GL_FRAMEBUFFER, shadow.fbo);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
