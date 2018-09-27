@@ -47,10 +47,7 @@ bool ResourceMaterial::LoadInMemory()
 
 bool ResourceMaterial::Save(std::string& output) const
 {
-    char buffer[sizeof(ResourceMaterial)];
-
     std::stringbuf strbuf;
-    strbuf.pubsetbuf(buffer, sizeof(ResourceMaterial));
     std::ostream write_stream(&strbuf);
 
     write_stream << ambient;
@@ -63,7 +60,7 @@ bool ResourceMaterial::Save(std::string& output) const
     write_stream << cast_shadows;
     write_stream << recv_shadows;
 
-	return App->fs->SaveUnique(output, buffer, (uint)write_stream.tellp(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
+	return App->fs->SaveUnique(output, strbuf.str().c_str(), (uint)write_stream.tellp(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
 }
 
 UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file)

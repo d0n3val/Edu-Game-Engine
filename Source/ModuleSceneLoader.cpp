@@ -341,7 +341,7 @@ void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const char* file, c
 
 	for(unsigned i=0; i < scene->mNumMeshes; ++i)
 	{
-        meshes.push_back(ResourceMesh::Import(scene->mMeshes[i],  materials[i], file)); 
+        meshes.push_back(ResourceMesh::Import(scene->mMeshes[i],  materials[scene->mMeshes[i]->mMaterialIndex], file)); 
 		assert(meshes.back() != 0);
 	}
 }
