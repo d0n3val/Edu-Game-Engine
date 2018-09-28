@@ -125,6 +125,11 @@ bool ResourceMesh::LoadInMemory()
         GenerateVBO(false);
         GenerateVAO();
 
+        if(mat_id != 0)
+        {
+            App->resources->Get(mat_id)->LoadToMemory();
+        }
+
 		return true;
     }
 

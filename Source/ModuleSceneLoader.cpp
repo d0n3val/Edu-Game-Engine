@@ -283,7 +283,10 @@ bool ModuleSceneLoader::ImportNew(const char* full_path, std::string& output)
 
 	unsigned flags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_OptimizeGraph;
 
-	const aiScene* scene = aiImportFile(full_path,  flags);
+	aiString assimp_path(".");
+	assimp_path.Append(full_path);
+
+	const aiScene* scene = aiImportFile(assimp_path.data,  flags);
 
 	if (scene)
 	{

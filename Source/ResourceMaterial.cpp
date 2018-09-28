@@ -39,6 +39,11 @@ bool ResourceMaterial::LoadInMemory()
         read_stream >> cast_shadows;
         read_stream >> recv_shadows;
 
+        if(albedo_map != 0)
+        {
+            App->resources->Get(albedo_map)->LoadToMemory();
+        }
+
         return true;
     }
 
