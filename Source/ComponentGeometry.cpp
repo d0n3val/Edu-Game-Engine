@@ -30,7 +30,7 @@ void ComponentGeometry::Initialize(const UID* ids, const unsigned* mesh_indices,
 
 void ComponentGeometry::OnSave(Config& config) const 
 {
-    config.AddArrayUID("Meshes", &meshes[0], meshes.size());
+    config.AddArrayUID("Meshes", !meshes.empty() ? &meshes[0] : nullptr, meshes.size());
 }
 
 void ComponentGeometry::OnLoad(Config* config) 

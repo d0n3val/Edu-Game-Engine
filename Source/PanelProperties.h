@@ -7,7 +7,6 @@
 
 class GameObject;
 class Component;
-class ComponentMesh;
 class ComponentAudioSource;
 class ComponentAudioListener;
 class ComponentMaterial;
@@ -15,6 +14,7 @@ class ComponentCamera;
 class ComponentBone;
 class ComponentRigidBody;
 class ComponentAnimation;
+class ComponentGeometry;
 
 class PanelProperties : public Panel
 {
@@ -30,7 +30,7 @@ public:
 	bool InitComponentDraw(Component* component, const char * name);
 
 	// TODO move editor code as a component method like component rigidbody
-	void DrawMeshComponent(ComponentMesh* component);
+	void DrawGeometryComponent(ComponentGeometry* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);

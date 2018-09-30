@@ -5,8 +5,7 @@
 #include "Application.h"
 #include "Assimp/include/types.h"
 #include "Assimp/include/material.h"
-
-#include <iostream>
+#include "utils/SimpleBinStream.h"
 
 ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::material)
 {
@@ -24,10 +23,7 @@ bool ResourceMaterial::LoadInMemory()
 
         uint size = App->fs->Load(LIBRARY_MATERIAL_FOLDER, GetExportedFile(), &buffer);
 
-        std::stringbuf strbuf;
-        strbuf.pubsetbuf(buffer, size);
-
-        std::istream read_stream(&strbuf);
+        simple::mem_istream<std::true_type> read_stream(buffer, size);
 
         read_stream >> ambient.x >> ambient.y >> ambient.z >> ambient.w;
         read_stream >> diffuse.x >> diffuse.y >> diffuse.z >> diffuse.w;
@@ -52,8 +48,7 @@ bool ResourceMaterial::LoadInMemory()
 
 bool ResourceMaterial::Save(std::string& output) const
 {
-    std::stringbuf strbuf;
-    std::ostream write_stream(&strbuf);
+    simple::mem_ostream<std::true_type> write_stream;
 
     write_stream << ambient;
     write_stream << diffuse;
@@ -65,7 +60,9 @@ bool ResourceMaterial::Save(std::string& output) const
     write_stream << cast_shadows;
     write_stream << recv_shadows;
 
-	return App->fs->SaveUnique(output, strbuf.str().c_str(), (uint)write_stream.tellp(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
 }
 
 UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file)

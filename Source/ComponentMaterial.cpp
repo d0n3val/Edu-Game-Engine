@@ -6,7 +6,9 @@
 
 // ---------------------------------------------------------
 ComponentMaterial::ComponentMaterial(GameObject* container) : Component(container, Types::Material)
-{}
+{
+	// \todo: this component should disappear
+}
 
 // ---------------------------------------------------------
 ComponentMaterial::~ComponentMaterial()

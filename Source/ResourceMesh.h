@@ -62,7 +62,7 @@ public:
 
     HashString  name;
 
-    UID         mat_id;
+    UID         mat_id              = 0;
 
     uint        vertex_size         = 0;
     uint        attribs             = 0;

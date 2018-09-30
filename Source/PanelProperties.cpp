@@ -13,6 +13,7 @@
 #include "ComponentRigidBody.h"
 #include "ComponentAnimation.h"
 #include "ComponentSteering.h"
+#include "ComponentGeometry.h"
 #include "ModuleMeshes.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
@@ -159,7 +160,7 @@ void PanelProperties::Draw()
 				switch ((*it)->GetType())
 				{
 				case Component::Types::Geometry:
-					// \todo: DrawMeshComponent((ComponentMesh*)(*it));
+					DrawGeometryComponent((ComponentGeometry*)(*it));
 				break;
 				case Component::Types::Material:
 					DrawMaterialComponent((ComponentMaterial*)(*it));
@@ -302,46 +303,45 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 	return ret;
 }
 
-void PanelProperties::DrawMeshComponent(ComponentMesh * component)
+void PanelProperties::DrawGeometryComponent(ComponentGeometry * component)
 {
-	UID new_res = PickResource(component->GetResourceUID(), Resource::mesh);
-	if (new_res > 0)
-		component->SetResource(new_res);
+    UID new_res = 0;
 
-	const ResourceMesh* mesh = (const ResourceMesh*) component->GetResource();
-	if (mesh == nullptr)
-		return;
+    for(uint i=0; i< component->meshes.size(); ++i)
+    {
+		const ResourceMesh* res = static_cast<const ResourceMesh*>(App->resources->Get(component->meshes[i]));
 
-	ImGui::ColorEdit4("Tint", &component->tint.r, true);
+		ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Type: %s", res->GetTypeStr());
+			ImGui::Text("UID: %llu", res->GetUID());
+			ImGui::Text("Lib: %s", res->GetExportedFile());
+			ImGui::EndTooltip();
+		}
 
-    ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)",
-		mesh->num_indices / 3,
-		mesh->num_indices,
-		mesh->num_vertices);
+        ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)", res->num_indices / 3, res->num_indices, res->num_vertices); 
+    }
 
-	bool uvs = mesh->src_texcoord0 != nullptr;
-	bool normals = mesh->src_normals != nullptr;
-
-	ImGui::Checkbox("UVs", &uvs);
-	ImGui::SameLine();
-	ImGui::Checkbox("Normals", &normals);
-#if 0 
-
-	ImGui::Text("Potential Bones: %i", component->CountPotentialBones());
-	ImGui::Text("Attached to %i bones", component->CountAttachedBones());
-
-	// \todo:
-	const GameObject* selected = PickGameObject(component->root_bones);
-	if (selected != nullptr)
-		component->AttachBones(selected);
-
-	if (component->root_bones != nullptr)
-	{
-		ImGui::SameLine();
-		if (ImGui::Button("Dettach"))
-			component->DetachBones();
+    if (ImGui::Button("Attach mesh"))
+    {
+        ImGui::OpenPopup("Select");
 	}
-#endif
+
+	if (ImGui::BeginPopup("Select"))
+	{
+        UID r = 0;
+        r = App->editor->res->DrawResourceType((Resource::Type::mesh));
+        new_res = (r) ? r : new_res;
+        ImGui::EndPopup();
+	}
+
+    if (new_res > 0)
+    {
+        component->meshes.push_back(new_res);
+        App->resources->Get(new_res)->LoadToMemory();
+    }
 }
 
 void PanelProperties::DrawAudioSourceComponent(ComponentAudioSource * component)

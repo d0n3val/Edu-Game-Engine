@@ -14,7 +14,9 @@ using namespace std;
 
 // ---------------------------------------------------------
 ComponentMesh::ComponentMesh(GameObject* container) : Component(container, Types::Geometry)
-{}
+{
+    // \todo: Remove
+}
 
 // ---------------------------------------------------------
 ComponentMesh::~ComponentMesh()
