@@ -37,6 +37,18 @@ void ComponentGeometry::OnLoad(Config* config)
 {
     meshes.clear();
    
-	config->GetUID("Meshes", 0);
+	uint num_meshes = config->GetArrayCount("Meshes");
+    meshes.reserve(num_meshes);
+
+    for(uint i=0; i< num_meshes; ++i)
+    {
+        meshes.push_back(config->GetUID("Meshes", 0, i));
+    }
+
+
+    for(uint i=0; i< num_meshes; ++i)
+    {
+        App->resources->Get(meshes[i])->LoadToMemory();
+    }
 }
 
