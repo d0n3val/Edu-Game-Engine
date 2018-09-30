@@ -56,6 +56,15 @@ bool Resource::LoadToMemory()
 }
 
 // ---------------------------------------------------------
+void Resource::Release()
+{
+    if(--loaded == 0)
+    {
+        ReleaseFromMemory();
+    }
+}
+
+// ---------------------------------------------------------
 uint Resource::CountReferences() const
 {
 	return loaded;

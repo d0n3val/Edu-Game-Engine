@@ -3,6 +3,8 @@
 #include "ModuleTextures.h"
 #include "Config.h"
 
+#include "OpenGL.h"
+
 // ---------------------------------------------------------
 ResourceTexture::ResourceTexture(UID uid) : Resource(uid, Resource::Type::texture)
 {}
@@ -24,6 +26,16 @@ const char * ResourceTexture::GetFormatStr() const
 bool ResourceTexture::LoadInMemory()
 {
 	return App->tex->Load(this);
+}
+
+// ---------------------------------------------------------
+void ResourceTexture::ReleaseFromMemory() 
+{
+    if(gpu_id != 0)
+    { 
+        glDeleteTextures(1, &gpu_id);
+        gpu_id = 0;
+    }
 }
 
 // ---------------------------------------------------------

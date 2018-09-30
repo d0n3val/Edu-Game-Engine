@@ -7,14 +7,18 @@
 #include "Assimp/include/material.h"
 #include "utils/SimpleBinStream.h"
 
+// ---------------------------------------------------------
 ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::material)
 {
 }
 
+// ---------------------------------------------------------
 ResourceMaterial::~ResourceMaterial()
 {
+    // \todo: Unload resources + unload texture map resources
 }
 
+// ---------------------------------------------------------
 bool ResourceMaterial::LoadInMemory()
 {
 	if (GetExportedFile() != nullptr)
@@ -40,12 +44,45 @@ bool ResourceMaterial::LoadInMemory()
             App->resources->Get(albedo_map)->LoadToMemory();
         }
 
+        if(normal_map != 0)
+        {
+            App->resources->Get(normal_map)->LoadToMemory();
+        }
+
+        if(specular_map != 0)
+        {
+            App->resources->Get(specular_map)->LoadToMemory();
+        }
+
         return true;
     }
 
     return false;
 }
 
+// ---------------------------------------------------------
+void ResourceMaterial::ReleaseFromMemory()
+{
+    if(albedo_map != 0)
+    {
+        App->resources->Get(albedo_map)->Release();
+        albedo_map = 0;
+    }
+
+    if(normal_map != 0)
+    {
+        App->resources->Get(normal_map)->Release();
+        normal_map = 0;
+    }
+
+    if(specular_map != 0)
+    {
+        App->resources->Get(specular_map)->Release();
+        specular_map = 0;
+    }
+}
+
+// ---------------------------------------------------------
 bool ResourceMaterial::Save(std::string& output) const
 {
     simple::mem_ostream<std::true_type> write_stream;
@@ -65,6 +102,7 @@ bool ResourceMaterial::Save(std::string& output) const
 	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
 }
 
+// ---------------------------------------------------------
 UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file)
 {
     std::string base_path;

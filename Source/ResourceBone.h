@@ -13,6 +13,7 @@ public:
 	virtual ~ResourceBone();
 
 	bool LoadInMemory() override;
+    void ReleaseFromMemory() override;
 
 	void Save(Config& config) const override;
 	void Load(const Config& config) override;

@@ -32,6 +32,12 @@ bool ResourceAudio::LoadInMemory()
 }
 
 // ---------------------------------------------------------
+void ResourceAudio::ReleaseFromMemory ()
+{
+    // \todo:
+}
+
+// ---------------------------------------------------------
 void ResourceAudio::Save(Config & config) const
 {
 	Resource::Save(config);

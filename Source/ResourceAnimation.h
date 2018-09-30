@@ -17,6 +17,7 @@ public:
 	virtual ~ResourceAnimation();
 
 	bool LoadInMemory() override;
+    void ReleaseFromMemory() override;
 
 	void Save(Config& config) const override;
 	void Load(const Config& config) override;

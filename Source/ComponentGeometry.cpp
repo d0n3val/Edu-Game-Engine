@@ -11,11 +11,14 @@ ComponentGeometry::ComponentGeometry(GameObject* go) : Component(go, Types::Geom
 
 ComponentGeometry::~ComponentGeometry()
 {
+    for(uint i=0; i< meshes.size(); ++i)
+    {
+        App->resources->Get(meshes[i])->Release();
+    }
 }
 
 void ComponentGeometry::Initialize(const UID* ids, const unsigned* mesh_indices, unsigned count)
 {
-    meshes.clear();
     meshes.reserve(count);
 
     for(unsigned i=0; i < count; ++i)
@@ -24,7 +27,6 @@ void ComponentGeometry::Initialize(const UID* ids, const unsigned* mesh_indices,
         meshes.push_back(ids[mesh_indices[i]]);
 
         App->resources->Get(meshes.back())->LoadToMemory();
-        // \todo: Unload!!!!
     }
 }
 
@@ -35,8 +37,6 @@ void ComponentGeometry::OnSave(Config& config) const
 
 void ComponentGeometry::OnLoad(Config* config) 
 {
-    meshes.clear();
-   
 	uint num_meshes = config->GetArrayCount("Meshes");
     meshes.reserve(num_meshes);
 

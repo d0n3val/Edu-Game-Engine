@@ -13,10 +13,11 @@ public:
     explicit ResourceMaterial(UID id);
     virtual ~ResourceMaterial();
 
-	bool        LoadInMemory   () override;
-    bool        Save           (std::string& output) const;
+	bool        LoadInMemory        () override;
+    void        ReleaseFromMemory   () override;
+    bool        Save                (std::string& output) const;
 
-    static UID  Import          (const aiMaterial* material, const char* source_file);
+    static UID  Import              (const aiMaterial* material, const char* source_file);
 
 public:
 

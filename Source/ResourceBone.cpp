@@ -21,6 +21,12 @@ bool ResourceBone::LoadInMemory()
 }
 
 // ---------------------------------------------------------
+void ResourceBone::ReleaseFromMemory() 
+{
+    // \todo:
+}
+
+// ---------------------------------------------------------
 void ResourceBone::Save(Config & config) const
 {
 	Resource::Save(config);

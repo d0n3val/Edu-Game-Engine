@@ -17,6 +17,11 @@ bool ResourceScene::LoadInMemory()
 }
 
 // ---------------------------------------------------------
+void ResourceScene::ReleaseFromMemory()
+{
+}
+
+// ---------------------------------------------------------
 void ResourceScene::Save(Config & config) const
 {
 	Resource::Save(config);

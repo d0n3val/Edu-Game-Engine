@@ -12,13 +12,11 @@
 // ---------------------------------------------------------
 ResourceMesh::ResourceMesh(UID uid) : Resource(uid, Resource::Type::mesh)
 {
-    // \todo: initialization
 } 
 
 // ---------------------------------------------------------
 ResourceMesh::~ResourceMesh()
 {
-    // \todo: deallocation
 }
 
 // ---------------------------------------------------------
@@ -38,9 +36,7 @@ bool ResourceMesh::LoadInMemory()
 {
 	if (GetExportedFile() != nullptr)
     {
-		// \todo: release reserved memory
         char* buffer = nullptr;
-
         uint size = App->fs->Load(LIBRARY_MESH_FOLDER, GetExportedFile(), &buffer);
 
         simple::mem_istream<std::true_type> read_stream(buffer, size);
@@ -147,6 +143,58 @@ bool ResourceMesh::LoadInMemory()
 }
 
 // ---------------------------------------------------------
+void ResourceMesh::ReleaseFromMemory() 
+{
+    // \todo: check if merge with clear and check import and check module resources final release
+
+    delete [] src_vertices;
+    src_vertices = nullptr;
+
+    delete [] src_texcoord0;
+    src_texcoord0 = nullptr;
+
+    delete [] src_normals;
+    src_normals = nullptr;
+
+    delete [] src_tangents;
+    src_tangents = nullptr;
+
+    delete [] src_indices;
+    src_indices = nullptr;
+
+    for(uint i=0; i< num_bones; ++i)
+    {
+        delete [] bones[i].weights;
+    }
+
+    delete [] bones;
+    bones = nullptr;
+
+    if(vbo != 0)
+    {
+        glDeleteBuffers(1, &vbo);
+        vbo = 0;
+    }
+
+    if(ibo != 0)
+    {
+        glDeleteBuffers(1, &ibo);
+        ibo = 0;
+    }
+
+    if(vao != 0)
+    {
+        glDeleteVertexArrays(1, &vao);
+        vao = 0;
+    }
+    if(mat_id != 0)
+    {
+        App->resources->Get(mat_id)->Release();
+        mat_id = 0;
+    }
+}
+
+// ---------------------------------------------------------
 bool ResourceMesh::Save(std::string& output) const
 {
     simple::mem_ostream<std::true_type> write_stream;
@@ -245,7 +293,10 @@ UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file
 
     std::string output;
 
-    if(m->Save(output))
+    bool save_ok = m->Save(output);
+    m->ReleaseFromMemory();
+
+    if(save_ok)
     {
 		if (source_file != nullptr) 
         {
@@ -261,8 +312,6 @@ UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file
 
         return m->uid;
     }
-
-    // \todo: remove resource
 
     LOG("Importing of BUFFER aiMaterial [%s] FAILED", source_file);
 

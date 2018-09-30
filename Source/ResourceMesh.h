@@ -21,12 +21,13 @@ public:
 	virtual ~ResourceMesh();
 
 
-	void        Save        (Config& config) const override;
-	void        Load        (const Config& config) override;
+	void        Save                (Config& config) const override;
+	void        Load                (const Config& config) override;
 
-	bool        LoadInMemory() override;
-    bool        Save        (std::string& output) const;
-    static UID  Import      (const aiMesh* mesh, UID material, const char* source_file);
+	bool        LoadInMemory        () override;
+    void        ReleaseFromMemory   () override;
+    bool        Save                (std::string& output) const;
+    static UID  Import              (const aiMesh* mesh, UID material, const char* source_file);
 
 private:
 
@@ -35,6 +36,7 @@ private:
     void GenerateVBO        (bool dynamic);
     void GenerateBoneData   (const aiMesh* mesh);
     void GenerateVAO        ();
+    void Clear              ();
 
 public:
 

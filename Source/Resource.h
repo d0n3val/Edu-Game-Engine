@@ -35,6 +35,7 @@ public:
 
 	bool            IsLoadedToMemory() const;
 	bool            LoadToMemory();
+    void            Release();
 
 	uint            CountReferences() const;
 
@@ -44,6 +45,7 @@ public:
 protected:
 
 	virtual bool    LoadInMemory() = 0;
+    virtual void    ReleaseFromMemory() = 0;
 
 protected:
 

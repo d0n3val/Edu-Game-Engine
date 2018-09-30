@@ -21,6 +21,12 @@ bool ResourceAnimation::LoadInMemory()
 }
 
 // ---------------------------------------------------------
+void ResourceAnimation::ReleaseFromMemory()
+{
+    // \todo:
+}
+
+// ---------------------------------------------------------
 void ResourceAnimation::Save(Config & config) const
 {
 	Resource::Save(config);
