@@ -38,7 +38,7 @@ void PanelResources::Draw()
 	{
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)
-			App->resources->ImportFile(file);
+			App->resources->ImportFile(file, true); // \todo: when is new generates an instance???
 		waiting_to_load_file = false;
 	}
 
