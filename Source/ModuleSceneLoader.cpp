@@ -20,12 +20,14 @@
 #include "Assimp/include/cfileio.h"
 
 #include "mmgr/mmgr.h"
+
 #pragma comment (lib, "Assimp/libx86/assimp.lib")
 
 using namespace std;
 
 ModuleSceneLoader::ModuleSceneLoader( bool start_enabled) : Module("Scene", start_enabled)
 {
+
 }
 
 // Destructor
@@ -41,6 +43,7 @@ bool ModuleSceneLoader::Init(Config* config)
 
 	// Stream log messages to Debug window
 	stream = aiGetPredefinedLogStream(aiDefaultLogStream_DEBUGGER, nullptr);
+
 	aiAttachLogStream(&stream);
 
 	return ret;
@@ -49,16 +52,20 @@ bool ModuleSceneLoader::Init(Config* config)
 bool ModuleSceneLoader::Start(Config * config)
 {
 	string t;
+
 	//Import("/Assets/Animation/Ethan/Ethan.fbx", t);
+
 	return true;
 }
 
 // Called before quitting or switching levels
+
 bool ModuleSceneLoader::CleanUp()
 {
 	LOG("Freeing Scene Manager");
 
 	// detach log stream
+
 	aiDetachAllLogStreams();
 
 	return true;
@@ -80,31 +87,49 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
         std::vector<UID> materials, meshes;
 		GenerateMaterials(scene, full_path, materials);
 		GenerateMeshes(scene, full_path, materials, meshes);
-		GenerateGameObjects(scene->mRootNode, App->level->CreateGameObject(nullptr), meshes);
+
+		GameObject* go = App->level->CreateGameObject(nullptr);
+		GenerateGameObjects(scene->mRootNode, go, meshes);
 
 		aiReleaseImport(scene);
 
-		return true;
+		// Serialize GameObjects recursively
+		Config save;
+		save.AddArray("Game Objects");
+
+		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+			(*it)->Save(save);
+
+		// Finally save to file
+		char* buf = nullptr;
+		uint size = save.Save(&buf, "Prefab save file from EDU Engine");
+		bool ret = App->fs->SaveUnique(output, buf, size, LIBRARY_SCENE_FOLDER, "scene", "eduscene");
+		RELEASE_ARRAY(buf);
+
+		// We can now safely remove the tree
+		go->Remove();
+
+		return ret;
 	}
 
 	return false;
 }
 
-
 void ModuleSceneLoader::GenerateGameObjects(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes)
 {
     aiQuaternion quat;
+
 	dst->SetLocalTransform(reinterpret_cast<const float4x4&>(src->mTransformation));
     dst->name = src->mName.C_Str();
 
     if(src->mNumMeshes > 0)
     {
         ComponentGeometry* geometry = new ComponentGeometry(dst);
+
         geometry->Initialize(&meshes[0], src->mMeshes, src->mNumMeshes);
 
         dst->components.push_back(geometry);
     }
-
 
 	for(unsigned i=0; i < src->mNumChildren; ++i)
 	{
@@ -119,9 +144,11 @@ void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file
 	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
 	{
         materials.push_back(ResourceMaterial::Import(scene->mMaterials[i], file));
+
 		assert(materials.back() != 0);
 	}
 }
+
 
 void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes)
 {
@@ -130,6 +157,8 @@ void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const char* file, c
 	for(unsigned i=0; i < scene->mNumMeshes; ++i)
 	{
         meshes.push_back(ResourceMesh::Import(scene->mMeshes[i],  materials[scene->mMeshes[i]->mMaterialIndex], file)); 
+
 		assert(meshes.back() != 0);
 	}
 }
+

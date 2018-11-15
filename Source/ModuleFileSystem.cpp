@@ -35,10 +35,10 @@ ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("File System"
 	const char* dirs[] = {
 		SETTINGS_FOLDER, ASSETS_FOLDER, LIBRARY_FOLDER,
 		LIBRARY_AUDIO_FOLDER, LIBRARY_BONE_FOLDER, LIBRARY_MESH_FOLDER,
-		LIBRARY_SCENE_FOLDER, LIBRARY_TEXTURES_FOLDER, LIBRARY_ANIMATION_FOLDER
+		LIBRARY_MATERIAL_FOLDER, LIBRARY_SCENE_FOLDER, LIBRARY_TEXTURES_FOLDER, LIBRARY_ANIMATION_FOLDER
 	};
 
-	for (uint i = 0; i < 9; ++i)
+	for (uint i = 0; i < sizeof(dirs)/sizeof(const char*); ++i)
 	{
 		if (PHYSFS_exists(dirs[i]) == 0)
 			PHYSFS_mkdir(dirs[i]);
