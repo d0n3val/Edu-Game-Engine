@@ -258,7 +258,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
 		break;
 		case Resource::scene:
-			import_ok = App->scene->ImportNew(new_file_in_assets, written_file);
+			import_ok = App->scene->Import(new_file_in_assets, written_file);
 		break;
 	}
 

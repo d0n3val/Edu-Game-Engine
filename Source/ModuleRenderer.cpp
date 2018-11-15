@@ -67,8 +67,17 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, unsigned width, unsigned height)
 {
-    // \todo: culling
-    CollectNodes();
+	draw_nodes.clear();
+	
+	// TODO first draw all opaque geom then translucent from far to near
+	if (camera->frustum_culling == true)
+	{
+		App->level->quadtree.CollectIntersections(draw_nodes, camera->frustum);
+	}
+	else
+	{
+		App->level->quadtree.CollectObjects(draw_nodes);
+	}
 
     UpdateCameraUniform(camera);
     UpdateLightUniform();
@@ -82,6 +91,7 @@ void ModuleRenderer::CollectNodes()
 	draw_nodes.clear();
 
 	CollectNodesRec(App->level->GetRoot());
+
 }
 
 void ModuleRenderer::CollectNodesRec(GameObject* node)
@@ -125,14 +135,16 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& tr
 
         ComponentGeometry* geometry = static_cast<ComponentGeometry*>(node->FindFirstComponent(Component::Geometry));
 
-		for (uint i=0, count = geometry->meshes.size(); i < count; ++i)
+		if (geometry) // \todo: insert only geometry nodes
 		{
-            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i]));
-            assert(mesh != nullptr);
+			for (uint i = 0, count = geometry->meshes.size(); i < count; ++i)
+			{
+				ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i]));
+				assert(mesh != nullptr);
 
-            (this->*drawer)(node->GetGlobalTransformation(), mesh);
-        }
-
+				(this->*drawer)(node->GetGlobalTransformation(), mesh);
+			}
+		}
 	}
 }
 
