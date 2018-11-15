@@ -1,6 +1,8 @@
 #include "Globals.h"
 
 #include "ComponentGeometry.h"
+#include "Application.h"
+#include "ModuleResources.h"
 
 
 ComponentGeometry::ComponentGeometry(GameObject* go) : Component(go, Types::Geometry)
@@ -20,12 +22,15 @@ void ComponentGeometry::Initialize(const UID* ids, const unsigned* mesh_indices,
     {
 		assert(ids[mesh_indices[i]] != 0);
         meshes.push_back(ids[mesh_indices[i]]);
+
+        App->resources->Get(meshes.back())->LoadToMemory();
+        // \todo: Unload!!!!
     }
 }
 
 void ComponentGeometry::OnSave(Config& config) const 
 {
-    config.AddArrayUID("Meshes", &meshes[0], meshes.size());
+    config.AddArrayUID("Meshes", !meshes.empty() ? &meshes[0] : nullptr, meshes.size());
 }
 
 void ComponentGeometry::OnLoad(Config* config) 

@@ -7,8 +7,7 @@
 #include "OpenGL.h"
 
 #include "Assimp/include/mesh.h"
-
-#include<sstream>
+#include "utils/SimpleBinStream.h"
 
 // ---------------------------------------------------------
 ResourceMesh::ResourceMesh(UID uid) : Resource(uid, Resource::Type::mesh)
@@ -39,16 +38,14 @@ bool ResourceMesh::LoadInMemory()
 {
 	if (GetExportedFile() != nullptr)
     {
+		// \todo: release reserved memory
         char* buffer = nullptr;
 
         uint size = App->fs->Load(LIBRARY_MESH_FOLDER, GetExportedFile(), &buffer);
 
-        std::stringbuf strbuf;
-        strbuf.pubsetbuf(buffer, size);
-
-        std::istream read_stream(&strbuf);
-
+        simple::mem_istream<std::true_type> read_stream(buffer, size);
         std::string tmp;
+
         read_stream >> tmp;
         name = HashString(tmp.c_str());
 
@@ -63,6 +60,8 @@ bool ResourceMesh::LoadInMemory()
 
         read_stream >> num_vertices;
 
+		src_vertices = new float3[num_vertices];
+
         for(uint i=0; i< num_vertices; ++i)
         {
             read_stream >> src_vertices[i].x >> src_vertices[i].y >> src_vertices[i].z;
@@ -70,6 +69,8 @@ bool ResourceMesh::LoadInMemory()
 
         if((attribs & ATTRIB_TEX_COORDS_0) != 0)
         {
+			src_texcoord0 = new float2[num_vertices];
+
             for(uint i=0; i< num_vertices; ++i)
             {
                 read_stream >> src_texcoord0[i].x >> src_texcoord0[i].y;
@@ -78,6 +79,8 @@ bool ResourceMesh::LoadInMemory()
 
         if((attribs & ATTRIB_NORMALS) != 0)
         {
+			src_normals = new float3[num_vertices];
+
             for(uint i=0; i< num_vertices; ++i)
             {
                 read_stream >> src_normals[i].x >> src_normals[i].y >> src_normals[i].z;
@@ -86,6 +89,8 @@ bool ResourceMesh::LoadInMemory()
 
         if((attribs & ATTRIB_TANGENTS) != 0)
         {
+			src_tangents = new float3[num_vertices];
+
             for(uint i=0; i< num_vertices; ++i)
             {
                 read_stream >> src_tangents[i].x >> src_tangents[i].y >> src_tangents[i].z;
@@ -93,6 +98,7 @@ bool ResourceMesh::LoadInMemory()
         }
 
         read_stream >> num_indices;
+		src_indices = new unsigned[num_indices];
 
         for(uint i=0; i< num_indices; ++i)
         {
@@ -102,6 +108,8 @@ bool ResourceMesh::LoadInMemory()
         if((attribs & ATTRIB_BONES) != 0)
         {
             read_stream >> num_bones;
+
+			bones = new Bone[num_bones];
 
             for(uint i=0; i< num_bones; ++i)
             {
@@ -114,6 +122,8 @@ bool ResourceMesh::LoadInMemory()
 
 				read_stream >> bones[i].num_weights;
 
+				bones[i].weights = new Weight[bones[i].num_weights];
+
                 for(uint j=0; j< bones[i].num_weights; ++j)
                 {
                     read_stream >> bones[i].weights[j].vertex;
@@ -125,6 +135,11 @@ bool ResourceMesh::LoadInMemory()
         GenerateVBO(false);
         GenerateVAO();
 
+        if(mat_id != 0)
+        {
+            App->resources->Get(mat_id)->LoadToMemory();
+        }
+
 		return true;
     }
 
@@ -134,9 +149,7 @@ bool ResourceMesh::LoadInMemory()
 // ---------------------------------------------------------
 bool ResourceMesh::Save(std::string& output) const
 {
-	std::stringbuf buffer;
-
-    std::ostream write_stream(&buffer);
+    simple::mem_ostream<std::true_type> write_stream;
 
     write_stream << name.C_str();
     write_stream << mat_id;
@@ -204,8 +217,9 @@ bool ResourceMesh::Save(std::string& output) const
         }
     }
 
-	std::string data = buffer.str();
-	return App->fs->SaveUnique(output, data.c_str(), data.size(), LIBRARY_MESH_FOLDER, "mesh", "edumesh");
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MESH_FOLDER, "mesh", "edumesh");
 }
 
 // ---------------------------------------------------------
