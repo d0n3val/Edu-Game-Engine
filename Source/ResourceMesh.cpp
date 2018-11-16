@@ -12,6 +12,7 @@
 // ---------------------------------------------------------
 ResourceMesh::ResourceMesh(UID uid) : Resource(uid, Resource::Type::mesh)
 {
+	bbox.SetNegativeInfinity();
 } 
 
 // ---------------------------------------------------------
@@ -127,6 +128,9 @@ bool ResourceMesh::LoadInMemory()
                 }
             }
         }
+
+        read_stream >> bbox.minPoint.x >> bbox.minPoint.y >> bbox.minPoint.z;
+        read_stream >> bbox.maxPoint.x >> bbox.maxPoint.y >> bbox.maxPoint.z;
 
         GenerateVBO(false);
         GenerateVAO();
@@ -265,6 +269,9 @@ bool ResourceMesh::Save(std::string& output) const
         }
     }
 
+    write_stream << bbox.minPoint.x << bbox.minPoint.y << bbox.minPoint.z;
+    write_stream << bbox.maxPoint.x << bbox.maxPoint.y << bbox.maxPoint.z;
+
     const std::vector<char>& data = write_stream.get_internal_vec();
 
 	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MESH_FOLDER, "mesh", "edumesh");
@@ -290,6 +297,9 @@ UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file
 
     m->GenerateVBO(false);
     m->GenerateVAO();
+
+    m->bbox.SetNegativeInfinity();
+    m->bbox.Enclose(m->src_vertices, m->num_vertices);
 
     std::string output;
 
@@ -356,6 +366,7 @@ void ResourceMesh::GenerateAttribInfo(const aiMesh* mesh)
         bone_weight_offset = vertex_size*mesh->mNumVertices;
         vertex_size += sizeof(float)*4;
     }
+
 }
 
 void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
@@ -405,6 +416,7 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
         memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
         //GenerateTangentSpace(dst);
     }
+
 }
 
 void ResourceMesh::GenerateVBO(bool dynamic)

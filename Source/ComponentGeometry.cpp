@@ -3,7 +3,7 @@
 #include "ComponentGeometry.h"
 #include "Application.h"
 #include "ModuleResources.h"
-
+#include "ResourceMesh.h"
 
 ComponentGeometry::ComponentGeometry(GameObject* go) : Component(go, Types::Geometry)
 {
@@ -45,10 +45,18 @@ void ComponentGeometry::OnLoad(Config* config)
         meshes.push_back(config->GetUID("Meshes", 0, i));
     }
 
-
     for(uint i=0; i< num_meshes; ++i)
     {
         App->resources->Get(meshes[i])->LoadToMemory();
     }
 }
+
+void ComponentGeometry::GetBoundingBox (AABB& box) const 
+{
+    for(uint i=0; i< meshes.size(); ++i)
+    {
+        box.Enclose(static_cast<ResourceMesh*>(App->resources->Get(meshes[i]))->bbox);
+    }
+}
+
 

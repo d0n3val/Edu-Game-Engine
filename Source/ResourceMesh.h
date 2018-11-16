@@ -90,6 +90,8 @@ public:
     uint        vao 	            = 0;
     uint        vbo 	            = 0;
     uint        ibo 	            = 0;
+
+	AABB        bbox;
 };
 
 #endif // __RESOURCE_MESH_H__
