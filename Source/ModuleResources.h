@@ -10,7 +10,6 @@
 #define RESERVED_RESOURCES 6 // cube/sphere/cylinde/cone/pyramid primitives + checker texture
 
 class Resource;
-class LoaderBone;
 class LoaderAnimation;
 class ResourceMesh;
 class ResourceTexture;
@@ -44,7 +43,6 @@ public:
 	//TODO: const Resource* Attach(GameObject* gameobject, UID uid));
 	void GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
 
-	const LoaderBone* GetBoneLoader() const;
 	const LoaderAnimation* GetAnimationLoader() const;
 	
 private:
@@ -56,7 +54,6 @@ private:
 	std::string asset_folder;
 	UID last_uid = RESERVED_RESOURCES + 1; // reserve 1 for standard cube mesh
 	std::map<UID, Resource*> resources;
-	LoaderBone* bone_loader = nullptr;
 	LoaderAnimation* anim_loader = nullptr;
 
 	// Presets

@@ -13,6 +13,7 @@ class Resource
 	friend class ModuleResources;
 public:
 	enum Type {
+        model,
         material,
 		texture,
 		mesh,
