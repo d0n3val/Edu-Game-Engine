@@ -68,6 +68,7 @@ void PanelResources::Draw()
         }
 	}
 
+	DrawResourceType(Resource::model);
 	DrawResourceType(Resource::material);
 	DrawResourceType(Resource::texture);
 	DrawResourceType(Resource::mesh);
@@ -86,7 +87,7 @@ UID PanelResources::DrawResourceType(Resource::Type type)
 	vector<const Resource*> resources;
 
 	static const char* titles[] = {
-		"Materials", "Textures", "Meshes", "Audios", "Scenes", "Bones", "Animation", "Others" };
+		"Models", "Materials", "Textures", "Meshes", "Audios", "Scenes", "Animation", "Others" };
 
 	if (ImGui::TreeNodeEx(titles[type], 0))
 	{
