@@ -9,8 +9,8 @@
 #include "ModuleEditorCamera.h"
 #include "ModuleEditor.h"
 #include "ComponentCamera.h"
-#include "ComponentMesh.h"
 #include "ComponentLight.h"
+#include "ComponentGeometry.h"
 #include "ResourceMesh.h"
 #include "DebugDraw.h"
 #include "Event.h"
@@ -407,8 +407,8 @@ void ModuleLevelManager::RecursiveTestRay(const LineSegment& segment, float& dis
 
 		if (meshes.size() > 0)
 		{
-			const ComponentMesh* cmesh = (const ComponentMesh*)meshes[0];
-			const ResourceMesh* mesh = cmesh->deformable ? cmesh->deformable : (ResourceMesh*) cmesh->GetResource();
+			const ComponentGeometry* cmesh = (const ComponentGeometry*)meshes[0];
+			const ResourceMesh* mesh = (ResourceMesh*) cmesh->GetResource();
 
 			// test all triangles
 			LineSegment segment_local_space(segment);
@@ -468,8 +468,8 @@ void ModuleLevelManager::RecursiveTestRay(const Ray& ray, float& dist, GameObjec
 
 		if (meshes.size() > 0)
 		{
-			const ComponentMesh* cmesh = (const ComponentMesh*)meshes[0];
-			const ResourceMesh* mesh = cmesh->deformable ? cmesh->deformable : (ResourceMesh*) cmesh->GetResource();
+			const ComponentGeometry* cmesh = (const ComponentGeometry*)meshes[0];
+			const ResourceMesh* mesh = (ResourceMesh*) cmesh->GetResource();
 
 			// test all triangles
 			Ray ray_local_space(ray);

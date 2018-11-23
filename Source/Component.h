@@ -20,7 +20,6 @@ public:
 		AudioListener,
 		AudioSource,
 		Camera,
-		Bone,
 		RigidBody,
 		Animation,
 		Steering,

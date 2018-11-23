@@ -495,15 +495,6 @@
     <ClInclude Include="mmgr\nommgr.h">
       <Filter>3rd Party\mmgr</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleAnimation.h">
-      <Filter>Core Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceBone.h">
-      <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="LoaderBone.h">
-      <Filter>Resources\Loaders</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceAnimation.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -531,16 +522,10 @@
     <ClInclude Include="Component.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentAnimation.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentAudioListener.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
     <ClInclude Include="ComponentAudioSource.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentBone.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
     <ClInclude Include="ComponentCamera.h">
@@ -818,15 +803,6 @@
     <ClCompile Include="mmgr\mmgr.cpp">
       <Filter>3rd Party\mmgr</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleAnimation.cpp">
-      <Filter>Core Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceBone.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="LoaderBone.cpp">
-      <Filter>Resources\Loaders</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceAnimation.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -848,16 +824,10 @@
     <ClCompile Include="Component.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentAnimation.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentAudioListener.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ComponentAudioSource.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentBone.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ComponentCamera.cpp">

@@ -6,9 +6,7 @@
 #include "ModuleFileSystem.h"
 #include "GameObject.h"
 #include "ComponentGeometry.h"
-#include "ComponentMesh.h"
 #include "ComponentMaterial.h"
-#include "ComponentBone.h"
 #include "Config.h"
 #include "ModuleLevelManager.h"
 #include "ModuleResources.h"
@@ -122,19 +120,19 @@ void ModuleSceneLoader::GenerateGameObjects(const aiNode* src, GameObject* dst, 
 	dst->SetLocalTransform(reinterpret_cast<const float4x4&>(src->mTransformation));
     dst->name = src->mName.C_Str();
 
-    if(src->mNumMeshes > 0)
+    for(uint i=0; i< src->mNumMeshes; ++i)
     {
         ComponentGeometry* geometry = new ComponentGeometry(dst);
 
-        geometry->Initialize(&meshes[0], src->mMeshes, src->mNumMeshes);
+        geometry->SetResource(meshes[src->mMeshes[i]]);
 
         dst->components.push_back(geometry);
     }
 
-	for(unsigned i=0; i < src->mNumChildren; ++i)
-	{
-		GenerateGameObjects(src->mChildren[i], App->level->CreateGameObject(dst), meshes);
-	}
+    for(unsigned i=0; i < src->mNumChildren; ++i)
+    {
+        GenerateGameObjects(src->mChildren[i], App->level->CreateGameObject(dst), meshes);
+    }
 }
 
 void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file, std::vector<UID>& materials)

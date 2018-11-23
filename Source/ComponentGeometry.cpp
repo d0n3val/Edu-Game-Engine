@@ -17,46 +17,38 @@ ComponentGeometry::~ComponentGeometry()
     }
 }
 
-void ComponentGeometry::Initialize(const UID* ids, const unsigned* mesh_indices, unsigned count)
-{
-    meshes.reserve(count);
-
-    for(unsigned i=0; i < count; ++i)
-    {
-		assert(ids[mesh_indices[i]] != 0);
-        meshes.push_back(ids[mesh_indices[i]]);
-
-        App->resources->Get(meshes.back())->LoadToMemory();
-    }
-}
-
 void ComponentGeometry::OnSave(Config& config) const 
 {
-    config.AddArrayUID("Meshes", !meshes.empty() ? &meshes[0] : nullptr, meshes.size());
+    ComponentWithResource::OnSaveResource(config);
 }
 
 void ComponentGeometry::OnLoad(Config* config) 
 {
-	uint num_meshes = config->GetArrayCount("Meshes");
-    meshes.reserve(num_meshes);
+    ComponentWithResource::OnLoadResource(config);
 
-    for(uint i=0; i< num_meshes; ++i)
-    {
-        meshes.push_back(config->GetUID("Meshes", 0, i));
-    }
-
-    for(uint i=0; i< num_meshes; ++i)
-    {
-        App->resources->Get(meshes[i])->LoadToMemory();
-    }
+    App->resources->Get(resource)->LoadToMemory();
 }
 
 void ComponentGeometry::GetBoundingBox (AABB& box) const 
 {
-    for(uint i=0; i< meshes.size(); ++i)
-    {
-        box.Enclose(static_cast<ResourceMesh*>(App->resources->Get(meshes[i]))->bbox);
-    }
+    box.Enclose(static_cast<ResourceMesh*>(App->resources->Get(resource))->bbox);
 }
 
+bool ComponentGeometry::SetResource(UID uid) 
+{
+	if (uid != 0)
+	{
+		Resource* res = App->resources->Get(uid);
+		if (res != nullptr && res->GetType() == Resource::mesh)
+		{
+			if(res->LoadToMemory() == true)
+			{
+				resource = uid;
 
+                return true;
+			}
+		}
+	}
+
+	return false;
+}

@@ -15,10 +15,10 @@ Resource::Type Resource::GetType() const
 // ---------------------------------------------------------
 const char * Resource::GetTypeStr() const
 {
-	static_assert(Resource::Type::unknown == 7, "String list needs update");
+	static_assert(Resource::Type::unknown == 8, "String list needs update");
 
 	static const char* types[] = {
-		"Material", "Texture", "Mesh", "Audio", "Scene", "Bone", "Animation", "Unknown" };
+		"Model", "Material", "Texture", "Mesh", "Audio", "Scene", "Bone", "Animation", "Unknown" };
 
 	return types[type];
 }

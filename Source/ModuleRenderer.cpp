@@ -129,23 +129,24 @@ void ModuleRenderer::DrawSkybox()
 
 void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& transform, ResourceMesh* mesh))
 {
+    std::vector<Component*> meshes;
+
 	for(NodeList::iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
 	{
 		GameObject* node = *it;
 
-        ComponentGeometry* geometry = static_cast<ComponentGeometry*>(node->FindFirstComponent(Component::Geometry));
+        node->FindComponents(Component::Geometry, meshes);
 
-		if (geometry) // \todo: insert only geometry nodes
-		{
-			for (uint i = 0, count = geometry->meshes.size(); i < count; ++i)
-			{
-				ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i]));
-				assert(mesh != nullptr);
+        for (uint i = 0, count = meshes.size(); i < count; ++i)
+        {
+            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(static_cast<ComponentGeometry*>(meshes[i])->GetResourceUID()));
+            assert(mesh != nullptr);
 
-				(this->*drawer)(node->GetGlobalTransformation(), mesh);
-			}
-		}
-	}
+            (this->*drawer)(node->GetGlobalTransformation(), mesh);
+        }
+
+        meshes.clear();
+    }
 }
 
 void ModuleRenderer::DrawMeshColor(const float4x4& transform, ResourceMesh* mesh)

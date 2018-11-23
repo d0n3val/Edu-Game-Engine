@@ -11,7 +11,6 @@ class ComponentAudioSource;
 class ComponentAudioListener;
 class ComponentMaterial;
 class ComponentCamera;
-class ComponentBone;
 class ComponentRigidBody;
 class ComponentAnimation;
 class ComponentGeometry;
@@ -35,7 +34,6 @@ public:
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
 	void DrawCameraComponent(ComponentCamera * component);
-	void DrawBoneComponent(ComponentBone * component);
 	void DrawAnimationComponent(ComponentAnimation * component);
 };
 

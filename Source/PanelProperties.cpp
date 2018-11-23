@@ -3,13 +3,11 @@
 #include "Imgui/imgui.h"
 #include "GameObject.h"
 #include "Component.h"
-#include "ComponentMesh.h"
 #include "ComponentMaterial.h"
 #include "ComponentAudioSource.h"
 #include "ComponentAudioListener.h"
 #include "ComponentCamera.h"
 #include "ComponentPath.h"
-#include "ComponentBone.h"
 #include "ComponentRigidBody.h"
 #include "ComponentAnimation.h"
 #include "ComponentSteering.h"
@@ -26,7 +24,6 @@
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "ResourceAudio.h"
-#include "ResourceBone.h"
 #include "ResourceAnimation.h"
 #include "PanelResources.h"
 #include "PanelGOTree.h"
@@ -62,7 +59,7 @@ void PanelProperties::Draw()
 			selected->SetLocalRotation(Quat::identity);
 		}
 
-		static_assert(Component::Types::Unknown == 11, "code needs update");
+		static_assert(Component::Types::Unknown == 10, "code needs update");
         if (ImGui::BeginMenu("New Component", (selected != nullptr)))
         {
 			if (ImGui::MenuItem("Audio Listener"))
@@ -75,8 +72,6 @@ void PanelProperties::Draw()
 				selected->CreateComponent(Component::Types::Material);
 			if (ImGui::MenuItem("Camera"))
 				selected->CreateComponent(Component::Types::Camera);
-			if (ImGui::MenuItem("Bone", nullptr, nullptr, false))
-				selected->CreateComponent(Component::Types::Bone);
 			if (ImGui::MenuItem("RigidBody"))
 				selected->CreateComponent(Component::Types::RigidBody);
 			if (ImGui::MenuItem("Animation"))
@@ -150,7 +145,7 @@ void PanelProperties::Draw()
 		}
 
 		// Iterate all components and draw
-		static_assert(Component::Types::Unknown == 11, "code needs update");
+		static_assert(Component::Types::Unknown == 10, "code needs update");
 		for (list<Component*>::iterator it = selected->components.begin(); it != selected->components.end(); ++it)
 		{
 			ImGui::PushID(*it);
@@ -173,9 +168,6 @@ void PanelProperties::Draw()
 				break;
 				case Component::Types::Camera:
 					DrawCameraComponent((ComponentCamera*)(*it));
-				break;
-				case Component::Types::Bone:
-					DrawBoneComponent((ComponentBone*)(*it));
 				break;
 				case Component::Types::RigidBody:
 					((ComponentRigidBody*)(*it))->DrawEditor();
@@ -441,55 +433,6 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 			App->renderer3D->active_camera = component;
 		else
 			App->renderer3D->active_camera = App->camera->GetDummy();
-	}
-}
-
-void PanelProperties::DrawBoneComponent(ComponentBone * component)
-{
-	UID new_res = PickResource(component->GetResourceUID(), Resource::texture);
-	if (new_res > 0)
-		component->SetResource(new_res);
-
-	ImGui::Checkbox("Translation Locked", &component->translation_locked);
-
-	if(component->attached_mesh != nullptr)
-		ImGui::TextColored(IMGUI_YELLOW, "Attached to %s", component->attached_mesh->GetGameObject()->name.c_str());
-	else
-		ImGui::TextColored(IMGUI_YELLOW, "Not attached to any mesh");
-
-	ResourceBone* bone = (ResourceBone*) component->GetResource();
-	if (bone == nullptr)
-		return;
-
-	ImGui::Separator();
-
-	PickResource(bone->uid_mesh, Resource::mesh);
-
-	ImGui::Text("Num Weigths: %u", bone->num_weigths);
-
-	float3 pos;
-	Quat qrot;
-	float3 scale;
-
-	bone->offset.Decompose(pos, qrot, scale);
-
-	float3 rot(qrot.ToEulerXYZ());
-
-	bool compose = false;
-
-	if (ImGui::DragFloat3("Offset Trans", (float*)&pos, 0.25f))
-		compose = true;
-
-	if(ImGui::SliderFloat3("Offset Rot", (float*)&rot, -PI, PI))
-		compose = true;
-
-	if (ImGui::DragFloat3("Offset Scale", (float*)&scale, 0.05f))
-		compose = true;
-
-	if (compose == true)
-	{
-		qrot.FromEulerXYZ(rot.x, rot.y, rot.z);
-		bone->offset = float4x4::FromTRS(pos, qrot, scale);
 	}
 }
 

@@ -10,7 +10,6 @@
 #include "ComponentAudioSource.h"
 #include "ComponentGeometry.h"
 #include "ComponentCamera.h"
-#include "ComponentBone.h"
 #include "ComponentRigidBody.h"
 #include "ComponentAnimation.h"
 #include "ComponentSteering.h"
@@ -286,7 +285,7 @@ bool GameObject::RecursiveRemoveFlagged()
 // ---------------------------------------------------------
 Component* GameObject::CreateComponent(Component::Types type)
 {
-	static_assert(Component::Types::Unknown == 11, "code needs update");
+	static_assert(Component::Types::Unknown == 10, "code needs update");
 
 	Component* ret = nullptr;
 
@@ -306,9 +305,6 @@ Component* GameObject::CreateComponent(Component::Types type)
 		break;
 		case Component::Types::Camera:
 			ret = new ComponentCamera(this);
-		break;
-		case Component::Types::Bone:
-			ret = new ComponentBone(this);
 		break;
 		case Component::Types::RigidBody:
 			ret = new ComponentRigidBody(this);
