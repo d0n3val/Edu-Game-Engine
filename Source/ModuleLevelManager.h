@@ -22,7 +22,6 @@ public:
 	bool CleanUp() override;
 
 	void ReceiveEvent(const Event& event) override;
-	void DrawDebug() override;
 
 	// Utils
 	const GameObject*   GetRoot() const;
@@ -36,10 +35,6 @@ public:
 	bool Save(const char* file = nullptr);
 	void UnloadCurrent();
 	
-	// Draw
-	void Draw() const;
-	void RecursiveDebugDrawGameObjects(const GameObject* go) const;
-
 	// Add or remove from the hierarchy
 	GameObject* CreateGameObject(GameObject * parent, const float3& pos, const float3& scale, const Quat& rot, const char* name = nullptr);
 	GameObject* CreateGameObject(GameObject * parent = nullptr);
@@ -62,7 +57,6 @@ private:
 	void RecursiveTestRayBBox(const LineSegment& segment, float& dist, float3& normal, GameObject** best_candidate) const;
 	void RecursiveTestRay(const LineSegment& segment, float& dist, GameObject** best_candidate) const;
 	void RecursiveTestRay(const Ray& ray, float& dist, GameObject** best_candidate) const;
-	void RecursiveDrawGameObjects(const GameObject* go) const;
 	void RecursiveProcessEvent(GameObject* go, const Event& event) const;
 	void RecursiveUpdate(GameObject* go, float dt) const;
 	GameObject* RecursiveFind(uint uid, GameObject* go) const;

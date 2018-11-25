@@ -579,6 +579,9 @@
     <ClInclude Include="ComponentLight.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceModel.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -883,6 +886,9 @@
     </ClCompile>
     <ClCompile Include="ComponentLight.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceModel.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

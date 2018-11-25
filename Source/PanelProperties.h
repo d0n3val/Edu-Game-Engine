@@ -34,7 +34,6 @@ public:
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
 	void DrawCameraComponent(ComponentCamera * component);
-	void DrawAnimationComponent(ComponentAnimation * component);
 };
 
 #endif// __PANELPROPERTIES_H__

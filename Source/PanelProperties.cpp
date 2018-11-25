@@ -9,7 +9,6 @@
 #include "ComponentCamera.h"
 #include "ComponentPath.h"
 #include "ComponentRigidBody.h"
-#include "ComponentAnimation.h"
 #include "ComponentSteering.h"
 #include "ComponentGeometry.h"
 #include "ModuleMeshes.h"
@@ -173,7 +172,6 @@ void PanelProperties::Draw()
 					((ComponentRigidBody*)(*it))->DrawEditor();
 				break;
 				case Component::Types::Animation:
-					DrawAnimationComponent((ComponentAnimation*)(*it));
 				break;
 				case Component::Types::Steering:
 					((ComponentSteering*)(*it))->DrawEditor();
@@ -491,145 +489,3 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 	ImGui::Image((ImTextureID) info->gpu_id, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
 }
 
-void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
-{
-	UID new_res = PickResource(component->current->resource, Resource::animation);
-	if (new_res > 0)
-		component->SetResource(new_res);
-
-	const ResourceAnimation* info = (const ResourceAnimation*) component->GetResource();
-
-	if (info == nullptr)
-		return;
-
-	ImGui::Text("Name: %s", info->name.c_str());
-	ImGui::Text("Duration in Ticks: %.3f", info->duration);
-	ImGui::Text("Ticks Per Second: %.3f", info->ticks_per_second);
-	ImGui::Text("Real Time: %.3f", info->GetDurationInSecs());
-	ImGui::Text("Potential Bones to animate: %i", component->current->CountBones());
-
-	static const char * states[] = { 
-		"Not Loaded", 
-		"Stopped",
-		"About to Play",
-		"Playing",
-		"About to Pause",
-		"Pause",
-		"About to Unpause",
-		"About to Stop",
-		"Blending",
-		"About to Blend"
-	};
-
-	ImGui::Text("Current State: ");
-	ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", states[component->GetCurrentState()]);
-	ImGui::Text("Attached to Bones: %i", component->current->CountAttachedBones());
-	ImGui::Checkbox("Interpolate", &component->interpolate);
-	ImGui::SameLine();
-	ImGui::Checkbox("Loop", &component->current->loop);
-	ImGui::SliderFloat("Speed", &component->current->speed, -5.f, 5.f);
-	ImGui::Text("Animation Time: %.3f", component->current->GetTime());
-	ImGui::ProgressBar(component->current->GetTime() / info->GetDurationInSecs());
-
-	if (ImGui::Button("Play"))
-		component->Play();
-
-	ImGui::SameLine();
-	if (ImGui::Button("Pause"))
-		component->Pause();
-
-	ImGui::SameLine();
-	if (ImGui::Button("Unpause"))
-		component->UnPause();
-
-	ImGui::SameLine();
-	if (ImGui::Button("Stop"))
-		component->Stop();
-
-	ImGui::Separator();
-	ImGui::Text("Blending to another animation");
-
-	static float blending_time_requested = 5.0f;
-	ImGui::SliderFloat("Time to blend", &blending_time_requested, 0.0f, 10.0f);
-
-	ImGui::PushID(2);
-	UID new_res2 = PickResource(component->next->resource, Resource::animation);
-	if (new_res2 > 0)
-		component->BlendTo(new_res2, blending_time_requested);
-	ImGui::PopID();
-
-	const ResourceAnimation* info2 = component->next->GetResource();
-
-	ImGui::ProgressBar(component->blend_time / component->total_blend_time);
-	ImGui::ProgressBar(1.0f - (component->blend_time / component->total_blend_time));
-
-	ImGui::Separator();
-
-	if (ImGui::TreeNode("Bone Transformations"))
-	{
-		for (uint i = 0; i < info->num_keys; ++i)
-		{
-			if (ImGui::TreeNode(info->bone_keys[i].bone_name.c_str()))
-			{
-				ResourceAnimation::bone_transform* bone = &info->bone_keys[i];
-
-				// Positions ---
-				if (ImGui::TreeNode("Positions", "Positions (%i)", bone->positions.count))
-				{
-					ImGui::Columns(2, "Position");
-					for (uint k = 0; k < bone->positions.count; ++k)
-					{
-						ImGui::Text("%.1f", info->bone_keys[i].positions.time[k]);
-						ImGui::NextColumn();
-						ImGui::Text("%.1f, %.1f, %.1f",
-							info->bone_keys[i].positions.value[k * 3 + 0],
-							info->bone_keys[i].positions.value[k * 3 + 1],
-							info->bone_keys[i].positions.value[k * 3 + 2]);
-						ImGui::NextColumn();
-					}
-					ImGui::Columns(1);
-					ImGui::TreePop();
-				}
-
-				// Rotations ---
-				if (ImGui::TreeNode("Rotations", "Rotations (%i)", bone->rotations.count))
-				{
-					ImGui::Columns(2, "Rotation");
-					for (uint k = 0; k < bone->rotations.count; ++k)
-					{
-						ImGui::Text("%.1f", info->bone_keys[i].rotations.time[k]);
-						ImGui::NextColumn();
-						ImGui::Text("%.1f,%.1f,%.1f,%.1f",
-							info->bone_keys[i].rotations.value[k * 4 + 0],
-							info->bone_keys[i].rotations.value[k * 4 + 1],
-							info->bone_keys[i].rotations.value[k * 4 + 2],
-							info->bone_keys[i].rotations.value[k * 4 + 3]);
-						ImGui::NextColumn();
-					}
-					ImGui::Columns(1);
-					ImGui::TreePop();
-				}
-
-				// Scales ---
-				if (ImGui::TreeNode("Scales", "Scales (%i)", bone->scales.count))
-				{
-					ImGui::Columns(2, "Scale");
-					for (uint k = 0; k < bone->scales.count; ++k)
-					{
-						ImGui::Text("%.1f", info->bone_keys[i].scales.time[k]);
-						ImGui::NextColumn();
-						ImGui::Text("%.1f, %.1f, %.1f",
-							info->bone_keys[i].scales.value[k * 3 + 0],
-							info->bone_keys[i].scales.value[k * 3 + 1],
-							info->bone_keys[i].scales.value[k * 3 + 2]);
-						ImGui::NextColumn();
-					}
-					ImGui::Columns(1);
-					ImGui::TreePop();
-				}
-				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
-	}
-}

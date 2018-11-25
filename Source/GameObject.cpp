@@ -11,7 +11,6 @@
 #include "ComponentGeometry.h"
 #include "ComponentCamera.h"
 #include "ComponentRigidBody.h"
-#include "ComponentAnimation.h"
 #include "ComponentSteering.h"
 #include "ComponentPath.h"
 #include "ComponentLight.h"
@@ -310,7 +309,6 @@ Component* GameObject::CreateComponent(Component::Types type)
 			ret = new ComponentRigidBody(this);
 		break;
 		case Component::Types::Animation:
-			ret = new ComponentAnimation(this);
 		break;
 		case Component::Types::Steering:
 			ret = new ComponentSteering(this);
@@ -523,29 +521,6 @@ void GameObject::SetActive(bool active)
 		else
 			OnDisable();
 	}
-}
-
-// ---------------------------------------------------------
-void GameObject::OnDebugDraw(bool selected) const
-{
-	float3 pos = GetGlobalPosition();
-	float4x4 m = float4x4::Translate(GetGlobalPosition());
-
-	if(velocity.LengthSq() > 0.0f)
-		DebugDrawArrow(-velocity, float3(0.f, local_bbox.HalfSize().y, 0.f), Blue, m);
-
-	if (selected == true)
-	{
-		DebugDraw(GetGlobalTransformation());
-
-		if (global_bbox.IsFinite() == true)
-			DebugDraw(global_bbox, Green);
-
-		Draw(true);
-	}
-
-	for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
-		(*it)->OnDebugDraw(selected);
 }
 
 // ---------------------------------------------------------

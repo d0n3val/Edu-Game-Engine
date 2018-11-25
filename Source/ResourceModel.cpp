@@ -19,16 +19,19 @@ void ResourceModel::Load(const Config& config)
 
 bool ResourceModel::LoadInMemory()
 {
+	return false;
 }
 
-void ResourceModel::ReleaseFromMemory() override
+void ResourceModel::ReleaseFromMemory() 
 {
 }
 
 bool ResourceModel::Save(std::string& output) const
 {
+	return false;
 }
 
 UID ResourceModel::Import(const aiScene* model, UID material, const char* source_file)
 {
+	return 0;
 }

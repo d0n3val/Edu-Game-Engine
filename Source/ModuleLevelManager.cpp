@@ -12,7 +12,6 @@
 #include "ComponentLight.h"
 #include "ComponentGeometry.h"
 #include "ResourceMesh.h"
-#include "DebugDraw.h"
 #include "Event.h"
 
 using namespace std;
@@ -78,25 +77,6 @@ void ModuleLevelManager::ReceiveEvent(const Event & event)
 {
 	RecursiveProcessEvent(root, event);
 }
-void ModuleLevelManager::DrawDebug()
-{
-	if (draw_quadtree == true)
-	{
-		vector<const QuadtreeNode*> boxes;
-		quadtree.CollectBoxes(boxes);
-
-		for (vector<const QuadtreeNode*>::const_iterator it = boxes.begin(); it != boxes.end(); ++it)
-			DebugDraw((*it)->box, Yellow);
-
-		vector<GameObject*> objects;
-		quadtree.CollectObjects(objects);
-
-		for (vector<GameObject*>::const_iterator it = objects.begin(); it != objects.end(); ++it)
-			DebugDraw((*it)->global_bbox.MinimalEnclosingAABB(), Red);
-	}
-
-	RecursiveDebugDrawGameObjects(root);
-}
 
 const GameObject * ModuleLevelManager::GetRoot() const
 {
@@ -128,11 +108,6 @@ bool ModuleLevelManager::CreateNewEmpty(const char * name)
 {
 	UnloadCurrent();
 	return false;
-}
-
-void ModuleLevelManager::Draw() const
-{
-	RecursiveDrawGameObjects(root);
 }
 
 GameObject * ModuleLevelManager::CreateGameObject(GameObject * parent, const float3 & pos, const float3 & scale, const Quat & rot, const char * name)
@@ -280,24 +255,6 @@ void ModuleLevelManager::UnloadCurrent()
 {
 }
 
-void ModuleLevelManager::RecursiveDrawGameObjects(const GameObject* go) const
-{
-	map<float, GameObject*> objects;
-
-	// we do frustum culling or not ?
-	ComponentCamera* cam = App->renderer3D->active_camera;
-
-	// TODO first draw all opaque geom then translucent from far to near
-	if (cam->frustum_culling == true)
-		quadtree.CollectIntersections(objects, cam->frustum);
-	else
-		quadtree.CollectObjects(objects, (cam->GetGameObject()) ? cam->GetGameObject()->GetGlobalPosition() : cam->frustum.pos);
-
-	for (map<float, GameObject*>::reverse_iterator it = objects.rbegin(); it != objects.rend(); ++it)
-		if(it->second->IsActive())
-			it->second->Draw();
-}
-
 void ModuleLevelManager::RecursiveProcessEvent(GameObject * go, const Event & event) const
 {
 	switch (event.type)
@@ -332,15 +289,6 @@ GameObject* ModuleLevelManager::RecursiveFind(uint uid, GameObject * go) const
 		ret = RecursiveFind(uid, *it);
 
 	return ret;
-}
-
-void ModuleLevelManager::RecursiveDebugDrawGameObjects(const GameObject* go) const
-{
-	go->OnDebugDraw(go == App->editor->selected);
-
-	// Recursive call to all childs keeping matrices
-	for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-		RecursiveDebugDrawGameObjects(*it);
 }
 
 GameObject * ModuleLevelManager::Validate(const GameObject * pointer) const

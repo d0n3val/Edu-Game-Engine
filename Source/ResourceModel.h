@@ -1,6 +1,11 @@
 #ifndef __RESOURCE_MODEL_H__
 #define __RESOURCE_MODEL_H__
 
+#include "Resource.h"
+#include "Math.h"
+
+struct aiScene;
+
 class ResourceModel : public Resource
 {
 public:

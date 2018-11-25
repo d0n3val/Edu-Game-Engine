@@ -12,7 +12,6 @@
 #include "ModuleEditor.h"
 #include "ModuleLevelManager.h"
 #include "ModuleResources.h"
-#include "ModuleAnimation.h"
 #include "ModulePrograms.h"
 #include "ModuleRenderer.h"
 #include "ModuleHints.h"
@@ -41,7 +40,6 @@ Application::Application()
 	modules.push_back(window = new ModuleWindow());
 	modules.push_back(resources = new ModuleResources());
 	modules.push_back(tex = new ModuleTextures());
-	modules.push_back(animation = new ModuleAnimation());
 	modules.push_back(physics3D = new ModulePhysics3D());
 	modules.push_back(camera = new ModuleEditorCamera());
 	modules.push_back(renderer3D = new ModuleRenderer3D());

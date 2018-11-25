@@ -22,7 +22,6 @@ class ModuleTextures;
 class ModuleEditor;
 class ModuleLevelManager;
 class ModuleResources;
-class ModuleAnimation;
 class ModuleAI;
 class ModulePrograms;
 class ModuleRenderer;
@@ -98,7 +97,6 @@ public:
 	ModuleEditor* editor = nullptr;
 	ModuleLevelManager* level = nullptr;
 	ModuleResources* resources = nullptr;
-	ModuleAnimation* animation = nullptr;
 	ModuleAI* ai = nullptr;
     ModulePrograms* programs = nullptr;
     ModuleRenderer* renderer = nullptr;

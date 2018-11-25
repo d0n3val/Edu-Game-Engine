@@ -70,9 +70,6 @@ public:
 	bool IsActive() const;
 	void SetActive(bool active);
 
-	void Draw(bool debug = false) const;
-	void OnDebugDraw(bool selected) const;
-
 	bool WasDirty() const;
 	bool WasBBoxDirty() const;
 	void Remove();
