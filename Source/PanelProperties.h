@@ -13,7 +13,7 @@ class ComponentMaterial;
 class ComponentCamera;
 class ComponentRigidBody;
 class ComponentAnimation;
-class ComponentGeometry;
+class ComponentMesh;
 
 class PanelProperties : public Panel
 {
@@ -29,7 +29,7 @@ public:
 	bool InitComponentDraw(Component* component, const char * name);
 
 	// TODO move editor code as a component method like component rigidbody
-	void DrawGeometryComponent(ComponentGeometry* component);
+	void DrawMeshComponent(ComponentMesh* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);

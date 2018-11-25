@@ -10,7 +10,7 @@
 #include "ComponentPath.h"
 #include "ComponentRigidBody.h"
 #include "ComponentSteering.h"
-#include "ComponentGeometry.h"
+#include "ComponentMesh.h"
 #include "ModuleMeshes.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
@@ -65,8 +65,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(Component::Types::AudioListener);
 			if (ImGui::MenuItem("Audio Source"))
 				selected->CreateComponent(Component::Types::AudioSource);
-			if (ImGui::MenuItem("Geometry"))
-				selected->CreateComponent(Component::Types::Geometry);
+			if (ImGui::MenuItem("Mesh"))
+				selected->CreateComponent(Component::Types::Mesh);
 			if (ImGui::MenuItem("Material"))
 				selected->CreateComponent(Component::Types::Material);
 			if (ImGui::MenuItem("Camera"))
@@ -79,8 +79,8 @@ void PanelProperties::Draw()
 				selected->CreateComponent(Component::Types::Steering);
 			if (ImGui::MenuItem("Path"))
 				selected->CreateComponent(Component::Types::Path);
-			if (ImGui::MenuItem("Geometry"))
-				selected->CreateComponent(Component::Types::Geometry);
+			if (ImGui::MenuItem("Mesh"))
+				selected->CreateComponent(Component::Types::Mesh);
             ImGui::EndMenu();
         }
 
@@ -153,8 +153,8 @@ void PanelProperties::Draw()
 
 				switch ((*it)->GetType())
 				{
-				case Component::Types::Geometry:
-					DrawGeometryComponent((ComponentGeometry*)(*it));
+				case Component::Types::Mesh:
+					DrawMeshComponent((ComponentMesh*)(*it));
 				break;
 				case Component::Types::Material:
 					DrawMaterialComponent((ComponentMaterial*)(*it));
@@ -293,23 +293,23 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 	return ret;
 }
 
-void PanelProperties::DrawGeometryComponent(ComponentGeometry * component)
+void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 {
     UID new_res = 0;
 
-    for(uint i=0; i< component->meshes.size(); ++i)
-    {
-		const ResourceMesh* res = static_cast<const ResourceMesh*>(App->resources->Get(component->meshes[i]));
+    const ResourceMesh* res = static_cast<const ResourceMesh*>(App->resources->Get(component->GetResourceUID()));
 
-		ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::Text("Type: %s", res->GetTypeStr());
-			ImGui::Text("UID: %llu", res->GetUID());
-			ImGui::Text("Lib: %s", res->GetExportedFile());
-			ImGui::EndTooltip();
-		}
+    if(res != nullptr)
+    {
+        ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Text("Type: %s", res->GetTypeStr());
+            ImGui::Text("UID: %llu", res->GetUID());
+            ImGui::Text("Lib: %s", res->GetExportedFile());
+            ImGui::EndTooltip();
+        }
 
         ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)", res->num_indices / 3, res->num_indices, res->num_vertices); 
     }
@@ -317,19 +317,19 @@ void PanelProperties::DrawGeometryComponent(ComponentGeometry * component)
     if (ImGui::Button("Attach mesh"))
     {
         ImGui::OpenPopup("Select");
-	}
+    }
 
-	if (ImGui::BeginPopup("Select"))
-	{
+    if (ImGui::BeginPopup("Select"))
+    {
         UID r = 0;
         r = App->editor->res->DrawResourceType((Resource::Type::mesh));
         new_res = (r) ? r : new_res;
         ImGui::EndPopup();
-	}
+    }
 
     if (new_res > 0)
     {
-        component->meshes.push_back(new_res);
+        component->SetResource(new_res);
         App->resources->Get(new_res)->LoadToMemory();
     }
 }

@@ -8,7 +8,7 @@
 #include "ComponentMaterial.h"
 #include "ComponentAudioListener.h"
 #include "ComponentAudioSource.h"
-#include "ComponentGeometry.h"
+#include "ComponentMesh.h"
 #include "ComponentCamera.h"
 #include "ComponentRigidBody.h"
 #include "ComponentSteering.h"
@@ -293,8 +293,8 @@ Component* GameObject::CreateComponent(Component::Types type)
 		case Component::Types::Material:
 			ret = new ComponentMaterial(this);
 		break;
-		case Component::Types::Geometry:
-			ret = new ComponentGeometry(this);
+		case Component::Types::Mesh:
+			ret = new ComponentMesh(this);
 		break;
 		case Component::Types::AudioListener:
 			ret = new ComponentAudioListener(this);

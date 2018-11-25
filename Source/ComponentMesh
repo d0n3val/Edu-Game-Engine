@@ -1,14 +1,14 @@
-#ifndef __COMPONENT_GEOMETRY_H__
-#define __COMPONENT_GEOMETRY_H__
+#ifndef __COMPONENT_MESH_H__
+#define __COMPONENT_MESH_H__
 
 #include "ComponentWithResource.h"
 #include "Component.h"
 
-class ComponentGeometry : public Component, public ComponentWithResource
+class ComponentMesh : public Component, public ComponentWithResource
 {
 public:
-    explicit ComponentGeometry(GameObject* go);
-    ~ComponentGeometry();
+    explicit ComponentMesh(GameObject* go);
+    ~ComponentMesh();
 
 	virtual bool SetResource    (UID uid) override;
     virtual void OnSave         (Config& config) const override;
@@ -16,8 +16,6 @@ public:
 
 	void         GetBoundingBox (AABB& box) const override;
 
-public:
-    std::vector<UID> meshes;
 };
 
-#endif /* __COMPONENT_GEOMETRY_H__ */
+#endif /* __COMPONENT_MESH_H__ */

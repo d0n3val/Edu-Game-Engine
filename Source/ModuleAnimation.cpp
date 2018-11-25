@@ -3,7 +3,7 @@
 #include "ModuleLevelManager.h"
 #include "ModuleAnimation.h"
 #include "GameObject.h"
-#include "ComponentGeometry.h"
+#include "ComponentMesh.h"
 #include "ComponentAnimation.h"
 #include "ResourceMesh.h"
 #include "ResourceAnimation.h"
@@ -74,7 +74,7 @@ void ModuleAnimation::RecursiveResetMeshes(GameObject * go)
 #if 0 
     // \todo:
 	for (list<Component*>::const_iterator it = go->components.begin(); it != go->components.end(); ++it)
-		if ((*it)->IsActive() && (*it)->GetType() == Component::Types::Geometry)
+		if ((*it)->IsActive() && (*it)->GetType() == Component::Types::Mesh)
 			((ComponentMesh*)*it)->ResetDeformableMesh();
 #endif
 }

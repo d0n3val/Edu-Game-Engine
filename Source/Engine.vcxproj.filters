@@ -582,6 +582,9 @@
     <ClInclude Include="ResourceModel.h">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentMesh.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -881,14 +884,14 @@
     <ClCompile Include="ResourceMaterial.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentGeometry.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentLight.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ResourceModel.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentMesh.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

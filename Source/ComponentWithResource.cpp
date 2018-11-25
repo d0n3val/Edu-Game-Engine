@@ -4,7 +4,9 @@
 #include "Config.h"
 
 ComponentWithResource::~ComponentWithResource()
-{}
+{
+    App->resources->Get(resource)->Release();
+}
 
 const Resource * ComponentWithResource::GetResource() const
 {

@@ -8,7 +8,7 @@
 
 #include "GameObject.h"
 
-#include "ComponentGeometry.h"
+#include "ComponentMesh.h"
 #include "ComponentLight.h"
 #include "ComponentCamera.h"
 
@@ -96,7 +96,7 @@ void ModuleRenderer::CollectNodes()
 
 void ModuleRenderer::CollectNodesRec(GameObject* node)
 {
-	if(node->HasComponent(Component::Geometry))
+	if(node->HasComponent(Component::Mesh))
 	{
 		draw_nodes.push_back(node);
 	}
@@ -135,14 +135,16 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& tr
 	{
 		GameObject* node = *it;
 
-        node->FindComponents(Component::Geometry, meshes);
+        node->FindComponents(Component::Mesh, meshes);
 
         for (uint i = 0, count = meshes.size(); i < count; ++i)
         {
-            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(static_cast<ComponentGeometry*>(meshes[i])->GetResourceUID()));
-            assert(mesh != nullptr);
+            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(static_cast<ComponentMesh*>(meshes[i])->GetResourceUID()));
 
-            (this->*drawer)(node->GetGlobalTransformation(), mesh);
+            if(mesh != nullptr)
+            {
+                (this->*drawer)(node->GetGlobalTransformation(), mesh);
+            }
         }
 
         meshes.clear();
@@ -260,14 +262,17 @@ void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ResourceMesh* mes
 
 void ModuleRenderer::DebugDrawTangentSpace(float size)
 {
+    std::vector<Component*> meshes;
+
     for(NodeList::iterator it_node = draw_nodes.begin(), node_end = draw_nodes.end(); it_node != node_end; ++it_node)
     {
         GameObject* node			= *it_node;
-        ComponentGeometry* geometry = static_cast<ComponentGeometry*>(node->FindFirstComponent(Component::Geometry));
 
-        for(std::vector<UID>::const_iterator it_mesh = geometry->meshes.begin(), end_mesh = geometry->meshes.end(); it_mesh != end_mesh; ++it_mesh)
+        node->FindComponents(Component::Mesh, meshes);
+
+        for(std::vector<Component*>::const_iterator it_mesh = meshes.begin(), end_mesh = meshes.end(); it_mesh != end_mesh; ++it_mesh)
         {
-            const ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(*it_mesh));
+            const ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(static_cast<ComponentMesh*>(*it_mesh)->GetResourceUID()));
 
             if((mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
             {
@@ -286,6 +291,8 @@ void ModuleRenderer::DebugDrawTangentSpace(float size)
                 }
             }
         }
+
+        meshes.clear();
     }
 }
 
@@ -538,17 +545,19 @@ void ModuleRenderer::UpdateLightUniform() const
 
 void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb) const
 {
+    std::vector<Component*> meshes;
+
     float4x4 light_mat(light_rotation.Inverted());
 
     for(NodeList::const_iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
     {
         const GameObject* node = *it;
 
-        const ComponentGeometry* geometry = static_cast<const ComponentGeometry*>(node->FindFirstComponent(Component::Geometry));
+        node->FindComponents(Component::Mesh, meshes);
 
-        for (uint i=0, count = geometry->meshes.size(); i < count; ++i)
+        for (uint i=0, count = meshes.size(); i < count; ++i)
         {
-            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(geometry->meshes[i]));
+            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(static_cast<ComponentMesh*>(meshes[i])->GetResourceUID()));
             ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->Get(mesh->mat_id));
 
             if(material->cast_shadows)
@@ -557,6 +566,8 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb) 
                 //scene->ComputeBBoxMesh(mesh, mul(light_mat, node->global), aabb);
             }
         }
+
+        meshes.clear();
     }
 
     // \todo: 

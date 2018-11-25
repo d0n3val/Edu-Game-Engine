@@ -5,7 +5,7 @@
 #include "ModuleMeshes.h"
 #include "ModuleFileSystem.h"
 #include "GameObject.h"
-#include "ComponentGeometry.h"
+#include "ComponentMesh.h"
 #include "ComponentMaterial.h"
 #include "Config.h"
 #include "ModuleLevelManager.h"
@@ -122,7 +122,7 @@ void ModuleSceneLoader::GenerateGameObjects(const aiNode* src, GameObject* dst, 
 
     for(uint i=0; i< src->mNumMeshes; ++i)
     {
-        ComponentGeometry* geometry = new ComponentGeometry(dst);
+        ComponentMesh* geometry = new ComponentMesh(dst);
 
         geometry->SetResource(meshes[src->mMeshes[i]]);
 
