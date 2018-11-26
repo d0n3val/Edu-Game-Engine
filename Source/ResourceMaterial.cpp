@@ -188,8 +188,8 @@ void ResourceMaterial::SetTexture(Texture texture, UID uid)
     }
 }
 
-const ResourceTexture* ResourceMaterial::GetTextureRes(Texture texture) const
+const ResourceTexture* ResourceMaterial::GetTextureRes(Texture t) const
 {
-    return static_cast<const ResourceTexture*>(App->resources->Get(uid));
+    return static_cast<const ResourceTexture*>(App->resources->Get(textures[t]));
 }
 
