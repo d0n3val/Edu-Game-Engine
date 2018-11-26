@@ -37,7 +37,7 @@ bool ResourceMaterial::LoadInMemory()
 
         for(uint i=0; i< TextureCount; ++i)
         {
-            read_stream >> textures[texture];
+            read_stream >> textures[i];
         }
 
         read_stream >> shininess;
@@ -81,7 +81,7 @@ bool ResourceMaterial::Save(std::string& output) const
 
     for(uint i=0; i< TextureCount; ++i)
     {
-        write_stream << textures[texture];
+        write_stream << textures[i];
     }
 
     write_stream << shininess;
