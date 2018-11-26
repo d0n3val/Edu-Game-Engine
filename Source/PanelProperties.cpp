@@ -438,48 +438,60 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
     ResourceMaterial* mat_res = component->GetResource();
-	UID new_res = 0;
+
     ImGui::PushID(mat_res);
-    if((new_res = PickResource(mat_res != nullptr ? mat_res->GetUID() : 0, Resource::material)) > 0)
+	UID new_res = PickResource(mat_res != nullptr ? mat_res->GetUID() : 0, Resource::material);
+    ImGui::PopID();
+
+    if(new_res > 0)
     {
 		component->SetResource(new_res);
     }
-    ImGui::PopID();
-
-    if(mat_res)
+    else
     {
-        for(uint i=0; i< ResourceMaterial::TextureCount; ++i)
+        if(mat_res)
         {
-            ImGui::PushID(i);
-            UID new_res = PickResource(mat_res->GetTexture(ResourceMaterial::Texture(i)), Resource::texture);
-            ImGui::PopID();
-            mat_res->SetTexture(ResourceMaterial::Texture(i), new_res);
+            const char* texture_names[ResourceMaterial::TextureCount] = { "Diffuse", "Specular", "Normal", "Occlusion" };
 
-            const ResourceTexture* info = mat_res->GetTextureRes(ResourceMaterial::Texture(i));
-
-            if (info != nullptr)
+            for(uint i=0; i< ResourceMaterial::TextureCount; ++i)
             {
-                ImGui::Text("(%u,%u) %0.1f Mb", info->GetWidth(), info->GetHeight(), info->GetBytes() / (1024.f*1024.f));
-                ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->GetDepth(), info->GetBPP(), info->GetMips());
-
-                ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
-                float max_size = 250.f;
-
-                if (size.x > max_size || size.y > max_size)
+                ImGui::PushID(i);
+                ImGui::Separator();
+                ImGui::BulletText(texture_names[i]);
+                UID new_res = PickResource(mat_res->GetTexture(ResourceMaterial::Texture(i)), Resource::texture);
+                ImGui::PopID();
+                if (new_res != 0)
                 {
-                    if (size.x > size.y)
-                    {
-                        size.y *= max_size / size.x;
-                        size.x = max_size;
-                    }
-                    else
-                    {
-                        size.x *= max_size / size.y;
-                        size.y = max_size;
-                    }
+                    mat_res->SetTexture(ResourceMaterial::Texture(i), new_res);
+                    break;
                 }
 
-                ImGui::Image((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+                const ResourceTexture* info = mat_res->GetTextureRes(ResourceMaterial::Texture(i));
+
+                if (info != nullptr)
+                {
+                    ImGui::Text("(%u,%u) %0.1f Mb", info->GetWidth(), info->GetHeight(), info->GetBytes() / (1024.f*1024.f));
+                    ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->GetDepth(), info->GetBPP(), info->GetMips());
+
+                    ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
+                    float max_size = 250.f;
+
+                    if (size.x > max_size || size.y > max_size)
+                    {
+                        if (size.x > size.y)
+                        {
+                            size.y *= max_size / size.x;
+                            size.x = max_size;
+                        }
+                        else
+                        {
+                            size.x *= max_size / size.y;
+                            size.y = max_size;
+                        }
+                    }
+
+                    ImGui::Image((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+                }
             }
         }
     }
