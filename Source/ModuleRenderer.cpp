@@ -150,7 +150,7 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMes
     const ResourceMesh* mesh_res    = mesh->GetResource();
     const ResourceMaterial* mat_res = material->GetResource();
 
-    if(mat_res != nullptr)
+    if(mat_res != nullptr && mesh_res != nullptr)
     {
         const ComponentLight* light  = App->level->GetActiveLight() ?  App->level->GetActiveLight()->FindFirstComponent<ComponentLight>() : nullptr;
 

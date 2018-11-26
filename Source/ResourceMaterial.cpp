@@ -16,7 +16,14 @@ ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::materi
 // ---------------------------------------------------------
 ResourceMaterial::~ResourceMaterial()
 {
-    // \todo: Unload resources + unload texture map resources
+    for(uint i=0; i< TextureCount; ++i)
+    {
+        if(textures[i] != 0)
+        {
+            App->resources->Get(textures[i])->Release();
+            textures[i] = 0;
+        }
+    }
 }
 
 // ---------------------------------------------------------
@@ -148,7 +155,6 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
     std::string output;
 
     bool save_ok = m->Save(output);
-    m->ReleaseFromMemory();
 
     if(save_ok)
     {

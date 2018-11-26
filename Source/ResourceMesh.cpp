@@ -280,9 +280,6 @@ UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file)
         m->GenerateBoneData(mesh);
     }
 
-    m->GenerateVBO(false);
-    m->GenerateVAO();
-
     m->bbox.SetNegativeInfinity();
     m->bbox.Enclose(m->src_vertices, m->num_vertices);
 
