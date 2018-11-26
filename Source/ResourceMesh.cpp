@@ -46,7 +46,6 @@ bool ResourceMesh::LoadInMemory()
         read_stream >> tmp;
         name = HashString(tmp.c_str());
 
-        read_stream >> mat_id;
         read_stream >> vertex_size;
         read_stream >> attribs;
         read_stream >> texcoord_offset;
@@ -135,11 +134,6 @@ bool ResourceMesh::LoadInMemory()
         GenerateVBO(false);
         GenerateVAO();
 
-        if(mat_id != 0)
-        {
-            App->resources->Get(mat_id)->LoadToMemory();
-        }
-
 		return true;
     }
 
@@ -191,11 +185,6 @@ void ResourceMesh::ReleaseFromMemory()
         glDeleteVertexArrays(1, &vao);
         vao = 0;
     }
-    if(mat_id != 0)
-    {
-        App->resources->Get(mat_id)->Release();
-        mat_id = 0;
-    }
 }
 
 // ---------------------------------------------------------
@@ -204,7 +193,6 @@ bool ResourceMesh::Save(std::string& output) const
     simple::mem_ostream<std::true_type> write_stream;
 
     write_stream << name.C_str();
-    write_stream << mat_id;
     write_stream << vertex_size;
     write_stream << attribs;
     write_stream << texcoord_offset;
@@ -278,14 +266,11 @@ bool ResourceMesh::Save(std::string& output) const
 }
 
 // ---------------------------------------------------------
-UID ResourceMesh::Import(const aiMesh* mesh, UID mat_id, const char* source_file)
+UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file)
 {
-    assert(mat_id != 0);
-
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
     m->name   = HashString(mesh->mName.C_Str());
-    m->mat_id = mat_id;
 
     m->GenerateAttribInfo(mesh);
     m->GenerateCPUBuffers(mesh);

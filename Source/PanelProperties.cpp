@@ -22,6 +22,7 @@
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
+#include "ResourceMaterial.h"
 #include "ResourceAudio.h"
 #include "ResourceAnimation.h"
 #include "PanelResources.h"
@@ -297,7 +298,7 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
 {
     UID new_res = 0;
 
-    const ResourceMesh* res = static_cast<const ResourceMesh*>(App->resources->Get(component->GetResourceUID()));
+	const ResourceMesh* res = component->GetResource();
 
     if(res != nullptr)
     {
@@ -436,56 +437,51 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 
 void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
-	UID new_res = PickResource(component->GetResourceUID(), Resource::texture);
-	if (new_res > 0)
+    ResourceMaterial* mat_res = component->GetResource();
+	UID new_res = 0;
+    ImGui::PushID(mat_res);
+    if((new_res = PickResource(mat_res != nullptr ? mat_res->GetUID() : 0, Resource::material)) > 0)
+    {
 		component->SetResource(new_res);
+    }
+    ImGui::PopID();
 
-	const ResourceTexture* info = (const ResourceTexture*) component->GetResource();
+    if(mat_res)
+    {
+        for(uint i=0; i< ResourceMaterial::TextureCount; ++i)
+        {
+            ImGui::PushID(i);
+            UID new_res = PickResource(mat_res->GetTexture(ResourceMaterial::Texture(i)), Resource::texture);
+            ImGui::PopID();
+            mat_res->SetTexture(ResourceMaterial::Texture(i), new_res);
 
-	float3 pos, scale;
-	Quat qrot;
+            const ResourceTexture* info = mat_res->GetTextureRes(ResourceMaterial::Texture(i));
 
-	component->tex_transform.Decompose(pos, qrot, scale);
-	float3 rot = qrot.ToEulerXYZ();
-	bool change = false;
+            if (info != nullptr)
+            {
+                ImGui::Text("(%u,%u) %0.1f Mb", info->GetWidth(), info->GetHeight(), info->GetBytes() / (1024.f*1024.f));
+                ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->GetDepth(), info->GetBPP(), info->GetMips());
 
-	change |= ImGui::DragFloat2("Position", (float*)&pos, 0.05f);
-	change |= ImGui::SliderAngle3("Rotation", (float*)&rot);
-	change |= ImGui::DragFloat2("Scale", (float*)&scale, 0.05f, 0.01f);
+                ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
+                float max_size = 250.f;
 
-	if (change == true)
-	{
-		qrot = Quat::FromEulerXYZ(rot.x, rot.y, rot.z);
-		component->tex_transform = float4x4::FromTRS(pos, qrot, scale);
-	}
+                if (size.x > max_size || size.y > max_size)
+                {
+                    if (size.x > size.y)
+                    {
+                        size.y *= max_size / size.x;
+                        size.x = max_size;
+                    }
+                    else
+                    {
+                        size.x *= max_size / size.y;
+                        size.y = max_size;
+                    }
+                }
 
-	if (ImGui::Button("Reset Transform"))
-		component->tex_transform = float4x4::identity;
-
-	if (info == nullptr)
-		return;
-
-	ImGui::Text("(%u,%u) %0.1f Mb", info->width, info->height, info->bytes / (1024.f*1024.f));
-	ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->depth, info->bpp, info->mips);
-	ImGui::SliderFloat("Alpha Test", &component->alpha_test, 0.f, 1.0f);
-
-	ImVec2 size((float)info->width, (float)info->height);
-	float max_size = 250.f;
-
-	if (size.x > max_size || size.y > max_size)
-	{
-		if (size.x > size.y)
-		{
-			size.y *= max_size / size.x;
-			size.x = max_size;
-		}
-		else
-		{
-			size.x *= max_size / size.y;
-			size.y = max_size;
-		}
-	}
-
-	ImGui::Image((ImTextureID) info->gpu_id, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+                ImGui::Image((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+            }
+        }
+    }
 }
 

@@ -2,6 +2,7 @@
 #include "ModuleFileSystem.h"
 #include "ModuleResources.h"
 #include "ResourceMaterial.h"
+#include "ResourceTexture.h"
 #include "Application.h"
 #include "Assimp/include/types.h"
 #include "Assimp/include/material.h"
@@ -29,29 +30,24 @@ bool ResourceMaterial::LoadInMemory()
 
         simple::mem_istream<std::true_type> read_stream(buffer, size);
 
-        read_stream >> ambient.x >> ambient.y >> ambient.z >> ambient.w;
-        read_stream >> diffuse.x >> diffuse.y >> diffuse.z >> diffuse.w;
-        read_stream >> specular.x >> specular.y >> specular.z >> specular.w;
+        for(uint i=0; i< ColorCount; ++i)
+        {
+            read_stream >> colors[i].x >> colors[i].y >> colors[i].z >> colors[i].w;
+        }
+
+        for(uint i=0; i< TextureCount; ++i)
+        {
+            read_stream >> textures[texture];
+        }
+
         read_stream >> shininess;
-        read_stream >> albedo_map;
-        read_stream >> normal_map;
-        read_stream >> specular_map;
-        read_stream >> cast_shadows;
-        read_stream >> recv_shadows;
 
-        if(albedo_map != 0)
+        for(uint i=0; i< TextureCount; ++i)
         {
-            App->resources->Get(albedo_map)->LoadToMemory();
-        }
-
-        if(normal_map != 0)
-        {
-            App->resources->Get(normal_map)->LoadToMemory();
-        }
-
-        if(specular_map != 0)
-        {
-            App->resources->Get(specular_map)->LoadToMemory();
+            if(textures[i] != 0)
+            {
+                App->resources->Get(textures[i])->LoadToMemory();
+            }
         }
 
         return true;
@@ -63,22 +59,13 @@ bool ResourceMaterial::LoadInMemory()
 // ---------------------------------------------------------
 void ResourceMaterial::ReleaseFromMemory()
 {
-    if(albedo_map != 0)
+    for(uint i=0; i< TextureCount; ++i)
     {
-        App->resources->Get(albedo_map)->Release();
-        albedo_map = 0;
-    }
-
-    if(normal_map != 0)
-    {
-        App->resources->Get(normal_map)->Release();
-        normal_map = 0;
-    }
-
-    if(specular_map != 0)
-    {
-        App->resources->Get(specular_map)->Release();
-        specular_map = 0;
+        if(textures[i] != 0)
+        {
+            App->resources->Get(textures[i])->Release();
+            textures[i] = 0;
+        }
     }
 }
 
@@ -87,19 +74,21 @@ bool ResourceMaterial::Save(std::string& output) const
 {
     simple::mem_ostream<std::true_type> write_stream;
 
-    write_stream << ambient;
-    write_stream << diffuse;
-    write_stream << specular;
+    for(uint i=0; i< ColorCount; ++i)
+    {
+        write_stream << colors[i];
+    }
+
+    for(uint i=0; i< TextureCount; ++i)
+    {
+        write_stream << textures[texture];
+    }
+
     write_stream << shininess;
-    write_stream << albedo_map;
-    write_stream << normal_map;
-    write_stream << specular_map;
-    write_stream << cast_shadows;
-    write_stream << recv_shadows;
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 
-	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
+    return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
 }
 
 // ---------------------------------------------------------
@@ -112,13 +101,13 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
 
     float shine_strength = 1.0f;
 
-    material->Get(AI_MATKEY_COLOR_AMBIENT, m->ambient);
-    material->Get(AI_MATKEY_COLOR_DIFFUSE, m->diffuse);
-    material->Get(AI_MATKEY_COLOR_SPECULAR, m->specular);
+    material->Get(AI_MATKEY_COLOR_AMBIENT, m->colors[ColorAmbient]);
+    material->Get(AI_MATKEY_COLOR_DIFFUSE, m->colors[ColorDiffuse]);
+    material->Get(AI_MATKEY_COLOR_SPECULAR, m->colors[ColorSpecular]);
     material->Get(AI_MATKEY_SHININESS, m->shininess);
     material->Get(AI_MATKEY_SHININESS_STRENGTH, shine_strength);
 
-    m->specular *= shine_strength;
+    m->colors[ColorSpecular] *= shine_strength;
 
     aiString file;
     aiTextureMapping mapping;
@@ -131,7 +120,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->albedo_map = App->resources->ImportFile(full_path.C_Str(), true);
+        m->textures[TextureDiffuse] = App->resources->ImportFile(full_path.C_Str(), true);
     }
 
     if (material->GetTexture(aiTextureType_NORMALS, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -142,7 +131,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->normal_map = App->resources->ImportFile(full_path.C_Str(), true);
+        m->textures[TextureNormal] = App->resources->ImportFile(full_path.C_Str(), true);
     }
 
     if (material->GetTexture(aiTextureType_SPECULAR, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -153,12 +142,15 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->specular_map = App->resources->ImportFile(full_path.C_Str(), true);
+        m->textures[TextureSpecular] = App->resources->ImportFile(full_path.C_Str(), true);
     }
 
     std::string output;
 
-    if(m->Save(output))
+    bool save_ok = m->Save(output);
+    m->ReleaseFromMemory();
+
+    if(save_ok)
     {
 		if (source_file != nullptr) 
         {
@@ -175,10 +167,29 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         return m->uid;
     }
 
-    // \todo: remove resource
-
     LOG("Importing of BUFFER aiMaterial [%s] FAILED", source_file);
 
     return 0;
+}
+
+void ResourceMaterial::SetTexture(Texture texture, UID uid)
+{
+    if(textures[texture] != 0)
+    {
+        App->resources->Get(textures[texture])->Release();
+        textures[texture] = 0;
+    }
+
+    Resource* res = App->resources->Get(uid);
+
+    if (res != nullptr && res->GetType() == Resource::texture && res->LoadToMemory() == true)
+    {
+        textures[texture] = uid;
+    }
+}
+
+const ResourceTexture* ResourceMaterial::GetTextureRes(Texture texture) const
+{
+    return static_cast<const ResourceTexture*>(App->resources->Get(uid));
 }
 

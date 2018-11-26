@@ -11,16 +11,17 @@ ComponentMesh::ComponentMesh(GameObject* go) : Component(go, Types::Mesh)
 
 ComponentMesh::~ComponentMesh()
 {
+    App->resources->Get(resource)->Release();
 }
 
 void ComponentMesh::OnSave(Config& config) const 
 {
-    ComponentWithResource::OnSaveResource(config);
+	config.AddUID("Resource", resource);
 }
 
 void ComponentMesh::OnLoad(Config* config) 
 {
-    ComponentWithResource::OnLoadResource(config);
+	SetResource(config->GetUID("Resource", 0));
 
     App->resources->Get(resource)->LoadToMemory();
 }
@@ -48,3 +49,9 @@ bool ComponentMesh::SetResource(UID uid)
 
 	return false;
 }
+
+const ResourceMesh* ComponentMesh::GetResource() const
+{
+	return static_cast<const ResourceMesh*>(App->resources->Get(resource));
+}
+

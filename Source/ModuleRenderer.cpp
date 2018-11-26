@@ -9,6 +9,7 @@
 #include "GameObject.h"
 
 #include "ComponentMesh.h"
+#include "ComponentMaterial.h"
 #include "ComponentLight.h"
 #include "ComponentCamera.h"
 
@@ -127,114 +128,111 @@ void ModuleRenderer::DrawSkybox()
 }
 */
 
-void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& transform, ResourceMesh* mesh))
+void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4& transform, 
+								const ComponentMesh* mesh, const ComponentMaterial* material))
 {
-    std::vector<Component*> meshes;
-
 	for(NodeList::iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
 	{
 		GameObject* node = *it;
 
-        node->FindComponents(Component::Mesh, meshes);
+        ComponentMesh* mesh = node->FindFirstComponent<ComponentMesh>();
+        ComponentMaterial* material = node->FindFirstComponent<ComponentMaterial>();
 
-        for (uint i = 0, count = meshes.size(); i < count; ++i)
+        if(mesh != nullptr && material != nullptr)
         {
-            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(static_cast<ComponentMesh*>(meshes[i])->GetResourceUID()));
-
-            if(mesh != nullptr)
-            {
-                (this->*drawer)(node->GetGlobalTransformation(), mesh);
-            }
+            (this->*drawer)(node->GetGlobalTransformation(), mesh, material);
         }
-
-        meshes.clear();
     }
 }
 
-void ModuleRenderer::DrawMeshColor(const float4x4& transform, ResourceMesh* mesh)
+void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material)
 {    
-	const ResourceMaterial* material = static_cast<const ResourceMaterial*>(App->resources->Get(mesh->mat_id));
-    const ComponentLight* light = App->level->GetActiveLight() ? 
-        static_cast<const ComponentLight*>(App->level->GetActiveLight()->FindFirstComponent(Component::Light)) : nullptr;
+    const ResourceMesh* mesh_res    = mesh->GetResource();
+    const ResourceMaterial* mat_res = material->GetResource();
 
-    unsigned variation = PIXEL_LIGHTING;
-
-	if(mesh->attribs & ResourceMesh::ATTRIB_BONES)
-	{
-        // \todo: variation |= SKINNING;
-	}
-
-    if(material != nullptr)
+    if(mat_res != nullptr)
     {
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) && mesh->attribs & ResourceMesh::ATTRIB_TANGENTS && material->normal_map != 0)
+        const ComponentLight* light  = App->level->GetActiveLight() ?  App->level->GetActiveLight()->FindFirstComponent<ComponentLight>() : nullptr;
+
+        const ResourceTexture* specular = mat_res->GetTextureRes(ResourceMaterial::TextureSpecular);
+        const ResourceTexture* normal   = mat_res->GetTextureRes(ResourceMaterial::TextureNormal);
+        const ResourceTexture* diffuse  = mat_res->GetTextureRes(ResourceMaterial::TextureDiffuse);
+
+        unsigned variation = PIXEL_LIGHTING;
+
+        if(mesh_res->attribs & ResourceMesh::ATTRIB_BONES)
+        {
+            // \todo: variation |= SKINNING;
+        }
+
+        if(App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) && mesh_res->attribs & ResourceMesh::ATTRIB_TANGENTS && normal != nullptr)
         {
             variation |= NORMAL_MAP;
         }
 
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) && material->specular_map != 0)
+        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) && specular != nullptr)
         {
             variation |= SPECULAR_MAP;
         }
-    }
 
-    if(light != nullptr && light->type == ComponentLight::DIRECTIONAL)
-    {
-        variation |= LIGHT_DIRECTIONAL;
-
-        if(material->recv_shadows)
+        if(light != nullptr && light->type == ComponentLight::DIRECTIONAL)
         {
-            variation |= RECEIVE_SHADOWS;
+            variation |= LIGHT_DIRECTIONAL;
+
+            if(material->RecvShadows())
+            {
+                variation |= RECEIVE_SHADOWS;
+            }
         }
-    }
 
-	App->programs->UseProgram("default", variation);
+        App->programs->UseProgram("default", variation);
 
-    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
-    glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
+        glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
 
-    glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, shadow.tex);
-	glUniform1i(App->programs->GetUniformLocation("shadow_map"), 3);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, shadow.tex);
+        glUniform1i(App->programs->GetUniformLocation("shadow_map"), 3);
 
-    if(material != nullptr)
-    {
-        glUniform1f(App->programs->GetUniformLocation("shininess"), material->shininess);
+        glUniform1f(App->programs->GetUniformLocation("shininess"), mat_res->GetShininess());
 
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, material->specular_map != 0 ? static_cast<ResourceTexture*>(App->resources->Get(material->specular_map))->gpu_id : 0);
+        glBindTexture(GL_TEXTURE_2D, specular != nullptr ? specular->GetID() : 0);
         glUniform1i(App->programs->GetUniformLocation("specular_map"), 2);
 
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, material->normal_map != 0 ? static_cast<ResourceTexture*>(App->resources->Get(material->normal_map))->gpu_id : 0);
+        glBindTexture(GL_TEXTURE_2D, normal != nullptr ? normal->GetID() : 0);
         glUniform1i(App->programs->GetUniformLocation("normal_map"), 1);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, material->albedo_map != 0 ? static_cast<ResourceTexture*>(App->resources->Get(material->albedo_map))->gpu_id : 0);
+        glBindTexture(GL_TEXTURE_2D, diffuse != nullptr ? diffuse->GetID() : 0);
         glUniform1i(App->programs->GetUniformLocation("diffuse"), 0);
+
+        if((mesh_res->attribs & ResourceMesh::ATTRIB_BONES))
+        {
+            glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh_res->palette));
+        }
+
+        glBindVertexArray(mesh_res->vao);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_res->ibo);
+        glDrawElements(GL_TRIANGLES, mesh_res->num_indices, GL_UNSIGNED_INT, nullptr);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
-
-	if((mesh->attribs & ResourceMesh::ATTRIB_BONES))
-	{
-		glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh->palette));
-	}
-
-    glBindVertexArray(mesh->vao);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo);
-	glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, nullptr);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ResourceMesh* mesh)
+void ModuleRenderer::DrawMeshShadow(const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material)
 {
-	if (static_cast<ResourceMaterial*>(App->resources->Get(mesh->mat_id))->cast_shadows)
+    const ResourceMesh* mesh_res = mesh->GetResource();
+
+    if (material->CastShadows())
 	{
 		unsigned variation = 0;
-		if ((mesh->attribs & ResourceMesh::ATTRIB_BONES))
+		if ((mesh_res->attribs & ResourceMesh::ATTRIB_BONES))
 		{
 			variation |= SKINNING;
 		}
@@ -243,15 +241,15 @@ void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ResourceMesh* mes
 
 		if ((variation & SKINNING))
 		{
-			glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh->palette));
+			glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh_res->palette));
 		}
 
 		glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
 
-		glBindVertexArray(mesh->vao);
+		glBindVertexArray(mesh_res->vao);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo);
-		glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, nullptr);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_res->ibo);
+		glDrawElements(GL_TRIANGLES, mesh_res->num_indices, GL_UNSIGNED_INT, nullptr);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
@@ -262,37 +260,28 @@ void ModuleRenderer::DrawMeshShadow(const float4x4& transform, ResourceMesh* mes
 
 void ModuleRenderer::DebugDrawTangentSpace(float size)
 {
-    std::vector<Component*> meshes;
-
     for(NodeList::iterator it_node = draw_nodes.begin(), node_end = draw_nodes.end(); it_node != node_end; ++it_node)
     {
         GameObject* node			= *it_node;
 
-        node->FindComponents(Component::Mesh, meshes);
+        const ResourceMesh* mesh = node->FindFirstComponent<ComponentMesh>()->GetResource();
 
-        for(std::vector<Component*>::const_iterator it_mesh = meshes.begin(), end_mesh = meshes.end(); it_mesh != end_mesh; ++it_mesh)
+        if((mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
         {
-            const ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(static_cast<ComponentMesh*>(*it_mesh)->GetResourceUID()));
-
-            if((mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
+            for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
             {
-                for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
-                {
-                    /* \todo:
-                    float4 position  = mul(node->global, float4(mesh->src_vertices[i], 1.0));
-                    float4 normal    = mul(node->global, float4(mesh->src_normals[i], 0.0));
-                    float4 tangent   = mul(node->global, float4(mesh->src_tangents[i], 0.0));
-                    float4 bitangent = float4(cross(normal.xyz(), tangent.xyz()), 0.0);
+                /* \todo:
+                   float4 position  = mul(node->global, float4(mesh->src_vertices[i], 1.0));
+                   float4 normal    = mul(node->global, float4(mesh->src_normals[i], 0.0));
+                   float4 tangent   = mul(node->global, float4(mesh->src_tangents[i], 0.0));
+                   float4 bitangent = float4(cross(normal.xyz(), tangent.xyz()), 0.0);
 
-                    float4x4 tbn(tangent, bitangent, normal, position);
+                   float4x4 tbn(tangent, bitangent, normal, position);
 
-                    dd::axisTriad(tbn, size*0.1f, size, 0);
-                    */
-                }
+                   dd::axisTriad(tbn, size*0.1f, size, 0);
+                   */
             }
         }
-
-        meshes.clear();
     }
 }
 
@@ -545,29 +534,21 @@ void ModuleRenderer::UpdateLightUniform() const
 
 void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb) const
 {
-    std::vector<Component*> meshes;
-
     float4x4 light_mat(light_rotation.Inverted());
 
     for(NodeList::const_iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
     {
         const GameObject* node = *it;
 
-        node->FindComponents(Component::Mesh, meshes);
+        const ComponentMesh* mesh = node->FindFirstComponent<ComponentMesh>();
+        const ComponentMaterial* material = node->FindFirstComponent<ComponentMaterial>();
 
-        for (uint i=0, count = meshes.size(); i < count; ++i)
+        if(material->CastShadows())
         {
-            ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(static_cast<ComponentMesh*>(meshes[i])->GetResourceUID()));
-            ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->Get(mesh->mat_id));
-
-            if(material->cast_shadows)
-            {
-                // \todo: 
-                //scene->ComputeBBoxMesh(mesh, mul(light_mat, node->global), aabb);
-            }
+            // \todo: 
+            //scene->ComputeBBoxMesh(mesh, mul(light_mat, node->global), aabb);
         }
 
-        meshes.clear();
     }
 
     // \todo: 

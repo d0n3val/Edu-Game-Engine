@@ -12,6 +12,7 @@ public:
     virtual void OnSave(Config& config) const override;
     virtual void OnLoad(Config* config) override;
 
+    static Types GetClassType() { return Light; }
 public:
 
     enum Type

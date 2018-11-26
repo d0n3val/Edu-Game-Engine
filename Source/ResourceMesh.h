@@ -27,16 +27,16 @@ public:
 	bool        LoadInMemory        () override;
     void        ReleaseFromMemory   () override;
     bool        Save                (std::string& output) const;
-    static UID  Import              (const aiMesh* mesh, UID material, const char* source_file);
+    static UID  Import              (const aiMesh* mesh, const char* source_file);
 
 private:
 
-    void GenerateAttribInfo (const aiMesh* mesh);
-    void GenerateCPUBuffers (const aiMesh* mesh);
-    void GenerateVBO        (bool dynamic);
-    void GenerateBoneData   (const aiMesh* mesh);
-    void GenerateVAO        ();
-    void Clear              ();
+    void        GenerateAttribInfo (const aiMesh* mesh);
+    void        GenerateCPUBuffers (const aiMesh* mesh);
+    void        GenerateVBO        (bool dynamic);
+    void        GenerateBoneData   (const aiMesh* mesh);
+    void        GenerateVAO        ();
+    void        Clear              ();
 
 public:
 
@@ -63,8 +63,6 @@ public:
 	};
 
     HashString  name;
-
-    UID         mat_id              = 0;
 
     uint        vertex_size         = 0;
     uint        attribs             = 0;

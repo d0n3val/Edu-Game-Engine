@@ -9,28 +9,45 @@ struct aiMaterial;
 class ResourceMaterial : public Resource
 {
 public:
+    enum Texture
+    {
+        TextureDiffuse = 0,
+        TextureSpecular,
+        TextureNormal,
+        TextureOcclusion,
+        TextureCount
+    };
+
+    enum Colors
+    {
+        ColorAmbient = 0,
+        ColorDiffuse,
+        ColorSpecular,
+        ColorCount
+    };
+
+private:
+
+    float4      colors[ColorCount]     = { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } };
+    UID         textures[TextureCount] = { 0, 0, 0, 0 };
+    float       shininess                = 40.0f;
+
+public:
 
     explicit ResourceMaterial(UID id);
     virtual ~ResourceMaterial();
 
-	bool        LoadInMemory        () override;
-    void        ReleaseFromMemory   () override;
-    bool        Save                (std::string& output) const;
+	bool                    LoadInMemory        () override;
+    void                    ReleaseFromMemory   () override;
+    bool                    Save                (std::string& output) const;
 
-    static UID  Import              (const aiMaterial* material, const char* source_file);
+    static UID              Import              (const aiMaterial* material, const char* source_file);
 
-public:
+    UID                     GetTexture          (Texture texture) const { return textures[texture]; }
+    const ResourceTexture*  GetTextureRes       (Texture texture) const;
+    void                    SetTexture          (Texture texture, UID uid);
 
-    float4      ambient       = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4      diffuse       = float4(1.0f, 1.0f, 1.0f, 1.0f);
-    float4      specular      = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float       shininess     = 64.0f;
-    UID         albedo_map    = 0;
-    UID         normal_map    = 0;
-    UID         specular_map  = 0;
-    UID         occlusion_map = 0;
-    bool        cast_shadows  = true;
-    bool        recv_shadows  = true;
+    float                   GetShininess        () const { return shininess; }
 };
 
 

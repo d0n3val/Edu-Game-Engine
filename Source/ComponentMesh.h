@@ -4,18 +4,25 @@
 #include "ComponentWithResource.h"
 #include "Component.h"
 
-class ComponentMesh : public Component, public ComponentWithResource
+class ResourceMesh;
+
+class ComponentMesh : public Component
 {
 public:
     explicit ComponentMesh(GameObject* go);
     ~ComponentMesh();
 
-	virtual bool SetResource    (UID uid) override;
-    virtual void OnSave         (Config& config) const override;
-    virtual void OnLoad         (Config* config) override;
+	bool                SetResource     (UID uid);
+    const ResourceMesh* GetResource     () const;
+    virtual void        OnSave          (Config& config) const override;
+    virtual void        OnLoad          (Config* config) override;
 
-	void         GetBoundingBox (AABB& box) const override;
+	void                GetBoundingBox  (AABB& box) const override;
 
+    static Types        GetClassType    () { return Mesh; }
+
+private:
+	UID resource = 0;
 };
 
 #endif /* __COMPONENT_MESH_H__ */

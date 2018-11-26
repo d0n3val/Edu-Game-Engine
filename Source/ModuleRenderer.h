@@ -8,7 +8,8 @@
 
 class GameObject;
 class ComponentCamera;
-class ResourceMesh;
+class ComponentMesh;
+class ComponentMaterial;
 
 class ModuleRenderer : public Module
 {
@@ -73,9 +74,10 @@ private:
     void                CollectNodes            ();
     void                CollectNodesRec         (GameObject* node);
     //\todo: void                DrawSkybox              ();
-    void                DrawNodes               (void (ModuleRenderer::*drawer)(const float4x4& transform, ResourceMesh* mesh));
-    void                DrawMeshColor           (const float4x4& transform, ResourceMesh* mesh);
-    void                DrawMeshShadow          (const float4x4& transform, ResourceMesh* mesh);
+    void                DrawNodes               (void (ModuleRenderer::*drawer)(const float4x4& transform, const ComponentMesh* mesh, 
+                                                 const ComponentMaterial* material));
+    void                DrawMeshColor           (const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material);
+    void                DrawMeshShadow          (const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material);
     void                ShadowPass              (unsigned width, unsigned height);
     void                ColorPass               (unsigned width, unsigned height);
     void                GenerateFBOTexture      (R2TInfo& info, unsigned width, unsigned height, bool aColor); 

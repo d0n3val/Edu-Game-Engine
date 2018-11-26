@@ -77,8 +77,15 @@ public:
 
 	bool IsUnder(const GameObject* go) const;
 	void FindComponents(Component::Types type, std::vector<Component*>& results) const;
+
     Component* FindFirstComponent(Component::Types type);
     const Component* FindFirstComponent(Component::Types type) const;
+
+    template<class T>
+    T* FindFirstComponent() { return reinterpret_cast<T*>(FindFirstComponent(T::GetClassType())); }
+	template<class T>
+    const T* FindFirstComponent() const { return reinterpret_cast<const T*>(FindFirstComponent(T::GetClassType())); }
+
 	bool HasComponent(Component::Types type) const;
 
 	float3 GetVelocity() const;

@@ -343,16 +343,16 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 	{
 		const ResourceTexture* info = (const ResourceTexture*) (*it);
 
-		ImGui::Image((ImTextureID) info->gpu_id, ImVec2(50.f, 50.f), ImVec2(0,1), ImVec2(1,0));
+		ImGui::Image((ImTextureID) info->GetID(), ImVec2(50.f, 50.f), ImVec2(0,1), ImVec2(1,0));
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
 			ImGui::TextColored(IMGUI_YELLOW, info->GetFile());
-			ImGui::Text("%s", (info->gpu_id != 0) ? "Loaded in VRAM" : "Not in VRAM");
-			ImGui::Text("(%u,%u) %0.1f Mb %s", info->width, info->height, info->bytes / (1024.f*1024.f) , info->GetFormatStr());
-			ImGui::Text("Depth: %u Bpp: %u Mips: %u", info->depth, info->bpp, info->mips);
+			ImGui::Text("%s", (info->GetID() != 0) ? "Loaded in VRAM" : "Not in VRAM");
+			ImGui::Text("(%u,%u) %0.1f Mb %s", info->GetWidth(), info->GetHeight(), info->GetBytes() / (1024.f*1024.f) , info->GetFormatStr());
+			ImGui::Text("Depth: %u Bpp: %u Mips: %u", info->GetDepth(), info->GetBPP(), info->GetMips());
 
-			ImVec2 size((float)info->width, (float)info->height);
+			ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
 			float max_size = 250.f;
 
 			if (size.x > max_size || size.y > max_size)
@@ -369,7 +369,7 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 				}
 			}
 
-			ImGui::Image((ImTextureID) info->gpu_id, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+			ImGui::Image((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
 			ImGui::EndTooltip();
 		}
         if ((i++ % 5) < 4) ImGui::SameLine();

@@ -1,30 +1,35 @@
 #ifndef __COMPONENT_MATERIAL_H__
 #define __COMPONENT_MATERIAL_H__
 
-// Component to hold a material data (diffuse, etc...)
-
 #include "Component.h"
-#include "ComponentWithResource.h"
 
 struct TextureInfo;
-class ResourceTexture;
+class ResourceMaterial;
 
-class ComponentMaterial : public Component, public ComponentWithResource
+class ComponentMaterial : public Component
 {
 public:
-	ALIGN_CLASS_TO_16
 
 	ComponentMaterial (GameObject* container);
 	~ComponentMaterial ();
 
-	void OnSave(Config& config) const override;
-	void OnLoad(Config* config) override;
-	bool SetResource(UID resource) override;
+	bool                    SetResource (UID uid);
+    const ResourceMaterial* GetResource () const;
+    ResourceMaterial*       GetResource ();
 
-public:
-	float alpha_test = 0.5f;
-	float4x4 tex_transform = float4x4::identity;
+    bool                    CastShadows () const { return cast_shadows; }
+    bool                    RecvShadows () const { return recv_shadows; }
 
+	void                    OnSave      (Config& config) const override;
+	void                    OnLoad      (Config* config) override;
+
+    static Types            GetClassType() { return Material; }
+
+private:
+
+    UID   resource     = 0;
+    bool cast_shadows  = true;
+    bool recv_shadows  = true;
 };
 
 #endif // __COMPONENT_MESH_H__
