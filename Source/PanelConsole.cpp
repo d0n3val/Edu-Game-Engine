@@ -23,7 +23,7 @@ void PanelConsole::Clear()
 // ---------------------------------------------------------
 void PanelConsole::AddLog(const char* entry)
 {
-	Buf.append(entry);
+	Buf.appendf(entry);
 	ScrollToBottom = true;
 }
 

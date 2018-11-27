@@ -263,6 +263,7 @@ void ComponentRigidBody::DrawEditor()
 
 	if (body != nullptr)
 	{
+#if 0  // \todo: uncomment
 		float3 data = body->getLinearVelocity();
 		IMGUI_PRINT("Linear Velocity: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
 		data = body->getAngularVelocity();
@@ -279,5 +280,7 @@ void ComponentRigidBody::DrawEditor()
 		data.y = body->getHitFraction();
 		data.z = body->getRollingFriction();
 		IMGUI_PRINT("Friction/Hit/Rolling: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
+#endif
 	}
+
 }

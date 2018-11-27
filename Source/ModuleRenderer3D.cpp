@@ -23,7 +23,8 @@ ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module("Renderer", star
 
 // Destructor
 ModuleRenderer3D::~ModuleRenderer3D()
-{}
+{
+}
 
 // Called before render is available
 bool ModuleRenderer3D::Init(Config* config)

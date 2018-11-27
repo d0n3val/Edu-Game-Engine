@@ -92,7 +92,7 @@ void ComponentPath::OnDebugDraw(bool selected) const
 // ---------------------------------------------------------
 void ComponentPath::DrawEditor()
 {
-	IMGUI_PRINT("Length: ", "%.3f", path_lenght);
+	// \todo: uncomment IMGUI_PRINT("Length: ", "%.3f", path_lenght);
 
 	int num_points = points.size();
 	if (ImGui::InputInt("# Points", &num_points))
@@ -119,7 +119,7 @@ void ComponentPath::DrawEditor()
 	ImGui::DragFloat3("Test Close", &test_close.x);
 
 	test_close_factor = GetClosestPoint(test_close, &test_close_factor);
-	IMGUI_PRINT("Close %: ", "%.3f", test_close_factor);
+	// \todo: uncomment IMGUI_PRINT("Close %: ", "%.3f", test_close_factor);
 }
 
 // ---------------------------------------------------------

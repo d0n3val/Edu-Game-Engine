@@ -621,7 +621,8 @@ void ComponentSteering::DrawEditor()
 		SetBehaviour((Behaviour) behaviour_type);
 
 	ImGui::Text("Target:");
-	const GameObject* selected = App->editor->props->PickGameObject(goal);
+	// \todo: uncomment const GameObject* selected = App->editor->props->PickGameObject(goal);
+	const GameObject* selected = nullptr;
 	if (selected != nullptr)
 		goal = selected;
 
@@ -701,7 +702,8 @@ void ComponentSteering::DrawEditor()
 			if (ImGui::CollapsingHeader("Follow Path"))
 			{
 				ImGui::PushID("PickPath");
-				const GameObject* go = App->editor->props->PickGameObject((path) ? path->GetGameObject() : nullptr);
+				// \todo: uncomment const GameObject* go = App->editor->props->PickGameObject((path) ? path->GetGameObject() : nullptr);
+				const GameObject* go = nullptr;
 				if (go != nullptr)
 				{
 					vector<Component*> results;

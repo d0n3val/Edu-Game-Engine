@@ -10,8 +10,7 @@
 #include "GameObject.h"
 #include "DebugDraw.h"
 #include "Config.h"
-#include "Imgui/imgui.h"
-#include "Imgui/imgui_impl_sdl_gl3.h"
+#include "imgui.h"
 #include "OpenGL.h"
 #include "Panel.h"
 #include "PanelConsole.h"
@@ -42,12 +41,16 @@ bool ModuleEditor::Init(Config* config)
 {
 	LOG("Init editor gui with imgui lib version %s", ImGui::GetVersion());
 
+	/* \todo: uncomment
     ImGui_ImplSdlGL3_Init(App->window->GetWindow());
 
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = SETTINGS_FOLDER "imgui.ini";
+	*/
 
 	// create all panels
+	
+	/* \todo: uncomment
 	panels.push_back(console = new PanelConsole());
 	panels.push_back(tree = new PanelGOTree());
 	panels.push_back(props = new PanelProperties());
@@ -55,6 +58,7 @@ bool ModuleEditor::Init(Config* config)
 	panels.push_back(about = new PanelAbout());
 	panels.push_back(res = new PanelResources());
 	panels.push_back(bar = new PanelQuickBar());
+	*/
 
 	return true;
 }
@@ -67,10 +71,12 @@ bool ModuleEditor::Start(Config * config)
 
 update_status ModuleEditor::PreUpdate(float dt)
 {
+	/* \todo: uncomment
     ImGui_ImplSdlGL3_NewFrame(App->window->GetWindow());
     ImGuiIO& io = ImGui::GetIO();
 	capture_keyboard = io.WantCaptureKeyboard;
 	capture_mouse = io.WantCaptureMouse;
+	*/
 
 	return UPDATE_CONTINUE;
 }
@@ -78,7 +84,8 @@ update_status ModuleEditor::PreUpdate(float dt)
 update_status ModuleEditor::Update(float dt)
 {
 	update_status ret = UPDATE_CONTINUE;
-
+	
+#if 0 // \todo: uncomment
 	static bool showcase = false;
 	
 	// Main menu GUI
@@ -163,6 +170,8 @@ update_status ModuleEditor::Update(float dt)
 		ImGui::ShowMetricsWindow(&showcase);
 	}
 
+#endif
+
 	return ret;
 }
 
@@ -178,7 +187,9 @@ bool ModuleEditor::CleanUp()
 
 	console = nullptr; // fix a but of log comming when we already freed the panel
 
+#if 0 // \todo: uncomment
     ImGui_ImplSdlGL3_Shutdown();
+#endif
 
 	return true;
 }
@@ -223,6 +234,7 @@ void ModuleEditor::DrawDebug()
 
 void ModuleEditor::OnResize(int width, int height)
 {
+	/* \todo: uncomment
 	console->width = width - tree->width - conf->width;
 	console->posy = height - console->height;
 
@@ -237,11 +249,12 @@ void ModuleEditor::OnResize(int width, int height)
 
 	conf->posy = height - conf->height;
 	conf->posx = width - conf->width;
+	*/
 }
 
 void ModuleEditor::HandleInput(SDL_Event* event)
 {
-    ImGui_ImplSdlGL3_ProcessEvent(event);
+    //ImGui_ImplSdlGL3_ProcessEvent(event);
 }
 
 bool ModuleEditor::FileDialog(const char * extension, const char* from_folder)
@@ -277,7 +290,9 @@ void ModuleEditor::Draw()
 {
 	// Debug Draw on selected GameObject
 
+#if 0 // \todo: uncomment
 	ImGui::Render();
+#endif
 }
 
 bool ModuleEditor::UsingMouse() const
@@ -308,14 +323,14 @@ void ModuleEditor::LogInputEvent(uint key, uint state)
 			sprintf_s(entry, 512, "Keybr: %02u - %s\n", key, states[state]);
 		else
 			sprintf_s(entry, 512, "Mouse: %02u - %s\n", key - 1000, states[state]);
-		conf->AddInput(entry);
+		// \todo: uncomment conf->AddInput(entry);
 	}
 }
 
 void ModuleEditor::LogFPS(float fps, float ms)
 {
-	if (conf != nullptr)
-		conf->AddFPS(fps, ms);
+	// \todo: uncomment if (conf != nullptr)
+		// \todo: uncomment conf->AddFPS(fps, ms);
 }
 
 void ModuleEditor::SetSelected(GameObject * selected, bool focus)
@@ -331,6 +346,7 @@ void ModuleEditor::SetSelected(GameObject * selected, bool focus)
 
 void ModuleEditor::LoadFile(const char* filter_extension, const char* from_dir)
 {
+#if 0 // \todo: uncomment
 	ImGui::OpenPopup("Load File");
 	if (ImGui::BeginPopupModal("Load File", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -362,10 +378,12 @@ void ModuleEditor::LoadFile(const char* filter_extension, const char* from_dir)
 	}
 	else
 		in_modal = false;
+#endif
 }
 
 void ModuleEditor::DrawDirectoryRecursive(const char* directory, const char* filter_extension) 
 {
+#if 0 // \todo: uncomment
 	vector<string> files;
 	vector<string> dirs;
 
@@ -406,4 +424,5 @@ void ModuleEditor::DrawDirectoryRecursive(const char* directory, const char* fil
 			ImGui::TreePop();
 		}
 	}
+#endif
 }
