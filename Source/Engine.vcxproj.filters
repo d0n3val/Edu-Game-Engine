@@ -576,6 +576,15 @@
     <ClInclude Include="imgui\examples\imgui_impl_sdl.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="PanelConfiguration.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelGOTree.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelProperties.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -877,6 +886,15 @@
     </ClCompile>
     <ClCompile Include="imgui\examples\imgui_impl_sdl.cpp">
       <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelConfiguration.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelGOTree.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelProperties.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

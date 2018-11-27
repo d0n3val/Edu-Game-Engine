@@ -6,11 +6,11 @@
 #include "ModuleLevelManager.h"
 #include "ModuleEditorCamera.h"
 #include "ModuleSceneLoader.h"
+#include "ModuleRenderer3D.h"
 #include "ModuleInput.h"
 #include "GameObject.h"
 #include "DebugDraw.h"
 #include "Config.h"
-#include "imgui.h"
 #include "OpenGL.h"
 #include "Panel.h"
 #include "PanelConsole.h"
@@ -25,6 +25,12 @@
 #include <algorithm>
 
 using namespace std;
+
+#define IMGUI_IMPL_OPENGL_LOADER_GLEW
+#include "imgui.h"
+#include "examples/imgui_impl_sdl.h"
+#include "examples/imgui_impl_opengl3.h"
+
 
 ModuleEditor::ModuleEditor(bool start_enabled) : Module("Editor", start_enabled)
 {
@@ -41,16 +47,22 @@ bool ModuleEditor::Init(Config* config)
 {
 	LOG("Init editor gui with imgui lib version %s", ImGui::GetVersion());
 
-	/* \todo: uncomment
-    ImGui_ImplSdlGL3_Init(App->window->GetWindow());
+    // Setup Dear ImGui binding
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.IniFilename = SETTINGS_FOLDER "imgui.ini";
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
 
-    ImGuiIO& io = ImGui::GetIO();
-    io.IniFilename = SETTINGS_FOLDER "imgui.ini";
-	*/
+    ImGui_ImplSDL2_InitForOpenGL(App->window->GetWindow(), App->renderer3D->context);
+    ImGui_ImplOpenGL3_Init("#version 130");
+
+    // Setup style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
 
 	// create all panels
 	
-	/* \todo: uncomment
 	panels.push_back(console = new PanelConsole());
 	panels.push_back(tree = new PanelGOTree());
 	panels.push_back(props = new PanelProperties());
@@ -58,7 +70,6 @@ bool ModuleEditor::Init(Config* config)
 	panels.push_back(about = new PanelAbout());
 	panels.push_back(res = new PanelResources());
 	panels.push_back(bar = new PanelQuickBar());
-	*/
 
 	return true;
 }
@@ -71,12 +82,13 @@ bool ModuleEditor::Start(Config * config)
 
 update_status ModuleEditor::PreUpdate(float dt)
 {
-	/* \todo: uncomment
-    ImGui_ImplSdlGL3_NewFrame(App->window->GetWindow());
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame(App->window->GetWindow());
+    ImGui::NewFrame();
+
     ImGuiIO& io = ImGui::GetIO();
 	capture_keyboard = io.WantCaptureKeyboard;
 	capture_mouse = io.WantCaptureMouse;
-	*/
 
 	return UPDATE_CONTINUE;
 }
@@ -85,7 +97,7 @@ update_status ModuleEditor::Update(float dt)
 {
 	update_status ret = UPDATE_CONTINUE;
 	
-#if 0 // \todo: uncomment
+#if 1 // \todo: uncomment
 	static bool showcase = false;
 	
 	// Main menu GUI
@@ -141,6 +153,9 @@ update_status ModuleEditor::Update(float dt)
 			ImGui::EndMainMenuBar();
 		}
 	}
+#endif 
+
+#if 0
 
 	// Draw all active panels
 	for (vector<Panel*>::iterator it = panels.begin(); it != panels.end(); ++it)
@@ -290,9 +305,9 @@ void ModuleEditor::Draw()
 {
 	// Debug Draw on selected GameObject
 
-#if 0 // \todo: uncomment
-	ImGui::Render();
-#endif
+    ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	SDL_GL_MakeCurrent(App->window->GetWindow(), App->renderer3D->context);
 }
 
 bool ModuleEditor::UsingMouse() const

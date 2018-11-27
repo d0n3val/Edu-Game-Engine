@@ -248,8 +248,11 @@
     <ClInclude Include="ModuleInput.h" />
     <ClInclude Include="ModuleWindow.h" />
     <ClInclude Include="PanelAbout.h" />
+    <ClInclude Include="PanelConfiguration.h" />
     <ClInclude Include="PanelConsole.h" />
     <ClInclude Include="Panel.h" />
+    <ClInclude Include="PanelGOTree.h" />
+    <ClInclude Include="PanelProperties.h" />
     <ClInclude Include="PanelQuickBar.h" />
     <ClInclude Include="PanelResources.h" />
     <ClInclude Include="parson.h" />
@@ -349,8 +352,11 @@
     <ClCompile Include="ModuleTextures.cpp" />
     <ClCompile Include="ModuleWindow.cpp" />
     <ClCompile Include="PanelAbout.cpp" />
+    <ClCompile Include="PanelConfiguration.cpp" />
     <ClCompile Include="PanelConsole.cpp" />
     <ClCompile Include="Panel.cpp" />
+    <ClCompile Include="PanelGOTree.cpp" />
+    <ClCompile Include="PanelProperties.cpp" />
     <ClCompile Include="PanelQuickBar.cpp" />
     <ClCompile Include="PanelResources.cpp" />
     <ClCompile Include="parson.c" />
