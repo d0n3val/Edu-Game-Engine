@@ -130,7 +130,7 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
 {
     uint index = nodes.size();
 
-    Node dst = nodes.back();
+	Node dst;
 
     dst.transform = reinterpret_cast<const float4x4&>(node->mTransformation);
     dst.name      = node->mName.C_Str();
