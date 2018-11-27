@@ -66,18 +66,41 @@ void PanelGOTree::Draw()
 
 		if (ImGui::BeginMenu("Load Prefab"))
 		{
-			vector<const Resource*> resources;
-			App->resources->GatherResourceType(resources, Resource::scene);
-
-			for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+			if (ImGui::BeginMenu("Scene"))
 			{
-				const Resource* info = (*it);
-				if (ImGui::MenuItem(info->GetExportedFile()))
+				vector<const Resource*> resources;
+				App->resources->GatherResourceType(resources, Resource::scene);
+
+				for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
 				{
-					string file(LIBRARY_SCENE_FOLDER);
-					file += info->GetExportedFile();
-					App->level->Load(file.c_str());
+					const Resource* info = (*it);
+					if (ImGui::MenuItem(info->GetExportedFile()))
+					{
+						string file(LIBRARY_SCENE_FOLDER);
+						file += info->GetExportedFile();
+						App->level->Load(file.c_str());
+					}
 				}
+
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Model"))
+			{
+				vector<const Resource*> resources;
+				App->resources->GatherResourceType(resources, Resource::model);
+
+				for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+				{
+					const Resource* info = (*it);
+					if (ImGui::MenuItem(info->GetExportedFile()))
+					{
+						string file(LIBRARY_MODEL_FOLDER);
+						file += info->GetExportedFile();
+						// \todo: scene Loader load model App->level->Load(file.c_str());
+					}
+				}
+
+				ImGui::EndMenu();
 			}
             ImGui::EndMenu();
 		}

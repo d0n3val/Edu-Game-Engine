@@ -80,8 +80,6 @@ void PanelProperties::Draw()
 				selected->CreateComponent(Component::Types::Steering);
 			if (ImGui::MenuItem("Path"))
 				selected->CreateComponent(Component::Types::Path);
-			if (ImGui::MenuItem("Mesh"))
-				selected->CreateComponent(Component::Types::Mesh);
             ImGui::EndMenu();
         }
 

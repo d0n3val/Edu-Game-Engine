@@ -88,11 +88,13 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 		GenerateMeshes(scene, full_path, meshes);
         GenerateModel(scene, full_path, meshes, materials);
 
+        // Generating prefab
 		//GameObject* go = App->level->CreateGameObject(nullptr);
 		//GenerateGameObjects(scene->mRootNode, go, meshes);
 
 		aiReleaseImport(scene);
 
+        // Generating prefab
 		// Serialize GameObjects recursively
 		//Config save;
 		//save.AddArray("Game Objects");

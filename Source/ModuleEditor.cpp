@@ -261,7 +261,7 @@ void ModuleEditor::OnResize(int width, int height)
 
 void ModuleEditor::HandleInput(SDL_Event* event)
 {
-    //ImGui_ImplSdlGL3_ProcessEvent(event);
+    ImGui_ImplSDL2_ProcessEvent(event);
 }
 
 bool ModuleEditor::FileDialog(const char * extension, const char* from_folder)
