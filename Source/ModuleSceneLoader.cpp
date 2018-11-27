@@ -12,6 +12,7 @@
 #include "ModuleResources.h"
 #include "ResourceMaterial.h"
 #include "ResourceMesh.h"
+#include "ResourceModel.h"
 #include "Assimp/include/cimport.h"
 #include "Assimp/include/scene.h"
 #include "Assimp/include/postprocess.h"
@@ -84,30 +85,33 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 	{
         std::vector<UID> materials, meshes;
 		GenerateMaterials(scene, full_path, materials);
-		GenerateMeshes(scene, full_path, materials, meshes);
+		GenerateMeshes(scene, full_path, meshes);
+        GenerateModel(scene, full_path, meshes, materials);
 
-		GameObject* go = App->level->CreateGameObject(nullptr);
-		GenerateGameObjects(scene->mRootNode, go, meshes);
+		//GameObject* go = App->level->CreateGameObject(nullptr);
+		//GenerateGameObjects(scene->mRootNode, go, meshes);
 
 		aiReleaseImport(scene);
 
 		// Serialize GameObjects recursively
-		Config save;
-		save.AddArray("Game Objects");
+		//Config save;
+		//save.AddArray("Game Objects");
 
-		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-			(*it)->Save(save);
+		//for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+			//(*it)->Save(save);
 
 		// Finally save to file
-		char* buf = nullptr;
-		uint size = save.Save(&buf, "Prefab save file from EDU Engine");
-		bool ret = App->fs->SaveUnique(output, buf, size, LIBRARY_SCENE_FOLDER, "scene", "eduscene");
-		RELEASE_ARRAY(buf);
+		//char* buf = nullptr;
+		//uint size = save.Save(&buf, "Prefab save file from EDU Engine");
+		//bool ret = App->fs->SaveUnique(output, buf, size, LIBRARY_SCENE_FOLDER, "scene", "eduscene");
+		//RELEASE_ARRAY(buf);
 
 		// We can now safely remove the tree
-		go->Remove();
+		//go->Remove();
 
-		return ret;
+		//return ret;
+
+		return true;
 	}
 
 	return false;
@@ -148,7 +152,7 @@ void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file
 }
 
 
-void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes)
+void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const char* file, std::vector<UID>& meshes)
 {
 	meshes.reserve(scene->mNumMeshes);
 
@@ -158,5 +162,10 @@ void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const char* file, c
 
 		assert(meshes.back() != 0);
 	}
+}
+
+UID ModuleSceneLoader::GenerateModel(const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes)
+{
+    return ResourceModel::Import(scene, meshes, materials, file);
 }
 

@@ -305,7 +305,7 @@ UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file)
         return m->uid;
     }
 
-    LOG("Importing of BUFFER aiMaterial [%s] FAILED", source_file);
+    LOG("Importing aiMesh %s FAILED", source_file);
 
     return 0;
 }

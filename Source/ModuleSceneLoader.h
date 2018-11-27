@@ -31,7 +31,8 @@ public:
 private:
 
     void GenerateMaterials  (const aiScene* scene, const char* file, std::vector<UID>& materials);
-	void GenerateMeshes     (const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes);
+	void GenerateMeshes     (const aiScene* scene, const char* file, std::vector<UID>& meshes);
+	UID  GenerateModel      (const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes);
 	void GenerateGameObjects(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes);
 
 private:
