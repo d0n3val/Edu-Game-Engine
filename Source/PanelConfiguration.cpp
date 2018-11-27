@@ -563,7 +563,7 @@ void PanelConfiguration::RecursiveDrawQuadtree(QuadtreeNode * node)
 
 void PanelConfiguration::AddInput(const char * entry)
 {
-	input_buf.append(entry);
+	input_buf.appendf(entry);
 	need_scroll = true;
 }
 

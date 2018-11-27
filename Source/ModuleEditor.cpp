@@ -97,7 +97,6 @@ update_status ModuleEditor::Update(float dt)
 {
 	update_status ret = UPDATE_CONTINUE;
 	
-#if 1 // \todo: uncomment
 	static bool showcase = false;
 	
 	// Main menu GUI
@@ -153,9 +152,6 @@ update_status ModuleEditor::Update(float dt)
 			ImGui::EndMainMenuBar();
 		}
 	}
-#endif 
-
-#if 0
 
 	// Draw all active panels
 	for (vector<Panel*>::iterator it = panels.begin(); it != panels.end(); ++it)
@@ -181,11 +177,9 @@ update_status ModuleEditor::Update(float dt)
 	// Show showcase ? 
 	if (showcase)
 	{
-		ImGui::ShowTestWindow(&showcase);
-		ImGui::ShowMetricsWindow(&showcase);
+		ImGui::ShowTestWindow();
+		ImGui::ShowMetricsWindow();
 	}
-
-#endif
 
 	return ret;
 }
@@ -202,9 +196,9 @@ bool ModuleEditor::CleanUp()
 
 	console = nullptr; // fix a but of log comming when we already freed the panel
 
-#if 0 // \todo: uncomment
-    ImGui_ImplSdlGL3_Shutdown();
-#endif
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 
 	return true;
 }
@@ -249,7 +243,6 @@ void ModuleEditor::DrawDebug()
 
 void ModuleEditor::OnResize(int width, int height)
 {
-	/* \todo: uncomment
 	console->width = width - tree->width - conf->width;
 	console->posy = height - console->height;
 
@@ -264,7 +257,6 @@ void ModuleEditor::OnResize(int width, int height)
 
 	conf->posy = height - conf->height;
 	conf->posx = width - conf->width;
-	*/
 }
 
 void ModuleEditor::HandleInput(SDL_Event* event)
@@ -338,14 +330,14 @@ void ModuleEditor::LogInputEvent(uint key, uint state)
 			sprintf_s(entry, 512, "Keybr: %02u - %s\n", key, states[state]);
 		else
 			sprintf_s(entry, 512, "Mouse: %02u - %s\n", key - 1000, states[state]);
-		// \todo: uncomment conf->AddInput(entry);
+		conf->AddInput(entry);
 	}
 }
 
 void ModuleEditor::LogFPS(float fps, float ms)
 {
-	// \todo: uncomment if (conf != nullptr)
-		// \todo: uncomment conf->AddFPS(fps, ms);
+	if (conf != nullptr)
+		conf->AddFPS(fps, ms);
 }
 
 void ModuleEditor::SetSelected(GameObject * selected, bool focus)
@@ -361,7 +353,6 @@ void ModuleEditor::SetSelected(GameObject * selected, bool focus)
 
 void ModuleEditor::LoadFile(const char* filter_extension, const char* from_dir)
 {
-#if 0 // \todo: uncomment
 	ImGui::OpenPopup("Load File");
 	if (ImGui::BeginPopupModal("Load File", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -392,13 +383,13 @@ void ModuleEditor::LoadFile(const char* filter_extension, const char* from_dir)
 		ImGui::EndPopup();
 	}
 	else
+    {
 		in_modal = false;
-#endif
+    }
 }
 
 void ModuleEditor::DrawDirectoryRecursive(const char* directory, const char* filter_extension) 
 {
-#if 0 // \todo: uncomment
 	vector<string> files;
 	vector<string> dirs;
 
@@ -439,5 +430,4 @@ void ModuleEditor::DrawDirectoryRecursive(const char* directory, const char* fil
 			ImGui::TreePop();
 		}
 	}
-#endif
 }

@@ -585,6 +585,9 @@
     <ClInclude Include="PanelProperties.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="Imgui\imgui_user.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -895,6 +898,9 @@
     </ClCompile>
     <ClCompile Include="PanelProperties.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui_user2.cpp">
+      <Filter>3rd Party\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
