@@ -9,7 +9,7 @@
 #include "utils/SimpleBinStream.h"
 #include "HashString.h"
 
-ResourceModel::ResourceModel(UID id) : Resource(uid, Resource::Type::model)
+ResourceModel::ResourceModel(UID id) : Resource(id, Resource::Type::model)
 {
 }
 
@@ -46,9 +46,7 @@ bool ResourceModel::LoadInMemory()
         {
             Node node;
 
-            std::string tmp;
-            read_stream >> tmp;
-            node.name = HashString(tmp.c_str());
+            read_stream >> node.name;
 
             for(uint i=0; i< 16; ++i)
             {
@@ -62,6 +60,19 @@ bool ResourceModel::LoadInMemory()
             nodes.push_back(node);
         }
 
+        for(uint i=0; i< nodes.size(); ++i)
+        {
+            if(nodes[i].mesh != 0)
+            {
+                App->resources->Get(nodes[i].mesh)->LoadToMemory();
+            }
+
+            if(nodes[i].material != 0)
+            {
+                App->resources->Get(nodes[i].material)->LoadToMemory();
+            }
+        }
+
 		return true;
     }
 
@@ -70,6 +81,19 @@ bool ResourceModel::LoadInMemory()
 
 void ResourceModel::ReleaseFromMemory() 
 {
+    for(uint i=0; i< nodes.size(); ++i)
+    {
+        if(nodes[i].mesh != 0)
+        {
+            App->resources->Get(nodes[i].mesh)->Release();
+        }
+
+        if(nodes[i].material != 0)
+        {
+            App->resources->Get(nodes[i].material)->Release();
+        }
+    }
+
     nodes.clear();
 }
 
@@ -143,18 +167,28 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
         GenerateNodes(model, node->mChildren[i], index, meshes, materials);
     }
 
-    for(uint i=0; i< node->mNumMeshes; ++i)
+    if(node->mNumMeshes == 1)
     {
-        Node mesh;
+        uint mesh_index = node->mMeshes[0];
 
-        uint mesh_index = node->mMeshes[i];
+        nodes[index].mesh     = meshes[mesh_index];
+        nodes[index].material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
+    }
+    else 
+    {
+        for(uint i=0; i< node->mNumMeshes; ++i)
+        {
+            Node mesh;
 
-        mesh.parent   = index;
-        mesh.name     = model->mMeshes[mesh_index]->mName.C_Str();
-        mesh.mesh     = meshes[mesh_index];
-        mesh.material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
+            uint mesh_index = node->mMeshes[i];
 
-        nodes.push_back(mesh);
+            mesh.parent   = index;
+            mesh.name     = model->mMeshes[mesh_index]->mName.C_Str();
+            mesh.mesh     = meshes[mesh_index];
+            mesh.material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
+
+            nodes.push_back(mesh);
+        }
     }
 }
 

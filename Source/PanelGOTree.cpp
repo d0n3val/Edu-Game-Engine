@@ -7,6 +7,8 @@
 #include "ModuleEditor.h"
 #include "ModuleEditorCamera.h"
 #include "ModuleResources.h"
+#include "ModuleSceneLoader.h"
+#include "ResourceModel.h"
 #include "GameObject.h"
 #include <list>
 
@@ -91,12 +93,10 @@ void PanelGOTree::Draw()
 
 				for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
 				{
-					const Resource* info = (*it);
-					if (ImGui::MenuItem(info->GetExportedFile()))
+					const Resource* model = (*it);
+					if (ImGui::MenuItem(model->GetExportedFile()))
 					{
-						string file(LIBRARY_MODEL_FOLDER);
-						file += info->GetExportedFile();
-						// \todo: scene Loader load model App->level->Load(file.c_str());
+                        App->scene->AddModel(model->GetUID());
 					}
 				}
 
@@ -128,7 +128,7 @@ void PanelGOTree::Draw()
 // ---------------------------------------------------------
 void PanelGOTree::RecursiveDraw(GameObject* go)
 {
-	sprintf_s(name, 80, "%s##node_%i", go->name.c_str(), node++);
+	sprintf_s(name, 80, "%s##node_%i", go->name.empty() ? "(empty)": go->name.c_str(), node++);
 	uint flags = 0;// ImGuiTreeNodeFlags_OpenOnArrow;
 
 	if (go->childs.size() == 0)

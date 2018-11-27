@@ -12,6 +12,7 @@ struct aiNode;
 struct aiMaterial;
 struct aiMetadata;
 class GameObject;
+class ResourceModel;
 
 class ModuleSceneLoader : public Module
 {
@@ -25,6 +26,7 @@ public:
 	bool CleanUp() override;
 
 	bool Import(const char* full_path, std::string& output);
+    bool AddModel(UID id);
 	
 	UID FindBoneFromLastImport(const char* name) const;
 
@@ -32,7 +34,7 @@ private:
 
     void GenerateMaterials  (const aiScene* scene, const char* file, std::vector<UID>& materials);
 	void GenerateMeshes     (const aiScene* scene, const char* file, std::vector<UID>& meshes);
-	UID  GenerateModel      (const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes);
+	UID  GenerateModel      (const aiScene* scene, const char* file, const std::vector<UID>& meshes, std::vector<UID>& materials);
 	void GenerateGameObjects(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes);
 
 private:

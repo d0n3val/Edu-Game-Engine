@@ -119,6 +119,60 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 	return false;
 }
 
+bool ModuleSceneLoader::AddModel(UID id)
+{
+    Resource* res = App->resources->Get(id);
+
+    bool ok = res->GetType() == Resource::model;
+
+    if(ok)
+    {
+        ResourceModel* model = static_cast<ResourceModel*>(res);
+        model->LoadToMemory();
+
+        std::vector<GameObject*> gos;
+        gos.reserve(model->GetNumNodes());
+
+        for(uint i=0, count = model->GetNumNodes(); ok && i< count; ++i)
+        {
+            const ResourceModel::Node& node = model->GetNode(i);
+
+            GameObject* parent = i == 0 ? nullptr : gos[node.parent];
+            GameObject* go = App->level->CreateGameObject(parent);
+
+            go->SetLocalTransform(node.transform);
+            go->name = node.name.c_str();
+
+            if(node.mesh != 0)
+            {
+                ComponentMesh* mesh = new ComponentMesh(go);
+                ok = mesh->SetResource(node.mesh);
+                go->components.push_back(mesh);
+            }
+
+            if(ok && node.material != 0)
+            {
+                ComponentMaterial* material = new ComponentMaterial(go);
+                ok = material->SetResource(node.material);
+                go->components.push_back(material);
+            }
+
+            gos.push_back(go);
+        }
+
+        model->Release();
+
+        if(!ok & !gos.empty())
+        {
+            gos.front()->Remove();
+        }
+    }
+
+
+
+	return ok;
+}
+
 void ModuleSceneLoader::GenerateGameObjects(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes)
 {
     aiQuaternion quat;
@@ -166,7 +220,7 @@ void ModuleSceneLoader::GenerateMeshes(const aiScene* scene, const char* file, s
 	}
 }
 
-UID ModuleSceneLoader::GenerateModel(const aiScene* scene, const char* file, const std::vector<UID>& materials, std::vector<UID>& meshes)
+UID ModuleSceneLoader::GenerateModel(const aiScene* scene, const char* file, const std::vector<UID>& meshes, std::vector<UID>& materials)
 {
     return ResourceModel::Import(scene, meshes, materials, file);
 }
