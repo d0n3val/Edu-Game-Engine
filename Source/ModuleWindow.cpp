@@ -26,10 +26,13 @@ bool ModuleWindow::Init(Config* config)
 		ret = false;
 	}
 	else
-	{
+    {
+        SDL_DisplayMode DM;
+        SDL_GetDesktopDisplayMode(0, &DM);
+
 		//Create window
-		screen_width = config->GetInt("Width", 1280);
-		screen_height = config->GetInt("Height", 1024);
+		screen_width = config->GetInt("Width", uint(DM.w*0.75f));
+		screen_height = config->GetInt("Height", uint(DM.h*0.75f));
 
 		Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 
@@ -38,7 +41,7 @@ bool ModuleWindow::Init(Config* config)
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
 		fullscreen = config->GetBool("Fullscreen", false);
-		resizable = config->GetBool("Resizable", false);
+		resizable = config->GetBool("Resizable", true);
 		borderless = config->GetBool("Borderless", false);
 		fullscreen_desktop = config->GetBool("Fullscreen Desktop", false);
 
