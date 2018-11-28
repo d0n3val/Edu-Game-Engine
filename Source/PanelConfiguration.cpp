@@ -29,10 +29,10 @@ using namespace std;
 PanelConfiguration::PanelConfiguration() : Panel("Configuration", SDL_SCANCODE_4),
 	fps_log(FPS_LOG_SIZE), ms_log(FPS_LOG_SIZE)
 {
-	width = 325;
-	height = 417;
-	posx = 956;
-	posy = 609;
+	width = default_width;
+	height = default_height;
+	posx = default_posx;
+	posy = default_posy;
 }
 
 // ---------------------------------------------------------

@@ -71,13 +71,24 @@ bool ModuleEditor::Init(Config* config)
 	panels.push_back(res = new PanelResources());
 	panels.push_back(bar = new PanelQuickBar());
 
+
 	return true;
 }
 
 bool ModuleEditor::Start(Config * config)
 {
+    conf->active = config->GetBool("ConfActive", true);
+    props->active = config->GetBool("PropsActive", true);
+
 	OnResize(App->window->GetWidth(), App->window->GetHeight());
+
 	return true;
+}
+
+void ModuleEditor::Save(Config* config) const 
+{
+    config->AddBool("ConfActive", conf->active);
+    config->AddBool("PropsActive", props->active);
 }
 
 update_status ModuleEditor::PreUpdate(float dt)
@@ -120,12 +131,18 @@ update_status ModuleEditor::Update(float dt)
 
 			if (ImGui::BeginMenu("View"))
 			{
-				ImGui::MenuItem("Console", "1", &console->active);
-				ImGui::MenuItem("Scene Hierarchy", "2", &tree->active);
-				ImGui::MenuItem("Properties", "3", &props->active);
-				ImGui::MenuItem("Configuration", "4", &conf->active);
-				ImGui::MenuItem("Resource Browser", "5", &res->active);
-				ImGui::MenuItem("Quick Bar", "6", &res->active);
+				bool refresh = false;
+				refresh = ImGui::MenuItem("Console", "1", &console->active) || refresh;
+				refresh = ImGui::MenuItem("Scene Hierarchy", "2", &tree->active) || refresh;
+				refresh = ImGui::MenuItem("Properties", "3", &props->active) || refresh;
+				refresh = ImGui::MenuItem("Configuration", "4", &conf->active) || refresh;
+				refresh = ImGui::MenuItem("Resource Browser", "5", &res->active) || refresh;
+				refresh = ImGui::MenuItem("Quick Bar", "6", &res->active) || refresh;
+
+                if(refresh)
+                {
+                    OnResize(App->window->GetWidth(), App->window->GetHeight());
+                }
 
 				ImGui::EndMenu();
 			}
@@ -252,11 +269,18 @@ void ModuleEditor::OnResize(int width, int height)
 	res->posy = height / 2 + tree->posy;
 	res->height = height / 2 - tree->posy;
 
-	props->posx = width - props->width;
-	props->height = height - props->posy - conf->height;
+    if(props->active)
+    {
+        props->posx = width - props->width;
+        props->height = conf->active ? height - props->posy - conf->default_height : height - props->posy;
+    }
 
-	conf->posy = height - conf->height;
-	conf->posx = width - conf->width;
+    if(conf->active)
+    {
+        conf->posy = props->active ? props->posy + props->height : 0;
+        conf->posx = width - conf->width;
+        conf->height = props->active ? height - props->height : height;
+    }
 }
 
 void ModuleEditor::HandleInput(SDL_Event* event)

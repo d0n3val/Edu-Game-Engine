@@ -5,7 +5,7 @@
 PanelConsole::PanelConsole() : Panel("Console", SDL_SCANCODE_1)
 {
 	width = 658;
-	height = 105;
+	height = 205;
 	posx = 325;
 	posy = 919;
 }

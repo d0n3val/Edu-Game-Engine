@@ -17,6 +17,14 @@ class ComponentMesh;
 
 class PanelProperties : public Panel
 {
+
+public:
+
+	static const uint default_width = 325;
+	static const uint default_height = 578;
+	static const uint default_posx = 956;
+	static const uint default_posy = 21;
+    
 public:
 	PanelProperties();
 	virtual ~PanelProperties();

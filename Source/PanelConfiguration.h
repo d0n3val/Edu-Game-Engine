@@ -27,6 +27,11 @@ class QuadtreeNode;
 class PanelConfiguration : public Panel
 {
 public:
+	static const uint default_width = 325;
+	static const uint default_height = 417;
+	static const uint default_posx = 956;
+	static const uint default_posy = 609;
+public:
 	PanelConfiguration();
 	virtual ~PanelConfiguration();
 

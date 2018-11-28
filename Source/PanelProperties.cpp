@@ -34,10 +34,10 @@ using namespace std;
 // ---------------------------------------------------------
 PanelProperties::PanelProperties() : Panel("Properties", SDL_SCANCODE_3)
 {
-	width = 325;
-	height = 578;
-	posx = 956;
-	posy = 21;
+	width = default_width;
+	height = default_height;
+	posx = default_posx;
+	posy = default_posy;
 }
 
 // ---------------------------------------------------------
@@ -472,7 +472,7 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
                     ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->GetDepth(), info->GetBPP(), info->GetMips());
 
                     ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
-                    float max_size = 250.f;
+                    float max_size = 64.f;
 
                     if (size.x > max_size || size.y > max_size)
                     {

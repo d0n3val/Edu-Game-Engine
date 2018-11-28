@@ -31,6 +31,7 @@ public:
 	bool CleanUp() override;
 	void ReceiveEvent(const Event& event) override;
 	void DrawDebug() override;
+	virtual void Save(Config* config) const override;
 
 	// TODO Save/load panel activation
 
