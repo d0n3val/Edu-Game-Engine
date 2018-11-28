@@ -14,8 +14,8 @@ ComponentCamera::ComponentCamera(GameObject* container) : Component(container, T
 	frustum.front = float3::unitZ;
 	frustum.up = float3::unitY;
 
-	frustum.nearPlaneDistance = 0.1f;
-	frustum.farPlaneDistance = 1000.0f;
+	frustum.nearPlaneDistance = 10.0f;
+	frustum.farPlaneDistance = 500.0f;
 	frustum.verticalFov = DEGTORAD * 60.0f;
 	SetAspectRatio(1.3f);
 
@@ -78,8 +78,8 @@ void ComponentCamera::OnLoad(Config * config)
 	frustum.up.y = config->GetFloat("Frustum", 1.f, 7);
 	frustum.up.z = config->GetFloat("Frustum", 0.f, 8);
 
-	frustum.nearPlaneDistance = config->GetFloat("Frustum", 0.1f, 9);
-	frustum.farPlaneDistance = config->GetFloat("Frustum", 1000.f, 10);
+	frustum.nearPlaneDistance = config->GetFloat("Frustum", 10.0f, 9);
+	frustum.farPlaneDistance = config->GetFloat("Frustum", 500.f, 10);
 
 	frustum.horizontalFov = config->GetFloat("Frustum", 1.f, 11);
 	frustum.verticalFov = config->GetFloat("Frustum", 1.f, 12);

@@ -461,6 +461,7 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
                 if (new_res != 0)
                 {
                     mat_res->SetTexture(ResourceMaterial::Texture(i), new_res);
+                    mat_res->Save();
                     break;
                 }
 

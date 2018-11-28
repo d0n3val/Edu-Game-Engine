@@ -117,6 +117,7 @@ bool ResourceModel::Save(std::string& output) const
 	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MESH_FOLDER, "model", "edumodel");
 }
 
+
 UID ResourceModel::Import(const aiScene* model, const std::vector<UID>& meshes, const std::vector<UID>& materials, const char* source_file)
 {
     ResourceModel* m = static_cast<ResourceModel*>(App->resources->CreateNewResource(Resource::model));
@@ -186,6 +187,13 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
             mesh.name     = model->mMeshes[mesh_index]->mName.C_Str();
             mesh.mesh     = meshes[mesh_index];
             mesh.material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
+
+            if(mesh.name.length() == 0)
+            {
+                char buff[100];
+                snprintf(buff, sizeof(buff), "mesh_%d", i);
+                mesh.name = buff;
+            }
 
             nodes.push_back(mesh);
         }

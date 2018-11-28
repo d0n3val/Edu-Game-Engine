@@ -32,7 +32,15 @@ bool ModuleRenderer3D::Init(Config* config)
 	LOG("Creating 3D Renderer context");
 	bool ret = true;
 	
-	//Create context
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);	
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+    //Create context
 	context = SDL_GL_CreateContext(App->window->GetWindow());
 	if(context == nullptr)
 	{
@@ -80,7 +88,8 @@ bool ModuleRenderer3D::Init(Config* config)
 		}
 		
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-		glClearDepth(1.0f);
+        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+        glClearDepth(1.0f);
 		
 		//Initialize clear color
 		glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -99,6 +108,7 @@ bool ModuleRenderer3D::Init(Config* config)
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_TEXTURE_2D);
+        glDepthFunc(GL_LEQUAL);
 	}
 
 	Load(config);
