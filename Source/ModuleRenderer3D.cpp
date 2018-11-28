@@ -63,10 +63,6 @@ bool ModuleRenderer3D::Init(Config* config)
 		vsync = !set_vsync; // force change
 		SetVSync(set_vsync);
 
-		//Initialize Projection Matrix
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-
 		//Check for error
 		GLenum error = glGetError();
 		if(error != GL_NO_ERROR)
@@ -74,10 +70,6 @@ bool ModuleRenderer3D::Init(Config* config)
 			LOG("Error initializing OpenGL! %s\n", gluErrorString(error));
 			ret = false;
 		}
-
-		//Initialize Modelview Matrix
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
 
 		//Check for error
 		error = glGetError();
@@ -102,33 +94,11 @@ bool ModuleRenderer3D::Init(Config* config)
 		}
 
 		// Blend for transparency
-		//glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-		GLfloat LightModelAmbient[] = {0.0f, 0.0f, 0.0f, 1.0f};
-		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, LightModelAmbient);
-		
-		lights[0].ref = GL_LIGHT0;
-		lights[0].ambient.Set(0.25f, 0.25f, 0.25f, 1.0f);
-		lights[0].diffuse.Set(0.75f, 0.75f, 0.75f, 1.0f);
-		lights[0].position = float3::zero;
-		lights[0].Init();
-		
-		GLfloat MaterialAmbient[] = {1.0f, 1.0f, 1.0f, 1.0f};
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, MaterialAmbient);
-
-		GLfloat MaterialDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, MaterialDiffuse);
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
-		lights[0].Active(true);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_COLOR_MATERIAL);
 		glEnable(GL_TEXTURE_2D);
-
-		glShadeModel(GL_SMOOTH);		 // Enables Smooth Shading
 	}
 
 	Load(config);
@@ -159,16 +129,11 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 	Color c = cam->background;
 	glClearColor(c.r, c.g, c.b, c.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glLoadIdentity();
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(cam->GetOpenGLViewMatrix());
-
-	// light 0 on cam pos
-	lights[0].position = cam->frustum.pos;
-
-	for(uint i = 0; i < MAX_LIGHTS; ++i)
-		lights[i].Render();
 
 	return UPDATE_CONTINUE;
 }
