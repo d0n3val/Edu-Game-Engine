@@ -33,8 +33,8 @@ public:
 
 	void Look(const float3& position);
 
-	float* GetOpenGLViewMatrix();
-	float* GetOpenGLProjectionMatrix();
+	float4x4 GetOpenGLViewMatrix() const;
+	float4x4 GetOpenGLProjectionMatrix() const;
 
 public:
 	Frustum frustum;

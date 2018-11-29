@@ -28,7 +28,6 @@ public:
 	void Load(Config* config) override;
 
 	void OnResize(int width, int height);
-	void RefreshProjection();
 
 	bool GetVSync() const;
 	void SetVSync(bool vsync);

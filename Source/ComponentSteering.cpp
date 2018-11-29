@@ -215,9 +215,9 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 			case flee:
 			case arrive:
 			{
-				DebugDraw(Circle(goal->GetGlobalPosition(), float3::unitY, min_distance), Green);
-				DebugDraw(Circle(goal->GetGlobalPosition(), float3::unitY, slow_distance), Red);
-				DebugDraw(Circle(goal->GetGlobalPosition(), float3::unitY, max_distance), min_distance, Blue);
+				dd::circle(goal->GetGlobalPosition(), float3::unitY, dd::colors::Green, min_distance, 10);
+				dd::circle(goal->GetGlobalPosition(), float3::unitY, dd::colors::Red, slow_distance, 10);
+				dd::circle(goal->GetGlobalPosition(), float3::unitY, dd::colors::Blue, max_distance, 10);
 			} break;
 			case align:
 			case unalign:
@@ -228,24 +228,26 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 
 				float3 offset(0.f, goal->GetLocalBBox().HalfSize().y, 0.f);
 				float inner_radius = MAX(goal->GetLocalBBox().HalfSize().x, goal->GetLocalBBox().HalfSize().z);
-				DebugDrawArrow(orientation, offset, Red, goal->GetGlobalTransformation());
-				DebugDrawArc(offset, inner_radius * 2.0f, min_angle*0.5f, -min_angle*0.5f, inner_radius, Green, goal->GetGlobalTransformation());
-				DebugDrawArc(offset, inner_radius * 3.0f, slow_angle*0.5f, -slow_angle*0.5f, inner_radius*2.0f, Red, goal->GetGlobalTransformation());
+				
+				dd::arrow(goal->GetGlobalTransformation().TransformPos(offset), goal->GetGlobalTransformation().TransformPos(offset + orientation), dd::colors::Red, Length(orientation)*0.1f);
+				dd::arc(goal->GetGlobalTransformation().TransformPos(offset), goal->GetGlobalTransformation().TransformDir(float3::unitY), dd::colors::Green, inner_radius * 2.0f, 10, min_angle*0.5f, -min_angle*0.5f);
+				dd::arc(goal->GetGlobalTransformation().TransformPos(offset), goal->GetGlobalTransformation().TransformDir(float3::unitY), dd::colors::Red, inner_radius * 3.0f, 10, slow_angle*0.5f, -slow_angle*0.5f);
 			} break;
 			case pursue:
 			case evade:
 			{
 				float3 target = Pursue(goal->GetGlobalPosition(), goal->GetVelocity());
-				DebugDraw(Sphere(target, 1.0f), Green, float4x4::Translate(target));
+				dd::sphere(float4x4(float4x4::Translate(target)).TransformPos(target), dd::colors::Green, 1.0f);
+
 			} break;
 			case wander:
 			{
 				// Circle to generate the wander position
 				float3 center = game_object->GetGlobalTransformation().TransformPos(wander_offset);
-				DebugDraw(Circle(center, float3::unitY, wander_radius));
+				dd::circle(center, float3::unitY, dd::colors::White, wander_radius);
 
 				// Last generated position
-				DebugDraw(Circle(last_wander_target, float3::unitY, 0.5f), Red);
+				dd::circle(last_wander_target, float3::unitY, dd::colors::Red, 0.5f);
 			} break;
 			case follow_path:
 			{
@@ -254,11 +256,12 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 					path->OnDebugDraw(true);
 
 					// Last generated closest position to path
-					DebugDraw(Circle(path->GetPos(last_closest), float3::unitY, 0.5f), Red);
-					DebugDraw(Circle(path->GetPos(last_closest + path_offset), float3::unitY, 0.5f), Yellow);
+					dd::circle(path->GetPos(last_closest), float3::unitY, dd::colors::Red, 0.5f);
+					dd::circle(path->GetPos(last_closest + path_offset), float3::unitY, dd::colors::Yellow, 0.5f);
+
 
 					float3 future_pos = game_object->GetGlobalPosition() + mov_velocity * path_prediction;
-					DebugDraw(Circle(future_pos, float3::unitY, 0.5f), Green);
+					dd::circle(future_pos, float3::unitY, dd::colors::Green, 0.5f);
 				}
 			} break;
 			case separation:

@@ -44,8 +44,12 @@ void ComponentCamera::OnUpdate(float dt)
 // ---------------------------------------------------------
 void ComponentCamera::OnDebugDraw(bool selected) const
 {
-	if(selected == true)
-		DebugDraw(frustum, Yellow);
+	if (selected == true)
+	{
+		float4x4 matrix = GetOpenGLProjectionMatrix()*GetOpenGLViewMatrix();
+		matrix.Inverse();
+		dd::frustum(matrix, dd::colors::Yellow);
+	}
 }
 
 // ---------------------------------------------------------
@@ -171,24 +175,24 @@ void ComponentCamera::Look(const float3& position)
 }
 
 // -----------------------------------------------------------------
-float * ComponentCamera::GetOpenGLViewMatrix()
+float4x4 ComponentCamera::GetOpenGLViewMatrix() const
 {
-	static float4x4 m;
+	float4x4 m;
 	
 	m = frustum.ViewMatrix();
 	m.Transpose();
 
-	return (float*) m.v;
+	return m;
 }
 
 // -----------------------------------------------------------------
-float * ComponentCamera::GetOpenGLProjectionMatrix()
+float4x4 ComponentCamera::GetOpenGLProjectionMatrix() const
 {
-	static float4x4 m;
+	float4x4 m;
 	
 	m = frustum.ProjectionMatrix();
 	m.Transpose();
 
-	return (float*) m.v;
+	return m;
 }
 

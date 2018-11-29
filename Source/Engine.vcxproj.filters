@@ -588,6 +588,9 @@
     <ClInclude Include="Imgui\imgui_user.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleDebugDraw.h">
+      <Filter>Core Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -749,9 +752,6 @@
     <ClCompile Include="MathGeoLib\include\Time\Clock.cpp">
       <Filter>3rd Party\mathgeo\src</Filter>
     </ClCompile>
-    <ClCompile Include="DebugDraw.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleLevelManager.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
@@ -901,6 +901,9 @@
     </ClCompile>
     <ClCompile Include="Imgui\imgui_user2.cpp">
       <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleDebugDraw.cpp">
+      <Filter>Core Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

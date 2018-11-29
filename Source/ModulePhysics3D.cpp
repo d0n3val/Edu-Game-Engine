@@ -501,12 +501,12 @@ float3 ModulePhysics3D::GetGravity() const
 // =============================================
 void DebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 {
-	DebugDraw(LineSegment(from, to), Color(color.getX(), color.getY(), color.getZ()));
+	dd::line(from, to, float3(color.getX(), color.getY(), color.getZ()));
 }
 
 void DebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color)
 {
-	DebugDraw(PointOnB, Color(color.getX(), color.getY(), color.getZ()));
+	dd::point(PointOnB, float3(color.getX(), color.getY(), color.getZ()));
 }
 
 void DebugDrawer::reportErrorWarning(const char* warningString)

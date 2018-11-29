@@ -119,21 +119,9 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 {
 	ComponentCamera* cam = (App->IsPlay()) ? active_camera : App->camera->GetDummy();
 
-	// Adjust projection if needed
-	if (cam->projection_changed == true)
-	{
-		RefreshProjection();
-		cam->projection_changed = false;
-	}
-
 	Color c = cam->background;
 	glClearColor(c.r, c.g, c.b, c.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glLoadIdentity();
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(cam->GetOpenGLViewMatrix());
 
 	return UPDATE_CONTINUE;
 }
@@ -163,9 +151,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	if (debug_draw == true)
 	{
-		BeginDebugDraw();
 		App->DebugDraw();
-		EndDebugDraw();
 	}
 
 	App->editor->Draw();
@@ -214,20 +200,6 @@ void ModuleRenderer3D::OnResize(int width, int height)
 
 	cam->SetAspectRatio((float)width / (float)height);
 	glViewport(0, 0, width, height);
-
-	RefreshProjection();
-}
-
-void ModuleRenderer3D::RefreshProjection()
-{
-	ComponentCamera* cam = (App->IsPlay()) ? active_camera : App->camera->GetDummy();
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glLoadMatrixf((GLfloat*) cam->GetOpenGLProjectionMatrix());
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 }
 
 bool ModuleRenderer3D::GetVSync() const

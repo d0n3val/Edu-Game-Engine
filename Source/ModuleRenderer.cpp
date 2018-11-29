@@ -460,9 +460,12 @@ void ModuleRenderer::GetClippingPoints(const float4x4& proj, const float4x4& vie
 
 void ModuleRenderer::UpdateCameraUniform(ComponentCamera* camera) const
 {
+	float4x4 proj = camera->GetOpenGLProjectionMatrix();
+	float4x4 view = camera->GetOpenGLViewMatrix();
+
     glBindBuffer(GL_UNIFORM_BUFFER, uniforms[UNIFORM_CAMERA]);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float4x4), reinterpret_cast<const void*>(camera->GetOpenGLProjectionMatrix()));
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float4x4), sizeof(float4x4), reinterpret_cast<const void*>(camera->GetOpenGLViewMatrix()));
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(float4x4), reinterpret_cast<const void*>(&proj));
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float4x4), sizeof(float4x4), reinterpret_cast<const void*>(&view));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 

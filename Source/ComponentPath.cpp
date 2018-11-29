@@ -64,10 +64,12 @@ void ComponentPath::OnDebugDraw(bool selected) const
 			float3 a = *it;
 			float3 b = *(++it);
 
-			DebugDraw(LineSegment(a,b), Red);
-			DebugDraw(Sphere(a, 0.1f), Yellow);
-			if(it == last)
-				DebugDraw(Sphere(b, 0.1f), Yellow);
+			dd::line(a, b, dd::colors::Red);
+			dd::sphere(a, dd::colors::Yellow, 0.1f);
+			if (it == last)
+			{
+				dd::sphere(b, dd::colors::Yellow, 0.1f);
+			}
 		}
 
 		if (degrees > 1)
@@ -77,15 +79,15 @@ void ComponentPath::OnDebugDraw(bool selected) const
 			{
 				float3 a(spline->evaluate((float)i / (float)total).result_ptr());
 				float3 b(spline->evaluate((float)++i / (float)total).result_ptr());
-				DebugDraw(LineSegment(a, b), Green);
+				dd::line(a, b, dd::colors::Green);
 			}
 		}
 
-		DebugDraw(Sphere(GetPos(test_point), 0.2f));
-		DebugDraw(Sphere(test_close, 0.2f), Yellow);
+		dd::sphere(GetPos(test_point), dd::colors::White, 0.2f);
+		dd::sphere(test_close, dd::colors::Yellow, 0.2f);
 
 		test_close_prev = GetClosestPoint(test_close, &test_close_prev);
-		DebugDraw(Sphere(GetClosestPoint(test_close, &test_close_prev), 0.2f), Yellow);
+		dd::sphere(GetClosestPoint(test_close, &test_close_prev), dd::colors::Yellow, 0.2f);
 	}
 }
 

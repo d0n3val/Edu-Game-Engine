@@ -124,10 +124,10 @@ void ComponentRigidBody::OnDebugDraw(bool selected) const
 	switch (body_type)
 	{
 		case body_sphere:
-			DebugDraw(sphere, Green, game_object->GetGlobalTransformation());
+			dd::sphere(game_object->GetGlobalTransformation().TransformPos(sphere.pos), dd::colors::Green, sphere.r);
 		break;
 		case body_box:
-			DebugDraw(box, Green, game_object->GetGlobalTransformation());
+			dd::box(box.CenterPoint(), dd::colors::Green, box.Size().x, box.Size().y, box.Size().z);
 		break;
 		case body_capsule:
 			DebugDraw(capsule, Green, game_object->GetGlobalTransformation());

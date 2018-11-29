@@ -76,8 +76,8 @@ void ModuleEditorCamera::Load(Config * config)
 // -----------------------------------------------------------------
 void ModuleEditorCamera::DrawDebug()
 {
-	DebugDraw(picking, Blue);
-	DebugDraw(last_hit, Red);
+	dd::line(picking.a, picking.b, dd::colors::Blue);
+	dd::point(last_hit, dd::colors::Red);
 }
 
 // -----------------------------------------------------------------
