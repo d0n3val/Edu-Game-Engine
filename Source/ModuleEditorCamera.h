@@ -38,9 +38,9 @@ private:
 	GameObject* Pick(float3* hit_point = nullptr) const;
 
 public: 
-	float mov_speed = 15.0f;
+	float mov_speed = 1.5f;
 	float rot_speed = 1.0f;
-	float zoom_speed = 15.0f;
+	float zoom_speed = 1.5f;
 
 private:
 

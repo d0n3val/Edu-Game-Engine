@@ -23,6 +23,9 @@ ModuleHints::ModuleHints() : Module("hints")
 
     hints[unsigned(SHADOW_RESOLUTION)].type                    = TYPE_FLOAT;
     hints[unsigned(SHADOW_RESOLUTION)].value.fvalue            = 1.0f;
+
+	hints[unsigned(METRIC_PROPORTION)].type					   = TYPE_FLOAT;
+	hints[unsigned(METRIC_PROPORTION)].value.fvalue			   = 100.0f;
 }
 
 ModuleHints::~ModuleHints()
