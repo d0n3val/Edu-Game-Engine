@@ -244,10 +244,10 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 			{
 				// Circle to generate the wander position
 				float3 center = game_object->GetGlobalTransformation().TransformPos(wander_offset);
-				dd::circle(center, float3::unitY, dd::colors::White, wander_radius);
+				dd::circle(center, float3::unitY, dd::colors::White, wander_radius, 10);
 
 				// Last generated position
-				dd::circle(last_wander_target, float3::unitY, dd::colors::Red, 0.5f);
+				dd::circle(last_wander_target, float3::unitY, dd::colors::Red, 0.5f, 10);
 			} break;
 			case follow_path:
 			{
@@ -256,12 +256,12 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 					path->OnDebugDraw(true);
 
 					// Last generated closest position to path
-					dd::circle(path->GetPos(last_closest), float3::unitY, dd::colors::Red, 0.5f);
-					dd::circle(path->GetPos(last_closest + path_offset), float3::unitY, dd::colors::Yellow, 0.5f);
+					dd::circle(path->GetPos(last_closest), float3::unitY, dd::colors::Red, 0.5f, 10);
+					dd::circle(path->GetPos(last_closest + path_offset), float3::unitY, dd::colors::Yellow, 0.5f, 10);
 
 
 					float3 future_pos = game_object->GetGlobalPosition() + mov_velocity * path_prediction;
-					dd::circle(future_pos, float3::unitY, dd::colors::Green, 0.5f);
+					dd::circle(future_pos, float3::unitY, dd::colors::Green, 0.5f, 10);
 				}
 			} break;
 			case separation:
@@ -273,18 +273,18 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 				{
 					if ((*it)->HasComponent(Component::Steering) == true && *it != game_object)
 					{
-						DebugDraw(Sphere(float3::zero, 2.0f), White, (*it)->GetGlobalTransformation());
+						dd::sphere((*it)->GetGlobalTransformation().TransformPos(float3::zero), dd::colors::White, 2.0f);
 						float3 direction =  game_object->GetGlobalPosition() - (*it)->GetGlobalPosition();
 						// Linear
 						float force = mov_acceleration * ((separation_radius - direction.Length()) / separation_radius);
 						float3 offset(0.f, goal->GetLocalBBox().HalfSize().y, 0.f);
-						DebugDrawArrow(direction.Normalized() * force, offset, Green, game_object->GetGlobalTransformation());
+						dd::arrow(game_object->GetGlobalTransformation().TransformPos(offset), game_object->GetGlobalTransformation().TransformPos(offset + direction.Normalized() * force), dd::colors::Green, force*0.1f);
 					}
 				}
 			} // fallback
 			case collision_avoidance:
 			{
-				DebugDraw(Circle(game_object->GetGlobalPosition(), float3::unitY, separation_radius));
+				dd::circle(game_object->GetGlobalPosition(), float3::unitY, dd::colors::White, separation_radius, 10);
 			} break;
 			case obstacle_avoidance:
 			{
@@ -292,7 +292,7 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 				float3 b = game_object->GetGlobalTransformation().TransformPos(float3::unitZ * (game_object->GetRadius() + obstacle_detector_len));
 				
 				LineSegment detector(a, b);
-				DebugDraw(detector, Yellow);
+				dd::line(a, b, dd::colors::Yellow);
 
 				float dist;
 				float3 normal;
@@ -302,8 +302,8 @@ void ComponentSteering::OnDebugDraw(bool selected) const
 				{
 					float3 hit_pos = detector.GetPoint(dist);
 					float3 ret = hit_pos + normal * obstacle_avoid_distance;
-					DebugDraw(LineSegment(hit_pos, ret), Yellow);
-					DebugDraw(Circle(ret, float3::unitY, 2.0f), Red);
+					dd::line(hit_pos, ret, dd::colors::Yellow);
+					dd::circle(ret, float3::unitY, dd::colors::Red, 2.0f, 10);
 				}
 			} break;
 		}

@@ -2903,7 +2903,7 @@ void cross(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, const 
 void circle(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec3_In planeNormal, ddVec3_In color,
             const float radius, const float numSteps, const int durationMillis, const bool depthEnabled)
 {
-	arc(cxt, center, planeNormal, color, raidus, numSteps, 0.0f, TAU, durationMillis, depthEnabled);
+	arc(DD_EXPLICIT_CONTEXT_ONLY(ctx,) center, planeNormal, color, radius, numSteps, 0.0f, TAU, durationMillis, depthEnabled);
 }
 
 void arc(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx, ) ddVec3_In center, ddVec3_In planeNormal, ddVec3_In color,

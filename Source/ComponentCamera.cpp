@@ -19,7 +19,7 @@ ComponentCamera::ComponentCamera(GameObject* container) : Component(container, T
 	frustum.verticalFov = DEGTORAD * 60.0f;
 	SetAspectRatio(1.3f);
 
-	background = Black;
+	background = Color(0.08f, 0.08f, 0.08f, 1.0f);
 	projection_changed = true;
 }
 
@@ -65,9 +65,9 @@ void ComponentCamera::OnLoad(Config * config)
 {
 	uint looking_at_uid = config->GetUInt("Looking At", 0);
 
-	background.r = config->GetFloat("Background", 0.f, 0);
-	background.g = config->GetFloat("Background", 0.f, 1);
-	background.b = config->GetFloat("Background", 0.f, 2);
+	background.r = config->GetFloat("Background", 0.08f, 0);
+	background.g = config->GetFloat("Background", 0.08f, 1);
+	background.b = config->GetFloat("Background", 0.08f, 2);
 	background.a = config->GetFloat("Background", 1.f, 3);
 
 	frustum.pos.x = config->GetFloat("Frustum", 0.f, 0);

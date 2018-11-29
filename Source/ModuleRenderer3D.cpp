@@ -6,6 +6,8 @@
 #include "ModuleEditorCamera.h"
 #include "ModuleLevelManager.h"
 #include "ModuleEditor.h"
+#include "ModuleDebugDraw.h"
+#include "ModuleHints.h"
 #include "OpenGL.h"
 #include "Primitive.h"
 #include "ComponentCamera.h"
@@ -92,7 +94,7 @@ bool ModuleRenderer3D::Init(Config* config)
         glClearDepth(1.0f);
 		
 		//Initialize clear color
-		glClearColor(0.f, 0.f, 0.f, 1.f);
+		glClearColor(0.4f, 0.4f, 0.4f, 1.f);
 
 		//Check for error
 		error = glGetError();
@@ -145,23 +147,21 @@ update_status ModuleRenderer3D::Update(float dt)
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
-	// debug draw ---
+    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+
+    // debug draw ---
 	if (draw_plane == true)
 	{
-		PPlane p(0, 1, 0, 0);
-		p.axis = true;
-		p.Render();
+		dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray);
+        dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, 100.0f, 0, false);
 	}
 
-	// TODO: need to find out who is messing with the colors so I do not need this
-	glColor3f(1.f,1.f,1.f);
-
-	//App->level->Draw();
 	App->renderer->Draw(active_camera, App->window->GetWidth(), App->window->GetHeight());
 
 	if (debug_draw == true)
 	{
-		App->DebugDraw();
+ 		//App->DebugDraw();
+		App->debug_draw->Draw(active_camera, 0, App->window->GetWidth(), App->window->GetHeight());
 	}
 
 	App->editor->Draw();

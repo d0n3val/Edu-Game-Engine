@@ -14,11 +14,11 @@ public:
     ModuleDebugDraw();
     ~ModuleDebugDraw();
 
-	bool            Init();
-	update_status   Update();
-	bool            CleanUp();
+	bool            Init(Config* config = nullptr) override;
+	bool            CleanUp() override;
 
     void            Draw(ComponentCamera* camera, unsigned fbo, unsigned fb_width, unsigned fb_height);
+
 private:
 
     static DDRenderInterfaceCoreGL* implementation;

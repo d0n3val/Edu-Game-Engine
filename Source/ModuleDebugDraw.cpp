@@ -581,7 +581,7 @@ ModuleDebugDraw::~ModuleDebugDraw()
 {
 }
 
-bool ModuleDebugDraw::Init()
+bool ModuleDebugDraw::Init(Config* config)
 {
     implementation = new DDRenderInterfaceCoreGL;
     dd::initialize(implementation);
@@ -599,15 +599,10 @@ bool ModuleDebugDraw::CleanUp()
     return true;
 }
 
-update_status  ModuleDebugDraw::Update()
-{
-	return UPDATE_CONTINUE;
-}
-
 void ModuleDebugDraw::Draw(ComponentCamera* camera, unsigned fbo, unsigned fb_width, unsigned fb_height)
 {
-	math::float4x4 view = camera->GetOpenGLViewMatrix();
-	math::float4x4 proj = camera->GetOpenGLProjectionMatrix();
+	math::float4x4 view = camera->GetOpenGLViewMatrix().Transposed();
+	math::float4x4 proj = camera->GetOpenGLProjectionMatrix().Transposed();
 
     implementation->width     = fb_width;
     implementation->height    = fb_height;

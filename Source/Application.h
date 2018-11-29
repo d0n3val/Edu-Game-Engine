@@ -26,6 +26,7 @@ class ModuleAI;
 class ModulePrograms;
 class ModuleRenderer;
 class ModuleHints;
+class ModuleDebugDraw;
 
 struct Event;
 
@@ -101,6 +102,7 @@ public:
     ModulePrograms* programs = nullptr;
     ModuleRenderer* renderer = nullptr;
 	ModuleHints* hints = nullptr;
+    ModuleDebugDraw* debug_draw = nullptr;
 
 private:
 

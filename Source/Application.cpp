@@ -15,6 +15,7 @@
 #include "ModulePrograms.h"
 #include "ModuleRenderer.h"
 #include "ModuleHints.h"
+#include "ModuleDebugDraw.h"
 #include "ModuleAI.h"
 #include "Event.h"
 #include "Config.h"
@@ -52,6 +53,7 @@ Application::Application()
     modules.push_back(programs = new ModulePrograms(true));
     modules.push_back(renderer = new ModuleRenderer());
 	modules.push_back(hints = new ModuleHints());
+	modules.push_back(debug_draw = new ModuleDebugDraw());
 }
 
 // ---------------------------------------------

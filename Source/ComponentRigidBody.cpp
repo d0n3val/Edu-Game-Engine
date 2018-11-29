@@ -130,7 +130,7 @@ void ComponentRigidBody::OnDebugDraw(bool selected) const
 			dd::box(box.CenterPoint(), dd::colors::Green, box.Size().x, box.Size().y, box.Size().z);
 		break;
 		case body_capsule:
-			DebugDraw(capsule, Green, game_object->GetGlobalTransformation());
+			// \todo: draw capsule DebugDraw(capsule, Green, game_object->GetGlobalTransformation());
 		break;
 	}
 }
