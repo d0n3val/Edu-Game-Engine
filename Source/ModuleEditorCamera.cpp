@@ -6,6 +6,7 @@
 #include "ModuleWindow.h"
 #include "ComponentCamera.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleHints.h"
 #include "DebugDraw.h"
 #include "ModuleLevelManager.h"
 #include "GameObject.h"
@@ -105,10 +106,12 @@ update_status ModuleEditorCamera::Update(float dt)
 				LookAt(dx, dy);
 		}
 
+        float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+
 		// Mouse wheel for zoom
 		int wheel = App->input->GetMouseWheel();
 		if (wheel != 0)
-			Zoom(wheel * zoom_speed * dt);
+			Zoom(wheel * zoom_speed * metric_proportion* dt);
 
 		// Mouse Picking
 		if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) == KEY_DOWN)
@@ -164,6 +167,8 @@ void ModuleEditorCamera::Move(float dt)
 
 	float3 movement(float3::zero);
 
+    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+
 	if (App->input->GetKey(SDL_SCANCODE_W) == KEY_REPEAT) movement += forward;
 	if (App->input->GetKey(SDL_SCANCODE_S) == KEY_REPEAT) movement -= forward;
 	if (App->input->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) movement -= right;
@@ -173,7 +178,7 @@ void ModuleEditorCamera::Move(float dt)
 
 	if (movement.Equals(float3::zero) == false)
 	{
-		frustum->Translate(movement * (adjusted_speed * dt));
+		frustum->Translate(movement * (metric_proportion*adjusted_speed * dt));
 		looking = false;
 	}
 }

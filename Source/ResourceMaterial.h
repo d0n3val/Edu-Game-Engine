@@ -3,6 +3,7 @@
 
 #include "Resource.h"
 #include "Math.h"
+#include "utils/SimpleBinStream.h"
 
 struct aiMaterial;
 
@@ -40,6 +41,7 @@ public:
 	bool                    LoadInMemory        () override;
     void                    ReleaseFromMemory   () override;
     bool                    Save                (std::string& output) const;
+    bool                    Save                () const;
 
     static UID              Import              (const aiMaterial* material, const char* source_file);
 
@@ -48,6 +50,9 @@ public:
     void                    SetTexture          (Texture texture, UID uid);
 
     float                   GetShininess        () const { return shininess; }
+
+private:
+	void                    SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const;
 };
 
 

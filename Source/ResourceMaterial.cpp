@@ -6,7 +6,6 @@
 #include "Application.h"
 #include "Assimp/include/types.h"
 #include "Assimp/include/material.h"
-#include "utils/SimpleBinStream.h"
 
 // ---------------------------------------------------------
 ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::material)
@@ -81,6 +80,40 @@ bool ResourceMaterial::Save(std::string& output) const
 {
     simple::mem_ostream<std::true_type> write_stream;
 
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+    return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
+}
+
+// ---------------------------------------------------------
+bool ResourceMaterial::Save() const
+{
+    simple::mem_ostream<std::true_type> write_stream;
+
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+    if(exported_file.length() > 0)
+    {
+		char full_path[250];
+
+		sprintf_s(full_path, 250, "%s%s", LIBRARY_MATERIAL_FOLDER, exported_file.c_str());
+
+        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+    }
+
+	std::string output;
+
+    return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
+}
+
+// ---------------------------------------------------------
+void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
+{
+
     for(uint i=0; i< ColorCount; ++i)
     {
         write_stream << colors[i];
@@ -93,9 +126,6 @@ bool ResourceMaterial::Save(std::string& output) const
 
     write_stream << shininess;
 
-    const std::vector<char>& data = write_stream.get_internal_vec();
-
-    return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
 }
 
 // ---------------------------------------------------------
