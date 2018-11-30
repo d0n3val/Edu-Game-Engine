@@ -564,7 +564,7 @@ void circle(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,)
             int durationMillis = 0,
             bool depthEnabled = true);
 
-// Add a wireframe circle to the debug draw queue.
+// Add a wireframe arc to the debug draw queue.
 void arc(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx, )
 	ddVec3_In center,
 	ddVec3_In planeNormal,
@@ -595,6 +595,16 @@ void sphere(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,)
             float radius,
             int durationMillis = 0,
             bool depthEnabled = true);
+
+// Add a wireframe capsule to the debug draw queue.
+void capsule(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,)
+             ddVec3_In center,
+             ddVec3_In color,
+             float radius,
+			 ddVec3_In dir,
+             float height,
+             int durationMillis = 0,
+             bool depthEnabled = true);
 
 // Add a wireframe cone to the debug draw queue.
 // The cone 'apex' is the point where all lines meet.
@@ -2921,7 +2931,12 @@ void arc(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx, ) ddVec3_In center, ddVec3_
 
 	vecScale(up, up, radius);
 	vecScale(left, left, radius);
-	vecAdd(lastPoint, center, up);
+
+    ddVec3 vs, vc;
+    vecScale(vs, left, floatSin(minAngle));
+    vecScale(vc, up, floatCos(minAngle));
+    vecAdd(lastPoint, center, vs);
+    vecAdd(lastPoint, lastPoint, vc);
 
 	float angleSize = maxAngle - minAngle;
 
@@ -2984,17 +2999,30 @@ void plane(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec3
 
 void sphere(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec3_In color,
             const float radius, const int durationMillis, const bool depthEnabled)
+
 {
+    capsule(DD_EXPLICIT_CONTEXT_ONLY(ctx, ) center, color, radius, ddVec3(0.0f, 1.0f, 0.0f), 0.0f, durationMillis, depthEnabled);
+}
+
+void capsule(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec3_In color,
+            const float radius, ddVec3_In up, const float height, const int durationMillis, const bool depthEnabled)
+{
+
     if (!isInitialized(DD_EXPLICIT_CONTEXT_ONLY(ctx)))
     {
         return;
     }
 
-    static const int stepSize = 15;
+    // \todo: height dir
+    ddVec3 x, z;
+	vecOrthogonalBasis(x, z, up);
+
+    static const int stepSize = 18;
     ddVec3 cache[360 / stepSize];
     ddVec3 radiusVec;
 
-    vecSet(radiusVec, 0.0f, 0.0f, radius);
+    float half_height = height*0.5f;
+	vecScale(radiusVec, up, radius + half_height);
     vecAdd(cache[0], center, radiusVec);
 
     for (int n = 1; n < arrayLength(cache); ++n)
@@ -3003,20 +3031,28 @@ void sphere(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) ddVec3_In center, ddVec
     }
 
     ddVec3 lastPoint, temp;
-    for (int i = stepSize; i <= 360; i += stepSize)
+    for (int i = stepSize; i <= 180; i += stepSize)
     {
         const float s = floatSin(degreesToRadians(i));
         const float c = floatCos(degreesToRadians(i));
 
-        lastPoint[X] = center[X];
-        lastPoint[Y] = center[Y] + radius * s;
-        lastPoint[Z] = center[Z] + radius * c;
+        ddVec3 tmp0, tmp1, temp3;
+        vecScale(tmp0, up, (i< 90) ? radius*c+half_height : radius*c-half_height);
+        vecScale(tmp1, z, radius*s);
 
-        for (int n = 0, j = stepSize; j <= 360; j += stepSize, ++n)
+        vecAdd(lastPoint, center, tmp0);
+        vecAdd(lastPoint, lastPoint, tmp1);
+
+		vecAdd(temp3, center, tmp0);
+
+		for (int n = 0, j = stepSize; j <= 360; j += stepSize, ++n)
         {
-            temp[X] = center[X] + floatSin(degreesToRadians(j)) * radius * s;
-            temp[Y] = center[Y] + floatCos(degreesToRadians(j)) * radius * s;
-            temp[Z] = lastPoint[Z];
+            vecScale(tmp0, x, floatSin(degreesToRadians(j)) * radius * s);
+            vecScale(tmp1, z, floatCos(degreesToRadians(j)) * radius * s);
+
+            vecCopy(temp, temp3);
+            vecAdd(temp, temp, tmp0);
+            vecAdd(temp, temp, tmp1);
 
             line(DD_EXPLICIT_CONTEXT_ONLY(ctx,) lastPoint, temp, color, durationMillis, depthEnabled);
             line(DD_EXPLICIT_CONTEXT_ONLY(ctx,) lastPoint, cache[n], color, durationMillis, depthEnabled);

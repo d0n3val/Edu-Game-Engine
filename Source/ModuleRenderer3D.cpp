@@ -160,7 +160,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 
 	if (debug_draw == true)
 	{
- 		//App->DebugDraw();
+ 		App->DebugDraw();
 		App->debug_draw->Draw(active_camera, 0, App->window->GetWidth(), App->window->GetHeight());
 	}
 

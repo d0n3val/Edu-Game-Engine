@@ -601,8 +601,8 @@ bool ModuleDebugDraw::CleanUp()
 
 void ModuleDebugDraw::Draw(ComponentCamera* camera, unsigned fbo, unsigned fb_width, unsigned fb_height)
 {
-	math::float4x4 view = camera->GetOpenGLViewMatrix().Transposed();
-	math::float4x4 proj = camera->GetOpenGLProjectionMatrix().Transposed();
+	math::float4x4 view = camera->GetViewMatrix();
+	math::float4x4 proj = camera->GetProjectionMatrix();
 
     implementation->width     = fb_width;
     implementation->height    = fb_height;

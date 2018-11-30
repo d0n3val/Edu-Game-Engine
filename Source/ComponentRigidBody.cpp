@@ -130,7 +130,14 @@ void ComponentRigidBody::OnDebugDraw(bool selected) const
 			dd::box(box.CenterPoint(), dd::colors::Green, box.Size().x, box.Size().y, box.Size().z);
 		break;
 		case body_capsule:
-			// \todo: draw capsule DebugDraw(capsule, Green, game_object->GetGlobalTransformation());
+        {
+            float3 pos = (capsule.l.a+capsule.l.b)*0.5f;
+            float3 dir = (capsule.l.b-capsule.l.a);
+            float len = dir.Length();
+
+            dd::capsule(game_object->GetGlobalTransformation().TransformPos(pos), dd::colors::Green, capsule.r, 
+                        game_object->GetGlobalTransformation().TransformDir(dir/len), len);
+        }
 		break;
 	}
 }

@@ -36,6 +36,9 @@ public:
 	float4x4 GetOpenGLViewMatrix() const;
 	float4x4 GetOpenGLProjectionMatrix() const;
 
+	float4x4 GetViewMatrix() const;
+	float4x4 GetProjectionMatrix() const;
+
 public:
 	Frustum frustum;
 	Color background;

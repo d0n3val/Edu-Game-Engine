@@ -196,3 +196,15 @@ float4x4 ComponentCamera::GetOpenGLProjectionMatrix() const
 	return m;
 }
 
+// -----------------------------------------------------------------
+float4x4 ComponentCamera::GetViewMatrix() const
+{
+    return frustum.ViewMatrix();
+}
+
+// -----------------------------------------------------------------
+float4x4 ComponentCamera::GetProjectionMatrix() const
+{
+    return frustum.ProjectionMatrix();
+}
+
