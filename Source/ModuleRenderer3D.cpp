@@ -149,7 +149,6 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 {
     float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
 
-    // debug draw ---
 	if (draw_plane == true)
 	{
 		dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray);
@@ -167,6 +166,7 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	App->editor->Draw();
 
 	SDL_GL_SwapWindow(App->window->GetWindow());
+
 	return UPDATE_CONTINUE;
 }
 

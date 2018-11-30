@@ -17,8 +17,6 @@ PrimitiveTypes Primitive::GetType() const
 // ------------------------------------------------------------
 void Primitive::Render() const
 {
-    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-
     glPushMatrix();
 	glMultMatrixf(transform.M);
 
@@ -35,23 +33,23 @@ void Primitive::Render() const
 
 		glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
 
-		glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(metric_proportion*1.0f, 0.0f, 0.0f);
-		glVertex3f(metric_proportion*1.0f, 0.1f, 0.0f); glVertex3f(metric_proportion*1.1f, -0.1f, 0.0f);
-		glVertex3f(metric_proportion*1.1f, 0.1f, 0.0f); glVertex3f(metric_proportion*1.0f, -0.1f, 0.0f);
+		glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(1.0f, 0.0f, 0.0f);
+		glVertex3f(1.0f, 0.1f, 0.0f); glVertex3f(1.1f, -0.1f, 0.0f);
+		glVertex3f(1.1f, 0.1f, 0.0f); glVertex3f(1.0f, -0.1f, 0.0f);
 
 		glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
 
-		glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, metric_proportion*1.0f, 0.0f);
-		glVertex3f(-0.05f, metric_proportion*1.25f, 0.0f); glVertex3f(0.0f, metric_proportion*1.15f, 0.0f);
-		glVertex3f(0.05f, metric_proportion*1.25f, 0.0f); glVertex3f(0.0f, metric_proportion*1.15f, 0.0f);
-		glVertex3f(0.0f, metric_proportion*1.15f, 0.0f); glVertex3f(0.0f, metric_proportion*1.05f, 0.0f);
+		glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, 1.0f, 0.0f);
+		glVertex3f(-0.05f, 1.25f, 0.0f); glVertex3f(0.0f, 1.15f, 0.0f);
+		glVertex3f(0.05f, 1.25f, 0.0f); glVertex3f(0.0f, 1.15f, 0.0f);
+		glVertex3f(0.0f, 1.15f, 0.0f); glVertex3f(0.0f, 1.05f, 0.0f);
 
 		glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
 
-		glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, metric_proportion*1.0f);
-		glVertex3f(-0.05f, 0.1f, metric_proportion*1.05f); glVertex3f(0.05f, 0.1f, metric_proportion*1.05f);
-		glVertex3f(0.05f, 0.1f, metric_proportion*1.05f); glVertex3f(-0.05f, -0.1f, metric_proportion*1.05f);
-		glVertex3f(-0.05f, -0.1f, metric_proportion*1.05f); glVertex3f(0.05f, -0.1f, metric_proportion*1.05f);
+		glVertex3f(0.0f, 0.0f, 0.0f); glVertex3f(0.0f, 0.0f, 1.0f);
+		glVertex3f(-0.05f, 0.1f, 1.05f); glVertex3f(0.05f, 0.1f, 1.05f);
+		glVertex3f(0.05f, 0.1f, 1.05f); glVertex3f(-0.05f, -0.1f, 1.05f);
+		glVertex3f(-0.05f, -0.1f, 1.05f); glVertex3f(0.05f, -0.1f, 1.05f);
 
 		glEnd();
 		//glEnable(GL_DEPTH_TEST);
@@ -302,15 +300,14 @@ void PPlane::InnerRender() const
 
 	glBegin(GL_LINES);
 
-    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
 	float d = 200.0f;
 
 	for(float i = -d; i <= d; i += 1.0f)
 	{
-		glVertex3f(i*metric_proportion, 0.0f, -d*metric_proportion);
-		glVertex3f(i*metric_proportion, 0.0f, d*metric_proportion);
-		glVertex3f(-d*metric_proportion, 0.0f, i*metric_proportion);
-		glVertex3f(d*metric_proportion, 0.0f, i*metric_proportion);
+		glVertex3f(i, 0.0f, -d);
+		glVertex3f(i, 0.0f, d);
+		glVertex3f(-d, 0.0f, i);
+		glVertex3f(d, 0.0f, i);
 	}
 
 	glEnd();
