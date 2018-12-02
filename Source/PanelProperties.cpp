@@ -449,50 +449,126 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
     {
         if(mat_res)
         {
-            const char* texture_names[ResourceMaterial::TextureCount] = { "Diffuse", "Specular", "Normal", "Occlusion" };
+            ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
 
-            for(uint i=0; i< ResourceMaterial::TextureCount; ++i)
+            bool modified = false;
+
+            if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                ImGui::PushID(i);
-                ImGui::Separator();
-                ImGui::BulletText(texture_names[i]);
-                UID new_res = PickResource(mat_res->GetTexture(ResourceMaterial::Texture(i)), Resource::texture);
-                ImGui::PopID();
-                if (new_res != 0)
+                modified = ColorButton(mat_res, ResourceMaterial::ColorSpecular, "Specular", false);
+            }
+
+            if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                modified = TextureButton(mat_res, ResourceMaterial::TextureDiffuse, "Diffuse") || modified;
+                modified = ColorButton(mat_res, ResourceMaterial::ColorDiffuse, "Diffuse", true) || modified;
+            }
+
+            if(ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                modified = TextureButton(mat_res, ResourceMaterial::TextureSpecular, "Specular") || modified;
+                modified = ColorButton(mat_res, ResourceMaterial::ColorSpecular, "Specular", false) || modified;
+
+                float shininess = mat_res->GetShininess()/40.0f;
+                if(ImGui::SliderFloat("Shininess", &shininess, 0.0f, 1.0f))
                 {
-                    mat_res->SetTexture(ResourceMaterial::Texture(i), new_res);
-                    mat_res->Save();
-                    break;
-                }
-
-                const ResourceTexture* info = mat_res->GetTextureRes(ResourceMaterial::Texture(i));
-
-                if (info != nullptr)
-                {
-                    ImGui::Text("(%u,%u) %0.1f Mb", info->GetWidth(), info->GetHeight(), info->GetBytes() / (1024.f*1024.f));
-                    ImGui::Text("Format: %s Depth: %u Bpp: %u Mips: %u", info->GetFormatStr(), info->GetDepth(), info->GetBPP(), info->GetMips());
-
-                    ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
-                    float max_size = 64.f;
-
-                    if (size.x > max_size || size.y > max_size)
-                    {
-                        if (size.x > size.y)
-                        {
-                            size.y *= max_size / size.x;
-                            size.x = max_size;
-                        }
-                        else
-                        {
-                            size.x *= max_size / size.y;
-                            size.y = max_size;
-                        }
-                    }
-
-                    ImGui::Image((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+                    mat_res->SetShininess(shininess*40.0f);
+                    modified = true;
                 }
             }
+
+            ImGui::PopFont();
+
+            if(modified)
+            {
+                mat_res->Save();
+            }
+
         }
     }
 }
 
+bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, const char* name)
+{
+    bool modified = false;
+    const ResourceTexture* info = material->GetTextureRes(ResourceMaterial::Texture(texture));
+
+    ImVec2 size(64.0f, 64.0f);
+
+    if (info != nullptr)
+    {
+
+        if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+        {
+            ImGui::OpenPopup(name);
+        }
+        else if(ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip("%s", info->GetFile());
+        }
+    }
+    else
+    {
+        if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
+        {
+            ImGui::OpenPopup(name);
+        }
+    }
+
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+    ImGui::Text("Texture:");
+    if(info != nullptr)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
+
+		std::string file;
+		App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+
+        ImGui::Text("%s", file.c_str());
+        ImGui::Text("(%u,%u) %s %u bpp %u mips", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetMips());
+        ImGui::PopStyleColor();
+        ImGui::PushID(name);
+        if(ImGui::SmallButton("Delete"))
+        {
+            material->SetTexture(ResourceMaterial::Texture(texture), 0);
+            modified = true;
+        }
+        ImGui::PopID();
+    }
+    ImGui::EndGroup();
+
+    if (ImGui::BeginPopup(name))
+    {
+        UID r = 0;
+        r = App->editor->res->DrawResourceType(Resource::texture);
+
+        if (r != 0)
+        {
+            material->SetTexture(ResourceMaterial::Texture(texture), r);
+            ImGui::CloseCurrentPopup();
+
+            modified = true;
+        }
+
+        ImGui::EndPopup();
+    }
+
+    return modified;
+}
+
+bool PanelProperties::ColorButton(ResourceMaterial* material, uint color_id, const char* name, bool alpha)
+{
+    bool modified = false;
+
+    float4 color = material->GetColor(ResourceMaterial::Color(color_id));
+    ImGui::PushID(name);
+    if((alpha && ImGui::ColorEdit4("color", (float*)&color)) || (!alpha && ImGui::ColorEdit3("color", (float*)&color)))
+    {
+        material->SetColor(ResourceMaterial::Color(color_id), color);
+        modified = true;
+    }
+    ImGui::PopID();
+
+    return modified;
+}

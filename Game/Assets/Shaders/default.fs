@@ -72,21 +72,9 @@ void main()
 
 	float visibility = 1.0;
 
-#if RECEIVE_SHADOWS
-    vec4 shadow_coord = (fs_in.shadow_coord/fs_in.shadow_coord.w)*0.5+0.5;
-    float depth = clamp(shadow_coord.z, 0.0, 1.0);
-    vec2 coord = vec2(shadow_coord.x, shadow_coord.y);
-
-	if(coord.x >= 0.0 && coord.x <= 1.0 && coord.y >= 0.0 && coord.y <= 1.0 &&
-       texture2D(shadow_map, coord.xy).z < depth-shadow_bias)
-	{
-		visibility = 0.5;
-	}
-#endif
-
-	frag_color = vec4(((AMBIENT_AMOUNT+diffuse_amount)*diffuse_color.rgb+
-                     specular_color.rgb*specular_amount)*visibility, diffuse_color.a);
-    frag_color = diffuse_color;
+	//frag_color = vec4(((AMBIENT_AMOUNT+diffuse_amount)*diffuse_color.rgb+
+     //                specular_color.rgb*specular_amount)*visibility, diffuse_color.a);
+	frag_color = vec4(diffuse_amount*diffuse_color.rgb, diffuse_color.a);
 }
 
 

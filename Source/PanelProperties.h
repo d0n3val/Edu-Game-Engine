@@ -14,6 +14,7 @@ class ComponentCamera;
 class ComponentRigidBody;
 class ComponentAnimation;
 class ComponentMesh;
+class ResourceMaterial;
 
 class PanelProperties : public Panel
 {
@@ -36,12 +37,15 @@ public:
 	void RecursiveDrawTree(const GameObject* go, const GameObject** selected) const;
 	bool InitComponentDraw(Component* component, const char * name);
 
+	void DrawCameraComponent(ComponentCamera * component);
+private:
 	// TODO move editor code as a component method like component rigidbody
 	void DrawMeshComponent(ComponentMesh* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
-	void DrawCameraComponent(ComponentCamera * component);
+    bool TextureButton(ResourceMaterial* material, uint texture, const char* name);
+    bool ColorButton(ResourceMaterial* material, uint color, const char* name, bool alpha);
 };
 
 #endif// __PANELPROPERTIES_H__

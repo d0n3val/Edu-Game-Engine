@@ -342,9 +342,9 @@ uint ModuleFileSystem::Save(const char* file, const void* buffer, unsigned int s
 		{
 			if(append == true)
 				LOG("Added %u data to [%s%s]", size, PHYSFS_getWriteDir(), file);
-			else if(overwrite == true)
-				LOG("File [%s%s] overwritten with %u bytes", PHYSFS_getWriteDir(), file, size);
-			else
+			//else if(overwrite == true)
+				//LOG("File [%s%s] overwritten with %u bytes", PHYSFS_getWriteDir(), file, size);
+			else if(overwrite == false)
 				LOG("New file created [%s%s] of %u bytes", PHYSFS_getWriteDir(), file, size);
 
 			ret = written;
