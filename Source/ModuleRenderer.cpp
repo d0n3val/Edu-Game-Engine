@@ -10,7 +10,6 @@
 
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
-#include "ComponentLight.h"
 #include "ComponentCamera.h"
 
 #include "ResourceMesh.h"
@@ -152,7 +151,7 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMes
 
     if(mat_res != nullptr && mesh_res != nullptr)
     {
-        const ComponentLight* light  = App->level->GetActiveLight() ?  App->level->GetActiveLight()->FindFirstComponent<ComponentLight>() : nullptr;
+        //const ComponentLight* light  = App->level->GetActiveLight() ?  App->level->GetActiveLight()->FindFirstComponent<ComponentLight>() : nullptr;
 
         const ResourceTexture* specular = mat_res->GetTextureRes(ResourceMaterial::TextureSpecular);
         const ResourceTexture* normal   = mat_res->GetTextureRes(ResourceMaterial::TextureNormal);
@@ -175,6 +174,7 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMes
             variation |= SPECULAR_MAP;
         }
 
+        /*
         if(light != nullptr && light->type == ComponentLight::DIRECTIONAL)
         {
             variation |= LIGHT_DIRECTIONAL;
@@ -184,6 +184,7 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMes
                 variation |= RECEIVE_SHADOWS;
             }
         }
+        */
 
         App->programs->UseProgram("default", variation);
 
@@ -471,6 +472,7 @@ void ModuleRenderer::UpdateCameraUniform(ComponentCamera* camera) const
 
 void ModuleRenderer::UpdateLightUniform() const
 {
+#if 0
     const GameObject* light_go  = App->level->GetActiveLight(); 
     const ComponentLight* light = nullptr;
     
@@ -533,6 +535,7 @@ void ModuleRenderer::UpdateLightUniform() const
     {
         DrawClippingSpace(proj, view);
     }
+#endif
 }
 
 void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb) const

@@ -24,7 +24,6 @@ public:
 		Animation,
 		Steering,
 		Path,
-        Light,
 		Unknown
 	};
 

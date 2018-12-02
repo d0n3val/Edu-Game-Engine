@@ -3,7 +3,6 @@
 
 #include "Module.h"
 #include "Globals.h"
-#include "Light.h"
 
 #define MAX_LIGHTS 8
 
@@ -37,7 +36,6 @@ public:
 public:
 
 	ComponentCamera* active_camera = nullptr;
-	Light lights[MAX_LIGHTS];
 	SDL_GLContext context;
 	DDRenderInterfaceLegacyGL* debug_draw_interface = nullptr;
 	bool vsync = false;

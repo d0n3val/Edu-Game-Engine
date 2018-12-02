@@ -9,7 +9,6 @@
 #include "ModuleEditorCamera.h"
 #include "ModuleEditor.h"
 #include "ComponentCamera.h"
-#include "ComponentLight.h"
 #include "ComponentMesh.h"
 #include "ResourceMesh.h"
 #include "Event.h"
@@ -451,29 +450,5 @@ void ModuleLevelManager::RecursiveTestRay(const Ray& ray, float& dist, GameObjec
 void ModuleLevelManager::FindNear(const float3 & position, float radius, std::vector<GameObject*>& results) const
 {
 	quadtree.CollectIntersections(results, Sphere(position, radius));
-}
-
-GameObject* ModuleLevelManager::AddPointLight(const char* name, const float3& position)
-{
-	GameObject* ret = new GameObject(root, name, position, float3::zero, Quat::identity);
-
-    ComponentLight* light = new ComponentLight(ret);
-    light->type = ComponentLight::POINT;
-
-    ret->components.push_back(light);
-
-    return ret;
-}
-
-GameObject* ModuleLevelManager::AddDirectionalLight(const char* name, const float3& direction, const float3& up)
-{
-	GameObject* ret = new GameObject(root, name, float3::zero, float3::zero, Quat::LookAt(float3(0.0f, 0.0f, -1.0f), direction, float3(0.0f, 1.0f, 0.0f), up));
-
-    ComponentLight* light = new ComponentLight(ret);
-    light->type = ComponentLight::DIRECTIONAL;
-
-    ret->components.push_back(light);
-
-    return ret;
 }
 

@@ -5,6 +5,8 @@
 #include "Module.h"
 #include "Math.h"
 #include "QuadTree.h"
+#include "DirLight.h"
+#include "AmbientLight.h"
 
 class GameObject;
 
@@ -47,10 +49,13 @@ public:
 	GameObject*         CastRayOnBoundingBoxes  (const LineSegment& segment, float& dist, float3& normal) const;
 	void                FindNear                (const float3& position, float radius, std::vector<GameObject*>& results) const;
 
-	GameObject*  	    AddPointLight 	        (const char* name, const float3& position);
-	GameObject*  	    AddDirectionalLight 	(const char* name, const float3& direction, const float3& up);
-    GameObject*         GetActiveLight          ();
-    const GameObject*   GetActiveLight          () const ;
+
+    const DirLight&     GetDirLight             () const { return directional; }
+    DirLight&           GetDirLight             () { return directional; }
+
+    const AmbientLight& GetAmbientLight         () const { return ambient; }
+    AmbientLight&       GetAmbientLight         () { return ambient; }
+
 
 private:
 
@@ -70,18 +75,9 @@ public:
 
 private:
 	GameObject* root = nullptr;
-	GameObject* active_light = nullptr;
+    AmbientLight ambient;
+    DirLight directional;
 	std::string name;
 };
-
-inline GameObject* ModuleLevelManager::GetActiveLight()
-{
-    return active_light;
-}
-
-inline const GameObject* ModuleLevelManager::GetActiveLight() const 
-{
-    return active_light;
-}
 
 #endif // __MODULE_LEVELMANAGER_H__

@@ -59,7 +59,7 @@ void PanelProperties::Draw()
 			selected->SetLocalRotation(Quat::identity);
 		}
 
-		static_assert(Component::Types::Unknown == 10, "code needs update");
+		static_assert(Component::Types::Unknown == 9, "code needs update");
         if (ImGui::BeginMenu("New Component", (selected != nullptr)))
         {
 			if (ImGui::MenuItem("Audio Listener"))
@@ -143,7 +143,7 @@ void PanelProperties::Draw()
 		}
 
 		// Iterate all components and draw
-		static_assert(Component::Types::Unknown == 10, "code needs update");
+		static_assert(Component::Types::Unknown == 9, "code needs update");
 		for (list<Component*>::iterator it = selected->components.begin(); it != selected->components.end(); ++it)
 		{
 			ImGui::PushID(*it);

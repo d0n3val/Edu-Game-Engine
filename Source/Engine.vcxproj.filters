@@ -75,9 +75,6 @@
     <ClInclude Include="Color.h">
       <Filter>Containers</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="PhysBody3D.h">
       <Filter>Helpers</Filter>
     </ClInclude>
@@ -543,9 +540,6 @@
     <ClInclude Include="modulehints.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentLight.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceModel.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -591,6 +585,12 @@
     <ClInclude Include="ModuleDebugDraw.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
+    <ClInclude Include="DirLight.h">
+      <Filter>Game Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="AmbientLight.h">
+      <Filter>Game Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -601,9 +601,6 @@
     </ClCompile>
     <ClCompile Include="Color.cpp">
       <Filter>Containers</Filter>
-    </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="PhysBody3D.cpp">
       <Filter>Helpers</Filter>
@@ -863,9 +860,6 @@
     <ClCompile Include="ResourceMaterial.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentLight.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceModel.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -904,6 +898,12 @@
     </ClCompile>
     <ClCompile Include="ModuleDebugDraw.cpp">
       <Filter>Core Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="DirLight.cpp">
+      <Filter>Game Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="AmbientLight.cpp">
+      <Filter>Game Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
