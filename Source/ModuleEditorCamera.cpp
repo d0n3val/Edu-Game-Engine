@@ -68,8 +68,8 @@ void ModuleEditorCamera::Save(Config * config) const
 void ModuleEditorCamera::Load(Config * config)
 {
 	// Beware, this method will be called again when loading a level!
-	mov_speed = config->GetFloat("Mov Speed", mov_speed); // global var, not level specific
-	rot_speed = config->GetFloat("Rot Speed", rot_speed); // global var, not level specific
+	mov_speed  = config->GetFloat("Mov Speed", mov_speed); // global var, not level specific
+	rot_speed  = config->GetFloat("Rot Speed", rot_speed); // global var, not level specific
 	zoom_speed = config->GetFloat("Zoom Speed", zoom_speed); // global var, not level specific
 	dummy->OnLoad(config);
 }
