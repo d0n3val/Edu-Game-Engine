@@ -10,6 +10,7 @@ class GameObject;
 class ComponentCamera;
 class ComponentMesh;
 class ComponentMaterial;
+class ResourceMaterial;
 
 class ModuleRenderer : public Module
 {
@@ -85,6 +86,7 @@ private:
     void                GetClippingPoints       (const float4x4& proj, const float4x4& view, float3 points[8]) const;
     void                UpdateLightUniform      () const;
     void                UpdateCameraUniform     (ComponentCamera* camera) const;
+    void                UpdateMaterialUniform   (const ResourceMaterial* material) const;
     void                CalcLightSpaceBBox      (const Quat& light_rotation, AABB& aabb) const;
 };
 

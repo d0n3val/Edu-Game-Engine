@@ -151,68 +151,11 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMes
 
     if(mat_res != nullptr && mesh_res != nullptr)
     {
-        //const ComponentLight* light  = App->level->GetActiveLight() ?  App->level->GetActiveLight()->FindFirstComponent<ComponentLight>() : nullptr;
+        App->programs->UseProgram("default", 0);
 
-        const ResourceTexture* specular = mat_res->GetTextureRes(ResourceMaterial::TextureSpecular);
-        const ResourceTexture* normal   = mat_res->GetTextureRes(ResourceMaterial::TextureNormal);
-        const ResourceTexture* diffuse  = mat_res->GetTextureRes(ResourceMaterial::TextureDiffuse);
-
-        unsigned variation = PIXEL_LIGHTING;
-
-        if(mesh_res->attribs & ResourceMesh::ATTRIB_BONES)
-        {
-            // \todo: variation |= SKINNING;
-        }
-
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) && mesh_res->attribs & ResourceMesh::ATTRIB_TANGENTS && normal != nullptr)
-        {
-            variation |= NORMAL_MAP;
-        }
-
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) && specular != nullptr)
-        {
-            variation |= SPECULAR_MAP;
-        }
-
-        /*
-        if(light != nullptr && light->type == ComponentLight::DIRECTIONAL)
-        {
-            variation |= LIGHT_DIRECTIONAL;
-
-            if(material->RecvShadows())
-            {
-                variation |= RECEIVE_SHADOWS;
-            }
-        }
-        */
-
-        App->programs->UseProgram("default", variation);
+        UpdateMaterialUniform(mat_res);
 
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
-        glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
-
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, shadow.tex);
-        glUniform1i(App->programs->GetUniformLocation("shadow_map"), 3);
-
-        glUniform1f(App->programs->GetUniformLocation("shininess"), mat_res->GetShininess());
-
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, specular != nullptr ? specular->GetID() : 0);
-        glUniform1i(App->programs->GetUniformLocation("specular_map"), 2);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, normal != nullptr ? normal->GetID() : 0);
-        glUniform1i(App->programs->GetUniformLocation("normal_map"), 1);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuse != nullptr ? diffuse->GetID() : 0);
-        glUniform1i(App->programs->GetUniformLocation("diffuse"), 0);
-
-        if((mesh_res->attribs & ResourceMesh::ATTRIB_BONES))
-        {
-            glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_FALSE, reinterpret_cast<const float*>(mesh_res->palette));
-        }
 
         glBindVertexArray(mesh_res->vao);
 
@@ -536,6 +479,22 @@ void ModuleRenderer::UpdateLightUniform() const
         DrawClippingSpace(proj, view);
     }
 #endif
+}
+
+void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) const
+{
+    const ResourceTexture* specular = material->GetTextureRes(ResourceMaterial::TextureSpecular);
+    const ResourceTexture* diffuse  = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
+
+    glUniform1f(App->programs->GetUniformLocation("material.shininess"), material->GetShininess());
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specular != nullptr ? specular->GetID() : 0);
+    glUniform1i(App->programs->GetUniformLocation("material.specular_map"), 1);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuse != nullptr ? diffuse->GetID() : 0);
+    glUniform1i(App->programs->GetUniformLocation("material.diffuse_map"), 0);
 }
 
 void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb) const
