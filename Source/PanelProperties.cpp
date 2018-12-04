@@ -502,10 +502,10 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
                     modified = true;
                 }
 
-                float shininess = mat_res->GetShininess()/40.0f;
+                float shininess = min(max(mat_res->GetShininess(), 0.0f), 1.0f);
                 if(ImGui::SliderFloat("Shininess", &shininess, 0.0f, 1.0f))
                 {
-                    mat_res->SetShininess(shininess*40.0f);
+                    mat_res->SetShininess(shininess);
                     modified = true;
                 }
             }

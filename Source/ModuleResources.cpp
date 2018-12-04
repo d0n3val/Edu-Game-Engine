@@ -79,6 +79,17 @@ bool ModuleResources::Start(Config * config)
 	checkers->loaded = 1;
 */
 
+	// Load preset for checkers texture
+	checkers = (ResourceTexture*) CreateNewResource(Resource::Type::texture, 2);
+	App->tex->LoadCheckers(checkers);
+	checkers->loaded = 1;
+
+	white_fallback = new ResourceTexture(0); 
+    black_fallback = new ResourceTexture(0);
+
+    App->tex->LoadFallback(white_fallback, float3(1.0f));
+    App->tex->LoadFallback(black_fallback, float3(0.0f));
+
 	return true;
 }
 

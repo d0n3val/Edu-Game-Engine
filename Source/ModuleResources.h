@@ -45,6 +45,8 @@ public:
 
 	const LoaderAnimation* GetAnimationLoader() const;
 	
+    const ResourceTexture* GetWhiteFallback() const { return white_fallback; }
+    const ResourceTexture* GetBlackFallback() const { return black_fallback; }
 private:
 
 	void LoadUID();
@@ -63,6 +65,8 @@ private:
 	ResourceMesh* pyramid = nullptr;
 	ResourceMesh* cylinder = nullptr;
 	ResourceTexture* checkers = nullptr;
+    ResourceTexture* white_fallback = nullptr;
+    ResourceTexture* black_fallback = nullptr;
 };
 
 #endif // __MODULERESOURCES_H__

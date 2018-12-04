@@ -3,6 +3,7 @@
 
 #include "Globals.h"
 #include "Module.h"
+#include "Math.h"
 
 class ResourceTexture;
 
@@ -20,6 +21,7 @@ public:
 	bool Import(const char* file, const char* path, std::string& output_file);
 	bool Import(const void* buffer, uint size, std::string& output_file);
 	bool LoadCheckers(ResourceTexture* resource);
+    bool LoadFallback(ResourceTexture* resource, const float3& color);
 };
 
 #endif // __MODULETEXTURES_H__

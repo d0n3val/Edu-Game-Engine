@@ -120,26 +120,25 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
 
     glUniform1f(App->programs->GetUniformLocation("material.shininess"), material->GetShininess());
 
+    unsigned diffuse_id  = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
+    float4 diffuse_color = material->GetDiffuseColor();
+    unsigned specular_id = specular ? specular->GetID() : App->resources->GetWhiteFallback()->GetID();
+    float3 specular_color = specular ? float3(1.0f) : material->GetSpecularColor();
+
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specular != nullptr ? specular->GetID() : 0);
+    glBindTexture(GL_TEXTURE_2D, specular_id);
     glUniform1i(App->programs->GetUniformLocation("material.specular_map"), 1);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuse != nullptr ? diffuse->GetID() : 0);
+    glBindTexture(GL_TEXTURE_2D, diffuse_id);
     glUniform1i(App->programs->GetUniformLocation("material.diffuse_map"), 0);
 
-    glUniform4fv(App->programs->GetUniformLocation("material.diffuse_color"), 1, (const float*)&material->GetDiffuseColor());
-    glUniform3fv(App->programs->GetUniformLocation("material.specular_color"), 1, (const float*)&material->GetSpecularColor());
+    glUniform4fv(App->programs->GetUniformLocation("material.diffuse_color"), 1, (const float*)&diffuse_color);
+    glUniform3fv(App->programs->GetUniformLocation("material.specular_color"), 1, (const float*)&specular_color);
 
     glUniform1f(App->programs->GetUniformLocation("material.k_ambient"), material->GetKAmbient());
     glUniform1f(App->programs->GetUniformLocation("material.k_diffuse"), material->GetKDiffuse());
     glUniform1f(App->programs->GetUniformLocation("material.k_specular"), material->GetKSpecular());
-
-    unsigned diffuse_sub = diffuse == nullptr ? 0 : 1;
-    unsigned specular_sub = specular == nullptr ? 2 : 3;
-	unsigned subroutines[] = { diffuse_sub, specular_sub };
-
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(subroutines)/sizeof(unsigned), subroutines);
 }
 
 void ModuleRenderer::UpdateLightUniform() const

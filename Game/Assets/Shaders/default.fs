@@ -9,6 +9,11 @@ struct Material
     vec3      specular_color;
     float     shininess;
 
+    sampler2D occlusion_map;
+
+    sampler2D emissive_map;
+    vec3      emissive_color;
+
     sampler2D occlusion;
 
     float     k_ambient;
@@ -27,11 +32,6 @@ struct DirLight
     vec3 color;
 };
 
-//////////////////// SUBROUTINES ////////////////////////
-
-subroutine vec4 GetColor4(const Material mat, const vec2 uv);
-subroutine vec3 GetColor3(const Material mat, const vec2 uv);
-
 //////////////////// UNIFORMS ////////////////////////
 
 uniform Material     material;
@@ -39,8 +39,6 @@ uniform AmbientLight ambient;
 uniform DirLight     directional;
 uniform mat4         view;
 
-layout(location=0) subroutine uniform GetColor4 get_diffuse_color;
-layout(location=1) subroutine uniform GetColor3 get_specular_color;
 
 //////////////////// INPUTS ////////////////////////
 
@@ -59,24 +57,15 @@ out vec4 color;
 
 //////////////////// FUNCTIONS ////////////////////////
 
-layout(index=0)subroutine(GetColor4) vec4 get_diffuse_from_color(const Material mat, const vec2 uv)
-{
-    return mat.diffuse_color;
-}
-
-layout(index=1)subroutine(GetColor4) vec4 get_diffuse_from_texture(const Material mat, const vec2 uv)
+vec4 get_diffuse_color(const Material mat, const vec2 uv)
 {
     return texture(mat.diffuse_map, uv)*mat.diffuse_color;
 }
 
-layout(index=2)subroutine(GetColor3) vec3 get_specular_from_color(const Material mat, const vec2 uv)
+vec4 get_specular_color(const Material mat, const vec2 uv)
 {
-    return mat.specular_color;
-}
-
-layout(index=3)subroutine(GetColor3) vec3 get_specular_from_texture(const Material mat, const vec2 uv)
-{
-    return texture(mat.specular_map, uv).rgb;
+    vec4 color = texture(mat.specular_map, uv);
+    return vec4(color.rgb*mat.specular_color, max(color.a*mat.shininess*128.0f, 8.0f));
 }
 
 float lambert(const DirLight light, const vec3 normal)
@@ -99,16 +88,13 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     float diffuse  = lambert(directional, normal);
     float specular = 0.0;
 
-    if(diffuse > 0.0 && material.k_specular > 0.0 && material.shininess > 1.0)
-    {
-        specular = specular_blinn(directional, pos, normal, view_pos, material.shininess);
-    }
-    
     vec4 diffuse_color  = get_diffuse_color(material, uv);
-    vec3 specular_color = get_specular_color(material, uv);
+    vec4 specular_color = get_specular_color(material, uv);
+
+    specular = specular_blinn(directional, pos, normal, view_pos, specular_color.a);
 
     return vec4(diffuse_color.rgb*(ambient.color*material.k_ambient+diffuse*material.k_diffuse)+
-                specular_color*specular*material.k_specular,
+                specular_color.rgb*specular*material.k_specular,
                 diffuse_color.a); 
 }
 
