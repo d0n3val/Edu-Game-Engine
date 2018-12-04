@@ -129,6 +129,7 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     glUniform1i(App->programs->GetUniformLocation("material.diffuse_map"), 0);
 
     glUniform4fv(App->programs->GetUniformLocation("material.diffuse_color"), 1, (const float*)&material->GetDiffuseColor());
+    glUniform3fv(App->programs->GetUniformLocation("material.specular_color"), 1, (const float*)&material->GetSpecularColor());
 
     glUniform1f(App->programs->GetUniformLocation("material.k_ambient"), material->GetKAmbient());
     glUniform1f(App->programs->GetUniformLocation("material.k_diffuse"), material->GetKDiffuse());

@@ -44,9 +44,9 @@ bool ResourceMaterial::LoadInMemory()
             read_stream >> textures[i];
         }
 
-        read_stream >> shininess;
-
 		read_stream >> k_ambient >> k_diffuse >> k_specular;
+
+        read_stream >> shininess;
 
         for(uint i=0; i< TextureCount; ++i)
         {

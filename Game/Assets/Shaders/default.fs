@@ -92,6 +92,7 @@ vec4 blinn(vec3 pos, vec3 normal, vec2 uv, vec3 view_pos, AmbientLight ambient, 
     vec4 diffuse_color  = diffuse_color(material, uv);
     vec3 specular_color = specular_color(material, uv);
 
+    //return vec4(specular_color, 1.0);
     return vec4(diffuse_color.rgb*ambient.color*material.k_ambient+ /* ambient */
                 diffuse_color.rgb*diffuse*material.k_diffuse+       /* diffuse */
                 specular_color*specular*material.k_specular,        /* specular */
