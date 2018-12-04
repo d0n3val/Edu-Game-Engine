@@ -19,19 +19,15 @@ public:
         TextureCount
     };
 
-    enum Color
-    {
-        ColorAmbient = 0,
-        ColorDiffuse,
-        ColorSpecular,
-        ColorCount
-    };
-
 private:
 
-    float4      colors[ColorCount]     = { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } };
+    float4      diffuse_color          = float4::one;
+    float3      specular_color         = float4::zero;
     UID         textures[TextureCount] = { 0, 0, 0, 0 };
-    float       shininess                = 40.0f;
+    float       shininess              = 40.0f;
+    float       k_ambient              = 1.0f;
+    float       k_diffuse              = 0.6f;
+    float       k_specular             = 0.4f;
 
 public:
 
@@ -45,8 +41,20 @@ public:
 
     static UID              Import              (const aiMaterial* material, const char* source_file);
 
-    const float4&           GetColor            (Color color) const { return colors[color];}
-    void                    SetColor            (Color color, const float4& value) { colors[color] = value; }
+    const float4&           GetDiffuseColor     () const { return diffuse_color;}
+    void                    SetDiffuseColor     (const float4& value) { diffuse_color = value; }
+
+    const float3&           GetSpecularColor    () const { return specular_color;}
+    void                    SetSpecularColor    (const float3& value) { specular_color = value; }
+
+    float                   GetKSpecular        () const { return k_specular; }
+    void                    SetKSpecular        (float value)  { k_specular = value; }
+
+    float                   GetKDiffuse         () const { return k_diffuse; }
+    void                    SetKDiffuse         (float value)  { k_diffuse = value; }
+
+    float                   GetKAmbient         () const { return k_ambient; }
+    void                    SetKAmbient         (float value)  { k_ambient = value; }
 
     UID                     GetTexture          (Texture texture) const { return textures[texture]; }
     const ResourceTexture*  GetTextureRes       (Texture texture) const;

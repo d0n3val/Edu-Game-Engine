@@ -41,6 +41,7 @@ private:
     void                DrawMeshColor           (const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material, 
 												 const float4x4& projection, const float4x4& view);
     void                UpdateMaterialUniform   (const ResourceMaterial* material) const;
+    void                UpdateLightUniform      () const;
 };
 
 

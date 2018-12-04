@@ -49,8 +49,8 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned width, unsigned heig
 	}
 
 
-	float4x4 proj = camera->GetOpenGLViewMatrix();
-	float4x4 view = camera->GetOpenGLProjectionMatrix();
+	float4x4 proj = camera->GetOpenGLProjectionMatrix();
+	float4x4 view = camera->GetOpenGLViewMatrix();
 
     DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view);
 }
@@ -86,6 +86,7 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMes
         App->programs->UseProgram("default", 0);
 
         UpdateMaterialUniform(mat_res);
+        UpdateLightUniform();
 
         glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_FALSE, reinterpret_cast<const float*>(&projection));
         glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_FALSE, reinterpret_cast<const float*>(&view));
@@ -126,5 +127,23 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuse != nullptr ? diffuse->GetID() : 0);
     glUniform1i(App->programs->GetUniformLocation("material.diffuse_map"), 0);
+
+    glUniform4fv(App->programs->GetUniformLocation("material.diffuse_color"), 1, (const float*)&material->GetDiffuseColor());
+
+    glUniform1f(App->programs->GetUniformLocation("material.k_ambient"), material->GetKAmbient());
+    glUniform1f(App->programs->GetUniformLocation("material.k_diffuse"), material->GetKDiffuse());
+    glUniform1f(App->programs->GetUniformLocation("material.k_specular"), material->GetKSpecular());
+}
+
+void ModuleRenderer::UpdateLightUniform() const
+{
+    const AmbientLight& ambient = App->level->GetAmbientLight();
+    const DirLight& directional = App->level->GetDirLight();
+
+    float3 dir = directional.GetDir();
+
+    glUniform3fv(App->programs->GetUniformLocation("ambient.color"), 1, (const float*)&ambient.GetColor());
+    glUniform3fv(App->programs->GetUniformLocation("directional.color"), 1, (const float*)&directional.GetColor());
+    glUniform3fv(App->programs->GetUniformLocation("directional.dir"), 1, (const float*)&dir);
 }
 

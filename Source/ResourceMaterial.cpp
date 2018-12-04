@@ -36,10 +36,8 @@ bool ResourceMaterial::LoadInMemory()
 
         simple::mem_istream<std::true_type> read_stream(buffer, size);
 
-        for(uint i=0; i< ColorCount; ++i)
-        {
-            read_stream >> colors[i].x >> colors[i].y >> colors[i].z >> colors[i].w;
-        }
+		read_stream >> diffuse_color.x >> diffuse_color.y >> diffuse_color.z >> diffuse_color.w;
+		read_stream >> specular_color.x >> specular_color.y >> specular_color.z;
 
         for(uint i=0; i< TextureCount; ++i)
         {
@@ -47,6 +45,8 @@ bool ResourceMaterial::LoadInMemory()
         }
 
         read_stream >> shininess;
+
+		read_stream >> k_ambient >> k_diffuse >> k_specular;
 
         for(uint i=0; i< TextureCount; ++i)
         {
@@ -113,16 +113,15 @@ bool ResourceMaterial::Save() const
 // ---------------------------------------------------------
 void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
 {
-
-    for(uint i=0; i< ColorCount; ++i)
-    {
-        write_stream << colors[i];
-    }
+    write_stream << diffuse_color.x << diffuse_color.y << diffuse_color.z << diffuse_color.w;
+    write_stream << specular_color.x << specular_color.y << specular_color.z;
 
     for(uint i=0; i< TextureCount; ++i)
     {
         write_stream << textures[i];
     }
+
+    write_stream << k_ambient << k_diffuse << k_specular;
 
     write_stream << shininess;
 
@@ -138,13 +137,12 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
 
     float shine_strength = 1.0f;
 
-    material->Get(AI_MATKEY_COLOR_AMBIENT, m->colors[ColorAmbient]);
-    material->Get(AI_MATKEY_COLOR_DIFFUSE, m->colors[ColorDiffuse]);
-    material->Get(AI_MATKEY_COLOR_SPECULAR, m->colors[ColorSpecular]);
+    material->Get(AI_MATKEY_COLOR_DIFFUSE, m->diffuse_color);
+    material->Get(AI_MATKEY_COLOR_SPECULAR, m->specular_color);
     material->Get(AI_MATKEY_SHININESS, m->shininess);
     material->Get(AI_MATKEY_SHININESS_STRENGTH, shine_strength);
 
-    m->colors[ColorSpecular] *= shine_strength;
+    m->specular_color *= shine_strength;
 
     aiString file;
     aiTextureMapping mapping;

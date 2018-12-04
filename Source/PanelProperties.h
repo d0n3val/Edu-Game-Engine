@@ -45,7 +45,6 @@ private:
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
     bool TextureButton(ResourceMaterial* material, uint texture, const char* name);
-    bool ColorButton(ResourceMaterial* material, uint color, const char* name, bool alpha);
 };
 
 #endif// __PANELPROPERTIES_H__

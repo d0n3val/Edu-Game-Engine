@@ -455,19 +455,52 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 
             if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                modified = ColorButton(mat_res, ResourceMaterial::ColorSpecular, "Specular", false);
+                float k_ambient = mat_res->GetKAmbient();
+                if(ImGui::SliderFloat("k ambient", &k_ambient, 0.0f, 1.0f))
+                {
+                    mat_res->SetKAmbient(k_ambient);
+                    modified = true;
+                }
             }
 
             if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 modified = TextureButton(mat_res, ResourceMaterial::TextureDiffuse, "Diffuse") || modified;
-                modified = ColorButton(mat_res, ResourceMaterial::ColorDiffuse, "Diffuse", true) || modified;
+                float4 color = mat_res->GetDiffuseColor();
+                ImGui::PushID("diffuse");
+                if(ImGui::ColorEdit4("color", (float*)&color))
+                {
+                    mat_res->SetDiffuseColor(color);
+                    modified = true;
+                }
+                ImGui::PopID();
+
+                float k_diffuse = mat_res->GetKDiffuse();
+                if(ImGui::SliderFloat("k diffuse", &k_diffuse, 0.0f, 1.0f))
+                {
+                    mat_res->SetKDiffuse(k_diffuse);
+                    modified = true;
+                }
             }
 
             if(ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 modified = TextureButton(mat_res, ResourceMaterial::TextureSpecular, "Specular") || modified;
-                modified = ColorButton(mat_res, ResourceMaterial::ColorSpecular, "Specular", false) || modified;
+                float3 color = mat_res->GetSpecularColor();
+                ImGui::PushID("specular");
+                if(ImGui::ColorEdit3("color", (float*)&color))
+                {
+                    mat_res->SetSpecularColor(color);
+                    modified = true;
+                }
+                ImGui::PopID();
+
+                float k_specular = mat_res->GetKSpecular();
+                if(ImGui::SliderFloat("k specular", &k_specular, 0.0f, 1.0f))
+                {
+                    mat_res->SetKSpecular(k_specular);
+                    modified = true;
+                }
 
                 float shininess = mat_res->GetShininess()/40.0f;
                 if(ImGui::SliderFloat("Shininess", &shininess, 0.0f, 1.0f))
@@ -557,18 +590,3 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
     return modified;
 }
 
-bool PanelProperties::ColorButton(ResourceMaterial* material, uint color_id, const char* name, bool alpha)
-{
-    bool modified = false;
-
-    float4 color = material->GetColor(ResourceMaterial::Color(color_id));
-    ImGui::PushID(name);
-    if((alpha && ImGui::ColorEdit4("color", (float*)&color)) || (!alpha && ImGui::ColorEdit3("color", (float*)&color)))
-    {
-        material->SetColor(ResourceMaterial::Color(color_id), color);
-        modified = true;
-    }
-    ImGui::PopID();
-
-    return modified;
-}
