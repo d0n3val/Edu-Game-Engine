@@ -151,7 +151,7 @@ void ModulePrograms::GenerateVariation(const char* name, unsigned variations)
 
 void ModulePrograms::Compile(char** data,  char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros) const
 {
-	data[0] = "#version 330\n";
+	data[0] = "#version 400\n";
 
 	for(unsigned i=0; i< num_macros; ++i)
 	{

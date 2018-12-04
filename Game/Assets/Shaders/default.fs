@@ -8,7 +8,6 @@ struct Material
     sampler2D specular_map;
     vec3      specular_color;
     float     shininess;
-    int       use_specular_map;
 
     float     k_ambient;
     float     k_diffuse;
@@ -66,17 +65,12 @@ float specular_blinn(DirLight light, vec3 pos, vec3 normal, vec3 view_pos, float
 
 vec4 diffuse_color(Material mat, vec2 uv)
 {
-    return texture2D(mat.diffuse_map, uv)*mat.diffuse_color;
+    return texture(mat.diffuse_map, uv)*mat.diffuse_color;
 }
 
 vec3 specular_color(Material mat, vec2 uv)
 {
-    if(mat.use_specular_map == 0)
-    {
-        return mat.specular_color;
-    }
-
-    return texture2D(mat.specular_map, uv).rgb;
+    return max(texture(mat.specular_map, uv).rgb, mat.specular_color);
 }
 
 vec4 blinn(vec3 pos, vec3 normal, vec2 uv, vec3 view_pos, AmbientLight ambient, DirLight directional, Material mat)
@@ -92,7 +86,6 @@ vec4 blinn(vec3 pos, vec3 normal, vec2 uv, vec3 view_pos, AmbientLight ambient, 
     vec4 diffuse_color  = diffuse_color(material, uv);
     vec3 specular_color = specular_color(material, uv);
 
-    //return vec4(specular_color, 1.0);
     return vec4(diffuse_color.rgb*ambient.color*material.k_ambient+ /* ambient */
                 diffuse_color.rgb*diffuse*material.k_diffuse+       /* diffuse */
                 specular_color*specular*material.k_specular,        /* specular */
