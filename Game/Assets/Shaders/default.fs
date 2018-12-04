@@ -9,6 +9,8 @@ struct Material
     vec3      specular_color;
     float     shininess;
 
+    sampler2D occlusion;
+
     float     k_ambient;
     float     k_diffuse;
     float     k_specular;
@@ -27,7 +29,8 @@ struct DirLight
 
 //////////////////// SUBROUTINES ////////////////////////
 
-subroutine vec4 GetDiffuseColor(const Material mat, const vec2 uv);
+subroutine vec4 GetColor4(const Material mat, const vec2 uv);
+subroutine vec3 GetColor3(const Material mat, const vec2 uv);
 
 //////////////////// UNIFORMS ////////////////////////
 
@@ -36,7 +39,8 @@ uniform AmbientLight ambient;
 uniform DirLight     directional;
 uniform mat4         view;
 
-layout(location=0) subroutine uniform GetDiffuseColor get_diffuse_color;
+layout(location=0) subroutine uniform GetColor4 get_diffuse_color;
+layout(location=1) subroutine uniform GetColor3 get_specular_color;
 
 //////////////////// INPUTS ////////////////////////
 
@@ -55,26 +59,24 @@ out vec4 color;
 
 //////////////////// FUNCTIONS ////////////////////////
 
-//////////////////// FUNCTIONS ////////////////////////
-
-layout(index=0)subroutine(GetDiffuseColor) vec4 get_diffuse_from_color(const Material mat, const vec2 uv)
+layout(index=0)subroutine(GetColor4) vec4 get_diffuse_from_color(const Material mat, const vec2 uv)
 {
     return mat.diffuse_color;
 }
 
-layout(index=1)subroutine(GetDiffuseColor) vec4 get_diffuse_from_both(const Material mat, const vec2 uv)
+layout(index=1)subroutine(GetColor4) vec4 get_diffuse_from_texture(const Material mat, const vec2 uv)
 {
     return texture(mat.diffuse_map, uv)*mat.diffuse_color;
 }
 
-layout(index=2)subroutine(GetDiffuseColor) vec4 get_diffuse_from_texture(const Material mat, const vec2 uv)
+layout(index=2)subroutine(GetColor3) vec3 get_specular_from_color(const Material mat, const vec2 uv)
 {
-    return texture(mat.diffuse_map, uv);
+    return mat.specular_color;
 }
 
-vec3 get_specular_color(const Material mat, const vec2 uv)
+layout(index=3)subroutine(GetColor3) vec3 get_specular_from_texture(const Material mat, const vec2 uv)
 {
-    return max(texture(mat.specular_map, uv).rgb, mat.specular_color);
+    return texture(mat.specular_map, uv).rgb;
 }
 
 float lambert(const DirLight light, const vec3 normal)

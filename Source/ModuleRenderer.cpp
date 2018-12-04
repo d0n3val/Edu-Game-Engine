@@ -135,9 +135,11 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     glUniform1f(App->programs->GetUniformLocation("material.k_diffuse"), material->GetKDiffuse());
     glUniform1f(App->programs->GetUniformLocation("material.k_specular"), material->GetKSpecular());
 
-	unsigned sub_diffuse[] = { 2 };
+    unsigned diffuse_sub = diffuse == nullptr ? 0 : 1;
+    unsigned specular_sub = specular == nullptr ? 2 : 3;
+	unsigned subroutines[] = { diffuse_sub, specular_sub };
 
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, sub_diffuse);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(subroutines)/sizeof(unsigned), subroutines);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
