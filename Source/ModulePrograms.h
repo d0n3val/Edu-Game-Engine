@@ -48,18 +48,19 @@ public:
 
 public:
 
-	void Load              (const char* name, const char* vertex_shader, const char* fragment_shader, 
-                            const char** macros, unsigned num_macros, const UniformBinding* uniforms, 
-                            unsigned num_uniforms);
+	void Load                           (const char* name, const char* vertex_shader, const char* fragment_shader, 
+                                        const char** macros, unsigned num_macros, const UniformBinding* uniforms, 
+                                        unsigned num_uniforms);
 
-    void GenerateVariation (const char* name, unsigned variations);
+    void GenerateVariation              (const char* name, unsigned variations);
 
-	void Clear             ();
+	void Clear                          ();
 
-	int  GetUniformLocation(const char* uniform);
-	int  GetAttribLocation (const char* attribute);
-	void UseProgram        (const char* name, unsigned variation);
-	void UnuseProgram      ();
+	int  GetUniformLocation             (const char* uniform);
+    int  GetSubroutineUniformLocation   (bool vertex_shader, const char* name);
+    int  GetSubroutineIndex             (bool vertex_shader, const char* name);
+    void UseProgram                     (const char* name, unsigned variation);
+	void UnuseProgram                   ();
 
 private:
 

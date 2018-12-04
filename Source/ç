@@ -151,7 +151,7 @@ void ModulePrograms::GenerateVariation(const char* name, unsigned variations)
 
 void ModulePrograms::Compile(char** data,  char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros) const
 {
-	data[0] = "#version 430\n";
+	data[0] = "#version 400\n";
 
 	for(unsigned i=0; i< num_macros; ++i)
 	{
@@ -227,28 +227,6 @@ int  ModulePrograms::GetUniformLocation(const char* uniform)
 	return -1;
 }
 
-int ModulePrograms::GetSubroutineUniformLocation(bool vertex_shader, const char* name)
+int ModulePrograms::GetSubroutineLocation(bool vertex_shader, const char* name)
 {
-	int program = 0;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &program);
-	
-	if(program != 0)
-	{
-		return glGetSubroutineUniformLocation(program, vertex_shader ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, name);
-	}
-
-	return -1;
-}
-
-int ModulePrograms::GetSubroutineIndex(bool vertex_shader, const char* name)
-{
-	int program = 0;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &program);
-	
-	if(program != 0)
-	{
-		return glGetSubroutineIndex(program, vertex_shader ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER, name);
-	}
-
-	return -1;
 }

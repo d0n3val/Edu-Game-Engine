@@ -134,6 +134,10 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     glUniform1f(App->programs->GetUniformLocation("material.k_ambient"), material->GetKAmbient());
     glUniform1f(App->programs->GetUniformLocation("material.k_diffuse"), material->GetKDiffuse());
     glUniform1f(App->programs->GetUniformLocation("material.k_specular"), material->GetKSpecular());
+
+	unsigned sub_diffuse[] = { 2 };
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, sub_diffuse);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
