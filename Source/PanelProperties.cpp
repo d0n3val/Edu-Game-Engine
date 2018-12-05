@@ -568,7 +568,7 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 
             if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                modified = TextureButton(mat_res, ResourceMaterial::TextureSpecular, "Emissive") || modified;
+                modified = TextureButton(mat_res, ResourceMaterial::TextureEmissive, "Emissive") || modified;
                 float3 color = mat_res->GetEmissiveColor();
                 ImGui::PushID("emissive");
                 if(ImGui::ColorEdit3("color", (float*)&color))

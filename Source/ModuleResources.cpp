@@ -198,6 +198,8 @@ Resource::Type ModuleResources::TypeFromExtension(const char * extension) const
 			ret = Resource::texture;
 		else if (_stricmp(extension, "tga") == 0)
 			ret = Resource::texture;
+		else if (_stricmp(extension, "tif") == 0)
+			ret = Resource::texture;
 		else if (_stricmp(extension, "fbx") == 0)
 			ret = Resource::scene;
 		else if (_stricmp(extension, "dae") == 0)

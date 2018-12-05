@@ -42,6 +42,7 @@ private:
 												 const float4x4& projection, const float4x4& view);
     void                UpdateMaterialUniform   (const ResourceMaterial* material) const;
     void                UpdateLightUniform      () const;
+    void                CollectObjects          (GameObject* go);
 };
 
 

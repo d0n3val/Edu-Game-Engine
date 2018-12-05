@@ -39,20 +39,31 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned width, unsigned heig
 {
 	draw_nodes.clear();
 
-	if (camera->frustum_culling == true)
-	{
-		App->level->quadtree.CollectIntersections(draw_nodes, camera->frustum);
-	}
-	else
-	{
-		App->level->quadtree.CollectObjects(draw_nodes);
-	}
+	//if (camera->frustum_culling == true)
+	//{
+		//App->level->quadtree.CollectIntersections(draw_nodes, camera->frustum);
+	//}
+	//else
+	//{
+		//App->level->quadtree.CollectObjects(draw_nodes);
+	//}
 
+    CollectObjects(App->level->GetRoot());
 
 	float4x4 proj = camera->GetOpenGLProjectionMatrix();
 	float4x4 view = camera->GetOpenGLViewMatrix();
 
     DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view);
+}
+
+void ModuleRenderer::CollectObjects( GameObject* go)
+{
+    draw_nodes.push_back(go);
+
+    for(std::list<GameObject*>::iterator lIt = go->childs.begin(), lEnd = go->childs.end(); lIt != lEnd; ++lIt)
+    {
+        CollectObjects(*lIt);
+    }
 }
 
 void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4&, 
@@ -125,7 +136,7 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     unsigned diffuse_id  = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
     unsigned specular_id = specular ? specular->GetID() : App->resources->GetWhiteFallback()->GetID();
     unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
-    unsigned emissive_id = emissive ? emissive->GetID() : App->resources->GetBlackFallback()->GetID();
+    unsigned emissive_id = emissive ? emissive->GetID() : App->resources->GetWhiteFallback()->GetID();
 
     float4 diffuse_color = material->GetDiffuseColor();
     float3 specular_color = specular ? float3(1.0f) : material->GetSpecularColor();
