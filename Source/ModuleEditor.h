@@ -17,6 +17,8 @@ class PanelAbout;
 class PanelResources;
 class PanelQuickBar;
 class GameObject;
+class DirLight;
+class AmbientLight;
 
 class ModuleEditor : public Module
 {
@@ -58,7 +60,23 @@ public:
 	PanelConfiguration* conf = nullptr;
 	PanelResources* res= nullptr;
 	PanelQuickBar* bar= nullptr;
-	GameObject* selected = nullptr;
+
+    enum SelectionType
+    {
+        SelectionGameObject = 0,
+        SelectionDirLight,
+        SelectionAmbientLight
+    };
+
+    union
+    {
+	    GameObject* go = nullptr;
+        DirLight* directional;
+        AmbientLight* ambient;
+
+    } selected;
+
+    SelectionType selection_type = SelectionGameObject;
 
 private:
 	void LoadFile(const char* filter_extension = nullptr, const char* from_dir = nullptr);

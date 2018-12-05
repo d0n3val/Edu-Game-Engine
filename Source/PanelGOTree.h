@@ -5,6 +5,8 @@
 #include "Panel.h"
 
 class GameObject;
+class DirLight;
+class AmbientLight;
 
 class PanelGOTree : public Panel
 {
@@ -13,6 +15,10 @@ public:
 	virtual ~PanelGOTree();
 
 	void Draw() override;
+
+private:
+
+    void DrawLights();
 	void RecursiveDraw(GameObject* go);
 	void CheckHover(GameObject* go);
 

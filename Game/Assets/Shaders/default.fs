@@ -93,8 +93,8 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
 
     specular = specular_blinn(directional, pos, normal, view_pos, specular_color.a);
 
-    return vec4(diffuse_color.rgb*(ambient.color*material.k_ambient+diffuse*material.k_diffuse)+
-                specular_color.rgb*specular*material.k_specular,
+    return vec4(directional.color*(diffuse_color.rgb*(ambient.color*material.k_ambient+diffuse*material.k_diffuse)+
+                specular_color.rgb*specular*material.k_specular),
                 diffuse_color.a); 
 }
 

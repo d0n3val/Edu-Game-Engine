@@ -28,5 +28,5 @@ void DirLight::OnLoad(Config* config)
 
 float3 DirLight::GetDir() const
 {
-    return float3(-std::sin(polar)*std::cos(azimuthal), -std::sin(polar)*std::cos(azimuthal), -std::cos(polar));
+    return float3(-std::sin(polar)*std::cos(azimuthal), -std::cos(polar), -std::sin(polar)*std::sin(azimuthal));
 }

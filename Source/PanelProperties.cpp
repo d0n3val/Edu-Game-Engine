@@ -47,145 +47,200 @@ PanelProperties::~PanelProperties()
 // ---------------------------------------------------------
 void PanelProperties::Draw()
 {
-	GameObject* selected = App->editor->selected;
     ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
 
-	if (ImGui::BeginMenu("Options"))
-	{
-		if (ImGui::MenuItem("Reset Transform", nullptr, nullptr, (selected != nullptr)))
-		{
-			selected->SetLocalPosition(float3::zero);
-			selected->SetLocalScale(float3::one);
-			selected->SetLocalRotation(Quat::identity);
-		}
+    switch(App->editor->selection_type )
+    {
+        case ModuleEditor::SelectionGameObject:
+            DrawGameObject(App->editor->selected.go);
+            break;
+        case ModuleEditor::SelectionAmbientLight:
+            DrawAmbientLight(App->editor->selected.ambient);
+            break;
+        case ModuleEditor::SelectionDirLight:
+            DrawDirLight(App->editor->selected.directional);
+            break;
+    }
 
-		static_assert(Component::Types::Unknown == 9, "code needs update");
-        if (ImGui::BeginMenu("New Component", (selected != nullptr)))
+    ImGui::End();
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawAmbientLight(AmbientLight* light)
+{
+    if (ImGui::CollapsingHeader("Ambient light", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        float3 color = light->GetColor();
+        if(ImGui::ColorEdit3("color", (float*)&color))
         {
-			if (ImGui::MenuItem("Audio Listener"))
-				selected->CreateComponent(Component::Types::AudioListener);
-			if (ImGui::MenuItem("Audio Source"))
-				selected->CreateComponent(Component::Types::AudioSource);
-			if (ImGui::MenuItem("Mesh"))
-				selected->CreateComponent(Component::Types::Mesh);
-			if (ImGui::MenuItem("Material"))
-				selected->CreateComponent(Component::Types::Material);
-			if (ImGui::MenuItem("Camera"))
-				selected->CreateComponent(Component::Types::Camera);
-			if (ImGui::MenuItem("RigidBody"))
-				selected->CreateComponent(Component::Types::RigidBody);
-			if (ImGui::MenuItem("Animation"))
-				selected->CreateComponent(Component::Types::Animation);
-			if (ImGui::MenuItem("Steering"))
-				selected->CreateComponent(Component::Types::Steering);
-			if (ImGui::MenuItem("Path"))
-				selected->CreateComponent(Component::Types::Path);
+            light->SetColor(color);
+        }
+    }
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawDirLight(DirLight* light)
+{
+    if (ImGui::CollapsingHeader("Directional light", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        float3 color = light->GetColor();
+        if(ImGui::ColorEdit3("color", (float*)&color))
+        {
+            light->SetColor(color);
+        }
+
+        float azimuthal = light->GetAzimuthal();
+        if(ImGui::SliderAngle("azimuthal", &azimuthal, 0.0f, 360.0f))
+        {
+            light->SetAzimuthal(azimuthal);
+        }
+
+        float polar = light->GetPolar();
+        if(ImGui::SliderAngle("polar", &polar, 0.0f, 90.0f))
+        {
+            light->SetPolar(polar);
+        }
+    }
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawGameObject(GameObject* go)
+{
+    if (ImGui::BeginMenu("Options"))
+    {
+        if (ImGui::MenuItem("Reset Transform", nullptr, nullptr, (go != nullptr)))
+        {
+            go->SetLocalPosition(float3::zero);
+            go->SetLocalScale(float3::one);
+            go->SetLocalRotation(Quat::identity);
+        }
+
+        static_assert(Component::Types::Unknown == 9, "code needs update");
+        if (ImGui::BeginMenu("New Component", (go != nullptr)))
+        {
+            if (ImGui::MenuItem("Audio Listener"))
+                go->CreateComponent(Component::Types::AudioListener);
+            if (ImGui::MenuItem("Audio Source"))
+                go->CreateComponent(Component::Types::AudioSource);
+            if (ImGui::MenuItem("Mesh"))
+                go->CreateComponent(Component::Types::Mesh);
+            if (ImGui::MenuItem("Material"))
+                go->CreateComponent(Component::Types::Material);
+            if (ImGui::MenuItem("Camera"))
+                go->CreateComponent(Component::Types::Camera);
+            if (ImGui::MenuItem("RigidBody"))
+                go->CreateComponent(Component::Types::RigidBody);
+            if (ImGui::MenuItem("Animation"))
+                go->CreateComponent(Component::Types::Animation);
+            if (ImGui::MenuItem("Steering"))
+                go->CreateComponent(Component::Types::Steering);
+            if (ImGui::MenuItem("Path"))
+                go->CreateComponent(Component::Types::Path);
             ImGui::EndMenu();
         }
 
-		ImGui::EndMenu();
-	}
+        ImGui::EndMenu();
+    }
 
-	if (selected != nullptr )
-	{
+    if (go != nullptr )
+    {
 
-		// Active check box
-		bool active = selected->IsActive();
-		ImGui::Checkbox(" ", &active);
-		selected->SetActive(active);
+        // Active check box
+        bool active = go->IsActive();
+        ImGui::Checkbox(" ", &active);
+        go->SetActive(active);
 
-		if(ImGui::IsItemHovered())
-			ImGui::SetTooltip("UID: %u", selected->GetUID());
+        if(ImGui::IsItemHovered())
+            ImGui::SetTooltip("UID: %u", go->GetUID());
 
-		ImGui::SameLine();
+        ImGui::SameLine();
 
-		// Text Input for the name
-		char name[50];
-		strcpy_s(name, 50, selected->name.c_str());
-		if (ImGui::InputText("", name, 50,
-			ImGuiInputTextFlags_AutoSelectAll |
-			ImGuiInputTextFlags_EnterReturnsTrue))
-			selected->name = name;
+        // Text Input for the name
+        char name[50];
+        strcpy_s(name, 50, go->name.c_str());
+        if (ImGui::InputText("", name, 50,
+                    ImGuiInputTextFlags_AutoSelectAll |
+                    ImGuiInputTextFlags_EnterReturnsTrue))
+            go->name = name;
 
-		// Transform section ============================================
-		if (ImGui::CollapsingHeader("Local Transformation", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			float3 pos = selected->GetLocalPosition();
-			float3 rot = selected->GetLocalRotation();
-			rot.x = fabsf(rot.x);
-			rot.y = fabsf(rot.y);
-			rot.z = fabsf(rot.z);
-			float3 scale = selected->GetLocalScale();;
+        // Transform section ============================================
+        if (ImGui::CollapsingHeader("Local Transformation", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float3 pos = go->GetLocalPosition();
+            float3 rot = go->GetLocalRotation();
+            rot.x = fabsf(rot.x);
+            rot.y = fabsf(rot.y);
+            rot.z = fabsf(rot.z);
+            float3 scale = go->GetLocalScale();;
 
-			if (ImGui::DragFloat3("Position", (float*)&pos, 0.25f))
-				selected->SetLocalPosition(pos);
+            if (ImGui::DragFloat3("Position", (float*)&pos, 0.25f))
+                go->SetLocalPosition(pos);
 
-			if (ImGui::SliderAngle3("Rotation", (float*)&rot))
-				selected->SetLocalRotation(rot);
+            if (ImGui::SliderAngle3("Rotation", (float*)&rot))
+                go->SetLocalRotation(rot);
 
-			if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
-				selected->SetLocalScale(scale);
+            if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
+                go->SetLocalScale(scale);
 
-			ImGui::Text("Bounding Box: ");
-			ImGui::SameLine();
-			if (selected->global_bbox.IsFinite())
-			{
-				float3 size = selected->GetLocalBBox().Size();
-				ImGui::TextColored(IMGUI_YELLOW, "%.2f %.2f %.2f", size.x, size.y, size.x);
-			}
-			else
-				ImGui::TextColored(IMGUI_YELLOW, "- not generated -");
+            ImGui::Text("Bounding Box: ");
+            ImGui::SameLine();
+            if (go->global_bbox.IsFinite())
+            {
+                float3 size = go->GetLocalBBox().Size();
+                ImGui::TextColored(IMGUI_YELLOW, "%.2f %.2f %.2f", size.x, size.y, size.x);
+            }
+            else
+                ImGui::TextColored(IMGUI_YELLOW, "- not generated -");
 
-			ImGui::Text("Velocity: ");
-			ImGui::SameLine();
-			float3 vel = selected->GetVelocity();
-			ImGui::TextColored(IMGUI_YELLOW, "%.2f %.2f %.2f (%.2f m/s)", vel.x, vel.y, vel.x, vel.Length());
-		}
+            ImGui::Text("Velocity: ");
+            ImGui::SameLine();
+            float3 vel = go->GetVelocity();
+            ImGui::TextColored(IMGUI_YELLOW, "%.2f %.2f %.2f (%.2f m/s)", vel.x, vel.y, vel.x, vel.Length());
+        }
 
-		// Iterate all components and draw
-		static_assert(Component::Types::Unknown == 9, "code needs update");
-		for (list<Component*>::iterator it = selected->components.begin(); it != selected->components.end(); ++it)
-		{
-			ImGui::PushID(*it);
-			if (InitComponentDraw(*it, (*it)->GetTypeStr()))
-			{
+        // Iterate all components and draw
+        static_assert(Component::Types::Unknown == 9, "code needs update");
+        for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
+        {
+            ImGui::PushID(*it);
+            if (InitComponentDraw(*it, (*it)->GetTypeStr()))
+            {
 
-				switch ((*it)->GetType())
-				{
-				case Component::Types::Mesh:
-					DrawMeshComponent((ComponentMesh*)(*it));
-				break;
-				case Component::Types::Material:
-					DrawMaterialComponent((ComponentMaterial*)(*it));
-				break;
-				case Component::Types::AudioSource:
-					DrawAudioSourceComponent((ComponentAudioSource*)(*it));
-				break;
-				case Component::Types::AudioListener:
-					DrawAudioListenerComponent((ComponentAudioListener*)(*it));
-				break;
-				case Component::Types::Camera:
-					DrawCameraComponent((ComponentCamera*)(*it));
-				break;
-				case Component::Types::RigidBody:
-					((ComponentRigidBody*)(*it))->DrawEditor();
-				break;
-				case Component::Types::Animation:
-				break;
-				case Component::Types::Steering:
-					((ComponentSteering*)(*it))->DrawEditor();
-				break;
-				case Component::Types::Path:
-					((ComponentPath*)(*it))->DrawEditor();
-				break;
-				}
-			}
-			ImGui::PopID();
-		}
+                switch ((*it)->GetType())
+                {
+                    case Component::Types::Mesh:
+                        DrawMeshComponent((ComponentMesh*)(*it));
+                        break;
+                    case Component::Types::Material:
+                        DrawMaterialComponent((ComponentMaterial*)(*it));
+                        break;
+                    case Component::Types::AudioSource:
+                        DrawAudioSourceComponent((ComponentAudioSource*)(*it));
+                        break;
+                    case Component::Types::AudioListener:
+                        DrawAudioListenerComponent((ComponentAudioListener*)(*it));
+                        break;
+                    case Component::Types::Camera:
+                        DrawCameraComponent((ComponentCamera*)(*it));
+                        break;
+                    case Component::Types::RigidBody:
+                        ((ComponentRigidBody*)(*it))->DrawEditor();
+                        break;
+                    case Component::Types::Animation:
+                        break;
+                    case Component::Types::Steering:
+                        ((ComponentSteering*)(*it))->DrawEditor();
+                        break;
+                    case Component::Types::Path:
+                        ((ComponentPath*)(*it))->DrawEditor();
+                        break;
+                }
+            }
+            ImGui::PopID();
+        }
 
-	}
+    }
 
-    ImGui::End();
 }
 
 UID PanelProperties::PickResource(UID resource, int type)

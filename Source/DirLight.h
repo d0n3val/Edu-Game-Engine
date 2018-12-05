@@ -29,8 +29,8 @@ public:
 public:
 
     float3 color     = math::float3::one;
-    float  polar     = 0.0f;
-    float  azimuthal = 0.0f;
+    float  polar     = PI/2.0f;
+    float  azimuthal = PI/2.0f;
 };
 
 #endif /* __DIRLIGHT_H__ */

@@ -118,7 +118,7 @@ update_status ModuleEditorCamera::Update(float dt)
 		{
 			GameObject* pick = Pick();
 			if (pick != nullptr)
-				App->editor->SetSelected(pick, (App->editor->selected == pick));
+				App->editor->SetSelected(pick, (App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go == pick));
 		}
 	}
 

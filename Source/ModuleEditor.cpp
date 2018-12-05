@@ -245,7 +245,8 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 		break;
 #endif
 		case Event::gameobject_destroyed:
-			selected = App->level->Validate(selected);
+			if(selection_type == SelectionGameObject)
+				selected.go = App->level->Validate(selected.go);
 			tree->drag = App->level->Validate(tree->drag);
 		break;
 		case Event::window_resize:
@@ -366,7 +367,8 @@ void ModuleEditor::LogFPS(float fps, float ms)
 
 void ModuleEditor::SetSelected(GameObject * selected, bool focus)
 {
-	this->selected = selected;
+	selection_type = SelectionGameObject;
+	this->selected.go = selected;
 	if (selected != nullptr && focus == true)
 	{
 		float radius = selected->global_bbox.MinimalEnclosingSphere().r;

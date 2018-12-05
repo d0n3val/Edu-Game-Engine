@@ -119,10 +119,53 @@ void PanelGOTree::Draw()
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
 		RecursiveDraw(*it);
 
+    DrawLights();
+
 	if (drag && ImGui::IsMouseReleased(0))
 		drag = nullptr;
 
     ImGui::End();
+}
+
+// ---------------------------------------------------------
+void PanelGOTree::DrawLights()
+{
+	ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_GREY);
+
+    uint flags = ImGuiTreeNodeFlags_Leaf;
+
+    if(App->editor->selection_type == ModuleEditor::SelectionAmbientLight && App->editor->selected.ambient == &App->level->GetAmbientLight())
+    {
+        flags |= ImGuiTreeNodeFlags_Selected;
+    }
+
+    if(ImGui::TreeNodeEx("Ambient", flags))
+    {
+		if (ImGui::IsItemClicked(0)) 
+        {
+			App->editor->selected.ambient = &App->level->GetAmbientLight();
+			App->editor->selection_type = ModuleEditor::SelectionAmbientLight;
+		}
+        ImGui::TreePop();
+    }
+
+    flags = ImGuiTreeNodeFlags_Leaf;
+
+    if(App->editor->selection_type == ModuleEditor::SelectionDirLight && App->editor->selected.directional == &App->level->GetDirLight())
+    {
+        flags |= ImGuiTreeNodeFlags_Selected;
+    }
+
+	if(ImGui::TreeNodeEx("Directional", flags))
+    {
+		if (ImGui::IsItemClicked(0)) 
+        {
+			App->editor->selected.directional = &App->level->GetDirLight();
+			App->editor->selection_type = ModuleEditor::SelectionDirLight;
+		}
+        ImGui::TreePop();
+    }
+    ImGui::PopStyleColor();
 }
 
 // ---------------------------------------------------------
@@ -134,7 +177,8 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 	if (go->childs.size() == 0)
 		flags |= ImGuiTreeNodeFlags_Leaf;
 
-	if (go == App->editor->selected) 
+	bool go_selection = App->editor->selection_type == ModuleEditor::SelectionGameObject;
+	if (go_selection && go == App->editor->selected.go) 
 	{
 		flags |= ImGuiTreeNodeFlags_Selected;
 		open_selected = false;
@@ -156,7 +200,7 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 
 	ImGui::PushStyleColor(ImGuiCol_Text, color);
 
-	if (open_selected == true && App->editor->selected->IsUnder(go) == true)
+	if (open_selected == true && go_selection == true && App->editor->selected.go->IsUnder(go) == true)
 		ImGui::SetNextTreeNodeOpen(true);
 
 	if (ImGui::TreeNodeEx(name, flags))
@@ -164,8 +208,9 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 		CheckHover(go);
 
 		if (ImGui::IsItemClicked(0)) {
-			App->editor->selected = go;
-			drag = App->editor->selected;
+			App->editor->selected.go = go;
+			App->editor->selection_type = ModuleEditor::SelectionGameObject;
+			drag = go;
 		}
 
 		if (ImGui::IsItemClicked(1))
@@ -191,6 +236,7 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 	ImGui::PopStyleColor();
 }
 
+
 void PanelGOTree::CheckHover(GameObject* go)
 {
 	if (ImGui::IsItemHoveredRect())
@@ -203,8 +249,9 @@ void PanelGOTree::CheckHover(GameObject* go)
 		}
 
 		if (ImGui::IsMouseClicked(0)) {
-			App->editor->selected = go;
-			drag = App->editor->selected;
+			App->editor->selection_type = ModuleEditor::SelectionGameObject;
+			App->editor->selected.go = go;
+			drag = go;
 		}
 
 		if (ImGui::IsMouseDoubleClicked(0))
