@@ -96,7 +96,7 @@ void PanelProperties::DrawDirLight(DirLight* light)
         }
 
         float polar = light->GetPolar();
-        if(ImGui::SliderAngle("polar", &polar, 0.0f, 90.0f))
+        if(ImGui::SliderAngle("polar", &polar, 0.0f, 180.0f))
         {
             light->SetPolar(polar);
         }
@@ -510,6 +510,7 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 
             if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
             {
+                modified = TextureButton(mat_res, ResourceMaterial::TextureOcclusion, "Occlusion");
                 float k_ambient = mat_res->GetKAmbient();
                 if(ImGui::SliderFloat("k ambient", &k_ambient, 0.0f, 1.0f))
                 {
@@ -565,6 +566,21 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
                 }
             }
 
+            if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                modified = TextureButton(mat_res, ResourceMaterial::TextureSpecular, "Emissive") || modified;
+                float3 color = mat_res->GetEmissiveColor();
+                ImGui::PushID("emissive");
+                if(ImGui::ColorEdit3("color", (float*)&color))
+                {
+                    mat_res->SetEmissiveColor(color);
+                    modified = true;
+                }
+                ImGui::PopID();
+
+            }
+
+
             ImGui::PopFont();
 
             if(modified)
@@ -585,22 +601,35 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 
     if (info != nullptr)
     {
-
+		ImGui::PushID(texture);
         if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
-            ImGui::OpenPopup(name);
+			ImGui::PopID();
+			ImGui::OpenPopup(name);
         }
-        else if(ImGui::IsItemHovered())
+        else 
         {
-            ImGui::SetTooltip("%s", info->GetFile());
+			ImGui::PopID();
+
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("%s", info->GetFile());
+			}
         }
     }
     else
     {
+		ImGui::PushID(texture);
         if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
         {
-            ImGui::OpenPopup(name);
+			ImGui::PopID();
+			ImGui::OpenPopup(name);
         }
+		else
+		{
+			ImGui::PopID();
+		}
+
     }
 
     ImGui::SameLine();

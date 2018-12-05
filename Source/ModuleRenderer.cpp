@@ -117,13 +117,27 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
 {
     const ResourceTexture* specular = material->GetTextureRes(ResourceMaterial::TextureSpecular);
     const ResourceTexture* diffuse  = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
+    const ResourceTexture* occlusion  = material->GetTextureRes(ResourceMaterial::TextureOcclusion);
+    const ResourceTexture* emissive  = material->GetTextureRes(ResourceMaterial::TextureEmissive);
 
     glUniform1f(App->programs->GetUniformLocation("material.shininess"), material->GetShininess());
 
     unsigned diffuse_id  = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
-    float4 diffuse_color = material->GetDiffuseColor();
     unsigned specular_id = specular ? specular->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned emissive_id = emissive ? emissive->GetID() : App->resources->GetBlackFallback()->GetID();
+
+    float4 diffuse_color = material->GetDiffuseColor();
     float3 specular_color = specular ? float3(1.0f) : material->GetSpecularColor();
+    float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, emissive_id);
+    glUniform1i(App->programs->GetUniformLocation("material.emissive_map"), 3);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, occlusion_id);
+    glUniform1i(App->programs->GetUniformLocation("material.occlusion_map"), 2);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, specular_id);
@@ -135,6 +149,7 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
 
     glUniform4fv(App->programs->GetUniformLocation("material.diffuse_color"), 1, (const float*)&diffuse_color);
     glUniform3fv(App->programs->GetUniformLocation("material.specular_color"), 1, (const float*)&specular_color);
+    glUniform3fv(App->programs->GetUniformLocation("material.emissive_color"), 1, (const float*)&emissive_color);
 
     glUniform1f(App->programs->GetUniformLocation("material.k_ambient"), material->GetKAmbient());
     glUniform1f(App->programs->GetUniformLocation("material.k_diffuse"), material->GetKDiffuse());

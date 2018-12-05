@@ -38,6 +38,7 @@ bool ResourceMaterial::LoadInMemory()
 
 		read_stream >> diffuse_color.x >> diffuse_color.y >> diffuse_color.z >> diffuse_color.w;
 		read_stream >> specular_color.x >> specular_color.y >> specular_color.z;
+		read_stream >> emissive_color.x >> emissive_color.y >> emissive_color.z;
 
         for(uint i=0; i< TextureCount; ++i)
         {
@@ -115,6 +116,7 @@ void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_s
 {
     write_stream << diffuse_color.x << diffuse_color.y << diffuse_color.z << diffuse_color.w;
     write_stream << specular_color.x << specular_color.y << specular_color.z;
+    write_stream << emissive_color.x << emissive_color.y << emissive_color.z;
 
     for(uint i=0; i< TextureCount; ++i)
     {
@@ -135,14 +137,10 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
 
     ResourceMaterial* m = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material));
 
-    float shine_strength = 1.0f;
-
     material->Get(AI_MATKEY_COLOR_DIFFUSE, m->diffuse_color);
     material->Get(AI_MATKEY_COLOR_SPECULAR, m->specular_color);
+    material->Get(AI_MATKEY_COLOR_EMISSIVE, m->emissive_color);
     material->Get(AI_MATKEY_SHININESS, m->shininess);
-    material->Get(AI_MATKEY_SHININESS_STRENGTH, shine_strength);
-
-    m->specular_color *= shine_strength;
 
     aiString file;
     aiTextureMapping mapping;
@@ -178,6 +176,28 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         full_path.Append(file.data);
 
         m->textures[TextureSpecular] = App->resources->ImportFile(full_path.C_Str(), true);
+    }
+
+    if (material->GetTexture(aiTextureType_AMBIENT, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
+    {
+        assert(mapping == aiTextureMapping_UV);
+        assert(uvindex == 0);
+
+        aiString full_path(base_path);
+        full_path.Append(file.data);
+
+        m->textures[TextureOcclusion] = App->resources->ImportFile(full_path.C_Str(), true);
+    }
+
+    if (material->GetTexture(aiTextureType_EMISSIVE, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
+    {
+        assert(mapping == aiTextureMapping_UV);
+        assert(uvindex == 0);
+
+        aiString full_path(base_path);
+        full_path.Append(file.data);
+
+        m->textures[TextureEmissive] = App->resources->ImportFile(full_path.C_Str(), true);
     }
 
     std::string output;

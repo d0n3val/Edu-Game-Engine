@@ -16,6 +16,7 @@ public:
         TextureSpecular,
         TextureNormal,
         TextureOcclusion,
+        TextureEmissive,
         TextureCount
     };
 
@@ -23,11 +24,12 @@ private:
 
     float4      diffuse_color          = float4::one;
     float3      specular_color         = float4::zero;
-    UID         textures[TextureCount] = { 0, 0, 0, 0 };
-    float       shininess              = 40.0f;
-    float       k_ambient              = 1.0f;
-    float       k_diffuse              = 0.6f;
-    float       k_specular             = 0.4f;
+    float3      emissive_color         = float4::zero;
+    UID         textures[TextureCount] = { 0, 0, 0, 0, 0 };
+    float       shininess              = 0.5f;
+    float       k_ambient              = 0.5f;
+    float       k_diffuse              = 0.5f;
+    float       k_specular             = 0.5f;
 
 public:
 
@@ -46,6 +48,9 @@ public:
 
     const float3&           GetSpecularColor    () const { return specular_color;}
     void                    SetSpecularColor    (const float3& value) { specular_color = value; }
+
+    const float3&           GetEmissiveColor    () const { return emissive_color;}
+    void                    SetEmissiveColor    (const float3& value) { emissive_color = value; }
 
     float                   GetKSpecular        () const { return k_specular; }
     void                    SetKSpecular        (float value)  { k_specular = value; }
