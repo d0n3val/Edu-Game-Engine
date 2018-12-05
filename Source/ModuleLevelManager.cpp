@@ -215,7 +215,12 @@ bool ModuleLevelManager::Load(const char * file)
 			name = desc.GetString("Name", "Unnamed level");
 			App->camera->Load(&desc);
 
+            Config lights = config.GetSection("Lights");
+            ambient.Load(lights.GetSection("Ambient"));
+            directional.Load(lights.GetSection("Directional"));
+
 			LoadGameObjects(config);
+
 		}
 
 		RELEASE_ARRAY(buffer); 
@@ -234,6 +239,11 @@ bool ModuleLevelManager::Save(const char * file)
 	Config desc(save.AddSection("Description"));
 	desc.AddString("Name", name.c_str());
 	App->camera->Save(&desc);
+
+    Config lights = save.AddSection("Lights");    
+
+    ambient.Save(lights.AddSection("Ambient"));
+    directional.Save(lights.AddSection("Directional"));
 
 	// Serialize GameObjects recursively
 	save.AddArray("Game Objects");

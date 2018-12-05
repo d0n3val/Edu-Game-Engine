@@ -12,8 +12,8 @@ public:
     AmbientLight();
     ~AmbientLight();
 
-    void OnSave(Config& config) const;
-    void OnLoad(Config* config);
+    void Save(Config& config) const;
+    void Load(Config& config);
 
     const float3& GetColor    () const { return color; }
     void          SetColor    (const float3& c) { color = c; }

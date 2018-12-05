@@ -2,24 +2,27 @@
 
 #include "AmbientLight.h"
 
+#include "Config.h"
 
+// ---------------------------------------------------------
 AmbientLight::AmbientLight()
 {
 }
 
+// ---------------------------------------------------------
 AmbientLight::~AmbientLight()
 {
 }
 
-void AmbientLight::OnSave(Config& config) const
+// ---------------------------------------------------------
+void AmbientLight::Save(Config& config) const
 {
-	//config.AddUInt("type", uint(type));
-	//config.AddFloat4("color", color);
+	config.AddFloat3("color", color);
 }
 
-void AmbientLight::OnLoad(Config* config)
+// ---------------------------------------------------------
+void AmbientLight::Load(Config& config)
 {
-    //type  = Type(config->GetUInt("type", uint(POINT)));
-    //color = config->GetFloat4("color", float4(1.0f, 1.0f, 1.0f, 1.0f));
+    color = config.GetFloat3("color", float3(0.0f, 0.0f, 0.0f));
 }
 

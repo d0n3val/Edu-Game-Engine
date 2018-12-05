@@ -2,6 +2,8 @@
 
 #include "DirLight.h"
 
+#include "Config.h"
+
 // ---------------------------------------------------------
 DirLight::DirLight() 
 {
@@ -13,19 +15,22 @@ DirLight::~DirLight()
 }
 
 // ---------------------------------------------------------
-void DirLight::OnSave(Config& config) const
+void DirLight::Save(Config& config) const
 {
-	//config.AddUInt("type", uint(type));
-	//config.AddFloat4("color", color);
+    config.AddFloat("polar", polar);
+    config.AddFloat("azimuthal", azimuthal);
+	config.AddFloat3("color", color);
 }
 
 // ---------------------------------------------------------
-void DirLight::OnLoad(Config* config) 
+void DirLight::Load(Config& config) 
 {
-	//type  = Type(config->GetUInt("type", uint(POINT)));
-    //color = config->GetFloat4("color", float4(1.0f, 1.0f, 1.0f, 1.0f));
+    polar = config.GetFloat("polar", PI/2.0f);
+    azimuthal = config.GetFloat("azimuthal", PI/2.0f);
+    color = config.GetFloat3("color", float3(1.0f, 1.0f, 1.0f));
 }
 
+// ---------------------------------------------------------
 float3 DirLight::GetDir() const
 {
     return float3(-std::sin(polar)*std::cos(azimuthal), -std::cos(polar), -std::sin(polar)*std::sin(azimuthal));
