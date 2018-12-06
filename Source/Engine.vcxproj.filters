@@ -477,9 +477,6 @@
     <ClInclude Include="Bullet\include\btBulletDynamicsCommon.h">
       <Filter>3rd Party\bullet</Filter>
     </ClInclude>
-    <ClInclude Include="PanelQuickBar.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
     <ClInclude Include="QuadTree.h">
       <Filter>Containers</Filter>
     </ClInclude>
@@ -590,6 +587,12 @@
     </ClInclude>
     <ClInclude Include="AmbientLight.h">
       <Filter>Game Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\ImGuizmo.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewport.h">
+      <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -797,9 +800,6 @@
     <ClCompile Include="ModuleEditorCamera.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
-    <ClCompile Include="PanelQuickBar.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="QuadTree.cpp">
       <Filter>Containers</Filter>
     </ClCompile>
@@ -904,6 +904,12 @@
     </ClCompile>
     <ClCompile Include="AmbientLight.cpp">
       <Filter>Game Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\ImGuizmo.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewport.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -25,7 +25,7 @@ public:
     ~ModuleRenderer();
 
 	bool                Init                    (Config* config = nullptr);
-    void                Draw                    (ComponentCamera* camera, unsigned width, unsigned height);
+    void                Draw                    (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
     
     unsigned            GetNumDrawNodes         () const;
     const GameObject*   GetDrawNode             (unsigned index) const;

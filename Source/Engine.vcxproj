@@ -160,6 +160,7 @@
     <ClInclude Include="imgui\examples\imgui_impl_sdl.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
+    <ClInclude Include="Imgui\ImGuizmo.h" />
     <ClInclude Include="imgui\imgui_internal.h" />
     <ClInclude Include="Imgui\imgui_user.h" />
     <ClInclude Include="imgui\imstb_rectpack.h" />
@@ -255,7 +256,6 @@
     <ClInclude Include="Panel.h" />
     <ClInclude Include="PanelGOTree.h" />
     <ClInclude Include="PanelProperties.h" />
-    <ClInclude Include="PanelQuickBar.h" />
     <ClInclude Include="PanelResources.h" />
     <ClInclude Include="parson.h" />
     <ClInclude Include="PhysBody3D.h" />
@@ -272,6 +272,7 @@
     <ClInclude Include="PhysVehicle3D.h" />
     <ClInclude Include="tinyspline\include\tinyspline.h" />
     <ClInclude Include="tinyspline\include\tinysplinecpp.h" />
+    <ClInclude Include="Viewport.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AmbientLight.cpp" />
@@ -296,6 +297,7 @@
     <ClCompile Include="imgui\examples\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\examples\imgui_impl_sdl.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="Imgui\ImGuizmo.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="Imgui\imgui_user2.cpp" />
@@ -360,7 +362,6 @@
     <ClCompile Include="Panel.cpp" />
     <ClCompile Include="PanelGOTree.cpp" />
     <ClCompile Include="PanelProperties.cpp" />
-    <ClCompile Include="PanelQuickBar.cpp" />
     <ClCompile Include="PanelResources.cpp" />
     <ClCompile Include="parson.c" />
     <ClCompile Include="PhysBody3D.cpp" />
@@ -378,6 +379,7 @@
     <ClCompile Include="PhysVehicle3D.cpp" />
     <ClCompile Include="tinyspline\include\tinyspline.c" />
     <ClCompile Include="tinyspline\include\tinysplinecpp.cpp" />
+    <ClCompile Include="Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\appveyor.yml" />

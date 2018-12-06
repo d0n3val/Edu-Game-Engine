@@ -19,7 +19,6 @@
 #include "PanelConfiguration.h"
 #include "PanelAbout.h"
 #include "PanelResources.h"
-#include "PanelQuickBar.h"
 #include "Event.h"
 #include <string.h>
 #include <algorithm>
@@ -52,8 +51,8 @@ bool ModuleEditor::Init(Config* config)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.IniFilename = SETTINGS_FOLDER "imgui.ini";
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableSetMousePos;  // Enable Keyboard Controls
+	io.WantSetMousePos = true;
     ImGui_ImplSDL2_InitForOpenGL(App->window->GetWindow(), App->renderer3D->context);
     ImGui_ImplOpenGL3_Init("#version 130");
 
@@ -69,7 +68,6 @@ bool ModuleEditor::Init(Config* config)
 	panels.push_back(conf = new PanelConfiguration());
 	panels.push_back(about = new PanelAbout());
 	panels.push_back(res = new PanelResources());
-	panels.push_back(bar = new PanelQuickBar());
 
 
 	return true;
@@ -96,6 +94,11 @@ update_status ModuleEditor::PreUpdate(float dt)
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(App->window->GetWindow());
     ImGui::NewFrame();
+
+    // \note: needed for guizmo (maybe ImGui_Impl has a bug)
+    int mx, my;
+	SDL_GetMouseState(&mx, &my);	 
+    ImGui::GetIO().MousePos = ImVec2(float(mx), float(my));
 
     ImGuiIO& io = ImGui::GetIO();
 	capture_keyboard = io.WantCaptureKeyboard;
@@ -263,8 +266,6 @@ void ModuleEditor::OnResize(int width, int height)
 {
 	console->width = width - tree->width - conf->width;
 	console->posy = height - console->height;
-
-	bar->posx = width / 2 - bar->width / 2;
 
 	tree->height = height / 2;
 	res->posy = height / 2 + tree->posy;

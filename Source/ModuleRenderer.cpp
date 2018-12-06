@@ -35,7 +35,7 @@ ModuleRenderer::~ModuleRenderer()
 {
 }
 
-void ModuleRenderer::Draw(ComponentCamera* camera, unsigned width, unsigned height)
+void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height)
 {
 	draw_nodes.clear();
 
@@ -50,10 +50,18 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned width, unsigned heig
 
     CollectObjects(App->level->GetRoot());
 
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glViewport(0, 0, width, height);
+	glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	float4x4 proj = camera->GetOpenGLProjectionMatrix();
 	float4x4 view = camera->GetOpenGLViewMatrix();
 
     DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ModuleRenderer::CollectObjects( GameObject* go)
@@ -79,7 +87,7 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4&,
 
         if(mesh != nullptr && material != nullptr)
         {
-            (this->*drawer)(node->GetGlobalTransformation(), mesh, material, projection, view);
+            (this->*drawer)(node->GetGlobalTransformation().Transposed(), mesh, material, projection, view);
         }
     }
 

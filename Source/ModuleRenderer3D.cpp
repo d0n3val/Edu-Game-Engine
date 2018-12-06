@@ -14,6 +14,7 @@
 #include "Event.h"
 #include "Config.h"
 #include "DebugDraw.h"
+#include "Viewport.h"
 
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
@@ -21,11 +22,13 @@
 
 ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module("Renderer", start_enabled)
 {
+    viewport = new Viewport;
 }
 
 // Destructor
 ModuleRenderer3D::~ModuleRenderer3D()
 {
+    delete viewport;
 }
 
 // Called before render is available
@@ -152,22 +155,26 @@ update_status ModuleRenderer3D::PostUpdate(float dt)
 	if (draw_plane == true)
 	{
 		dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray);
-        dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, 100.0f, 0, false);
 	}
 
-	App->renderer->Draw(active_camera, App->window->GetWidth(), App->window->GetHeight());
+    if(draw_axis == true)
+    {
+        dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, 100.0f, 0, false);
+    }
 
 	if (debug_draw == true)
 	{
  		App->DebugDraw();
-		App->debug_draw->Draw(active_camera, 0, App->window->GetWidth(), App->window->GetHeight());
-	}
+    }
 
-	App->editor->Draw();
+    viewport->Draw(active_camera);
 
-	SDL_GL_SwapWindow(App->window->GetWindow());
+    App->editor->Draw();
 
-	return UPDATE_CONTINUE;
+
+    SDL_GL_SwapWindow(App->window->GetWindow());
+
+    return UPDATE_CONTINUE;
 }
 
 // Called before quitting

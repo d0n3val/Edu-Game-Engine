@@ -1,6 +1,7 @@
 #include "PanelProperties.h"
 #include "Application.h"
 #include "Imgui/imgui.h"
+#include "Imgui/imguizmo.h"
 #include "GameObject.h"
 #include "Component.h"
 #include "ComponentMaterial.h"
@@ -27,6 +28,7 @@
 #include "ResourceAnimation.h"
 #include "PanelResources.h"
 #include "PanelGOTree.h"
+#include "Viewport.h"
 #include <list>
 
 using namespace std;
@@ -166,21 +168,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         // Transform section ============================================
         if (ImGui::CollapsingHeader("Local Transformation", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            float3 pos = go->GetLocalPosition();
-            float3 rot = go->GetLocalRotation();
-            rot.x = fabsf(rot.x);
-            rot.y = fabsf(rot.y);
-            rot.z = fabsf(rot.z);
-            float3 scale = go->GetLocalScale();;
-
-            if (ImGui::DragFloat3("Position", (float*)&pos, 0.25f))
-                go->SetLocalPosition(pos);
-
-            if (ImGui::SliderAngle3("Rotation", (float*)&rot))
-                go->SetLocalRotation(rot);
-
-            if (ImGui::DragFloat3("Scale", (float*)&scale, 0.05f))
-                go->SetLocalScale(scale);
+            App->renderer3D->viewport->DrawGuizmoProperties(go);
 
             ImGui::Text("Bounding Box: ");
             ImGui::SameLine();

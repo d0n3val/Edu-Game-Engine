@@ -59,7 +59,6 @@ public:
 	PanelAbout* about = nullptr;
 	PanelConfiguration* conf = nullptr;
 	PanelResources* res= nullptr;
-	PanelQuickBar* bar= nullptr;
 
     enum SelectionType
     {
