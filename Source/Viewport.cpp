@@ -32,7 +32,7 @@ void Viewport::Draw(ComponentCamera* camera)
 	{
         if(ImGui::BeginChild("SceneCanvas", ImVec2(0, 0), true, ImGuiWindowFlags_NoMove))
         {
-            DrawQuickBar();
+            DrawQuickBar(camera);
 
             focused = ImGui::IsWindowFocused();
 
@@ -105,7 +105,7 @@ void Viewport::GenerateFBOTexture(unsigned w, unsigned h)
     }
 }
 
-void Viewport::DrawQuickBar()
+void Viewport::DrawQuickBar(ComponentCamera* camera)
 {
     Application::State state = App->GetState();
 
@@ -140,7 +140,10 @@ void Viewport::DrawQuickBar()
     ImGui::SameLine();
     ImGui::Checkbox("Dbg Draw", &App->renderer3D->debug_draw);
 
-    ImGui::SameLine(0, 100);
+	ImGui::SameLine();
+    ImGui::ColorEdit3("Background", (float*)&camera->background, ImGuiColorEditFlags_NoInputs);
+
+    ImGui::SameLine(0, 50);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 }

@@ -26,7 +26,7 @@ public:
 private:
 
     void GenerateFBOTexture(unsigned w, unsigned h);
-    void DrawQuickBar();
+    void DrawQuickBar(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera);
 
 private:
