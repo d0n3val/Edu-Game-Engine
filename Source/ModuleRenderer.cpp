@@ -139,8 +139,6 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     const ResourceTexture* occlusion  = material->GetTextureRes(ResourceMaterial::TextureOcclusion);
     const ResourceTexture* emissive  = material->GetTextureRes(ResourceMaterial::TextureEmissive);
 
-    glUniform1f(App->programs->GetUniformLocation("material.shininess"), material->GetShininess());
-
     unsigned diffuse_id  = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
     unsigned specular_id = specular ? specular->GetID() : App->resources->GetWhiteFallback()->GetID();
     unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
@@ -149,6 +147,9 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     float4 diffuse_color = material->GetDiffuseColor();
     float3 specular_color = specular ? float3(1.0f) : material->GetSpecularColor();
     float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
+    float shininess = specular ? 1.0f : material->GetShininess();
+
+    glUniform1f(App->programs->GetUniformLocation("material.shininess"), shininess);
 
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, emissive_id);
