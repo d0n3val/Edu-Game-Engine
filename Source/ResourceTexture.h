@@ -31,20 +31,21 @@ public:
 	void Save(Config& config) const override;
 	void Load(const Config& config) override;
 
-    uint GetID() const { return gpu_id; }
-    uint GetWidth() const { return width; }
-    uint GetHeight() const { return height; }
-    uint GetDepth() const { return depth; }
-    uint GetBPP() const { return bpp; }
-    uint GetMips() const { return mips; }
-    uint GetBytes() const { return bytes; }
+    uint GetID        () const { return gpu_id; }
+    uint GetWidth     () const { return width; }
+    uint GetHeight    () const { return height; }
+    uint GetDepth     () const { return depth; }
+    uint GetBPP       () const { return bpp; }
+    bool HasMips      () const { return has_mips; }
+    uint GetBytes     () const { return bytes; }
+    void EnableMips   (bool enable);
 
 private:
 	uint width = 0;
 	uint height = 0;
 	uint depth = 0;
 	uint bpp = 0;
-	uint mips = 0;
+	bool has_mips = false;
 	uint bytes = 0;
 	uint gpu_id = 0;
 

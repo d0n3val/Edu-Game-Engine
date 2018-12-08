@@ -480,9 +480,22 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 {
     ResourceMaterial* mat_res = component->GetResource();
 
-    ImGui::PushID(mat_res);
+    ImGui::PushID("Material_resource");
 	UID new_res = PickResource(mat_res != nullptr ? mat_res->GetUID() : 0, Resource::material);
     ImGui::PopID();
+
+    ImGui::SameLine();
+    if(ImGui::Button("New Resource"))
+    {
+        ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material, 0));
+
+        bool save_ok = material->Save();
+
+        if(save_ok)
+        {
+            new_res = material->GetUID();
+        }
+    }
 
     if(new_res > 0)
     {
@@ -631,7 +644,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 		App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
-        ImGui::Text("(%u,%u) %s %u bpp %u mips", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetMips());
+        ImGui::Text("(%u,%u) %s %u bpp %s mipmaps", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->HasMips() ? "has" : "hasn´t");
         ImGui::PopStyleColor();
         ImGui::PushID(name);
         if(ImGui::SmallButton("Delete"))

@@ -8,6 +8,7 @@
 #include "ModuleInput.h"
 #include "ModuleDebugDraw.h"
 #include "ModuleEditor.h"
+#include "ModuleHints.h"
 #include "GameObject.h"
 
 #include "ComponentCamera.h"
@@ -21,6 +22,35 @@ Viewport::Viewport()
 
 Viewport::~Viewport()
 {
+    if(msfb_color != 0)
+    {
+        glDeleteRenderbuffers(1, &msfb_color);
+    }
+
+    if(msfbo != 0)
+    {
+        glDeleteFramebuffers(1, &msfbo);
+    }
+
+    if(msfb_depth != 0)
+    {
+        glDeleteRenderbuffers(1, &msfb_depth);
+    }
+
+    if(fb_tex != 0)
+    {
+        glDeleteTextures(1, &fb_tex);
+    }
+
+    if(fbo != 0)
+    {
+        glDeleteFramebuffers(1, &fbo);
+    }
+
+    if(fb_depth != 0)
+    {
+        glDeleteRenderbuffers(1, &fb_depth);
+    }
 }
 
 void Viewport::Draw(ComponentCamera* camera)
@@ -42,17 +72,27 @@ void Viewport::Draw(ComponentCamera* camera)
             camera->SetAspectRatio(float(width)/float(height));
             GenerateFBOTexture(unsigned(width), unsigned(height));
 
-            App->renderer->Draw(camera, fbo, fb_width, fb_height);
-            App->debug_draw->Draw(camera, fbo, fb_width, fb_height);
+            App->renderer->Draw(camera, msaa ? msfbo : fbo, fb_width, fb_height);
+            App->debug_draw->Draw(camera, msaa ? msfbo : fbo, fb_width, fb_height);
+
+			ImVec2 screenPos = ImGui::GetCursorScreenPos();
+            
+            if(msaa)
+            {
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, msfbo);
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+                glBlitFramebuffer(0, 0, fb_width, fb_height, 0, 0, fb_width, fb_height, GL_COLOR_BUFFER_BIT, GL_NEAREST); 
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
 
             ImGui::GetWindowDrawList()->AddImage(
                     (void*)fb_tex,
-                    ImVec2(ImGui::GetCursorScreenPos()),
-                    ImVec2(ImGui::GetCursorScreenPos().x + fb_width,
-                        ImGui::GetCursorScreenPos().y + fb_height), 
+                    ImVec2(screenPos),
+                    ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
                     ImVec2(0, 1), ImVec2(1, 0));
 
             DrawGuizmo(camera);
+
         }
         ImGui::EndChild();
     }
@@ -98,6 +138,8 @@ void Viewport::GenerateFBOTexture(unsigned w, unsigned h)
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
+
+            GenerateFBOMultisampled(w, h);
         }
 
 		fb_width = w;
@@ -105,46 +147,102 @@ void Viewport::GenerateFBOTexture(unsigned w, unsigned h)
     }
 }
 
+void Viewport::GenerateFBOMultisampled(unsigned w, unsigned h)
+{
+    if(msfb_color != 0)
+    {
+        glDeleteRenderbuffers(1, &msfb_color);
+    }
+
+    assert(w != 0 && h != 0);
+
+    if(msfbo == 0)
+    {
+        glGenFramebuffers(1, &msfbo);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, msfbo);
+
+    glGenRenderbuffers(1, &msfb_depth);
+    glBindRenderbuffer(GL_RENDERBUFFER, msfb_depth);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, w, h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msfb_depth);            
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glGenRenderbuffers(1, &msfb_color);
+    glBindRenderbuffer(GL_RENDERBUFFER, msfb_color);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA, w, h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msfb_color);            
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+}
+
 void Viewport::DrawQuickBar(ComponentCamera* camera)
 {
     Application::State state = App->GetState();
 
-    if (state != Application::play && state != Application::pause)
+    if(ImGui::BeginChild("ToolCanvas", ImVec2(435, 38), true, ImGuiWindowFlags_NoMove))
     {
-        if (ImGui::Button("PLAY", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
-            App->Play();
-    }
-    else
-    {
-        if (ImGui::Button("STOP", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
-            App->Stop();
-    }
+        if (state != Application::play && state != Application::pause)
+        {
+            if (ImGui::Button("PLAY", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
+                App->Play();
+        }
+        else
+        {
+            if (ImGui::Button("STOP", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
+                App->Stop();
+        }
 
-    ImGui::SameLine();
+        ImGui::SameLine();
 
-    if (state == Application::play)
-    {
-        if (ImGui::Button("PAUSE", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
-            App->Pause();
-    }
-    else if(state == Application::pause)
-    {
-        if (ImGui::Button("CONTINUE", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
-            App->UnPause();
-    }
+        if (state == Application::play)
+        {
+            if (ImGui::Button("PAUSE", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
+                App->Pause();
+        }
+        else if(state == Application::pause)
+        {
+            if (ImGui::Button("CONTINUE", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
+                App->UnPause();
+        }
 
-    ImGui::SameLine(150.f);
-    ImGui::Checkbox("Grid", &App->renderer3D->draw_plane);
-    ImGui::SameLine();
-    ImGui::Checkbox("Axis", &App->renderer3D->draw_axis);
-    ImGui::SameLine();
-    ImGui::Checkbox("Dbg Draw", &App->renderer3D->debug_draw);
+        ImGui::SameLine(75.f);
+        ImGui::Checkbox("Grid", &App->renderer3D->draw_plane);
+        ImGui::SameLine();
+        ImGui::Checkbox("Axis", &App->renderer3D->draw_axis);
+        ImGui::SameLine();
+        ImGui::Checkbox("Dbg Draw", &App->renderer3D->debug_draw);
+        ImGui::SameLine();
+        ImGui::Checkbox("MSAA", &msaa);
+
+        ImGui::SameLine();
+        ImGui::ColorEdit3("Background", (float*)&camera->background, ImGuiColorEditFlags_NoInputs);
+    }
+    ImGui::EndChild();
 
 	ImGui::SameLine();
-    ImGui::ColorEdit3("Background", (float*)&camera->background, ImGuiColorEditFlags_NoInputs);
+    if(ImGui::BeginChild("ScaleCanvas", ImVec2(145, 38), true, ImGuiWindowFlags_NoMove))
+    {
+        float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+        if(ImGui::DragFloat("Scale", &metric_proportion))
+        {
+            App->hints->SetFloatValue(ModuleHints::METRIC_PROPORTION, metric_proportion);
+        }
+    }
+    ImGui::EndChild();
 
-    ImGui::SameLine(0, 50);
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::SameLine();
+    if(ImGui::BeginChild("TextCanvas", ImVec2(350, 38), true, ImGuiWindowFlags_NoMove))
+    {
+        ImGui::SameLine();
+        ImGui::Text("Avg %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    }
+    ImGui::EndChild();
 
 }
 

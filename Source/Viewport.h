@@ -15,8 +15,11 @@ public:
 
     void                Draw                (ComponentCamera* camera);
 
+    unsigned            GetFrameBuffer      () const { return fbo; }
     unsigned            GetWidth            () const { return fb_width; }
     unsigned            GetHeight           () const { return fb_height; }
+    unsigned            GetXPos             () const { return x_pos; }
+    unsigned            GetYPos             () const { return y_pos; }
 
     bool                IsFocused           () const { return focused; }
 	bool                IsUsingGuizmo       () const { return ImGuizmo::IsUsing(); }
@@ -26,18 +29,25 @@ public:
 private:
 
     void GenerateFBOTexture(unsigned w, unsigned h);
+    void GenerateFBOMultisampled(unsigned w, unsigned h);
     void DrawQuickBar(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera);
 
 private:
 
     unsigned fbo         = 0;
+    unsigned msfbo       = 0;
     unsigned fb_depth    = 0;
+    unsigned msfb_depth  = 0;
+    unsigned msfb_color  = 0;
     unsigned fb_tex      = 0;
     unsigned fb_width    = 0;
     unsigned fb_height   = 0;
+    unsigned x_pos       = 0;
+    unsigned y_pos       = 0;
     bool     active      = true;
     bool     focused     = false;
+    bool     msaa        = true;
 
     ImGuizmo::OPERATION guizmo_op      = ImGuizmo::TRANSLATE;
     ImGuizmo::MODE      guizmo_mode    = ImGuizmo::WORLD;

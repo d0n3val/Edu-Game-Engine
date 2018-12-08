@@ -19,7 +19,11 @@ ResourceMaterial::~ResourceMaterial()
     {
         if(textures[i] != 0)
         {
-            App->resources->Get(textures[i])->Release();
+			Resource* res = App->resources->Get(textures[i]);
+			if (res)
+			{
+				res->Release();
+			}
             textures[i] = 0;
         }
     }
@@ -77,7 +81,7 @@ void ResourceMaterial::ReleaseFromMemory()
 }
 
 // ---------------------------------------------------------
-bool ResourceMaterial::Save(std::string& output) const
+bool ResourceMaterial::Save(std::string& output) 
 {
     simple::mem_ostream<std::true_type> write_stream;
 
@@ -89,7 +93,7 @@ bool ResourceMaterial::Save(std::string& output) const
 }
 
 // ---------------------------------------------------------
-bool ResourceMaterial::Save() const
+bool ResourceMaterial::Save() 
 {
     simple::mem_ostream<std::true_type> write_stream;
 
@@ -108,7 +112,14 @@ bool ResourceMaterial::Save() const
 
 	std::string output;
 
-    return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
+	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial"))
+	{
+        App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
+
+		return true;
+    }
+
+	return false;
 }
 
 // ---------------------------------------------------------
@@ -200,23 +211,15 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         m->textures[TextureEmissive] = App->resources->ImportFile(full_path.C_Str(), true);
     }
 
-    std::string output;
-
-    bool save_ok = m->Save(output);
-
-    if(save_ok)
+    if (source_file != nullptr) 
     {
-		if (source_file != nullptr) 
-        {
-			m->file = source_file;
-			App->fs->NormalizePath(m->file);
-		}
+        m->file = source_file;
+        App->fs->NormalizePath(m->file);
+    }
 
-		std::string file;
-		App->fs->SplitFilePath(output.c_str(), nullptr, &file);
-		m->exported_file = file;
-
-		LOG("Imported successful from aiMaterial [%s] to [%s]", m->GetFile(), m->GetExportedFile());
+    if(m->Save())
+    {
+        LOG("Imported successful from aiMaterial [%s] to [%s]", m->GetFile(), m->GetExportedFile());
 
         return m->uid;
     }

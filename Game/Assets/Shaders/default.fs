@@ -14,8 +14,6 @@ struct Material
     sampler2D emissive_map;
     vec3      emissive_color;
 
-    sampler2D occlusion;
-
     float     k_ambient;
     float     k_diffuse;
     float     k_specular;

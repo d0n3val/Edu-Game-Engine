@@ -243,6 +243,5 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-/Game/Library
 /Game/Settings
 /Game/Assets/Models/Dreamhouse/Dreamhouse.fbm

@@ -350,7 +350,7 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 			ImGui::TextColored(IMGUI_YELLOW, info->GetFile());
 			ImGui::Text("%s", (info->GetID() != 0) ? "Loaded in VRAM" : "Not in VRAM");
 			ImGui::Text("(%u,%u) %0.1f Mb %s", info->GetWidth(), info->GetHeight(), info->GetBytes() / (1024.f*1024.f) , info->GetFormatStr());
-			ImGui::Text("Depth: %u Bpp: %u Mips: %u", info->GetDepth(), info->GetBPP(), info->GetMips());
+			ImGui::Text("Depth: %u Bpp: %u", info->GetDepth(), info->GetBPP());
 
 			ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
 			float max_size = 250.f;

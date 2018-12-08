@@ -126,7 +126,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 			resource->height = i.Height;
 			resource->bpp = (uint)i.Bpp;
 			resource->depth = i.Depth;
-			resource->mips = i.NumMips;
+			resource->has_mips = i.NumMips > 0;
 			resource->bytes = i.SizeOfData;
 
 			switch (i.Format)
@@ -155,10 +155,15 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 			}
 
 			resource->gpu_id = ilutGLBindTexImage();
-			ilDeleteImages(1, &ImageName);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glGenerateMipmap(GL_TEXTURE_2D);
 
-			ret = true;
-		}
+            ilDeleteImages(1, &ImageName);
+
+            ret = true;
+        }
 	}
 	else
 		LOG("Cannot load texture resource %s", resource->GetFile());
@@ -209,7 +214,7 @@ bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
 	resource->height = CHECKERS_HEIGHT;
 	resource->bpp = 1;
 	resource->depth = 4;
-	resource->mips = 0;
+	resource->has_mips = false;
 	resource->bytes = sizeof(GLubyte) * CHECKERS_HEIGHT * CHECKERS_WIDTH * 4;
 	resource->format = ResourceTexture::rgba;
 	resource->gpu_id = ImageName;
@@ -222,7 +227,7 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
 	resource->file = "*Fallback Texture Preset*";
 	resource->exported_file = "*Fallback Texture Preset*";
 
-	GLubyte checkImage[3] = { GLubyte(255*color.x), GLubyte(255*color.y), GLubyte(255*color.z) };
+	GLubyte fallbackImage[3] = { GLubyte(255*color.x), GLubyte(255*color.y), GLubyte(255*color.z) };
 
 	uint ImageName = 0;
 
@@ -235,13 +240,13 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, checkImage);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage);
 
 	resource->width = 1;
 	resource->height = 1;
 	resource->bpp = 1;
 	resource->depth = 3;
-	resource->mips = 0;
+	resource->has_mips = false;
 	resource->bytes = sizeof(GLubyte) * 3;
 	resource->format = ResourceTexture::rgb;
 	resource->gpu_id = ImageName;

@@ -53,3 +53,8 @@ void ResourceTexture::Load(const Config & config)
 
 	format = (Format) config.GetInt("Format", unknown);
 }
+
+// ---------------------------------------------------------
+void ResourceTexture::EnableMips(bool enable)
+{
+}

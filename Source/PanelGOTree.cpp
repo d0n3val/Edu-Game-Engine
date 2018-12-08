@@ -105,7 +105,7 @@ void PanelGOTree::Draw()
             ImGui::EndMenu();
 		}
 
-		if(ImGui::MenuItem("Create New"))
+		if(ImGui::MenuItem("New Game Object"))
 			App->level->CreateGameObject();
 
 		if (ImGui::MenuItem("Clear Scene", "!"))

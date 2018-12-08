@@ -45,6 +45,9 @@ bool ModuleRenderer3D::Init(Config* config)
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);	
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
     //Create context
 	context = SDL_GL_CreateContext(App->window->GetWindow());
 	if(context == nullptr)
@@ -113,8 +116,10 @@ bool ModuleRenderer3D::Init(Config* config)
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_TEXTURE_2D);
-        glDepthFunc(GL_LEQUAL);
-	}
+        //glDepthFunc(GL_LEQUAL);
+
+        glEnable(GL_MULTISAMPLE);  
+    }
 
 	Load(config);
 
@@ -216,7 +221,6 @@ void ModuleRenderer3D::OnResize(int width, int height)
 	ComponentCamera* cam = (App->IsPlay()) ? active_camera : App->camera->GetDummy();
 
 	cam->SetAspectRatio((float)width / (float)height);
-	glViewport(0, 0, width, height);
 }
 
 bool ModuleRenderer3D::GetVSync() const
