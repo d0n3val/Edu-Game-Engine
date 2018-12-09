@@ -38,22 +38,22 @@ struct PointLight
     vec3 color;
     float constant;
     float linear;
-    float quadartic;
+    float quadric;
 };
 
 struct Lights
 {
     AmbientLight ambient;
     DirLight     directional;
-    PointLight   point;
+    PointLight   points[MAX_POINT_LIGHTS];
     uint         num_point;
 };
 
 //////////////////// UNIFORMS ////////////////////////
 
-uniform Material     material;
-uniform Lights       lights;
-uniform mat4         view;
+uniform Material material;
+layout(location=20) uniform Lights lights;
+uniform mat4     view;
 
 
 //////////////////// INPUTS ////////////////////////
@@ -94,20 +94,19 @@ vec3 get_emissive_color(const Material mat, const vec2 uv)
     return texture(mat.emissive_map, uv).rgb*mat.emissive_color;
 }
 
-float lambert(const DirLight light, const vec3 normal)
+float lambert(vec3 light_dir, const vec3 normal)
 {
-    return max(0.0, dot(normal, -light.dir));
+    return max(0.0, dot(normal, -light_dir));
 }
 
-float specular_blinn(const DirLight light, const vec3 pos, const vec3 normal, const vec3 view_pos, const float shininess)
+float specular_blinn(vec3 light_dir, const vec3 pos, const vec3 normal, const vec3 view_pos, const float shininess)
 {
     vec3 view_dir    = normalize(view_pos-pos);
-    vec3 half_dir    = normalize(view_dir-light.dir);
+    vec3 half_dir    = normalize(view_dir-light_dir);
     float sp         = max(dot(normal, half_dir), 0.0);
 
     return pow(sp, shininess); 
 }
-
 
 vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
 {
@@ -116,13 +115,28 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     vec3 occlusion_color = get_occlusion_color(material, uv);
     vec3 emissive_color  = get_emissive_color(material, uv);
 
-    float diffuse  = lambert(lights.directional, normal);
-    float specular = specular_blinn(lights.directional, pos, normal, view_pos, specular_color.a);
+    float diffuse  = lambert(lights.directional.dir, normal);
+    float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, specular_color.a);
 
-    return vec4(emissive_color+diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient)+
-                lights.directional.color*(diffuse_color.rgb*diffuse*material.k_diffuse+
-                                   specular_color.rgb*specular*material.k_specular),
-                diffuse_color.a); 
+    vec3 color = lights.directional.color*(diffuse_color.rgb*diffuse*material.k_diffuse+specular_color.rgb*specular*material.k_specular);
+
+    for(uint i=0; i < lights.num_point; ++i)
+    {
+        vec3 light_dir = pos-lights.points[i].position;
+        float distance = length(light_dir);
+        light_dir = light_dir/distance;
+        float att = 1.0/(lights.points[i].constant+lights.points[i].linear*distance+lights.points[i].quadric*(distance*distance));
+
+        diffuse  = att*lambert(light_dir, normal);
+        specular = att*specular_blinn(light_dir, pos, normal, view_pos, specular_color.a);
+
+        color += lights.points[i].color*(diffuse_color.rgb*diffuse*material.k_diffuse+specular_color.rgb*specular*material.k_specular);
+    }
+
+    color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
+    color += emissive_color;
+
+    return vec4(color, diffuse_color.a); 
 }
 
 void main()

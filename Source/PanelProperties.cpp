@@ -20,6 +20,7 @@
 #include "ModuleFileSystem.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleEditorCamera.h"
+#include "ModuleHints.h"
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
@@ -39,7 +40,7 @@
 using namespace std;
 
 // ---------------------------------------------------------
-PanelProperties::PanelProperties() : Panel("Properties", SDL_SCANCODE_3)
+PanelProperties::PanelProperties() : Panel("Properties")
 {
 	width = default_width;
 	height = default_height;
@@ -116,6 +117,8 @@ void PanelProperties::DrawDirLight(DirLight* light)
 // ---------------------------------------------------------
 void PanelProperties::DrawPointLight(PointLight* light)
 {
+    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+
     if (ImGui::CollapsingHeader("Point light", ImGuiTreeNodeFlags_DefaultOpen))
     {
         float3 color = light->GetColor();
@@ -131,19 +134,19 @@ void PanelProperties::DrawPointLight(PointLight* light)
         ImGui::Separator();
 
         float constant = light->GetConstantAtt();
-        if(ImGui::SliderFloat("constant att.", &constant, 0.0f, 10.0f))
+        if(ImGui::InputFloat("constant att.", &constant, 0.00001f, 0.1f, "%.9f"))
         {
             light->SetConstantAtt(constant);
         }
 
         float linear = light->GetLinearAtt();
-        if(ImGui::SliderFloat("linear att.", &linear, 0.0f, 10.0f))
+        if(ImGui::InputFloat("linear att.", &linear, 0.00001f, 0.1f, "%.9f"))
         {
             light->SetLinearAtt(linear);
         }
 
         float quadric = light->GetQuadricAtt();
-        if(ImGui::SliderFloat("quadric att.", &quadric, 0.0f, 10.0f))
+        if(ImGui::InputFloat("quadric att.", &quadric, 0.00001f, 0.1f, "%.9f"))
         {
             light->SetQuadricAtt(quadric);
         }

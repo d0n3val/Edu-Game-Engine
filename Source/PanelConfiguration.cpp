@@ -26,7 +26,7 @@
 using namespace std;
 
 // ---------------------------------------------------------
-PanelConfiguration::PanelConfiguration() : Panel("Configuration", SDL_SCANCODE_4),
+PanelConfiguration::PanelConfiguration() : Panel("Configuration"),
 	fps_log(FPS_LOG_SIZE), ms_log(FPS_LOG_SIZE)
 {
 	width = default_width;

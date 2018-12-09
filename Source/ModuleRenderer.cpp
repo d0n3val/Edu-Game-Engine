@@ -182,14 +182,29 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
 
 void ModuleRenderer::UpdateLightUniform() const
 {
+    static const unsigned LIGHTS_LOCATION = 20;
+    static const unsigned MAX_NUM_LIGHTS = 4;
+
     const AmbientLight* ambient = App->level->GetAmbientLight();
     const DirLight* directional = App->level->GetDirLight();
 
     float3 dir = directional->GetDir();
 
-    glUniform3fv(App->programs->GetUniformLocation("lights.ambient.color"), 1, (const float*)&ambient->GetColor());
-    glUniform3fv(App->programs->GetUniformLocation("lights.directional.color"), 1, (const float*)&directional->GetColor());
-    glUniform3fv(App->programs->GetUniformLocation("lights.directional.dir"), 1, (const float*)&dir);
-    glUniform1ui(App->programs->GetUniformLocation("lights.num_point"), 0);
+    glUniform3fv(LIGHTS_LOCATION, 1, (const float*)&ambient->GetColor());
+    glUniform3fv(LIGHTS_LOCATION+1, 1, (const float*)&dir);
+    glUniform3fv(LIGHTS_LOCATION+2, 1, (const float*)&directional->GetColor());
+
+    uint num_point = min(App->level->GetNumPointLights(), 1);
+
+    for(uint i=0; i< num_point; ++i)
+    {
+        glUniform3fv(LIGHTS_LOCATION+3+i*5, 1, (const float*)&App->level->GetPointLight(i)->GetPosition());
+        glUniform3fv(LIGHTS_LOCATION+4+i*5, 1, (const float*)&App->level->GetPointLight(i)->GetColor());
+        glUniform1f(LIGHTS_LOCATION+5+i*5, App->level->GetPointLight(i)->GetConstantAtt());
+        glUniform1f(LIGHTS_LOCATION+6+i*5, App->level->GetPointLight(i)->GetLinearAtt());
+        glUniform1f(LIGHTS_LOCATION+7+i*5, App->level->GetPointLight(i)->GetQuadricAtt());
+    }
+
+    glUniform1ui(LIGHTS_LOCATION+3+MAX_NUM_LIGHTS*5, num_point);
 }
 

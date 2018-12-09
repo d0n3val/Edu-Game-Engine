@@ -135,12 +135,11 @@ update_status ModuleEditor::Update(float dt)
 			if (ImGui::BeginMenu("View"))
 			{
 				bool refresh = false;
-				refresh = ImGui::MenuItem("Console", "1", &console->active) || refresh;
-				refresh = ImGui::MenuItem("Scene Hierarchy", "2", &tree->active) || refresh;
-				refresh = ImGui::MenuItem("Properties", "3", &props->active) || refresh;
-				refresh = ImGui::MenuItem("Configuration", "4", &conf->active) || refresh;
-				refresh = ImGui::MenuItem("Resource Browser", "5", &res->active) || refresh;
-				refresh = ImGui::MenuItem("Quick Bar", "6", &res->active) || refresh;
+				refresh = ImGui::MenuItem("Console", nullptr, &console->active) || refresh;
+				refresh = ImGui::MenuItem("Scene Hierarchy", nullptr, &tree->active) || refresh;
+				refresh = ImGui::MenuItem("Properties", nullptr, &props->active) || refresh;
+				refresh = ImGui::MenuItem("Configuration", nullptr, &conf->active) || refresh;
+				refresh = ImGui::MenuItem("Resource Browser", nullptr, &res->active) || refresh;
 
                 if(refresh)
                 {
