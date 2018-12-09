@@ -33,8 +33,8 @@ private:
     float3 color     = float3::one;
     float3 position  = float3::zero;
     float  constant  = 1.0f;
-    float  linear    = 0.1f;
-    float  quadric   = 0.05f;
+    float  linear    = 0.0f;
+    float  quadric   = 0.0f;
 };
 
 #endif /* __POINTLIGHT_H__ */

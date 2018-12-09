@@ -138,6 +138,8 @@ void ModuleRenderer::LoadDefaultShaders()
 
 void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) const
 {
+    static const unsigned MATERIAL_LOCATION = 0;
+
     const ResourceTexture* specular = material->GetTextureRes(ResourceMaterial::TextureSpecular);
     const ResourceTexture* diffuse  = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
     const ResourceTexture* occlusion  = material->GetTextureRes(ResourceMaterial::TextureOcclusion);
@@ -153,31 +155,31 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
     float shininess = specular ? 1.0f : material->GetShininess();
 
-    glUniform1f(App->programs->GetUniformLocation("material.shininess"), shininess);
+    glUniform1f(MATERIAL_LOCATION+4, shininess);
 
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, emissive_id);
-    glUniform1i(App->programs->GetUniformLocation("material.emissive_map"), 3);
+    glUniform1i(MATERIAL_LOCATION+6, 3);
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, occlusion_id);
-    glUniform1i(App->programs->GetUniformLocation("material.occlusion_map"), 2);
+    glUniform1i(MATERIAL_LOCATION+5, 2);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, specular_id);
-    glUniform1i(App->programs->GetUniformLocation("material.specular_map"), 1);
+    glUniform1i(MATERIAL_LOCATION+2, 1);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuse_id);
-    glUniform1i(App->programs->GetUniformLocation("material.diffuse_map"), 0);
+    glUniform1i(MATERIAL_LOCATION, 0);
 
-    glUniform4fv(App->programs->GetUniformLocation("material.diffuse_color"), 1, (const float*)&diffuse_color);
-    glUniform3fv(App->programs->GetUniformLocation("material.specular_color"), 1, (const float*)&specular_color);
-    glUniform3fv(App->programs->GetUniformLocation("material.emissive_color"), 1, (const float*)&emissive_color);
+    glUniform4fv(MATERIAL_LOCATION+1, 1, (const float*)&diffuse_color);
+    glUniform3fv(MATERIAL_LOCATION+3, 1, (const float*)&specular_color);
+    glUniform3fv(MATERIAL_LOCATION+7, 1, (const float*)&emissive_color);
 
-    glUniform1f(App->programs->GetUniformLocation("material.k_ambient"), material->GetKAmbient());
-    glUniform1f(App->programs->GetUniformLocation("material.k_diffuse"), material->GetKDiffuse());
-    glUniform1f(App->programs->GetUniformLocation("material.k_specular"), material->GetKSpecular());
+    glUniform1f(MATERIAL_LOCATION+8, material->GetKAmbient());
+    glUniform1f(MATERIAL_LOCATION+9, material->GetKDiffuse());
+    glUniform1f(MATERIAL_LOCATION+10, material->GetKSpecular());
 }
 
 void ModuleRenderer::UpdateLightUniform() const
@@ -194,7 +196,7 @@ void ModuleRenderer::UpdateLightUniform() const
     glUniform3fv(LIGHTS_LOCATION+1, 1, (const float*)&dir);
     glUniform3fv(LIGHTS_LOCATION+2, 1, (const float*)&directional->GetColor());
 
-    uint num_point = min(App->level->GetNumPointLights(), 1);
+    uint num_point = min(App->level->GetNumPointLights(), MAX_NUM_LIGHTS);
 
     for(uint i=0; i< num_point; ++i)
     {

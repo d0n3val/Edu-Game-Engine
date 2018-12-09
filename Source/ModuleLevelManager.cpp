@@ -505,3 +505,9 @@ uint ModuleLevelManager::AddPointLight()
     points.push_back(new PointLight);
     return index;
 }
+
+void ModuleLevelManager::RemovePointLight(uint index)
+{
+    delete points[index];
+    points.erase(points.begin()+index);
+}

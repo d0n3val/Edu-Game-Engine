@@ -58,6 +58,7 @@ public:
     AmbientLight*       GetAmbientLight         () { return ambient; }
 
     uint                AddPointLight           ();
+    void                RemovePointLight        (uint index);
     uint                GetNumPointLights       () const { return points.size(); }
     const PointLight*   GetPointLight           (uint index) const { return points[index]; }
     PointLight*         GetPointLight           (uint index) { return points[index]; }

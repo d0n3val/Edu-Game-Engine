@@ -60,16 +60,20 @@ void PanelProperties::Draw()
     switch(App->editor->selection_type )
     {
         case ModuleEditor::SelectionGameObject:
-            DrawGameObject(App->editor->selected.go);
+			if(App->editor->selected.go)
+				DrawGameObject(App->editor->selected.go);
             break;
         case ModuleEditor::SelectionAmbientLight:
-            DrawAmbientLight(App->editor->selected.ambient);
+            if(App->editor->selected.ambient)
+				DrawAmbientLight(App->editor->selected.ambient);
             break;
         case ModuleEditor::SelectionDirLight:
-            DrawDirLight(App->editor->selected.directional);
+			if(App->editor->selected.directional)
+				DrawDirLight(App->editor->selected.directional);
             break;
         case ModuleEditor::SelectionPointLight:
-            DrawPointLight(App->editor->selected.point);
+            if(App->editor->selected.point)
+				DrawPointLight(App->editor->selected.point);
             break;
     }
 

@@ -177,8 +177,9 @@ void PanelGOTree::DrawLights()
 
         if(ImGui::TreeNodeEx("Points", 0))
         {
+            bool remove = false;
             char number[16];
-            for(uint i=0, count = App->level->GetNumPointLights(); i < count; ++i)
+            for(uint i=0, count = App->level->GetNumPointLights(); !remove && i < count; ++i)
             {
                 sprintf_s(number, 15, "[%d]", i);
 
@@ -196,6 +197,24 @@ void PanelGOTree::DrawLights()
                         App->editor->selected.point = App->level->GetPointLight(i);
                         App->editor->selection_type = ModuleEditor::SelectionPointLight;
                     }
+
+                    if (ImGui::IsItemClicked(1))
+                        ImGui::OpenPopup("PointLight Options");
+
+                    if (ImGui::BeginPopup("PointLight Options"))
+                    {
+                        if (true == (remove = ImGui::MenuItem("Remove")))
+                        {
+                            if(App->editor->selection_type == ModuleEditor::SelectionPointLight && App->editor->selected.point == App->level->GetPointLight(i))
+                            {
+                                App->editor->selected.point = nullptr;
+                            }
+
+                            App->level->RemovePointLight(i);
+                        }
+                        ImGui::EndPopup();
+                    }
+
 
                     ImGui::TreePop();
                 }

@@ -51,9 +51,9 @@ struct Lights
 
 //////////////////// UNIFORMS ////////////////////////
 
-uniform Material material;
+layout(location=0) uniform Material material;
 layout(location=20) uniform Lights lights;
-uniform mat4     view;
+uniform mat4 view;
 
 
 //////////////////// INPUTS ////////////////////////
