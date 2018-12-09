@@ -16,6 +16,10 @@
 #include "ResourceMaterial.h"
 #include "ResourceTexture.h"
 
+#include "AmbientLight.h"
+#include "DirLight.h"
+#include "PointLight.h"
+
 #include "Application.h"
 
 #include "OpenGL.h"
@@ -178,13 +182,13 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
 
 void ModuleRenderer::UpdateLightUniform() const
 {
-    const AmbientLight& ambient = App->level->GetAmbientLight();
-    const DirLight& directional = App->level->GetDirLight();
+    const AmbientLight* ambient = App->level->GetAmbientLight();
+    const DirLight* directional = App->level->GetDirLight();
 
-    float3 dir = directional.GetDir();
+    float3 dir = directional->GetDir();
 
-    glUniform3fv(App->programs->GetUniformLocation("lights.ambient.color"), 1, (const float*)&ambient.GetColor());
-    glUniform3fv(App->programs->GetUniformLocation("lights.directional.color"), 1, (const float*)&directional.GetColor());
+    glUniform3fv(App->programs->GetUniformLocation("lights.ambient.color"), 1, (const float*)&ambient->GetColor());
+    glUniform3fv(App->programs->GetUniformLocation("lights.directional.color"), 1, (const float*)&directional->GetColor());
     glUniform3fv(App->programs->GetUniformLocation("lights.directional.dir"), 1, (const float*)&dir);
     glUniform1ui(App->programs->GetUniformLocation("lights.num_point"), 0);
 }

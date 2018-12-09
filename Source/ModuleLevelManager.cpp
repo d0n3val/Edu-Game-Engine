@@ -13,14 +13,29 @@
 #include "ResourceMesh.h"
 #include "Event.h"
 
+#include "AmbientLight.h"
+#include "DirLight.h"
+#include "PointLight.h"
+
 using namespace std;
 
 ModuleLevelManager::ModuleLevelManager( bool start_enabled) : Module("LevelManager", start_enabled)
-{}
+{
+    ambient = new AmbientLight();
+    directional = new DirLight();
+}
 
 // Destructor
 ModuleLevelManager::~ModuleLevelManager()
-{}
+{
+    delete ambient;
+    delete directional;
+
+    for(std::vector<PointLight*>::iterator it = points.begin(), end = points.end(); it != end; ++it)
+    {
+        delete *it;
+    }
+}
 
 // Called before render is available
 bool ModuleLevelManager::Init(Config* config)
@@ -216,8 +231,20 @@ bool ModuleLevelManager::Load(const char * file)
 			App->camera->Load(&desc);
 
             Config lights = config.GetSection("Lights");
-            ambient.Load(lights.GetSection("Ambient"));
-            directional.Load(lights.GetSection("Directional"));
+            ambient->Load(lights.GetSection("Ambient"));
+            directional->Load(lights.GetSection("Directional"));
+
+            assert(points.empty());
+
+            uint count = lights.GetArrayCount("Points");
+            for(uint i=0; i< count; ++i)
+            {
+                Config point_config = lights.GetArray("Points", i);
+                PointLight* point = new PointLight;
+                point->Load(point_config);
+
+                points.push_back(point);
+            }
 
 			LoadGameObjects(config);
 
@@ -242,8 +269,18 @@ bool ModuleLevelManager::Save(const char * file)
 
     Config lights = save.AddSection("Lights");    
 
-    ambient.Save(lights.AddSection("Ambient"));
-    directional.Save(lights.AddSection("Directional"));
+    ambient->Save(lights.AddSection("Ambient"));
+    directional->Save(lights.AddSection("Directional"));
+
+    lights.AddArray("Points");
+
+    for(std::vector<PointLight*>::const_iterator it = points.begin(), end = points.end(); it != end; ++it)
+    {
+        Config point;
+        (*it)->Save(point);
+
+        lights.AddArrayEntry(point);
+    }
 
 	// Serialize GameObjects recursively
 	save.AddArray("Game Objects");
@@ -462,3 +499,9 @@ void ModuleLevelManager::FindNear(const float3 & position, float radius, std::ve
 	quadtree.CollectIntersections(results, Sphere(position, radius));
 }
 
+uint ModuleLevelManager::AddPointLight()
+{
+    uint index = points.size();
+    points.push_back(new PointLight);
+    return index;
+}

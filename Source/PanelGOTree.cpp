@@ -134,7 +134,7 @@ void PanelGOTree::DrawLights()
 
     uint flags = ImGuiTreeNodeFlags_Leaf;
 
-    if(App->editor->selection_type == ModuleEditor::SelectionAmbientLight && App->editor->selected.ambient == &App->level->GetAmbientLight())
+    if(App->editor->selection_type == ModuleEditor::SelectionAmbientLight && App->editor->selected.ambient == App->level->GetAmbientLight())
     {
         flags |= ImGuiTreeNodeFlags_Selected;
     }
@@ -143,7 +143,7 @@ void PanelGOTree::DrawLights()
     {
 		if (ImGui::IsItemClicked(0)) 
         {
-			App->editor->selected.ambient = &App->level->GetAmbientLight();
+			App->editor->selected.ambient = App->level->GetAmbientLight();
 			App->editor->selection_type = ModuleEditor::SelectionAmbientLight;
 		}
         ImGui::TreePop();
@@ -151,7 +151,7 @@ void PanelGOTree::DrawLights()
 
     flags = ImGuiTreeNodeFlags_Leaf;
 
-    if(App->editor->selection_type == ModuleEditor::SelectionDirLight && App->editor->selected.directional == &App->level->GetDirLight())
+    if(App->editor->selection_type == ModuleEditor::SelectionDirLight && App->editor->selected.directional == App->level->GetDirLight())
     {
         flags |= ImGuiTreeNodeFlags_Selected;
     }
@@ -160,7 +160,7 @@ void PanelGOTree::DrawLights()
     {
 		if (ImGui::IsItemClicked(0)) 
         {
-			App->editor->selected.directional = &App->level->GetDirLight();
+			App->editor->selected.directional = App->level->GetDirLight();
 			App->editor->selection_type = ModuleEditor::SelectionDirLight;
 		}
         ImGui::TreePop();

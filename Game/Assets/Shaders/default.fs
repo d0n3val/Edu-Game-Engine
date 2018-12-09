@@ -1,4 +1,4 @@
-#define MAX_POINT_LIGHTS 8
+#define MAX_POINT_LIGHTS 4
 
 //////////////////// STRUCTS ////////////////////////
 

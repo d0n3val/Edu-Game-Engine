@@ -29,6 +29,11 @@
 #include "PanelResources.h"
 #include "PanelGOTree.h"
 #include "Viewport.h"
+
+#include "DirLight.h"
+#include "AmbientLight.h"
+#include "PointLight.h"
+
 #include <list>
 
 using namespace std;

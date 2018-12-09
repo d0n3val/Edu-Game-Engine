@@ -5,10 +5,11 @@
 #include "Module.h"
 #include "Math.h"
 #include "QuadTree.h"
-#include "DirLight.h"
-#include "AmbientLight.h"
 
 class GameObject;
+class PointLight;
+class DirLight;
+class AmbientLight;
 
 class ModuleLevelManager : public Module
 {
@@ -50,12 +51,16 @@ public:
 	void                FindNear                (const float3& position, float radius, std::vector<GameObject*>& results) const;
 
 
-    const DirLight&     GetDirLight             () const { return directional; }
-    DirLight&           GetDirLight             () { return directional; }
+    const DirLight*     GetDirLight             () const { return directional; }
+    DirLight*           GetDirLight             () { return directional; }
 
-    const AmbientLight& GetAmbientLight         () const { return ambient; }
-    AmbientLight&       GetAmbientLight         () { return ambient; }
+    const AmbientLight* GetAmbientLight         () const { return ambient; }
+    AmbientLight*       GetAmbientLight         () { return ambient; }
 
+    uint                AddPointLight           ();
+    uint                GetNumPointLights       () const { return points.size(); }
+    const PointLight*   GetPointLight           (uint index) const { return points[index]; }
+    PointLight*         GetPointLight           (uint index) { return points[index]; }
 
 private:
 
@@ -75,8 +80,9 @@ public:
 
 private:
 	GameObject* root = nullptr;
-    AmbientLight ambient;
-    DirLight directional;
+    AmbientLight* ambient = nullptr;
+    DirLight* directional = nullptr;
+    std::vector<PointLight*> points;
 	std::string name;
 };
 

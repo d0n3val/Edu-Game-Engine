@@ -2,19 +2,18 @@
 #define __DIRLIGHT_H__
 
 #include "Math.h"
-#include "Config.h"
+
+class Config;
 
 class DirLight 
 {
 public:
 
-public:
-
     DirLight();
     ~DirLight();
 
-    void Save(Config& config) const;
-    void Load(Config& config);
+    void            Save        (Config& config) const;
+    void            Load        (Config& config);
 
     const float3&   GetColor    () const { return color; }
     void            SetColor    (const float3& c) { color = c; }
@@ -26,7 +25,7 @@ public:
 
     float3          GetDir      () const;
 
-public:
+private:
 
     float3 color     = math::float3::one;
     float  polar     = PI/2.0f;
