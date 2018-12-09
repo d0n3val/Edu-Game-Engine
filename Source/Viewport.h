@@ -6,6 +6,7 @@
 
 class ComponentCamera;
 class GameObject;
+class Config;
 
 class Viewport
 {
@@ -14,6 +15,9 @@ public:
     ~Viewport();
 
     void                Draw                (ComponentCamera* camera);
+
+	void                Save                (Config* config) const;
+	void                Load                (Config* config);
 
     unsigned            GetFrameBuffer      () const { return fbo; }
     unsigned            GetWidth            () const { return fb_width; }
@@ -48,6 +52,9 @@ private:
     bool     active      = true;
     bool     focused     = false;
     bool     msaa        = true;
+	bool     draw_plane  = true;
+	bool     draw_axis   = true;
+	bool     debug_draw  = true;
 
     ImGuizmo::OPERATION guizmo_op      = ImGuizmo::TRANSLATE;
     ImGuizmo::MODE      guizmo_mode    = ImGuizmo::WORLD;

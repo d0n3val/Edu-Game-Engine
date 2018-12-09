@@ -1,3 +1,5 @@
+#define MAX_POINT_LIGHTS 8
+
 //////////////////// STRUCTS ////////////////////////
 
 struct Material
@@ -30,11 +32,27 @@ struct DirLight
     vec3 color;
 };
 
+struct PointLight
+{
+    vec3 position;
+    vec3 color;
+    float constant;
+    float linear;
+    float quadartic;
+};
+
+struct Lights
+{
+    AmbientLight ambient;
+    DirLight     directional;
+    PointLight   point;
+    uint         num_point;
+};
+
 //////////////////// UNIFORMS ////////////////////////
 
 uniform Material     material;
-uniform AmbientLight ambient;
-uniform DirLight     directional;
+uniform Lights       lights;
 uniform mat4         view;
 
 
@@ -57,7 +75,7 @@ out vec4 color;
 
 vec4 get_diffuse_color(const Material mat, const vec2 uv)
 {
-    return texture(mat.diffuse_map, uv)*mat.diffuse_color;
+    return texture(mat.diffuse_map, uv); //*mat.diffuse_color;
 }
 
 vec4 get_specular_color(const Material mat, const vec2 uv)
@@ -91,23 +109,23 @@ float specular_blinn(const DirLight light, const vec3 pos, const vec3 normal, co
 }
 
 
-vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const AmbientLight ambient, const DirLight directional, const Material mat)
+vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
 {
     vec4 diffuse_color   = get_diffuse_color(material, uv);
     vec4 specular_color  = get_specular_color(material, uv);
     vec3 occlusion_color = get_occlusion_color(material, uv);
     vec3 emissive_color  = get_emissive_color(material, uv);
 
-    float diffuse  = lambert(directional, normal);
-    float specular = specular_blinn(directional, pos, normal, view_pos, specular_color.a);
+    float diffuse  = lambert(lights.directional, normal);
+    float specular = specular_blinn(lights.directional, pos, normal, view_pos, specular_color.a);
 
-    return vec4(emissive_color+diffuse_color.rgb*(ambient.color*occlusion_color*material.k_ambient)+
-                directional.color*(diffuse_color.rgb*diffuse*material.k_diffuse+
+    return vec4(emissive_color+diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient)+
+                lights.directional.color*(diffuse_color.rgb*diffuse*material.k_diffuse+
                                    specular_color.rgb*specular*material.k_specular),
                 diffuse_color.a); 
 }
 
 void main()
 {
-    color = blinn(f_in.position, normalize(f_in.normal), f_in.uv0, transpose(mat3(view))*(-view[3].xyz), ambient, directional, material);
+    color = blinn(f_in.position, normalize(f_in.normal), f_in.uv0, transpose(mat3(view))*(-view[3].xyz), lights, material);
 }

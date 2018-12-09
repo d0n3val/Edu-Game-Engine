@@ -128,6 +128,7 @@ public:
             glBindTexture(GL_TEXTURE_2D, handleToGL(glyphTex));
         }
 
+        GLboolean blend_enabled = glIsEnabled(GL_BLEND);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         GLboolean already = glIsEnabled(GL_DEPTH_TEST);
@@ -138,7 +139,11 @@ public:
 
         glDrawArrays(GL_TRIANGLES, 0, count); // Issue the draw call
 
-        glDisable(GL_BLEND);
+        if(!blend_enabled)
+        {
+            glDisable(GL_BLEND);
+        }
+
         glUseProgram(0);
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -211,17 +216,9 @@ public:
         , textVAO(0)
         , textVBO(0)
     {
-        //std::printf("\n");
-        //std::printf("GL_VENDOR    : %s\n",   glGetString(GL_VENDOR));
-        //std::printf("GL_RENDERER  : %s\n",   glGetString(GL_RENDERER));
-        //std::printf("GL_VERSION   : %s\n",   glGetString(GL_VERSION));
-        //std::printf("GLSL_VERSION : %s\n\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
-        //std::printf("DDRenderInterfaceCoreGL initializing ...\n");
-
         // Default OpenGL states:
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
-        glDisable(GL_BLEND);
 
         // This has to be enabled since the point drawing shader will use gl_PointSize.
         glEnable(GL_PROGRAM_POINT_SIZE);
@@ -315,8 +312,6 @@ public:
 
     void setupVertexBuffers()
     {
-        //std::printf("> DDRenderInterfaceCoreGL::setupVertexBuffers()\n");
-
         //
         // Lines/points vertex buffer:
         //

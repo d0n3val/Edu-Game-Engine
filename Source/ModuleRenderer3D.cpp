@@ -111,12 +111,12 @@ bool ModuleRenderer3D::Init(Config* config)
 		}
 
 		// Blend for transparency
+        glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_TEXTURE_2D);
-        //glDepthFunc(GL_LEQUAL);
 
         glEnable(GL_MULTISAMPLE);  
     }
@@ -155,23 +155,6 @@ update_status ModuleRenderer3D::Update(float dt)
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
-    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-
-	if (draw_plane == true)
-	{
-		dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray);
-	}
-
-    if(draw_axis == true)
-    {
-        dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, 100.0f, 0, false);
-    }
-
-	if (debug_draw == true)
-	{
- 		App->DebugDraw();
-    }
-
     viewport->Draw(active_camera);
 
     App->editor->Draw();
@@ -205,15 +188,13 @@ void ModuleRenderer3D::ReceiveEvent(const Event& event)
 void ModuleRenderer3D::Save(Config * config) const
 {
 	config->AddBool("Vertical Sync", GetVSync());
-	config->AddBool("Debug Plane", draw_plane);
-	config->AddBool("Debug Draw", debug_draw);
+    viewport->Save(config);
 }
 
 void ModuleRenderer3D::Load(Config * config)
 {
 	SetVSync(config->GetBool("Vertical Sync", true));
-	draw_plane = config->GetBool("Debug Plane", true);
-	debug_draw = config->GetBool("Debug Draw", true);
+    viewport->Load(config);
 }
 
 void ModuleRenderer3D::OnResize(int width, int height)

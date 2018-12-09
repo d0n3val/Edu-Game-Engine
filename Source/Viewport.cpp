@@ -9,9 +9,13 @@
 #include "ModuleDebugDraw.h"
 #include "ModuleEditor.h"
 #include "ModuleHints.h"
+
 #include "GameObject.h"
 
 #include "ComponentCamera.h"
+
+#include "Config.h"
+#include "DebugDraw.h"
 
 #include "ImGui.h"
 #include "GL/glew.h"
@@ -55,6 +59,7 @@ Viewport::~Viewport()
 
 void Viewport::Draw(ComponentCamera* camera)
 {
+
     ImGui::SetNextWindowPos(ImVec2(327.0f, 22.0f), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(884.0f, 574.0f), ImGuiCond_FirstUseEver);
 
@@ -72,11 +77,27 @@ void Viewport::Draw(ComponentCamera* camera)
             camera->SetAspectRatio(float(width)/float(height));
             GenerateFBOTexture(unsigned(width), unsigned(height));
 
+            float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+            if (draw_plane == true)
+            {
+                dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray, 0, true);
+            }
+
+            if(draw_axis == true)
+            {
+                dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, 100.0f, 0, false);
+            }
+
+            if (debug_draw == true)
+            {
+                App->DebugDraw();
+            }
+
             App->renderer->Draw(camera, msaa ? msfbo : fbo, fb_width, fb_height);
             App->debug_draw->Draw(camera, msaa ? msfbo : fbo, fb_width, fb_height);
 
-			ImVec2 screenPos = ImGui::GetCursorScreenPos();
-            
+            ImVec2 screenPos = ImGui::GetCursorScreenPos();
+
             if(msaa)
             {
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, msfbo);
@@ -97,6 +118,22 @@ void Viewport::Draw(ComponentCamera* camera)
         ImGui::EndChild();
     }
 	ImGui::End();
+}
+
+void Viewport::Save(Config* config) const
+{
+    config->AddBool("Draw Plane", draw_plane);
+    config->AddBool("Draw Axis", draw_axis);
+    config->AddBool("Debug Draw", debug_draw);
+    config->AddBool("MSAA", msaa);
+}
+
+void Viewport::Load(Config* config)
+{
+	draw_plane = config->GetBool("Draw Plane", true);
+	draw_axis = config->GetBool("Draw Axis", true);
+	debug_draw = config->GetBool("Debug Draw", true);
+    msaa = config->GetBool("MSAA", true);
 }
 
 void Viewport::GenerateFBOTexture(unsigned w, unsigned h)
@@ -212,11 +249,11 @@ void Viewport::DrawQuickBar(ComponentCamera* camera)
         }
 
         ImGui::SameLine(75.f);
-        ImGui::Checkbox("Grid", &App->renderer3D->draw_plane);
+        ImGui::Checkbox("Grid", &draw_plane);
         ImGui::SameLine();
-        ImGui::Checkbox("Axis", &App->renderer3D->draw_axis);
+        ImGui::Checkbox("Axis", &draw_axis);
         ImGui::SameLine();
-        ImGui::Checkbox("Dbg Draw", &App->renderer3D->debug_draw);
+        ImGui::Checkbox("Dbg Draw", &debug_draw);
         ImGui::SameLine();
         ImGui::Checkbox("MSAA", &msaa);
 

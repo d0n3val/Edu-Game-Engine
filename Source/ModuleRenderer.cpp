@@ -183,8 +183,9 @@ void ModuleRenderer::UpdateLightUniform() const
 
     float3 dir = directional.GetDir();
 
-    glUniform3fv(App->programs->GetUniformLocation("ambient.color"), 1, (const float*)&ambient.GetColor());
-    glUniform3fv(App->programs->GetUniformLocation("directional.color"), 1, (const float*)&directional.GetColor());
-    glUniform3fv(App->programs->GetUniformLocation("directional.dir"), 1, (const float*)&dir);
+    glUniform3fv(App->programs->GetUniformLocation("lights.ambient.color"), 1, (const float*)&ambient.GetColor());
+    glUniform3fv(App->programs->GetUniformLocation("lights.directional.color"), 1, (const float*)&directional.GetColor());
+    glUniform3fv(App->programs->GetUniformLocation("lights.directional.dir"), 1, (const float*)&dir);
+    glUniform1ui(App->programs->GetUniformLocation("lights.num_point"), 0);
 }
 

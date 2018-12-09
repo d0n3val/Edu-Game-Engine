@@ -41,9 +41,6 @@ public:
 	SDL_GLContext context;
 	DDRenderInterfaceLegacyGL* debug_draw_interface = nullptr;
 	bool vsync = false;
-	bool draw_plane = true;
-	bool draw_axis = true;
-	bool debug_draw = true;
 	bool in_game = false;
 };
 
