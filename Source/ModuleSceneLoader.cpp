@@ -74,12 +74,23 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 {
 	GameObject* node = nullptr;
 
-	unsigned flags = aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_OptimizeGraph;
-
+	unsigned flags = aiProcess_CalcTangentSpace | \
+		aiProcess_GenSmoothNormals | \
+		aiProcess_JoinIdenticalVertices | \
+		aiProcess_ImproveCacheLocality | \
+		aiProcess_LimitBoneWeights | \
+		aiProcess_SplitLargeMeshes | \
+		aiProcess_Triangulate | \
+		aiProcess_GenUVCoords | \
+		aiProcess_SortByPType | \
+		aiProcess_FindDegenerates | \
+		aiProcess_FindInvalidData | 
+		0;
+	
 	aiString assimp_path(".");
 	assimp_path.Append(full_path);
 
-	const aiScene* scene = aiImportFile(assimp_path.data,  flags);
+	const aiScene* scene = aiImportFile(assimp_path.data, flags);
 
 	if (scene)
 	{

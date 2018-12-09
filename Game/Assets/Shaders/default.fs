@@ -75,7 +75,7 @@ out vec4 color;
 
 vec4 get_diffuse_color(const Material mat, const vec2 uv)
 {
-    return texture(mat.diffuse_map, uv); //*mat.diffuse_color;
+    return texture(mat.diffuse_map, uv)*mat.diffuse_color;
 }
 
 vec4 get_specular_color(const Material mat, const vec2 uv)
