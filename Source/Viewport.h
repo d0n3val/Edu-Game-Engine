@@ -6,6 +6,7 @@
 
 class ComponentCamera;
 class GameObject;
+class PointLight;
 class Config;
 
 class Viewport
@@ -29,6 +30,7 @@ public:
 	bool                IsUsingGuizmo       () const { return ImGuizmo::IsUsing(); }
 
     void                DrawGuizmoProperties(GameObject* go);
+    void                DrawGuizmoProperties(PointLight* point);
 
 private:
 

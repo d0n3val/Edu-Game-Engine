@@ -10,7 +10,10 @@
 #include "ModuleSceneLoader.h"
 #include "ResourceModel.h"
 #include "GameObject.h"
+
 #include <list>
+
+#include <stdio.h>
 
 using namespace std;
 
@@ -108,8 +111,12 @@ void PanelGOTree::Draw()
 		if(ImGui::MenuItem("New Game Object"))
 			App->level->CreateGameObject();
 
+        if(ImGui::MenuItem("New Point Light"))
+            App->level->AddPointLight();
+
 		if (ImGui::MenuItem("Clear Scene", "!"))
 			App->level->GetRoot()->Remove();
+
 
 		ImGui::EndMenu();
 	}
@@ -132,39 +139,73 @@ void PanelGOTree::DrawLights()
 {
 	ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_GREY);
 
-    uint flags = ImGuiTreeNodeFlags_Leaf;
-
-    if(App->editor->selection_type == ModuleEditor::SelectionAmbientLight && App->editor->selected.ambient == App->level->GetAmbientLight())
+    if(ImGui::TreeNodeEx("Lights", 0))
     {
-        flags |= ImGuiTreeNodeFlags_Selected;
-    }
+        uint flags = ImGuiTreeNodeFlags_Leaf;
 
-    if(ImGui::TreeNodeEx("Ambient", flags))
-    {
-		if (ImGui::IsItemClicked(0)) 
+        if(App->editor->selection_type == ModuleEditor::SelectionAmbientLight && App->editor->selected.ambient == App->level->GetAmbientLight())
         {
-			App->editor->selected.ambient = App->level->GetAmbientLight();
-			App->editor->selection_type = ModuleEditor::SelectionAmbientLight;
-		}
+            flags |= ImGuiTreeNodeFlags_Selected;
+        }
+
+        if(ImGui::TreeNodeEx("Ambient", flags))
+        {
+            if (ImGui::IsItemClicked(0)) 
+            {
+                App->editor->selected.ambient = App->level->GetAmbientLight();
+                App->editor->selection_type = ModuleEditor::SelectionAmbientLight;
+            }
+            ImGui::TreePop();
+        }
+
+        flags = ImGuiTreeNodeFlags_Leaf;
+
+        if(App->editor->selection_type == ModuleEditor::SelectionDirLight && App->editor->selected.directional == App->level->GetDirLight())
+        {
+            flags |= ImGuiTreeNodeFlags_Selected;
+        }
+
+        if(ImGui::TreeNodeEx("Directional", flags))
+        {
+            if (ImGui::IsItemClicked(0)) 
+            {
+                App->editor->selected.directional = App->level->GetDirLight();
+                App->editor->selection_type = ModuleEditor::SelectionDirLight;
+            }
+            ImGui::TreePop();
+        }
+
+        if(ImGui::TreeNodeEx("Points", 0))
+        {
+            char number[16];
+            for(uint i=0, count = App->level->GetNumPointLights(); i < count; ++i)
+            {
+                sprintf_s(number, 15, "[%d]", i);
+
+                flags = ImGuiTreeNodeFlags_Leaf;
+
+                if(App->editor->selection_type == ModuleEditor::SelectionPointLight && App->editor->selected.point == App->level->GetPointLight(i))
+                {
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                }
+
+                if(ImGui::TreeNodeEx(number, flags))
+                {
+                    if (ImGui::IsItemClicked(0)) 
+                    {
+                        App->editor->selected.point = App->level->GetPointLight(i);
+                        App->editor->selection_type = ModuleEditor::SelectionPointLight;
+                    }
+
+                    ImGui::TreePop();
+                }
+            }
+
+            ImGui::TreePop();
+        }
         ImGui::TreePop();
     }
 
-    flags = ImGuiTreeNodeFlags_Leaf;
-
-    if(App->editor->selection_type == ModuleEditor::SelectionDirLight && App->editor->selected.directional == App->level->GetDirLight())
-    {
-        flags |= ImGuiTreeNodeFlags_Selected;
-    }
-
-	if(ImGui::TreeNodeEx("Directional", flags))
-    {
-		if (ImGui::IsItemClicked(0)) 
-        {
-			App->editor->selected.directional = App->level->GetDirLight();
-			App->editor->selection_type = ModuleEditor::SelectionDirLight;
-		}
-        ImGui::TreePop();
-    }
     ImGui::PopStyleColor();
 }
 

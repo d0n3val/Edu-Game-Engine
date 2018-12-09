@@ -67,6 +67,9 @@ void PanelProperties::Draw()
         case ModuleEditor::SelectionDirLight:
             DrawDirLight(App->editor->selected.directional);
             break;
+        case ModuleEditor::SelectionPointLight:
+            DrawPointLight(App->editor->selected.point);
+            break;
     }
 
     ImGui::End();
@@ -106,6 +109,43 @@ void PanelProperties::DrawDirLight(DirLight* light)
         if(ImGui::SliderAngle("polar", &polar, 0.0f, 180.0f))
         {
             light->SetPolar(polar);
+        }
+    }
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawPointLight(PointLight* light)
+{
+    if (ImGui::CollapsingHeader("Point light", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        float3 color = light->GetColor();
+        if(ImGui::ColorEdit3("color", (float*)&color))
+        {
+            light->SetColor(color);
+        }
+
+        ImGui::Separator();
+
+        App->renderer3D->viewport->DrawGuizmoProperties(light);
+
+        ImGui::Separator();
+
+        float constant = light->GetConstantAtt();
+        if(ImGui::SliderFloat("constant att.", &constant, 0.0f, 10.0f))
+        {
+            light->SetConstantAtt(constant);
+        }
+
+        float linear = light->GetLinearAtt();
+        if(ImGui::SliderFloat("linear att.", &linear, 0.0f, 10.0f))
+        {
+            light->SetLinearAtt(linear);
+        }
+
+        float quadric = light->GetQuadricAtt();
+        if(ImGui::SliderFloat("quadric att.", &quadric, 0.0f, 10.0f))
+        {
+            light->SetQuadricAtt(quadric);
         }
     }
 }

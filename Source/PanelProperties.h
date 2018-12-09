@@ -17,6 +17,7 @@ class ComponentMesh;
 class ResourceMaterial;
 class AmbientLight;
 class DirLight;
+class PointLight;
 
 class PanelProperties : public Panel
 {
@@ -44,6 +45,7 @@ private:
     void DrawGameObject(GameObject* go);
     void DrawAmbientLight(AmbientLight* light);
     void DrawDirLight(DirLight* light);
+    void DrawPointLight(PointLight* light);
 	// TODO move editor code as a component method like component rigidbody
 	void DrawMeshComponent(ComponentMesh* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);

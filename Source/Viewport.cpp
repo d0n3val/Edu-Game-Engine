@@ -11,6 +11,7 @@
 #include "ModuleHints.h"
 
 #include "GameObject.h"
+#include "PointLight.h"
 
 #include "ComponentCamera.h"
 
@@ -343,6 +344,27 @@ void Viewport::DrawGuizmoProperties(GameObject* go)
 
 }
 
+void Viewport::DrawGuizmoProperties(PointLight* point)
+{
+    bool local = guizmo_mode == ImGuizmo::LOCAL && guizmo_op != ImGuizmo::SCALE;
+
+    guizmo_mode = ImGuizmo::WORLD;
+    guizmo_op = ImGuizmo::TRANSLATE;
+
+    float3 position = point->GetPosition();
+
+    if(ImGui::DragFloat3("Position", (float*)&position, 3))
+    {
+        point->SetPosition(position);
+    }
+
+    ImGui::PushID("snap");
+    ImGui::Checkbox("", &guizmo_useSnap);
+    ImGui::PopID();
+    ImGui::SameLine();
+    ImGui::InputFloat3("Snap", &guizmo_snap.x);
+}
+
 void Viewport::DrawGuizmo(ComponentCamera* camera)
 {
 	if (App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go != nullptr)
@@ -378,4 +400,29 @@ void Viewport::DrawGuizmo(ComponentCamera* camera)
             }
         }
 	}
+	else if (App->editor->selection_type == ModuleEditor::SelectionPointLight && App->editor->selected.point != nullptr)
+    {
+		float4x4 view = camera->GetOpenGLViewMatrix();
+		float4x4 proj = camera->GetOpenGLProjectionMatrix();
+
+		ImGuizmo::BeginFrame();
+		ImGuizmo::Enable(true);
+
+        float4x4 model = float4x4::identity;
+        model.SetTranslatePart(App->editor->selected.point->GetPosition());
+        model.Transpose();
+
+		float4x4 delta;
+
+		ImGuiIO& io = ImGui::GetIO();
+		ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
+
+		if (ImGuizmo::IsUsing() && !delta.IsIdentity())
+		{
+			model.Transpose();
+            App->editor->selected.point->SetPosition(model.TranslatePart());
+        }
+    }
 }

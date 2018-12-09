@@ -19,6 +19,7 @@ class PanelQuickBar;
 class GameObject;
 class DirLight;
 class AmbientLight;
+class PointLight;
 
 class ModuleEditor : public Module
 {
@@ -64,7 +65,8 @@ public:
     {
         SelectionGameObject = 0,
         SelectionDirLight,
-        SelectionAmbientLight
+        SelectionAmbientLight,
+        SelectionPointLight,
     };
 
     union
@@ -72,6 +74,7 @@ public:
 	    GameObject* go = nullptr;
         DirLight* directional;
         AmbientLight* ambient;
+        PointLight* point;
 
     } selected;
 
