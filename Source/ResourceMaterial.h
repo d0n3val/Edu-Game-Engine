@@ -63,6 +63,7 @@ public:
 
     UID                     GetTexture          (Texture texture) const { return textures[texture]; }
     const ResourceTexture*  GetTextureRes       (Texture texture) const;
+    ResourceTexture*        GetTextureRes       (Texture texture) ;
     void                    SetTexture          (Texture texture, UID uid);
 
     float                   GetShininess        () const { return shininess; }

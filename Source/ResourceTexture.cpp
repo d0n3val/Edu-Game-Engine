@@ -44,6 +44,7 @@ void ResourceTexture::Save(Config & config) const
 	Resource::Save(config);
 
 	config.AddInt("Format", format);
+	config.AddBool("Mipmaps", has_mips);
 }
 
 // ---------------------------------------------------------
@@ -51,10 +52,32 @@ void ResourceTexture::Load(const Config & config)
 {
 	Resource::Load(config);
 
-	format = (Format) config.GetInt("Format", unknown);
+    format = (Format) config.GetInt("Format", unknown);
+    has_mips = config.GetBool("Mipmaps", false);
 }
 
 // ---------------------------------------------------------
 void ResourceTexture::EnableMips(bool enable)
 {
+    if(has_mips != enable)
+    {
+        has_mips = enable;
+
+        if(gpu_id != 0)
+        {
+            if(has_mips)
+            {
+                glBindTexture(GL_TEXTURE_2D, gpu_id);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                glGenerateMipmap(GL_TEXTURE_2D);
+            }
+            else
+            {
+                glBindTexture(GL_TEXTURE_2D, gpu_id);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            }
+        }
+
+        glBindTexture(GL_TEXTURE_2D, gpu_id);
+    }
 }

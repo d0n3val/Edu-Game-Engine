@@ -596,7 +596,7 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, const char* name)
 {
     bool modified = false;
-    const ResourceTexture* info = material->GetTextureRes(ResourceMaterial::Texture(texture));
+    ResourceTexture* info = material->GetTextureRes(ResourceMaterial::Texture(texture));
 
     ImVec2 size(64.0f, 64.0f);
 
@@ -644,8 +644,17 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 		App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
-        ImGui::Text("(%u,%u) %s %u bpp %s mipmaps", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->HasMips() ? "has" : "hasn´t");
+        ImGui::Text("(%u,%u) %s %u bpp", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP());
         ImGui::PopStyleColor();
+
+        ImGui::PushID(name);
+        bool mips = info->HasMips();
+        if(ImGui::Checkbox("Mipmaps", &mips))
+        {
+            info->EnableMips(mips);
+        }
+        ImGui::PopID();
+
         ImGui::PushID(name);
         if(ImGui::SmallButton("Delete"))
         {

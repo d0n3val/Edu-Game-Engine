@@ -126,7 +126,6 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 			resource->height = i.Height;
 			resource->bpp = (uint)i.Bpp;
 			resource->depth = i.Depth;
-			resource->has_mips = i.NumMips > 0;
 			resource->bytes = i.SizeOfData;
 
 			switch (i.Format)
@@ -155,10 +154,18 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 			}
 
 			resource->gpu_id = ilutGLBindTexImage();
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            glGenerateMipmap(GL_TEXTURE_2D);
+
+            if(resource->has_mips)
+            {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glGenerateMipmap(GL_TEXTURE_2D);
+            }
+            else
+            {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            }
 
             ilDeleteImages(1, &ImageName);
 

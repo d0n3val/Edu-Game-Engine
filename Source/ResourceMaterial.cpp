@@ -250,3 +250,8 @@ const ResourceTexture* ResourceMaterial::GetTextureRes(Texture t) const
     return static_cast<const ResourceTexture*>(App->resources->Get(textures[t]));
 }
 
+ResourceTexture* ResourceMaterial::GetTextureRes(Texture t) 
+{
+    return static_cast<ResourceTexture*>(App->resources->Get(textures[t]));
+}
+
