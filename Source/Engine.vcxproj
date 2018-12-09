@@ -259,6 +259,7 @@
     <ClInclude Include="PanelResources.h" />
     <ClInclude Include="parson.h" />
     <ClInclude Include="PhysBody3D.h" />
+    <ClInclude Include="PointLight.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="Resource.h" />
@@ -365,6 +366,7 @@
     <ClCompile Include="PanelResources.cpp" />
     <ClCompile Include="parson.c" />
     <ClCompile Include="PhysBody3D.cpp" />
+    <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Primitive.cpp" />
     <ClCompile Include="QuadTree.cpp" />
     <ClCompile Include="Resource.cpp" />

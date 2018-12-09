@@ -594,6 +594,9 @@
     <ClInclude Include="Viewport.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="PointLight.h">
+      <Filter>Game Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -910,6 +913,9 @@
     </ClCompile>
     <ClCompile Include="Viewport.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="PointLight.cpp">
+      <Filter>Game Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -155,7 +155,7 @@ Config Config::GetArray(const char * field, int index) const
 
 int Config::GetArrayCount(const char * field) const
 {
-	int ret = -1;
+	int ret = 0;
 	JSON_Array* array = json_object_get_array(root, field);
 	if (array != nullptr)
 		ret = json_array_get_count(array);

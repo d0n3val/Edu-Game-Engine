@@ -3,6 +3,8 @@
 
 #include "Math.h"
 
+class Config;
+
 class PointLight
 {
 public:
