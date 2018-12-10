@@ -26,6 +26,6 @@ void PointLight::Load(Config& config)
 	color    = config.GetFloat3("color", float3::one);
 	constant = config.GetFloat("constant", 1.0f);
 	linear   = config.GetFloat("linear", 0.0f);
-	quadric  = config.GetFloat("quadric", 0.0f)/1000.0f;
+	quadric  = config.GetFloat("quadric", 0.0f)*0.001f;
 }
 

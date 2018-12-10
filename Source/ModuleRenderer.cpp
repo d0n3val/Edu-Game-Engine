@@ -6,6 +6,8 @@
 #include "ModuleResources.h"
 #include "ModuleHints.h"
 
+#include "DefaultShaderLocations.h"
+
 #include "GameObject.h"
 
 #include "ComponentMesh.h"
@@ -19,6 +21,7 @@
 #include "AmbientLight.h"
 #include "DirLight.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 
 #include "Application.h"
 
@@ -155,58 +158,68 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
     float shininess = specular ? 1.0f : material->GetShininess();
 
-    glUniform1f(MATERIAL_LOCATION+4, shininess);
+    glUniform1f(SHININESS_LOC, shininess);
 
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, emissive_id);
-    glUniform1i(MATERIAL_LOCATION+6, 3);
+    glUniform1i(EMISSIVE_MAP_LOC, 3);
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, occlusion_id);
-    glUniform1i(MATERIAL_LOCATION+5, 2);
+    glUniform1i(OCCLUSION_MAP_LOC, 2);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, specular_id);
-    glUniform1i(MATERIAL_LOCATION+2, 1);
+    glUniform1i(SPECULAR_MAP_LOC, 1);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuse_id);
-    glUniform1i(MATERIAL_LOCATION, 0);
+    glUniform1i(DIFFUSE_MAP_LOC, 0);
 
-    glUniform4fv(MATERIAL_LOCATION+1, 1, (const float*)&diffuse_color);
+    glUniform4fv(DIFFUSE_CONSTANT_LOC, 1, (const float*)&diffuse_color);
     glUniform3fv(MATERIAL_LOCATION+3, 1, (const float*)&specular_color);
     glUniform3fv(MATERIAL_LOCATION+7, 1, (const float*)&emissive_color);
 
     glUniform1f(MATERIAL_LOCATION+8, material->GetKAmbient());
     glUniform1f(MATERIAL_LOCATION+9, material->GetKDiffuse());
-    glUniform1f(MATERIAL_LOCATION+10, material->GetKSpecular());
+    glUniform1f(SPECULAR_CONSTANT_LOC, material->GetKSpecular());
 }
 
 void ModuleRenderer::UpdateLightUniform() const
 {
-    static const unsigned LIGHTS_LOCATION = 20;
-    static const unsigned MAX_NUM_LIGHTS = 4;
-
     const AmbientLight* ambient = App->level->GetAmbientLight();
     const DirLight* directional = App->level->GetDirLight();
 
     float3 dir = directional->GetDir();
 
-    glUniform3fv(LIGHTS_LOCATION, 1, (const float*)&ambient->GetColor());
-    glUniform3fv(LIGHTS_LOCATION+1, 1, (const float*)&dir);
-    glUniform3fv(LIGHTS_LOCATION+2, 1, (const float*)&directional->GetColor());
+    glUniform3fv(AMBIENT_COLOR_LOC, 1, (const float*)&ambient->GetColor());
+    glUniform3fv(DIRECTIONAL_DIR_LOC, 1, (const float*)&dir);
+    glUniform3fv(DIRECTIONAL_COLOR_LOC, 1, (const float*)&directional->GetColor());
 
-    uint num_point = min(App->level->GetNumPointLights(), MAX_NUM_LIGHTS);
+    uint num_point = min(App->level->GetNumPointLights(), MAX_NUM_POINT_LIGHTS);
 
     for(uint i=0; i< num_point; ++i)
     {
-        glUniform3fv(LIGHTS_LOCATION+3+i*5, 1, (const float*)&App->level->GetPointLight(i)->GetPosition());
-        glUniform3fv(LIGHTS_LOCATION+4+i*5, 1, (const float*)&App->level->GetPointLight(i)->GetColor());
-        glUniform1f(LIGHTS_LOCATION+5+i*5, App->level->GetPointLight(i)->GetConstantAtt());
-        glUniform1f(LIGHTS_LOCATION+6+i*5, App->level->GetPointLight(i)->GetLinearAtt());
-        glUniform1f(LIGHTS_LOCATION+7+i*5, App->level->GetPointLight(i)->GetQuadricAtt());
+        glUniform3fv(POINT0_POSITION_LOC+i*5, 1, (const float*)&App->level->GetPointLight(i)->GetPosition());
+        glUniform3fv(POINT0_COLOR_LOC+i*5, 1, (const float*)&App->level->GetPointLight(i)->GetColor());
+        glUniform1f(POINT0_CONSTANT_ATT_LOC+i*5, App->level->GetPointLight(i)->GetConstantAtt());
+        glUniform1f(POINT0_LINEAR_ATT_LOC+i*5, App->level->GetPointLight(i)->GetLinearAtt());
+        glUniform1f(POINT0_QUADRIC_ATT_LOC+i*5, App->level->GetPointLight(i)->GetQuadricAtt());
     }
 
-    glUniform1ui(LIGHTS_LOCATION+3+MAX_NUM_LIGHTS*5, num_point);
+    glUniform1ui(NUM_POINT_LIGHT_LOC, num_point);
+
+    uint num_spot = min(App->level->GetNumspotLights(), MAX_NUM_SPOT_LIGHTS);
+
+    for(uint i=0; i< num_spot; ++i)
+    {
+        glUniform3fv(SPOT0_POSITION_LOC+i*8, 1, (const float*)&App->level->GetspotLight(i)->GetPosition());
+        glUniform3fv(SPOT0_COLOR_LOC+i*8, 1, (const float*)&App->level->GetspotLight(i)->GetColor());
+        glUniform1f(SPOT0_CONSTANT_ATT_LOC+i*8, App->level->GetspotLight(i)->GetConstantAtt());
+        glUniform1f(SPOT0_LINEAR_ATT_LOC+i*8, App->level->GetspotLight(i)->GetLinearAtt());
+        glUniform1f(SPOT0_QUADRIC_ATT_LOC+i*8, App->level->GetspotLight(i)->GetQuadricAtt());
+    }
+
+    glUniform1ui(NUM_SPOT_LIGHT_LOC, num_spot);
 }
 

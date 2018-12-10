@@ -16,6 +16,7 @@
 #include "AmbientLight.h"
 #include "DirLight.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 
 using namespace std;
 
@@ -210,6 +211,34 @@ void ModuleLevelManager::LoadGameObjects(const Config & config)
 		it->first->OnStart();
 }
 
+void ModuleLevelManager::LoadLights(const Config& config)
+{
+    ambient->Load(config.GetSection("Ambient"));
+    directional->Load(config.GetSection("Directional"));
+
+    assert(points.empty());
+
+    uint count = config.GetArrayCount("Points");
+    for(uint i=0; i< count; ++i)
+    {
+        PointLight* point = new PointLight;
+        point->Load(config.GetArray("Points", i));
+
+        points.push_back(point);
+    }
+
+    assert(spots.empty());
+
+    uint count = config.GetArrayCount("spots");
+    for(uint i=0; i< count; ++i)
+    {
+        SpotLight* spot = new SpotLight;
+        spot->Load(config.GetArray("spots", i));
+
+        spots.push_back(spot);
+    }
+}
+
 bool ModuleLevelManager::Load(const char * file)
 {
 	bool ret = false;
@@ -230,22 +259,7 @@ bool ModuleLevelManager::Load(const char * file)
 			name = desc.GetString("Name", "Unnamed level");
 			App->camera->Load(&desc);
 
-            Config lights = config.GetSection("Lights");
-            ambient->Load(lights.GetSection("Ambient"));
-            directional->Load(lights.GetSection("Directional"));
-
-            assert(points.empty());
-
-            uint count = lights.GetArrayCount("Points");
-            for(uint i=0; i< count; ++i)
-            {
-                Config point_config = lights.GetArray("Points", i);
-                PointLight* point = new PointLight;
-                point->Load(point_config);
-
-                points.push_back(point);
-            }
-
+            LoadLights(config.GetSection("Lights"));
 			LoadGameObjects(config);
 
 		}
@@ -267,20 +281,7 @@ bool ModuleLevelManager::Save(const char * file)
 	desc.AddString("Name", name.c_str());
 	App->camera->Save(&desc);
 
-    Config lights = save.AddSection("Lights");    
-
-    ambient->Save(lights.AddSection("Ambient"));
-    directional->Save(lights.AddSection("Directional"));
-
-    lights.AddArray("Points");
-
-    for(std::vector<PointLight*>::const_iterator it = points.begin(), end = points.end(); it != end; ++it)
-    {
-        Config point;
-        (*it)->Save(point);
-
-        lights.AddArrayEntry(point);
-    }
+    SaveLights(save.AddSection("Lights"));
 
 	// Serialize GameObjects recursively
 	save.AddArray("Game Objects");
@@ -295,6 +296,32 @@ bool ModuleLevelManager::Save(const char * file)
 	RELEASE_ARRAY(buf);
 
 	return ret;
+}
+
+void ModuleLevelManager::SaveLights(Config& config) const
+{
+    ambient->Save(config.AddSection("Ambient"));
+    directional->Save(config.AddSection("Directional"));
+
+    config.AddArray("Points");
+
+    for(std::vector<PointLight*>::const_iterator it = points.begin(), end = points.end(); it != end; ++it)
+    {
+        Config point;
+        (*it)->Save(point);
+
+        config.AddArrayEntry(point);
+    }
+
+    config.AddArray("Spots");
+
+    for(std::vector<SpotLight*>::const_iterator it = spots.begin(), end = spots.end(); it != end; ++it)
+    {
+        Config spot;
+        (*it)->Save(spot);
+
+        config.AddArrayEntry(spot);
+    }
 }
 
 void ModuleLevelManager::UnloadCurrent()
@@ -510,4 +537,18 @@ void ModuleLevelManager::RemovePointLight(uint index)
 {
     delete points[index];
     points.erase(points.begin()+index);
+}
+
+uint ModuleLevelManager::AddSpotLight()
+{
+    uint index = spots.size();
+    spots.push_back(new SpotLight);
+
+    return index;
+}
+
+void ModuleLevelManager::RemoveSpotLight(uint index)
+{
+    delete spots[index];
+    spots.erase(spots.begin()+index);
 }

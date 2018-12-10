@@ -8,6 +8,7 @@
 
 class GameObject;
 class PointLight;
+class SpotLight;
 class DirLight;
 class AmbientLight;
 
@@ -63,6 +64,12 @@ public:
     const PointLight*   GetPointLight           (uint index) const { return points[index]; }
     PointLight*         GetPointLight           (uint index) { return points[index]; }
 
+    uint                AddSpotLight            ();
+    void                RemoveSpotLight         (uint index);
+    uint                GetNumSpotLights        () const { return spots.size(); }
+    const PointLight*   GetSpotLight            (uint index) const { return spots[index]; }
+    PointLight*         GetSpotLight            (uint index) { return spots[index]; }
+
 private:
 
 	void RecursiveTestRayBBox(const LineSegment& segment, float& dist, float3& normal, GameObject** best_candidate) const;
@@ -74,6 +81,9 @@ private:
 	void DestroyFlaggedGameObjects();
 
 	void LoadGameObjects(const Config& config);
+	void LoadLights(const Config& config);
+
+    void SaveLights(Config& config) const;
 
 public:
 	Quadtree quadtree;
@@ -84,6 +94,7 @@ private:
     AmbientLight* ambient = nullptr;
     DirLight* directional = nullptr;
     std::vector<PointLight*> points;
+    std::vector<SpotLight*> spots;
 	std::string name;
 };
 
