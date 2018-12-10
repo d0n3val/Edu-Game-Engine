@@ -114,6 +114,9 @@ void PanelGOTree::Draw()
         if(ImGui::MenuItem("New Point Light"))
             App->level->AddPointLight();
 
+        if(ImGui::MenuItem("New Spot Light"))
+            App->level->AddSpotLight();
+
 		if (ImGui::MenuItem("Clear Scene", "!"))
 			App->level->GetRoot()->Remove();
 
@@ -212,6 +215,55 @@ void PanelGOTree::DrawLights()
                             }
 
                             App->level->RemovePointLight(i);
+                        }
+                        ImGui::EndPopup();
+                    }
+
+
+                    ImGui::TreePop();
+                }
+            }
+
+            ImGui::TreePop();
+        }
+
+        if(ImGui::TreeNodeEx("SpotLights", 0))
+        {
+            bool remove = false;
+            char number[16];
+            for(uint i=0, count = App->level->GetNumSpotLights(); !remove && i < count; ++i)
+            {
+                sprintf_s(number, 15, "[%d]", i);
+
+                flags = ImGuiTreeNodeFlags_Leaf;
+
+                if(App->editor->selection_type == ModuleEditor::SelectionSpotLight && App->editor->selected.spot == App->level->GetSpotLight(i))
+                {
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                }
+
+                if(ImGui::TreeNodeEx(number, flags))
+                {
+                    if (ImGui::IsItemClicked(0)) 
+                    {
+                        App->editor->selected.spot = App->level->GetSpotLight(i);
+                        App->editor->selection_type = ModuleEditor::SelectionSpotLight;
+                    }
+
+                    if (ImGui::IsItemClicked(1))
+                        ImGui::OpenPopup("SpotLight Options");
+
+                    if (ImGui::BeginPopup("SpotLight Options"))
+                    {
+                        if (true == (remove = ImGui::MenuItem("Remove")))
+                        {
+                            if(App->editor->selection_type == ModuleEditor::SelectionSpotLight && 
+                               App->editor->selected.spot == App->level->GetSpotLight(i))
+                            {
+                                App->editor->selected.spot = nullptr;
+                            }
+
+                            App->level->RemoveSpotLight(i);
                         }
                         ImGui::EndPopup();
                     }

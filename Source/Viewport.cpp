@@ -11,7 +11,9 @@
 #include "ModuleHints.h"
 
 #include "GameObject.h"
+
 #include "PointLight.h"
+#include "SpotLight.h"
 
 #include "ComponentCamera.h"
 
@@ -363,6 +365,10 @@ void Viewport::DrawGuizmoProperties(PointLight* point)
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputFloat3("Snap", &guizmo_snap.x);
+}
+
+void Viewport::DrawGuizmoProperties(SpotLight* point)
+{
 }
 
 void Viewport::DrawGuizmo(ComponentCamera* camera)

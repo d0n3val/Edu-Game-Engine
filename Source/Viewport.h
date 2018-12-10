@@ -31,6 +31,7 @@ public:
 
     void                DrawGuizmoProperties(GameObject* go);
     void                DrawGuizmoProperties(PointLight* point);
+    void                DrawGuizmoProperties(SpotLight* point);
 
 private:
 

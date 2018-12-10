@@ -34,6 +34,7 @@
 #include "DirLight.h"
 #include "AmbientLight.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 
 #include <list>
 
@@ -74,6 +75,10 @@ void PanelProperties::Draw()
         case ModuleEditor::SelectionPointLight:
             if(App->editor->selected.point)
 				DrawPointLight(App->editor->selected.point);
+            break;
+        case ModuleEditor::SelectionSpotLight:
+            if(App->editor->selected.spot)
+				DrawSpotLight(App->editor->selected.spot);
             break;
     }
 
@@ -121,8 +126,6 @@ void PanelProperties::DrawDirLight(DirLight* light)
 // ---------------------------------------------------------
 void PanelProperties::DrawPointLight(PointLight* light)
 {
-    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-
     if (ImGui::CollapsingHeader("Point light", ImGuiTreeNodeFlags_DefaultOpen))
     {
         float3 color = light->GetColor();
@@ -134,6 +137,57 @@ void PanelProperties::DrawPointLight(PointLight* light)
         ImGui::Separator();
 
         App->renderer3D->viewport->DrawGuizmoProperties(light);
+
+        ImGui::Separator();
+
+        float constant = light->GetConstantAtt();
+        if(ImGui::InputFloat("constant att.", &constant, 0.00001f, 0.1f, "%.9f"))
+        {
+            light->SetConstantAtt(constant);
+        }
+
+        float linear = light->GetLinearAtt();
+        if(ImGui::InputFloat("linear att.", &linear, 0.00001f, 0.1f, "%.9f"))
+        {
+            light->SetLinearAtt(linear);
+        }
+
+        float quadric = light->GetQuadricAtt();
+        if(ImGui::InputFloat("quadric att.", &quadric, 0.00001f, 0.1f, "%.9f"))
+        {
+            light->SetQuadricAtt(quadric);
+        }
+    }
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawSpotLight(SpotLight* light)
+{
+    if (ImGui::CollapsingHeader("Spot light", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        float3 color = light->GetColor();
+        if(ImGui::ColorEdit3("color", (float*)&color))
+        {
+            light->SetColor(color);
+        }
+
+        ImGui::Separator();
+
+        App->renderer3D->viewport->DrawGuizmoProperties(light);
+
+        ImGui::Separator();
+
+        float inner = light->GetInnerCutoff();
+        if(ImGui::InputFloat("inner cutoff", &inner, 0.0001f, 1.0f, "%.4f"))
+        {
+            light->SetInnerCutoff(inner);
+        }
+
+        float outter = light->GetOutterCutoff();
+        if(ImGui::InputFloat("outter cutoff", &outter, 0.0001f, 1.0f, "%.4f"))
+        {
+            light->SetOutterCutoff(outter);
+        }
 
         ImGui::Separator();
 

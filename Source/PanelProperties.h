@@ -46,6 +46,7 @@ private:
     void DrawAmbientLight(AmbientLight* light);
     void DrawDirLight(DirLight* light);
     void DrawPointLight(PointLight* light);
+    void DrawSpotLight(SpotLight* light);
 	// TODO move editor code as a component method like component rigidbody
 	void DrawMeshComponent(ComponentMesh* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);

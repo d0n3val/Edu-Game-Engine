@@ -20,6 +20,7 @@ class GameObject;
 class DirLight;
 class AmbientLight;
 class PointLight;
+class SpotLight;
 
 class ModuleEditor : public Module
 {
@@ -67,6 +68,7 @@ public:
         SelectionDirLight,
         SelectionAmbientLight,
         SelectionPointLight,
+        SelectionSpotLight,
     };
 
     union
@@ -75,6 +77,7 @@ public:
         DirLight* directional;
         AmbientLight* ambient;
         PointLight* point;
+        SpotLight* spot;
 
     } selected;
 
