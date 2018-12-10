@@ -124,10 +124,19 @@ void PanelGOTree::Draw()
 		ImGui::EndMenu();
 	}
 
-	// Draw the tree
-	GameObject* root = App->level->GetRoot();
-	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
-		RecursiveDraw(*it);
+    ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_WHITE);
+
+    if(ImGui::TreeNodeEx("GameObjecs", 0))
+    {
+        // Draw the tree
+        GameObject* root = App->level->GetRoot();
+        for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
+            RecursiveDraw(*it);
+
+        ImGui::TreePop();
+    }
+
+    ImGui::PopStyleColor();
 
     DrawLights();
 
@@ -140,10 +149,11 @@ void PanelGOTree::Draw()
 // ---------------------------------------------------------
 void PanelGOTree::DrawLights()
 {
-	ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_GREY);
+    ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_WHITE);
 
     if(ImGui::TreeNodeEx("Lights", 0))
     {
+        ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_GREY);
         uint flags = ImGuiTreeNodeFlags_Leaf;
 
         if(App->editor->selection_type == ModuleEditor::SelectionAmbientLight && App->editor->selected.ambient == App->level->GetAmbientLight())
@@ -178,7 +188,7 @@ void PanelGOTree::DrawLights()
             ImGui::TreePop();
         }
 
-        if(ImGui::TreeNodeEx("Points", 0))
+        if(ImGui::TreeNodeEx("Point", 0))
         {
             bool remove = false;
             char number[16];
@@ -227,7 +237,7 @@ void PanelGOTree::DrawLights()
             ImGui::TreePop();
         }
 
-        if(ImGui::TreeNodeEx("SpotLights", 0))
+        if(ImGui::TreeNodeEx("Spot", 0))
         {
             bool remove = false;
             char number[16];
@@ -276,6 +286,7 @@ void PanelGOTree::DrawLights()
             ImGui::TreePop();
         }
         ImGui::TreePop();
+        ImGui::PopStyleColor();
     }
 
     ImGui::PopStyleColor();

@@ -67,8 +67,8 @@ public:
     uint                AddSpotLight            ();
     void                RemoveSpotLight         (uint index);
     uint                GetNumSpotLights        () const { return spots.size(); }
-    const PointLight*   GetSpotLight            (uint index) const { return spots[index]; }
-    PointLight*         GetSpotLight            (uint index) { return spots[index]; }
+    const SpotLight*    GetSpotLight            (uint index) const { return spots[index]; }
+    SpotLight*          GetSpotLight            (uint index) { return spots[index]; }
 
 private:
 

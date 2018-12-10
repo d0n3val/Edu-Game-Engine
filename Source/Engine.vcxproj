@@ -269,6 +269,7 @@
     <ClInclude Include="ResourceModel.h" />
     <ClInclude Include="ResourceScene.h" />
     <ClInclude Include="ResourceTexture.h" />
+    <ClInclude Include="spotlight.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="PhysVehicle3D.h" />
     <ClInclude Include="tinyspline\include\tinyspline.h" />
@@ -377,6 +378,7 @@
     <ClCompile Include="ResourceModel.cpp" />
     <ClCompile Include="ResourceScene.cpp" />
     <ClCompile Include="ResourceTexture.cpp" />
+    <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="PhysVehicle3D.cpp" />
     <ClCompile Include="tinyspline\include\tinyspline.c" />

@@ -18,6 +18,7 @@ class ResourceMaterial;
 class AmbientLight;
 class DirLight;
 class PointLight;
+class SpotLight;
 
 class PanelProperties : public Panel
 {

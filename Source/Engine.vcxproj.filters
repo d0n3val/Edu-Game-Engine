@@ -64,6 +64,9 @@
     <Filter Include="3rd Party\tinyspline">
       <UniqueIdentifier>{1bdcda1d-5afb-40fa-918e-c065b28e78ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Lights">
+      <UniqueIdentifier>{e9dde8d3-a07c-4262-a852-7221c1bc7326}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -582,12 +585,6 @@
     <ClInclude Include="ModuleDebugDraw.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
-    <ClInclude Include="DirLight.h">
-      <Filter>Game Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="AmbientLight.h">
-      <Filter>Game Objects</Filter>
-    </ClInclude>
     <ClInclude Include="Imgui\ImGuizmo.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
@@ -595,7 +592,16 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="PointLight.h">
-      <Filter>Game Objects</Filter>
+      <Filter>Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="spotlight.h">
+      <Filter>Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="AmbientLight.h">
+      <Filter>Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="DirLight.h">
+      <Filter>Lights</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -902,12 +908,6 @@
     <ClCompile Include="ModuleDebugDraw.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
-    <ClCompile Include="DirLight.cpp">
-      <Filter>Game Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="AmbientLight.cpp">
-      <Filter>Game Objects</Filter>
-    </ClCompile>
     <ClCompile Include="Imgui\ImGuizmo.cpp">
       <Filter>3rd Party\imgui</Filter>
     </ClCompile>
@@ -915,7 +915,16 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="PointLight.cpp">
-      <Filter>Game Objects</Filter>
+      <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="SpotLight.cpp">
+      <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="AmbientLight.cpp">
+      <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="DirLight.cpp">
+      <Filter>Lights</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

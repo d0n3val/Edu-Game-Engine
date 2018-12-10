@@ -119,6 +119,7 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, specular_color.a);
     vec3 color     = lights.directional.color*(diffuse_color.rgb*(diffuse*material.k_diffuse)+specular_color.rgb*(specular*material.k_specular));
 
+    // \note: num_point best option use constant and black color for lights disabled?
     for(uint i=0; i < lights.num_point; ++i)
     {
         vec3 light_dir = pos-lights.points[i].position;

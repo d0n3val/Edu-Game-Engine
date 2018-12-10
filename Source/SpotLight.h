@@ -21,7 +21,7 @@ public:
     void            SetPosition     (const float3& p) { position = p; }
 
     float3          GetDirection     () const { return direction; }
-    void            SetDirection     (const float3& d) { direction = normalized(d); }
+	void            SetDirection(const float3& d) { direction = d.Normalized();; }
 
     float           GetInnerCutoff   () const { return inner; }
     void            SetInnerCutoff   (float angle) { inner = angle; }

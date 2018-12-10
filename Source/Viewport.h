@@ -7,6 +7,7 @@
 class ComponentCamera;
 class GameObject;
 class PointLight;
+class SpotLight;
 class Config;
 
 class Viewport

@@ -176,7 +176,7 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     glBindTexture(GL_TEXTURE_2D, diffuse_id);
     glUniform1i(DIFFUSE_MAP_LOC, 0);
 
-    glUniform4fv(DIFFUSE_CONSTANT_LOC, 1, (const float*)&diffuse_color);
+    glUniform4fv(DIFFUSE_COLOR_LOC, 1, (const float*)&diffuse_color);
     glUniform3fv(MATERIAL_LOCATION+3, 1, (const float*)&specular_color);
     glUniform3fv(MATERIAL_LOCATION+7, 1, (const float*)&emissive_color);
 
@@ -209,15 +209,15 @@ void ModuleRenderer::UpdateLightUniform() const
 
     glUniform1ui(NUM_POINT_LIGHT_LOC, num_point);
 
-    uint num_spot = min(App->level->GetNumspotLights(), MAX_NUM_SPOT_LIGHTS);
+    uint num_spot = min(App->level->GetNumSpotLights(), MAX_NUM_SPOT_LIGHTS);
 
     for(uint i=0; i< num_spot; ++i)
     {
-        glUniform3fv(SPOT0_POSITION_LOC+i*8, 1, (const float*)&App->level->GetspotLight(i)->GetPosition());
-        glUniform3fv(SPOT0_COLOR_LOC+i*8, 1, (const float*)&App->level->GetspotLight(i)->GetColor());
-        glUniform1f(SPOT0_CONSTANT_ATT_LOC+i*8, App->level->GetspotLight(i)->GetConstantAtt());
-        glUniform1f(SPOT0_LINEAR_ATT_LOC+i*8, App->level->GetspotLight(i)->GetLinearAtt());
-        glUniform1f(SPOT0_QUADRIC_ATT_LOC+i*8, App->level->GetspotLight(i)->GetQuadricAtt());
+        glUniform3fv(SPOT0_POSITION_LOC+i*8, 1, (const float*)&App->level->GetSpotLight(i)->GetPosition());
+        glUniform3fv(SPOT0_COLOR_LOC+i*8, 1, (const float*)&App->level->GetSpotLight(i)->GetColor());
+        glUniform1f(SPOT0_CONSTANT_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetConstantAtt());
+        glUniform1f(SPOT0_LINEAR_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetLinearAtt());
+        glUniform1f(SPOT0_QUADRIC_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetQuadricAtt());
     }
 
     glUniform1ui(NUM_SPOT_LIGHT_LOC, num_spot);
