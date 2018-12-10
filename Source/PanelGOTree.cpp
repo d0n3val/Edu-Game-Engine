@@ -205,7 +205,8 @@ void PanelGOTree::DrawLights()
                     {
                         if (true == (remove = ImGui::MenuItem("Remove")))
                         {
-                            if(App->editor->selection_type == ModuleEditor::SelectionPointLight && App->editor->selected.point == App->level->GetPointLight(i))
+                            if(App->editor->selection_type == ModuleEditor::SelectionPointLight && 
+                               App->editor->selected.point == App->level->GetPointLight(i))
                             {
                                 App->editor->selected.point = nullptr;
                             }
