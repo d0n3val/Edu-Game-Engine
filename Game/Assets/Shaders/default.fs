@@ -117,8 +117,7 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
 
     float diffuse  = lambert(lights.directional.dir, normal);
     float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, specular_color.a);
-
-    vec3 color = lights.directional.color*(diffuse_color.rgb*diffuse*material.k_diffuse+specular_color.rgb*specular*material.k_specular);
+    vec3 color     = lights.directional.color*(diffuse_color.rgb*(diffuse*material.k_diffuse)+specular_color.rgb*(specular*material.k_specular));
 
     for(uint i=0; i < lights.num_point; ++i)
     {
@@ -130,7 +129,7 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
         diffuse  = att*lambert(light_dir, normal);
         specular = att*specular_blinn(light_dir, pos, normal, view_pos, specular_color.a);
 
-        color += lights.points[i].color*(diffuse_color.rgb*diffuse*material.k_diffuse+specular_color.rgb*specular*material.k_specular);
+        color += lights.points[i].color*(diffuse_color.rgb*(diffuse*material.k_diffuse)+specular_color.rgb*(specular*material.k_specular));
     }
 
     color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
