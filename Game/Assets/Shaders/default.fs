@@ -53,7 +53,7 @@ struct Lights
 
 layout(location=0) uniform Material material;
 layout(location=20) uniform Lights lights;
-uniform mat4 view;
+uniform vec3 view_pos;
 
 
 //////////////////// INPUTS ////////////////////////
@@ -141,5 +141,5 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
 
 void main()
 {
-    color = blinn(f_in.position, normalize(f_in.normal), f_in.uv0, transpose(mat3(view))*(-view[3].xyz), lights, material);
+    color = blinn(f_in.position, normalize(f_in.normal), f_in.uv0, view_pos, lights, material);
 }

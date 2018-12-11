@@ -35,11 +35,11 @@ private:
     void                LoadDefaultShaders      ();
 
     void                DrawNodes               (void (ModuleRenderer::*drawer)(const float4x4&, const ComponentMesh*, const ComponentMaterial*,
-                                                 const float4x4&, const float4x4&), const float4x4& projection, const float4x4& view);
-
+                                                 const float4x4&, const float4x4&, const float3&), const float4x4& projection, const float4x4& view, 
+                                                 const float3& view_pos);
 
     void                DrawMeshColor           (const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material, 
-												 const float4x4& projection, const float4x4& view);
+												 const float4x4& projection, const float4x4& view, const float3& view_pos);
     void                UpdateMaterialUniform   (const ResourceMaterial* material) const;
     void                UpdateLightUniform      () const;
     void                CollectObjects          (GameObject* go);

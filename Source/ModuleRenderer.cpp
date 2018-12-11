@@ -63,10 +63,11 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 	glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	float4x4 proj = camera->GetOpenGLProjectionMatrix();
-	float4x4 view = camera->GetOpenGLViewMatrix();
+	float4x4 proj   = camera->GetOpenGLProjectionMatrix();	
+	float4x4 view   = camera->GetViewMatrix();
+    float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
 
-    DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view);
+    DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view.Transposed(), view_pos);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -82,8 +83,9 @@ void ModuleRenderer::CollectObjects( GameObject* go)
 }
 
 void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4&, 
-							    const ComponentMesh*, const ComponentMaterial*, const float4x4&, 
-                                const float4x4&), const float4x4& projection, const float4x4& view)
+							   const ComponentMesh*, const ComponentMaterial*, const float4x4&, 
+                               const float4x4&, const float3&), const float4x4& projection, 
+                               const float4x4& view, const float3& view_pos)
 {
 	for(NodeList::iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
 	{
@@ -94,7 +96,7 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4&,
 
         if(mesh != nullptr && material != nullptr)
         {
-            (this->*drawer)(node->GetGlobalTransformation().Transposed(), mesh, material, projection, view);
+            (this->*drawer)(node->GetGlobalTransformation().Transposed(), mesh, material, projection, view, view_pos);
         }
     }
 
@@ -102,7 +104,7 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4&,
 }
 
 void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material, 
-                                   const float4x4& projection, const float4x4& view)
+                                   const float4x4& projection, const float4x4& view, const float3& view_pos)
 {    
     const ResourceMesh* mesh_res    = mesh->GetResource();
     const ResourceMaterial* mat_res = material->GetResource();
@@ -117,6 +119,7 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMes
         glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_FALSE, reinterpret_cast<const float*>(&projection));
         glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_FALSE, reinterpret_cast<const float*>(&view));
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
+        glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
 
         glBindVertexArray(mesh_res->vao);
 
