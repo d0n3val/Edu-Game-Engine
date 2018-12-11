@@ -146,20 +146,20 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
 {
     static const unsigned MATERIAL_LOCATION = 0;
 
-    const ResourceTexture* specular = material->GetTextureRes(ResourceMaterial::TextureSpecular);
-    const ResourceTexture* diffuse  = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
-    const ResourceTexture* occlusion  = material->GetTextureRes(ResourceMaterial::TextureOcclusion);
+    const ResourceTexture* specular  = material->GetTextureRes(ResourceMaterial::TextureSpecular);
+    const ResourceTexture* diffuse   = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
+    const ResourceTexture* occlusion = material->GetTextureRes(ResourceMaterial::TextureOcclusion);
     const ResourceTexture* emissive  = material->GetTextureRes(ResourceMaterial::TextureEmissive);
 
-    unsigned diffuse_id  = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
-    unsigned specular_id = specular ? specular->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned diffuse_id   = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned specular_id  = specular ? specular->GetID() : App->resources->GetWhiteFallback()->GetID();
     unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
-    unsigned emissive_id = emissive ? emissive->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned emissive_id  = emissive ? emissive->GetID() : App->resources->GetWhiteFallback()->GetID();
 
-    float4 diffuse_color = material->GetDiffuseColor();
+    float4 diffuse_color  = material->GetDiffuseColor();
     float3 specular_color = specular ? float3(1.0f) : material->GetSpecularColor();
     float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
-    float shininess = specular ? 1.0f : material->GetShininess();
+    float shininess	      = specular ? 1.0f : material->GetShininess();
 
     glUniform1f(SHININESS_LOC, shininess);
 
