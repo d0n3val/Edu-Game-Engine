@@ -339,9 +339,6 @@ void Viewport::DrawGuizmoProperties(GameObject* go)
         case ImGuizmo::ROTATE:
             ImGui::InputFloat("Angle Snap", &guizmo_snap.x);
             break;
-        case ImGuizmo::SCALE:
-            ImGui::InputFloat("Scale Snap", &guizmo_snap.x);
-            break;
     }
 
 }
@@ -367,68 +364,175 @@ void Viewport::DrawGuizmoProperties(PointLight* point)
     ImGui::InputFloat3("Snap", &guizmo_snap.x);
 }
 
-void Viewport::DrawGuizmoProperties(SpotLight* point)
+void Viewport::DrawGuizmoProperties(SpotLight* spot)
 {
+    float4x4 model = float4x4::LookAt(spot->GetPosition(), spot->GetPosition()+spot->GetDirection(), float3::unitZ, float3::unitY, float3::unitY);
+    model.Transpose();
+
+    ImGui::RadioButton("Translate", (int*)&guizmo_op, (int)ImGuizmo::TRANSLATE);
+    ImGui::SameLine();
+    ImGui::RadioButton("Rotate", (int*)&guizmo_op, ImGuizmo::ROTATE);
+
+    float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+    ImGuizmo::DecomposeMatrixToComponents((float*)&model, matrixTranslation, matrixRotation, matrixScale);
+    bool transform_changed = ImGui::DragFloat3("Tr", matrixTranslation, 3);
+    transform_changed = transform_changed || ImGui::DragFloat3("Rt", matrixRotation, 3);
+
+    if(transform_changed)
+    {
+        ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, (float*)&model);
+
+        spot->SetPosition(model.Row3(3));
+        spot->SetDirection(model.Row3(2));
+    }
+
+    ImGui::PushID("snap");
+    ImGui::Checkbox("", &guizmo_useSnap);
+    ImGui::PopID();
+    ImGui::SameLine();
+
+    switch (guizmo_op)
+    {
+        case ImGuizmo::TRANSLATE:
+            ImGui::InputFloat3("Snap", &guizmo_snap.x);
+            break;
+        case ImGuizmo::ROTATE:
+            ImGui::InputFloat("Angle Snap", &guizmo_snap.x);
+            break;
+    }
 }
 
 void Viewport::DrawGuizmo(ComponentCamera* camera)
 {
 	if (App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go != nullptr)
 	{
-		float4x4 view = camera->GetOpenGLViewMatrix();
-		float4x4 proj = camera->GetOpenGLProjectionMatrix();
-
-		ImGuizmo::BeginFrame();
-		ImGuizmo::Enable(true);
-
-        float4x4 model = App->editor->selected.go->GetGlobalTransformation();
-        model.Transpose();
-
-		float4x4 delta;
-
-		ImGuiIO& io = ImGui::GetIO();
-		ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
-		ImGuizmo::SetDrawlist();
-		ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
-
-		if (ImGuizmo::IsUsing() && !delta.IsIdentity())
-		{
-			model.Transpose();
-            if(App->editor->selected.go->GetParent() == nullptr)
-            {
-                App->editor->selected.go->SetLocalTransform(model);
-            }
-            else
-            {
-                float4x4 parent = App->editor->selected.go->GetParent()->GetGlobalTransformation();
-                parent.InverseOrthonormal();
-                App->editor->selected.go->SetLocalTransform(parent*model);
-            }
-        }
+        DrawGuizmo(camera, App->editor->selected.go);
 	}
 	else if (App->editor->selection_type == ModuleEditor::SelectionPointLight && App->editor->selected.point != nullptr)
     {
-		float4x4 view = camera->GetOpenGLViewMatrix();
-		float4x4 proj = camera->GetOpenGLProjectionMatrix();
+        DrawGuizmo(camera, App->editor->selected.point);
+    }
+	else if (App->editor->selection_type == ModuleEditor::SelectionSpotLight && App->editor->selected.spot != nullptr)
+    {
+        DrawGuizmo(camera, App->editor->selected.spot);
+    }
+}
 
-		ImGuizmo::BeginFrame();
-		ImGuizmo::Enable(true);
+void Viewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
+{
+    float4x4 view = camera->GetOpenGLViewMatrix();
+    float4x4 proj = camera->GetOpenGLProjectionMatrix();
 
-        float4x4 model = float4x4::identity;
-        model.SetTranslatePart(App->editor->selected.point->GetPosition());
+    ImGuizmo::BeginFrame();
+    ImGuizmo::Enable(true);
+
+    float4x4 model = go->GetGlobalTransformation();
+    model.Transpose();
+
+    float4x4 delta;
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
+    ImGuizmo::SetDrawlist();
+    ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
+
+    if (ImGuizmo::IsUsing() && !delta.IsIdentity())
+    {
         model.Transpose();
-
-		float4x4 delta;
-
-		ImGuiIO& io = ImGui::GetIO();
-		ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
-		ImGuizmo::SetDrawlist();
-		ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
-
-		if (ImGuizmo::IsUsing() && !delta.IsIdentity())
-		{
-			model.Transpose();
-            App->editor->selected.point->SetPosition(model.TranslatePart());
+        if(go->GetParent() == nullptr)
+        {
+            go->SetLocalTransform(model);
+        }
+        else
+        {
+            float4x4 parent = go->GetParent()->GetGlobalTransformation();
+            parent.InverseOrthonormal();
+            go->SetLocalTransform(parent*model);
         }
     }
 }
+
+void Viewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)
+{
+    float4x4 view = camera->GetOpenGLViewMatrix();
+    float4x4 proj = camera->GetOpenGLProjectionMatrix();
+
+    ImGuizmo::BeginFrame();
+    ImGuizmo::Enable(true);
+
+    float4x4 model = float4x4::identity;
+    model.SetTranslatePart(point->GetPosition());
+    model.Transpose();
+
+    float4x4 delta;
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
+    ImGuizmo::SetDrawlist();
+    ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
+
+    if (ImGuizmo::IsUsing() && !delta.IsIdentity())
+    {
+        model.Transpose();
+        point->SetPosition(model.TranslatePart());
+    }
+}
+
+void Viewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
+{
+    float4x4 view = camera->GetOpenGLViewMatrix();
+    float4x4 proj = camera->GetOpenGLProjectionMatrix();
+
+    ImGuizmo::BeginFrame();
+    ImGuizmo::Enable(true);
+
+    float4x4 model = float4x4::LookAt(spot->GetPosition(), spot->GetPosition()+spot->GetDirection(), float3::unitZ, float3::unitY, float3::unitY);
+    model.Transpose();
+
+    float4x4 delta;
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
+    ImGuizmo::SetDrawlist();
+    ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
+
+    if (ImGuizmo::IsUsing() && !delta.IsIdentity())
+    {
+        spot->SetPosition(model.Row3(3));
+        spot->SetDirection(model.Row3(2));
+    }
+
+    // Solve (1.0/constant+distance*linear+distance*distance*qua) <= 0.1; for solving distance for 0.1 attenuation
+    // 1.0 <= 0.1*(c+d*l+d*d*q); 
+    // 0 = (-1.0+0.1*c)+(0.1*l)*d+(0.1*q)*d*d;
+    // a = 0.1*q;
+    // b = 0.1*l;
+    // d = (-b+-sqrt(b*b-4*a*c))/2.0f*a;
+    
+    float a = 0.1f*spot->GetQuadricAtt();
+    float b = 0.1f*spot->GetLinearAtt();
+    float c = 0.1f*spot->GetConstantAtt()-1.0f;
+
+    float distance = 0.0f;
+
+    if(a == 0.0f)
+    {
+        if(b != 0.0f)
+        {
+            distance = -c/b;
+        }
+    }
+    else
+    {
+        float sq = sqrt(b*b-4*a*c);
+        float den = 1/(2.0f*a);
+        float d0 = (-b+sq)*den;
+        float d1 = (-b-sq)*den;
+
+        distance = max(d0, d1);
+    }
+
+    // \todo: draw cone
+    dd::arrow(spot->GetPosition(), spot->GetPosition()+spot->GetDirection()*distance, dd::colors::White, distance*0.1f, 0, false);
+}
+

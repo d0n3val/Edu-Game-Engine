@@ -229,11 +229,11 @@ void ModuleLevelManager::LoadLights(const Config& config)
 
     assert(spots.empty());
 
-    count = config.GetArrayCount("spots");
+    count = config.GetArrayCount("Spots");
     for(uint i=0; i< count; ++i)
     {
         SpotLight* spot = new SpotLight;
-        spot->Load(config.GetArray("spots", i));
+        spot->Load(config.GetArray("Spots", i));
 
         spots.push_back(spot);
     }

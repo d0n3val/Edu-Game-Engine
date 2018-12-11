@@ -32,7 +32,7 @@ public:
 
     void                DrawGuizmoProperties(GameObject* go);
     void                DrawGuizmoProperties(PointLight* point);
-    void                DrawGuizmoProperties(SpotLight* point);
+    void                DrawGuizmoProperties(SpotLight* spot);
 
 private:
 
@@ -40,6 +40,9 @@ private:
     void GenerateFBOMultisampled(unsigned w, unsigned h);
     void DrawQuickBar(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera);
+    void DrawGuizmo(ComponentCamera* camera, GameObject* go);
+    void DrawGuizmo(ComponentCamera* camera, PointLight* point);
+    void DrawGuizmo(ComponentCamera* camera, SpotLight* spot);
 
 private:
 
