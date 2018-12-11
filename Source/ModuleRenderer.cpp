@@ -177,11 +177,11 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     glUniform1i(DIFFUSE_MAP_LOC, 0);
 
     glUniform4fv(DIFFUSE_COLOR_LOC, 1, (const float*)&diffuse_color);
-    glUniform3fv(MATERIAL_LOCATION+3, 1, (const float*)&specular_color);
-    glUniform3fv(MATERIAL_LOCATION+7, 1, (const float*)&emissive_color);
+    glUniform3fv(SPECULAR_COLOR_LOC, 1, (const float*)&specular_color);
+    glUniform3fv(EMISSIVE_COLOR_LOC, 1, (const float*)&emissive_color);
 
-    glUniform1f(MATERIAL_LOCATION+8, material->GetKAmbient());
-    glUniform1f(MATERIAL_LOCATION+9, material->GetKDiffuse());
+    glUniform1f(AMBIENT_CONSTANT_LOC, material->GetKAmbient());
+    glUniform1f(DIFFUSE_CONSTANT_LOC, material->GetKDiffuse());
     glUniform1f(SPECULAR_CONSTANT_LOC, material->GetKSpecular());
 }
 
