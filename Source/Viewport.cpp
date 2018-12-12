@@ -471,10 +471,33 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)
     ImGuizmo::SetDrawlist();
     ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
 
+    model.Transpose();
+
     if (ImGuizmo::IsUsing() && !delta.IsIdentity())
     {
-        model.Transpose();
         point->SetPosition(model.TranslatePart());
+    }
+
+    float distance = DistanceFromAtt(point->GetConstantAtt(), point->GetLinearAtt(), point->GetQuadricAtt(), 0.1f);
+
+    float3 pos      = point->GetPosition();
+    float3 color    = point->GetColor();
+    float3 x_axis   = model.Col3(0);
+    float3 y_axis   = model.Col3(1);
+    float3 z_axis   = model.Col3(2);
+    float3 xy_axis  = (x_axis+y_axis).Normalized();
+    float3 xz_axis  = (x_axis+z_axis).Normalized();
+    float3 yz_axis  = (y_axis+z_axis).Normalized();
+    float3 xy_axis2 = (x_axis-y_axis).Normalized();
+    float3 xz_axis2 = (x_axis-z_axis).Normalized();
+    float3 yz_axis2 = (y_axis-z_axis).Normalized();
+    float3 axis[]   = { x_axis, y_axis, z_axis, xy_axis, xz_axis, yz_axis,
+                        xy_axis2, xz_axis2, yz_axis2 };
+
+
+    for(uint i=0, count = sizeof(axis)/sizeof(float3); i < count; ++i)
+    {
+        dd::line(pos-axis[i]*distance, pos+axis[i]*distance, color);
     }
 }
 
@@ -502,6 +525,28 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
         spot->SetDirection(model.Row3(2));
     }
 
+    float distance = DistanceFromAtt(spot->GetConstantAtt(), spot->GetLinearAtt(), spot->GetQuadricAtt(), 0.1f);
+
+    float3 pos   = spot->GetPosition();
+    float3 dir   = spot->GetDirection();
+    float3 color = spot->GetColor();
+    float angle  = min(spot->GetOutterCutoff(), spot->GetInnerCutoff());
+    float cos_a  = cos(angle);
+    float sin_a  = sin(angle);
+    float3 axis[] = { model.Row3(0), model.Row3(1), (model.Row3(0)+model.Row3(1)).Normalized(), (model.Row3(0)-model.Row3(1)).Normalized()};
+
+    dd::arrow(pos, pos+dir*(distance*0.1f), color, distance*0.01f);
+    dd::line(pos, pos+dir*distance, color);
+
+    for(uint i=0, count = sizeof(axis)/sizeof(float3); i < count; ++i)
+    {
+        dd::line(pos, pos+(dir*cos_a+axis[i]*sin_a)*distance, color);
+        dd::line(pos, pos+(dir*cos_a-axis[i]*sin_a)*distance, color);
+    }
+}
+
+float Viewport::DistanceFromAtt(float constant, float linear, float quadric, float epsilon)
+{
     // Solve (1.0/constant+distance*linear+distance*distance*qua) <= 0.1; for solving distance for 0.1 attenuation
     // 1.0 <= 0.1*(c+d*l+d*d*q); 
     // 0 = (-1.0+0.1*c)+(0.1*l)*d+(0.1*q)*d*d;
@@ -509,11 +554,11 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     // b = 0.1*l;
     // d = (-b+-sqrt(b*b-4*a*c))/2.0f*a;
     
-    float a = 0.1f*spot->GetQuadricAtt();
-    float b = 0.1f*spot->GetLinearAtt();
-    float c = 0.1f*spot->GetConstantAtt()-1.0f;
+    float a = epsilon*quadric;
+    float b = epsilon*linear;
+    float c = epsilon*constant-1.0f;
 
-    float distance = 0.0f;
+    float distance = 100000.0f;
 
     if(a == 0.0f)
     {
@@ -524,7 +569,7 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     }
     else
     {
-        float sq = sqrt(b*b-4*a*c);
+        float sq = sqrt(b*b-4.0f*a*c);
         float den = 1/(2.0f*a);
         float d0 = (-b+sq)*den;
         float d1 = (-b-sq)*den;
@@ -532,7 +577,5 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
         distance = max(d0, d1);
     }
 
-    // \todo: draw cone
-    dd::arrow(spot->GetPosition(), spot->GetPosition()+spot->GetDirection()*distance, dd::colors::White, distance*0.1f, 0, false);
+    return distance;
 }
-

@@ -26,7 +26,7 @@ public:
     float           GetInnerCutoff   () const { return inner; }
     void            SetInnerCutoff   (float angle) { inner = angle; }
 
-    float           GetOutterCutoff  () const { return inner; }
+    float           GetOutterCutoff  () const { return outter; }
     void            SetOutterCutoff  (float angle) { outter = angle; }
 
     float           GetConstantAtt  () const { return constant; }

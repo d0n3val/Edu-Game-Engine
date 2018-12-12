@@ -1,4 +1,5 @@
 #define MAX_POINT_LIGHTS 4
+#define MAX_SPOT_LIGHTS 4
 
 //////////////////// STRUCTS ////////////////////////
 
@@ -41,12 +42,26 @@ struct PointLight
     float quadric;
 };
 
+struct SpotLight
+{
+    vec3 position;
+    vec3 direction;
+    vec3 color;
+    float inner;
+    float outter;
+    float constant;
+    float linear;
+    float quadric;
+};
+
 struct Lights
 {
     AmbientLight ambient;
     DirLight     directional;
     PointLight   points[MAX_POINT_LIGHTS];
     uint         num_point;
+    SpotLight    spots[MAX_SPOT_LIGHTS];
+    uint         num_spot;
 };
 
 //////////////////// UNIFORMS ////////////////////////
@@ -130,6 +145,24 @@ vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const P
     return light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
 }
 
+vec3 spot_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const SpotLight light, const Material mat,
+                const vec3 diffuse_color, const vec3 specular_color, float shininess)
+{
+    vec3 light_dir = pos-light.position;
+    float distance = length(light_dir);
+    light_dir      = light_dir/distance;
+    float cos_a    = dot(light_dir, light.direction);
+    float len      = max(0.0001, light.inner-light.outter);
+    cos_a          = min(1.0, max(0.0, (cos_a-light.outter)/len));
+
+    float att      = cos_a/(light.constant+light.linear*distance+light.quadric*(distance*distance));
+
+    float diffuse  = att*lambert(light_dir, normal);
+    float specular = att*specular_blinn(light_dir, pos, normal, view_pos, shininess);
+
+    return light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
+}
+
 vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
 {
     vec4 diffuse_color   = get_diffuse_color(material, uv);
@@ -142,6 +175,11 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     for(uint i=0; i < lights.num_point; ++i)
     {
         color += point_blinn(pos, normal, view_pos, lights.points[i], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
+    }
+
+    for(uint i=0; i < lights.num_spot; ++i)
+    {
+        color += spot_blinn(pos, normal, view_pos, lights.spots[i], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
     }
 
     color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);

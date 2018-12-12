@@ -43,6 +43,7 @@ private:
     void DrawGuizmo(ComponentCamera* camera, GameObject* go);
     void DrawGuizmo(ComponentCamera* camera, PointLight* point);
     void DrawGuizmo(ComponentCamera* camera, SpotLight* spot);
+    float DistanceFromAtt(float constant, float linear, float quadric, float epsilon);
 
 private:
 

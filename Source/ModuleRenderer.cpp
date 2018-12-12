@@ -217,7 +217,10 @@ void ModuleRenderer::UpdateLightUniform() const
     for(uint i=0; i< num_spot; ++i)
     {
         glUniform3fv(SPOT0_POSITION_LOC+i*8, 1, (const float*)&App->level->GetSpotLight(i)->GetPosition());
+        glUniform3fv(SPOT0_DIRECTION_LOC+i*8, 1, (const float*)&App->level->GetSpotLight(i)->GetDirection());
         glUniform3fv(SPOT0_COLOR_LOC+i*8, 1, (const float*)&App->level->GetSpotLight(i)->GetColor());
+        glUniform1f(SPOT0_INNER_LOC+i*8, cos(App->level->GetSpotLight(i)->GetInnerCutoff()));
+        glUniform1f(SPOT0_OUTTER_LOC+i*8, cos(App->level->GetSpotLight(i)->GetOutterCutoff()));
         glUniform1f(SPOT0_CONSTANT_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetConstantAtt());
         glUniform1f(SPOT0_LINEAR_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetLinearAtt());
         glUniform1f(SPOT0_QUADRIC_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetQuadricAtt());

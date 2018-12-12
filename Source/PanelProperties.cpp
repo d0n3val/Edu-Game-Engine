@@ -178,13 +178,13 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
         ImGui::Separator();
 
         float inner = light->GetInnerCutoff();
-        if(ImGui::InputFloat("inner cutoff", &inner, 0.0001f, 1.0f, "%.4f"))
+        if(ImGui::SliderAngle("inner cutoff", &inner, 0.0f, 90.0f))
         {
             light->SetInnerCutoff(inner);
         }
 
         float outter = light->GetOutterCutoff();
-        if(ImGui::InputFloat("outter cutoff", &outter, 0.0001f, 1.0f, "%.4f"))
+        if(ImGui::SliderAngle("outter cutoff", &outter, 0.0f, 90.0f))
         {
             light->SetOutterCutoff(outter);
         }
