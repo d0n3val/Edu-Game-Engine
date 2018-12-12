@@ -244,3 +244,14 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 /Game/Assets/Models/Dreamhouse/Dreamhouse.fbm
+Source/Release/Engine.tlog/link.write.1.tlog
+Source/Release/Engine.tlog/link.read.1.tlog
+Source/Release/Engine.tlog/link.command.1.tlog
+Source/Release/Engine.tlog/Engine.write.1u.tlog
+Source/Release/Engine.tlog/Engine.lastbuildstate
+Source/Release/Engine.tlog/CL.write.1.tlog
+Source/Release/Engine.tlog/CL.read.1.tlog
+Source/Release/Engine.tlog/CL.command.1.tlog
+Release/Engine.ipdb
+Release/Engine.iobj
+Release/Engine.exe
