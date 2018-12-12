@@ -94,7 +94,7 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4&,
         ComponentMesh* mesh = node->FindFirstComponent<ComponentMesh>();
         ComponentMaterial* material = node->FindFirstComponent<ComponentMaterial>();
 
-        if(mesh != nullptr && material != nullptr)
+        if(mesh != nullptr && material != nullptr && mesh->GetVisible())
         {
             (this->*drawer)(node->GetGlobalTransformation().Transposed(), mesh, material, projection, view, view_pos);
         }
@@ -200,32 +200,46 @@ void ModuleRenderer::UpdateLightUniform() const
     glUniform3fv(DIRECTIONAL_COLOR_LOC, 1, (const float*)&directional->GetColor());
 
     uint num_point = min(App->level->GetNumPointLights(), MAX_NUM_POINT_LIGHTS);
+    uint count = 0;
 
     for(uint i=0; i< num_point; ++i)
     {
-        glUniform3fv(POINT0_POSITION_LOC+i*5, 1, (const float*)&App->level->GetPointLight(i)->GetPosition());
-        glUniform3fv(POINT0_COLOR_LOC+i*5, 1, (const float*)&App->level->GetPointLight(i)->GetColor());
-        glUniform1f(POINT0_CONSTANT_ATT_LOC+i*5, App->level->GetPointLight(i)->GetConstantAtt());
-        glUniform1f(POINT0_LINEAR_ATT_LOC+i*5, App->level->GetPointLight(i)->GetLinearAtt());
-        glUniform1f(POINT0_QUADRIC_ATT_LOC+i*5, App->level->GetPointLight(i)->GetQuadricAtt());
+        const PointLight* light = App->level->GetPointLight(count);
+
+        if(light->GetEnabled())
+        {
+            glUniform3fv(POINT0_POSITION_LOC+count*5, 1, (const float*)&light->GetPosition());
+            glUniform3fv(POINT0_COLOR_LOC+count*5, 1, (const float*)&light->GetColor());
+            glUniform1f(POINT0_CONSTANT_ATT_LOC+count*5, light->GetConstantAtt());
+            glUniform1f(POINT0_LINEAR_ATT_LOC+count*5, light->GetLinearAtt());
+            glUniform1f(POINT0_QUADRIC_ATT_LOC+count*5, light->GetQuadricAtt());
+            ++count;
+        }
     }
 
-    glUniform1ui(NUM_POINT_LIGHT_LOC, num_point);
+    glUniform1ui(NUM_POINT_LIGHT_LOC, count);
 
     uint num_spot = min(App->level->GetNumSpotLights(), MAX_NUM_SPOT_LIGHTS);
+    count = 0;
 
     for(uint i=0; i< num_spot; ++i)
     {
-        glUniform3fv(SPOT0_POSITION_LOC+i*8, 1, (const float*)&App->level->GetSpotLight(i)->GetPosition());
-        glUniform3fv(SPOT0_DIRECTION_LOC+i*8, 1, (const float*)&App->level->GetSpotLight(i)->GetDirection());
-        glUniform3fv(SPOT0_COLOR_LOC+i*8, 1, (const float*)&App->level->GetSpotLight(i)->GetColor());
-        glUniform1f(SPOT0_INNER_LOC+i*8, cos(App->level->GetSpotLight(i)->GetInnerCutoff()));
-        glUniform1f(SPOT0_OUTTER_LOC+i*8, cos(App->level->GetSpotLight(i)->GetOutterCutoff()));
-        glUniform1f(SPOT0_CONSTANT_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetConstantAtt());
-        glUniform1f(SPOT0_LINEAR_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetLinearAtt());
-        glUniform1f(SPOT0_QUADRIC_ATT_LOC+i*8, App->level->GetSpotLight(i)->GetQuadricAtt());
+        const SpotLight* light = App->level->GetSpotLight(i);
+
+        if(light->GetEnabled())
+        {
+            glUniform3fv(SPOT0_POSITION_LOC+count*8, 1, (const float*)&light->GetPosition());
+            glUniform3fv(SPOT0_DIRECTION_LOC+count*8, 1, (const float*)&light->GetDirection());
+            glUniform3fv(SPOT0_COLOR_LOC+count*8, 1, (const float*)&light->GetColor());
+            glUniform1f(SPOT0_INNER_LOC+count*8, cos(light->GetInnerCutoff()));
+            glUniform1f(SPOT0_OUTTER_LOC+count*8, cos(light->GetOutterCutoff()));
+            glUniform1f(SPOT0_CONSTANT_ATT_LOC+count*8, light->GetConstantAtt());
+            glUniform1f(SPOT0_LINEAR_ATT_LOC+count*8, light->GetLinearAtt());
+            glUniform1f(SPOT0_QUADRIC_ATT_LOC+count*8, light->GetQuadricAtt());
+            ++count;
+        }
     }
 
-    glUniform1ui(NUM_SPOT_LIGHT_LOC, num_spot);
+    glUniform1ui(NUM_SPOT_LIGHT_LOC, count);
 }
 

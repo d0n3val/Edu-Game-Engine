@@ -157,6 +157,12 @@ void PanelProperties::DrawPointLight(PointLight* light)
         {
             light->SetQuadricAtt(quadric);
         }
+
+        bool enabled = light->GetEnabled();
+        if(ImGui::Checkbox("Enabled", &enabled))
+        {
+            light->SetEnabled(enabled);
+        }
     }
 }
 
@@ -207,6 +213,12 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
         if(ImGui::InputFloat("quadric att.", &quadric, 0.00001f, 0.1f, "%.9f"))
         {
             light->SetQuadricAtt(quadric);
+        }
+
+        bool enabled = light->GetEnabled();
+        if(ImGui::Checkbox("Enabled", &enabled))
+        {
+            light->SetEnabled(enabled);
         }
     }
 }
@@ -460,6 +472,11 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
         }
 
         ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)", res->num_indices / 3, res->num_indices, res->num_vertices); 
+        bool visible = component->GetVisible();
+        if(ImGui::Checkbox("Visible", &visible))
+        {
+            component->SetVisible(visible);
+        }
     }
 
     if (ImGui::Button("Attach mesh"))

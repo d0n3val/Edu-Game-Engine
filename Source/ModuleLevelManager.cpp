@@ -32,10 +32,7 @@ ModuleLevelManager::~ModuleLevelManager()
     delete ambient;
     delete directional;
 
-    for(std::vector<PointLight*>::iterator it = points.begin(), end = points.end(); it != end; ++it)
-    {
-        delete *it;
-    }
+    RemoveLights();
 }
 
 // Called before render is available
@@ -84,6 +81,8 @@ bool ModuleLevelManager::CleanUp()
 
 	// This recursively must destroy all gameobjects
 	RELEASE(root);
+
+	RemoveLights();
 
 	return true;
 }
@@ -213,10 +212,10 @@ void ModuleLevelManager::LoadGameObjects(const Config & config)
 
 void ModuleLevelManager::LoadLights(const Config& config)
 {
+    RemoveLights();
+
     ambient->Load(config.GetSection("Ambient"));
     directional->Load(config.GetSection("Directional"));
-
-    assert(points.empty());
 
     uint count = config.GetArrayCount("Points");
     for(uint i=0; i< count; ++i)
@@ -226,8 +225,6 @@ void ModuleLevelManager::LoadLights(const Config& config)
 
         points.push_back(point);
     }
-
-    assert(spots.empty());
 
     count = config.GetArrayCount("Spots");
     for(uint i=0; i< count; ++i)
@@ -551,4 +548,20 @@ void ModuleLevelManager::RemoveSpotLight(uint index)
 {
     delete spots[index];
     spots.erase(spots.begin()+index);
+}
+
+void ModuleLevelManager::RemoveLights()
+{
+    for(std::vector<PointLight*>::iterator it = points.begin(), end = points.end(); it != end; ++it)
+    {
+        delete *it;
+    }
+
+    for(std::vector<SpotLight*>::iterator it = spots.begin(), end = spots.end(); it != end; ++it)
+    {
+        delete *it;
+    }
+
+    points.clear();
+    spots.clear();
 }

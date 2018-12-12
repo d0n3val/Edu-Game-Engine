@@ -17,11 +17,13 @@ ComponentMesh::~ComponentMesh()
 void ComponentMesh::OnSave(Config& config) const 
 {
 	config.AddUID("Resource", resource);
+	config.AddBool("Visible", visible);
 }
 
 void ComponentMesh::OnLoad(Config* config) 
 {
 	SetResource(config->GetUID("Resource", 0));
+    visible = config->GetBool("Visible", true);
 
     App->resources->Get(resource)->LoadToMemory();
 }

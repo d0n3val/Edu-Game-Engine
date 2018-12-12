@@ -84,6 +84,7 @@ private:
 	void LoadLights(const Config& config);
 
     void SaveLights(Config& config) const;
+    void RemoveLights();
 
 public:
 	Quadtree quadtree;

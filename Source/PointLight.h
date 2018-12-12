@@ -28,6 +28,10 @@ public:
 
     float           GetQuadricAtt   () const { return quadric; }
     void            SetQuadricAtt   (float att) { quadric = att; }
+
+    bool            GetEnabled      () const { return enabled; }
+    void            SetEnabled      (bool e) { enabled = e; }
+
 private:
 
     float3 color     = float3::one;
@@ -35,6 +39,7 @@ private:
     float  constant  = 1.0f;
     float  linear    = 0.0f;
     float  quadric   = 0.0f;
+    bool  enabled    = true;
 };
 
 #endif /* __POINTLIGHT_H__ */

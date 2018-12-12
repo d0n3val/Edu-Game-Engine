@@ -18,6 +18,7 @@ void PointLight::Save(Config& config) const
 	config.AddFloat("constant", constant);
 	config.AddFloat("linear", linear);
 	config.AddFloat("quadric", quadric*1000.0f);
+	config.AddBool("Enabled", enabled);
 }
 
 void PointLight::Load(Config& config)
@@ -27,5 +28,6 @@ void PointLight::Load(Config& config)
 	constant = config.GetFloat("constant", 1.0f);
 	linear   = config.GetFloat("linear", 0.0f);
 	quadric  = config.GetFloat("quadric", 0.0f)*0.001f;
+    enabled  = config.GetBool("Enabled", true);
 }
 

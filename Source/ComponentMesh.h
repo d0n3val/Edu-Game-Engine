@@ -21,8 +21,12 @@ public:
 
     static Types        GetClassType    () { return Mesh; }
 
+    bool                GetVisible      () const { return visible; }
+    void                SetVisible      (bool v) { visible = v; }
+
 private:
 	UID resource = 0;
+    bool visible = true;
 };
 
 #endif /* __COMPONENT_MESH_H__ */
