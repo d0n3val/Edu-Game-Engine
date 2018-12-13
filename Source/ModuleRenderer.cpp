@@ -208,11 +208,10 @@ void ModuleRenderer::UpdateLightUniform() const
 
         if(light->GetEnabled())
         {
-            glUniform3fv(POINT0_POSITION_LOC+count*5, 1, (const float*)&light->GetPosition());
-            glUniform3fv(POINT0_COLOR_LOC+count*5, 1, (const float*)&light->GetColor());
-            glUniform1f(POINT0_CONSTANT_ATT_LOC+count*5, light->GetConstantAtt());
-            glUniform1f(POINT0_LINEAR_ATT_LOC+count*5, light->GetLinearAtt());
-            glUniform1f(POINT0_QUADRIC_ATT_LOC+count*5, light->GetQuadricAtt());
+            glUniform3fv(POINT0_POSITION_LOC+count*3, 1, (const float*)&light->GetPosition());
+            glUniform3fv(POINT0_COLOR_LOC+count*3, 1, (const float*)&light->GetColor());
+            glUniform3f(POINT0_ATTENUATION_LOC+count*3, light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt());
+
             ++count;
         }
     }
@@ -228,14 +227,12 @@ void ModuleRenderer::UpdateLightUniform() const
 
         if(light->GetEnabled())
         {
-            glUniform3fv(SPOT0_POSITION_LOC+count*8, 1, (const float*)&light->GetPosition());
-            glUniform3fv(SPOT0_DIRECTION_LOC+count*8, 1, (const float*)&light->GetDirection());
-            glUniform3fv(SPOT0_COLOR_LOC+count*8, 1, (const float*)&light->GetColor());
-            glUniform1f(SPOT0_INNER_LOC+count*8, cos(light->GetInnerCutoff()));
-            glUniform1f(SPOT0_OUTTER_LOC+count*8, cos(light->GetOutterCutoff()));
-            glUniform1f(SPOT0_CONSTANT_ATT_LOC+count*8, light->GetConstantAtt());
-            glUniform1f(SPOT0_LINEAR_ATT_LOC+count*8, light->GetLinearAtt());
-            glUniform1f(SPOT0_QUADRIC_ATT_LOC+count*8, light->GetQuadricAtt());
+            glUniform3fv(SPOT0_POSITION_LOC+count*6, 1, (const float*)&light->GetPosition());
+            glUniform3fv(SPOT0_DIRECTION_LOC+count*6, 1, (const float*)&light->GetDirection());
+            glUniform3fv(SPOT0_COLOR_LOC+count*6, 1, (const float*)&light->GetColor());
+            glUniform1f(SPOT0_INNER_LOC+count*6, cos(light->GetInnerCutoff()));
+            glUniform1f(SPOT0_OUTTER_LOC+count*6, cos(light->GetOutterCutoff()));
+            glUniform3f(SPOT0_ATTENUATION_LOC+count*6, light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt());
             ++count;
         }
     }
