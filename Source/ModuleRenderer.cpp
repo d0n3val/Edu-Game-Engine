@@ -230,9 +230,9 @@ void ModuleRenderer::UpdateLightUniform() const
             glUniform3fv(SPOT0_POSITION_LOC+count*6, 1, (const float*)&light->GetPosition());
             glUniform3fv(SPOT0_DIRECTION_LOC+count*6, 1, (const float*)&light->GetDirection());
             glUniform3fv(SPOT0_COLOR_LOC+count*6, 1, (const float*)&light->GetColor());
+            glUniform3f(SPOT0_ATTENUATION_LOC+count*6, light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt());
             glUniform1f(SPOT0_INNER_LOC+count*6, cos(light->GetInnerCutoff()));
             glUniform1f(SPOT0_OUTTER_LOC+count*6, cos(light->GetOutterCutoff()));
-            glUniform3f(SPOT0_ATTENUATION_LOC+count*6, light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt());
             ++count;
         }
     }
