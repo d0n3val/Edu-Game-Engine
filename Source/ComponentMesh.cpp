@@ -11,7 +11,11 @@ ComponentMesh::ComponentMesh(GameObject* go) : Component(go, Types::Mesh)
 
 ComponentMesh::~ComponentMesh()
 {
-    App->resources->Get(resource)->Release();
+	Resource* res = App->resources->Get(resource);
+	if (res != nullptr)
+	{
+		res->Release();
+	}
 }
 
 void ComponentMesh::OnSave(Config& config) const 
@@ -25,12 +29,21 @@ void ComponentMesh::OnLoad(Config* config)
 	SetResource(config->GetUID("Resource", 0));
     visible = config->GetBool("Visible", true);
 
-    App->resources->Get(resource)->LoadToMemory();
+    Resource* res = App->resources->Get(resource);
+    if(res != nullptr)
+    {
+        res->LoadToMemory();
+    }
 }
 
 void ComponentMesh::GetBoundingBox (AABB& box) const 
 {
-    box.Enclose(static_cast<ResourceMesh*>(App->resources->Get(resource))->bbox);
+    ResourceMesh* res = static_cast<ResourceMesh*>(App->resources->Get(resource));
+
+    if(res != nullptr)
+    {
+        box.Enclose(res->bbox);
+    }
 }
 
 bool ComponentMesh::SetResource(UID uid) 

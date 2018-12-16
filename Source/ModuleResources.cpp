@@ -103,6 +103,9 @@ bool ModuleResources::CleanUp()
 	for (map<UID, Resource*>::iterator it = resources.begin(); it != resources.end(); ++it)
 		RELEASE(it->second);
 
+	for (vector<Resource*>::iterator it = removed.begin(); it != removed.end(); ++it)
+		RELEASE(*it);
+
 	resources.clear();
 
 	return true;
@@ -443,3 +446,17 @@ void ModuleResources::SaveUID() const
 	if (size != sizeof(last_uid))
 		LOG("WARNING! Cannot write resource UID into file [%s]", file.c_str());
 }
+
+void ModuleResources::RemoveResource(UID uid)
+{
+    map<UID, Resource*>::iterator it = resources.find(uid);
+    if(it != resources.end())
+    {
+        App->fs->Remove(it->second->GetExportedFile());
+
+        removed.push_back(it->second);
+
+        resources.erase(it);
+    }
+}
+

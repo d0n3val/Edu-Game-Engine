@@ -36,12 +36,15 @@ public:
 	UID ImportFileOutsideVFM(const char* full_path);
 	UID ImportFile(const char* new_file_in_assets, bool force = false);
 	UID ImportBuffer(const void* buffer, uint size, Resource::Type type, const char* source_file = nullptr);
+
 	UID GenerateNewUID();
 	const Resource* Get(UID uid) const;
 	Resource * Get(UID uid);
 	Resource* CreateNewResource(Resource::Type type, UID force_uid = 0);
 	//TODO: const Resource* Attach(GameObject* gameobject, UID uid));
 	void GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
+
+    void RemoveResource(UID uid);
 
 	const LoaderAnimation* GetAnimationLoader() const;
 	
@@ -56,6 +59,7 @@ private:
 	std::string asset_folder;
 	UID last_uid = RESERVED_RESOURCES + 1; // reserve 1 for standard cube mesh
 	std::map<UID, Resource*> resources;
+	std::vector<Resource*> removed;
 	LoaderAnimation* anim_loader = nullptr;
 
 	// Presets

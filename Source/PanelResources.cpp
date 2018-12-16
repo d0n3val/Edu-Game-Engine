@@ -38,7 +38,7 @@ void PanelResources::Draw()
 	{
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)
-			App->resources->ImportFile(file, true); // \todo: when is new generates an instance???
+			App->resources->ImportFile(file, false); 
 		waiting_to_load_file = false;
 	}
 
@@ -91,26 +91,40 @@ UID PanelResources::DrawResourceType(Resource::Type type)
 
 	if (ImGui::TreeNodeEx(titles[type], 0))
 	{
+        bool remove = false;
 		App->resources->GatherResourceType(resources, type);
-		for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+		for (vector<const Resource*>::const_iterator it = resources.begin(); !remove && it != resources.end(); ++it)
 		{
 			const Resource* info = (*it);
 			if (ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
 			{
-				if (ImGui::IsItemClicked())
-					selected = info->GetUID();
+                if (ImGui::IsItemClicked(0))
+                    selected = info->GetUID();
 
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::Text("UID: %llu", info->GetUID());
-					ImGui::Text("Source: %s", info->GetFile());
-					ImGui::Text("References: %u", info->CountReferences());
-					ImGui::EndTooltip();
-				}
+                if (ImGui::IsItemClicked(1))
+                    ImGui::OpenPopup("Resource Options");
 
-				ImGui::TreePop();
-			}
+                if (ImGui::BeginPopup("Resource Options"))
+                {
+                    if (true == (remove = ImGui::MenuItem("Remove")))
+                    {
+                        App->resources->RemoveResource((*it)->GetUID());
+                    }
+                    ImGui::EndPopup();
+                }
+
+
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("UID: %llu", info->GetUID());
+                    ImGui::Text("Source: %s", info->GetFile());
+                    ImGui::Text("References: %u", info->CountReferences());
+                    ImGui::EndTooltip();
+                }
+
+                ImGui::TreePop();
+            }
 		}
 
 		ImGui::TreePop();

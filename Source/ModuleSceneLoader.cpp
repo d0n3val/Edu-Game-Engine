@@ -99,30 +99,7 @@ bool ModuleSceneLoader::Import(const char* full_path, std::string& output)
 		GenerateMeshes(scene, full_path, meshes);
         GenerateModel(scene, full_path, meshes, materials);
 
-        // Generating prefab
-		//GameObject* go = App->level->CreateGameObject(nullptr);
-		//GenerateGameObjects(scene->mRootNode, go, meshes);
-
 		aiReleaseImport(scene);
-
-        // Generating prefab
-		// Serialize GameObjects recursively
-		//Config save;
-		//save.AddArray("Game Objects");
-
-		//for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-			//(*it)->Save(save);
-
-		// Finally save to file
-		//char* buf = nullptr;
-		//uint size = save.Save(&buf, "Prefab save file from EDU Engine");
-		//bool ret = App->fs->SaveUnique(output, buf, size, LIBRARY_SCENE_FOLDER, "scene", "eduscene");
-		//RELEASE_ARRAY(buf);
-
-		// We can now safely remove the tree
-		//go->Remove();
-
-		//return ret;
 
 		return true;
 	}
@@ -182,28 +159,6 @@ bool ModuleSceneLoader::AddModel(UID id)
 
 
 	return ok;
-}
-
-void ModuleSceneLoader::GenerateGameObjects(const aiNode* src, GameObject* dst, const std::vector<UID>& meshes)
-{
-    aiQuaternion quat;
-
-	dst->SetLocalTransform(reinterpret_cast<const float4x4&>(src->mTransformation));
-    dst->name = src->mName.C_Str();
-
-    for(uint i=0; i< src->mNumMeshes; ++i)
-    {
-        ComponentMesh* geometry = new ComponentMesh(dst);
-
-        geometry->SetResource(meshes[src->mMeshes[i]]);
-
-        dst->components.push_back(geometry);
-    }
-
-    for(unsigned i=0; i < src->mNumChildren; ++i)
-    {
-        GenerateGameObjects(src->mChildren[i], App->level->CreateGameObject(dst), meshes);
-    }
 }
 
 void ModuleSceneLoader::GenerateMaterials(const aiScene* scene, const char* file, std::vector<UID>& materials)
