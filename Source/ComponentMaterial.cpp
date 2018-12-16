@@ -23,6 +23,7 @@ void ComponentMaterial::OnLoad(Config * config)
 
     cast_shadows = config->GetBool("CastShadows", true);
     recv_shadows = config->GetBool("RecvShadows", true);
+    render_mode  = config->GetUInt("RenderMode", RENDER_OPAQUE) == uint(RENDER_OPAQUE) ? RENDER_OPAQUE : RENDER_TRANSPARENT;
 
 	Resource* res = App->resources->Get(resource);
 	if (res != nullptr)
@@ -36,6 +37,7 @@ void ComponentMaterial::OnSave(Config& config) const
 	config.AddUID("Resource", resource);
 	config.AddBool("CastShadows", cast_shadows);
 	config.AddBool("RecvShadows", recv_shadows);
+    config.AddUInt("RenderMode", render_mode);
 }
 
 bool ComponentMaterial::SetResource (UID uid)

@@ -31,10 +31,19 @@ class ModuleRenderer : public Module
         }
     };
 
+    struct TFarthestMesh
+    {
+        bool operator()(const TRenderInfo& info, float distance)
+        {
+            return info.distance > distance;
+        }
+    };
+
 	typedef std::vector<TRenderInfo> NodeList;
 	typedef std::pair<uint, uint> Size;
 
-    NodeList draw_nodes;
+    NodeList opaque_nodes;
+    NodeList transparent_nodes;
 
 public:
 

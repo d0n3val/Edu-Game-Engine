@@ -620,6 +620,19 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
         }
     }
 
+
+    ImGui::Separator();
+
+    const char* names[ComponentMaterial::RENDER_COUNT] = { "Opaque", "Transparent" };
+
+    int index = int(component->RenderMode());
+    if(ImGui::Combo("Render mode", &index, names, int(ComponentMaterial::RENDER_COUNT)))
+    {
+		component->SetRenderMode(ComponentMaterial::ERenderMode(index));
+    }
+
+    ImGui::Separator();
+
     if(new_res > 0)
     {
 		component->SetResource(new_res);
@@ -628,8 +641,6 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
     {
         if(mat_res)
         {
-            ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
-
             bool modified = false;
 
             if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
@@ -704,8 +715,6 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
 
             }
 
-
-            ImGui::PopFont();
 
             if(modified)
             {

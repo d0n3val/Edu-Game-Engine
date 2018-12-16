@@ -9,6 +9,13 @@ class ResourceMaterial;
 class ComponentMaterial : public Component
 {
 public:
+    enum ERenderMode
+    {
+        RENDER_OPAQUE = 0,
+        RENDER_TRANSPARENT,
+        RENDER_COUNT
+    };
+public:
 
 	ComponentMaterial (GameObject* container);
 	~ComponentMaterial ();
@@ -17,8 +24,11 @@ public:
     const ResourceMaterial* GetResource () const;
     ResourceMaterial*       GetResource ();
 
-    bool                    CastShadows () const { return cast_shadows; }
-    bool                    RecvShadows () const { return recv_shadows; }
+    bool                    CastShadows     () const { return cast_shadows; }
+    bool                    RecvShadows     () const { return recv_shadows; }
+
+    ERenderMode             RenderMode      () const { return render_mode; }
+    void                    SetRenderMode   (ERenderMode mode) { render_mode = mode; }
 
 	void                    OnSave      (Config& config) const override;
 	void                    OnLoad      (Config* config) override;
@@ -27,9 +37,11 @@ public:
 
 private:
 
-    UID   resource     = 0;
-    bool cast_shadows  = true;
-    bool recv_shadows  = true;
+    UID   resource          = 0;
+    bool cast_shadows       = true;
+    bool recv_shadows       = true;
+    ERenderMode render_mode = RENDER_OPAQUE;
+    
 };
 
 #endif // __COMPONENT_MESH_H__

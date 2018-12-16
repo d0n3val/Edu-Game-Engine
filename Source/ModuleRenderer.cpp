@@ -44,7 +44,8 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height)
 {
-	draw_nodes.clear();
+	opaque_nodes.clear();
+    transparent_nodes.clear();
 
 	//if (camera->frustum_culling == true)
 	//{
@@ -89,9 +90,18 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
         render.transform = go->GetGlobalTransformation();
         render.distance = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
 
-        NodeList::iterator it = std::lower_bound(draw_nodes.begin(), draw_nodes.end(), render.distance, TNearestMesh());
+        if(material->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
+        {
+            NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render.distance, TNearestMesh());
 
-        draw_nodes.insert(it, render);
+            opaque_nodes.insert(it, render);
+        }
+        else
+        {
+            NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render.distance, TFarthestMesh());
+
+            transparent_nodes.insert(it, render);
+        }
     }
 
     for(std::list<GameObject*>::iterator lIt = go->childs.begin(), lEnd = go->childs.end(); lIt != lEnd; ++lIt)
@@ -105,7 +115,12 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const TRenderInfo&
                                const float4x4& projection, const float4x4& view, 
                                const float3& view_pos)
 {
-	for(NodeList::iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
+	for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
+	{
+        (this->*drawer)(*it, projection, view, view_pos);
+    }
+
+	for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
 	{
         (this->*drawer)(*it, projection, view, view_pos);
     }
