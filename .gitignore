@@ -255,3 +255,4 @@ Source/Release/Engine.tlog/CL.command.1.tlog
 Release/Engine.ipdb
 Release/Engine.iobj
 Release/Engine.exe
+Source/ModuleAudio.cpp

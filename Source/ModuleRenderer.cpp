@@ -55,7 +55,11 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 		//App->level->quadtree.CollectObjects(draw_nodes);
 	//}
 
-    CollectObjects(App->level->GetRoot());
+	float4x4 proj   = camera->GetProjectionMatrix();	
+	float4x4 view   = camera->GetViewMatrix();
+    float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
+
+    CollectObjects(view_pos, App->level->GetRoot());
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
@@ -63,51 +67,56 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 	glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	float4x4 proj   = camera->GetOpenGLProjectionMatrix();	
-	float4x4 view   = camera->GetViewMatrix();
-    float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
-
-    DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view.Transposed(), view_pos);
+    DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view, view_pos);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ModuleRenderer::CollectObjects( GameObject* go)
+void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
 {
-    draw_nodes.push_back(go);
+    ComponentMesh* mesh = go->FindFirstComponent<ComponentMesh>();
+    ComponentMaterial* material = go->FindFirstComponent<ComponentMaterial>();
+
+    if(mesh != nullptr && material != nullptr && mesh->GetVisible())
+    {
+        AABB bbox;
+        mesh->GetBoundingBox(bbox);
+
+        TRenderInfo render;
+        render.name     = go->name.c_str();
+        render.mesh     = mesh;
+        render.material = material;
+        render.transform = go->GetGlobalTransformation();
+        render.distance = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
+
+        NodeList::iterator it = std::lower_bound(draw_nodes.begin(), draw_nodes.end(), render.distance, TNearestMesh());
+
+        draw_nodes.insert(it, render);
+    }
 
     for(std::list<GameObject*>::iterator lIt = go->childs.begin(), lEnd = go->childs.end(); lIt != lEnd; ++lIt)
     {
-        CollectObjects(*lIt);
+        CollectObjects(camera_pos, *lIt);
     }
 }
 
-void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const float4x4&, 
-							   const ComponentMesh*, const ComponentMaterial*, const float4x4&, 
-                               const float4x4&, const float3&), const float4x4& projection, 
-                               const float4x4& view, const float3& view_pos)
+void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const TRenderInfo&,
+							   const float4x4&, const float4x4&, const float3&), 
+                               const float4x4& projection, const float4x4& view, 
+                               const float3& view_pos)
 {
 	for(NodeList::iterator it = draw_nodes.begin(), end = draw_nodes.end(); it != end; ++it)
 	{
-		GameObject* node = *it;
-
-        ComponentMesh* mesh = node->FindFirstComponent<ComponentMesh>();
-        ComponentMaterial* material = node->FindFirstComponent<ComponentMaterial>();
-
-        if(mesh != nullptr && material != nullptr && mesh->GetVisible())
-        {
-            (this->*drawer)(node->GetGlobalTransformation().Transposed(), mesh, material, projection, view, view_pos);
-        }
+        (this->*drawer)(*it, projection, view, view_pos);
     }
 
     App->programs->UnuseProgram();
 }
 
-void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material, 
-                                   const float4x4& projection, const float4x4& view, const float3& view_pos)
+void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info, const float4x4& projection, const float4x4& view, const float3& view_pos)
 {    
-    const ResourceMesh* mesh_res    = mesh->GetResource();
-    const ResourceMaterial* mat_res = material->GetResource();
+    const ResourceMesh* mesh_res    = render_info.mesh->GetResource();
+    const ResourceMaterial* mat_res = render_info.material->GetResource();
 
     if(mat_res != nullptr && mesh_res != nullptr)
     {
@@ -116,9 +125,9 @@ void ModuleRenderer::DrawMeshColor(const float4x4& transform, const ComponentMes
         UpdateMaterialUniform(mat_res);
         UpdateLightUniform();
 
-        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_FALSE, reinterpret_cast<const float*>(&projection));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_FALSE, reinterpret_cast<const float*>(&view));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_FALSE, reinterpret_cast<const float*>(&transform));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&projection));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&render_info.transform));
         glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
 
         glBindVertexArray(mesh_res->vao);
@@ -204,7 +213,7 @@ void ModuleRenderer::UpdateLightUniform() const
 
     for(uint i=0; i< num_point; ++i)
     {
-        const PointLight* light = App->level->GetPointLight(count);
+        const PointLight* light = App->level->GetPointLight(i);
 
         if(light->GetEnabled())
         {
@@ -214,6 +223,12 @@ void ModuleRenderer::UpdateLightUniform() const
 
             ++count;
         }
+    }
+
+    for(uint i=count; i < MAX_NUM_POINT_LIGHTS; ++i)
+    {
+        glUniform3f(POINT0_COLOR_LOC+i*3, 0.0f, 0.0f, 0.0f);
+        glUniform3f(POINT0_ATTENUATION_LOC+i*3, 1.0f, 0.0f, 0.0f);
     }
 
     glUniform1ui(NUM_POINT_LIGHT_LOC, count);
@@ -235,6 +250,12 @@ void ModuleRenderer::UpdateLightUniform() const
             glUniform1f(SPOT0_OUTTER_LOC+count*6, cos(light->GetOutterCutoff()));
             ++count;
         }
+    }
+
+    for(uint i=count; i < MAX_NUM_SPOT_LIGHTS; ++i)
+    {
+        glUniform3f(SPOT0_COLOR_LOC+i*6, 0.0f, 0.0f, 0.0f);
+        glUniform3f(SPOT0_ATTENUATION_LOC+i*6, 1.0f, 0.0f, 0.0f);
     }
 
     glUniform1ui(NUM_SPOT_LIGHT_LOC, count);

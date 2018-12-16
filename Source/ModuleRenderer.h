@@ -14,7 +14,24 @@ class ResourceMaterial;
 
 class ModuleRenderer : public Module
 {
-	typedef std::vector<GameObject*> NodeList;
+    struct TRenderInfo
+    {
+        const char*         name = nullptr;
+        ComponentMesh*      mesh = nullptr;
+        ComponentMaterial*  material = nullptr;
+        float               distance = 0.0f;
+        float4x4            transform = float4x4::identity;
+    };
+
+    struct TNearestMesh
+    {
+        bool operator()(const TRenderInfo& info, float distance)
+        {
+            return info.distance < distance;
+        }
+    };
+
+	typedef std::vector<TRenderInfo> NodeList;
 	typedef std::pair<uint, uint> Size;
 
     NodeList draw_nodes;
@@ -27,33 +44,18 @@ public:
 	bool                Init                    (Config* config = nullptr);
     void                Draw                    (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
     
-    unsigned            GetNumDrawNodes         () const;
-    const GameObject*   GetDrawNode             (unsigned index) const;
-
 private:
 
     void                LoadDefaultShaders      ();
 
-    void                DrawNodes               (void (ModuleRenderer::*drawer)(const float4x4&, const ComponentMesh*, const ComponentMaterial*,
-                                                 const float4x4&, const float4x4&, const float3&), const float4x4& projection, const float4x4& view, 
-                                                 const float3& view_pos);
+    void                DrawNodes               (void (ModuleRenderer::*drawer)(const TRenderInfo& , const float4x4&, const float4x4&, const float3&), 
+                                                 const float4x4& projection, const float4x4& view, const float3& view_pos);
 
-    void                DrawMeshColor           (const float4x4& transform, const ComponentMesh* mesh, const ComponentMaterial* material, 
-												 const float4x4& projection, const float4x4& view, const float3& view_pos);
+    void                DrawMeshColor           (const TRenderInfo& render_info, const float4x4& projection, const float4x4& view, const float3& view_pos);
     void                UpdateMaterialUniform   (const ResourceMaterial* material) const;
     void                UpdateLightUniform      () const;
-    void                CollectObjects          (GameObject* go);
+    void                CollectObjects          (const float3& camera_pos, GameObject* go);
 };
 
-
-inline unsigned ModuleRenderer::GetNumDrawNodes() const
-{
-    return draw_nodes.size();
-}
-
-inline const GameObject* ModuleRenderer::GetDrawNode(unsigned index) const
-{
-    return draw_nodes[index];
-}
 
 #endif /* _RENDERER_H_ */

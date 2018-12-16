@@ -141,10 +141,10 @@ vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const P
 
     float att      = get_attenuation(light.attenuation, distance);
 
-    float diffuse  = att*lambert(light_dir, normal);
-    float specular = att*specular_blinn(light_dir, pos, normal, view_pos, shininess);
+    float diffuse  = lambert(light_dir, normal);
+    float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
-    return light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
+    return att*light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
 }
 
 float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
@@ -180,15 +180,15 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
 
     vec3 color = directional_blinn(pos, normal, view_pos, lights.directional, mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
 
-    for(uint i=0; i < lights.num_point; ++i)
-    {
-        color += point_blinn(pos, normal, view_pos, lights.points[i], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
-    }
+    color += point_blinn(pos, normal, view_pos, lights.points[0], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
+    color += point_blinn(pos, normal, view_pos, lights.points[1], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
+    color += point_blinn(pos, normal, view_pos, lights.points[2], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
+    color += point_blinn(pos, normal, view_pos, lights.points[3], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
 
-    for(uint i=0; i < lights.num_spot; ++i)
-    {
-        color += spot_blinn(pos, normal, view_pos, lights.spots[i], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
-    }
+    color += spot_blinn(pos, normal, view_pos, lights.spots[0], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
+    color += spot_blinn(pos, normal, view_pos, lights.spots[1], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
+    color += spot_blinn(pos, normal, view_pos, lights.spots[2], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
+    color += spot_blinn(pos, normal, view_pos, lights.spots[3], mat, diffuse_color.rgb, specular_color.rgb, specular_color.a);
 
     color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
     color += emissive_color;

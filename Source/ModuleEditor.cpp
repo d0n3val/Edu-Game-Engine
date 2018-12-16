@@ -110,7 +110,7 @@ update_status ModuleEditor::PreUpdate(float dt)
 update_status ModuleEditor::Update(float dt)
 {
 	update_status ret = UPDATE_CONTINUE;
-	
+
 	static bool showcase = false;
 	
 	// Main menu GUI

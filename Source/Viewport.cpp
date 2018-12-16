@@ -450,6 +450,14 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
             go->SetLocalTransform(parent*model);
         }
     }
+
+	float3 points[8];
+	go->global_bbox.GetCornerPoints(points);
+    std::swap(points[2], points[5]);
+    std::swap(points[3], points[4]);
+	std::swap(points[4], points[5]);
+	std::swap(points[6], points[7]);
+	dd::box(points, dd::colors::Yellow);
 }
 
 void Viewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)
