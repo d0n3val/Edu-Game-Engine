@@ -4,7 +4,6 @@
 #include "ModuleFileSystem.h"
 #include "ResourceAnimation.h"
 #include "Application.h"
-#include "ModuleSceneLoader.h"
 #include "Assimp/include/anim.h"
 #include "Math.h"
 

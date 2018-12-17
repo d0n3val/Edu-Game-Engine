@@ -2,15 +2,21 @@
 #include "Application.h"
 #include "ModuleLevelManager.h"
 #include "ModuleFileSystem.h"
-#include "ModuleSceneLoader.h"
 #include "GameObject.h"
 #include "Config.h"
+
 #include "ModuleRenderer3D.h"
 #include "ModuleEditorCamera.h"
 #include "ModuleEditor.h"
+#include "ModuleResources.h"
+
+#include "ResourceModel.h"
+#include "ResourceMesh.h"
+
 #include "ComponentCamera.h"
 #include "ComponentMesh.h"
-#include "ResourceMesh.h"
+#include "ComponentMaterial.h"
+
 #include "Event.h"
 
 #include "AmbientLight.h"
@@ -521,6 +527,68 @@ void ModuleLevelManager::RecursiveTestRay(const Ray& ray, float& dist, GameObjec
 void ModuleLevelManager::FindNear(const float3 & position, float radius, std::vector<GameObject*>& results) const
 {
 	quadtree.CollectIntersections(results, Sphere(position, radius));
+}
+
+GameObject* ModuleLevelManager::AddModel(UID id)
+{
+    Resource* res = App->resources->Get(id);
+
+    bool ok = res->GetType() == Resource::model;
+    std::vector<GameObject*> gos;
+
+    if(ok)
+    {
+        ResourceModel* model = static_cast<ResourceModel*>(res);
+        model->LoadToMemory();
+
+        gos.reserve(model->GetNumNodes());
+
+        for(uint i=0, count = model->GetNumNodes(); ok && i< count; ++i)
+        {
+            const ResourceModel::Node& node = model->GetNode(i);
+
+            GameObject* parent = i == 0 ? nullptr : gos[node.parent];
+            GameObject* go = CreateGameObject(parent);
+
+            go->SetLocalTransform(node.transform);
+            go->name = node.name.c_str();
+
+            if(node.mesh != 0)
+            {
+                ComponentMesh* mesh = new ComponentMesh(go);
+                ok = mesh->SetResource(node.mesh);
+                go->components.push_back(mesh);
+            }
+
+            if(ok && node.material != 0)
+            {
+                ComponentMaterial* material = new ComponentMaterial(go);
+                ok = material->SetResource(node.material);
+                go->components.push_back(material);
+            }
+
+            gos.push_back(go);
+        }
+
+        model->Release();
+
+    }
+
+    GameObject* ret = nullptr;
+
+    if(!gos.empty())
+    {
+        if(!ok)
+        {
+            gos.front()->Remove();
+        }
+        else
+        {
+            ret = gos.front();
+        }
+    }
+
+    return ret;
 }
 
 uint ModuleLevelManager::AddPointLight()

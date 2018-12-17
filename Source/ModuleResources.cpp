@@ -5,7 +5,6 @@
 #include "ModuleTextures.h"
 #include "ModuleMeshes.h"
 #include "ModuleAudio.h"
-#include "ModuleSceneLoader.h"
 #include "Event.h"
 #include "ResourceTexture.h"
 #include "ResourceMaterial.h"
@@ -204,9 +203,9 @@ Resource::Type ModuleResources::TypeFromExtension(const char * extension) const
 		else if (_stricmp(extension, "tif") == 0)
 			ret = Resource::texture;
 		else if (_stricmp(extension, "fbx") == 0)
-			ret = Resource::scene;
+			ret = Resource::model;
 		else if (_stricmp(extension, "dae") == 0)
-			ret = Resource::scene;
+			ret = Resource::model;
 	}
 
 	return ret;
@@ -270,8 +269,8 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
 		case Resource::audio:
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
 		break;
-		case Resource::scene:
-			import_ok = App->scene->Import(new_file_in_assets, written_file);
+		case Resource::model:
+			import_ok = ResourceModel::Import(new_file_in_assets, written_file);
 		break;
 	}
 

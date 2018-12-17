@@ -453,9 +453,6 @@
     <ClInclude Include="ResourceScene.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleSceneLoader.h">
-      <Filter>Resources\Loaders</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleTextures.h">
       <Filter>Resources\Loaders</Filter>
     </ClInclude>
@@ -790,9 +787,6 @@
     </ClCompile>
     <ClCompile Include="ResourceScene.cpp">
       <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleSceneLoader.cpp">
-      <Filter>Resources\Loaders</Filter>
     </ClCompile>
     <ClCompile Include="ModuleTextures.cpp">
       <Filter>Resources\Loaders</Filter>

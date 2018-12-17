@@ -5,7 +5,6 @@
 #include "ModuleFileSystem.h"
 #include "ModuleLevelManager.h"
 #include "ModuleEditorCamera.h"
-#include "ModuleSceneLoader.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleInput.h"
 #include "GameObject.h"

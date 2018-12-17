@@ -5,9 +5,16 @@
 #include "ModuleResources.h"
 
 #include "Assimp/include/scene.h"
+#include "Assimp/include/cimport.h"
+#include "Assimp/include/postprocess.h"
+
+#include "ResourceMaterial.h"
+#include "ResourceMesh.h"
 
 #include "utils/SimpleBinStream.h"
 #include "HashString.h"
+
+#pragma comment (lib, "Assimp/libx86/assimp.lib")
 
 ResourceModel::ResourceModel(UID id) : Resource(id, Resource::Type::model)
 {
@@ -118,37 +125,66 @@ bool ResourceModel::Save(std::string& output) const
 }
 
 
-UID ResourceModel::Import(const aiScene* model, const std::vector<UID>& meshes, const std::vector<UID>& materials, const char* source_file)
+bool ResourceModel::Import(const char* full_path, std::string& output)
 {
-    ResourceModel* m = static_cast<ResourceModel*>(App->resources->CreateNewResource(Resource::model));
+	unsigned flags = aiProcess_CalcTangentSpace | \
+		aiProcess_GenSmoothNormals | \
+		aiProcess_JoinIdenticalVertices | \
+		aiProcess_ImproveCacheLocality | \
+		aiProcess_LimitBoneWeights | \
+		aiProcess_SplitLargeMeshes | \
+		aiProcess_Triangulate | \
+		aiProcess_GenUVCoords | \
+		aiProcess_SortByPType | \
+		aiProcess_FindDegenerates | \
+		aiProcess_FindInvalidData | 
+		0;
+	
+	aiString assimp_path(".");
+	assimp_path.Append(full_path);
 
-    m->GenerateNodes(model, model->mRootNode, 0, meshes, materials);
+	const aiScene* scene = aiImportFile(assimp_path.data, flags);
 
-    std::string output;
+	if (scene)
+	{
+        ResourceModel m(0);
 
-    bool save_ok = m->Save(output);
-    m->nodes.clear();
+        std::vector<UID> materials, meshes;
+        m.GenerateMaterials(scene, full_path, materials);
+        m.GenerateMeshes(scene, full_path, meshes);
+        m.GenerateNodes(scene, scene->mRootNode, 0, meshes, materials);
 
-    if(save_ok)
-    {
-		if (source_file != nullptr) 
-        {
-			m->file = source_file;
-			App->fs->NormalizePath(m->file);
-		}
+        aiReleaseImport(scene);
 
-		std::string file;
-		App->fs->SplitFilePath(output.c_str(), nullptr, &file);
-		m->exported_file = file;
-
-		LOG("Imported successful from aiMaterial [%s] to [%s]", m->GetFile(), m->GetExportedFile());
-
-        return m->uid;
+        return m.Save(output);
     }
 
-    LOG("Importing of model aiScene [%s] FAILED", source_file);
+	return false;
+}
 
-	return 0;
+void ResourceModel::GenerateMaterials(const aiScene* scene, const char* file, std::vector<UID>& materials)
+{
+	materials.reserve(scene->mNumMaterials);
+
+	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
+	{
+        materials.push_back(ResourceMaterial::Import(scene->mMaterials[i], file));
+
+		assert(materials.back() != 0);
+	}
+}
+
+
+void ResourceModel::GenerateMeshes(const aiScene* scene, const char* file, std::vector<UID>& meshes)
+{
+	meshes.reserve(scene->mNumMeshes);
+
+	for(unsigned i=0; i < scene->mNumMeshes; ++i)
+	{
+        meshes.push_back(ResourceMesh::Import(scene->mMeshes[i], file)); 
+
+		assert(meshes.back() != 0);
+	}
 }
 
 void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials)

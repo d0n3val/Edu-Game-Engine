@@ -7,7 +7,6 @@
 #include "ModuleEditor.h"
 #include "ModuleEditorCamera.h"
 #include "ModuleResources.h"
-#include "ModuleSceneLoader.h"
 #include "ResourceModel.h"
 #include "GameObject.h"
 
@@ -99,7 +98,7 @@ void PanelGOTree::Draw()
 					const Resource* model = (*it);
 					if (ImGui::MenuItem(model->GetExportedFile()))
 					{
-                        App->scene->AddModel(model->GetUID());
+                        App->level->AddModel(model->GetUID());
 					}
 				}
 

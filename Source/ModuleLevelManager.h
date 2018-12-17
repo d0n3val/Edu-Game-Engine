@@ -51,6 +51,7 @@ public:
 	GameObject*         CastRayOnBoundingBoxes  (const LineSegment& segment, float& dist, float3& normal) const;
 	void                FindNear                (const float3& position, float radius, std::vector<GameObject*>& results) const;
 
+    GameObject*         AddModel                (UID model);
 
     const DirLight*     GetDirLight             () const { return directional; }
     DirLight*           GetDirLight             () { return directional; }
