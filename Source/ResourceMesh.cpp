@@ -9,6 +9,16 @@
 #include "Assimp/include/mesh.h"
 #include "utils/SimpleBinStream.h"
 
+#pragma warning(push)
+#pragma warning(disable : 4996)  
+#pragma warning(disable : 4244)  
+#pragma warning(disable : 4305)  
+#pragma warning(disable : 4838)  
+
+#define PAR_SHAPES_IMPLEMENTATION
+#include "utils/par_shapes.h"
+#pragma warning(pop)
+
 // ---------------------------------------------------------
 ResourceMesh::ResourceMesh(UID uid) : Resource(uid, Resource::Type::mesh)
 {
@@ -280,34 +290,40 @@ UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file)
         m->GenerateBoneData(mesh);
     }
 
-    m->bbox.SetNegativeInfinity();
-    m->bbox.Enclose(m->src_vertices, m->num_vertices);
-
     std::string output;
 
-    bool save_ok = m->Save(output);
+    if(m->Save(source_file, output))
+    {
+        LOG("Imported successful from aiMaterial [%s] to [%s]", m->GetFile(), m->GetExportedFile());
+    }
+    else
+    {
+        LOG("Importing aiMesh %s FAILED", source_file);
+    }
+
     m->ReleaseFromMemory();
+
+    return m->uid;
+}
+
+bool ResourceMesh::Save(const char* source, std::string& output)
+{
+    bool save_ok = Save(output);
 
     if(save_ok)
     {
-		if (source_file != nullptr) 
+		if (source != nullptr) 
         {
-			m->file = source_file;
-			App->fs->NormalizePath(m->file);
+			file = source;
+			App->fs->NormalizePath(file);
 		}
 
 		std::string file;
 		App->fs->SplitFilePath(output.c_str(), nullptr, &file);
-		m->exported_file = file;
-
-		LOG("Imported successful from aiMaterial [%s] to [%s]", m->GetFile(), m->GetExportedFile());
-
-        return m->uid;
+		exported_file = file;
     }
 
-    LOG("Importing aiMesh %s FAILED", source_file);
-
-    return 0;
+    return save_ok;
 }
 
 void ResourceMesh::GenerateAttribInfo(const aiMesh* mesh)
@@ -399,6 +415,8 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
         //GenerateTangentSpace(dst);
     }
 
+    bbox.SetNegativeInfinity();
+    bbox.Enclose(src_vertices, num_vertices);
 }
 
 void ResourceMesh::GenerateVBO(bool dynamic)
@@ -542,5 +560,173 @@ void ResourceMesh::GenerateVAO()
     }
 
     glBindVertexArray(0);
+}
+
+UID ResourceMesh::LoadSphere(const char* sphere_name, float size, unsigned slices, unsigned stacks)
+{
+    par_shapes_mesh* mesh = par_shapes_create_parametric_sphere(int(slices), int(stacks));
+
+	if (mesh)
+	{
+        par_shapes_scale(mesh, size, size, size);
+
+        UID uid = Generate(sphere_name, mesh);
+
+        par_shapes_free_mesh(mesh);
+
+        return uid;
+    }
+
+	return 0;
+}
+
+UID ResourceMesh::LoadCylinder(const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks)
+{
+    par_shapes_mesh* mesh = par_shapes_create_cylinder(int(slices), int(stacks));
+    par_shapes_rotate(mesh, -float(PAR_PI*0.5), (float*)&math::float3::unitX);
+	par_shapes_translate(mesh, 0.0f, -0.5f, 0.0f);
+
+    par_shapes_mesh* top = par_shapes_create_disk(radius, int(slices), (const float*)&math::float3::zero, (const float*)&math::float3::unitZ);
+    par_shapes_rotate(top, -float(PAR_PI*0.5), (float*)&math::float3::unitX);
+    par_shapes_translate(top, 0.0f, height*0.5f, 0.0f);
+
+    par_shapes_mesh* bottom = par_shapes_create_disk(radius, int(slices), (const float*)&math::float3::zero, (const float*)&math::float3::unitZ);
+    par_shapes_rotate(bottom, float(PAR_PI*0.5), (float*)&math::float3::unitX);
+    par_shapes_translate(bottom, 0.0f, height*-0.5f, 0.0f);
+
+	if (mesh)
+	{
+        par_shapes_scale(mesh, radius, height, radius);
+        par_shapes_merge_and_free(mesh, top);
+        par_shapes_merge_and_free(mesh, bottom);
+
+        UID uid = Generate(cylinder_name, mesh);
+
+		par_shapes_free_mesh(mesh);
+
+		return uid;
+	}
+
+	return 0;
+}
+
+UID ResourceMesh::LoadTorus(const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks)
+{
+    par_shapes_mesh* mesh = par_shapes_create_torus(int(slices), int(stacks), inner_r);
+
+	if (mesh)
+	{
+        par_shapes_scale(mesh, outer_r, outer_r, outer_r);
+
+        UID uid = Generate(torus_name, mesh);
+
+		par_shapes_free_mesh(mesh);
+
+		return uid;
+	}
+
+	return 0;
+}
+
+UID ResourceMesh::LoadCube(const char* cube_name, float size)
+{
+    par_shapes_mesh* mesh   = par_shapes_create_plane(1, 1);
+    par_shapes_mesh* top    = par_shapes_create_plane(1, 1);
+	par_shapes_mesh* bottom = par_shapes_create_plane(1, 1);
+	par_shapes_mesh* back   = par_shapes_create_plane(1, 1);
+	par_shapes_mesh* left   = par_shapes_create_plane(1, 1);
+	par_shapes_mesh* right  = par_shapes_create_plane(1, 1);
+
+	par_shapes_translate(mesh, -0.5f, -0.5f, 0.5f);
+
+    par_shapes_rotate(top, -float(PAR_PI*0.5), (float*)&math::float3::unitX);
+	par_shapes_translate(top, -0.5f, 0.5f, 0.5f);
+
+	par_shapes_rotate(bottom, float(PAR_PI*0.5), (float*)&math::float3::unitX);
+	par_shapes_translate(bottom, -0.5f, -0.5f, -0.5f);
+
+	par_shapes_rotate(back, float(PAR_PI), (float*)&math::float3::unitX);
+	par_shapes_translate(back, -0.5f, 0.5f, -0.5f);
+
+	par_shapes_rotate(left, float(-PAR_PI*0.5), (float*)&math::float3::unitY);
+	par_shapes_translate(left, -0.5f, -0.5f, -0.5f);
+
+	par_shapes_rotate(right, float(PAR_PI*0.5), (float*)&math::float3::unitY);
+	par_shapes_translate(right, 0.5f, -0.5f, 0.5f);
+
+    par_shapes_merge_and_free(mesh, top);
+	par_shapes_merge_and_free(mesh, bottom);
+	par_shapes_merge_and_free(mesh, back);
+	par_shapes_merge_and_free(mesh, left);
+	par_shapes_merge_and_free(mesh, right);
+	 
+	if (mesh)
+	{
+        par_shapes_scale(mesh, size, size, size);
+
+        UID uid = Generate(cube_name, mesh);
+
+		par_shapes_free_mesh(mesh);
+
+		return uid;
+	}
+
+	return 0;
+}
+
+UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape)
+{
+    ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
+
+    m->name = HashString(shape_name);
+
+    m->GenerateAttribInfo(shape);
+    m->GenerateCPUBuffers(shape);
+
+	std::string output;
+    bool ok = m->Save(shape_name, output);
+
+    m->ReleaseFromMemory();
+
+    return ok ? m->uid : 0;
+}
+
+void ResourceMesh::GenerateAttribInfo (par_shapes_mesh* shape)
+{
+    vertex_size         = sizeof(math::float3);
+    attribs             = 0;
+    texcoord_offset     = 0;
+    normal_offset       = 0;
+    tangent_offset      = 0;
+    bone_weight_offset  = 0;
+
+    if(shape->normals)
+    {
+        attribs |= ATTRIB_NORMALS;
+        normal_offset = vertex_size*shape->npoints;
+        vertex_size += sizeof(float3);
+    }
+
+    if(shape->tcoords)
+    {
+        attribs |= ATTRIB_TEX_COORDS_0;
+        texcoord_offset = vertex_size*shape->npoints;
+        vertex_size += sizeof(aiVector2D);
+    }
+}
+
+void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
+{
+    src_vertices = new float3[shape->npoints];
+    memcpy(src_vertices, shape->points, shape->npoints*sizeof(float3));
+
+    if(shape->normals)
+    {
+        src_normals = new float3[shape->npoints];
+        memcpy(src_normals, shape->normals, shape->npoints*sizeof(float3));
+    }
+
+    src_indices = new unsigned[shape->ntriangles*3];
+    memcpy(src_indices, shape->triangles, shape->ntriangles*3*sizeof(unsigned));
 }
 

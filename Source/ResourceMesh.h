@@ -9,6 +9,7 @@
 
 class Resource;
 struct aiMesh;
+struct par_shapes_mesh_s;
 
 class ResourceMesh : public Resource
 {
@@ -29,14 +30,23 @@ public:
     bool        Save                (std::string& output) const;
     static UID  Import              (const aiMesh* mesh, const char* source_file);
 
+    static UID  LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks);
+    static UID  LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
+    static UID  LoadCube            (const char* cube_name, float size);
+    static UID  LoadCylinder        (const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks);
+
 private:
 
+    static UID  Generate           (const char* shape_name, par_shapes_mesh_s* shape);
+    void        GenerateAttribInfo (par_shapes_mesh_s* shape);
     void        GenerateAttribInfo (const aiMesh* mesh);
     void        GenerateCPUBuffers (const aiMesh* mesh);
+	void        GenerateCPUBuffers(par_shapes_mesh_s* shape);
     void        GenerateVBO        (bool dynamic);
     void        GenerateBoneData   (const aiMesh* mesh);
     void        GenerateVAO        ();
     void        Clear              ();
+    bool        Save               (const char* source, std::string& output);
 
 public:
 
