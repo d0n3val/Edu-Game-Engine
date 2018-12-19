@@ -18,8 +18,6 @@ public:
 		texture,
 		mesh,
 		audio,
-		scene,
-		bone,
 		animation,
 		unknown
 	};

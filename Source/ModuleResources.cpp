@@ -10,7 +10,6 @@
 #include "ResourceMaterial.h"
 #include "ResourceMesh.h"
 #include "ResourceAudio.h"
-#include "ResourceScene.h"
 #include "ResourceModel.h"
 #include "ResourceAnimation.h"
 #include "LoaderAnimation.h"
@@ -378,9 +377,6 @@ Resource * ModuleResources::CreateNewResource(Resource::Type type, UID force_uid
 		break;
 		case Resource::audio:
 			ret = (Resource*) new ResourceAudio(uid);
-		break;
-		case Resource::scene:
-			ret = (Resource*) new ResourceScene(uid);
 		break;
 		case Resource::animation:
 			ret = (Resource*) new ResourceAnimation(uid);

@@ -450,9 +450,6 @@
     <ClInclude Include="ResourceAudio.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceScene.h">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleTextures.h">
       <Filter>Resources\Loaders</Filter>
     </ClInclude>
@@ -783,9 +780,6 @@
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="ResourceAudio.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceScene.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="ModuleTextures.cpp">

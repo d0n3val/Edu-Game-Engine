@@ -8,7 +8,6 @@
 #include "ResourceAudio.h"
 #include "ResourceMesh.h"
 #include "ResourceTexture.h"
-#include "ResourceScene.h"
 #include "Imgui/imgui.h"
 #include <vector>
 
@@ -73,8 +72,6 @@ void PanelResources::Draw()
 	DrawResourceType(Resource::texture);
 	DrawResourceType(Resource::mesh);
 	DrawResourceType(Resource::audio);
-	DrawResourceType(Resource::scene);
-	DrawResourceType(Resource::bone);
 	DrawResourceType(Resource::animation);
 
     ImGui::End();
@@ -87,7 +84,7 @@ UID PanelResources::DrawResourceType(Resource::Type type)
 	vector<const Resource*> resources;
 
 	static const char* titles[] = {
-		"Models", "Materials", "Textures", "Meshes", "Audios", "Scenes", "Animation", "Others" };
+		"Models", "Materials", "Textures", "Meshes", "Audios", "Animation", "Others" };
 
 	if (ImGui::TreeNodeEx(titles[type], 0))
 	{
