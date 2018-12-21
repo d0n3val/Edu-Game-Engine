@@ -677,6 +677,24 @@ UID ResourceMesh::LoadCube(const char* cube_name, float size)
 	return 0;
 }
 
+UID  ResourceMesh::LoadPlane(const char* plane_name, float width, float height, unsigned slices, unsigned stacks)
+{
+    par_shapes_mesh* mesh   = par_shapes_create_plane(slices, stacks);
+
+	if (mesh)
+	{
+        par_shapes_scale(mesh, width, height, 1.0f);
+
+        UID uid = Generate(plane_name, mesh);
+
+		par_shapes_free_mesh(mesh);
+
+		return uid;
+	}
+
+	return 0;
+}
+
 UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape)
 {
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
