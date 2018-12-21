@@ -29,6 +29,7 @@ using namespace std;
 #include "examples/imgui_impl_sdl.h"
 #include "examples/imgui_impl_opengl3.h"
 
+#include "mmgr/mmgr.h"
 
 ModuleEditor::ModuleEditor(bool start_enabled) : Module("Editor", start_enabled)
 {

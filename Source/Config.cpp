@@ -3,6 +3,8 @@
 #include "string.h"
 #include "stdio.h"
 
+#include "mmgr/mmgr.h"
+
 // C++ wrapper for JSON parser library "Parson"
 
 Config::Config()

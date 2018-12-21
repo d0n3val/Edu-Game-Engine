@@ -8,6 +8,7 @@
 #include "ResourceTexture.h"
 
 #include "mmgr/mmgr.h"
+
 #pragma comment( lib, "Devil/libx86/DevIL.lib" )
 #pragma comment( lib, "Devil/libx86/ILU.lib" )
 #pragma comment( lib, "Devil/libx86/ILUT.lib" )

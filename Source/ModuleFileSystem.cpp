@@ -8,6 +8,8 @@
 
 #pragma comment( lib, "PhysFS/libx86/physfs.lib" )
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 ModuleFileSystem::ModuleFileSystem(const char* game_path) : Module("File System", true)

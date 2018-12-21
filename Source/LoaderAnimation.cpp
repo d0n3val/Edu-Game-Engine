@@ -8,6 +8,8 @@
 #include "Math.h"
 
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 LoaderAnimation::LoaderAnimation() 

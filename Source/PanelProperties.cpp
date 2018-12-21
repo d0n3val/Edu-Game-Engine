@@ -12,7 +12,6 @@
 #include "ComponentRigidBody.h"
 #include "ComponentSteering.h"
 #include "ComponentMesh.h"
-#include "ModuleMeshes.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
 #include "ModuleEditor.h"
@@ -37,6 +36,8 @@
 #include "SpotLight.h"
 
 #include <list>
+
+#include "mmgr/mmgr.h"
 
 using namespace std;
 

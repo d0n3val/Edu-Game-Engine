@@ -1,6 +1,5 @@
 #include "ResourceMesh.h"
 #include "Application.h"
-#include "ModuleMeshes.h"
 #include "ModuleFileSystem.h"
 #include "ModuleResources.h"
 
@@ -18,6 +17,8 @@
 #define PAR_SHAPES_IMPLEMENTATION
 #include "utils/par_shapes.h"
 #pragma warning(pop)
+
+#include "mmgr/mmgr.h"
 
 // ---------------------------------------------------------
 ResourceMesh::ResourceMesh(UID uid) : Resource(uid, Resource::Type::mesh)
@@ -143,6 +144,8 @@ bool ResourceMesh::LoadInMemory()
 
         GenerateVBO(false);
         GenerateVAO();
+
+        delete [] buffer;
 
 		return true;
     }

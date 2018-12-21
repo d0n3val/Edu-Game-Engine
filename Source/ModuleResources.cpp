@@ -3,7 +3,6 @@
 #include "ModuleResources.h"
 #include "ModuleFileSystem.h"
 #include "ModuleTextures.h"
-#include "ModuleMeshes.h"
 #include "ModuleAudio.h"
 #include "Event.h"
 #include "ResourceTexture.h"
@@ -15,6 +14,8 @@
 #include "LoaderAnimation.h"
 #include "Config.h"
 #include <string>
+
+#include "mmgr/mmgr.h"
 
 #define LAST_UID_FILE "LAST_UID"
 
@@ -105,6 +106,9 @@ bool ModuleResources::CleanUp()
 		RELEASE(*it);
 
 	resources.clear();
+
+	delete white_fallback;
+    delete black_fallback;
 
 	return true;
 }

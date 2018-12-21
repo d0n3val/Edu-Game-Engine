@@ -4,6 +4,8 @@
 
 #include "Config.h"
 
+#include "mmgr/mmgr.h"
+
 // ---------------------------------------------------------
 AmbientLight::AmbientLight()
 {

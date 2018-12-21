@@ -27,6 +27,8 @@
 
 #include "OpenGL.h"
 
+#include "mmgr/mmgr.h"
+
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
 }

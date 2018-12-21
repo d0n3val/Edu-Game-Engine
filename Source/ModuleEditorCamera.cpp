@@ -13,6 +13,8 @@
 #include "GameObject.h"
 #include <vector>
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 ModuleEditorCamera::ModuleEditorCamera(bool start_enabled) : Module("Camera", start_enabled)

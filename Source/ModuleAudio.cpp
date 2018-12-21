@@ -13,6 +13,8 @@
 #include "Bass/include/bassenc.h"
 #include "Bass/include/bassenc_ogg.h"
 
+#include "mmgr/mmgr.h"
+
 #pragma comment( lib, "Bass/libx86/bass.lib" )
 #pragma comment( lib, "Bass/libx86/bassenc.lib" )
 #pragma comment( lib, "Bass/libx86/bassenc_ogg.lib" )

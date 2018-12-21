@@ -2,6 +2,8 @@
 #include "GameObject.h"
 #include "QuadTree.h"
 
+#include "mmgr/mmgr.h"
+
 #define NE 0
 #define SE 1
 #define SW 2

@@ -11,6 +11,8 @@
 #include "Bullet/include/btBulletDynamicsCommon.h"
 #include "Bullet/include/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 #ifdef _DEBUG

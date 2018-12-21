@@ -26,7 +26,6 @@ Application* App = nullptr;
 
 int main(int argc, char ** argv)
 {
-	//ReportMemoryLeaks();
 	LOG("Starting EDU Engine from [%s]", argv[0]);
 
 	int main_return = EXIT_FAILURE;

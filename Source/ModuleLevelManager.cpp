@@ -24,6 +24,8 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 ModuleLevelManager::ModuleLevelManager( bool start_enabled) : Module("LevelManager", start_enabled)

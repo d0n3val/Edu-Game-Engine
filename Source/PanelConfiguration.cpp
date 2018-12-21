@@ -11,7 +11,6 @@
 #include "ModuleRenderer3D.h"
 #include "ModuleEditorCamera.h"
 #include "ModuleTextures.h"
-#include "ModuleMeshes.h"
 #include "ModuleEditor.h"
 #include "ModuleResources.h"
 #include "ModulePhysics3D.h"
@@ -20,6 +19,7 @@
 #include "PanelProperties.h"
 #include "ComponentCamera.h"
 #include "GameObject.h"
+
 #include "mmgr/mmgr.h"
 
 using namespace std;

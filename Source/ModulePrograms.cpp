@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "mmgr/mmgr.h"
+
 ModulePrograms::ModulePrograms(bool start_active) : Module("Program", start_active)
 {
 }
@@ -67,6 +69,8 @@ void ModulePrograms::Clear()
 
         free(it->second.bindings);
         free(it->second.data);
+        free(it->second.vertex);
+        free(it->second.fragment);
     }
 
 	for(ProgramList::iterator it = programs.begin(); it != programs.end(); ++it)

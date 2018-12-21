@@ -19,6 +19,8 @@
 #include "Event.h"
 #include "Config.h"
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 // ---------------------------------------------

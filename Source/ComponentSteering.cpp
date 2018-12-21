@@ -11,6 +11,8 @@
 #include "PanelProperties.h"
 #include "Imgui/imgui.h"
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 // ---------------------------------------------------------

@@ -7,6 +7,8 @@
 #include "Assimp/include/types.h"
 #include "Assimp/include/material.h"
 
+#include "mmgr/mmgr.h"
+
 // ---------------------------------------------------------
 ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::material)
 {
@@ -60,6 +62,8 @@ bool ResourceMaterial::LoadInMemory()
                 App->resources->Get(textures[i])->LoadToMemory();
             }
         }
+
+		delete[] buffer;
 
         return true;
     }

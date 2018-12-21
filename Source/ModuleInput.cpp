@@ -6,6 +6,8 @@
 #include "Event.h"
 #include "SDL/include/SDL.h"
 
+#include "mmgr/mmgr.h"
+
 #define MAX_KEYS 300
 
 ModuleInput::ModuleInput(bool start_enabled) : Module("Input", start_enabled)

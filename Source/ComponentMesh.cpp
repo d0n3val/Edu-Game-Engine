@@ -5,6 +5,8 @@
 #include "ModuleResources.h"
 #include "ResourceMesh.h"
 
+#include "mmgr/mmgr.h"
+
 ComponentMesh::ComponentMesh(GameObject* go) : Component(go, Types::Mesh)
 {
 }
@@ -28,12 +30,6 @@ void ComponentMesh::OnLoad(Config* config)
 {
 	SetResource(config->GetUID("Resource", 0));
     visible = config->GetBool("Visible", true);
-
-    Resource* res = App->resources->Get(resource);
-    if(res != nullptr)
-    {
-        res->LoadToMemory();
-    }
 }
 
 void ComponentMesh::GetBoundingBox (AABB& box) const 
