@@ -331,7 +331,7 @@ bool ResourceMesh::Save(const char* source, std::string& output)
 
 void ResourceMesh::GenerateAttribInfo(const aiMesh* mesh)
 {
-    vertex_size         = sizeof(math::float3);
+    vertex_size         = sizeof(float3);
     attribs             = 0;
     texcoord_offset     = 0;
     normal_offset       = 0;
@@ -342,21 +342,21 @@ void ResourceMesh::GenerateAttribInfo(const aiMesh* mesh)
     {
         attribs |= ATTRIB_NORMALS;
         normal_offset = vertex_size*mesh->mNumVertices;
-        vertex_size += sizeof(math::float3);
+        vertex_size += sizeof(float3);
     }
 
     if(mesh->HasTextureCoords(0))
     {
         attribs |= ATTRIB_TEX_COORDS_0;
         texcoord_offset = vertex_size*mesh->mNumVertices;
-        vertex_size += sizeof(aiVector2D);
+        vertex_size += sizeof(float2);
     }
 
     if(mesh->HasTangentsAndBitangents())
     {
         attribs |= ATTRIB_TANGENTS;
         tangent_offset = vertex_size*mesh->mNumVertices;
-        vertex_size += sizeof(math::float3);
+        vertex_size += sizeof(float3);
     }
 
     if(mesh->HasBones())
@@ -413,7 +413,7 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
     if(mesh->HasTangentsAndBitangents())
     {
         // uncomment iif copy form assimp
-        src_tangents = new math::float3[mesh->mNumVertices];
+        src_tangents = new float3[mesh->mNumVertices];
         memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
         //GenerateTangentSpace(dst);
     }
@@ -428,7 +428,7 @@ void ResourceMesh::GenerateVBO(bool dynamic)
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glBufferData(GL_ARRAY_BUFFER, vertex_size*num_vertices, nullptr, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(math::float3)*num_vertices, src_vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float3)*num_vertices, src_vertices);
 
     if((attribs & ATTRIB_TEX_COORDS_0) != 0)
     {
@@ -534,18 +534,18 @@ void ResourceMesh::GenerateVAO()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(math::float3), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)0);
 
 	if ((attribs & ATTRIB_NORMALS) != 0)
 	{
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(math::float3), (void*)(normal_offset));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(normal_offset));
 	}
 
 	if ((attribs & ATTRIB_TEX_COORDS_0) != 0)
 	{
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(aiVector2D), (void*)(texcoord_offset));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(texcoord_offset));
 	}
 
 	if((attribs & ATTRIB_BONES) != 0)
@@ -559,7 +559,7 @@ void ResourceMesh::GenerateVAO()
     if((attribs & ATTRIB_TANGENTS) != 0)
     {
 		glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(math::float3), (void*)(tangent_offset));
+        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(tangent_offset));
     }
 
     glBindVertexArray(0);
@@ -586,15 +586,15 @@ UID ResourceMesh::LoadSphere(const char* sphere_name, float size, unsigned slice
 UID ResourceMesh::LoadCylinder(const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks)
 {
     par_shapes_mesh* mesh = par_shapes_create_cylinder(int(slices), int(stacks));
-    par_shapes_rotate(mesh, -float(PAR_PI*0.5), (float*)&math::float3::unitX);
+    par_shapes_rotate(mesh, -float(PAR_PI*0.5), (float*)&float3::unitX);
 	par_shapes_translate(mesh, 0.0f, -0.5f, 0.0f);
 
-    par_shapes_mesh* top = par_shapes_create_disk(radius, int(slices), (const float*)&math::float3::zero, (const float*)&math::float3::unitZ);
-    par_shapes_rotate(top, -float(PAR_PI*0.5), (float*)&math::float3::unitX);
+    par_shapes_mesh* top = par_shapes_create_disk(radius, int(slices), (const float*)&float3::zero, (const float*)&float3::unitZ);
+    par_shapes_rotate(top, -float(PAR_PI*0.5), (float*)&float3::unitX);
     par_shapes_translate(top, 0.0f, height*0.5f, 0.0f);
 
-    par_shapes_mesh* bottom = par_shapes_create_disk(radius, int(slices), (const float*)&math::float3::zero, (const float*)&math::float3::unitZ);
-    par_shapes_rotate(bottom, float(PAR_PI*0.5), (float*)&math::float3::unitX);
+    par_shapes_mesh* bottom = par_shapes_create_disk(radius, int(slices), (const float*)&float3::zero, (const float*)&float3::unitZ);
+    par_shapes_rotate(bottom, float(PAR_PI*0.5), (float*)&float3::unitX);
     par_shapes_translate(bottom, 0.0f, height*-0.5f, 0.0f);
 
 	if (mesh)
@@ -642,19 +642,19 @@ UID ResourceMesh::LoadCube(const char* cube_name, float size)
 
 	par_shapes_translate(mesh, -0.5f, -0.5f, 0.5f);
 
-    par_shapes_rotate(top, -float(PAR_PI*0.5), (float*)&math::float3::unitX);
+    par_shapes_rotate(top, -float(PAR_PI*0.5), (float*)&float3::unitX);
 	par_shapes_translate(top, -0.5f, 0.5f, 0.5f);
 
-	par_shapes_rotate(bottom, float(PAR_PI*0.5), (float*)&math::float3::unitX);
+	par_shapes_rotate(bottom, float(PAR_PI*0.5), (float*)&float3::unitX);
 	par_shapes_translate(bottom, -0.5f, -0.5f, -0.5f);
 
-	par_shapes_rotate(back, float(PAR_PI), (float*)&math::float3::unitX);
+	par_shapes_rotate(back, float(PAR_PI), (float*)&float3::unitX);
 	par_shapes_translate(back, -0.5f, 0.5f, -0.5f);
 
-	par_shapes_rotate(left, float(-PAR_PI*0.5), (float*)&math::float3::unitY);
+	par_shapes_rotate(left, float(-PAR_PI*0.5), (float*)&float3::unitY);
 	par_shapes_translate(left, -0.5f, -0.5f, -0.5f);
 
-	par_shapes_rotate(right, float(PAR_PI*0.5), (float*)&math::float3::unitY);
+	par_shapes_rotate(right, float(PAR_PI*0.5), (float*)&float3::unitY);
 	par_shapes_translate(right, 0.5f, -0.5f, 0.5f);
 
     par_shapes_merge_and_free(mesh, top);
@@ -714,7 +714,7 @@ UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape)
 
 void ResourceMesh::GenerateAttribInfo (par_shapes_mesh* shape)
 {
-    vertex_size         = sizeof(math::float3);
+    vertex_size         = sizeof(float3);
     attribs             = 0;
     texcoord_offset     = 0;
     normal_offset       = 0;
@@ -732,7 +732,7 @@ void ResourceMesh::GenerateAttribInfo (par_shapes_mesh* shape)
     {
         attribs |= ATTRIB_TEX_COORDS_0;
         texcoord_offset = vertex_size*shape->npoints;
-        vertex_size += sizeof(aiVector2D);
+        vertex_size += sizeof(float2);
     }
 }
 
@@ -745,6 +745,12 @@ void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
     {
         src_normals = new float3[shape->npoints];
         memcpy(src_normals, shape->normals, shape->npoints*sizeof(float3));
+    }
+    
+    if(shape->tcoords)
+    {
+        src_texcoord0 = new float2[shape->npoints];
+        memcpy(src_texcoord0, shape->tcoords, shape->npoints*sizeof(float2));
     }
 
     src_indices = new unsigned[shape->ntriangles*3];

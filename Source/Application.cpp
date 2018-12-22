@@ -37,6 +37,7 @@ Application::Application()
 	// Modules will Init() Start() and Update in this order
 	// They will CleanUp() in reverse order
 
+	modules.push_back(hints = new ModuleHints());
 	modules.push_back(hw = new ModuleHardware(false));
 	modules.push_back(fs = new ModuleFileSystem(ASSETS_FOLDER));
 	modules.push_back(window = new ModuleWindow());
@@ -52,7 +53,6 @@ Application::Application()
 	modules.push_back(level = new ModuleLevelManager());
     modules.push_back(programs = new ModulePrograms(true));
     modules.push_back(renderer = new ModuleRenderer());
-	modules.push_back(hints = new ModuleHints());
 	modules.push_back(debug_draw = new ModuleDebugDraw());
 }
 
@@ -289,7 +289,7 @@ void Application::LoadPrefs()
 			for (list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
 			{
 				section = config.GetSection((*it)->GetName());
-				if (section.IsValid())
+				//if (section.IsValid())
 					(*it)->Load(&section);
 			}
 		}

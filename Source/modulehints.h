@@ -44,11 +44,14 @@ public:
     ModuleHints();
     ~ModuleHints();
 
-    bool  GetBoolValue   (Hint hint) const;
-    void  SetBoolValue   (Hint hint, bool value);
+    bool    GetBoolValue    (Hint hint) const;
+    void    SetBoolValue    (Hint hint, bool value);
 
-    float GetFloatValue  (Hint hint) const;
-    void  SetFloatValue  (Hint hint, float value);
+    float   GetFloatValue   (Hint hint) const;
+    void    SetFloatValue   (Hint hint, float value);
+
+	bool    Init            (Config* config) override;
+	void    Save            (Config* config) const override;
 };
 
 inline bool ModuleHints::GetBoolValue(Hint hint) const

@@ -71,8 +71,9 @@ void PanelResources::Draw()
 	DrawResourceType(Resource::material);
 	DrawResourceType(Resource::texture);
 	DrawResourceType(Resource::mesh);
-	DrawResourceType(Resource::audio);
-	DrawResourceType(Resource::animation);
+
+    DrawResourceType(Resource::audio);
+    DrawResourceType(Resource::animation);
 
     ImGui::End();
 }
@@ -88,13 +89,22 @@ UID PanelResources::DrawResourceType(Resource::Type type)
 
 	if (ImGui::TreeNodeEx(titles[type], 0))
 	{
+        if(ImGui::BeginMenu("[Add prefab]"))
+        {
+            if (App->resources->Find("**Plane1x1**") == 0 && ImGui::MenuItem("Plane1x1"))
+            {
+                ResourceMesh::LoadPlane("**Plane1x1**", 1, 1, 1, 1);
+            }
+            ImGui::EndMenu();
+        }
+
         bool remove = false;
-		App->resources->GatherResourceType(resources, type);
-		for (vector<const Resource*>::const_iterator it = resources.begin(); !remove && it != resources.end(); ++it)
-		{
-			const Resource* info = (*it);
-			if (ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
-			{
+        App->resources->GatherResourceType(resources, type);
+        for (vector<const Resource*>::const_iterator it = resources.begin(); !remove && it != resources.end(); ++it)
+        {
+            const Resource* info = (*it);
+            if (ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
+            {
                 if (ImGui::IsItemClicked(0))
                     selected = info->GetUID();
 
@@ -122,9 +132,10 @@ UID PanelResources::DrawResourceType(Resource::Type type)
 
                 ImGui::TreePop();
             }
-		}
+        }
 
-		ImGui::TreePop();
-	}
-	return selected;
+        ImGui::TreePop();
+    }
+
+    return selected;
 }

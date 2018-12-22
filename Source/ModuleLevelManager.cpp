@@ -9,6 +9,7 @@
 #include "ModuleEditorCamera.h"
 #include "ModuleEditor.h"
 #include "ModuleResources.h"
+#include "ModuleHints.h"
 
 #include "ResourceModel.h"
 #include "ResourceMesh.h"
@@ -262,7 +263,8 @@ bool ModuleLevelManager::Load(const char * file)
 			// Load level description
 			Config desc(config.GetSection("Description"));
 			name = desc.GetString("Name", "Unnamed level");
-			App->camera->Load(&desc);
+            //App->hints->Init(&desc);
+			//App->camera->Load(&desc);
 
             LoadLights(config.GetSection("Lights"));
 			LoadGameObjects(config);
@@ -284,7 +286,8 @@ bool ModuleLevelManager::Save(const char * file)
 	// Add header info
 	Config desc(save.AddSection("Description"));
 	desc.AddString("Name", name.c_str());
-	App->camera->Save(&desc);
+    //App->hints->Save(&desc);
+    //App->camera->Save(&desc);
 
     SaveLights(save.AddSection("Lights"));
 

@@ -8,6 +8,7 @@
 #include "ModuleInput.h"
 #include "ModuleDebugDraw.h"
 #include "ModuleEditor.h"
+#include "ModuleEditorCamera.h"
 #include "ModuleHints.h"
 
 #include "GameObject.h"
@@ -88,7 +89,7 @@ void Viewport::Draw(ComponentCamera* camera)
 
             if(draw_axis == true)
             {
-                dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, 100.0f, 0, false);
+                dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, metric_proportion, 0, false);
             }
 
             if (debug_draw == true)
@@ -269,9 +270,19 @@ void Viewport::DrawQuickBar(ComponentCamera* camera)
     if(ImGui::BeginChild("ScaleCanvas", ImVec2(145, 38), true, ImGuiWindowFlags_NoMove))
     {
         float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-        if(ImGui::DragFloat("Scale", &metric_proportion))
+        float prev = metric_proportion;
+        if(ImGui::DragFloat("Scale", &metric_proportion) && metric_proportion > 0.0f)
         {
             App->hints->SetFloatValue(ModuleHints::METRIC_PROPORTION, metric_proportion);
+            ComponentCamera* camera = App->camera->GetDummy();
+
+            if(prev > 0.0f)
+            {
+                float adapt = (metric_proportion/prev);
+                camera->frustum.pos *= adapt;
+                camera->frustum.nearPlaneDistance *= adapt;
+                camera->frustum.farPlaneDistance *= adapt;
+            }
         }
     }
     ImGui::EndChild();
