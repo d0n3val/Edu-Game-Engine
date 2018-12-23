@@ -259,6 +259,8 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 
 void ModuleEditor::DrawDebug()
 {
+	ImVec2 v;
+	v = v * 3.0f;
 }
 
 void ModuleEditor::OnResize(int width, int height)

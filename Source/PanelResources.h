@@ -12,9 +12,15 @@ public:
 
 	void Draw() override;
 
-	UID DrawResourceType(Resource::Type type);
+
+	UID DrawResourceType(Resource::Type type, bool opened = false);
 
 private:
+	UID  DrawResourceType(Resource::Type type, void (PanelResources::*popup)(void), bool opened);
+
+    void DrawMeshPopup();
+    void DrawPlaneProperties();
+    void DrawCylinderProperties();
 
 };
 

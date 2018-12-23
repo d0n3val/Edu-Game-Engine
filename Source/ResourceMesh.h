@@ -38,16 +38,17 @@ public:
 
 private:
 
-    static UID  Generate           (const char* shape_name, par_shapes_mesh_s* shape);
-    void        GenerateAttribInfo (par_shapes_mesh_s* shape);
-    void        GenerateAttribInfo (const aiMesh* mesh);
-    void        GenerateCPUBuffers (const aiMesh* mesh);
-	void        GenerateCPUBuffers(par_shapes_mesh_s* shape);
-    void        GenerateVBO        (bool dynamic);
-    void        GenerateBoneData   (const aiMesh* mesh);
-    void        GenerateVAO        ();
-    void        Clear              ();
-    bool        Save               (const char* source, std::string& output);
+    static UID  Generate            (const char* shape_name, par_shapes_mesh_s* shape);
+    void        GenerateAttribInfo  (par_shapes_mesh_s* shape);
+    void        GenerateAttribInfo  (const aiMesh* mesh);
+    void        GenerateCPUBuffers  (const aiMesh* mesh);
+	void        GenerateCPUBuffers  (par_shapes_mesh_s* shape);
+    void        GenerateVBO         (bool dynamic);
+    void        GenerateBoneData    (const aiMesh* mesh);
+    void        GenerateVAO         ();
+    void        GenerateTangentSpace();
+    void        Clear               ();
+    bool        Save                (const char* source, std::string& output);
 
 public:
 

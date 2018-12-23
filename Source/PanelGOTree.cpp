@@ -107,7 +107,7 @@ void PanelGOTree::Draw()
 
     ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_WHITE);
 
-    if(ImGui::TreeNodeEx("GameObjecs", 0))
+    if(ImGui::TreeNodeEx("GameObjecs", ImGuiTreeNodeFlags_DefaultOpen))
     {
         // Draw the tree
         GameObject* root = App->level->GetRoot();
@@ -132,7 +132,7 @@ void PanelGOTree::DrawLights()
 {
     ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_WHITE);
 
-    if(ImGui::TreeNodeEx("Lights", 0))
+    if(ImGui::TreeNodeEx("Lights", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_GREY);
         uint flags = ImGuiTreeNodeFlags_Leaf;
@@ -318,15 +318,13 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 			drag = go;
 		}
 
-		if (ImGui::IsItemClicked(1))
-			ImGui::OpenPopup("GameObject Options");
-
-		if (ImGui::BeginPopup("GameObject Options"))
-		{
+        if (ImGui::BeginPopupContextItem())
+        {
 			if (ImGui::MenuItem("Duplicate"))
 				App->level->Duplicate(go);
 			if (ImGui::MenuItem("Remove"))
 				go->Remove();
+
 			ImGui::EndPopup();
 		}
 

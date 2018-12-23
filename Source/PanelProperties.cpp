@@ -58,31 +58,39 @@ PanelProperties::~PanelProperties()
 void PanelProperties::Draw()
 {
     ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
-
-    switch(App->editor->selection_type )
+    if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
     {
-        case ModuleEditor::SelectionGameObject:
-			if(App->editor->selected.go)
-				DrawGameObject(App->editor->selected.go);
-            break;
-        case ModuleEditor::SelectionAmbientLight:
-            if(App->editor->selected.ambient)
-				DrawAmbientLight(App->editor->selected.ambient);
-            break;
-        case ModuleEditor::SelectionDirLight:
-			if(App->editor->selected.directional)
-				DrawDirLight(App->editor->selected.directional);
-            break;
-        case ModuleEditor::SelectionPointLight:
-            if(App->editor->selected.point)
-				DrawPointLight(App->editor->selected.point);
-            break;
-        case ModuleEditor::SelectionSpotLight:
-            if(App->editor->selected.spot)
-				DrawSpotLight(App->editor->selected.spot);
-            break;
-    }
+        if (ImGui::BeginTabItem("Selection"))
+        {
 
+            switch(App->editor->selection_type )
+            {
+                case ModuleEditor::SelectionGameObject:
+                    if(App->editor->selected.go)
+                        DrawGameObject(App->editor->selected.go);
+                    break;
+                case ModuleEditor::SelectionAmbientLight:
+                    if(App->editor->selected.ambient)
+                        DrawAmbientLight(App->editor->selected.ambient);
+                    break;
+                case ModuleEditor::SelectionDirLight:
+                    if(App->editor->selected.directional)
+                        DrawDirLight(App->editor->selected.directional);
+                    break;
+                case ModuleEditor::SelectionPointLight:
+                    if(App->editor->selected.point)
+                        DrawPointLight(App->editor->selected.point);
+                    break;
+                case ModuleEditor::SelectionSpotLight:
+                    if(App->editor->selected.spot)
+                        DrawSpotLight(App->editor->selected.spot);
+                    break;
+            }
+
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
     ImGui::End();
 }
 
@@ -485,11 +493,28 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
         ImGui::OpenPopup("Select");
     }
 
-    if (ImGui::BeginPopup("Select"))
+    ImGui::SetNextWindowSize(ImVec2(420,300));
+    if (ImGui::BeginPopupModal("Select", nullptr, ImGuiWindowFlags_NoResize))
     {
-        UID r = 0;
-        r = App->editor->res->DrawResourceType((Resource::Type::mesh));
-        new_res = (r) ? r : new_res;
+        if(ImGui::BeginChild("MeshCanvas", ImVec2(400, 240), true, ImGuiWindowFlags_NoMove))
+        {
+            UID r = 0;
+            r = App->editor->res->DrawResourceType(Resource::Type::mesh, true);
+
+            if(r != 0)
+            {
+                ImGui::CloseCurrentPopup();
+                new_res = r;
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Indent(272);
+        if(ImGui::Button("Close", ImVec2(128, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
         ImGui::EndPopup();
     }
 
@@ -702,6 +727,11 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
                 }
             }
 
+            if(ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                modified = TextureButton(mat_res, ResourceMaterial::TextureNormal, "Normal") || modified;
+            }
+
             if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 modified = TextureButton(mat_res, ResourceMaterial::TextureEmissive, "Emissive") || modified;
@@ -798,17 +828,28 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
     }
     ImGui::EndGroup();
 
-    if (ImGui::BeginPopup(name))
+    ImGui::SetNextWindowSize(ImVec2(420,300));
+    if (ImGui::BeginPopupModal(name, nullptr, ImGuiWindowFlags_NoResize))
     {
-        UID r = 0;
-        r = App->editor->res->DrawResourceType(Resource::texture);
-
-        if (r != 0)
+        if(ImGui::BeginChild("TextureCanvas", ImVec2(400, 240), true, ImGuiWindowFlags_NoMove))
         {
-            material->SetTexture(ResourceMaterial::Texture(texture), r);
-            ImGui::CloseCurrentPopup();
+            UID r = 0;
+            r = App->editor->res->DrawResourceType(Resource::texture, true);
 
-            modified = true;
+            if (r != 0)
+            {
+                material->SetTexture(ResourceMaterial::Texture(texture), r);
+                ImGui::CloseCurrentPopup();
+
+                modified = true;
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Indent(272);
+        if(ImGui::Button("Close", ImVec2(128, 0)))
+        {
+            ImGui::CloseCurrentPopup();
         }
 
         ImGui::EndPopup();

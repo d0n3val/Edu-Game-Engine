@@ -44,11 +44,24 @@ void ComponentMesh::GetBoundingBox (AABB& box) const
 
 bool ComponentMesh::SetResource(UID uid) 
 {
+    if(resource != 0)
+    {
+		Resource* res = App->resources->Get(uid);
+        if(res != nullptr) 
+        {
+            assert(res->GetType() == Resource::mesh);
+
+            res->Release();
+        }
+    }
+
 	if (uid != 0)
 	{
 		Resource* res = App->resources->Get(uid);
-		if (res != nullptr && res->GetType() == Resource::mesh)
+		if (res != nullptr) 
 		{
+            assert(res->GetType() == Resource::mesh);
+
 			if(res->LoadToMemory() == true)
 			{
 				resource = uid;

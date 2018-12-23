@@ -415,11 +415,69 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
         // uncomment iif copy form assimp
         src_tangents = new float3[mesh->mNumVertices];
         memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
-        //GenerateTangentSpace(dst);
+    }
+    else
+    {
+        GenerateTangentSpace();
     }
 
     bbox.SetNegativeInfinity();
     bbox.Enclose(src_vertices, num_vertices);
+}
+
+void ResourceMesh::GenerateTangentSpace()
+{
+    // tangent space
+
+    // edif0 = udif0*t+vdif0*b;
+    // edif1 = udif1*t+vdif1*b;
+    // b     = edif1/vidf1-udif1/vdif1*t;
+    // edif0 = udif0*t+vidf0*edif1/vdif1-vdif0*udif1/vdif1*t;
+    // edif0 - vdif0*edif1/vdif1 = t*(udif0-vdif0*udif1/vdif1);
+
+    src_tangents = new math::float3[num_vertices];
+
+    for(unsigned i=0; i <  num_vertices; ++i)
+    {
+        src_tangents[i] = float3(0.0f);
+    }
+
+    for(unsigned i=0; i< num_indices/3; ++i)
+    {
+        unsigned face[3] = { src_indices[i*3], src_indices[i*3+1], src_indices[i*3+2] };
+
+		float3 edif0 = src_vertices[face[1]]-src_vertices[face[0]];
+        float3 edif1 = src_vertices[face[2]]-src_vertices[face[1]];
+        float udif0  = src_texcoord0[face[1]].x-src_texcoord0[face[0]].x;
+        float vdif0  = src_texcoord0[face[1]].y-src_texcoord0[face[0]].y;
+        float udif1  = src_texcoord0[face[2]].x-src_texcoord0[face[1]].x;
+        float vdif1  = src_texcoord0[face[2]].y-src_texcoord0[face[1]].y;
+
+        math::float3 t;
+
+        if(fabs(vdif1) < 0.00001f)
+        {
+            assert(fabs(udif1) > 0.00001f);
+
+            t = edif1*(1.0f/udif1);
+        }
+        else
+        {
+            float f = 1.0f/(udif0-vdif0*udif1/vdif1);
+            t       = (edif0-edif1*vdif0/vdif1)*f; 
+        }
+
+        src_tangents[face[0]] += t;
+        src_tangents[face[1]] += t; 
+        src_tangents[face[2]] += t;
+    }
+
+    for(unsigned i=0; i <  num_vertices; ++i)
+    {
+		src_tangents[i] = src_tangents[i];
+		src_tangents[i].Normalize();
+        // \todo: orthogonalize ?
+    }
 }
 
 void ResourceMesh::GenerateVBO(bool dynamic)
@@ -589,19 +647,15 @@ UID ResourceMesh::LoadCylinder(const char* cylinder_name, float height, float ra
     par_shapes_rotate(mesh, -float(PAR_PI*0.5), (float*)&float3::unitX);
 	par_shapes_translate(mesh, 0.0f, -0.5f, 0.0f);
 
-    par_shapes_mesh* top = par_shapes_create_disk(radius, int(slices), (const float*)&float3::zero, (const float*)&float3::unitZ);
-    par_shapes_rotate(top, -float(PAR_PI*0.5), (float*)&float3::unitX);
-    par_shapes_translate(top, 0.0f, height*0.5f, 0.0f);
-
-    par_shapes_mesh* bottom = par_shapes_create_disk(radius, int(slices), (const float*)&float3::zero, (const float*)&float3::unitZ);
-    par_shapes_rotate(bottom, float(PAR_PI*0.5), (float*)&float3::unitX);
-    par_shapes_translate(bottom, 0.0f, height*-0.5f, 0.0f);
-
 	if (mesh)
 	{
         par_shapes_scale(mesh, radius, height, radius);
-        par_shapes_merge_and_free(mesh, top);
-        par_shapes_merge_and_free(mesh, bottom);
+
+        for(uint i=0; i< uint(mesh->npoints); ++i)
+        {
+            std::swap(mesh->tcoords[i*2], mesh->tcoords[i*2+1]);
+            mesh->tcoords[i*2]*=2.0f;
+        }
 
         UID uid = Generate(cylinder_name, mesh);
 
@@ -679,7 +733,8 @@ UID ResourceMesh::LoadCube(const char* cube_name, float size)
 
 UID  ResourceMesh::LoadPlane(const char* plane_name, float width, float height, unsigned slices, unsigned stacks)
 {
-    par_shapes_mesh* mesh   = par_shapes_create_plane(slices, stacks);
+    par_shapes_mesh* mesh = par_shapes_create_plane(slices, stacks);
+	par_shapes_translate(mesh, -0.5f, -0.5f, 0.0f);
 
 	if (mesh)
 	{
@@ -753,7 +808,15 @@ void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
         memcpy(src_texcoord0, shape->tcoords, shape->npoints*sizeof(float2));
     }
 
+    GenerateTangentSpace();
+
     src_indices = new unsigned[shape->ntriangles*3];
-    memcpy(src_indices, shape->triangles, shape->ntriangles*3*sizeof(unsigned));
+	for (uint i = 0; i < uint(shape->ntriangles) * 3; ++i)
+	{
+		src_indices[i] = shape->triangles[i];
+	}
+
+	num_vertices = shape->npoints;
+    num_indices  = shape->ntriangles*3;
 }
 

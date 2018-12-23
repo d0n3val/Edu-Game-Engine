@@ -70,7 +70,7 @@ public:
     uint                GetNumSpotLights        () const { return spots.size(); }
     const SpotLight*    GetSpotLight            (uint index) const { return spots[index]; }
     SpotLight*          GetSpotLight            (uint index) { return spots[index]; }
-
+    
 private:
 
 	void RecursiveTestRayBBox(const LineSegment& segment, float& dist, float3& normal, GameObject** best_candidate) const;
