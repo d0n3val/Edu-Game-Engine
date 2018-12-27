@@ -62,21 +62,24 @@ bool ModuleEditor::Init(Config* config)
 
 	// create all panels
 	
-	panels.push_back(console = new PanelConsole());
-	panels.push_back(tree = new PanelGOTree());
-	panels.push_back(props = new PanelProperties());
-	panels.push_back(conf = new PanelConfiguration());
-	panels.push_back(about = new PanelAbout());
-	panels.push_back(res = new PanelResources());
+    tab_panels[TabPanelBottom].name = "Output";
+    tab_panels[TabPanelLeft].name = "Hierarchy";
+    tab_panels[TabPanelRight].name = "Inspector";
 
+	tab_panels[TabPanelBottom].panels.push_back(console = new PanelConsole());
+	tab_panels[TabPanelLeft].panels.push_back(tree = new PanelGOTree());
+	tab_panels[TabPanelRight].panels.push_back(props = new PanelProperties());
+	tab_panels[TabPanelRight].panels.push_back(conf = new PanelConfiguration());
+	tab_panels[TabPanelRight].panels.push_back(about = new PanelAbout());
+	tab_panels[TabPanelLeft].panels.push_back(res = new PanelResources());
 
 	return true;
 }
 
 bool ModuleEditor::Start(Config * config)
 {
-    conf->active = config->GetBool("ConfActive", true);
-    props->active = config->GetBool("PropsActive", true);
+    //conf->active = config->GetBool("ConfActive", true);
+    //props->active = config->GetBool("PropsActive", true);
 
 	OnResize(App->window->GetWidth(), App->window->GetHeight());
 
@@ -85,8 +88,8 @@ bool ModuleEditor::Start(Config * config)
 
 void ModuleEditor::Save(Config* config) const 
 {
-    config->AddBool("ConfActive", conf->active);
-    config->AddBool("PropsActive", props->active);
+    //config->AddBool("ConfActive", conf->active);
+    //config->AddBool("PropsActive", props->active);
 }
 
 update_status ModuleEditor::PreUpdate(float dt)
@@ -132,23 +135,6 @@ update_status ModuleEditor::Update(float dt)
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("View"))
-			{
-				bool refresh = false;
-				refresh = ImGui::MenuItem("Console", nullptr, &console->active) || refresh;
-				refresh = ImGui::MenuItem("Scene Hierarchy", nullptr, &tree->active) || refresh;
-				refresh = ImGui::MenuItem("Properties", nullptr, &props->active) || refresh;
-				refresh = ImGui::MenuItem("Configuration", nullptr, &conf->active) || refresh;
-				refresh = ImGui::MenuItem("Resource Browser", nullptr, &res->active) || refresh;
-
-                if(refresh)
-                {
-                    OnResize(App->window->GetWidth(), App->window->GetHeight());
-                }
-
-				ImGui::EndMenu();
-			}
-
 			if (ImGui::BeginMenu("Help"))
 			{
 				if (ImGui::MenuItem("Gui Demo"))
@@ -163,30 +149,43 @@ update_status ModuleEditor::Update(float dt)
 				if (ImGui::MenuItem("Report a bug"))
 					App->RequestBrowser("https://github.com/d0n3val/Edu-Game-Engine/issues");
 
-				if (ImGui::MenuItem("About"))
-					about->SwitchActive();
-
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
 		}
 	}
 
-	// Draw all active panels
-	for (vector<Panel*>::iterator it = panels.begin(); it != panels.end(); ++it)
-	{
-		Panel* panel = (*it);
+    for(uint i=0; i< TabPanelCount; ++i)
+    {
+        const TabPanel& tab = tab_panels[i];
+        ImGui::SetNextWindowPos(ImVec2((float)tab.posx, (float)tab.posy), ImGuiSetCond_Always);
+        ImGui::SetNextWindowSize(ImVec2((float)tab.width, (float)tab.height), ImGuiSetCond_Always);
+        if(ImGui::Begin(tab.name, nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+        {
+            if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+            {
+                // Draw all active panels
+                for (vector<Panel*>::const_iterator it = tab.panels.begin(); it != tab.panels.end(); ++it)
+                {
+                    Panel* panel = (*it);
 
-		if (App->input->GetKey(panel->GetShortCut()) == KEY_DOWN)
-			panel->SwitchActive();
+                    if (ImGui::BeginTabItem(panel->GetName()))
+                    {
+                        if (panel->IsActive())
+                        {
+                            panel->Draw();
+                        }
 
-		if (panel->IsActive())
-		{
-			ImGui::SetNextWindowPos(ImVec2((float)panel->posx, (float)panel->posy), ImGuiSetCond_Always);
-			ImGui::SetNextWindowSize(ImVec2((float)panel->width, (float)panel->height), ImGuiSetCond_Always);
-			panel->Draw();
-		}
-	}
+                        ImGui::EndTabItem();
+                    }
+                }
+
+                ImGui::EndTabBar();
+            }
+            
+            ImGui::End();
+        }
+    }
 
 	if (file_dialog == opened)
 		LoadFile((file_dialog_filter.length() > 0) ? file_dialog_filter.c_str() : nullptr);
@@ -208,10 +207,16 @@ bool ModuleEditor::CleanUp()
 {
 	LOG("Freeing editor gui");
 					  
-	for (vector<Panel*>::iterator it = panels.begin(); it != panels.end(); ++it)
-		RELEASE(*it);
+    for(uint i=0; i< TabPanelCount; ++i)
+    {
+        for (vector<Panel*>::iterator it = tab_panels[i].panels.begin(); it != tab_panels[i].panels.end(); ++it)
+        {
+            RELEASE(*it);
+        }
+        
+        tab_panels[i].panels.clear();
+    }
 
-	panels.clear();
 
 	console = nullptr; // fix a but of log comming when we already freed the panel
 
@@ -259,31 +264,25 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 
 void ModuleEditor::DrawDebug()
 {
-	ImVec2 v;
-	v = v * 3.0f;
 }
 
 void ModuleEditor::OnResize(int width, int height)
 {
-	console->width = width - tree->width - conf->width;
-	console->posy = height - console->height;
+    // \todo: Viewport
+	tab_panels[TabPanelLeft].posx      = 2;
+	tab_panels[TabPanelLeft].posy      = 21;
+	tab_panels[TabPanelLeft].width     = 350;
+	tab_panels[TabPanelLeft].height    = height- tab_panels[TabPanelLeft].posy;
 
-	tree->height = height / 2;
-	res->posy = height / 2 + tree->posy;
-	res->height = height / 2 - tree->posy;
+	tab_panels[TabPanelBottom].posx     = tab_panels[TabPanelLeft].posx + tab_panels[TabPanelLeft].width;
+	tab_panels[TabPanelBottom].height   = 225;
+	tab_panels[TabPanelBottom].posy     = height - tab_panels[TabPanelBottom].height;
+	tab_panels[TabPanelBottom].width    = width - tab_panels[TabPanelLeft].width - tab_panels[TabPanelRight].width;
 
-    if(props->active)
-    {
-        props->posx = width - props->width;
-        props->height = conf->active ? height - props->posy - conf->default_height : height - props->posy;
-    }
-
-    if(conf->active)
-    {
-        conf->posy = props->active ? props->posy + props->height : 0;
-        conf->posx = width - conf->width;
-        conf->height = props->active ? height - props->height : height;
-    }
+    tab_panels[TabPanelRight].width  = 350;
+    tab_panels[TabPanelRight].posy   = 21;
+    tab_panels[TabPanelRight].posx   = width - tab_panels[TabPanelRight].width;
+    tab_panels[TabPanelRight].height = height - tab_panels[TabPanelRight].posy;
 }
 
 void ModuleEditor::HandleInput(SDL_Event* event)

@@ -3,10 +3,13 @@
 
 #include "Config.h"
 
-ModuleHints::ModuleHints() : Module("hints")
+ModuleHints::ModuleHints() : Module("Render Hints")
 {
     hints[unsigned(ENABLE_NORMAL_MAPPING)].type                = TYPE_BOOL; 
     hints[unsigned(ENABLE_NORMAL_MAPPING)].value.bvalue        = true;
+
+    hints[unsigned(SHOW_TANGENT_SPACE)].type                   = TYPE_BOOL; 
+    hints[unsigned(SHOW_TANGENT_SPACE)].value.bvalue           = false;
 
     hints[unsigned(ENABLE_SPECULAR_MAPPING)].type              = TYPE_BOOL; 
     hints[unsigned(ENABLE_SPECULAR_MAPPING)].value.bvalue      = true;
@@ -37,6 +40,7 @@ ModuleHints::~ModuleHints()
 void ModuleHints::Save(Config* config) const 
 {
     config->AddBool("Normal mapping", hints[unsigned(ENABLE_NORMAL_MAPPING)].value.bvalue);
+    config->AddBool("Show tangent space", hints[unsigned(SHOW_TANGENT_SPACE)].value.bvalue);
     config->AddBool("Specular mapping", hints[unsigned(ENABLE_SPECULAR_MAPPING)].value.bvalue);
     config->AddBool("Shadow mapping", hints[unsigned(ENABLE_SHADOW_MAPPING)].value.bvalue);
     config->AddBool("Show shadow clipping", hints[unsigned(SHOW_SHADOW_CLIPPING)].value.bvalue);
@@ -50,6 +54,7 @@ void ModuleHints::Save(Config* config) const
 bool ModuleHints::Init(Config* config) 
 {
     hints[unsigned(ENABLE_NORMAL_MAPPING)].value.bvalue = config->GetBool("Normal mapping", true);
+    hints[unsigned(SHOW_TANGENT_SPACE)].value.bvalue = config->GetBool("Show tangent space", false);
     hints[unsigned(ENABLE_SPECULAR_MAPPING)].value.bvalue = config->GetBool("Specular mapping", true);
     hints[unsigned(ENABLE_SHADOW_MAPPING)].value.bvalue = config->GetBool("Shadow mapping", true);
     hints[unsigned(SHOW_SHADOW_CLIPPING)].value.bvalue = config->GetBool("Show shadow clipping", false);

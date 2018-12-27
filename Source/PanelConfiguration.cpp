@@ -15,6 +15,7 @@
 #include "ModuleResources.h"
 #include "ModulePhysics3D.h"
 #include "ModuleLevelManager.h"
+#include "ModuleHints.h"
 #include "ResourceTexture.h"
 #include "PanelProperties.h"
 #include "ComponentCamera.h"
@@ -41,7 +42,7 @@ PanelConfiguration::~PanelConfiguration()
 // ---------------------------------------------------------
 void PanelConfiguration::Draw()
 {
-    ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
+    //ImGui::Begin("Configuration", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
 
 	if (ImGui::BeginMenu("Options"))
 	{
@@ -66,6 +67,9 @@ void PanelConfiguration::Draw()
 	if (InitModuleDraw(App->renderer3D))
 		DrawModuleRenderer(App->renderer3D);
 
+    if(InitModuleDraw(App->hints))
+        DrawModuleHints(App->hints);
+
 	if (InitModuleDraw(App->camera))
 		DrawModuleCamera(App->camera);
 
@@ -87,7 +91,7 @@ void PanelConfiguration::Draw()
 	if (InitModuleDraw(App->hw))
 		DrawModuleHardware(App->hw);
 
-    ImGui::End();
+    //ImGui::End();
 }
 
 bool PanelConfiguration::InitModuleDraw(Module* module)
@@ -329,6 +333,22 @@ void PanelConfiguration::DrawModuleRenderer(ModuleRenderer3D * module)
 	bool vsync = App->renderer3D->GetVSync();
 	if (ImGui::Checkbox("Vertical Sync", &vsync))
 		App->renderer3D->SetVSync(vsync);
+}
+
+
+void PanelConfiguration::DrawModuleHints(ModuleHints * module)
+{
+    bool enable = module->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING);
+    if(ImGui::Checkbox("Enable normal mapping", &enable))
+    {
+        module->SetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING, enable);
+    }
+
+    enable = module->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING);
+    if(ImGui::Checkbox("Enable specular mapping", &enable))
+    {
+        module->SetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING, enable);
+    }
 }
 
 void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)

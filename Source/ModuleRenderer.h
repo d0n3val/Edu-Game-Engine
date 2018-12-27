@@ -50,8 +50,10 @@ public:
     explicit ModuleRenderer();
     ~ModuleRenderer();
 
-	bool                Init                    (Config* config = nullptr);
+	bool                Init                    (Config* config = nullptr) override;
     void                Draw                    (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
+
+	void                DrawDebug               () override;
     
 private:
 

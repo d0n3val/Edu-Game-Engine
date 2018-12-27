@@ -57,10 +57,10 @@ PanelProperties::~PanelProperties()
 // ---------------------------------------------------------
 void PanelProperties::Draw()
 {
-    ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
-    if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+    //ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
+    //if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
     {
-        if (ImGui::BeginTabItem("Selection"))
+        //if (ImGui::BeginTabItem("Selection"))
         {
 
             switch(App->editor->selection_type )
@@ -87,11 +87,11 @@ void PanelProperties::Draw()
                     break;
             }
 
-            ImGui::EndTabItem();
+            //ImGui::EndTabItem();
         }
-        ImGui::EndTabBar();
+        //ImGui::EndTabBar();
     }
-    ImGui::End();
+    //ImGui::End();
 }
 
 // ---------------------------------------------------------
@@ -287,7 +287,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         // Text Input for the name
         char name[50];
         strcpy_s(name, 50, go->name.c_str());
-        if (ImGui::InputText("", name, 50,
+        if (ImGui::InputText("Name", name, 50,
                     ImGuiInputTextFlags_AutoSelectAll |
                     ImGuiInputTextFlags_EnterReturnsTrue))
             go->name = name;

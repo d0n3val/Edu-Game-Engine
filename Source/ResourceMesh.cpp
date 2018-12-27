@@ -416,10 +416,6 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
         src_tangents = new float3[mesh->mNumVertices];
         memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
     }
-    else
-    {
-        GenerateTangentSpace();
-    }
 
     bbox.SetNegativeInfinity();
     bbox.Enclose(src_vertices, num_vertices);
@@ -427,7 +423,7 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
 
 void ResourceMesh::GenerateTangentSpace()
 {
-    // tangent space
+	// tangent space
 
     // edif0 = udif0*t+vdif0*b;
     // edif1 = udif1*t+vdif1*b;
@@ -474,7 +470,6 @@ void ResourceMesh::GenerateTangentSpace()
 
     for(unsigned i=0; i <  num_vertices; ++i)
     {
-		src_tangents[i] = src_tangents[i];
 		src_tangents[i].Normalize();
         // \todo: orthogonalize ?
     }
@@ -789,6 +784,13 @@ void ResourceMesh::GenerateAttribInfo (par_shapes_mesh* shape)
         texcoord_offset = vertex_size*shape->npoints;
         vertex_size += sizeof(float2);
     }
+
+    if(shape->normals)
+    {
+        attribs |= ATTRIB_TANGENTS;
+        tangent_offset = vertex_size*shape->npoints;
+        vertex_size += sizeof(float3);
+    }
 }
 
 void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
@@ -808,8 +810,6 @@ void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
         memcpy(src_texcoord0, shape->tcoords, shape->npoints*sizeof(float2));
     }
 
-    GenerateTangentSpace();
-
     src_indices = new unsigned[shape->ntriangles*3];
 	for (uint i = 0; i < uint(shape->ntriangles) * 3; ++i)
 	{
@@ -818,5 +818,10 @@ void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
 
 	num_vertices = shape->npoints;
     num_indices  = shape->ntriangles*3;
+
+    if((attribs & ATTRIB_TANGENTS) != 0)
+    {
+        GenerateTangentSpace();
+    }
 }
 

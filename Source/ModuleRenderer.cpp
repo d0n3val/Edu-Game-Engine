@@ -26,6 +26,7 @@
 #include "Application.h"
 
 #include "OpenGL.h"
+#include "DebugDraw.h"
 
 #include "mmgr/mmgr.h"
 
@@ -176,18 +177,27 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     const ResourceTexture* diffuse   = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
     const ResourceTexture* occlusion = material->GetTextureRes(ResourceMaterial::TextureOcclusion);
     const ResourceTexture* emissive  = material->GetTextureRes(ResourceMaterial::TextureEmissive);
+    const ResourceTexture* normal    = material->GetTextureRes(ResourceMaterial::TextureNormal);
 
     unsigned diffuse_id   = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
-    unsigned specular_id  = specular ? specular->GetID() : App->resources->GetWhiteFallback()->GetID();
+
+    unsigned specular_id  = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? 
+                            specular->GetID() : App->resources->GetWhiteFallback()->GetID();
+
     unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
     unsigned emissive_id  = emissive ? emissive->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned normal_id    = normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) ? normal->GetID() : 0;
 
     float4 diffuse_color  = material->GetDiffuseColor();
-    float3 specular_color = specular ? float3(1.0f) : material->GetSpecularColor();
+    float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : material->GetSpecularColor();
     float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
     float shininess	      = specular ? 1.0f : material->GetShininess();
 
     glUniform1f(SHININESS_LOC, shininess);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, normal_id);
+    glUniform1i(NORMAL_MAP_LOC, 4);
 
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, emissive_id);
@@ -278,3 +288,27 @@ void ModuleRenderer::UpdateLightUniform() const
     glUniform1ui(NUM_SPOT_LIGHT_LOC, count);
 }
 
+void ModuleRenderer::DrawDebug()
+{
+    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+
+    for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
+    {
+        const ResourceMesh* mesh = it->mesh->GetResource();
+
+        if(mesh && (mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
+        {
+            for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
+            {
+                float3 position  = it->transform.TransformPos(mesh->src_vertices[i]);
+                float3 normal    = it->transform.TransformDir(mesh->src_normals[i]);
+                float3 tangent   = it->transform.TransformDir(mesh->src_tangents[i]);
+                float3 bitangent = normal.Cross(tangent);
+
+                float4x4 tbn(float4(tangent, 0.0f), float4(bitangent, 0.0f), float4(normal, 0.0f), float4(position, 1.0f));
+
+                dd::axisTriad(tbn, metric_proportion*0.1f*0.1f, metric_proportion*0.1f, 0);
+            }
+        }
+    }
+}

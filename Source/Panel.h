@@ -18,6 +18,8 @@ public:
 	SDL_Scancode GetShortCut() const;
 	virtual void Draw() = 0;
 
+    const char* GetName() const { return name.c_str(); }
+
 public:
 	bool active = true;
 	int width, height, posx, posy;

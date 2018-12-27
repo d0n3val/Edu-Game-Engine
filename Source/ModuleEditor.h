@@ -25,6 +25,16 @@ class SpotLight;
 class ModuleEditor : public Module
 {
 public:
+
+    enum TabPanelEnum
+    {
+        TabPanelLeft = 0,
+        TabPanelRight ,
+        TabPanelBottom ,
+        TabPanelCount
+    };
+
+public:
 	ModuleEditor(bool start_enabled = true);
 	~ModuleEditor();
 
@@ -54,7 +64,13 @@ public:
 	void LogFPS(float fps, float ms);
 	void SetSelected(GameObject* selected, bool focus = false);
 
+    int GetWidth(TabPanelEnum panel) const { return tab_panels[panel].width; }
+    int GetHeight(TabPanelEnum panel) const { return tab_panels[panel].height; }
+    int GetPosX(TabPanelEnum panel) const { return tab_panels[panel].posx; }
+    int GetPosY(TabPanelEnum panel) const { return tab_panels[panel].posy; }
+
 public:
+
 	PanelConsole* console = nullptr;
 	PanelGOTree* tree = nullptr;
 	PanelProperties* props = nullptr;
@@ -88,7 +104,20 @@ private:
 	void DrawDirectoryRecursive(const char* directory, const char* filter_extension) ;
 
 private:
-	std::vector<Panel *> panels;
+
+    struct TabPanel
+    {
+        int width  = 0;
+        int height = 0; 
+        int posx   = 0; 
+        int posy   = 0;
+        char* name = nullptr;
+
+        std::vector<Panel *> panels;
+    };
+
+    TabPanel tab_panels[TabPanelCount];
+
 	enum
 	{
 		closed,

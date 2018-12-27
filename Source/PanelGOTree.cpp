@@ -17,7 +17,7 @@
 using namespace std;
 
 // ---------------------------------------------------------
-PanelGOTree::PanelGOTree() : Panel("Game Objects Hierarchy")
+PanelGOTree::PanelGOTree() : Panel("Game Objects")
 {
 	width = 325;
 	height = 500;
@@ -33,11 +33,11 @@ PanelGOTree::~PanelGOTree()
 void PanelGOTree::Draw()
 {
 	node = 0;
-	ImGui::SetNextWindowContentWidth((float) (width*2));
-    ImGui::Begin("GameObjects Hierarchy", &active, 
-		ImGuiWindowFlags_NoResize | 
-		ImGuiWindowFlags_NoFocusOnAppearing |
-		ImGuiWindowFlags_HorizontalScrollbar );
+	//ImGui::SetNextWindowContentWidth((float) (width*2));
+    //ImGui::Begin("GameObjects Hierarchy", &active, 
+		//ImGuiWindowFlags_NoResize | 
+		//ImGuiWindowFlags_NoFocusOnAppearing |
+		//ImGuiWindowFlags_HorizontalScrollbar );
 
 	// Menu ---
 	static bool waiting_to_load_file = false;
@@ -124,7 +124,7 @@ void PanelGOTree::Draw()
 	if (drag && ImGui::IsMouseReleased(0))
 		drag = nullptr;
 
-    ImGui::End();
+    //ImGui::End();
 }
 
 // ---------------------------------------------------------

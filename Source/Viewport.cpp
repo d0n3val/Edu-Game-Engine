@@ -63,9 +63,13 @@ Viewport::~Viewport()
 
 void Viewport::Draw(ComponentCamera* camera)
 {
+    int posx   = App->editor->GetPosX(ModuleEditor::TabPanelLeft)+App->editor->GetWidth(ModuleEditor::TabPanelLeft);
+    int posy   = 21;
+    int width  = App->editor->GetPosX(ModuleEditor::TabPanelRight)-posx;
+    int height = App->editor->GetPosY(ModuleEditor::TabPanelBottom)-21;
 
-    ImGui::SetNextWindowPos(ImVec2(327.0f, 22.0f), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(884.0f, 574.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(float(posx), float(posy)));
+    ImGui::SetNextWindowSize(ImVec2(float(width), float(height)));
 
 	if (ImGui::Begin("Viewport", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing))
 	{

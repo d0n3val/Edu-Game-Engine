@@ -29,7 +29,7 @@ PanelResources::~PanelResources()
 // ---------------------------------------------------------
 void PanelResources::Draw()
 {
-    ImGui::Begin("Resources", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
+    //ImGui::Begin("Resources", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
 
 	static bool waiting_to_load_file = false;
 
@@ -76,7 +76,7 @@ void PanelResources::Draw()
     DrawResourceType(Resource::audio);
     DrawResourceType(Resource::animation);
 
-    ImGui::End();
+    //ImGui::End();
 }
 
 

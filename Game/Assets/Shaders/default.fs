@@ -17,6 +17,8 @@ struct Material
     sampler2D emissive_map;
     vec3      emissive_color;
 
+    sampler2D normal_map;
+
     float     k_ambient;
     float     k_diffuse;
     float     k_specular;
@@ -75,6 +77,7 @@ in VertexOut
     vec2 uv0;
     vec3 normal;
     vec3 position;
+    mat3 tbn;
 
 } f_in;
 
@@ -198,5 +201,7 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
 
 void main()
 {
-    color = blinn(f_in.position, normalize(f_in.normal), f_in.uv0, view_pos, lights, material);
+    vec3 normal = normalize(texture(material.normal_map, f_in.uv0).xyz*2.0-1.0);
+    normal      = f_in.tbn*normalize(normal);
+    color = blinn(f_in.position, normal, f_in.uv0, view_pos, lights, material);
 }

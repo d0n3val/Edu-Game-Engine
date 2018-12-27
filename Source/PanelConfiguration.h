@@ -22,6 +22,7 @@ class ModuleMeshes;
 class ModuleHardware;
 class ModuleEditor;
 class ModuleEditorCamera;
+class ModuleHints;
 class QuadtreeNode;
 
 class PanelConfiguration : public Panel
@@ -49,6 +50,7 @@ public:
 	void DrawModuleCamera(ModuleEditorCamera * module);
 	void DrawModulePhysics(ModulePhysics3D * module);
 	void DrawModuleLevel(ModuleLevelManager * module);
+	void DrawModuleHints(ModuleHints * module);
 	void AddInput(const char* entry);
 	void AddFPS(float fps, float ms);
 	void RecursiveDrawQuadtree(QuadtreeNode* node);
