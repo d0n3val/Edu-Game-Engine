@@ -62,29 +62,27 @@ struct Lights
     uint         num_spot;
 };
 
-
-struct VertexOut
-{
-    vec2 uv0;
-    vec3 normal;
-    vec3 position;
-    mat3 tbn;
-};
-
-subroutine vec3 GetNormal(const VertexOut vertex, const Material mat);
+subroutine vec3 GetNormal(const VertexOut out, const Material mat);
 
 //////////////////// UNIFORMS ////////////////////////
 
 layout(location=0) uniform Material material;
 layout(location=20) uniform Lights lights;
-layout(location=100) uniform vec3 view_pos;
-
-layout(location=0) subroutine uniform GetNormal get_normal;
+uniform vec3 view_pos;
+subroutine uniform GetNormal get_normal;
 
 
 //////////////////// INPUTS ////////////////////////
 
-in VertexOut fragment;
+in VertexOut
+{
+
+    vec2 uv0;
+    vec3 normal;
+    vec3 position;
+    mat3 tbn;
+
+} f_in;
 
 //////////////////// OUTPUT ////////////////////////
 
@@ -205,17 +203,17 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
 }
 
 
-layout(index=0) subroutine(GetNormal) vec3 get_normal_from_interpolator(const VertexOut vertex, const Material mat)
+subroutine(GetNormal) vec3 get_normal_from_interpolator(const VertexOut vertex, const Material mat)
 {
     return normalize(vertex.normal);
 }
 
-layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexOut vertex, const Material mat)
+subroutine(GetNormal) vec3 get_normal_from_texture(const VertexOut vertex, const Material mat)
 {
     return vertex.tbn*normalize(texture(mat.normal_map, vertex.uv0).xyz*2.0-1.0);
 }
 
 void main()
 {
-    color = blinn(fragment.position, get_normal(fragment, material), fragment.uv0, view_pos, lights, material);
+    color = blinn(f_in.position, get_normal(f_in, material), f_in.uv0, view_pos, lights, material);
 }

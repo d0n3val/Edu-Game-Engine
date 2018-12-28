@@ -78,4 +78,16 @@ enum DefaultShaderLocations
     NUM_SPOT_LIGHT_LOC
 };
 
+enum DefaultSubroutineLocations
+{
+    GET_NORMAL_LOCATION = 0,
+    NUM_SUBROUTINE_UNIFORMS
+};
+
+enum DefaultGetNormalIndices
+{
+    GET_NORMAL_FROM_VERTEX = 0,
+    GET_NORMAL_FROM_TEXTURE
+};
+
 #endif /* __DEFAULT_LOCATIONS_H__ */

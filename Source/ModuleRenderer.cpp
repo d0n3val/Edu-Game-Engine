@@ -222,6 +222,19 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     glUniform1f(AMBIENT_CONSTANT_LOC, material->GetKAmbient());
     glUniform1f(DIFFUSE_CONSTANT_LOC, material->GetKDiffuse());
     glUniform1f(SPECULAR_CONSTANT_LOC, material->GetKSpecular());
+
+    unsigned indices[NUM_SUBROUTINE_UNIFORMS];
+
+    if(normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING))
+    {
+        indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_TEXTURE;
+    }
+    else
+    {
+        indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_VERTEX;
+    }
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
