@@ -69,15 +69,21 @@ void ResourceTexture::EnableMips(bool enable)
             {
                 glBindTexture(GL_TEXTURE_2D, gpu_id);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1000);
                 glGenerateMipmap(GL_TEXTURE_2D);
             }
             else
             {
                 glBindTexture(GL_TEXTURE_2D, gpu_id);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+
             }
         }
 
-        glBindTexture(GL_TEXTURE_2D, gpu_id);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
 }

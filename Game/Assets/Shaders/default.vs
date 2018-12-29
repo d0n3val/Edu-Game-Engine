@@ -11,27 +11,18 @@ struct VertexOut
 {
     vec2 uv0;
     vec3 normal;
+    vec3 tangent;
     vec3 position;
-    mat3 tbn;
 };
 
 out VertexOut fragment;
-
-mat3 create_tbn(const vec3 normal, const vec3 tangent)
-{
-    vec3 ortho_tangent = normalize(tangent-dot(tangent, normal)*normal); // skinning forces this
-    vec3 bitangent     = cross(normal, ortho_tangent);
-    mat3 tbn           = mat3(tangent, bitangent, normal);
-
-    return tbn;
-}
 
 void transform_output()
 {
     fragment.position = (model*vec4(vertex_position, 1.0)).xyz;
     fragment.normal   = (model*vec4(vertex_normal, 0.0)).xyz;
+    fragment.tangent  = (model*vec4(vertex_tangent, 0.0)).xyz;
     fragment.uv0      = vertex_uv0;
-    fragment.tbn      = create_tbn(fragment.normal, (model*vec4(vertex_tangent, 0)).xyz);
 }
 
 void main()

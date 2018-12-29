@@ -412,9 +412,10 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
 
     if(mesh->HasTangentsAndBitangents())
     {
-        // uncomment iif copy form assimp
-        src_tangents = new float3[mesh->mNumVertices];
-        memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
+        // uncomment iif copy from assimp
+        //src_tangents = new float3[mesh->mNumVertices];
+        //memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
+        GenerateTangentSpace();
     }
 
     bbox.SetNegativeInfinity();

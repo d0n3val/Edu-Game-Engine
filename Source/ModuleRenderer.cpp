@@ -311,7 +311,7 @@ void ModuleRenderer::DrawDebug()
 
         if(mesh && (mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
         {
-            for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
+            for(unsigned i = 0, count = mesh->num_vertices; i < count; i+=10)
             {
                 float3 position  = it->transform.TransformPos(mesh->src_vertices[i]);
                 float3 normal    = it->transform.TransformDir(mesh->src_normals[i]);

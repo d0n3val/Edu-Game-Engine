@@ -67,8 +67,8 @@ struct VertexOut
 {
     vec2 uv0;
     vec3 normal;
+    vec3 tangent;
     vec3 position;
-    mat3 tbn;
 };
 
 subroutine vec3 GetNormal(const VertexOut vertex, const Material mat);
@@ -204,6 +204,13 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     return vec4(color, diffuse_color.a); 
 }
 
+mat3 create_tbn(const vec3 normal, const vec3 tangent)
+{
+    vec3 ortho_tangent = normalize(tangent-dot(tangent, normal)*normal); // skinning forces this
+    vec3 bitangent     = cross(normal, ortho_tangent);
+
+    return mat3(tangent, bitangent, normal);
+}
 
 layout(index=0) subroutine(GetNormal) vec3 get_normal_from_interpolator(const VertexOut vertex, const Material mat)
 {
@@ -212,10 +219,12 @@ layout(index=0) subroutine(GetNormal) vec3 get_normal_from_interpolator(const Ve
 
 layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexOut vertex, const Material mat)
 {
-    return vertex.tbn*normalize(texture(mat.normal_map, vertex.uv0).xyz*2.0-1.0);
+    mat3 tbn = create_tbn(normalize(vertex.normal), normalize(vertex.tangent));
+    return tbn*normalize(texture(mat.normal_map, vertex.uv0).xyz*2.0-1.0);
 }
 
 void main()
 {
     color = blinn(fragment.position, get_normal(fragment, material), fragment.uv0, view_pos, lights, material);
+    //color = vec4(get_normal(fragment, material), 1.0);
 }

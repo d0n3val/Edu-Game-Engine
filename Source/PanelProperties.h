@@ -37,6 +37,8 @@ public:
 	void Draw() override;
 
 	UID PickResource(UID resource, int type = -1);
+	UID PickResourceModal(int type);
+    UID OpenResourceModal(int type, const char* popup_name);
 	const GameObject* PickGameObject(const GameObject* current) const;
 	void RecursiveDrawTree(const GameObject* go, const GameObject** selected) const;
 	bool InitComponentDraw(Component* component, const char * name);

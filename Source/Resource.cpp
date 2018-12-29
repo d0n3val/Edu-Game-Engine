@@ -15,13 +15,19 @@ Resource::Type Resource::GetType() const
 // ---------------------------------------------------------
 const char * Resource::GetTypeStr() const
 {
+    return GetTypeStr(type);
+}
+
+// ---------------------------------------------------------
+const char* Resource::GetTypeStr(Type type) 
+{
 	static_assert(Resource::Type::unknown == 6, "String list needs update");
 
-	static const char* types[] = {
-		"Model", "Material", "Texture", "Mesh", "Audio", "Animation", "Unknown" };
+	static const char* types[] = { "Model", "Material", "Texture", "Mesh", "Audio", "Animation", "Unknown" };
 
 	return types[type];
 }
+
 // ---------------------------------------------------------
 UID Resource::GetUID() const
 {

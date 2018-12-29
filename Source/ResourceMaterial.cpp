@@ -57,10 +57,14 @@ bool ResourceMaterial::LoadInMemory()
 
         for(uint i=0; i< TextureCount; ++i)
         {
-            if(textures[i] != 0)
-            {
-                App->resources->Get(textures[i])->LoadToMemory();
-            }
+			if (textures[i] != 0)
+			{
+				Resource* tex_res = App->resources->Get(textures[i]);
+				if (tex_res)
+				{
+					tex_res->LoadToMemory();
+				}
+			}
         }
 
 		delete[] buffer;
@@ -237,7 +241,12 @@ void ResourceMaterial::SetTexture(Texture texture, UID uid)
 {
     if(textures[texture] != 0)
     {
-        App->resources->Get(textures[texture])->Release();
+		Resource* tex_res = App->resources->Get(textures[texture]);
+		if (tex_res)
+		{
+			tex_res->Release();
+		}
+
         textures[texture] = 0;
     }
 

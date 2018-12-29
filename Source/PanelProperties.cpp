@@ -396,6 +396,51 @@ UID PanelProperties::PickResource(UID resource, int type)
 	return ret;
 }
 
+UID PanelProperties::PickResourceModal(int type)
+{
+    char tmp[128];
+    sprintf_s(tmp, 127, "Select %s", Resource::GetTypeStr(Resource::Type(type)));
+
+    if (ImGui::Button(tmp))
+    {
+        ImGui::OpenPopup("Select");
+    }
+
+    return OpenResourceModal(type, "Select");
+}
+
+UID PanelProperties::OpenResourceModal(int type, const char* popup_name)
+{
+	UID new_res = 0;
+
+    ImGui::SetNextWindowSize(ImVec2(420,300));
+    if (ImGui::BeginPopupModal(popup_name, nullptr, ImGuiWindowFlags_NoResize))
+    {
+        if(ImGui::BeginChild("Canvas", ImVec2(400, 240), true, ImGuiWindowFlags_NoMove))
+        {
+            UID r = 0;
+            r = App->editor->res->DrawResourceType(Resource::Type(type), true);
+
+            if(r != 0)
+            {
+                ImGui::CloseCurrentPopup();
+                new_res = r;
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Indent(272);
+        if(ImGui::Button("Close", ImVec2(128, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+
+    return new_res;
+}
+
 const GameObject* PanelProperties::PickGameObject(const GameObject* current) const
 {
 	const GameObject* ret = nullptr;
@@ -481,6 +526,29 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
         }
 
         ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)", res->num_indices / 3, res->num_indices, res->num_vertices); 
+
+        char attributes[256];
+        strcpy_s(attributes, "\nAttributes: \n\n\tPositions");
+        if((res->attribs & ResourceMesh::ATTRIB_TEX_COORDS_0) != 0)
+        {
+            strcat_s(attributes, "\n\tTexCoords0");
+        }
+        if((res->attribs & ResourceMesh::ATTRIB_NORMALS) != 0)
+        {
+            strcat_s(attributes, "\n\tNormals");
+        }
+        if((res->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0)
+        {
+            strcat_s(attributes, "\n\tTangents");
+        }
+        if((res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
+        {
+            strcat_s(attributes, "\n\tBones");
+        }
+        strcat_s(attributes, "\n\n");
+
+        ImGui::TextColored(ImVec4(1,1,0,1), attributes);
+
         bool visible = component->GetVisible();
         if(ImGui::Checkbox("Visible", &visible))
         {
@@ -488,35 +556,7 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
         }
     }
 
-    if (ImGui::Button("Attach mesh"))
-    {
-        ImGui::OpenPopup("Select");
-    }
-
-    ImGui::SetNextWindowSize(ImVec2(420,300));
-    if (ImGui::BeginPopupModal("Select", nullptr, ImGuiWindowFlags_NoResize))
-    {
-        if(ImGui::BeginChild("MeshCanvas", ImVec2(400, 240), true, ImGuiWindowFlags_NoMove))
-        {
-            UID r = 0;
-            r = App->editor->res->DrawResourceType(Resource::Type::mesh, true);
-
-            if(r != 0)
-            {
-                ImGui::CloseCurrentPopup();
-                new_res = r;
-            }
-        }
-        ImGui::EndChild();
-
-        ImGui::Indent(272);
-        if(ImGui::Button("Close", ImVec2(128, 0)))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
-    }
+    new_res = PickResourceModal(Resource::mesh);
 
     if (new_res > 0)
     {
@@ -625,16 +665,14 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 	}
 }
 
-void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
+void PanelProperties::DrawMaterialComponent(ComponentMaterial* component)
 {
     ResourceMaterial* mat_res = component->GetResource();
 
-    ImGui::PushID("Material_resource");
-	UID new_res = PickResource(mat_res != nullptr ? mat_res->GetUID() : 0, Resource::material);
-    ImGui::PopID();
+    UID new_res = PickResourceModal(Resource::material);
 
     ImGui::SameLine();
-    if(ImGui::Button("New Resource"))
+    if(ImGui::Button("New material"))
     {
         ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material, 0));
 
@@ -645,7 +683,6 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial * component)
             new_res = material->GetUID();
         }
     }
-
 
     ImGui::Separator();
 
@@ -828,31 +865,12 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
     }
     ImGui::EndGroup();
 
-    ImGui::SetNextWindowSize(ImVec2(420,300));
-    if (ImGui::BeginPopupModal(name, nullptr, ImGuiWindowFlags_NoResize))
+    UID new_res = OpenResourceModal(Resource::texture, name);
+
+    if(new_res != 0)
     {
-        if(ImGui::BeginChild("TextureCanvas", ImVec2(400, 240), true, ImGuiWindowFlags_NoMove))
-        {
-            UID r = 0;
-            r = App->editor->res->DrawResourceType(Resource::texture, true);
-
-            if (r != 0)
-            {
-                material->SetTexture(ResourceMaterial::Texture(texture), r);
-                ImGui::CloseCurrentPopup();
-
-                modified = true;
-            }
-        }
-        ImGui::EndChild();
-
-        ImGui::Indent(272);
-        if(ImGui::Button("Close", ImVec2(128, 0)))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
+        material->SetTexture(ResourceMaterial::Texture(texture), new_res);
+        modified = true;
     }
 
     return modified;
