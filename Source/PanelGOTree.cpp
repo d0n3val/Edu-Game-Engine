@@ -78,10 +78,12 @@ void PanelGOTree::Draw()
 				for (vector<const Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
 				{
 					const Resource* model = (*it);
-					if (ImGui::MenuItem(model->GetExportedFile()))
+                    ImGui::PushID(model->GetExportedFile());
+					if (ImGui::MenuItem(model->GetName()))
 					{
                         App->level->AddModel(model->GetUID());
 					}
+                    ImGui::PopID();
 				}
 
 				ImGui::EndMenu();

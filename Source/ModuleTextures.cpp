@@ -197,6 +197,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 
 bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
 {
+	resource->user_name = "*Checkers Texture Preset*";
 	resource->file = "*Checkers Texture Preset*";
 	resource->exported_file = "*Checkers Texture Preset*";
 

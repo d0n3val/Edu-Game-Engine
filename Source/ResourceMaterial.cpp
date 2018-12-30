@@ -229,6 +229,19 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
     {
         LOG("Imported successful from aiMaterial [%s] to [%s]", m->GetFile(), m->GetExportedFile());
 
+        App->fs->SplitFilePath(m->file.c_str(), nullptr, &m->user_name, nullptr);
+
+        if (m->user_name.empty())
+        {
+            m->user_name = m->exported_file;
+        }
+
+        size_t pos_dot = m->user_name.find_last_of(".");
+        if(pos_dot != std::string::npos)
+        {
+            m->user_name.erase(m->user_name.begin()+pos_dot, m->user_name.end());
+        }
+
         return m->uid;
     }
 

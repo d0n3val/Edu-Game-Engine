@@ -321,9 +321,28 @@ bool ResourceMesh::Save(const char* source, std::string& output)
 			App->fs->NormalizePath(file);
 		}
 
-		std::string file;
-		App->fs->SplitFilePath(output.c_str(), nullptr, &file);
-		exported_file = file;
+		std::string file_name;
+		App->fs->SplitFilePath(output.c_str(), nullptr, &file_name);
+		exported_file = file_name;
+
+        App->fs->SplitFilePath(file.c_str(), nullptr, &user_name, nullptr);
+
+        if (user_name.empty())
+        {
+            user_name = exported_file;
+        }
+
+        size_t pos_dot = user_name.find_last_of(".");
+        if(pos_dot != std::string::npos)
+        {
+            user_name.erase(user_name.begin()+pos_dot, user_name.end());
+        }
+
+        if(name)
+        {
+            user_name += "_";
+            user_name += name.C_str();
+        }
     }
 
     return save_ok;

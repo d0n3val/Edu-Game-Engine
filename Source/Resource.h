@@ -31,6 +31,7 @@ public:
 	UID                 GetUID() const;
 	const char*         GetFile() const;
 	const char*         GetExportedFile() const;
+    const char*         GetName() const { return user_name.c_str(); }
 
 	bool                IsLoadedToMemory() const;
 	bool                LoadToMemory();
@@ -53,6 +54,7 @@ protected:
 	UID uid = 0;
 	std::string file;
 	std::string exported_file;
+    std::string user_name;
 
 	Type type = unknown;
 	uint loaded = 0;

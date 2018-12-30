@@ -11,6 +11,8 @@
 
 #include "mmgr/mmgr.h"
 
+
+
 class DDRenderInterfaceCoreGL final
     : public dd::RenderInterface
 {

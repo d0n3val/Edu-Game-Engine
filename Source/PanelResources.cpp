@@ -114,7 +114,8 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
         {
             const Resource* info = (*it);
 
-            if (ImGui::TreeNodeEx(info->GetExportedFile(), ImGuiTreeNodeFlags_Leaf))
+            ImGui::PushID(info->GetExportedFile());
+            if (ImGui::TreeNodeEx(info->GetName(), ImGuiTreeNodeFlags_Leaf))
             {
                 ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_WHITE);
                 if (ImGui::IsItemClicked(0))
@@ -143,6 +144,7 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
                 ImGui::PopStyleColor();
                 ImGui::TreePop();
             }
+            ImGui::PopID();
         }
 
         ImGui::TreePop();

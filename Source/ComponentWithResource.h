@@ -1,11 +1,13 @@
 #ifndef __COMPONENT_WITH_RESOURCE_H__
 #define __COMPONENT_WITH_RESOURCE_H__
 
+
 // Interface for components that handle resources
 #include "Globals.h"
 
 class Config;
 class Resource;
+
 
 class ComponentWithResource
 {
