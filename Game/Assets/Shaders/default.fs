@@ -102,7 +102,7 @@ vec4 get_specular_color(const Material mat, const vec2 uv)
 {
     vec4 color = texture(mat.specular_map, uv);
     return vec4(color.rgb*mat.specular_color, exp2(7*color.a*mat.shininess+1));
-    //return vec4(color.rgb*mat.specular_color, max(20*color.a*mat.shininess, 8.0f));
+    //return vec4(color.rgb*mat.specular_color, max(64*color.a*mat.shininess, 8.0));
 }
 
 vec3 get_occlusion_color(const Material mat, const vec2 uv)
