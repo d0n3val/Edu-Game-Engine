@@ -80,8 +80,8 @@ void ModuleEditorCamera::Load(Config * config)
 // -----------------------------------------------------------------
 void ModuleEditorCamera::DrawDebug()
 {
-	dd::line(picking.a, picking.b, dd::colors::Blue);
-	dd::point(last_hit, dd::colors::Red);
+	//dd::line(picking.a, picking.b, dd::colors::Blue);
+	//dd::point(last_hit, dd::colors::Red);
 }
 
 // -----------------------------------------------------------------

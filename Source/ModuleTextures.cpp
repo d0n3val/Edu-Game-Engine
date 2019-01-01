@@ -180,7 +180,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 
             ilDeleteImages(1, &ImageName);
 
-            ret = true;
+             ret = true;
         }
 	}
 	else

@@ -1,5 +1,6 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 4
+#define PI 3.141597
 
 //////////////////// STRUCTS ////////////////////////
 
@@ -100,7 +101,8 @@ vec4 get_diffuse_color(const Material mat, const vec2 uv)
 vec4 get_specular_color(const Material mat, const vec2 uv)
 {
     vec4 color = texture(mat.specular_map, uv);
-    return vec4(color.rgb*mat.specular_color, max(color.a*mat.shininess*128.0f, 8.0f));
+    return vec4(color.rgb*mat.specular_color, exp2(7*color.a*mat.shininess+1));
+    //return vec4(color.rgb*mat.specular_color, max(20*color.a*mat.shininess, 8.0f));
 }
 
 vec3 get_occlusion_color(const Material mat, const vec2 uv)
@@ -130,9 +132,15 @@ float specular_blinn(vec3 light_dir, const vec3 pos, const vec3 normal, const ve
 vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const DirLight light, const Material mat, 
                        const vec3 diffuse_color, const vec3 specular_color, float shininess)
 {
-    float diffuse  = lambert(lights.directional.dir, normal);
+    float lambert  = lambert(lights.directional.dir, normal);
     float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, shininess);
-    return lights.directional.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
+
+    float norm_factor = (shininess+4.0)/(8.0);
+    vec3 new_specular = (1-diffuse_color)*specular_color*norm_factor;
+    vec3 new_diffuse  = diffuse_color;
+
+    //return lights.directional.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
+    return lights.directional.color*((new_diffuse*lambert+new_specular*specular)*lambert);
 }
 
 float get_attenuation(const vec3 constants, float distance)
@@ -149,10 +157,15 @@ vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const P
 
     float att      = get_attenuation(light.attenuation, distance);
 
-    float diffuse  = lambert(light_dir, normal);
+    float lambert  = lambert(light_dir, normal);
     float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
-    return att*light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
+    float norm_factor = (shininess+4.0)/(8.0);
+    vec3 new_specular = (1-diffuse_color)*specular_color*norm_factor;
+    vec3 new_diffuse  = diffuse_color;
+
+    //return att*light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
+    return light.color*(att*(new_diffuse*lambert+new_specular*specular)*lambert);
 }
 
 float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
@@ -173,10 +186,15 @@ vec3 spot_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const Sp
     float cone     = get_cone(light_dir, light.direction, light.inner, light.outer);
     float att      = get_attenuation(light.attenuation, distance);
 
-    float diffuse  = lambert(light_dir, normal);
+    float lambert  = lambert(light_dir, normal);
     float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
-    return (att*cone)*light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
+    float norm_factor = (shininess+4.0)/(8.0);
+    vec3 new_specular = (1-diffuse_color)*specular_color*norm_factor;
+    vec3 new_diffuse  = diffuse_color;
+
+    //return (att*cone)*light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
+    return light.color*((att*cone)*(new_diffuse*lambert+new_specular*specular)*lambert);
 }
 
 vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
@@ -226,5 +244,6 @@ layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexO
 void main()
 {
     color = blinn(fragment.position, get_normal(fragment, material), fragment.uv0, view_pos, lights, material);
-    //color = vec4(get_normal(fragment, material), 1.0);
+    //color = texture(material.normal_map, fragment.uv0); //vec4(get_normal(fragment, material), 1.0);
+    //color = vec4(vec3(texture(material.specular_map, fragment.uv0).a), 1.0); //vec4(get_normal(fragment, material), 1.0);
 }

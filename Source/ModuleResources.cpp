@@ -288,6 +288,20 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
 		res->exported_file = file.c_str();
 		ret = res->uid;
 		LOG("Imported successful from [%s] to [%s]", res->GetFile(), res->GetExportedFile());
+
+        App->fs->SplitFilePath(res->file.c_str(), nullptr, &res->user_name, nullptr);
+
+        if (res->user_name.empty())
+        {
+            res->user_name = res->exported_file;
+        }
+
+        size_t pos_dot = res->user_name.find_last_of(".");
+        if(pos_dot != std::string::npos)
+        {
+            res->user_name.erase(res->user_name.begin()+pos_dot, res->user_name.end());
+        }
+
 	}
 	else
 		LOG("Importing of [%s] FAILED", new_file_in_assets);
