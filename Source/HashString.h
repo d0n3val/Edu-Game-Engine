@@ -26,6 +26,7 @@ public:
     bool operator!=(const HashString& rhs) const;
 
     const char* C_str() const;
+    int Length() const;
 private:
 
     strpool_t* GetPool() const;

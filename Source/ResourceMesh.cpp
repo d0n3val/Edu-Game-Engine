@@ -338,7 +338,7 @@ bool ResourceMesh::Save(const char* source, std::string& output)
             user_name.erase(user_name.begin()+pos_dot, user_name.end());
         }
 
-        if(name)
+        if(name && name.Length() > 0)
         {
             user_name += "_";
             user_name += name.C_str();
@@ -432,9 +432,9 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
     if(mesh->HasTangentsAndBitangents())
     {
         // uncomment iif copy from assimp
-        //src_tangents = new float3[mesh->mNumVertices];
-        //memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
-        GenerateTangentSpace();
+        src_tangents = new float3[mesh->mNumVertices];
+        memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
+        //GenerateTangentSpace();
     }
 
     bbox.SetNegativeInfinity();

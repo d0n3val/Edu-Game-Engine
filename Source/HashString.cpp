@@ -75,6 +75,11 @@ const char* HashString::C_str() const
     return strpool_cstr(GetPool(), handle);
 }
 
+int HashString::Length() const
+{
+    return strpool_length(GetPool(), handle);
+}
+
 strpool_t* HashString::GetPool() const
 {
     static PoolHolder holder;

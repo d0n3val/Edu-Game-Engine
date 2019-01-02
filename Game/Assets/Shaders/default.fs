@@ -101,8 +101,7 @@ vec4 get_diffuse_color(const Material mat, const vec2 uv)
 vec4 get_specular_color(const Material mat, const vec2 uv)
 {
     vec4 color = texture(mat.specular_map, uv);
-    return vec4(color.rgb*mat.specular_color, exp2(7*color.a*mat.shininess+1));
-    //return vec4(color.rgb*mat.specular_color, max(64*color.a*mat.shininess, 8.0));
+    return vec4(color.rgb*mat.specular_color, exp2(6*color.a*mat.shininess+1));
 }
 
 vec3 get_occlusion_color(const Material mat, const vec2 uv)
@@ -136,11 +135,10 @@ vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, c
     float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, shininess);
 
     float norm_factor = (shininess+4.0)/(8.0);
-    vec3 new_specular = (1-diffuse_color)*specular_color*norm_factor;
+    vec3 new_specular = (1.0-diffuse_color)*specular_color*norm_factor;
     vec3 new_diffuse  = diffuse_color;
 
-    //return lights.directional.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
-    return lights.directional.color*((new_diffuse*lambert+new_specular*specular)*lambert);
+    return lights.directional.color*((new_diffuse*lambert+new_specular*specular));
 }
 
 float get_attenuation(const vec3 constants, float distance)
@@ -161,11 +159,10 @@ vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const P
     float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
     float norm_factor = (shininess+4.0)/(8.0);
-    vec3 new_specular = (1-diffuse_color)*specular_color*norm_factor;
+    vec3 new_specular = (1.0-diffuse_color)*specular_color*norm_factor;
     vec3 new_diffuse  = diffuse_color;
 
-    //return att*light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
-    return light.color*(att*(new_diffuse*lambert+new_specular*specular)*lambert);
+    return light.color*(att*(new_diffuse*lambert+new_specular*specular));
 }
 
 float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
@@ -190,11 +187,10 @@ vec3 spot_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const Sp
     float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
     float norm_factor = (shininess+4.0)/(8.0);
-    vec3 new_specular = (1-diffuse_color)*specular_color*norm_factor;
+    vec3 new_specular = (1.0-diffuse_color)*specular_color*norm_factor;
     vec3 new_diffuse  = diffuse_color;
 
-    //return (att*cone)*light.color*(diffuse_color*(diffuse*material.k_diffuse)+specular_color*(specular*material.k_specular));
-    return light.color*((att*cone)*(new_diffuse*lambert+new_specular*specular)*lambert);
+    return light.color*((att*cone)*(new_diffuse*lambert+new_specular*specular));
 }
 
 vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
