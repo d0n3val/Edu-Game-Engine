@@ -101,7 +101,7 @@ vec4 get_diffuse_color(const Material mat, const vec2 uv)
 vec4 get_specular_color(const Material mat, const vec2 uv)
 {
     vec4 color = texture(mat.specular_map, uv);
-    return vec4(color.rgb*mat.specular_color, exp2(6*color.a*mat.shininess+1));
+    return vec4(color.rgb*mat.specular_color, color.a*mat.shininess);
 }
 
 vec3 get_occlusion_color(const Material mat, const vec2 uv)
@@ -132,11 +132,18 @@ vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, c
                        const vec3 diffuse_color, const vec3 specular_color, float shininess)
 {
     float lambert  = lambert(lights.directional.dir, normal);
-    float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, shininess);
+	float specularPower = exp2(7*shininess+1);
+    float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, specularPower);
+	
+	vec3 view_dir    = normalize(view_pos-pos);
+    vec3 half_dir    = normalize(view_dir-lights.directional.dir);
+    float sp         = max(dot(view_dir, half_dir), 0.0);
 
-    float norm_factor = (shininess+4.0)/(8.0);
-    vec3 new_specular = (1.0-diffuse_color)*specular_color*norm_factor;
-    vec3 new_diffuse  = diffuse_color;
+
+    float norm_factor = (specularPower+4.0)/(8.0);
+    vec3 fresnel      = vec3(shininess+(1-shininess)*pow(1-sp, 5.0))*specular_color;
+    vec3 new_specular = fresnel*norm_factor;
+    vec3 new_diffuse  = (1-fresnel)*diffuse_color;
 
     return lights.directional.color*((new_diffuse*lambert+new_specular*specular));
 }
