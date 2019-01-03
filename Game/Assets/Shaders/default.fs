@@ -96,8 +96,8 @@ out vec4 color;
 vec4 get_diffuse_color(const Material mat, const vec2 uv)
 {
 	vec4 diffuse = texture(mat.diffuse_map, uv)*mat.diffuse_color;
-	float gamma = 2.2;
-    diffuse.rgb = pow(diffuse.rgb, vec3(gamma));
+	float gamma  = 2.2;
+    diffuse.rgb  = pow(diffuse.rgb, vec3(gamma));
 
 	return diffuse;
 }
@@ -168,7 +168,7 @@ vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const P
     float lambert  = lambert(light_dir, normal);
     float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
-    float norm_factor = (shininess+4.0)/(8.0);
+    float norm_factor = (shininess+4.0)/(8.0*PI);
     vec3 new_specular = (1.0-diffuse_color)*specular_color*norm_factor;
     vec3 new_diffuse  = diffuse_color;
 
@@ -196,7 +196,7 @@ vec3 spot_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const Sp
     float lambert  = lambert(light_dir, normal);
     float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
-    float norm_factor = (shininess+4.0)/(8.0);
+    float norm_factor = (shininess+4.0)/(8.0*PI);
     vec3 new_specular = (1.0-diffuse_color)*specular_color*norm_factor;
     vec3 new_diffuse  = diffuse_color;
 
@@ -249,7 +249,7 @@ layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexO
 
 void main()
 {
-    color = blinn(fragment.position, get_normal(fragment, material), fragment.uv0, view_pos, lights, material);
+    color	  = blinn(fragment.position, get_normal(fragment, material), fragment.uv0, view_pos, lights, material);
 	color.rgb = pow(color.rgb, vec3(1.0/2.2));
     //color = texture(material.normal_map, fragment.uv0); //vec4(get_normal(fragment, material), 1.0);
     //color = vec4(vec3(texture(material.specular_map, fragment.uv0).a), 1.0); //vec4(get_normal(fragment, material), 1.0);
