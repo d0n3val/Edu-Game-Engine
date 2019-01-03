@@ -84,13 +84,13 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file)
 		    ILuint   size;
 		    ILubyte *data; 
 			// To pick a specific DXT compression use 
-			ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
-		    size = ilSaveL(IL_DDS, NULL, 0 ); // Get the size of the data buffer
+			//ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
+		    size = ilSaveL(IL_TGA, NULL, 0 ); // Get the size of the data buffer
 			if(size > 0) 
 			{
 				data = new ILubyte[size]; // allocate data buffer
-				if (ilSaveL(IL_DDS, data, size) > 0) // Save with the ilSaveIL function
-					ret = App->fs->SaveUnique(output_file, data, size, LIBRARY_TEXTURES_FOLDER, "texture", "dds");
+				if (ilSaveL(IL_TGA, data, size) > 0) // Save with the ilSaveIL function
+					ret = App->fs->SaveUnique(output_file, data, size, LIBRARY_TEXTURES_FOLDER, "texture", "tga");
 
 				RELEASE_ARRAY(data);
 			}
@@ -119,7 +119,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 		ilGenImages(1, &ImageName);
 		ilBindImage(ImageName);
 
-		if (ilLoadL(IL_DDS, (const void*)buffer, size))
+		if (ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size))
 		{
 			ILinfo i;
 			iluGetImageInfo(&i);
