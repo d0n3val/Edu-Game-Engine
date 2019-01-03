@@ -109,7 +109,7 @@ vec4 get_specular_color(const Material mat, const vec2 uv)
 	float gamma  = 2.2;
     color.rgb  = pow(color.rgb, vec3(gamma));
 	
-    return vec4(color.rgb*mat.specular_color, exp2(8*color.a*mat.shininess+1));
+    return vec4(color.rgb*mat.specular_color, exp2(9*color.a*mat.shininess+1));
 }
 
 vec3 get_occlusion_color(const Material mat, const vec2 uv)
@@ -140,12 +140,12 @@ float specular_blinn(vec3 light_dir, const vec3 pos, const vec3 normal, const ve
 vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const DirLight light, const Material mat, 
                        const vec3 diffuse_color, const vec3 specular_color, float shininess)
 {
-    float lambert		= lambert(lights.directional.dir, normal);	
-    float specular		= specular_blinn(lights.directional.dir, pos, normal, view_pos, shininess);
+    float lambert	  = lambert(lights.directional.dir, normal);	
+    float specular    = specular_blinn(lights.directional.dir, pos, normal, view_pos, shininess);
 	
 	vec3 view_dir     = normalize(view_pos-pos);
-    float cos_theta   = max(dot(view_dir, normal), 0.0);
-	float cos_theta2  = max(dot(-lights.directional.dir, normal), 0.0);
+    vec3 half_dir     = normalize(view_dir-lights.directional.dir);
+    float cos_theta   = max(dot(view_dir, half_dir), 0.0); // pq halfdir?
     vec3 r0           = specular_color;
 
     float norm_factor = (shininess+4.0)/(8.0);
@@ -153,7 +153,7 @@ vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, c
     vec3 new_specular = fresnel*norm_factor;
     vec3 new_diffuse  = (1-fresnel)*diffuse_color;
 
-    return lights.directional.color*((new_diffuse*lambert+new_specular*specular));
+    return lights.directional.color*((new_diffuse*lambert+new_specular*specular*lambert));
 }
 
 float get_attenuation(const vec3 constants, float distance)
