@@ -111,7 +111,8 @@ vec4 get_specular_color(const Material mat, const vec2 uv)
 
 vec3 get_occlusion_color(const Material mat, const vec2 uv)
 {
-    return texture(mat.occlusion_map, uv).rgb;
+	float gamma = 2.2;
+    return pow(texture(mat.occlusion_map, uv).rgb, vec3(gamma));
 }
 
 vec3 get_emissive_color(const Material mat, const vec2 uv)
@@ -141,6 +142,7 @@ vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, c
 	
 	vec3 view_dir     = normalize(view_pos-pos);
     float cos_theta   = max(dot(view_dir, normal), 0.0);
+	float cos_theta2  = max(dot(-lights.directional.dir, normal), 0.0);
     vec3 r0           = specular_color;
 
     float norm_factor = (shininess+4.0)/(8.0*PI);
