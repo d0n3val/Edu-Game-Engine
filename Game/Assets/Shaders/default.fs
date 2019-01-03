@@ -95,13 +95,18 @@ out vec4 color;
 
 vec4 get_diffuse_color(const Material mat, const vec2 uv)
 {
-    return texture(mat.diffuse_map, uv)*mat.diffuse_color;
+	vec4 diffuse = texture(mat.diffuse_map, uv)*mat.diffuse_color;
+	float gamma = 2.2;
+    diffuse.rgb = pow(diffuse.rgb, vec3(gamma));
+
+	return diffuse;
 }
 
 vec4 get_specular_color(const Material mat, const vec2 uv)
 {
     vec4 color = texture(mat.specular_map, uv);
-    return vec4(color.rgb*mat.specular_color, color.a*mat.shininess);
+	
+    return vec4(color.rgb*mat.specular_color, exp2(7*color.a*mat.shininess+1));
 }
 
 vec3 get_occlusion_color(const Material mat, const vec2 uv)
@@ -131,15 +136,14 @@ float specular_blinn(vec3 light_dir, const vec3 pos, const vec3 normal, const ve
 vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const DirLight light, const Material mat, 
                        const vec3 diffuse_color, const vec3 specular_color, float shininess)
 {
-    float lambert  = lambert(lights.directional.dir, normal);
-	float specularPower = exp2(5*shininess+1);
-    float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, specularPower);
+    float lambert		= lambert(lights.directional.dir, normal);	
+    float specular		= specular_blinn(lights.directional.dir, pos, normal, view_pos, shininess);
 	
-	vec3 view_dir    = normalize(view_pos-pos);
-    float cos_theta  = max(dot(view_dir, normal), 0.0);
-    vec3 r0          = specular_color; //mix(vec3(0.0), specular_color, shininess);
+	vec3 view_dir     = normalize(view_pos-pos);
+    float cos_theta   = max(dot(view_dir, normal), 0.0);
+    vec3 r0           = specular_color;
 
-    float norm_factor = (specularPower+4.0)/(8.0);
+    float norm_factor = (shininess+4.0)/(8.0*PI);
     vec3 fresnel      = vec3(r0+(1-r0)*pow(1.0-cos_theta, 5.0));
     vec3 new_specular = fresnel*norm_factor;
     vec3 new_diffuse  = (1-fresnel)*diffuse_color;
@@ -246,6 +250,7 @@ layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexO
 void main()
 {
     color = blinn(fragment.position, get_normal(fragment, material), fragment.uv0, view_pos, lights, material);
+	color.rgb = pow(color.rgb, vec3(1.0/2.2));
     //color = texture(material.normal_map, fragment.uv0); //vec4(get_normal(fragment, material), 1.0);
     //color = vec4(vec3(texture(material.specular_map, fragment.uv0).a), 1.0); //vec4(get_normal(fragment, material), 1.0);
 }
