@@ -132,12 +132,12 @@ vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, c
                        const vec3 diffuse_color, const vec3 specular_color, float shininess)
 {
     float lambert  = lambert(lights.directional.dir, normal);
-	float specularPower = exp2(8*shininess);
+	float specularPower = exp2(5*shininess+1);
     float specular = specular_blinn(lights.directional.dir, pos, normal, view_pos, specularPower);
 	
 	vec3 view_dir    = normalize(view_pos-pos);
     float cos_theta  = max(dot(view_dir, normal), 0.0);
-    vec3 r0          = mix(vec3(0.0), specular_color, shininess);
+    vec3 r0          = specular_color; //mix(vec3(0.0), specular_color, shininess);
 
     float norm_factor = (specularPower+4.0)/(8.0);
     vec3 fresnel      = vec3(r0+(1-r0)*pow(1.0-cos_theta, 5.0));
