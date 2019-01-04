@@ -39,33 +39,26 @@ void PanelResources::Draw()
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)
         {
-            string extension;
-            App->fs->SplitFilePath(file, nullptr, nullptr, &extension);
-            Resource::Type type = App->resources->TypeFromExtension(extension.c_str());
+            texture_params.file = file;
+            App->fs->SplitFilePath(file, nullptr, nullptr, &texture_params.extension);
+            Resource::Type type = App->resources->TypeFromExtension(texture_params.extension.c_str());
             if(type == Resource::texture)
             {
+                texture_params.compressed = true;
+                texture_params.srgb = true;
+                texture_params.mipmaps = true;
+
                 ImGui::OpenPopup("Texture properties");
+            }
+            else
+            {
+                App->resources->ImportFile(file, false); 
             }
         }
 		waiting_to_load_file = false;
 	}
 
-    ImGui::SetNextWindowSize(ImVec2(420,300));
-    if (ImGui::BeginPopupModal("Texture properties", nullptr, ImGuiWindowFlags_NoResize))
-    {
-        if(ImGui::Button("Ok", ImVec2(128, 0)))
-        {
-            // \todo: App->resources->ImportFile(file, false); 
-
-            ImGui::CloseCurrentPopup();
-        }
-        if(ImGui::Button("Cancel", ImVec2(128, 0)))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
-    }
+	DrawTextureProperties();
 
 	if (ImGui::BeginMenu("Options"))
 	{
@@ -286,3 +279,34 @@ void PanelResources::DrawCylinderProperties()
     }
 }
 
+void PanelResources::DrawTextureProperties()
+{
+    ImGui::SetNextWindowSize(ImVec2(200, 150));
+    if (ImGui::BeginPopupModal("Texture properties", nullptr, ImGuiWindowFlags_NoResize))
+    {
+        if(ImGui::BeginChild("Canvas", ImVec2(180, 90), true, ImGuiWindowFlags_NoMove))
+        {
+            ImGui::Checkbox("Compressed", &texture_params.compressed);
+            ImGui::Checkbox("Mipmaps", &texture_params.mipmaps);
+            ImGui::Checkbox("sRGB", &texture_params.srgb);
+        }
+        ImGui::EndChild();
+
+        ImGui::Indent(52);
+        if(ImGui::Button("Ok", ImVec2(60, 0)))
+        {
+            // \todo: App->resources->ImportFile(file, false); 
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+        if(ImGui::Button("Cancel", ImVec2(60, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+
+}

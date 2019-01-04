@@ -63,7 +63,6 @@ struct Lights
     uint         num_spot;
 };
 
-
 struct VertexOut
 {
     vec2 uv0;
@@ -139,16 +138,12 @@ float specular_blinn(vec3 light_dir, const vec3 pos, const vec3 normal, const ve
 }
 
 vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const DirLight light, const Material mat, 
-                       const vec3 diffuse_color, const vec3 fresnel, float shininess)
+                       const vec3 diffuse_color, const vec3 specular_color, float shininess)
 {
     float lambert	  = lambert(lights.directional.dir, normal);	
     float specular    = specular_blinn(lights.directional.dir, pos, normal, view_pos, shininess);
 	
-    float norm_factor = (shininess+4.0)/(8.0);
-    vec3 new_specular = fresnel*norm_factor;
-    vec3 new_diffuse  = (1-fresnel)*diffuse_color;
-
-    return lights.directional.color*((new_diffuse+new_specular*specular)*lambert);
+    return lights.directional.color*(diffuse_color+specular_color*specular)*lambert;
 }
 
 float get_attenuation(const vec3 constants, float distance)
@@ -157,7 +152,7 @@ float get_attenuation(const vec3 constants, float distance)
 }
 
 vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const PointLight light, const Material mat,
-                 const vec3 diffuse_color, const vec3 fresnel, float shininess)
+                 const vec3 diffuse_color, const vec3 specular_color, float shininess)
 {
     vec3 light_dir = pos-light.position;
     float distance = length(light_dir);
@@ -168,11 +163,7 @@ vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const P
     float lambert  = lambert(light_dir, normal);
     float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
-    float norm_factor = (shininess+4.0)/(8.0);
-    vec3 new_specular = fresnel*norm_factor;
-    vec3 new_diffuse  = (1-fresnel)*diffuse_color;
-
-    return light.color*(att*(new_diffuse*lambert+new_specular*specular));
+    return light.color*(diffuse_color+specular_color*specular)*lambert*att;
 }
 
 float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
@@ -184,7 +175,7 @@ float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float out
 }
 
 vec3 spot_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const SpotLight light, const Material mat,
-                const vec3 diffuse_color, const vec3 fresnel, float shininess)
+                const vec3 diffuse_color, const vec3 specular_color, float shininess)
 {
     vec3 light_dir = pos-light.position;
     float distance = length(light_dir);
@@ -196,11 +187,7 @@ vec3 spot_blinn(const vec3 pos, const vec3 normal, const vec3 view_pos, const Sp
     float lambert  = lambert(light_dir, normal);
     float specular = specular_blinn(light_dir, pos, normal, view_pos, shininess);
 
-    float norm_factor = (shininess+4.0)/(8.0);
-    vec3 new_specular = fresnel*norm_factor;
-    vec3 new_diffuse  = (1-fresnel)*diffuse_color;
-
-    return light.color*((att*cone)*(new_diffuse*lambert+new_specular*specular));
+    return light.color*(diffuse_color+specular_color*specular)*(lambert*att*cone);
 }
 
 vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
@@ -209,19 +196,26 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     vec4 specular_color  = get_specular_color(material, uv);
     vec3 occlusion_color = get_occlusion_color(material, uv);
     vec3 emissive_color  = get_emissive_color(material, uv);
-    vec3 fresnel         = get_fresnel(view_pos, pos, normal, specular_color.rgb);
 
-    vec3 color = directional_blinn(pos, normal, view_pos, lights.directional, mat, diffuse_color.rgb, fresnel, specular_color.a);
+	// make energy conserving blinn brdf
 
-    color += point_blinn(pos, normal, view_pos, lights.points[0], mat, diffuse_color.rgb, fresnel, specular_color.a);
-    color += point_blinn(pos, normal, view_pos, lights.points[1], mat, diffuse_color.rgb, fresnel, specular_color.a);
-    color += point_blinn(pos, normal, view_pos, lights.points[2], mat, diffuse_color.rgb, fresnel, specular_color.a);
-    color += point_blinn(pos, normal, view_pos, lights.points[3], mat, diffuse_color.rgb, fresnel, specular_color.a);
+	float shininess			 = specular_color.a;
+    vec3 fresnel			 = get_fresnel(view_pos, pos, normal, specular_color.rgb);
+	float norm_factor		 = (shininess+4.0)/(8.0);
+    vec3 conserving_specular = fresnel*norm_factor;
+    vec3 conserving_diffuse  = (1-fresnel)*diffuse_color.rgb; // try r0 ==> specular_color.rgb 
+	
+    vec3 color = directional_blinn(pos, normal, view_pos, lights.directional, mat, conserving_diffuse, conserving_specular, shininess);
 
-    color += spot_blinn(pos, normal, view_pos, lights.spots[0], mat, diffuse_color.rgb, fresnel, specular_color.a);
-    color += spot_blinn(pos, normal, view_pos, lights.spots[1], mat, diffuse_color.rgb, fresnel, specular_color.a);
-    color += spot_blinn(pos, normal, view_pos, lights.spots[2], mat, diffuse_color.rgb, fresnel, specular_color.a);
-    color += spot_blinn(pos, normal, view_pos, lights.spots[3], mat, diffuse_color.rgb, fresnel, specular_color.a);
+    color += point_blinn(pos, normal, view_pos, lights.points[0], mat, conserving_diffuse, conserving_specular, shininess);
+    color += point_blinn(pos, normal, view_pos, lights.points[1], mat, conserving_diffuse, conserving_specular, shininess);
+    color += point_blinn(pos, normal, view_pos, lights.points[2], mat, conserving_diffuse, conserving_specular, shininess);
+    color += point_blinn(pos, normal, view_pos, lights.points[3], mat, conserving_diffuse, conserving_specular, shininess);
+
+    color += spot_blinn(pos, normal, view_pos, lights.spots[0], mat, conserving_diffuse, conserving_specular, shininess);
+    color += spot_blinn(pos, normal, view_pos, lights.spots[1], mat, conserving_diffuse, conserving_specular, shininess);
+    color += spot_blinn(pos, normal, view_pos, lights.spots[2], mat, conserving_diffuse, conserving_specular, shininess);
+    color += spot_blinn(pos, normal, view_pos, lights.spots[3], mat, conserving_diffuse, conserving_specular, shininess);
 
     color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
     color += emissive_color;
@@ -252,8 +246,7 @@ void main()
 {
     vec3 normal = get_normal(fragment, material);
     color	    = blinn(fragment.position, normal, fragment.uv0, view_pos, lights, material);
-    color       = pow(color, vec4(1.0/2.2));
 
-    //color = texture(material.normal_map, fragment.uv0); //vec4(get_normal(fragment, material), 1.0);
-    //color = vec4(vec3(texture(material.specular_map, fragment.uv0).a), 1.0); //vec4(get_normal(fragment, material), 1.0);
+	// gamma correction
+    color.rgb   = pow(color.rgb, vec3(1.0/2.2));
 }

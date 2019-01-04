@@ -22,6 +22,20 @@ private:
     void DrawPlaneProperties();
     void DrawCylinderProperties();
 
+    void DrawTextureProperties();
+
+private:
+    struct TextureParams
+    {
+        std::string file;
+        std::string extension;
+        bool        compressed = true;
+        bool        mipmaps    = true;
+        bool        srgb       = true;
+    };
+
+    TextureParams texture_params;
+
 };
 
 #endif  // __PANELRESOURCES_H__
