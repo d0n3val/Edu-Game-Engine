@@ -18,10 +18,12 @@ public:
 
 	bool Load(ResourceTexture* resource);
 	// TODO: Unload Texture
-	bool Import(const char* file, const char* path, std::string& output_file);
-	bool Import(const void* buffer, uint size, std::string& output_file);
+	bool Import(const char* file, const char* path, std::string& output_file, bool compressed);
+	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);
 	bool LoadCheckers(ResourceTexture* resource);
     bool LoadFallback(ResourceTexture* resource, const float3& color);
+
+private:
 };
 
 #endif // __MODULETEXTURES_H__

@@ -59,10 +59,12 @@ bool ResourceMaterial::LoadInMemory()
         {
 			if (textures[i] != 0)
 			{
-				Resource* tex_res = App->resources->Get(textures[i]);
+				ResourceTexture* tex_res = static_cast<ResourceTexture*>(App->resources->Get(textures[i]));
+
 				if (tex_res)
 				{
-					tex_res->LoadToMemory();
+                    tex_res->SetLinear(i == TextureNormal);
+                    tex_res->LoadToMemory();
 				}
 			}
         }

@@ -267,7 +267,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = App->tex->Import(new_file_in_assets, "", written_file);
+			import_ok = App->tex->Import(new_file_in_assets, "", written_file, true);
 		break;
 		case Resource::audio:
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
@@ -320,7 +320,7 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = App->tex->Import(buffer, size, output);
+			import_ok = App->tex->Import(buffer, size, output, true);
 		break;
 		case Resource::mesh:
 			// Old school trick: if it is a Mesh, buffer will be treated as an AiMesh*

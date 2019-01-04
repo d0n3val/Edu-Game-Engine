@@ -5,6 +5,7 @@
 #include "ModuleEditor.h"
 #include "Application.h"
 #include "ModuleResources.h"
+#include "ModuleFileSystem.h"
 #include "ResourceAudio.h"
 #include "ResourceMesh.h"
 #include "ResourceTexture.h"
@@ -37,9 +38,34 @@ void PanelResources::Draw()
 	{
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)
-			App->resources->ImportFile(file, false); 
+        {
+            string extension;
+            App->fs->SplitFilePath(file, nullptr, nullptr, &extension);
+            Resource::Type type = App->resources->TypeFromExtension(extension.c_str());
+            if(type == Resource::texture)
+            {
+                ImGui::OpenPopup("Texture properties");
+            }
+        }
 		waiting_to_load_file = false;
 	}
+
+    ImGui::SetNextWindowSize(ImVec2(420,300));
+    if (ImGui::BeginPopupModal("Texture properties", nullptr, ImGuiWindowFlags_NoResize))
+    {
+        if(ImGui::Button("Ok", ImVec2(128, 0)))
+        {
+            // \todo: App->resources->ImportFile(file, false); 
+
+            ImGui::CloseCurrentPopup();
+        }
+        if(ImGui::Button("Cancel", ImVec2(128, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
 
 	if (ImGui::BeginMenu("Options"))
 	{

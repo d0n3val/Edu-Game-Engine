@@ -46,7 +46,7 @@ bool ModuleTextures::CleanUp()
 }
 
 // Import new texture from file path
-bool ModuleTextures::Import(const char* file, const char* path, string& output_file)
+bool ModuleTextures::Import(const char* file, const char* path, string& output_file, bool compressed)
 {
 	bool ret = false;
 
@@ -57,7 +57,7 @@ bool ModuleTextures::Import(const char* file, const char* path, string& output_f
 	uint size = App->fs->Load((char*) (sPath + sFile).c_str(), &buffer);
 
 	if (buffer)
-		ret = Import(buffer, size, output_file);
+		ret = Import(buffer, size, output_file, compressed);
 
 	RELEASE_ARRAY(buffer);
 
@@ -67,7 +67,7 @@ bool ModuleTextures::Import(const char* file, const char* path, string& output_f
 	return ret;
 }
 
-bool ModuleTextures::Import(const void * buffer, uint size, string& output_file)
+bool ModuleTextures::Import(const void * buffer, uint size, string& output_file, bool compressed)
 {
 	bool ret = false;
 
@@ -84,13 +84,16 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file)
 		    ILuint   size;
 		    ILubyte *data; 
 			// To pick a specific DXT compression use 
-			//ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
-		    size = ilSaveL(IL_TGA, NULL, 0 ); // Get the size of the data buffer
+			ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
+		    size = ilSaveL(compressed ? IL_DDS : IL_TGA, NULL, 0 ); // Get the size of the data buffer
 			if(size > 0) 
 			{
 				data = new ILubyte[size]; // allocate data buffer
-				if (ilSaveL(IL_TGA, data, size) > 0) // Save with the ilSaveIL function
-					ret = App->fs->SaveUnique(output_file, data, size, LIBRARY_TEXTURES_FOLDER, "texture", "tga");
+
+				if (ilSaveL(compressed ? IL_DDS : IL_TGA, data, size) > 0) // Save with the ilSaveIL function
+                {
+					ret = App->fs->SaveUnique(output_file, data, size, LIBRARY_TEXTURES_FOLDER, "texture", compressed ? "dds" : "tga");
+                }
 
 				RELEASE_ARRAY(data);
 			}
@@ -103,7 +106,6 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file)
 
 	return ret;
 }
-
 
 // Load new texture from file path
 bool ModuleTextures::Load(ResourceTexture* resource)
@@ -119,51 +121,74 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 		ilGenImages(1, &ImageName);
 		ilBindImage(ImageName);
 
-		if (ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size))
-		{
-			ILinfo i;
-			iluGetImageInfo(&i);
-			resource->width = i.Width;
-			resource->height = i.Height;
-			resource->bpp = (uint)i.Bpp;
-			resource->depth = i.Depth;
-			resource->bytes = i.SizeOfData;
-
-			switch (i.Format)
-			{
-			case IL_COLOUR_INDEX:
-				resource->format = ResourceTexture::color_index;
-				break;
-			case IL_RGB:
-				resource->format = ResourceTexture::rgb;
-				break;
-			case IL_RGBA:
-				resource->format = ResourceTexture::rgba;
-				break;
-			case IL_BGR:
-				resource->format = ResourceTexture::bgr;
-				break;
-			case IL_BGRA:
-				resource->format = ResourceTexture::bgra;
-				break;
-			case IL_LUMINANCE:
-				resource->format = ResourceTexture::luminance;
-				break;
-			default:
-				resource->format = ResourceTexture::unknown;
-				break;
-			}
-
-			resource->gpu_id = ilutGLBindTexImage();
+        if (ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size))
+        {
+            GLuint textureId = 0;
+            glGenTextures(1, &resource->gpu_id);
 
             glBindTexture(GL_TEXTURE_2D, resource->gpu_id);
+
+            ILinfo ImageInfo;
+            iluGetImageInfo(&ImageInfo);
+            if (ImageInfo.Origin == IL_ORIGIN_UPPER_LEFT)
+            {
+                iluFlipImage();
+            }
+
+            int channels = ilGetInteger(IL_IMAGE_CHANNELS);
+            if (channels == 3)
+            {
+                ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
+            }
+            else if (channels == 4)
+            {
+                ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+            }
+
+            resource->width = ImageInfo.Width;
+            resource->height = ImageInfo.Height;
+            resource->bpp = (uint)ImageInfo.Bpp;
+            resource->depth = ImageInfo.Depth;
+            resource->bytes = ImageInfo.SizeOfData;
+
+            switch (ImageInfo.Format)
+            {
+                case IL_COLOUR_INDEX:
+                    resource->format = ResourceTexture::color_index;
+                    break;
+                case IL_RGB:
+                    resource->format = ResourceTexture::rgb;
+                    break;
+                case IL_RGBA:
+                    resource->format = ResourceTexture::rgba;
+                    break;
+                case IL_BGR:
+                    resource->format = ResourceTexture::bgr;
+                    break;
+                case IL_BGRA:
+                    resource->format = ResourceTexture::bgra;
+                    break;
+                case IL_LUMINANCE:
+                    resource->format = ResourceTexture::luminance;
+                    break;
+                default:
+                    resource->format = ResourceTexture::unknown;
+                    break;
+            }
+
+            ILubyte* data = ilGetData();
+            int width = ilGetInteger(IL_IMAGE_WIDTH);
+            int height = ilGetInteger(IL_IMAGE_HEIGHT);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, !resource->GetLinear() ? GL_SRGB8_ALPHA8 : ilGetInteger(IL_IMAGE_FORMAT), width, height, 0, 
+                    ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE, data);
 
             if(resource->has_mips)
             {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1000);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1000);
                 glGenerateMipmap(GL_TEXTURE_2D);
             }
             else
@@ -171,20 +196,18 @@ bool ModuleTextures::Load(ResourceTexture* resource)
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
             }
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             ilDeleteImages(1, &ImageName);
 
-             ret = true;
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            ret = true;
         }
-	}
-	else
-		LOG("Cannot load texture resource %s", resource->GetFile());
+        else
+            LOG("Cannot load texture resource %s", resource->GetFile());
+    }
 
 	RELEASE_ARRAY(buffer);
 

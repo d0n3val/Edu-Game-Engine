@@ -38,6 +38,10 @@ public:
     uint GetBPP       () const { return bpp; }
     bool HasMips      () const { return has_mips; }
     uint GetBytes     () const { return bytes; }
+    bool GetLinear    () const { return linear; }
+    bool GetCompressed() const { return compressed; }
+
+    void SetLinear    (bool l);
     void EnableMips   (bool enable);
 
 private:
@@ -46,6 +50,8 @@ private:
 	uint depth = 0;
 	uint bpp = 0;
 	bool has_mips = false;
+    bool linear = true;
+    bool compressed = true;
 	uint bytes = 0;
 	uint gpu_id = 0;
 

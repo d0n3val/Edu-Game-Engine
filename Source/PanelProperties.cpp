@@ -35,6 +35,8 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 
+#include "OpenGL.h"
+
 #include <list>
 
 #include "mmgr/mmgr.h"
@@ -803,6 +805,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
     if (info != nullptr)
     {
 		ImGui::PushID(texture);
+        glEnable(GL_FRAMEBUFFER_SRGB);  
         if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
@@ -817,6 +820,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 				ImGui::SetTooltip("%s", info->GetFile());
 			}
         }
+        glDisable(GL_FRAMEBUFFER_SRGB);  
     }
     else
     {
@@ -852,6 +856,16 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
         if(ImGui::Checkbox("Mipmaps", &mips))
         {
             info->EnableMips(mips);
+        }
+        ImGui::PopID();
+
+        char tmp[128];
+        sprintf_s(tmp, 127, "%sLinear", name);
+        ImGui::PushID(tmp);
+        bool linear = !info->GetLinear();
+        if(ImGui::Checkbox("sRGB", &linear))
+        {
+            info->SetLinear(!linear);
         }
         ImGui::PopID();
 

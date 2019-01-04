@@ -45,6 +45,8 @@ void ResourceTexture::Save(Config & config) const
 
 	config.AddInt("Format", format);
 	config.AddBool("Mipmaps", has_mips);
+	config.AddBool("Linear", linear);
+	config.GetBool("Compressed", linear);
 }
 
 // ---------------------------------------------------------
@@ -53,7 +55,9 @@ void ResourceTexture::Load(const Config & config)
 	Resource::Load(config);
 
     format = (Format) config.GetInt("Format", unknown);
-    has_mips = config.GetBool("Mipmaps", false);
+    has_mips   = config.GetBool("Mipmaps", false);
+    linear     = config.GetBool("Linear", true);
+    compressed = config.GetBool("Compressed", true);
 }
 
 // ---------------------------------------------------------
@@ -87,3 +91,19 @@ void ResourceTexture::EnableMips(bool enable)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
 }
+
+// ---------------------------------------------------------
+void ResourceTexture::SetLinear(bool l)
+{
+    if(l != linear)
+    {
+        linear = l;
+
+        if(loaded > 0)
+        {
+            ReleaseFromMemory();
+            LoadInMemory();
+        }
+    }
+}
+
