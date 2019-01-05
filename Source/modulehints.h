@@ -17,6 +17,8 @@ public:
 		SHADOW_BIAS,
 		SHADOW_RESOLUTION,
 		METRIC_PROPORTION,
+		ENABLE_FRESNEL,
+        TONEMAPPING,
 		COUNT
 	};
 
@@ -25,7 +27,8 @@ private:
     enum EType
     {
         TYPE_FLOAT = 0,
-        TYPE_BOOL  = 1
+        TYPE_BOOL  = 1,
+        TYPE_INT
     };
 
     struct
@@ -33,6 +36,7 @@ private:
 
         union
         {
+            int   ivalue;
             float fvalue;
             bool  bvalue;
         }     value;
@@ -44,6 +48,9 @@ public:
 
     ModuleHints();
     ~ModuleHints();
+
+    int     GetIntValue     (Hint hint) const;
+    void    SetIntValue     (Hint hint, int value);
 
     bool    GetBoolValue    (Hint hint) const;
     void    SetBoolValue    (Hint hint, bool value);
@@ -78,6 +85,19 @@ inline void ModuleHints::SetFloatValue(Hint hint, float value)
     if(hints[unsigned(hint)].type == TYPE_FLOAT) 
     {
         hints[unsigned(hint)].value.fvalue = value;
+    }
+}
+
+inline int ModuleHints::GetIntValue(Hint hint) const
+{
+    return hints[unsigned(hint)].type == TYPE_INT ? hints[unsigned(hint)].value.ivalue : 0;
+}
+
+inline void ModuleHints::SetIntValue(Hint hint, int value)
+{
+    if(hints[unsigned(hint)].type == TYPE_INT) 
+    {
+        hints[unsigned(hint)].value.ivalue = value;
     }
 }
 

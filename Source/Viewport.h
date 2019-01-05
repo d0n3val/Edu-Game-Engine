@@ -47,11 +47,13 @@ private:
 
 private:
 
+    unsigned vbo         = 0;
     unsigned fbo         = 0;
     unsigned msfbo       = 0;
     unsigned fb_depth    = 0;
     unsigned msfb_depth  = 0;
     unsigned msfb_color  = 0;
+    unsigned msfb_tex    = 0;
     unsigned fb_tex      = 0;
     unsigned fb_width    = 0;
     unsigned fb_height   = 0;

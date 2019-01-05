@@ -81,13 +81,16 @@ enum DefaultShaderLocations
 enum DefaultSubroutineLocations
 {
     GET_NORMAL_LOCATION = 0,
+    GET_FRESNEL_LOCATION,
     NUM_SUBROUTINE_UNIFORMS
 };
 
-enum DefaultGetNormalIndices
+enum DefaultSubroutineIndices
 {
     GET_NORMAL_FROM_VERTEX = 0,
-    GET_NORMAL_FROM_TEXTURE
+    GET_NORMAL_FROM_TEXTURE,
+    GET_FRESNEL_SCHLICK,
+    GET_NO_FRESNEL
 };
 
 #endif /* __DEFAULT_LOCATIONS_H__ */

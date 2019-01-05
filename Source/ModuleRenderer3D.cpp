@@ -20,9 +20,8 @@
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "glew32.lib") /* link Microsoft OpenGL lib   */
 
-ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module("Renderer", start_enabled)
+ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module("Renderer", start_enabled), viewport(0)
 {
-    viewport = new Viewport;
 }
 
 // Destructor
@@ -120,6 +119,8 @@ bool ModuleRenderer3D::Init(Config* config)
 
         glEnable(GL_MULTISAMPLE);  
     }
+
+    viewport = new Viewport;
 
 	Load(config);
 

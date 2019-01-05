@@ -349,6 +349,20 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
     {
         module->SetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING, enable);
     }
+
+    enable = module->GetBoolValue(ModuleHints::ENABLE_FRESNEL);
+    if(ImGui::Checkbox("Enable Fresnel", &enable))
+    {
+        module->SetBoolValue(ModuleHints::ENABLE_FRESNEL, enable);
+    }
+
+    int tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
+    const char* names[] = { "Uncharted 2", "Reinhard", "None" };
+    if(ImGui::Combo("Tonemapping", &tonemapping, names, sizeof(names)/sizeof(char*)))
+    {
+        module->SetIntValue(ModuleHints::TONEMAPPING, tonemapping);
+		tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
+    }
 }
 
 void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)

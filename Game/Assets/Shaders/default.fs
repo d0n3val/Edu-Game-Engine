@@ -72,6 +72,7 @@ struct VertexOut
 };
 
 subroutine vec3 GetNormal(const VertexOut vertex, const Material mat);
+subroutine vec3 GetFresnel(vec3 view_pos, vec3 pos, vec3 normal, vec3 specular_color);
 
 //////////////////// UNIFORMS ////////////////////////
 
@@ -80,6 +81,7 @@ layout(location=20) uniform Lights lights;
 layout(location=100) uniform vec3 view_pos;
 
 layout(location=0) subroutine uniform GetNormal get_normal;
+layout(location=1) subroutine uniform GetFresnel get_fresnel;
 
 
 //////////////////// INPUTS ////////////////////////
@@ -116,11 +118,16 @@ vec3 get_emissive_color(const Material mat, const vec2 uv)
     return texture(mat.emissive_map, uv).rgb*mat.emissive_color;
 }
 
-vec3 get_fresnel(vec3 view_pos, vec3 pos, vec3 normal, vec3 specular_color)
+layout(index=2) subroutine(GetFresnel) vec3 get_fresnel_schlick(vec3 view_pos, vec3 pos, vec3 normal, vec3 specular_color)
 {
 	vec3 view_dir     = normalize(view_pos-pos);
     float cos_theta   = max(dot(view_dir, normal), 0.0); 
     return vec3(specular_color+(1-specular_color)*pow(1.0-cos_theta, 5.0));
+}
+
+layout(index=3) subroutine(GetFresnel) vec3 get_no_fresnel(vec3 view_pos, vec3 pos, vec3 normal, vec3 specular_color)
+{
+    return specular_color;
 }
 
 float lambert(vec3 light_dir, const vec3 normal)
@@ -248,5 +255,5 @@ void main()
     color	    = blinn(fragment.position, normal, fragment.uv0, view_pos, lights, material);
 
 	// gamma correction
-    color.rgb   = pow(color.rgb, vec3(1.0/2.2));
+    //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
 }

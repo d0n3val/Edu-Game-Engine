@@ -167,6 +167,7 @@ void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info, const float4x
 void ModuleRenderer::LoadDefaultShaders()
 {
     App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", nullptr, 0, nullptr, 0);
+    App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) const
@@ -232,6 +233,15 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     else
     {
         indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_VERTEX;
+    }
+
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_FRESNEL))
+    {
+        indices[GET_FRESNEL_LOCATION] = GET_FRESNEL_SCHLICK;
+    }
+    else
+    {
+        indices[GET_FRESNEL_LOCATION] = GET_NO_FRESNEL;
     }
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);

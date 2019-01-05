@@ -92,6 +92,7 @@ void ModulePrograms::UseProgram(const char* name, unsigned variations)
 	if(it == programs.end())
     {
         GenerateVariation(name, variations);
+		it = programs.find(key);
     }
 
     if(it != programs.end())

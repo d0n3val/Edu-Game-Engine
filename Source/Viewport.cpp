@@ -10,6 +10,7 @@
 #include "ModuleEditor.h"
 #include "ModuleEditorCamera.h"
 #include "ModuleHints.h"
+#include "ModulePrograms.h"
 
 #include "GameObject.h"
 
@@ -24,12 +25,44 @@
 #include "ImGui.h"
 #include "GL/glew.h"
 
+#include "PostprocessShaderLocations.h"
+
 Viewport::Viewport()
 {
+	float vertex_buffer_data[] =
+	{
+        // positions
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f,
+
+		-1.0f, 1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		1.0f,  1.0f, 0.0f,
+
+        // uvs
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		0.0f, 1.0f,
+		
+		0.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f
+	};
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 Viewport::~Viewport()
 {
+    if(vbo != 0)
+    {
+        glDeleteBuffers(1, &vbo);
+    }
+
     if(msfb_color != 0)
     {
         glDeleteRenderbuffers(1, &msfb_color);
@@ -108,10 +141,46 @@ void Viewport::Draw(ComponentCamera* camera)
 
             if(msaa)
             {
+#if 0                
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, msfbo);
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
                 glBlitFramebuffer(0, 0, fb_width, fb_height, 0, 0, fb_width, fb_height, GL_COLOR_BUFFER_BIT, GL_NEAREST); 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
+
+                glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                
+                App->programs->UseProgram("postprocess", 0);
+                unsigned indices[NUM_POSPROCESS_SUBROUTINES];
+
+                indices[TONEMAP_LOCATION] = App->hints->GetIntValue(ModuleHints::TONEMAPPING);
+
+                glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
+
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msfb_tex);
+                glUniform1i(SCREEN_TEXTURE_LOCATION, 0); 
+                glUniform1i(VIEWPORT_WIDTH, fb_width); 
+                glUniform1i(VIEWPORT_HEIGHT, fb_height); 
+
+                glEnableVertexAttribArray(0);
+                glEnableVertexAttribArray(1);
+                glBindBuffer(GL_ARRAY_BUFFER, vbo);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*3*6));
+
+                glDrawArrays(GL_TRIANGLES, 0, 6); 
+
+                glDisableVertexAttribArray(0);
+                glDisableVertexAttribArray(1);
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+                App->programs->UnuseProgram();
+
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif
             }
 
             ImGui::GetWindowDrawList()->AddImage(
@@ -208,17 +277,31 @@ void Viewport::GenerateFBOMultisampled(unsigned w, unsigned h)
 
     glBindFramebuffer(GL_FRAMEBUFFER, msfbo);
 
+    glGenTextures(1, &msfb_tex);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msfb_tex);
+
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, w, h, GL_TRUE);
+
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msfb_tex, 0); 
+
     glGenRenderbuffers(1, &msfb_depth);
     glBindRenderbuffer(GL_RENDERBUFFER, msfb_depth);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, w, h);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msfb_depth);            
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
+    /*
     glGenRenderbuffers(1, &msfb_color);
     glBindRenderbuffer(GL_RENDERBUFFER, msfb_color);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA, w, h);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msfb_color);            
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    */
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
