@@ -37,6 +37,10 @@ ModuleHints::ModuleHints() : Module("Render Hints")
 
     hints[TONEMAPPING].type                       = TYPE_INT; 
     hints[TONEMAPPING].value.bvalue               = 0;
+
+    hints[ENABLE_MSAA].type                       = TYPE_BOOL; 
+    hints[ENABLE_MSAA].value.bvalue               = true;
+
 }
 
 ModuleHints::~ModuleHints()
@@ -45,19 +49,20 @@ ModuleHints::~ModuleHints()
 
 void ModuleHints::Save(Config* config) const 
 {
-    config->AddBool("Normal mapping", hints[unsigned(ENABLE_NORMAL_MAPPING)].value.bvalue);
-    config->AddBool("Show tangent space", hints[unsigned(SHOW_TANGENT_SPACE)].value.bvalue);
-    config->AddBool("Specular mapping", hints[unsigned(ENABLE_SPECULAR_MAPPING)].value.bvalue);
-    config->AddBool("Shadow mapping", hints[unsigned(ENABLE_SHADOW_MAPPING)].value.bvalue);
-    config->AddBool("Show shadow clipping", hints[unsigned(SHOW_SHADOW_CLIPPING)].value.bvalue);
-    config->AddBool("Enable shadow front culling", hints[unsigned(ENABLE_SHADOW_FRONT_CULLING)].value.bvalue);
+    config->AddBool("Normal mapping", hints[ENABLE_NORMAL_MAPPING].value.bvalue);
+    config->AddBool("Show tangent space", hints[SHOW_TANGENT_SPACE].value.bvalue);
+    config->AddBool("Specular mapping", hints[ENABLE_SPECULAR_MAPPING].value.bvalue);
+    config->AddBool("Shadow mapping", hints[ENABLE_SHADOW_MAPPING].value.bvalue);
+    config->AddBool("Show shadow clipping", hints[SHOW_SHADOW_CLIPPING].value.bvalue);
+    config->AddBool("Enable shadow front culling", hints[ENABLE_SHADOW_FRONT_CULLING].value.bvalue);
 
-    config->AddFloat("Shadow bias", hints[unsigned(SHADOW_BIAS)].value.fvalue);
-    config->AddFloat("Shadow resolution", hints[unsigned(SHADOW_RESOLUTION)].value.fvalue);
-    config->AddFloat("Metric proprotion", hints[unsigned(METRIC_PROPORTION)].value.fvalue);
-    config->AddFloat("Fresnel", hints[unsigned(ENABLE_FRESNEL)].value.bvalue);
+    config->AddFloat("Shadow bias", hints[SHADOW_BIAS].value.fvalue);
+    config->AddFloat("Shadow resolution", hints[SHADOW_RESOLUTION].value.fvalue);
+    config->AddFloat("Metric proprotion", hints[METRIC_PROPORTION].value.fvalue);
+    config->AddFloat("Fresnel", hints[ENABLE_FRESNEL].value.bvalue);
 
     config->AddInt("Tonemapping", hints[TONEMAPPING].value.ivalue);
+    config->AddBool("Enable msaa", hints[ENABLE_MSAA].value.bvalue);
 }
 
 bool ModuleHints::Init(Config* config) 
@@ -75,6 +80,7 @@ bool ModuleHints::Init(Config* config)
     hints[ENABLE_FRESNEL].value.bvalue = config->GetBool("Fresnel", true);
 
     hints[TONEMAPPING].value.ivalue = config->GetInt("Tonemapping", 0);
+    hints[ENABLE_MSAA].value.bvalue = config->GetBool("Enable msaa", true);
 
     return true;
 }

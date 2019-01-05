@@ -25,61 +25,12 @@
 #include "ImGui.h"
 #include "GL/glew.h"
 
-#include "PostprocessShaderLocations.h"
-
 Viewport::Viewport()
 {
-	float vertex_buffer_data[] =
-	{
-        // positions
-		-1.0f, -1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f,
-
-		-1.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-		1.0f,  1.0f, 0.0f,
-
-        // uvs
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f
-	};
-
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*3*6));
-
-    glBindVertexArray(0);
-
 }
 
 Viewport::~Viewport()
 {
-    if(vbo != 0)
-    {
-        glDeleteBuffers(1, &vbo);
-    }
-
-    if(vao != 0)
-    {
-        glDeleteVertexArrays(1, &vao);
-    }
-
     RemoveFrameBuffer(fbuffer);
     RemoveFrameBuffer(msaa_fbuffer);
     RemoveFrameBuffer(post_fbuffer);
@@ -125,56 +76,14 @@ void Viewport::Draw(ComponentCamera* camera)
                 App->DebugDraw();
             }
 
+            bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
+
             App->renderer->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
             App->debug_draw->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
 
+            App->renderer->Postprocess(msaa ? msaa_fbuffer.tex : fbuffer.tex, post_fbuffer.id, fb_width, fb_height);
+
             ImVec2 screenPos = ImGui::GetCursorScreenPos();
-
-            glBindFramebuffer(GL_FRAMEBUFFER, post_fbuffer.id);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            App->programs->UseProgram("postprocess", msaa ? 1 : 0);
-
-            unsigned indices[NUM_POSPROCESS_SUBROUTINES];
-
-            indices[TONEMAP_LOCATION] = App->hints->GetIntValue(ModuleHints::TONEMAPPING);
-
-            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
-
-            glActiveTexture(GL_TEXTURE0);
-
-            if(msaa)
-            {
-                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaa_fbuffer.tex);
-            }
-            else
-            {
-                glBindTexture(GL_TEXTURE_2D, fbuffer.tex);
-            }
-
-            glUniform1i(SCREEN_TEXTURE_LOCATION, 0); 
-            glUniform1i(VIEWPORT_WIDTH, fb_width); 
-            glUniform1i(VIEWPORT_HEIGHT, fb_height); 
-
-            glBindVertexArray(vao);
-
-            glDrawArrays(GL_TRIANGLES, 0, 6); 
-
-            glBindVertexArray(0);
-
-
-            if(msaa)
-            {
-                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-            }
-            else
-            {
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-
-            App->programs->UnuseProgram();
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             ImGui::GetWindowDrawList()->AddImage(
                     (void*)post_fbuffer.tex,
@@ -195,7 +104,6 @@ void Viewport::Save(Config* config) const
     config->AddBool("Draw Plane", draw_plane);
     config->AddBool("Draw Axis", draw_axis);
     config->AddBool("Debug Draw", debug_draw);
-    config->AddBool("MSAA", msaa);
 }
 
 void Viewport::Load(Config* config)
@@ -203,7 +111,6 @@ void Viewport::Load(Config* config)
 	draw_plane = config->GetBool("Draw Plane", true);
 	draw_axis = config->GetBool("Draw Axis", true);
 	debug_draw = config->GetBool("Debug Draw", true);
-    msaa = config->GetBool("MSAA", true);
 }
 
 void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa)
@@ -234,7 +141,7 @@ void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool dep
         glBindTexture(GL_TEXTURE_2D, buffer.tex);
 
         // \todo: Ojo 16f para hdr!!
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -317,8 +224,6 @@ void Viewport::DrawQuickBar(ComponentCamera* camera)
         ImGui::Checkbox("Axis", &draw_axis);
         ImGui::SameLine();
         ImGui::Checkbox("Dbg Draw", &debug_draw);
-        ImGui::SameLine();
-        ImGui::Checkbox("MSAA", &msaa);
 
         ImGui::SameLine();
         ImGui::ColorEdit3("Background", (float*)&camera->background, ImGuiColorEditFlags_NoInputs);

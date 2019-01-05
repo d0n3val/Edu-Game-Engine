@@ -7,6 +7,7 @@
 #include "ModuleHints.h"
 
 #include "DefaultShaderLocations.h"
+#include "PostprocessShaderLocations.h"
 
 #include "GameObject.h"
 
@@ -38,11 +39,58 @@ bool ModuleRenderer::Init(Config* config /*= nullptr*/)
 {
     LoadDefaultShaders();
 
+	float vertex_buffer_data[] =
+	{
+        // positions
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f,
+
+		-1.0f, 1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		1.0f,  1.0f, 0.0f,
+
+        // uvs
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		0.0f, 1.0f,
+		
+		0.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f
+	};
+
+    glGenBuffers(1, &post_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, post_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenVertexArrays(1, &post_vao);
+    glBindVertexArray(post_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, post_vbo);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*3*6));
+
+    glBindVertexArray(0);
+
 	return true;
 }
    
 ModuleRenderer::~ModuleRenderer()
 {
+    if(post_vbo != 0)
+    {
+        glDeleteBuffers(1, &post_vbo);
+    }
+
+    if(post_vao != 0)
+    {
+        glDeleteVertexArrays(1, &post_vao);
+    }
+
 }
 
 void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height)
@@ -339,3 +387,54 @@ void ModuleRenderer::DrawDebug()
         }
     }
 }
+
+void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned width, unsigned height)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
+
+    App->programs->UseProgram("postprocess", msaa ? 1 : 0);
+
+    unsigned indices[NUM_POSPROCESS_SUBROUTINES];
+
+    indices[TONEMAP_LOCATION] = App->hints->GetIntValue(ModuleHints::TONEMAPPING);
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
+
+    glActiveTexture(GL_TEXTURE0);
+
+    if(msaa)
+    {
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, screen_texture);
+    }
+    else
+    {
+        glBindTexture(GL_TEXTURE_2D, screen_texture);
+    }
+
+    glUniform1i(SCREEN_TEXTURE_LOCATION, 0); 
+    glUniform1i(VIEWPORT_WIDTH, width); 
+    glUniform1i(VIEWPORT_HEIGHT, height); 
+
+    glBindVertexArray(post_vao);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6); 
+
+    glBindVertexArray(0);
+
+
+    if(msaa)
+    {
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+    }
+    else
+    {
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    App->programs->UnuseProgram();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+

@@ -356,6 +356,14 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
         module->SetBoolValue(ModuleHints::ENABLE_FRESNEL, enable);
     }
 
+    ImGui::Separator();
+
+    enable = module->GetBoolValue(ModuleHints::ENABLE_MSAA);
+    if(ImGui::Checkbox("Enable MSAA", &enable))
+    {
+        module->SetBoolValue(ModuleHints::ENABLE_MSAA, enable);
+    }
+
     int tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
     const char* names[] = { "Uncharted 2", "Reinhard", "None" };
     if(ImGui::Combo("Tonemapping", &tonemapping, names, sizeof(names)/sizeof(char*)))
@@ -363,6 +371,7 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
         module->SetIntValue(ModuleHints::TONEMAPPING, tonemapping);
 		tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
     }
+
 }
 
 void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)

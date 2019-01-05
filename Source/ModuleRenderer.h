@@ -45,6 +45,9 @@ class ModuleRenderer : public Module
     NodeList opaque_nodes;
     NodeList transparent_nodes;
 
+    unsigned post_vbo  = 0;
+    unsigned post_vao  = 0;
+
 public:
 
     explicit ModuleRenderer();
@@ -52,6 +55,7 @@ public:
 
 	bool                Init                    (Config* config = nullptr) override;
     void                Draw                    (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
+    void                Postprocess             (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
 
 	void                DrawDebug               () override;
     

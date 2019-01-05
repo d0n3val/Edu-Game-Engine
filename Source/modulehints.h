@@ -19,6 +19,7 @@ public:
 		METRIC_PROPORTION,
 		ENABLE_FRESNEL,
         TONEMAPPING,
+        ENABLE_MSAA,
 		COUNT
 	};
 
@@ -42,7 +43,7 @@ private:
         }     value;
         EType type;
 
-    } hints[unsigned(COUNT)];
+    } hints[COUNT];
 
 public:
 
@@ -64,40 +65,40 @@ public:
 
 inline bool ModuleHints::GetBoolValue(Hint hint) const
 {
-    return hints[unsigned(hint)].type == TYPE_BOOL ? hints[unsigned(hint)].value.bvalue : false;
+    return hints[hint].type == TYPE_BOOL ? hints[hint].value.bvalue : false;
 }
 
 inline void ModuleHints::SetBoolValue(Hint hint, bool value) 
 {
-    if(hints[unsigned(hint)].type == TYPE_BOOL) 
+    if(hints[hint].type == TYPE_BOOL) 
     {
-        hints[unsigned(hint)].value.bvalue = value;
+        hints[hint].value.bvalue = value;
     }
 }
 
 inline float ModuleHints::GetFloatValue(Hint hint) const
 {
-    return hints[unsigned(hint)].type == TYPE_FLOAT ? hints[unsigned(hint)].value.fvalue : 0.0f;
+    return hints[hint].type == TYPE_FLOAT ? hints[hint].value.fvalue : 0.0f;
 }
 
 inline void ModuleHints::SetFloatValue(Hint hint, float value) 
 {
-    if(hints[unsigned(hint)].type == TYPE_FLOAT) 
+    if(hints[hint].type == TYPE_FLOAT) 
     {
-        hints[unsigned(hint)].value.fvalue = value;
+        hints[hint].value.fvalue = value;
     }
 }
 
 inline int ModuleHints::GetIntValue(Hint hint) const
 {
-    return hints[unsigned(hint)].type == TYPE_INT ? hints[unsigned(hint)].value.ivalue : 0;
+    return hints[hint].type == TYPE_INT ? hints[hint].value.ivalue : 0;
 }
 
 inline void ModuleHints::SetIntValue(Hint hint, int value)
 {
-    if(hints[unsigned(hint)].type == TYPE_INT) 
+    if(hints[hint].type == TYPE_INT) 
     {
-        hints[unsigned(hint)].value.ivalue = value;
+        hints[hint].value.ivalue = value;
     }
 }
 

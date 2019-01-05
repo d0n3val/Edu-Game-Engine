@@ -49,9 +49,6 @@ private:
 
 private:
 
-    unsigned vbo         = 0;
-    unsigned vao         = 0;
-
     struct Framebuffer
     {
         unsigned id    = 0;
@@ -70,7 +67,6 @@ private:
     unsigned    y_pos       = 0;
     bool        active      = true;
     bool        focused     = false;
-    bool        msaa        = true;
 	bool        draw_plane  = true;
 	bool        draw_axis   = true;
 	bool        debug_draw  = true;
