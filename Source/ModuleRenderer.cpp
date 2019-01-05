@@ -167,7 +167,11 @@ void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info, const float4x
 void ModuleRenderer::LoadDefaultShaders()
 {
     App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", nullptr, 0, nullptr, 0);
-    App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", nullptr, 0, nullptr, 0);
+
+    const char* macros[]		  = { "#define MSAA 1 \n" }; 
+    const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
+
+    App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) const

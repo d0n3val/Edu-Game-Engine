@@ -1,10 +1,15 @@
-
+// \todo: change subroutine x ifdef 
 subroutine vec3 ToneMapping(const vec3 hdr);
 
 in vec2 uv;
 out vec4 color;
 
+#if MSAA
 layout(location=0) uniform sampler2DMS screen_texture;
+#else 
+layout(location=0) uniform sampler2D screen_texture;
+#endif 
+
 layout(location=1) uniform int viewport_width;
 layout(location=2) uniform int viewport_height;
 
@@ -47,6 +52,7 @@ layout(index=2) subroutine(ToneMapping) vec3 no_tonemap(const vec3 hdr)
        
 void main()
 {
+#if MSAA
     ivec2 vp = ivec2(viewport_width, viewport_height);
     vp.x = int(viewport_width  * uv.x); 
     vp.y = int(viewport_height * uv.y);
@@ -57,6 +63,9 @@ void main()
 	vec4 sample4 = texelFetch(screen_texture, vp, 3);
 
 	vec4 hdr = (sample1 + sample2 + sample3 + sample4) / 4.0f;
+#else
+    vec4 hdr = texture(screen_texture, uv);
+#endif
 
     vec3 mapped = tonemap(hdr.rgb);
 

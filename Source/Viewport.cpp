@@ -54,6 +54,18 @@ Viewport::Viewport()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*3*6));
+
+    glBindVertexArray(0);
+
 }
 
 Viewport::~Viewport()
@@ -63,35 +75,14 @@ Viewport::~Viewport()
         glDeleteBuffers(1, &vbo);
     }
 
-    if(msfb_color != 0)
+    if(vao != 0)
     {
-        glDeleteRenderbuffers(1, &msfb_color);
+        glDeleteVertexArrays(1, &vao);
     }
 
-    if(msfbo != 0)
-    {
-        glDeleteFramebuffers(1, &msfbo);
-    }
-
-    if(msfb_depth != 0)
-    {
-        glDeleteRenderbuffers(1, &msfb_depth);
-    }
-
-    if(fb_tex != 0)
-    {
-        glDeleteTextures(1, &fb_tex);
-    }
-
-    if(fbo != 0)
-    {
-        glDeleteFramebuffers(1, &fbo);
-    }
-
-    if(fb_depth != 0)
-    {
-        glDeleteRenderbuffers(1, &fb_depth);
-    }
+    RemoveFrameBuffer(fbuffer);
+    RemoveFrameBuffer(msaa_fbuffer);
+    RemoveFrameBuffer(post_fbuffer);
 }
 
 void Viewport::Draw(ComponentCamera* camera)
@@ -116,7 +107,7 @@ void Viewport::Draw(ComponentCamera* camera)
             float height = ImGui::GetContentRegionAvail().y;
 
             camera->SetAspectRatio(float(width)/float(height));
-            GenerateFBOTexture(unsigned(width), unsigned(height));
+            GenerateFBOs(unsigned(width), unsigned(height));
 
             float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
             if (draw_plane == true)
@@ -134,57 +125,59 @@ void Viewport::Draw(ComponentCamera* camera)
                 App->DebugDraw();
             }
 
-            App->renderer->Draw(camera, msaa ? msfbo : fbo, fb_width, fb_height);
-            App->debug_draw->Draw(camera, msaa ? msfbo : fbo, fb_width, fb_height);
+            App->renderer->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
+            App->debug_draw->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
 
             ImVec2 screenPos = ImGui::GetCursorScreenPos();
 
+            glBindFramebuffer(GL_FRAMEBUFFER, post_fbuffer.id);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            App->programs->UseProgram("postprocess", msaa ? 1 : 0);
+
+            unsigned indices[NUM_POSPROCESS_SUBROUTINES];
+
+            indices[TONEMAP_LOCATION] = App->hints->GetIntValue(ModuleHints::TONEMAPPING);
+
+            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
+
+            glActiveTexture(GL_TEXTURE0);
+
             if(msaa)
             {
-#if 0                
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, msfbo);
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-                glBlitFramebuffer(0, 0, fb_width, fb_height, 0, 0, fb_width, fb_height, GL_COLOR_BUFFER_BIT, GL_NEAREST); 
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#else
-
-                glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                
-                App->programs->UseProgram("postprocess", 0);
-                unsigned indices[NUM_POSPROCESS_SUBROUTINES];
-
-                indices[TONEMAP_LOCATION] = App->hints->GetIntValue(ModuleHints::TONEMAPPING);
-
-                glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
-
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msfb_tex);
-                glUniform1i(SCREEN_TEXTURE_LOCATION, 0); 
-                glUniform1i(VIEWPORT_WIDTH, fb_width); 
-                glUniform1i(VIEWPORT_HEIGHT, fb_height); 
-
-                glEnableVertexAttribArray(0);
-                glEnableVertexAttribArray(1);
-                glBindBuffer(GL_ARRAY_BUFFER, vbo);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*3*6));
-
-                glDrawArrays(GL_TRIANGLES, 0, 6); 
-
-                glDisableVertexAttribArray(0);
-                glDisableVertexAttribArray(1);
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
-                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-
-                App->programs->UnuseProgram();
-
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#endif
+                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaa_fbuffer.tex);
+            }
+            else
+            {
+                glBindTexture(GL_TEXTURE_2D, fbuffer.tex);
             }
 
+            glUniform1i(SCREEN_TEXTURE_LOCATION, 0); 
+            glUniform1i(VIEWPORT_WIDTH, fb_width); 
+            glUniform1i(VIEWPORT_HEIGHT, fb_height); 
+
+            glBindVertexArray(vao);
+
+            glDrawArrays(GL_TRIANGLES, 0, 6); 
+
+            glBindVertexArray(0);
+
+
+            if(msaa)
+            {
+                glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+            }
+            else
+            {
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+
+            App->programs->UnuseProgram();
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
             ImGui::GetWindowDrawList()->AddImage(
-                    (void*)fb_tex,
+                    (void*)post_fbuffer.tex,
                     ImVec2(screenPos),
                     ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
                     ImVec2(0, 1), ImVec2(1, 0));
@@ -213,100 +206,79 @@ void Viewport::Load(Config* config)
     msaa = config->GetBool("MSAA", true);
 }
 
-void Viewport::GenerateFBOTexture(unsigned w, unsigned h)
+void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa)
 {
-    if(w != fb_width || h != fb_height)
-    {
-        if(fb_tex != 0)
-        {
-            glDeleteTextures(1, &fb_tex);
-        }
-
-        if(w != 0 && h != 0)
-        {
-            if(fbo == 0)
-            {
-                glGenFramebuffers(1, &fbo);
-            }
-
-            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-            glGenTextures(1, &fb_tex);
-            glBindTexture(GL_TEXTURE_2D, fb_tex);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            
-            glGenRenderbuffers(1, &fb_depth);
-            glBindRenderbuffer(GL_RENDERBUFFER, fb_depth);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb_depth);            
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb_tex, 0);
-
-            glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            GenerateFBOMultisampled(w, h);
-        }
-
-		fb_width = w;
-		fb_height = h;
-    }
-}
-
-void Viewport::GenerateFBOMultisampled(unsigned w, unsigned h)
-{
-    if(msfb_color != 0)
-    {
-        glDeleteRenderbuffers(1, &msfb_color);
-    }
+    RemoveFrameBuffer(buffer);
 
     assert(w != 0 && h != 0);
 
-    if(msfbo == 0)
+    glGenFramebuffers(1, &buffer.id);
+    glBindFramebuffer(GL_FRAMEBUFFER, buffer.id);
+    glGenTextures(1, &buffer.tex);
+
+    if(msaa)
     {
-        glGenFramebuffers(1, &msfbo);
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, buffer.tex);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, w, h, GL_TRUE);
+
+        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, buffer.tex, 0); 
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+    }
+    else
+    {
+        glBindTexture(GL_TEXTURE_2D, buffer.tex);
+
+        // \todo: Ojo 16f para hdr!!
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.tex, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, msfbo);
+    if(depth)
+    {
+        glGenRenderbuffers(1, &buffer.depth);
+        glBindRenderbuffer(GL_RENDERBUFFER, buffer.depth);
 
-    glGenTextures(1, &msfb_tex);
-    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msfb_tex);
+        if(msaa)
+        {
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, w, h);
+        }
+        else
+        {
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h);
+        }
 
-    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, w, h, GL_TRUE);
-
-    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msfb_tex, 0); 
-
-    glGenRenderbuffers(1, &msfb_depth);
-    glBindRenderbuffer(GL_RENDERBUFFER, msfb_depth);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, w, h);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msfb_depth);            
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-    /*
-    glGenRenderbuffers(1, &msfb_color);
-    glBindRenderbuffer(GL_RENDERBUFFER, msfb_color);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA, w, h);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msfb_color);            
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    */
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, buffer.depth);            
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    }
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+}
+
+void Viewport::GenerateFBOs(unsigned w, unsigned h)
+{
+    if(w != fb_width || h != fb_height)
+    {
+        GenerateFBO(fbuffer, w, h, true, false);
+        GenerateFBO(msaa_fbuffer, w, h, true, true);
+        GenerateFBO(post_fbuffer, w, h, false, false);
+
+		fb_width = w;
+		fb_height = h;
+    }
 }
 
 void Viewport::DrawQuickBar(ComponentCamera* camera)
@@ -684,4 +656,26 @@ float Viewport::DistanceFromAtt(float constant, float linear, float quadric, flo
     }
 
     return distance;
+}
+
+void Viewport::RemoveFrameBuffer(Framebuffer& buffer)
+{
+    if(buffer.id != 0)
+    {
+        glDeleteFramebuffers(1, &buffer.id);
+        buffer.id = 0;
+    }
+
+    if(buffer.depth != 0)
+    {
+        glDeleteRenderbuffers(1, &buffer.depth);
+        buffer.depth = 0;
+    }
+
+    if(buffer.tex != 0)
+    {
+        glDeleteTextures(1, &buffer.tex);
+        buffer.tex = 0;
+    }
+
 }

@@ -21,7 +21,6 @@ public:
 	void                Save                (Config* config) const;
 	void                Load                (Config* config);
 
-    unsigned            GetFrameBuffer      () const { return fbo; }
     unsigned            GetWidth            () const { return fb_width; }
     unsigned            GetHeight           () const { return fb_height; }
     unsigned            GetXPos             () const { return x_pos; }
@@ -36,35 +35,45 @@ public:
 
 private:
 
-    void GenerateFBOTexture(unsigned w, unsigned h);
-    void GenerateFBOMultisampled(unsigned w, unsigned h);
+    struct Framebuffer;
+
+    void GenerateFBOs(unsigned w, unsigned h);
+    void GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa);
     void DrawQuickBar(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera, GameObject* go);
     void DrawGuizmo(ComponentCamera* camera, PointLight* point);
     void DrawGuizmo(ComponentCamera* camera, SpotLight* spot);
     float DistanceFromAtt(float constant, float linear, float quadric, float epsilon);
+    void RemoveFrameBuffer(Framebuffer& buffer);
 
 private:
 
     unsigned vbo         = 0;
-    unsigned fbo         = 0;
-    unsigned msfbo       = 0;
-    unsigned fb_depth    = 0;
-    unsigned msfb_depth  = 0;
-    unsigned msfb_color  = 0;
-    unsigned msfb_tex    = 0;
-    unsigned fb_tex      = 0;
-    unsigned fb_width    = 0;
-    unsigned fb_height   = 0;
-    unsigned x_pos       = 0;
-    unsigned y_pos       = 0;
-    bool     active      = true;
-    bool     focused     = false;
-    bool     msaa        = true;
-	bool     draw_plane  = true;
-	bool     draw_axis   = true;
-	bool     debug_draw  = true;
+    unsigned vao         = 0;
+
+    struct Framebuffer
+    {
+        unsigned id    = 0;
+        unsigned depth = 0;
+        unsigned tex   = 0;
+    };
+
+    Framebuffer fbuffer;
+    Framebuffer msaa_fbuffer;
+    Framebuffer post_fbuffer;
+
+    unsigned    fb_width    = 0;
+    unsigned    fb_height   = 0;
+
+    unsigned    x_pos       = 0;
+    unsigned    y_pos       = 0;
+    bool        active      = true;
+    bool        focused     = false;
+    bool        msaa        = true;
+	bool        draw_plane  = true;
+	bool        draw_axis   = true;
+	bool        debug_draw  = true;
 
     ImGuizmo::OPERATION guizmo_op      = ImGuizmo::TRANSLATE;
     ImGuizmo::MODE      guizmo_mode    = ImGuizmo::WORLD;
