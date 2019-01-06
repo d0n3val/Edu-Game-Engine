@@ -280,33 +280,62 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
 	// If export was successfull, create a new resource
 	if (import_ok == true)
 	{
-		Resource* res = CreateNewResource(type);
-		res->file = new_file_in_assets;
-		App->fs->NormalizePath(res->file);
-		string file;
-		App->fs->SplitFilePath(written_file.c_str(), nullptr, &file);
-		res->exported_file = file.c_str();
-		ret = res->uid;
-		LOG("Imported successful from [%s] to [%s]", res->GetFile(), res->GetExportedFile());
-
-        App->fs->SplitFilePath(res->file.c_str(), nullptr, &res->user_name, nullptr);
-
-        if (res->user_name.empty())
-        {
-            res->user_name = res->exported_file;
-        }
-
-        size_t pos_dot = res->user_name.find_last_of(".");
-        if(pos_dot != std::string::npos)
-        {
-            res->user_name.erase(res->user_name.begin()+pos_dot, res->user_name.end());
-        }
-
+        ret = ImportSuccess(type, new_file_in_assets, written_file);
 	}
 	else
 		LOG("Importing of [%s] FAILED", new_file_in_assets);
 
 	return ret;
+}
+
+UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool mipmaps, bool srgb)
+{
+	UID ret = 0;
+    bool import_ok = false;
+    string written_file;
+
+    import_ok = App->tex->Import(file_name, "", written_file, compressed);
+
+	// If export was successfull, create a new resource
+	if (import_ok == true)
+	{
+        ret = ImportSuccess(Resource::texture, file_name, written_file);
+        ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
+        texture->EnableMips(mipmaps);
+        texture->SetLinear(!srgb);
+	}
+	else
+    {
+		LOG("Importing of [%s] FAILED", file_name);
+    }
+
+	return ret;
+}
+
+UID ModuleResources::ImportSuccess(Resource::Type type, const char* file_name, const std::string& output)
+{
+    Resource* res = CreateNewResource(type);
+    res->file = file_name;
+    App->fs->NormalizePath(res->file);
+    string file;
+    App->fs->SplitFilePath(output.c_str(), nullptr, &file);
+    res->exported_file = file.c_str();
+    LOG("Imported successful from [%s] to [%s]", res->GetFile(), res->GetExportedFile());
+
+    App->fs->SplitFilePath(res->file.c_str(), nullptr, &res->user_name, nullptr);
+
+    if (res->user_name.empty())
+    {
+        res->user_name = res->exported_file;
+    }
+
+    size_t pos_dot = res->user_name.find_last_of(".");
+    if(pos_dot != std::string::npos)
+    {
+        res->user_name.erase(res->user_name.begin()+pos_dot, res->user_name.end());
+    }
+
+    return res->uid;
 }
 
 UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type type, const char* source_file)

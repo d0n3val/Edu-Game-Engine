@@ -848,7 +848,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 		App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
-        ImGui::Text("(%u,%u) %s %u bpp", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP());
+        ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
         ImGui::PopStyleColor();
 
         ImGui::PushID(name);

@@ -1,6 +1,7 @@
 #include "ResourceTexture.h"
 #include "Application.h"
 #include "ModuleTextures.h"
+#include "ModuleFileSystem.h"
 #include "Config.h"
 
 #include "OpenGL.h"
@@ -46,7 +47,6 @@ void ResourceTexture::Save(Config & config) const
 	config.AddInt("Format", format);
 	config.AddBool("Mipmaps", has_mips);
 	config.AddBool("Linear", linear);
-	config.GetBool("Compressed", linear);
 }
 
 // ---------------------------------------------------------
@@ -57,7 +57,11 @@ void ResourceTexture::Load(const Config & config)
     format = (Format) config.GetInt("Format", unknown);
     has_mips   = config.GetBool("Mipmaps", false);
     linear     = config.GetBool("Linear", true);
-    compressed = config.GetBool("Compressed", true);
+
+    std::string extension;
+    App->fs->SplitFilePath(exported_file.c_str(), nullptr, nullptr, &extension);
+
+    compressed = _stricmp(extension.c_str(), "dds") == 0;
 }
 
 // ---------------------------------------------------------

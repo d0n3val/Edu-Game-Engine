@@ -156,6 +156,7 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
                     ImGui::BeginTooltip();
                     ImGui::Text("UID: %llu", info->GetUID());
                     ImGui::Text("Source: %s", info->GetFile());
+                    ImGui::Text("Exported: %s", info->GetExportedFile());
                     ImGui::Text("References: %u", info->CountReferences());
                     ImGui::EndTooltip();
                 }
@@ -295,7 +296,7 @@ void PanelResources::DrawTextureProperties()
         ImGui::Indent(52);
         if(ImGui::Button("Ok", ImVec2(60, 0)))
         {
-            // \todo: App->resources->ImportFile(file, false); 
+            App->resources->ImportTexture(texture_params.file.c_str(), texture_params.compressed, texture_params.mipmaps, texture_params.srgb); 
 
             ImGui::CloseCurrentPopup();
         }

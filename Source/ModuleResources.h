@@ -36,6 +36,7 @@ public:
 	UID ImportFileOutsideVFM(const char* full_path);
 	UID ImportFile(const char* new_file_in_assets, bool force = false);
 	UID ImportBuffer(const void* buffer, uint size, Resource::Type type, const char* source_file = nullptr);
+	UID ImportTexture(const char* file_name, bool compressed, bool mipmaps, bool srgb);
 
 	UID GenerateNewUID();
 	const Resource* Get(UID uid) const;
@@ -54,6 +55,7 @@ private:
 
 	void LoadUID();
 	void SaveUID() const;
+    UID ImportSuccess(Resource::Type type, const char* file_name, const std::string& output);
 
 private:
 	std::string asset_folder;
