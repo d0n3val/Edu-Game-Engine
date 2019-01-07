@@ -113,7 +113,7 @@ void Viewport::Load(Config* config)
 	debug_draw = config->GetBool("Debug Draw", true);
 }
 
-void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa)
+void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr)
 {
     RemoveFrameBuffer(buffer);
 
@@ -126,7 +126,7 @@ void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool dep
     if(msaa)
     {
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, buffer.tex);
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, w, h, GL_TRUE);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, hdr ? GL_RGBA16F : GL_RGBA, w, h, GL_TRUE);
 
         glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -140,8 +140,7 @@ void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool dep
     {
         glBindTexture(GL_TEXTURE_2D, buffer.tex);
 
-        // \todo: Ojo 16f para hdr!!
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, hdr ? GL_RGBA16F : GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -179,9 +178,9 @@ void Viewport::GenerateFBOs(unsigned w, unsigned h)
 {
     if(w != fb_width || h != fb_height)
     {
-        GenerateFBO(fbuffer, w, h, true, false);
-        GenerateFBO(msaa_fbuffer, w, h, true, true);
-        GenerateFBO(post_fbuffer, w, h, false, false);
+        GenerateFBO(fbuffer, w, h, true, false, true);
+        GenerateFBO(msaa_fbuffer, w, h, true, true, true);
+        GenerateFBO(post_fbuffer, w, h, false, false, false);
 
 		fb_width = w;
 		fb_height = h;

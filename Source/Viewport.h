@@ -38,7 +38,7 @@ private:
     struct Framebuffer;
 
     void GenerateFBOs(unsigned w, unsigned h);
-    void GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa);
+    void GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr);
     void DrawQuickBar(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera, GameObject* go);
