@@ -210,7 +210,7 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     vec3 fresnel			 = get_fresnel(view_pos, pos, normal, specular_color.rgb);
 	float norm_factor		 = (shininess+4.0)/(8.0);
     vec3 conserving_specular = fresnel*norm_factor;
-    vec3 conserving_diffuse  = (1-fresnel)*diffuse_color.rgb; // try r0 ==> specular_color.rgb 
+    vec3 conserving_diffuse  = (1-specular_color.rgb)*diffuse_color.rgb; // try r0 ==> specular_color.rgb 
 	
     vec3 color = directional_blinn(pos, normal, view_pos, lights.directional, mat, conserving_diffuse, conserving_specular, shininess);
 
