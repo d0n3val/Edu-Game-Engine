@@ -38,10 +38,10 @@ Viewport::~Viewport()
 
 void Viewport::Draw(ComponentCamera* camera)
 {
-    int posx   = App->editor->GetPosX(ModuleEditor::TabPanelLeft)+App->editor->GetWidth(ModuleEditor::TabPanelLeft);
-    int posy   = 21;
-    int width  = App->editor->GetPosX(ModuleEditor::TabPanelRight)-posx;
-    int height = App->editor->GetPosY(ModuleEditor::TabPanelBottom)-21;
+	int posx = App->editor->GetPosX(ModuleEditor::TabPanelLeft) + App->editor->GetWidth(ModuleEditor::TabPanelLeft);
+	int posy = 21;
+	int width = App->editor->GetPosX(ModuleEditor::TabPanelRight) - posx;
+	int height = App->editor->GetPosY(ModuleEditor::TabPanelBottom) - 21;
 
     ImGui::SetNextWindowPos(ImVec2(float(posx), float(posy)));
     ImGui::SetNextWindowSize(ImVec2(float(width), float(height)));

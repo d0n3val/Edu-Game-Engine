@@ -52,7 +52,7 @@ layout(index=2) subroutine(ToneMapping) vec3 no_tonemap(const vec3 hdr)
        
 void main()
 {
-#if MSAA
+#if MSAA 
     ivec2 vp = ivec2(viewport_width, viewport_height);
     vp.x = int(viewport_width  * uv.x); 
     vp.y = int(viewport_height * uv.y);

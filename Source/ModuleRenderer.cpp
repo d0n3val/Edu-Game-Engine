@@ -29,6 +29,8 @@
 #include "OpenGL.h"
 #include "DebugDraw.h"
 
+#include "imgui/imgui.h"
+
 #include "mmgr/mmgr.h"
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
@@ -366,11 +368,17 @@ void ModuleRenderer::UpdateLightUniform() const
 void ModuleRenderer::DrawDebug()
 {
     float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+    unsigned total_tris = 0;
 
     for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
     {
         const ResourceMesh* mesh = it->mesh->GetResource();
 
+        if(mesh)
+        {
+            total_tris += mesh->num_indices/3;
+        }
+#if 0
         if(mesh && (mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
         {
             for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
@@ -385,7 +393,36 @@ void ModuleRenderer::DrawDebug()
                 dd::axisTriad(tbn, metric_proportion*0.1f*0.1f, metric_proportion*0.1f, 0);
             }
         }
+#endif
     }
+
+    for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
+    {
+        const ResourceMesh* mesh = it->mesh->GetResource();
+
+        if(mesh)
+        {
+            total_tris += mesh->num_indices/3;
+        }
+#if 0
+        if(mesh && (mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
+        {
+            for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
+            {
+                float3 position  = it->transform.TransformPos(mesh->src_vertices[i]);
+                float3 normal    = it->transform.TransformDir(mesh->src_normals[i]);
+                float3 tangent   = it->transform.TransformDir(mesh->src_tangents[i]);
+                float3 bitangent = normal.Cross(tangent);
+
+                float4x4 tbn(float4(tangent, 0.0f), float4(bitangent, 0.0f), float4(normal, 0.0f), float4(position, 1.0f));
+
+                dd::axisTriad(tbn, metric_proportion*0.1f*0.1f, metric_proportion*0.1f, 0);
+            }
+        }
+#endif
+    }
+
+    ImGui::Text("Total tris %d ", total_tris);
 }
 
 void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned width, unsigned height)
