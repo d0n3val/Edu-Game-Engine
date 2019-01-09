@@ -1,6 +1,7 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 4
 #define PI 3.141597
+//#define SCHLICK_GGX_GSF
 
 //////////////////// STRUCTS ////////////////////////
 
@@ -105,7 +106,6 @@ vec4 get_specular_color(const Material mat, const vec2 uv)
 {
     vec4 color = texture(mat.specular_map, uv);
 
-    //return vec4(color.rgb*mat.specular_color, exp2(9*color.a*mat.smoothness+1));
     return vec4(color.rgb*mat.specular_color, color.a*mat.smoothness);
 }
 
@@ -131,51 +131,6 @@ layout(index=3) subroutine(GetFresnel) vec3 get_no_fresnel(vec3 dir0, vec3 dir1,
     return f0;
 }
 
-float lambert(vec3 light_dir, const vec3 normal)
-{
-    return max(0.0, dot(normal, -light_dir));
-}
-
-float specular_blinn(const vec3 light_dir, const vec3 normal, const vec3 view_dir, const float smoothness)
-{
-    vec3 half_dir    = normalize(view_dir-light_dir);
-    float sp         = max(dot(normal, half_dir), 0.0);
-
-    return pow(sp, smoothness);
-}
-
-float G1V(float dotNV, float k)
-{
-	return dotNV/(k*sqrt(1-dotNV*dotNV));
-}
-
-vec3 GGXLighting(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
-{
-	float alpha = roughness*roughness;
-
-	vec3 H = max(V+L, 0);
-	float dotNL = max(dot(N, L), 0);
-	float dotNV = max(dot(N, V), 0);
-	float dotNH = max(dot(N, H), 0);
-	float dotLH = max(dot(L, H), 0);
-
-	vec3 F;
-	float D, vis;
-
-	float alpha2 = alpha*alpha;
-	float denom = dotNH*dotNH*(alpha2-1.0)+1.0;
-	D = alpha2/(PI*denom*denom);
-
-	float dotLH5 = pow(1.0-dotLH, 5);
-	F = F0+(1-F0)*dotLH5;
-
-	float k = alpha; ///2.0f;
-	vis = G1V(dotNL, k)*G1V(dotNV, k)/(4.0*dotNL*dotNV);
-
-	return F; //*(dotNL*D*vis);
-	
-}
-
 float sqr(float a)
 {
     return a*a;
@@ -192,39 +147,54 @@ float GGXNormalDistribution(float roughness, float NdotH)
 
 float GGXGeometricShadowingFunction (float NdotL, float NdotV, float roughness)
 {
+#ifdef SCHLICK_GGX_GSF
+	// Schlick-GGX GSF
+    float k = roughness * 0.5;
+	float SmithL = mix(NdotL, 1.0, k);
+    float SmithV = mix(NdotV, 1.0, k);
+
+    float Gs = 0.25/(SmithL*SmithV);
+#else
+	// GGX GSF
     float roughnessSqr = roughness*roughness;
     float NdotLSqr = NdotL*NdotL;
     float NdotVSqr = NdotV*NdotV;
 
 
+	// original version
     //float SmithL = (2 * NdotL)/ (NdotL + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotLSqr));
     //float SmithV = (2 * NdotV)/ (NdotV + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotVSqr));
-
     // optimization using full visibility equation
 
-    float SmithL = 1.0/ (NdotL + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotLSqr));
-    float SmithV = 1.0/ (NdotV + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotVSqr));
-
-	float Gs =  (SmithL * SmithV);
+    float SmithL = NdotL + sqrt(mix(NdotLSqr, 1.0, roughnessSqr));
+    float SmithV = NdotV + sqrt(mix(NdotVSqr, 1.0, roughnessSqr));
+	float Gs =  1.0/(SmithL * SmithV);
+#endif
 
 	return Gs;
+}
+
+vec3 directional_blinn(const vec3 normal, const vec3 view_dir, const vec3 light_dir, const vec3 light_color, 
+                       const Material mat, const vec3 diffuse_color, const vec3 specular_color, float smoothness, float att)
+{
+    float roughness = 1.0-smoothness; 
+    roughness = roughness*roughness;
+
+	float dotNL      = max(dot(normal, light_dir), 0.000001);
+	float dotNV      = max(dot(normal, view_dir), 0.000001);
+
+    vec3 half_dir    = normalize(view_dir+light_dir);
+    vec3 fresnel     = get_fresnel(light_dir, half_dir, specular_color);
+    float ndf        = GGXNormalDistribution(roughness, max(0.000001, dot(half_dir, normal)));
+    float gsf        = GGXGeometricShadowingFunction(dotNL, dotNV, roughness);
+
+    return light_color*(diffuse_color*(1-fresnel)+(fresnel*ndf*gsf))*dotNL*att;
 }
 
 vec3 directional_blinn(const vec3 normal, const vec3 view_dir, const DirLight light, const Material mat, 
                        const vec3 diffuse_color, const vec3 specular_color, float smoothness)
 {
-    float roughness = 1.0-smoothness; 
-    roughness = roughness*roughness;
-
-	float dotNL      = max(dot(normal, -light.dir), 0.000001);
-	float dotNV      = max(dot(normal, view_dir), 0.000001);
-
-    vec3 half_dir    = normalize(view_dir-light.dir);
-    vec3 fresnel     = get_fresnel(-light.dir, half_dir, specular_color);
-    float ndf        = GGXNormalDistribution(roughness, max(0.000001, dot(half_dir, normal)));
-    float gsf        = GGXGeometricShadowingFunction(dotNL, dotNV, roughness);
-
-    return light.color*(diffuse_color*(1-fresnel)+(fresnel*ndf*gsf))*dotNL;
+    return directional_blinn(normal, view_dir, -light.dir, light.color, mat, diffuse_color, specular_color, smoothness, 1.0);
 }
 
 float get_attenuation(const vec3 constants, float distance)
@@ -235,24 +205,13 @@ float get_attenuation(const vec3 constants, float distance)
 vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLight light, const Material mat,
                  const vec3 diffuse_color, const vec3 specular_color, float smoothness)
 {
-    vec3 light_dir    = pos-light.position;
+    vec3 light_dir    = light.position-pos;
     float distance    = length(light_dir);
     light_dir         = light_dir/distance;
 
-    float roughness   = 1.0-smoothness; 
-    roughness         = roughness*roughness;
-
-	float dotNL       = max(dot(normal, -light_dir), 0.000001);
-	float dotNV       = max(dot(normal, view_dir), 0.000001);
-
-    vec3 half_dir     = normalize(view_dir-light_dir);
-    vec3 fresnel      = get_fresnel(-light_dir, half_dir, specular_color);
-    float ndf         = GGXNormalDistribution(roughness, max(0.000001, dot(half_dir, normal)));
-    float gsf         = GGXGeometricShadowingFunction(dotNL, dotNV, roughness);
-
     float att         = get_attenuation(light.attenuation, distance);
-	
-    return light.color*(diffuse_color*(1-fresnel)+(fresnel*ndf*gsf))*dotNL*att;
+
+    return directional_blinn(normal, view_dir, light_dir, light.color, mat, diffuse_color, specular_color, smoothness, att);
 }
 
 float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
@@ -266,25 +225,14 @@ float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float out
 vec3 spot_blinn(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLight light, const Material mat,
                 const vec3 diffuse_color, const vec3 specular_color, float smoothness)
 {
-    vec3 light_dir    = pos-light.position;
+    vec3 light_dir    = light.position-pos;
     float distance    = length(light_dir);
     light_dir         = light_dir/distance;
 
-    float roughness   = 1.0-smoothness; 
-    roughness         = roughness*roughness;
-
-	float dotNL       = max(dot(normal, -light_dir), 0.000001);
-	float dotNV       = max(dot(normal, view_dir), 0.000001);
-
-    vec3 half_dir     = normalize(view_dir-light_dir);
-    vec3 fresnel      = get_fresnel(-light_dir, half_dir, specular_color);
-    float ndf         = GGXNormalDistribution(roughness, max(0.000001, dot(half_dir, normal)));
-    float gsf         = GGXGeometricShadowingFunction(dotNL, dotNV, roughness);
-
     float cone        = get_cone(light_dir, light.direction, light.inner, light.outer);
     float att         = get_attenuation(light.attenuation, distance);
-	
-    return light.color*(diffuse_color*(1-fresnel)+(fresnel*ndf*gsf))*dotNL*att*cone;
+
+    return directional_blinn(normal, view_dir, light_dir, light.color, mat, diffuse_color, specular_color, smoothness, att*cone);
 }
 
 vec4 blinn(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
