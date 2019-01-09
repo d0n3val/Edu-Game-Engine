@@ -105,7 +105,6 @@ vec4 get_specular_color(const Material mat, const vec2 uv)
 {
     vec4 color = texture(mat.specular_map, uv);
 
-    //return vec4(color.rgb*mat.specular_color, exp2(9*color.a*mat.smoothness+1));
     return vec4(color.rgb*mat.specular_color, color.a*mat.smoothness);
 }
 
@@ -131,51 +130,6 @@ layout(index=3) subroutine(GetFresnel) vec3 get_no_fresnel(vec3 dir0, vec3 dir1,
     return f0;
 }
 
-float lambert(vec3 light_dir, const vec3 normal)
-{
-    return max(0.0, dot(normal, -light_dir));
-}
-
-float specular_blinn(const vec3 light_dir, const vec3 normal, const vec3 view_dir, const float smoothness)
-{
-    vec3 half_dir    = normalize(view_dir-light_dir);
-    float sp         = max(dot(normal, half_dir), 0.0);
-
-    return pow(sp, smoothness);
-}
-
-float G1V(float dotNV, float k)
-{
-	return dotNV/(k*sqrt(1-dotNV*dotNV));
-}
-
-vec3 GGXLighting(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
-{
-	float alpha = roughness*roughness;
-
-	vec3 H = max(V+L, 0);
-	float dotNL = max(dot(N, L), 0);
-	float dotNV = max(dot(N, V), 0);
-	float dotNH = max(dot(N, H), 0);
-	float dotLH = max(dot(L, H), 0);
-
-	vec3 F;
-	float D, vis;
-
-	float alpha2 = alpha*alpha;
-	float denom = dotNH*dotNH*(alpha2-1.0)+1.0;
-	D = alpha2/(PI*denom*denom);
-
-	float dotLH5 = pow(1.0-dotLH, 5);
-	F = F0+(1-F0)*dotLH5;
-
-	float k = alpha; ///2.0f;
-	vis = G1V(dotNL, k)*G1V(dotNV, k)/(4.0*dotNL*dotNV);
-
-	return F; //*(dotNL*D*vis);
-	
-}
-
 float sqr(float a)
 {
     return a*a;
@@ -192,20 +146,29 @@ float GGXNormalDistribution(float roughness, float NdotH)
 
 float GGXGeometricShadowingFunction (float NdotL, float NdotV, float roughness)
 {
+#ifdef SCHLICK_GGX_GSF
+	// Schlick-GGX GSF
+    float k = roughness * 0.5;
+	float SmithL = mix(NdotL, 1.0, k);
+    float SmithV = mix(NdotV, 1.0, k);
+
+    float Gs = 0.25/(SmithL*SmithV);
+#else
+	// GGX GSF
     float roughnessSqr = roughness*roughness;
     float NdotLSqr = NdotL*NdotL;
     float NdotVSqr = NdotV*NdotV;
 
 
+	// original version
     //float SmithL = (2 * NdotL)/ (NdotL + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotLSqr));
     //float SmithV = (2 * NdotV)/ (NdotV + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotVSqr));
-
     // optimization using full visibility equation
 
-    float SmithL = 1.0/ (NdotL + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotLSqr));
-    float SmithV = 1.0/ (NdotV + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotVSqr));
-
-	float Gs =  (SmithL * SmithV);
+    float SmithL = NdotL + sqrt(mix(NdotLSqr, 1.0, roughnessSqr));
+    float SmithV = NdotV + sqrt(mix(NdotVSqr, 1.0, roughnessSqr));
+	float Gs =  1.0/(SmithL * SmithV);
+#endif
 
 	return Gs;
 }
