@@ -177,8 +177,7 @@ float GGXGeometricShadowingFunction (float NdotL, float NdotV, float roughness)
 vec3 directional_blinn(const vec3 normal, const vec3 view_dir, const vec3 light_dir, const vec3 light_color, 
                        const Material mat, const vec3 diffuse_color, const vec3 specular_color, float smoothness, float att)
 {
-    float roughness = 1.0-smoothness; 
-    roughness = roughness*roughness;
+    float roughness  = sqr(1.0-smoothness); 
 
 	float dotNL      = max(dot(normal, light_dir), 0.000001);
 	float dotNV      = max(dot(normal, view_dir), 0.000001);
