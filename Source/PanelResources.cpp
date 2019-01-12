@@ -178,6 +178,7 @@ void PanelResources::DrawMeshPopup()
 {
     bool open_plane = false;
     bool open_cylinder = false;
+    bool open_sphere = false;
 
     if(ImGui::BeginPopup("Resource popup"))
     {
@@ -185,6 +186,7 @@ void PanelResources::DrawMeshPopup()
         {
             open_plane = ImGui::MenuItem("Plane");
             open_cylinder = ImGui::MenuItem("Cylinder");
+            open_sphere = ImGui::MenuItem("Sphere");
             ImGui::EndMenu();
         }
         ImGui::EndPopup();
@@ -198,9 +200,14 @@ void PanelResources::DrawMeshPopup()
     {
         ImGui::OpenPopup("Cylinder properties");
     }
+    else if(open_sphere)
+    {
+        ImGui::OpenPopup("Sphere properties");
+    }
 
     DrawPlaneProperties();
     DrawCylinderProperties();
+    DrawSphereProperties();
 }
 
 void PanelResources::DrawPlaneProperties()
@@ -271,6 +278,43 @@ void PanelResources::DrawCylinderProperties()
         {
             radius = 0.5f;
             height = 1.0f;
+            slices = stacks = 20;
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+void PanelResources::DrawSphereProperties()
+{
+    if (ImGui::BeginPopupModal("Sphere properties", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        static float radius = 0.5f;
+        static int slices = 20, stacks = 20;
+
+        ImGui::InputFloat("radius", &radius);
+        ImGui::InputInt("slices", &slices);
+        ImGui::InputInt("stacks", &stacks);
+
+        bool close = false;
+        close = ImGui::Button("Cancel", ImVec2(128, 0));
+
+        ImGui::SameLine();
+
+        if(ImGui::Button("Ok", ImVec2(128, 0)))
+        {
+            char lTmp[512];
+            sprintf_s(lTmp, 511, "**Sphere_%g_%d_%d**", radius, slices, stacks);
+
+            close = true;
+            ResourceMesh::LoadSphere(lTmp, radius, slices, stacks);
+        }
+
+        if(close)
+        {
+            radius = 0.5f;
             slices = stacks = 20;
 
             ImGui::CloseCurrentPopup();

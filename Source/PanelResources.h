@@ -21,6 +21,7 @@ private:
     void DrawMeshPopup();
     void DrawPlaneProperties();
     void DrawCylinderProperties();
+    void DrawSphereProperties();
 
     void DrawTextureProperties();
 

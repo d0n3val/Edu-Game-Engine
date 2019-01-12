@@ -63,7 +63,6 @@ bool ResourceMaterial::LoadInMemory()
 
 				if (tex_res)
 				{
-                    tex_res->SetLinear(i == TextureNormal);
                     tex_res->LoadToMemory();
 				}
 			}

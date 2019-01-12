@@ -246,7 +246,7 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     float4 diffuse_color  = material->GetDiffuseColor();
     float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : material->GetSpecularColor();
     float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
-    float shininess	      = specular ? 1.0f : material->GetShininess();
+    float shininess	      = /*specular ? 1.0f : */ material->GetShininess();
 
     glUniform1f(SHININESS_LOC, shininess);
 
