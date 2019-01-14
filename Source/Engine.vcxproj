@@ -58,7 +58,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnablePREfast>false</EnablePREfast>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>./SDL/include;./glew-2.1.0/include;./imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
@@ -84,7 +84,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnablePREfast>false</EnablePREfast>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>./SDL/include;./glew-2.1.0/include;./imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -375,6 +375,10 @@
     <ClCompile Include="ResourceMesh.cpp" />
     <ClCompile Include="ResourceModel.cpp" />
     <ClCompile Include="ResourceTexture.cpp" />
+    <ClCompile Include="SOIL2\srcs\etc1_utils.c" />
+    <ClCompile Include="SOIL2\srcs\image_DXT.c" />
+    <ClCompile Include="SOIL2\srcs\image_helper.c" />
+    <ClCompile Include="SOIL2\srcs\SOIL2.c" />
     <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="PhysVehicle3D.cpp" />

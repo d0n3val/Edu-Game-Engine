@@ -67,6 +67,9 @@
     <Filter Include="Lights">
       <UniqueIdentifier>{e9dde8d3-a07c-4262-a852-7221c1bc7326}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\SOIL2">
+      <UniqueIdentifier>{12ce4457-e1e1-4727-a647-63cb490ccc7b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -913,6 +916,18 @@
     </ClCompile>
     <ClCompile Include="DirLight.cpp">
       <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL2\srcs\etc1_utils.c">
+      <Filter>3rd Party\SOIL2</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL2\srcs\image_DXT.c">
+      <Filter>3rd Party\SOIL2</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL2\srcs\image_helper.c">
+      <Filter>3rd Party\SOIL2</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL2\srcs\SOIL2.c">
+      <Filter>3rd Party\SOIL2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

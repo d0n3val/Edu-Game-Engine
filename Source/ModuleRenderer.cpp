@@ -31,6 +31,7 @@
 
 #include "imgui/imgui.h"
 
+#include "SOIL2.h"
 #include "mmgr/mmgr.h"
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
@@ -40,7 +41,14 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
 {
     LoadDefaultShaders();
+    CreatePostprocessData();
+	CreateSkybox();
 
+	return true;
+}
+
+void ModuleRenderer::CreatePostprocessData()
+{
 	float vertex_buffer_data[] =
 	{
         // positions
@@ -77,10 +85,76 @@ bool ModuleRenderer::Init(Config* config /*= nullptr*/)
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*3*6));
 
     glBindVertexArray(0);
-
-	return true;
 }
-   
+
+void ModuleRenderer::CreateSkybox()
+{
+    const char face_order[9] = { 'N', 'S', 'W', 'E', 'U', 'D' };
+    sky_cubemap = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/test2EnvHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+
+    glGenBuffers(1, &sky_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, sky_vbo);
+
+    float sky_vertices[] = {
+        // positions          
+        -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        -1.0f,  1.0f, -1.0f,
+        1.0f,  1.0f, -1.0f,
+        1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+        1.0f, -1.0f,  1.0f
+    };
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float3)*6*6, sky_vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenVertexArrays(1, &sky_vao);
+    glBindVertexArray(sky_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, sky_vbo);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 ModuleRenderer::~ModuleRenderer()
 {
     if(post_vbo != 0)
@@ -122,9 +196,32 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view, view_pos);
+    DrawSkybox(proj, view);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
+void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
+{
+    if(sky_vao != 0)
+    {
+        App->programs->UseProgram("skybox", 0);
+
+        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, sky_cubemap);
+        glUniform1i(App->programs->GetUniformLocation("skybox"), 0);
+
+        glBindVertexArray(sky_vao);
+        glDrawArrays(GL_TRIANGLES, 0, 6*6);
+        glBindVertexArray(0);
+
+        App->programs->UnuseProgram();
+    }
+}
+
 
 void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
 {
@@ -222,6 +319,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
 
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros, nullptr, 0);
+    App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) const
