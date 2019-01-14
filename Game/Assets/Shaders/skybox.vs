@@ -9,6 +9,5 @@ void main()
 {
     coords      = position;
     vec4 pos    = proj*vec4(mat3(view)*position, 1.0); // not translation of view
-    //gl_Position = pos.xyww; // to ensure z = 1.0
-    gl_Position = pos; // to ensure z = 1.0
+    gl_Position = pos.xyww; // to ensure z = 1.0
 }

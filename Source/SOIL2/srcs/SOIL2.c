@@ -2219,7 +2219,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 				glTexImage2D(
 					cf_target, 0,
 					S3TC_type, width, height, 0,
-					GL_RGBA, GL_FLOAT, DDS_data );
+					S3TC_type, GL_FLOAT, DDS_data );
 			} else
 			{
 				soilGlCompressedTexImage2D(
