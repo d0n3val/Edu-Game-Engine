@@ -90,7 +90,19 @@ void ModuleRenderer::CreatePostprocessData()
 void ModuleRenderer::CreateSkybox()
 {
     const char face_order[9] = { 'N', 'S', 'W', 'E', 'U', 'D' };
-    sky_cubemap = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/test2EnvHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+
+    sky_cubemap = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaEnvHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+    sky_irradiance = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaDiffuseHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+    sky_prefilter = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaSpecularHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+    sky_brdf = SOIL_load_OGL_texture("Assets/Textures/PBR/BarnaBRDF.dds", 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+	/*
+	sky_cubemap = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywayEnvHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+    sky_irradiance = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywayDiffuseHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+    sky_prefilter = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywaySpecularHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+    sky_brdf = SOIL_load_OGL_texture("Assets/Textures/PBR/MilkywayBRDF.dds", 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+    */
+    
+    
 
     glGenBuffers(1, &sky_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, sky_vbo);
@@ -344,7 +356,19 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     float4 diffuse_color  = material->GetDiffuseColor();
     float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : material->GetSpecularColor();
     float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
-    float shininess	      = /*specular ? 1.0f : */ material->GetShininess();
+    float shininess	      = /*specular ? 1.0f :  */ material->GetShininess();
+
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, sky_brdf);
+    glUniform1i(202, 7);
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, sky_prefilter);
+    glUniform1i(201, 6);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, sky_irradiance);
+    glUniform1i(200, 5);
 
     glUniform1f(SHININESS_LOC, shininess);
 
@@ -520,7 +544,7 @@ void ModuleRenderer::DrawDebug()
 #endif
     }
 
-    ImGui::Text("Total tris %d ", total_tris);
+    //ImGui::Text("Total tris %d ", total_tris);
 }
 
 void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned width, unsigned height)

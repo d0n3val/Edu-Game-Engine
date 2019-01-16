@@ -119,6 +119,7 @@ bool ModuleRenderer3D::Init(Config* config)
 		glEnable(GL_TEXTURE_2D);
 
         glEnable(GL_MULTISAMPLE);  
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);  
     }
 
     viewport = new Viewport;

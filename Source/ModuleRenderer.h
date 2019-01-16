@@ -50,6 +50,9 @@ class ModuleRenderer : public Module
     unsigned sky_vbo     = 0;
     unsigned sky_vao     = 0;
     unsigned sky_cubemap = 0;
+    unsigned sky_irradiance = 0;
+    unsigned sky_prefilter = 0;
+    unsigned sky_brdf = 0;
 
 public:
 

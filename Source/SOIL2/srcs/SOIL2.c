@@ -2044,7 +2044,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		!(
 		(header.sPixelFormat.dwFourCC == (('D'<<0)|('X'<<8)|('T'<<16)|('1'<<24))) ||
 		(header.sPixelFormat.dwFourCC == (('D'<<0)|('X'<<8)|('T'<<16)|('3'<<24))) ||
-		(header.sPixelFormat.dwFourCC == (('D'<<0)|('X'<<8)|('T'<<16)|('5'<<24))) || 
+		(header.sPixelFormat.dwFourCC == (('D'<<0)|('X'<<8)|('T'<<16)|('5'<<24))) ||
         (header.sPixelFormat.dwFourCC == 116)
 		) )
 	{
@@ -2056,59 +2056,8 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	height = header.dwHeight;
 	uncompressed = 1 - (header.sPixelFormat.dwFlags & DDPF_FOURCC) / DDPF_FOURCC;
 	cubemap = (header.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP) / DDSCAPS2_CUBEMAP;
-
-	if(header.sPixelFormat.dwFourCC == (('D'<<0)|('X'<<8)|('T'<<16)|('1'<<24)))
-    {
-		/*	can we even handle direct uploading to OpenGL DXT compressed images?	*/
-		if( query_DXT_capability() != SOIL_CAPABILITY_PRESENT )
-		{
-			/*	we can't do it!	*/
-			result_string_pointer = "Direct upload of S3TC images not supported by the OpenGL driver";
-			return 0;
-		}
-        uncompressed = 0;
-        S3TC_type = SOIL_RGBA_S3TC_DXT1;
-        block_size = 8;
-		DDS_main_size = ((width+3)>>2)*((height+3)>>2)*block_size;
-    }
-    else if (header.sPixelFormat.dwFourCC == (('D'<<0)|('X'<<8)|('T'<<16)|('3'<<24)))
-    {
-		/*	can we even handle direct uploading to OpenGL DXT compressed images?	*/
-		if( query_DXT_capability() != SOIL_CAPABILITY_PRESENT )
-		{
-			/*	we can't do it!	*/
-			result_string_pointer = "Direct upload of S3TC images not supported by the OpenGL driver";
-			return 0;
-		}
-        uncompressed = 0;
-        S3TC_type = SOIL_RGBA_S3TC_DXT3;
-        block_size = 16;
-		DDS_main_size = ((width+3)>>2)*((height+3)>>2)*block_size;
-    }
-    else if(header.sPixelFormat.dwFourCC == (('D'<<0)|('X'<<8)|('T'<<16)|('5'<<24)))
-    {
-		/*	can we even handle direct uploading to OpenGL DXT compressed images?	*/
-		if( query_DXT_capability() != SOIL_CAPABILITY_PRESENT )
-		{
-			/*	we can't do it!	*/
-			result_string_pointer = "Direct upload of S3TC images not supported by the OpenGL driver";
-			return 0;
-		}
-        uncompressed = 0;
-        S3TC_type = SOIL_RGBA_S3TC_DXT5;
-        block_size = 16;
-		DDS_main_size = ((width+3)>>2)*((height+3)>>2)*block_size;
-    }
-    else if (header.sPixelFormat.dwFourCC == 116)
-    {
-        uncompressed = 1;
-        block_size = 16;
-		S3TC_type = GL_RGBA32F;
-		DDS_main_size = width * height * block_size;
-    }
-    else
-    {
-        uncompressed = 1;
+	if( uncompressed )
+	{
 		S3TC_type = GL_RGB;
 		block_size = 3;
 		if( header.sPixelFormat.dwFlags & DDPF_ALPHAPIXELS )
@@ -2117,8 +2066,43 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 			block_size = 4;
 		}
 		DDS_main_size = width * height * block_size;
-    }
+	} else
+	{
+        if(header.sPixelFormat.dwFourCC == 116)
+        {
+            block_size = 16;
+            S3TC_type = GL_RGBA32F;
+            DDS_main_size = width * height * block_size;
+        }
+        else
+        {
+            /*	can we even handle direct uploading to OpenGL DXT compressed images?	*/
+            if( query_DXT_capability() != SOIL_CAPABILITY_PRESENT )
+            {
+                /*	we can't do it!	*/
+                result_string_pointer = "Direct upload of S3TC images not supported by the OpenGL driver";
+                return 0;
+            }
+            /*	well, we know it is DXT1/3/5, because we checked above	*/
+            switch( (header.sPixelFormat.dwFourCC >> 24) - '0' )
+            {
+                case 1:
+                    S3TC_type = SOIL_RGBA_S3TC_DXT1;
+                    block_size = 8;
+                    break;
+                case 3:
+                    S3TC_type = SOIL_RGBA_S3TC_DXT3;
+                    block_size = 16;
+                    break;
+                case 5:
+                    S3TC_type = SOIL_RGBA_S3TC_DXT5;
+                    block_size = 16;
+                    break;
+            }
 
+            DDS_main_size = ((width+3)>>2)*((height+3)>>2)*block_size;
+        }
+	}
 	if( cubemap )
 	{
 		/* does the user want a cubemap?	*/
@@ -2171,13 +2155,18 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 			if ( uncompressed )
 			{
 				/*	uncompressed DDS, simple MIPmap size calculation	*/
-				//DDS_full_size += w*h*block_size;
-				DDS_full_size += (w*block_size*8+7)/8*h; //*block_size;
-//( width * bits-per-pixel + 7 ) / 8
+				DDS_full_size += w*h*block_size;
 			} else
 			{
-				/*	compressed DDS, MIPmap size calculation is block based	*/
-				DDS_full_size += ((w+3)/4)*((h+3)/4)*block_size;
+                if(S3TC_type == GL_RGBA32F)
+                {
+                    DDS_full_size += ((w*block_size*8+7)/8)*h; //*block_size;
+                }
+                else
+                {
+                    /*	compressed DDS, MIPmap size calculation is block based	*/
+                    DDS_full_size += ((w+3)/4)*((h+3)/4)*block_size;
+                }
 			}
 		}
 	} else
@@ -2207,25 +2196,32 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 			{
 				/*	and remember, DXT uncompressed uses BGR(A),
 					so swap to RGB(A) for ALL MIPmap levels	*/
-                /*
 				for( i = 0; i < (int)DDS_full_size; i += block_size )
 				{
 					unsigned char temp = DDS_data[i];
 					DDS_data[i] = DDS_data[i+2];
 					DDS_data[i+2] = temp;
 				}
-                */
-				glPixelStorei(GL_PACK_ALIGNMENT, 8);
 				glTexImage2D(
 					cf_target, 0,
 					S3TC_type, width, height, 0,
-					S3TC_type, GL_FLOAT, DDS_data );
+					S3TC_type, GL_UNSIGNED_BYTE, DDS_data );
 			} else
 			{
-				soilGlCompressedTexImage2D(
-					cf_target, 0,
-					S3TC_type, width, height, 0,
-					DDS_main_size, DDS_data );
+                if(S3TC_type == GL_RGBA32F)
+                {
+                    glTexImage2D(
+                            cf_target, 0,
+                            S3TC_type, width, height, 0,
+                            S3TC_type, GL_FLOAT, DDS_data );
+                }
+                else
+                {
+                    soilGlCompressedTexImage2D(
+                            cf_target, 0,
+                            S3TC_type, width, height, 0,
+                            DDS_main_size, DDS_data );
+                }
 			}
 			/*	upload the mipmaps, if we have them	*/
 			for( i = 1; i <= mipmaps; ++i )
@@ -2244,19 +2240,30 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 				/*	upload this mipmap	*/
 				if( uncompressed )
 				{
-					//mip_size = w*h*block_size;
-                    mip_size = (w*block_size*8+7)/8*h;
-                    glTexImage2D(
+					mip_size = w*h*block_size;
+					glTexImage2D(
 						cf_target, i,
 						S3TC_type, w, h, 0,
 						S3TC_type, GL_UNSIGNED_BYTE, &DDS_data[byte_offset] );
 				} else
 				{
-					mip_size = ((w+3)/4)*((h+3)/4)*block_size;
-					soilGlCompressedTexImage2D(
-						cf_target, i,
-						S3TC_type, w, h, 0,
-						mip_size, &DDS_data[byte_offset] );
+                    if(S3TC_type == GL_RGBA32F)
+                    {
+                        mip_size = ((w*block_size*8+7)/8)*h;
+
+                        glTexImage2D(
+                                cf_target, i,
+                                S3TC_type, w, h, 0,
+                                S3TC_type, GL_FLOAT, &DDS_data[byte_offset] );
+                    }
+                    else
+                    {
+                        mip_size = ((w+3)/4)*((h+3)/4)*block_size;
+                        soilGlCompressedTexImage2D(
+                                cf_target, i,
+                                S3TC_type, w, h, 0,
+                                mip_size, &DDS_data[byte_offset] );
+                    }
 				}
 				/*	and move to the next mipmap	*/
 				byte_offset += mip_size;

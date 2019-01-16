@@ -81,6 +81,11 @@ layout(location=0) uniform Material material;
 layout(location=20) uniform Lights lights;
 layout(location=100) uniform vec3 view_pos;
 
+layout(location=200) uniform samplerCube irradiance_map;
+layout(location=201) uniform samplerCube prefilter_map;
+layout(location=202) uniform sampler2D brdf_map;
+
+
 layout(location=0) subroutine uniform GetNormal get_normal;
 layout(location=1) subroutine uniform GetFresnel get_fresnel;
 
@@ -129,6 +134,13 @@ layout(index=2) subroutine(GetFresnel) vec3 get_fresnel_schlick(vec3 dir0, vec3 
 layout(index=3) subroutine(GetFresnel) vec3 get_no_fresnel(vec3 dir0, vec3 dir1, const vec3 f0)
 {
     return f0;
+}
+
+vec3 get_fresnel_schlick_roughness(vec3 dir0, vec3 dir1, const vec3 f0, float roughness)
+{
+    float cos_theta = max(dot(dir0, dir1), 0.0); 
+
+    return f0+(1-f0)*pow(1.0-cos_theta, 5.0);
 }
 
 float sqr(float a)
@@ -237,11 +249,13 @@ vec3 spot_lighting(const vec3 pos, const vec3 normal, const vec3 view_dir, const
 
 vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
 {
-    vec4 diffuse_color   = get_diffuse_color(material, uv);
-    vec4 specular_color  = get_specular_color(material, uv);
+    vec4 base_color   = get_diffuse_color(material, uv);
+    vec4 metallic_color  = get_specular_color(material, uv);
     vec3 occlusion_color = get_occlusion_color(material, uv);
     vec3 emissive_color  = get_emissive_color(material, uv);
 
+    vec4 diffuse_color   = vec4(base_color.rgb*(1-metallic_color.r), base_color.a);
+    vec4 specular_color  = vec4(mix(vec3(0.04), base_color.rgb, metallic_color.r), metallic_color.a);
     float smoothness     = specular_color.a;
     vec3 view_dir        = normalize(view_pos-pos);
 	
@@ -257,8 +271,31 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
     color += spot_lighting(pos, normal, view_dir, lights.spots[2], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
     color += spot_lighting(pos, normal, view_dir, lights.spots[3], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
 
-    color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
+    //color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
     color += emissive_color;
+
+    float roughness = 1.0-smoothness;
+    vec3 F  = get_fresnel_schlick(view_dir, normal, specular_color.rgb); // https://seblagarde.wordpress.com/2011/08/17/hello-world/ uses roughness
+    vec3 kD = 1.0 - F;
+    vec3 normal2 = normal;
+    normal2.x = -normal2.x;
+
+    vec3 irradiance = texture(irradiance_map, normal).rgb;
+    vec3 diffuse    = irradiance * diffuse_color.rgb;
+
+    const float MAX_REFLECTION_LOD = 10.0;
+
+    vec3 R = reflect(-view_dir, normal);   
+
+    R.x = -R.x;
+
+    F = specular_color.rgb;
+    vec3 prefilter_color = textureLod(prefilter_map, R,  roughness*MAX_REFLECTION_LOD).rgb;   
+    vec3 env_BRDF  = texture(brdf_map, vec2(max(dot(normal, view_dir), 0.0), roughness)).rgb;
+    vec3 specular = prefilter_color * (F * env_BRDF.x + env_BRDF.y);
+    vec3 ambient = (kD * diffuse + specular) * occlusion_color; 
+
+    color += ambient;
 
     return vec4(color, diffuse_color.a); 
 }
