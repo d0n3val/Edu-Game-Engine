@@ -269,7 +269,7 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
 
     smoothness = mat.smoothness;
     float roughness = 1.0-smoothness;
-    roughness = roughness*0.8;
+    //roughness = roughness*0.8;
 
     vec3 F  = get_fresnel_schlick(view_dir, normal, specular_color.rgb); 
     vec3 kD = 1.0 - F;
@@ -279,7 +279,7 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
     //normal2.x = -normal2.x;
 
     vec3 irradiance = texture(irradiance_map, normal2).rgb;
-    vec3 diffuse    = irradiance * diffuse_color.rgb;
+    vec3 diffuse    = irradiance * diffuse_color.rgb / PI;
 
     const float MAX_REFLECTION_LOD = 9.0;
 
@@ -288,7 +288,7 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
     //R.x = -R.x;
 
     vec3 prefilter_color = textureLod(prefilter_map, R,  roughness*MAX_REFLECTION_LOD).rgb;   
-    vec3 env_BRDF  = texture(brdf_map, vec2(max(dot(normal, view_dir), 0.0), roughness)).rgb;
+    vec3 env_BRDF  = texture(brdf_map, vec2(max(dot(normal, view_dir), 0.0), roughness*0.5)).rgb;
     vec3 specular = prefilter_color * (specular_color.rgb * env_BRDF.x + env_BRDF.y);
     vec3 ambient = (kD * diffuse + specular) * occlusion_color; 
 
