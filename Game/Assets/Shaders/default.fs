@@ -242,15 +242,19 @@ vec3 spot_lighting(const vec3 pos, const vec3 normal, const vec3 view_dir, const
 
 vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
 {
-    vec4 base_color   = get_diffuse_color(material, uv);
+    vec4 base_color      = get_diffuse_color(material, uv);
     vec4 metallic_color  = get_specular_color(material, uv);
     vec3 occlusion_color = get_occlusion_color(material, uv);
     vec3 emissive_color  = get_emissive_color(material, uv);
 
-    vec4 diffuse_color   = vec4(base_color.rgb*(1-metallic_color.r), base_color.a);
-    vec4 specular_color  = vec4(mix(vec3(0.04), base_color.rgb, metallic_color.r), metallic_color.a);
+    float metallic       = metallic_color.r;
+    vec4 diffuse_color   = vec4(base_color.rgb*(1-metallic), base_color.a);
+    vec4 specular_color  = vec4(mix(vec3(0.04), base_color.rgb, metallic), metallic_color.a);
+
     float smoothness     = specular_color.a;
     vec3 view_dir        = normalize(view_pos-pos);
+
+    smoothness = mat.smoothness*mat.smoothness;
 	
     vec3 color = directional_lighting(normal, view_dir, lights.directional, mat, diffuse_color.rgb, specular_color.rgb, smoothness);
 
@@ -265,7 +269,8 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
     color += spot_lighting(pos, normal, view_dir, lights.spots[3], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
 
     //color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
-    color += emissive_color;
+
+    const float MAX_REFLECTION_LOD = 9.0;
 
     smoothness = mat.smoothness;
     float roughness = 1.0-smoothness;
@@ -276,16 +281,16 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
     vec3 irradiance = texture(irradiance_map, normal).rgb;
     vec3 diffuse    = irradiance * diffuse_color.rgb / PI;
 
-    const float MAX_REFLECTION_LOD = 9.0;
-
     vec3 R = reflect(-view_dir, normal);   
 
     vec3 prefilter_color = textureLod(prefilter_map, R,  roughness*MAX_REFLECTION_LOD).rgb;   
-    vec3 env_BRDF  = texture(brdf_map, vec2(max(dot(normal, view_dir), 0.0), roughness*0.7)).rgb;
+    vec3 env_BRDF  = texture(brdf_map, vec2(max(dot(normal, view_dir), 0.0), roughness)).rgb;
     vec3 specular = prefilter_color * (specular_color.rgb * env_BRDF.x + env_BRDF.y);
     vec3 ambient = (kD * diffuse + specular) * occlusion_color; 
 
     color += ambient;
+
+    color += emissive_color;
 
     return vec4(color, diffuse_color.a); 
 }
