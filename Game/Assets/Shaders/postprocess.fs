@@ -74,5 +74,9 @@ void main()
     // http://filmicworlds.com/blog/filmic-tonemapping-operators/
 
     // gamma correction
+#if GAMMA
     color = vec4(pow(mapped, vec3(1.0 / 2.2)), 1.0);
+#else 
+    color = vec4(mapped, 1.0);
+#endif
 }
