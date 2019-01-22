@@ -45,14 +45,15 @@ class ModuleRenderer : public Module
     NodeList opaque_nodes;
     NodeList transparent_nodes;
 
-    unsigned post_vbo    = 0;
-    unsigned post_vao    = 0;
-    unsigned sky_vbo     = 0;
-    unsigned sky_vao     = 0;
-    unsigned sky_cubemap = 0;
+    unsigned post_vbo       = 0;
+    unsigned post_vao       = 0;
+    unsigned sky_vbo        = 0;
+    unsigned sky_vao        = 0;
+    unsigned sky_cubemap    = 0;
     unsigned sky_irradiance = 0;
-    unsigned sky_prefilter = 0;
-    unsigned sky_brdf = 0;
+    unsigned sky_prefilter  = 0;
+    unsigned sky_brdf       = 0;
+    unsigned camera_buffer  = 0;
 
 public:
 
@@ -72,13 +73,14 @@ private:
     void                CreateSkybox            ();
 
     void                DrawSkybox              (const float4x4& proj, const float4x4& view);
-    void                DrawNodes               (void (ModuleRenderer::*drawer)(const TRenderInfo& , const float4x4&, const float4x4&, const float3&), 
-                                                 const float4x4& projection, const float4x4& view, const float3& view_pos);
+    void                DrawNodes               (void (ModuleRenderer::*drawer)(const TRenderInfo& ));
 
-    void                DrawMeshColor           (const TRenderInfo& render_info, const float4x4& projection, const float4x4& view, const float3& view_pos);
+    void                DrawMeshColor           (const TRenderInfo& render_info);
     void                UpdateMaterialUniform   (const ResourceMaterial* material) const;
     void                UpdateLightUniform      () const;
     void                CollectObjects          (const float3& camera_pos, GameObject* go);
+
+    void                CreateCameraBuffer      ();
 };
 
 

@@ -1857,8 +1857,7 @@ unsigned char*
 		int force_channels
 	)
 {
-	unsigned char *result = stbi_load( filename,
-			width, height, channels, force_channels );
+	unsigned char *result = stbi_load( filename, width, height, channels, force_channels );
 	if( result == NULL )
 	{
 		result_string_pointer = stbi_failure_reason();

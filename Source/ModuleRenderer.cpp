@@ -91,17 +91,19 @@ void ModuleRenderer::CreateSkybox()
 {
     const char face_order[9] = { 'N', 'S', 'W', 'E', 'U', 'D' };
 
+	int width, height, channels;
+	unsigned char* data = SOIL_load_image("Assets/Textures/PBR/BarnaEnvHDR.dds", &width, &height, &channels, SOIL_LOAD_AUTO);
     sky_cubemap = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaEnvHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
     sky_irradiance = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaDiffuseHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
     sky_prefilter = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaSpecularHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
     sky_brdf = SOIL_load_OGL_texture("Assets/Textures/PBR/BarnaBRDF.dds", 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
+	
 	/*
 	sky_cubemap = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywayEnvHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
     sky_irradiance = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywayDiffuseHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
     sky_prefilter = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywaySpecularHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
     sky_brdf = SOIL_load_OGL_texture("Assets/Textures/PBR/MilkywayBRDF.dds", 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
     */
-    
     
 
     glGenBuffers(1, &sky_vbo);
@@ -207,8 +209,16 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 	glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    DrawNodes(&ModuleRenderer::DrawMeshColor, proj, view, view_pos);
-    DrawSkybox(proj, view);
+    // Set camera uniforms shared for all
+    App->programs->UseProgram("default", 0);
+    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+    glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
+    App->programs->UnuseProgram();
+
+    DrawNodes(&ModuleRenderer::DrawMeshColor);
+
+    //DrawSkybox(proj, view);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -272,25 +282,22 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
     }
 }
 
-void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const TRenderInfo&,
-							   const float4x4&, const float4x4&, const float3&), 
-                               const float4x4& projection, const float4x4& view, 
-                               const float3& view_pos)
+void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const TRenderInfo&))
 {
 	for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
 	{
-        (this->*drawer)(*it, projection, view, view_pos);
+        (this->*drawer)(*it);
     }
 
 	for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
 	{
-        (this->*drawer)(*it, projection, view, view_pos);
+        (this->*drawer)(*it);
     }
 
     App->programs->UnuseProgram();
 }
 
-void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info, const float4x4& projection, const float4x4& view, const float3& view_pos)
+void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info)
 {    
     const ResourceMesh* mesh_res    = render_info.mesh->GetResource();
     const ResourceMaterial* mat_res = render_info.material->GetResource();
@@ -302,10 +309,7 @@ void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info, const float4x
         UpdateMaterialUniform(mat_res);
         UpdateLightUniform();
 
-        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&projection));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&render_info.transform));
-        glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
 
         glBindVertexArray(mesh_res->vao);
 
@@ -597,3 +601,8 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void ModuleRenderer::CreateCameraBuffer()
+{
+    //uint camera_binding = 1;
+    //uint block_index = glGetUniformBlockIndex();
+}

@@ -3,6 +3,12 @@ layout(location = 1) in vec3 vertex_normal;
 layout(location = 2) in vec2 vertex_uv0;
 layout(location = 5) in vec3 vertex_tangent;
 
+layout (std140) uniform camera_matrices
+{ 
+    mat4 proj_;
+    mat4 view_;
+};
+
 uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 model;
