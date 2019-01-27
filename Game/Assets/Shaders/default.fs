@@ -1,6 +1,7 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 4
 #define PI 3.141597
+//#define SCHLICK_GGX_GSF
 
 //////////////////// STRUCTS ////////////////////////
 
@@ -11,7 +12,7 @@ struct Material
 
     sampler2D specular_map;
     vec3      specular_color;
-    float     shininess;
+    float     smoothness;
 
     sampler2D occlusion_map;
 
@@ -72,13 +73,18 @@ struct VertexOut
 };
 
 subroutine vec3 GetNormal(const VertexOut vertex, const Material mat);
-subroutine vec3 GetFresnel(vec3 L, vec3 N, vec3 F0);
+subroutine vec3 GetFresnel(vec3 dir0, vec3 dir1, const vec3 f0);
 
 //////////////////// UNIFORMS ////////////////////////
 
 layout(location=0) uniform Material material;
 layout(location=20) uniform Lights lights;
 layout(location=100) uniform vec3 view_pos;
+
+layout(location=200) uniform samplerCube irradiance_map;
+layout(location=201) uniform samplerCube prefilter_map;
+layout(location=202) uniform sampler2D brdf_map;
+
 
 layout(location=0) subroutine uniform GetNormal get_normal;
 layout(location=1) subroutine uniform GetFresnel get_fresnel;
@@ -105,7 +111,7 @@ vec4 get_specular_color(const Material mat, const vec2 uv)
 {
     vec4 color = texture(mat.specular_map, uv);
 
-    return vec4(color.rgb*mat.specular_color, exp2(9*color.a*mat.shininess+1));
+    return vec4(color.rgb*mat.specular_color, color.a*mat.smoothness);
 }
 
 vec3 get_occlusion_color(const Material mat, const vec2 uv)
@@ -118,44 +124,95 @@ vec3 get_emissive_color(const Material mat, const vec2 uv)
     return texture(mat.emissive_map, uv).rgb*mat.emissive_color;
 }
 
-float pow5(float a)
+layout(index=2) subroutine(GetFresnel) vec3 get_fresnel_schlick(vec3 dir0, vec3 dir1, const vec3 f0)
 {
-    return a*a*a*a*a;
+    float cos_theta = max(dot(dir0, dir1), 0.0); 
+
+    return f0+(1-f0)*pow(1.0-cos_theta, 5.0);
 }
 
-layout(index=2) subroutine(GetFresnel) vec3 get_fresnel_schlick(vec3 L, vec3 N, vec3 F0)
+layout(index=3) subroutine(GetFresnel) vec3 get_no_fresnel(vec3 dir0, vec3 dir1, const vec3 f0)
 {
-    float cos_theta = max(dot(L, N), 0.0); 
-
-    return F0+(1-F0)*pow5(1.0-cos_theta);
+    return f0;
 }
 
-layout(index=3) subroutine(GetFresnel) vec3 get_no_fresnel(vec3 L, vec3 N, vec3 F0)
+float sqr(float a)
 {
-    return F0;
+    return a*a;
 }
 
-float lambert(vec3 light_dir, const vec3 normal)
+float BlinnNormalDistribution(float roughness, float NdotH)
 {
-    return max(0.0, dot(normal, light_dir));
+    float smoothness = 128*(1.0-roughness); 
+    return ((smoothness+2)/(2*PI))*pow(NdotH, smoothness);
 }
 
-float specular_blinn(vec3 light_dir, const vec3 view_dir, const vec3 normal, const float shininess)
+float ImplicitGeometricShadowingFunction ()
 {
+    return 0.25;
+}
+
+float GGXNormalDistribution(float roughness, float NdotH)
+{
+    float roughnessSqr = roughness*roughness;
+    float NdotHSqr = NdotH*NdotH;
+    float TanNdotHSqr = (1-NdotHSqr)/NdotHSqr;
+    float den = (NdotHSqr * (roughnessSqr + TanNdotHSqr));
+    return (1.0/3.1415926535) * sqr(roughness/den);
+}
+
+float GGXGeometricShadowingFunction (float NdotL, float NdotV, float roughness)
+{
+#ifdef SCHLICK_GGX_GSF
+	// Schlick-GGX GSF
+    float k = roughness * 0.5;
+	float SmithL = mix(NdotL, 1.0, k);
+    float SmithV = mix(NdotV, 1.0, k);
+
+    float Gs = 0.25/(SmithL*SmithV);
+#else
+	// GGX GSF
+    float roughnessSqr = roughness*roughness;
+    float NdotLSqr = NdotL*NdotL;
+    float NdotVSqr = NdotV*NdotV;
+
+
+	// original version
+    //float SmithL = (2 * NdotL)/ (NdotL + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotLSqr));
+    //float SmithV = (2 * NdotV)/ (NdotV + sqrt(roughnessSqr + ( 1-roughnessSqr) * NdotVSqr));
+    // optimization using full visibility equation
+
+    float SmithL = NdotL + sqrt(mix(NdotLSqr, 1.0, roughnessSqr));
+    float SmithV = NdotV + sqrt(mix(NdotVSqr, 1.0, roughnessSqr));
+	float Gs =  1.0/(SmithL * SmithV);
+#endif
+
+	return Gs;
+}
+
+vec3 directional_lighting(const vec3 normal, const vec3 view_dir, const vec3 light_dir, const vec3 light_color, 
+                       const Material mat, const vec3 diffuse_color, const vec3 specular_color, float smoothness, float att)
+{
+    float roughness = 1.0-smoothness; 
+    roughness = roughness*roughness;
+
+	float dotNL      = max(dot(normal, light_dir), 0.000001);
+	float dotNV      = max(dot(normal, view_dir), 0.000001);
+
     vec3 half_dir    = normalize(view_dir+light_dir);
-    float sp         = max(dot(normal, half_dir), 0.0);
+    vec3 fresnel     = get_fresnel(light_dir, half_dir, specular_color);
+    float ndf        = GGXNormalDistribution(roughness, max(0.000001, dot(half_dir, normal)));
+    float gsf        = GGXGeometricShadowingFunction(dotNL, dotNV, roughness);
+    //float ndf        = BlinnNormalDistribution(roughness, max(0.000001, dot(half_dir, normal)));
+    //float gsf        = ImplicitGeometricShadowingFunction();
 
-    return pow(sp, shininess); 
+    return light_color*(diffuse_color*(1-fresnel)/PI+(fresnel*ndf*gsf))*dotNL*att;
 }
 
-vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_dir, const DirLight light, const Material mat, 
-                       const vec3 diffuse_color, const vec3 specular_color, float norm_factor, float shininess)
+vec3 directional_lighting(const vec3 normal, const vec3 view_dir, const DirLight light, const Material mat, 
+                       const vec3 diffuse_color, const vec3 specular_color, float smoothness)
 {
-    float lambert	  = lambert(-light.dir, normal);	
-    float specular    = specular_blinn(-light.dir, view_dir, normal, shininess);
-    vec3 fresnel      = get_fresnel(-light.dir, normal, specular_color);
-	
-    return light.color*(diffuse_color*(1-specular_color)+fresnel*specular)*lambert;
+    return directional_lighting(normal, view_dir, -light.dir, light.color, mat, diffuse_color, specular_color, smoothness, 1.0);
 }
 
 float get_attenuation(const vec3 constants, float distance)
@@ -163,20 +220,16 @@ float get_attenuation(const vec3 constants, float distance)
     return 1.0/(constants[0]+constants[1]*distance+constants[2]*(distance*distance));
 }
 
-vec3 point_blinn(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLight light, const Material mat,
-                 const vec3 diffuse_color, const vec3 specular_color, float norm_factor, float shininess)
+vec3 point_lighting(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLight light, const Material mat,
+                 const vec3 diffuse_color, const vec3 specular_color, float smoothness)
 {
-    vec3 light_dir = light.position-pos;
-    float distance = length(light_dir);
-    light_dir      = light_dir/distance;
+    vec3 light_dir    = light.position-pos;
+    float distance    = length(light_dir);
+    light_dir         = light_dir/distance;
 
-    float att      = get_attenuation(light.attenuation, distance);
+    float att         = get_attenuation(light.attenuation, distance);
 
-    float lambert  = lambert(light_dir, normal);
-    float specular = specular_blinn(light_dir, view_dir, normal, shininess);
-    vec3 fresnel   = get_fresnel(light_dir, normal, specular_color);
-
-    return light.color*(diffuse_color*(1-specular_color)+fresnel*(specular*norm_factor))*(lambert*att);
+    return directional_lighting(normal, view_dir, light_dir, light.color, mat, diffuse_color, specular_color, smoothness, att);
 }
 
 float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
@@ -187,49 +240,79 @@ float get_cone(const vec3 light_dir, const vec3 cone_dir, float inner, float out
     return min(1.0, max(0.0, (cos_a-outer)/len));
 }
 
-vec3 spot_blinn(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLight light, const Material mat,
-                const vec3 diffuse_color, const vec3 specular_color, float norm_factor, float shininess)
+vec3 spot_lighting(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLight light, const Material mat,
+                const vec3 diffuse_color, const vec3 specular_color, float smoothness)
 {
-    vec3 light_dir = light.position-pos;
-    float distance = length(light_dir);
-    light_dir      = light_dir/distance;
+    vec3 light_dir    = light.position-pos;
+    float distance    = length(light_dir);
+    light_dir         = light_dir/distance;
 
-    float att      = get_attenuation(light.attenuation, distance);
-    float cone     = get_cone(light_dir, light.direction, light.inner, light.outer);
+    float cone        = get_cone(-light_dir, light.direction, light.inner, light.outer);
+    float att         = get_attenuation(light.attenuation, distance);
 
-    float lambert  = lambert(light_dir, normal);
-    float specular = specular_blinn(light_dir, view_dir, normal, shininess);
-    vec3 fresnel   = get_fresnel(light_dir, normal, specular_color);
-
-    return light.color*(diffuse_color*(1-specular_color)+fresnel*(specular*norm_factor))*(lambert*att*cone);
+    return directional_lighting(normal, view_dir, light_dir, light.color, mat, diffuse_color, specular_color, smoothness, att*cone);
 }
 
-vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
+vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
 {
+    /*
+    vec4 base_color      = get_diffuse_color(material, uv);
+    vec4 metallic_color  = get_specular_color(material, uv);
+    vec3 occlusion_color = get_occlusion_color(material, uv);
+    vec3 emissive_color  = get_emissive_color(material, uv);
+
+    float metallic       = metallic_color.r;
+    vec4 diffuse_color   = vec4(base_color.rgb*(1-metallic), base_color.a);
+    vec4 specular_color  = vec4(mix(vec3(0.04), base_color.rgb, metallic), metallic_color.a);
+
+    float smoothness     = specular_color.a;
+    vec3 view_dir        = normalize(view_pos-pos);
+
+    smoothness = mat.smoothness*mat.smoothness;
+    */
+
     vec4 diffuse_color   = get_diffuse_color(material, uv);
     vec4 specular_color  = get_specular_color(material, uv);
     vec3 occlusion_color = get_occlusion_color(material, uv);
     vec3 emissive_color  = get_emissive_color(material, uv);
 
-	// make energy conserving blinn brdf
-
-	float shininess	    = specular_color.a;
-	float norm_factor   = (shininess+4.0)/(8.0);
-    vec3 view_dir       = normalize(view_pos-pos);
+    float smoothness     = specular_color.a;
+    vec3 view_dir        = normalize(view_pos-pos);
 	
-    vec3 color = directional_blinn(pos, normal, view_dir, lights.directional, mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
 
-    color += point_blinn(pos, normal, view_dir, lights.points[0], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
-    color += point_blinn(pos, normal, view_dir, lights.points[1], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
-    color += point_blinn(pos, normal, view_dir, lights.points[2], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
-    color += point_blinn(pos, normal, view_dir, lights.points[3], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
+    vec3 color = directional_lighting(normal, view_dir, lights.directional, mat, diffuse_color.rgb, specular_color.rgb, smoothness);
 
-    color += spot_blinn(pos, normal, view_dir, lights.spots[0], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
-    color += spot_blinn(pos, normal, view_dir, lights.spots[1], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
-    color += spot_blinn(pos, normal, view_dir, lights.spots[2], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
-    color += spot_blinn(pos, normal, view_dir, lights.spots[3], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
+    color += point_lighting(pos, normal, view_dir, lights.points[0], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
+    color += point_lighting(pos, normal, view_dir, lights.points[1], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
+    color += point_lighting(pos, normal, view_dir, lights.points[2], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
+    color += point_lighting(pos, normal, view_dir, lights.points[3], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
+
+    color += spot_lighting(pos, normal, view_dir, lights.spots[0], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
+    color += spot_lighting(pos, normal, view_dir, lights.spots[1], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
+    color += spot_lighting(pos, normal, view_dir, lights.spots[2], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
+    color += spot_lighting(pos, normal, view_dir, lights.spots[3], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
 
     color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
+
+    const float MAX_REFLECTION_LOD = 9.0;
+
+    smoothness = mat.smoothness;
+    float roughness = 1.0-smoothness;
+
+    vec3 F  = get_fresnel_schlick(view_dir, normal, specular_color.rgb); 
+    vec3 kD = 1.0 - F;
+
+    vec3 irradiance = texture(irradiance_map, normal).rgb;
+    vec3 diffuse    = irradiance * diffuse_color.rgb / PI;
+
+    vec3 R = reflect(-view_dir, normal);   
+
+    vec3 prefilter_color = textureLod(prefilter_map, R,  roughness*MAX_REFLECTION_LOD).rgb;   
+    vec3 env_BRDF  = texture(brdf_map, vec2(max(dot(normal, view_dir), 0.0), roughness)).rgb;
+    vec3 specular = prefilter_color * (specular_color.rgb * env_BRDF.x + env_BRDF.y);
+    vec3 ambient = (kD * diffuse + specular) * occlusion_color; 
+
+    //color += ambient;
     color += emissive_color;
 
     return vec4(color, diffuse_color.a); 
@@ -251,13 +334,14 @@ layout(index=0) subroutine(GetNormal) vec3 get_normal_from_interpolator(const Ve
 layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexOut vertex, const Material mat)
 {
     mat3 tbn = create_tbn(normalize(vertex.normal), normalize(vertex.tangent));
-    return tbn*normalize(texture(mat.normal_map, vertex.uv0).xyz*2.0-1.0);
+    return tbn*(texture(mat.normal_map, vertex.uv0).xyz*2.0-1.0);
 }
 
 void main()
 {
     vec3 normal = get_normal(fragment, material);
-    color	    = blinn(fragment.position, normal, fragment.uv0, view_pos, lights, material);
+    float len   = length(normal);
+    color	    = lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
 
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));

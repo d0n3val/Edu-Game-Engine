@@ -41,6 +41,9 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[ENABLE_MSAA].type                       = TYPE_BOOL; 
     hints[ENABLE_MSAA].value.bvalue               = true;
 
+    hints[ENABLE_GAMMA].type                      = TYPE_BOOL; 
+    hints[ENABLE_GAMMA].value.bvalue              = true;
+
 }
 
 ModuleHints::~ModuleHints()
@@ -63,6 +66,7 @@ void ModuleHints::Save(Config* config) const
 
     config->AddInt("Tonemapping", hints[TONEMAPPING].value.ivalue);
     config->AddBool("Enable msaa", hints[ENABLE_MSAA].value.bvalue);
+    config->AddBool("Enable gamma", hints[ENABLE_GAMMA].value.bvalue);
 }
 
 bool ModuleHints::Init(Config* config) 
@@ -81,6 +85,7 @@ bool ModuleHints::Init(Config* config)
 
     hints[TONEMAPPING].value.ivalue = config->GetInt("Tonemapping", 0);
     hints[ENABLE_MSAA].value.bvalue = config->GetBool("Enable msaa", true);
+    hints[ENABLE_GAMMA].value.bvalue = config->GetBool("Enable gamma", true);
 
     return true;
 }

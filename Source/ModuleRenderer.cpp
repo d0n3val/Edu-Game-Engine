@@ -331,7 +331,7 @@ void ModuleRenderer::LoadDefaultShaders()
 {
     App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", nullptr, 0, nullptr, 0);
 
-    const char* macros[]		  = { "#define MSAA 1 \n" }; 
+    const char* macros[]		  = { "#define MSAA 1 \n", "#define GAMMA 1\n" }; 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
 
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros, nullptr, 0);
@@ -360,7 +360,7 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     float4 diffuse_color  = material->GetDiffuseColor();
     float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : material->GetSpecularColor();
     float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
-    float shininess	      = /*specular ? 1.0f :  */ material->GetShininess();
+    float shininess	      = specular ? 1.0f :  material->GetShininess();
 
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_2D, sky_brdf);
@@ -556,9 +556,12 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
+	bool msaa   = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
 
-    App->programs->UseProgram("postprocess", msaa ? 1 : 0);
+    int flags  = msaa ? 1 << 0 : 0;
+    flags      = flags | (App->hints->GetBoolValue(ModuleHints::ENABLE_GAMMA) ? 1 << 1 : 0);
+
+    App->programs->UseProgram("postprocess", flags);
 
     unsigned indices[NUM_POSPROCESS_SUBROUTINES];
 

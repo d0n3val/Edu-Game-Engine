@@ -364,6 +364,12 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
         module->SetBoolValue(ModuleHints::ENABLE_MSAA, enable);
     }
 
+    enable = module->GetBoolValue(ModuleHints::ENABLE_GAMMA);
+    if(ImGui::Checkbox("Enable GAMMA", &enable))
+    {
+        module->SetBoolValue(ModuleHints::ENABLE_GAMMA, enable);
+    }
+
     int tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
     const char* names[] = { "Uncharted 2", "Reinhard", "None" };
     if(ImGui::Combo("Tonemapping", &tonemapping, names, sizeof(names)/sizeof(char*)))

@@ -20,6 +20,7 @@ public:
 		ENABLE_FRESNEL,
         TONEMAPPING,
         ENABLE_MSAA,
+        ENABLE_GAMMA,
 		COUNT
 	};
 
