@@ -17,22 +17,23 @@ public:
 	void        Save             (Config& config) const override;
 	void        Load             (const Config& config) override;
 
+    bool        Save             (std::string& output) const;
 	static bool Import           (const char* full_path, unsigned first, unsigned last, std::string& output);
 
-	float       GetDuration      () const { return duration; }
+	unsigned    GetDuration      () const { return duration; }
 
 public:
 
 	struct Channel
 	{
-        std::string    name;
-        math::float3*  positions    = nullptr; 
-        math::float4*  rotations    = nullptr;
-		unsigned       count        = 0;
+        std::string name;
+        float3*     positions    = nullptr; 
+        Quat*       rotations    = nullptr;
 	};
 
     unsigned duration     = 0;
     unsigned num_channels = 0;
+    unsigned num_keys     = 0;
     Channel* channels     = nullptr;
 };
 

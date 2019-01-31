@@ -46,8 +46,6 @@ public:
 	void GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
 
     void RemoveResource(UID uid);
-
-	const LoaderAnimation* GetAnimationLoader() const;
 	
     const ResourceTexture* GetWhiteFallback() const { return white_fallback; }
     const ResourceTexture* GetBlackFallback() const { return black_fallback; }
@@ -62,7 +60,6 @@ private:
 	UID last_uid = RESERVED_RESOURCES + 1; // reserve 1 for standard cube mesh
 	std::map<UID, Resource*> resources;
 	std::vector<Resource*> removed;
-	LoaderAnimation* anim_loader = nullptr;
 
 	// Presets
 	ResourceMesh* cube = nullptr;

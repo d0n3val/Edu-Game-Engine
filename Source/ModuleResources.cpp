@@ -11,7 +11,6 @@
 #include "ResourceAudio.h"
 #include "ResourceModel.h"
 #include "ResourceAnimation.h"
-#include "LoaderAnimation.h"
 #include "Config.h"
 #include <string>
 
@@ -23,13 +22,11 @@ using namespace std;
 
 ModuleResources::ModuleResources(bool start_enabled) : Module("Resource Manager", start_enabled), asset_folder(ASSETS_FOLDER)
 {
-	anim_loader = new LoaderAnimation;
 }
 
 // Destructor
 ModuleResources::~ModuleResources()
 {
-	RELEASE(anim_loader);
 }
 
 // Called before render is available
@@ -275,6 +272,9 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
 		case Resource::model:
 			import_ok = ResourceModel::Import(new_file_in_assets, written_file);
 		break;
+		case Resource::animation:
+			import_ok = ResourceAnimation::Import(new_file_in_assets, 0, UINT_MAX, written_file);
+        break;
 	}
 
 	// If export was successfull, create a new resource
@@ -358,7 +358,7 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
             
 		break;
 		case Resource::animation:
-			import_ok = anim_loader->Import((aiAnimation*) buffer, (UID) size, output);
+			// import_ok = ResourceAnimation::Import( anim_loader->Import((aiAnimation*) buffer, (UID) size, output);
 		break;
 	}
 
@@ -451,11 +451,6 @@ void ModuleResources::GatherResourceType(std::vector<const Resource*>& resources
 		if (it->second->type == type)
 			resources.push_back(it->second);
 	}
-}
-
-const LoaderAnimation * ModuleResources::GetAnimationLoader() const
-{
-	return anim_loader;
 }
 
 void ModuleResources::LoadUID()

@@ -465,9 +465,6 @@
     <ClInclude Include="ResourceAnimation.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="LoaderAnimation.h">
-      <Filter>Resources\Loaders</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleEditorCamera.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
@@ -793,9 +790,6 @@
     </ClCompile>
     <ClCompile Include="ResourceAnimation.cpp">
       <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="LoaderAnimation.cpp">
-      <Filter>Resources\Loaders</Filter>
     </ClCompile>
     <ClCompile Include="ModuleEditorCamera.cpp">
       <Filter>Core Modules</Filter>

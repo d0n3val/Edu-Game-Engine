@@ -14,6 +14,8 @@
 #include "utils/SimpleBinStream.h"
 #include "HashString.h"
 
+#include "mmgr/mmgr.h"
+
 #pragma comment (lib, "Assimp/libx86/assimp.lib")
 
 ResourceModel::ResourceModel(UID id) : Resource(id, Resource::Type::model)

@@ -30,8 +30,8 @@ public:
 
 	bool        LoadInMemory        () override;
     void        ReleaseFromMemory   () override;
-    bool        Save                (std::string& output) const;
 
+    bool        Save                (std::string& output) const;
 	static bool Import              (const char* full_path, std::string& output);
 
     unsigned    GetNumNodes         () const { return nodes.size(); }
