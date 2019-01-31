@@ -81,9 +81,9 @@ layout(location=0) uniform Material material;
 layout(location=20) uniform Lights lights;
 layout(location=100) uniform vec3 view_pos;
 
-layout(location=200) uniform samplerCube irradiance_map;
-layout(location=201) uniform samplerCube prefilter_map;
-layout(location=202) uniform sampler2D brdf_map;
+//layout(location=200) uniform samplerCube irradiance_map;
+//layout(location=201) uniform samplerCube prefilter_map;
+//layout(location=202) uniform sampler2D brdf_map;
 
 
 layout(location=0) subroutine uniform GetNormal get_normal;
@@ -203,8 +203,6 @@ vec3 directional_lighting(const vec3 normal, const vec3 view_dir, const vec3 lig
     vec3 fresnel     = get_fresnel(light_dir, half_dir, specular_color);
     float ndf        = GGXNormalDistribution(roughness, max(0.000001, dot(half_dir, normal)));
     float gsf        = GGXGeometricShadowingFunction(dotNL, dotNV, roughness);
-    //float ndf        = BlinnNormalDistribution(roughness, max(0.000001, dot(half_dir, normal)));
-    //float gsf        = ImplicitGeometricShadowingFunction();
 
     return light_color*(diffuse_color*(1-fresnel)/PI+(fresnel*ndf*gsf))*dotNL*att;
 }
@@ -294,6 +292,7 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
 
     color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
 
+    /*
     const float MAX_REFLECTION_LOD = 9.0;
 
     smoothness = mat.smoothness;
@@ -312,7 +311,9 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
     vec3 specular = prefilter_color * (specular_color.rgb * env_BRDF.x + env_BRDF.y);
     vec3 ambient = (kD * diffuse + specular) * occlusion_color; 
 
-    //color += ambient;
+    color += ambient;
+    */
+
     color += emissive_color;
 
     return vec4(color, diffuse_color.a); 
