@@ -16,9 +16,10 @@ public:
 	UID DrawResourceType(Resource::Type type, bool opened = false);
 
 private:
-	UID  DrawResourceType(Resource::Type type, void (PanelResources::*popup)(void), bool opened);
+	UID  DrawResourceType(Resource::Type type, void (PanelResources::*popup)(Resource::Type), bool opened);
 
-    void DrawMeshPopup();
+    void DrawMeshPopup(Resource::Type type);
+    void DrawResourcePopup(Resource::Type type);
     void DrawPlaneProperties();
     void DrawCylinderProperties();
     void DrawSphereProperties();
@@ -36,6 +37,8 @@ private:
     };
 
     TextureParams texture_params;
+	bool waiting_to_load_file      = false;
+    Resource::Type waiting_to_load = Resource::unknown;
 
 };
 

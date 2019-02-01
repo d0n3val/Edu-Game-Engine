@@ -32,9 +32,7 @@ void PanelResources::Draw()
 {
     //ImGui::Begin("Resources", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
 
-	static bool waiting_to_load_file = false;
-
-	if (waiting_to_load_file == true && App->editor->FileDialog(nullptr, "/Assets/"))
+	if ((waiting_to_load != Resource::unknown  || waiting_to_load_file == true ) && App->editor->FileDialog(nullptr, "/Assets/"))
 	{
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)
@@ -42,17 +40,20 @@ void PanelResources::Draw()
             texture_params.file = file;
             App->fs->SplitFilePath(file, nullptr, nullptr, &texture_params.extension);
             Resource::Type type = App->resources->TypeFromExtension(texture_params.extension.c_str());
-            if(type == Resource::texture)
+            switch(type)
             {
-                texture_params.compressed = true;
-                texture_params.srgb = true;
-                texture_params.mipmaps = true;
+                case Resource::texture:
+                {
+                    texture_params.compressed = true;
+                    texture_params.srgb = true;
+                    texture_params.mipmaps = true;
 
-                ImGui::OpenPopup("Texture properties");
-            }
-            else
-            {
-                App->resources->ImportFile(file, false); 
+                    ImGui::OpenPopup("Texture properties");
+                    break;
+                }
+                default:
+                    App->resources->ImportFile(file, false); 
+                    break;
             }
         }
 		waiting_to_load_file = false;
@@ -62,8 +63,8 @@ void PanelResources::Draw()
 
 	if (ImGui::BeginMenu("Options"))
 	{
-		if (ImGui::MenuItem("Import.."))
-			waiting_to_load_file = true;
+		//if (ImGui::MenuItem("Import.."))
+			//waiting_to_load_file = true;
 
 			// TODO we should safely remove those options
 		if (ImGui::MenuItem("Load"))
@@ -93,7 +94,7 @@ void PanelResources::Draw()
 	DrawResourceType(Resource::mesh, &PanelResources::DrawMeshPopup, false);
 
     DrawResourceType(Resource::audio);
-    DrawResourceType(Resource::animation);
+    DrawResourceType(Resource::animation, &PanelResources::DrawResourcePopup, false);
 
     //ImGui::End();
 }
@@ -104,7 +105,7 @@ UID PanelResources::DrawResourceType(Resource::Type type, bool opened)
     return DrawResourceType(type, nullptr, opened);
 }
 
-UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::*popup)(void), bool opened)
+UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::*popup)(Resource::Type), bool opened)
 {
 	UID selected = 0;
 	vector<const Resource*> resources;
@@ -121,7 +122,7 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
             ImGui::OpenPopup("Resource popup");
         }
 
-        (this->*popup)();
+        (this->*popup)(type);
     }
 
     if (open_tree)
@@ -174,14 +175,35 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
     return selected;
 }
 
-void PanelResources::DrawMeshPopup()
+void PanelResources::DrawResourcePopup(Resource::Type type)
 {
-    bool open_plane = false;
-    bool open_cylinder = false;
-    bool open_sphere = false;
+    ImGui::PushID(Resource::GetTypeStr(type));
+    if(ImGui::BeginPopup("Resource popup"))
+    {
+		if (ImGui::MenuItem("Import.."))
+        {
+            waiting_to_load = type;
+			waiting_to_load_file = true;
+        }
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopID();
+}
+
+void PanelResources::DrawMeshPopup(Resource::Type)
+{
+    bool open_plane     = false;
+    bool open_cylinder  = false;
+    bool open_sphere    = false;
 
     if(ImGui::BeginPopup("Resource popup"))
     {
+		if (ImGui::MenuItem("Import.."))
+        {
+			waiting_to_load_file = true;
+        }
+
         if (ImGui::BeginMenu("Add prefab"))
         {
             open_plane = ImGui::MenuItem("Plane");
@@ -189,6 +211,7 @@ void PanelResources::DrawMeshPopup()
             open_sphere = ImGui::MenuItem("Sphere");
             ImGui::EndMenu();
         }
+
         ImGui::EndPopup();
     }
 
