@@ -224,6 +224,7 @@ UID ModuleResources::Find(const char * file_in_assets) const
 	return 0;
 }
 
+
 UID ModuleResources::ImportFileOutsideVFM(const char * full_path)
 {
 	UID ret = 0;
@@ -233,13 +234,19 @@ UID ModuleResources::ImportFileOutsideVFM(const char * full_path)
 	App->fs->SplitFilePath(full_path, nullptr, &final_path);
 	final_path = asset_folder + final_path;
 
-	if(App->fs->CopyFromOutsideFS(full_path, final_path.c_str()) == true)
-		ret = ImportFile(final_path.c_str());
+	if (App->fs->CopyFromOutsideFS(full_path, final_path.c_str()) == true)
+	{
+		std::string extension;
+		App->fs->SplitFilePath(full_path, nullptr, nullptr, &extension);
+		Resource::Type type = TypeFromExtension(extension.c_str());
+		ret = ImportFile(final_path.c_str(), type);
+	}
 
 	return ret;
 }
 
-UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
+
+UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type type, bool force)
 {
 	UID ret = 0;
 
@@ -251,12 +258,6 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, bool force)
 		if (ret != 0)
 			return ret;
 	}
-
-	// Find out the type from the extension and send to the correct exporter
-	string extension;
-	App->fs->SplitFilePath(new_file_in_assets, nullptr, nullptr, &extension);
-
-	Resource::Type type = TypeFromExtension(extension.c_str());
 
 	bool import_ok = false;
 	string written_file;

@@ -32,15 +32,13 @@ void PanelResources::Draw()
 {
     //ImGui::Begin("Resources", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing );
 
-	if ((waiting_to_load != Resource::unknown  || waiting_to_load_file == true ) && App->editor->FileDialog(nullptr, "/Assets/"))
+	if (waiting_to_load != Resource::unknown && App->editor->FileDialog(nullptr, "/Assets/"))
 	{
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)
         {
             texture_params.file = file;
-            App->fs->SplitFilePath(file, nullptr, nullptr, &texture_params.extension);
-            Resource::Type type = App->resources->TypeFromExtension(texture_params.extension.c_str());
-            switch(type)
+            switch(waiting_to_load)
             {
                 case Resource::texture:
                 {
@@ -52,20 +50,17 @@ void PanelResources::Draw()
                     break;
                 }
                 default:
-                    App->resources->ImportFile(file, false); 
+                    App->resources->ImportFile(file, waiting_to_load, false); 
                     break;
             }
         }
-		waiting_to_load_file = false;
+        waiting_to_load = Resource::unknown;
 	}
 
 	DrawTextureProperties();
 
 	if (ImGui::BeginMenu("Options"))
 	{
-		//if (ImGui::MenuItem("Import.."))
-			//waiting_to_load_file = true;
-
 			// TODO we should safely remove those options
 		if (ImGui::MenuItem("Load"))
 			App->resources->LoadResources();
@@ -87,18 +82,17 @@ void PanelResources::Draw()
         }
 	}
 
-	DrawResourceType(Resource::model);
-	DrawResourceType(Resource::material);
-	DrawResourceType(Resource::texture);
+	DrawResourceType(Resource::model, &PanelResources::DrawResourcePopup, false);
+	DrawResourceType(Resource::material, &PanelResources::DrawResourcePopup, false);
+	DrawResourceType(Resource::texture, &PanelResources::DrawResourcePopup, false);
 
 	DrawResourceType(Resource::mesh, &PanelResources::DrawMeshPopup, false);
 
-    DrawResourceType(Resource::audio);
+    DrawResourceType(Resource::audio, &PanelResources::DrawResourcePopup, false);
     DrawResourceType(Resource::animation, &PanelResources::DrawResourcePopup, false);
 
     //ImGui::End();
 }
-
 
 UID PanelResources::DrawResourceType(Resource::Type type, bool opened)
 {
@@ -119,7 +113,9 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
     {
         if (ImGui::IsItemClicked(1))
         {
+			ImGui::PushID(Resource::GetTypeStr(type));
             ImGui::OpenPopup("Resource popup");
+			ImGui::PopID();
         }
 
         (this->*popup)(type);
@@ -183,7 +179,6 @@ void PanelResources::DrawResourcePopup(Resource::Type type)
 		if (ImGui::MenuItem("Import.."))
         {
             waiting_to_load = type;
-			waiting_to_load_file = true;
         }
 
         ImGui::EndPopup();
@@ -191,17 +186,18 @@ void PanelResources::DrawResourcePopup(Resource::Type type)
     ImGui::PopID();
 }
 
-void PanelResources::DrawMeshPopup(Resource::Type)
+void PanelResources::DrawMeshPopup(Resource::Type type)
 {
     bool open_plane     = false;
     bool open_cylinder  = false;
     bool open_sphere    = false;
 
+    ImGui::PushID(Resource::GetTypeStr(type));
     if(ImGui::BeginPopup("Resource popup"))
     {
 		if (ImGui::MenuItem("Import.."))
         {
-			waiting_to_load_file = true;
+            waiting_to_load = type;
         }
 
         if (ImGui::BeginMenu("Add prefab"))
@@ -214,6 +210,7 @@ void PanelResources::DrawMeshPopup(Resource::Type)
 
         ImGui::EndPopup();
     }
+    ImGui::PopID();
 
     if(open_plane)
     {
@@ -364,6 +361,7 @@ void PanelResources::DrawTextureProperties()
         if(ImGui::Button("Ok", ImVec2(60, 0)))
         {
             App->resources->ImportTexture(texture_params.file.c_str(), texture_params.compressed, texture_params.mipmaps, texture_params.srgb); 
+            texture_params.Reset();
 
             ImGui::CloseCurrentPopup();
         }
@@ -371,6 +369,7 @@ void PanelResources::DrawTextureProperties()
         ImGui::SameLine();
         if(ImGui::Button("Cancel", ImVec2(60, 0)))
         {
+            texture_params.Reset();
             ImGui::CloseCurrentPopup();
         }
 

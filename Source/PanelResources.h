@@ -27,6 +27,7 @@ private:
     void DrawTextureProperties();
 
 private:
+
     struct TextureParams
     {
         std::string file;
@@ -34,6 +35,15 @@ private:
         bool        compressed = true;
         bool        mipmaps    = true;
         bool        srgb       = true;
+
+        void Reset() 
+        {
+            file.clear();
+            extension.clear();
+            compressed = true;
+            mipmaps    = true;
+            srgb       = true;
+        }
     };
 
     TextureParams texture_params;
