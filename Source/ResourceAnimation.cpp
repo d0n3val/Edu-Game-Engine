@@ -33,7 +33,6 @@ bool ResourceAnimation::LoadInMemory()
         uint node_size = 0;
 
         read_stream >> duration;
-        read_stream >> num_keys;
         read_stream >> num_channels;
 
         channels = new Channel[num_channels];
@@ -43,13 +42,19 @@ bool ResourceAnimation::LoadInMemory()
             Channel& channel = channels[i];
 
             read_stream >> channel.name;
+            read_stream >> channel.num_positions;
+            read_stream >> channel.num_rotations;
 
-            channel.positions = new float3[num_keys];
-            channel.rotations = new Quat[num_keys];
+            channel.positions = new float3[channel.num_positions];
+            channel.rotations = new Quat[channel.num_rotations];
 
-            for(uint j=0; j < num_keys; ++j)
+            for(uint j=0; j < channel.num_positions; ++j)
             {
                 read_stream >> channel.positions[j].x >> channel.positions[j].y >> channel.positions[j].z; 
+            }
+
+            for(uint j=0; j < channel.num_rotations; ++j)
+            {
                 read_stream >> channel.rotations[j].x >> channel.rotations[j].y >> channel.rotations[j].z >> channel.rotations[j].w;  
             }
         }
@@ -72,7 +77,6 @@ void ResourceAnimation::ReleaseFromMemory()
     delete [] channels;
 
     num_channels = 0;
-    num_keys     = 0;
     duration     = 0;
     channels     = nullptr;
 }
@@ -95,7 +99,6 @@ bool ResourceAnimation::Save(std::string& output) const
     simple::mem_ostream<std::true_type> write_stream;
 
     write_stream << duration;
-    write_stream << num_keys;
     write_stream << num_channels;
 
     for(uint i=0; i< num_channels; ++i)
@@ -103,10 +106,16 @@ bool ResourceAnimation::Save(std::string& output) const
         const Channel& channel = channels[i];
 
         write_stream << channel.name;
+        write_stream << channel.num_positions;
+        write_stream << channel.num_rotations;
 
-        for(uint j=0; j < num_keys; ++j)
+        for(uint j=0; j < channel.num_positions; ++j)
         {
             write_stream << channel.positions[j].x << channel.positions[j].y << channel.positions[j].z; 
+        }
+
+        for(uint j=0; j < channel.num_rotations; ++j)
+        {
             write_stream << channel.rotations[j].x << channel.rotations[j].y << channel.rotations[j].z << channel.rotations[j].w;  
         }
     }
@@ -119,7 +128,10 @@ bool ResourceAnimation::Save(std::string& output) const
 // ---------------------------------------------------------
 bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned last, std::string& output)
 {
-	const aiScene* scene = aiImportFile(full_path, aiProcessPreset_TargetRealtime_MaxQuality);
+	aiString assimp_path(".");
+	assimp_path.Append(full_path);
+
+	const aiScene* scene = aiImportFile(assimp_path.data, 0);
 
 	if (scene)
 	{
@@ -128,32 +140,37 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
         const aiAnimation* animation = scene->mAnimations[0];
         ResourceAnimation res(0);
 
-        first = min(last, res.num_keys);
-
         res.duration     = unsigned(1000*animation->mDuration/animation->mTicksPerSecond);
         res.num_channels = animation->mNumChannels;
-        res.num_keys     = min(last-first+1, unsigned(animation->mDuration*animation->mTicksPerSecond-first));
         res.channels     = new Channel[res.num_channels];
-
 
         for(unsigned i=0; i < animation->mNumChannels; ++i)
         {
             const aiNodeAnim* node = animation->mChannels[i];
-            Channel& channel = res.channels[i];
+            Channel& channel       = res.channels[i];
 
-            channel.name = node->mNodeName.C_Str();
+            channel.name           = node->mNodeName.C_Str();
+            channel.num_positions  = node->mNumPositionKeys;
+            channel.num_rotations  = node->mNumRotationKeys;
 
-            assert(node->mNumPositionKeys == res.num_keys);
-            assert(node->mNumRotationKeys == res.num_keys);
+            uint pos_first = min(first, channel.num_positions);
+            uint pos_last  = max(first, min(last, channel.num_positions));
 
-            channel.positions = new math::float3[node->mNumPositionKeys];
-            channel.rotations = new Quat[node->mNumRotationKeys];
+            uint rot_first = min(first, channel.num_rotations);
+            uint rot_last  = max(first, min(last, channel.num_rotations));
 
-            for(unsigned j=0; j < res.num_keys; ++j)
+            channel.positions = new math::float3[channel.num_positions];
+            channel.rotations = new Quat[channel.num_rotations];
+
+            for(unsigned j=0; j < (pos_last-pos_first); ++j)
             {
-                const aiQuaternion& quat = node->mRotationKeys[j+first].mValue;
+                channel.positions[j] = *reinterpret_cast<math::float3*>(&node->mPositionKeys[j+pos_first].mValue);
+            }
+
+            for(unsigned j=0; j < (rot_last-rot_first); ++j)
+            {
+                const aiQuaternion& quat = node->mRotationKeys[j+rot_first].mValue;
                 channel.rotations[j] = Quat(quat.x, quat.y, quat.z, quat.w);
-                channel.positions[j] = *reinterpret_cast<math::float3*>(&node->mPositionKeys[j+first].mValue);
             }
         }
 

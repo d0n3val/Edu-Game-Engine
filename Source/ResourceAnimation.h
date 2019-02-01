@@ -27,13 +27,14 @@ public:
 	struct Channel
 	{
         std::string name;
-        float3*     positions    = nullptr; 
-        Quat*       rotations    = nullptr;
+        float3*     positions     = nullptr; 
+        Quat*       rotations     = nullptr;
+		uint        num_positions = 0;
+		uint        num_rotations = 0;
 	};
 
-    unsigned duration     = 0;
-    unsigned num_channels = 0;
-    unsigned num_keys     = 0;
+    uint     duration     = 0;
+    uint     num_channels = 0;
     Channel* channels     = nullptr;
 };
 
