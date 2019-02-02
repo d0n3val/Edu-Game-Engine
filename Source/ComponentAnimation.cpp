@@ -50,6 +50,40 @@ void ComponentAnimation::OnUpdate(float dt)
 }
 
 // ---------------------------------------------------------
+void ComponentAnimation::OnSave(Config& config) const 
+{
+    config.AddArray("clips");
+    for(uint i=0; i< clips.size(); ++i)
+    {
+        const Clip& clip = clips[i];
+
+        Config clip_entry;
+        clip_entry.AddString("Name", clip.name.C_str());
+        clip_entry.AddUID("Resource", clip.resource);
+        clip_entry.AddBool("Loop", clip.loop);
+
+        config.AddArrayEntry(clip_entry);
+    }
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::OnLoad(Config* config) 
+{
+    uint count = config->GetArrayCount("clips");
+
+    clips.clear();
+    clips.resize(count);
+    
+    for(uint i=0; i< count; ++i)
+    {
+        Config clip       = config->GetArray("clips", i);
+        clips[i].name     = HashString(clip.GetString("Name", ""));
+        clips[i].resource = clip.GetUID("Resource", 0);
+        clips[i].loop     = clip.GetBool("Loop", false);
+    }
+}
+
+// ---------------------------------------------------------
 void ComponentAnimation::UpdateGO(GameObject* go)
 {
     float3 position;

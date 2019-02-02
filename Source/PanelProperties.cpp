@@ -894,23 +894,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 
 void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 {
-    uint index = component->FindClip(HashString("default"));
-
-    if(index < component->GetNumClips())
-    {
-        char lTmp[128];
-
-        strcpy_s(lTmp, component->GetClipName(index).C_str());
-        if(ImGui::InputText("Name", lTmp, 128))
-        {
-			int i = 0;
-			++i;
-        }
-    }
-
-    // \todo: add information 
-
-    UID new_res = PickResourceModal(Resource::material);
+    UID new_res = PickResourceModal(Resource::animation);
 
     if (new_res > 0)
     {
@@ -918,4 +902,17 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
         
         App->resources->Get(new_res)->LoadToMemory();
     }
+
+    uint index = component->FindClip(HashString("default"));
+
+    if(index < component->GetNumClips())
+    {
+        ImGui::LabelText("Clip name", component->GetClipName(index).C_str());
+        bool loop = component->GetClipLoop(index);
+        if(ImGui::Checkbox("Loop", &loop))
+        {
+            component->SetClipLoop(index, loop);
+        }
+    }
+
 }

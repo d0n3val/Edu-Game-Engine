@@ -12,6 +12,7 @@
 #include "ComponentRigidBody.h"
 #include "ComponentSteering.h"
 #include "ComponentPath.h"
+#include "ComponentAnimation.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Config.h"
@@ -309,6 +310,7 @@ Component* GameObject::CreateComponent(Component::Types type)
 			ret = new ComponentRigidBody(this);
 		break;
 		case Component::Types::Animation:
+			ret = new ComponentAnimation(this);
 		break;
 		case Component::Types::Steering:
 			ret = new ComponentSteering(this);

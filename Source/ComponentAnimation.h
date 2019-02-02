@@ -15,9 +15,12 @@ public:
 	ComponentAnimation (GameObject* container);
 	~ComponentAnimation ();
 
-	virtual void        OnStart () override;
-	virtual void        OnUpdate(float dt) override;
-	virtual void        OnFinish() override;
+	virtual void        OnStart     () override;
+	virtual void        OnUpdate    (float dt) override;
+	virtual void        OnFinish    () override;
+
+	virtual void        OnSave      (Config& config) const override;
+	virtual void        OnLoad      (Config* config) override;
 
     void                AddClip     (const HashString& name, UID resource, bool loop);
     uint                FindClip    (const HashString& name) const;
@@ -26,6 +29,9 @@ public:
     const HashString&   GetClipName (uint index) const { return clips[index].name; }
     UID                 GetClipRes  (uint index) const { return clips[index].resource; }
     bool                GetClipLoop (uint index) const { return clips[index].loop; }
+
+    void                SetClipRes  (uint index, UID uid) { clips[index].resource = uid; }
+    void                SetClipLoop (uint index, bool loop) { clips[index].loop = loop; }
 
 private:
 
