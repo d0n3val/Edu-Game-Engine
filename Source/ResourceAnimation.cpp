@@ -140,7 +140,8 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
         const aiAnimation* animation = scene->mAnimations[0];
         ResourceAnimation res(0);
 
-        res.duration     = unsigned(1000*animation->mDuration/animation->mTicksPerSecond);
+		uint duration    = min(last - first, uint(animation->mDuration));
+        res.duration     = unsigned(1000*duration/animation->mTicksPerSecond);
         res.num_channels = animation->mNumChannels;
         res.channels     = new Channel[res.num_channels];
 

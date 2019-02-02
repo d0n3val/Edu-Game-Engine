@@ -37,16 +37,31 @@ void PanelResources::Draw()
 		const char* file = App->editor->CloseFileDialog();
 		if (file != nullptr)
         {
-            texture_params.file = file;
             switch(waiting_to_load)
             {
                 case Resource::texture:
                 {
-                    texture_params.compressed = true;
-                    texture_params.srgb = true;
-                    texture_params.mipmaps = true;
+                    texture_params.file = file;
 
                     ImGui::OpenPopup("Texture properties");
+                    break;
+                }
+                case Resource::animation:
+                {
+                    animation_params.file = file;
+                    std::string user_name;
+                    App->fs->SplitFilePath(file, nullptr, &user_name, nullptr);
+
+                    size_t pos_dot = user_name.find_last_of(".");
+                    if(pos_dot != std::string::npos)
+                    {
+                        user_name.erase(user_name.begin()+pos_dot, user_name.end());
+                    }
+
+                    strcpy_s(animation_params.clips[0].name, user_name.c_str());
+                    strcpy_s(animation_params.clip_names, user_name.c_str());
+
+                    ImGui::OpenPopup("Animation properties");
                     break;
                 }
                 default:
@@ -58,6 +73,7 @@ void PanelResources::Draw()
 	}
 
 	DrawTextureProperties();
+	DrawAnimationProperties();
 
 	if (ImGui::BeginMenu("Options"))
 	{
@@ -375,5 +391,65 @@ void PanelResources::DrawTextureProperties()
 
         ImGui::EndPopup();
     }
-
 }
+
+void PanelResources::DrawAnimationProperties()
+{
+    ImGui::SetNextWindowSize(ImVec2(400, 450));
+    if (ImGui::BeginPopupModal("Animation properties", nullptr, ImGuiWindowFlags_NoResize))
+    {
+        if(ImGui::BeginChild("Canvas", ImVec2(380, 390), true, ImGuiWindowFlags_NoMove))
+        {
+            ImGui::LabelText("File", animation_params.file.c_str());
+            int num_clips = animation_params.clips.size();
+            if(ImGui::InputInt("# Clips", &num_clips))
+            {
+                uint new_size = max(1, num_clips);
+                uint prev_size = animation_params.clips.size();
+                animation_params.clips.resize(new_size);
+
+                for(uint i=prev_size; i< new_size; ++i)
+                {
+                    strcpy_s(animation_params.clips[i].name, animation_params.clip_names);
+                }
+            }
+
+            for(uint i=0; i< animation_params.clips.size(); ++i)
+            {
+                ImGui::PushID(i);
+                if(ImGui::BeginChild("Clip", ImVec2(350, 100), true, ImGuiWindowFlags_NoMove))
+                {
+                    ImGui::InputText("Clip name", animation_params.clips[i].name, 128);
+                    ImGui::InputInt("First frame", (int*)&animation_params.clips[i].first);
+                    ImGui::InputInt("Last frame", (int*)&animation_params.clips[i].last);
+                }
+                ImGui::EndChild();
+                ImGui::PopID();
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Indent(252);
+        if(ImGui::Button("Ok", ImVec2(60, 0)))
+        {
+            for(uint i=0; i< animation_params.clips.size(); ++i)
+            {
+                App->resources->ImportAnimation(animation_params.file.c_str(), animation_params.clips[i].first, 
+                        animation_params.clips[i].last, animation_params.clips[i].name); 
+            }
+            animation_params.Reset();
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+        if(ImGui::Button("Cancel", ImVec2(60, 0)))
+        {
+            animation_params.Reset();
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+

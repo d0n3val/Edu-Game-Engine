@@ -281,7 +281,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	// If export was successfull, create a new resource
 	if (import_ok == true)
 	{
-        ret = ImportSuccess(type, new_file_in_assets, written_file);
+        ret = ImportSuccess(type, new_file_in_assets, "", written_file);
 	}
 	else
 		LOG("Importing of [%s] FAILED", new_file_in_assets);
@@ -300,7 +300,7 @@ UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool 
 	// If export was successfull, create a new resource
 	if (import_ok == true)
 	{
-        ret = ImportSuccess(Resource::texture, file_name, written_file);
+        ret = ImportSuccess(Resource::texture, file_name, "", written_file);
         ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
         texture->EnableMips(mipmaps);
         texture->SetLinear(!srgb);
@@ -313,7 +313,28 @@ UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool 
 	return ret;
 }
 
-UID ModuleResources::ImportSuccess(Resource::Type type, const char* file_name, const std::string& output)
+UID ModuleResources::ImportAnimation(const char* file_name, uint first, uint last, const char* user_name)
+{
+	UID ret = 0;
+    bool import_ok = false;
+    string written_file;
+
+    import_ok = ResourceAnimation::Import(file_name, first, last, written_file);
+
+	// If export was successfull, create a new resource
+	if (import_ok == true)
+	{
+        ret = ImportSuccess(Resource::animation, file_name, user_name, written_file);
+	}
+	else
+    {
+		LOG("Importing of [%s] FAILED", file_name);
+    }
+
+	return ret;
+}
+
+UID ModuleResources::ImportSuccess(Resource::Type type, const char* file_name, const char* user_name, const std::string& output)
 {
     Resource* res = CreateNewResource(type);
     res->file = file_name;
@@ -324,6 +345,8 @@ UID ModuleResources::ImportSuccess(Resource::Type type, const char* file_name, c
     LOG("Imported successful from [%s] to [%s]", res->GetFile(), res->GetExportedFile());
 
     App->fs->SplitFilePath(res->file.c_str(), nullptr, &res->user_name, nullptr);
+
+    res->user_name = user_name;
 
     if (res->user_name.empty())
     {
