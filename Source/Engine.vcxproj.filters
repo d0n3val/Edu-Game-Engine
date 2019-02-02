@@ -597,6 +597,9 @@
     <ClInclude Include="DirLight.h">
       <Filter>Lights</Filter>
     </ClInclude>
+    <ClInclude Include="AnimController.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -922,6 +925,9 @@
     </ClCompile>
     <ClCompile Include="SOIL2\srcs\SOIL2.c">
       <Filter>3rd Party\SOIL2</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimController.cpp">
+      <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

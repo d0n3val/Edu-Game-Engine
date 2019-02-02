@@ -183,3 +183,19 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
     return false;
 }
 
+// ---------------------------------------------------------
+uint ResourceAnimation::FindChannelIndex (const char* channel_name) const
+{
+    uint index = 0;
+
+    for(; index < num_channels; ++index)
+    {
+        if(channels[index].name.compare(channel_name) == 0)
+        {
+            break;
+        }
+    }
+
+    return index;
+}
+

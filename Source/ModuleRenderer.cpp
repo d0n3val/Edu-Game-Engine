@@ -32,6 +32,10 @@
 #include "imgui/imgui.h"
 
 #include "SOIL2.h"
+
+#include <string>
+#include <functional>
+
 #include "mmgr/mmgr.h"
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
