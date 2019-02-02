@@ -6,7 +6,8 @@
 class HashString
 {
 
-    STRPOOL_U64 handle;
+    STRPOOL_U64 handle = 0;
+    const char* value  = nullptr;
 
 public:
 

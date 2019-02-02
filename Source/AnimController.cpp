@@ -91,7 +91,7 @@ void AnimController::ReleaseInstance(Instance* instance)
 	} while (instance != nullptr);
 }
 
-bool AnimController::GetTransform(const char* channel_name, float3& position, Quat& rotation) const
+bool AnimController::GetTransform(const HashString& channel_name, float3& position, Quat& rotation) const
 {
     if(current != nullptr)
     {
@@ -101,7 +101,7 @@ bool AnimController::GetTransform(const char* channel_name, float3& position, Qu
 	return false;
 }
 
-bool AnimController::GetTransformInstance(Instance* instance, const char* channel_name, float3& position, Quat& rotation) const
+bool AnimController::GetTransformInstance(Instance* instance, const HashString& channel_name, float3& position, Quat& rotation) const
 {
 	const ResourceAnimation* animation = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
 	unsigned channel_index  = animation->FindChannelIndex(channel_name);

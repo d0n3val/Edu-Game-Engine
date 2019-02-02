@@ -37,6 +37,7 @@ HashString::HashString(const char* str)
 
     handle = strpool_inject(pool, str, (int)strlen(str));
     strpool_incref(pool, handle);
+    value = strpool_cstr(GetPool(), handle);
 }
 
 HashString::HashString(const HashString& rhs) : handle(rhs.handle)
@@ -66,6 +67,7 @@ HashString& HashString::operator=(const HashString& rhs)
     }
 
     handle = rhs.handle;
+    value  = rhs.value;
 
 	return *this;
 }

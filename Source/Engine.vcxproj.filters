@@ -600,6 +600,9 @@
     <ClInclude Include="AnimController.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentAnimation.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -928,6 +931,9 @@
     </ClCompile>
     <ClCompile Include="AnimController.cpp">
       <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentAnimation.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

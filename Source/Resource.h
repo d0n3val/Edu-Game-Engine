@@ -12,13 +12,15 @@ class Resource
 {
 	friend class ModuleResources;
 public:
-	enum Type {
+	enum Type 
+    {
         model,
         material,
 		texture,
 		mesh,
 		audio,
 		animation,
+        anim_controller,
 		unknown
 	};
 

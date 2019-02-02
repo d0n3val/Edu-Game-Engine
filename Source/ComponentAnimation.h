@@ -2,92 +2,57 @@
 #define __COMPONENT_ANIMATION_H__
 
 #include "Component.h"
-#include "ComponentWithResource.h"
-#include <map>
+#include "HashString.h"
 
-class ComponentBone;
-class ResourceAnimation;
+#include <vector>
 
-class ComponentAnimation : public Component, public ComponentWithResource
+class AnimController;
+
+class ComponentAnimation : public Component
 {
-	friend class ModuleAnimation;
 public:
+
 	ComponentAnimation (GameObject* container);
 	~ComponentAnimation ();
 
-	void OnSave(Config& config) const override;
-	void OnLoad(Config* config) override;
+	virtual void        OnStart () override;
+	virtual void        OnUpdate(float dt) override;
+	virtual void        OnFinish() override;
 
-	bool SetResource(UID resource) override;
+    void                AddClip     (const HashString& name, UID resource, bool loop);
+    uint                FindClip    (const HashString& name) const;
 
-	void Unload();
-
-	void OnDeActivate() override;
-
-	bool Play();
-	bool Pause();
-	bool UnPause();
-	void Stop();
-	bool BlendTo(UID next_animation, float blend_time);
-
-	bool IsPlaying() const;
-	bool IsPaused() const;
-
-	int GetCurrentState() const;
-	void SwitchChannels();
+    uint                GetNumClips () const { return clips.size(); }
+    const HashString&   GetClipName (uint index) const { return clips[index].name; }
+    UID                 GetClipRes  (uint index) const { return clips[index].resource; }
+    bool                GetClipLoop (uint index) const { return clips[index].loop; }
 
 private:
 
-public:
-	enum state
-	{
-		unloaded,
-		stopped,
-		waiting_to_play,
-		playing,
-		waiting_to_pause,
-		paused,
-		waiting_to_unpause,
-		waiting_to_stop,
-		blending,
-		waiting_to_blend
-	};
-
-	struct Channel
-	{
-		ComponentAnimation* component = nullptr;
-
-		UID resource = 0;
-		float time = 0.0f;
-		std::map<uint, ComponentBone*> bones;
-		float speed = 1.0f;
-		bool loop = false;
-		
-		const ResourceAnimation* GetResource() const;
-		uint CountBones() const;
-		void AttachBones();
-		uint CountAttachedBones() const;
-		float GetTime() const;
-
-
-	private:
-		void RecursiveCountBones(const GameObject * go, uint& count) const;
-		void RecursiveAttachBones(const GameObject * go);
-	};
-
-	Channel first;
-	Channel second;
-
-	Channel* current = &first;
-	Channel* next = &second;
-
-	bool interpolate = true;
-
-	float blend_time = 0.f;
-	float total_blend_time = 0.f;
+    void                UpdateGO    (GameObject* go);
 
 private:
-	state current_state = state::unloaded;
+
+    struct Clip
+    {
+        HashString  name;
+        UID         resource = 0;
+        bool        loop     = false;
+
+        Clip() {;}
+        Clip(const HashString& n, UID r, bool l) : name(n), resource(r), loop(l) {;}
+    };
+
+    struct TNearestClip
+    {
+        bool operator()(const Clip& clip, const HashString& name)
+        {
+            return clip.name < name;
+        }
+    };
+
+    AnimController*   controller = nullptr;
+    std::vector<Clip> clips;
 };
 
 #endif // __COMPONENT_AUDIOSOURCE_H__

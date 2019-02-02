@@ -41,9 +41,12 @@ bool ResourceAnimation::LoadInMemory()
         {
             Channel& channel = channels[i];
 
-            read_stream >> channel.name;
+            std::string name;
+            read_stream >> name;
             read_stream >> channel.num_positions;
             read_stream >> channel.num_rotations;
+
+            channel.name = HashString(name.c_str());
 
             channel.positions = new float3[channel.num_positions];
             channel.rotations = new Quat[channel.num_rotations];
@@ -82,18 +85,6 @@ void ResourceAnimation::ReleaseFromMemory()
 }
 
 // ---------------------------------------------------------
-void ResourceAnimation::Save(Config & config) const
-{
-	Resource::Save(config);
-}
-
-// ---------------------------------------------------------
-void ResourceAnimation::Load(const Config & config)
-{
-	Resource::Load(config);
-}
-
-// ---------------------------------------------------------
 bool ResourceAnimation::Save(std::string& output) const
 {
     simple::mem_ostream<std::true_type> write_stream;
@@ -105,7 +96,7 @@ bool ResourceAnimation::Save(std::string& output) const
     {
         const Channel& channel = channels[i];
 
-        write_stream << channel.name;
+        write_stream << channel.name.C_str();
         write_stream << channel.num_positions;
         write_stream << channel.num_rotations;
 
@@ -150,7 +141,7 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
             const aiNodeAnim* node = animation->mChannels[i];
             Channel& channel       = res.channels[i];
 
-            channel.name           = node->mNodeName.C_Str();
+            channel.name           = HashString(node->mNodeName.C_Str());
             channel.num_positions  = node->mNumPositionKeys;
             channel.num_rotations  = node->mNumRotationKeys;
 
@@ -184,13 +175,13 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
 }
 
 // ---------------------------------------------------------
-uint ResourceAnimation::FindChannelIndex (const char* channel_name) const
+uint ResourceAnimation::FindChannelIndex (const HashString& name) const
 {
     uint index = 0;
 
     for(; index < num_channels; ++index)
     {
-        if(channels[index].name.compare(channel_name) == 0)
+        if(channels[index].name == name)
         {
             break;
         }

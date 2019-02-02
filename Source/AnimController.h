@@ -2,6 +2,7 @@
 #define _ANIM_CONTROLLER_H_
 
 #include "Math.h"
+#include "HashString.h"
 
 class AnimController
 {
@@ -11,7 +12,7 @@ class AnimController
 		unsigned time = 0;
 		bool     loop = true;
 
-		Instance* next          = nullptr;
+		Instance* next         = nullptr;
 		unsigned fade_duration = 0;
 		unsigned fade_time     = 0;
 	};
@@ -28,12 +29,12 @@ public:
 	void            Play                (UID clip, unsigned fade_time);
 	void            Stop                ();
 
-	bool            GetTransform        (const char* channel_name, math::float3& position, Quat& rotation) const;
+	bool            GetTransform        (const HashString& channel_name, math::float3& position, Quat& rotation) const;
 
 private:
     void            UpdateInstance      (Instance* instance, unsigned elapsed);
     void            ReleaseInstance     (Instance* instance);
-    bool            GetTransformInstance(Instance* instance, const char* channel_name, float3& position, Quat& rotation) const;
+    bool            GetTransformInstance(Instance* instance, const HashString& channel_name, float3& position, Quat& rotation) const;
     float3          Interpolate         (const float3& first, const float3& second, float lambda) const;
 	Quat            Interpolate         (const Quat& first, const Quat& second, float lambda) const;
 };

@@ -12,6 +12,7 @@
 #include "ComponentRigidBody.h"
 #include "ComponentSteering.h"
 #include "ComponentMesh.h"
+#include "ComponentAnimation.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
 #include "ModuleEditor.h"
@@ -344,6 +345,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
                         ((ComponentRigidBody*)(*it))->DrawEditor();
                         break;
                     case Component::Types::Animation:
+                        DrawAnimationComponent(static_cast<ComponentAnimation*>(*it));
                         break;
                     case Component::Types::Steering:
                         ((ComponentSteering*)(*it))->DrawEditor();
@@ -890,3 +892,30 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
     return modified;
 }
 
+void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
+{
+    uint index = component->FindClip(HashString("default"));
+
+    if(index < component->GetNumClips())
+    {
+        char lTmp[128];
+
+        strcpy_s(lTmp, component->GetClipName(index).C_str());
+        if(ImGui::InputText("Name", lTmp, 128))
+        {
+			int i = 0;
+			++i;
+        }
+    }
+
+    // \todo: add information 
+
+    UID new_res = PickResourceModal(Resource::material);
+
+    if (new_res > 0)
+    {
+        component->AddClip(HashString("default"), new_res, true);
+        
+        App->resources->Get(new_res)->LoadToMemory();
+    }
+}
