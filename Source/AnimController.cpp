@@ -84,6 +84,7 @@ void AnimController::Stop()
     if(current != nullptr)
     {
         ReleaseInstance(current);
+		current = nullptr;
     }
 }
 
@@ -122,10 +123,10 @@ bool AnimController::GetTransformInstance(Instance* instance, const HashString& 
 		unsigned pos_index = unsigned(pos_key);
 		unsigned rot_index = unsigned(rot_key);
 
-		float pos_lambda = pos_key-float(pos_index);
-		float rot_lambda = rot_key-float(rot_index);
+		float pos_lambda = 0.0f; pos_key-float(pos_index);
+		float rot_lambda = 0.0f; rot_key-float(rot_index);
 
-        if(pos_lambda > 0)
+        if(pos_lambda > 0.0f)
         {
             position = Interpolate(animation->GetPosition(channel_index, pos_index), animation->GetPosition(channel_index, pos_index+1), pos_lambda);
         }
@@ -134,7 +135,7 @@ bool AnimController::GetTransformInstance(Instance* instance, const HashString& 
             position = animation->GetPosition(channel_index, pos_index);
         }
 
-        if(rot_lambda > 0)
+        if(rot_lambda > 0.0f)
         {
             rotation = Interpolate(animation->GetRotation(channel_index, rot_index), animation->GetRotation(channel_index, rot_index+1), rot_lambda);
         }

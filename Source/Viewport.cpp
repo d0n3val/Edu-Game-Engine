@@ -191,7 +191,7 @@ void Viewport::DrawQuickBar(ComponentCamera* camera)
 {
     Application::State state = App->GetState();
 
-    if(ImGui::BeginChild("ToolCanvas", ImVec2(435, 38), true, ImGuiWindowFlags_NoMove))
+    if(ImGui::BeginChild("ToolCanvas", ImVec2(405, 38), true, ImGuiWindowFlags_NoMove))
     {
         if (state != Application::play && state != Application::pause)
         {
@@ -217,7 +217,7 @@ void Viewport::DrawQuickBar(ComponentCamera* camera)
                 App->UnPause();
         }
 
-        ImGui::SameLine(75.f);
+        ImGui::SameLine(150.f);
         ImGui::Checkbox("Grid", &draw_plane);
         ImGui::SameLine();
         ImGui::Checkbox("Axis", &draw_axis);
@@ -225,7 +225,7 @@ void Viewport::DrawQuickBar(ComponentCamera* camera)
         ImGui::Checkbox("Dbg Draw", &debug_draw);
 
         ImGui::SameLine();
-        ImGui::ColorEdit3("Background", (float*)&camera->background, ImGuiColorEditFlags_NoInputs);
+        ImGui::ColorEdit3("Bg", (float*)&camera->background, ImGuiColorEditFlags_NoInputs);
     }
     ImGui::EndChild();
 

@@ -519,7 +519,7 @@ void ModuleRenderer::DebugDrawAnimation(const GameObject* go)
     {
         for(std::list<GameObject*>::const_iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
         {
-            DebugDrawHierarchy((*it));
+            DebugDrawAnimation((*it));
         }
     }
 }
@@ -532,7 +532,8 @@ void ModuleRenderer::DebugDrawHierarchy(const GameObject* go)
     {
         const float4x4& parent_transform = go->GetParent()->GetGlobalTransformation();
 
-        dd::line(parent_transform.TranslatePart(), transform.TranslatePart(), dd::colors::Blue);
+        dd::line(parent_transform.TranslatePart(), transform.TranslatePart(), dd::colors::Blue, 0, false);
+		dd::axisTriad(transform, 1.0f,  10.f, 0, false);
     }
 
     for(std::list<GameObject*>::const_iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)

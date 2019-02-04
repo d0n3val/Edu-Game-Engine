@@ -23,17 +23,20 @@ ComponentAnimation::~ComponentAnimation()
 }
 
 // ---------------------------------------------------------
-void ComponentAnimation::OnStart()
+void ComponentAnimation::OnPlay()
 {
     uint index = FindClip(HashString("default"));
     if(index < clips.size())
     {
-        controller->Play(clips[index].resource, 0);
+        if(App->resources->Get(clips[index].resource) != nullptr)
+        {
+            controller->Play(clips[index].resource, 0);
+        }
     }
 }
 
 // ---------------------------------------------------------
-void ComponentAnimation::OnFinish()
+void ComponentAnimation::OnStop()
 {
     controller->Stop();
 }
@@ -82,9 +85,17 @@ void ComponentAnimation::OnLoad(Config* config)
         clips[i].name     = HashString(clip.GetString("Name", ""));
         clips[i].resource = clip.GetUID("Resource", 0);
         clips[i].loop     = clip.GetBool("Loop", false);
+
+        Resource* res = App->resources->Get(clips[i].resource);
+
+        if (res != nullptr)
+        {
+            res->LoadToMemory();
+        }
     }
 
     debug_draw = config->GetBool("DebugDraw", false);
+
 }
 
 // ---------------------------------------------------------

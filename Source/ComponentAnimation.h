@@ -15,9 +15,9 @@ public:
 	ComponentAnimation (GameObject* container);
 	~ComponentAnimation ();
 
-	virtual void        OnStart     () override;
+	virtual void        OnPlay      () override;
+	virtual void        OnStop      () override;
 	virtual void        OnUpdate    (float dt) override;
-	virtual void        OnFinish    () override;
 
 	virtual void        OnSave      (Config& config) const override;
 	virtual void        OnLoad      (Config* config) override;

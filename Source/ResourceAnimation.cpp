@@ -142,14 +142,15 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
             Channel& channel       = res.channels[i];
 
             channel.name           = HashString(node->mNodeName.C_Str());
-            channel.num_positions  = node->mNumPositionKeys;
-            channel.num_rotations  = node->mNumRotationKeys;
 
             uint pos_first = min(first, channel.num_positions);
-            uint pos_last  = max(first, min(last, channel.num_positions));
+            uint pos_last  = max(first, min(last, node->mNumPositionKeys));
 
             uint rot_first = min(first, channel.num_rotations);
-            uint rot_last  = max(first, min(last, channel.num_rotations));
+            uint rot_last  = max(first, min(last, node->mNumRotationKeys));
+
+            channel.num_positions  = pos_last-pos_first;
+            channel.num_rotations  = rot_last-rot_first;
 
             channel.positions = new math::float3[channel.num_positions];
             channel.rotations = new Quat[channel.num_rotations];
