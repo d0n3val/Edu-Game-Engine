@@ -31,19 +31,25 @@ void AnimController::UpdateInstance(Instance* instance, unsigned elapsed)
 {
 	ResourceAnimation* anim = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
 
-	unsigned to_end = anim->GetDuration() - instance->time;
+	if (anim->GetDuration() > 0)
+	{
+		elapsed = elapsed % anim->GetDuration();
+		unsigned to_end = anim->GetDuration() - instance->time;
 
-	if(elapsed <= to_end)
-	{
-		instance->time += elapsed;
-	}
-	else if(instance->loop)
-	{
-		instance->time = (elapsed-to_end);
-	}
-	else
-	{
-		instance->time = anim->GetDuration();
+		if (elapsed <= to_end)
+		{
+			instance->time += elapsed;
+		}
+		else if (instance->loop)
+		{
+			instance->time = (elapsed - to_end);
+		}
+		else
+		{
+			instance->time = anim->GetDuration();
+		}
+
+		assert(instance->time <= anim->GetDuration());
 	}
 
 	if(instance->next != nullptr)

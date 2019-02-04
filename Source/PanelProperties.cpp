@@ -700,6 +700,14 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial* component)
 
     ImGui::Separator();
 
+    bool debug_draw = component->GetDDTangent();
+    if(ImGui::Checkbox("Debug draw tangent space", &debug_draw))
+    {
+        component->SetDDTangent(debug_draw);
+    }
+
+    ImGui::Separator();
+
     if(new_res > 0)
     {
 		component->SetResource(new_res);
@@ -895,6 +903,14 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 {
     UID new_res = PickResourceModal(Resource::animation);
+
+    ImGui::Separator();
+
+    bool debug_draw = component->GetDebugDraw();
+    if(ImGui::Checkbox("Debug draw", &debug_draw))
+    {
+        component->SetDebugDraw(debug_draw);
+    }
 
     if (new_res > 0)
     {

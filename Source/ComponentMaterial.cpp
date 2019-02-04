@@ -21,6 +21,7 @@ void ComponentMaterial::OnLoad(Config * config)
 {
 	SetResource(config->GetUID("Resource", 0));
 
+    debug_draw_tangent = config->GetBool("DebugDrawTangent", false);
     cast_shadows = config->GetBool("CastShadows", true);
     recv_shadows = config->GetBool("RecvShadows", true);
     render_mode  = config->GetUInt("RenderMode", RENDER_OPAQUE) == uint(RENDER_OPAQUE) ? RENDER_OPAQUE : RENDER_TRANSPARENT;
@@ -35,6 +36,7 @@ void ComponentMaterial::OnLoad(Config * config)
 void ComponentMaterial::OnSave(Config& config) const
 {
 	config.AddUID("Resource", resource);
+	config.AddBool("DebugDrawTangent", debug_draw_tangent);
 	config.AddBool("CastShadows", cast_shadows);
 	config.AddBool("RecvShadows", recv_shadows);
     config.AddUInt("RenderMode", render_mode);

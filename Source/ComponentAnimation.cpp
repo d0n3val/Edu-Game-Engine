@@ -64,6 +64,8 @@ void ComponentAnimation::OnSave(Config& config) const
 
         config.AddArrayEntry(clip_entry);
     }
+
+    config.AddBool("DebugDraw", debug_draw);
 }
 
 // ---------------------------------------------------------
@@ -81,6 +83,8 @@ void ComponentAnimation::OnLoad(Config* config)
         clips[i].resource = clip.GetUID("Resource", 0);
         clips[i].loop     = clip.GetBool("Loop", false);
     }
+
+    debug_draw = config->GetBool("DebugDraw", false);
 }
 
 // ---------------------------------------------------------

@@ -24,6 +24,9 @@ public:
     const ResourceMaterial* GetResource () const;
     ResourceMaterial*       GetResource ();
 
+    bool                    GetDDTangent    () const { return debug_draw_tangent; }
+    void                    SetDDTangent    (bool enable) { debug_draw_tangent = enable; }
+
     bool                    CastShadows     () const { return cast_shadows; }
     bool                    RecvShadows     () const { return recv_shadows; }
 
@@ -37,9 +40,10 @@ public:
 
 private:
 
-    UID   resource          = 0;
+    UID  resource          = 0;
     bool cast_shadows       = true;
     bool recv_shadows       = true;
+    bool debug_draw_tangent = false;
     ERenderMode render_mode = RENDER_OPAQUE;
     
 };

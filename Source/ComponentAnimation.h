@@ -33,6 +33,11 @@ public:
     void                SetClipRes  (uint index, UID uid) { clips[index].resource = uid; }
     void                SetClipLoop (uint index, bool loop) { clips[index].loop = loop; }
 
+    bool                GetDebugDraw () const {return debug_draw;}
+    void                SetDebugDraw (bool enable) { debug_draw = enable; }
+
+    static Types        GetClassType() { return Animation; }
+
 private:
 
     void                UpdateGO    (GameObject* go);
@@ -59,6 +64,7 @@ private:
 
     AnimController*   controller = nullptr;
     std::vector<Clip> clips;
+    bool              debug_draw = false;
 };
 
 #endif // __COMPONENT_AUDIOSOURCE_H__

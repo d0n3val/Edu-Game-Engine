@@ -11,16 +11,18 @@ class ComponentCamera;
 class ComponentMesh;
 class ComponentMaterial;
 class ResourceMaterial;
+class ResourceMesh;
 
 class ModuleRenderer : public Module
 {
     struct TRenderInfo
     {
-        const char*         name = nullptr;
-        ComponentMesh*      mesh = nullptr;
-        ComponentMaterial*  material = nullptr;
-        float               distance = 0.0f;
-        float4x4            transform = float4x4::identity;
+        const char*         name        = nullptr;
+        GameObject*         go          = nullptr;
+        ComponentMesh*      mesh        = nullptr;
+        ComponentMaterial*  material    = nullptr;
+        float               distance    = 0.0f;
+        float4x4            transform   = float4x4::identity;
     };
 
     struct TNearestMesh
@@ -81,6 +83,12 @@ private:
     void                CollectObjects          (const float3& camera_pos, GameObject* go);
 
     void                CreateCameraBuffer      ();
+
+    void                DebugDrawTangentSpace   ();
+    void                DebugDrawTangentSpace   (const ResourceMesh* mesh, const float4x4& transform);
+    void                DebugDrawAnimation      ();
+    void                DebugDrawAnimation      (const GameObject* go);
+    void                DebugDrawHierarchy      (const GameObject* go);
 };
 
 

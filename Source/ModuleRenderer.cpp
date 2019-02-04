@@ -14,6 +14,7 @@
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
 #include "ComponentCamera.h"
+#include "ComponentAnimation.h"
 
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
@@ -261,6 +262,7 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
 
         TRenderInfo render;
         render.name     = go->name.c_str();
+        render.go       = go;
         render.mesh     = mesh;
         render.material = material;
         render.transform = go->GetGlobalTransformation();
@@ -497,62 +499,92 @@ void ModuleRenderer::UpdateLightUniform() const
 
 void ModuleRenderer::DrawDebug()
 {
-    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-    unsigned total_tris = 0;
+    DebugDrawTangentSpace();
+    DebugDrawAnimation();
+}
 
+void ModuleRenderer::DebugDrawAnimation()
+{
+    DebugDrawAnimation(App->level->GetRoot());
+}
+
+void ModuleRenderer::DebugDrawAnimation(const GameObject* go)
+{
+    const ComponentAnimation* animation = go->FindFirstComponent<ComponentAnimation>();
+    if(animation && animation->GetDebugDraw())
+    {
+        DebugDrawHierarchy(go);
+    }
+    else
+    {
+        for(std::list<GameObject*>::const_iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
+        {
+            DebugDrawHierarchy((*it));
+        }
+    }
+}
+
+void ModuleRenderer::DebugDrawHierarchy(const GameObject* go)
+{
+    const float4x4& transform = go->GetGlobalTransformation();
+
+    if(go->GetParent())
+    {
+        const float4x4& parent_transform = go->GetParent()->GetGlobalTransformation();
+
+        dd::line(parent_transform.TranslatePart(), transform.TranslatePart(), dd::colors::Blue);
+    }
+
+    for(std::list<GameObject*>::const_iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
+    {
+        DebugDrawHierarchy((*it));
+    }
+}
+
+void ModuleRenderer::DebugDrawTangentSpace()
+{
     for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
     {
-        const ResourceMesh* mesh = it->mesh->GetResource();
+        if(it->material->GetDDTangent())
+        {
+            const ResourceMesh* mesh = it->mesh->GetResource();
 
-        if(mesh)
-        {
-            total_tris += mesh->num_indices/3;
-        }
-#if 0
-        if(mesh && (mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
-        {
-            for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
+            if(mesh && (mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
             {
-                float3 position  = it->transform.TransformPos(mesh->src_vertices[i]);
-                float3 normal    = it->transform.TransformDir(mesh->src_normals[i]);
-                float3 tangent   = it->transform.TransformDir(mesh->src_tangents[i]);
-                float3 bitangent = normal.Cross(tangent);
-
-                float4x4 tbn(float4(tangent, 0.0f), float4(bitangent, 0.0f), float4(normal, 0.0f), float4(position, 1.0f));
-
-                dd::axisTriad(tbn, metric_proportion*0.1f*0.1f, metric_proportion*0.1f, 0);
+                DebugDrawTangentSpace(mesh, it->transform);
             }
         }
-#endif
     }
 
     for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
     {
-        const ResourceMesh* mesh = it->mesh->GetResource();
+        if(it->material->GetDDTangent())
+        {
+            const ResourceMesh* mesh = it->mesh->GetResource();
 
-        if(mesh)
-        {
-            total_tris += mesh->num_indices/3;
-        }
-#if 0
-        if(mesh && (mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
-        {
-            for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
+            if(mesh && (mesh->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0 && (mesh->attribs& ResourceMesh::ATTRIB_NORMALS))
             {
-                float3 position  = it->transform.TransformPos(mesh->src_vertices[i]);
-                float3 normal    = it->transform.TransformDir(mesh->src_normals[i]);
-                float3 tangent   = it->transform.TransformDir(mesh->src_tangents[i]);
-                float3 bitangent = normal.Cross(tangent);
-
-                float4x4 tbn(float4(tangent, 0.0f), float4(bitangent, 0.0f), float4(normal, 0.0f), float4(position, 1.0f));
-
-                dd::axisTriad(tbn, metric_proportion*0.1f*0.1f, metric_proportion*0.1f, 0);
+                DebugDrawTangentSpace(mesh, it->transform);
             }
         }
-#endif
     }
+}
 
-    //ImGui::Text("Total tris %d ", total_tris);
+void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float4x4& transform)
+{
+    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+
+    for(unsigned i = 0, count = mesh->num_vertices; i < count; ++i)
+    {
+        float3 position  = transform.TransformPos(mesh->src_vertices[i]);
+        float3 normal    = transform.TransformDir(mesh->src_normals[i]);
+        float3 tangent   = transform.TransformDir(mesh->src_tangents[i]);
+        float3 bitangent = normal.Cross(tangent);
+
+        float4x4 tbn(float4(tangent, 0.0f), float4(bitangent, 0.0f), float4(normal, 0.0f), float4(position, 1.0f));
+
+        dd::axisTriad(tbn, metric_proportion*0.1f*0.1f, metric_proportion*0.1f, 0);
+    }
 }
 
 void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned width, unsigned height)
