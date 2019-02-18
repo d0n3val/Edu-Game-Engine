@@ -575,8 +575,6 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
     bones      = new Bone[mesh->mNumBones];
     num_bones  = mesh->mNumBones;
 
-    palette    = new float4x4[num_bones];
-
     for(unsigned i=0; i< mesh->mNumBones; ++i)
     {
         const aiBone* bone   = mesh->mBones[i];

@@ -618,3 +618,31 @@ float GameObject::GetRadius() const
 		return global_bbox.HalfDiagonal().Length();
 	return 0.0f;
 }
+
+// ---------------------------------------------------------
+const GameObject* GameObject::FindChild(const char* name, bool recursive) const
+{
+    for(std::list<GameObject*>::const_iterator it = childs.begin(), end = childs.end(); it != end; ++it)
+    {
+        if((*it)->name.compare(name) == 0)
+        {
+            return *it;
+        }
+    }
+
+    if(recursive)
+    {
+        for(std::list<GameObject*>::const_iterator it = childs.begin(), end = childs.end(); it != end; ++it)
+        {
+            const GameObject* go = (*it)->FindChild(name, recursive);
+
+            if(go)
+            {
+                return go;
+            }
+        }
+    }
+
+    return nullptr;
+}
+

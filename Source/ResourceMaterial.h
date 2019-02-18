@@ -38,6 +38,7 @@ public:
 
 	bool                    LoadInMemory        () override;
     void                    ReleaseFromMemory   () override;
+
     bool                    Save                (std::string& output);
     bool                    Save                ();
 

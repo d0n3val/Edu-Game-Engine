@@ -88,6 +88,8 @@ public:
 
 	bool HasComponent(Component::Types type) const;
 
+    const GameObject* FindChild(const char* name, bool recursive) const;
+
 	float3 GetVelocity() const;
 	float GetRadius() const;
 

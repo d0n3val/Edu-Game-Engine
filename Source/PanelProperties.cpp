@@ -923,7 +923,10 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
 
     if(index < component->GetNumClips())
     {
+        ResourceAnimation* resource = static_cast<ResourceAnimation*>(App->resources->Get(component->GetClipRes(index)));
+
         ImGui::LabelText("Clip name", component->GetClipName(index).C_str());
+        ImGui::LabelText("Resource", resource->GetName());
         bool loop = component->GetClipLoop(index);
         if(ImGui::Checkbox("Loop", &loop))
         {

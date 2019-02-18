@@ -41,7 +41,7 @@ bool ResourceModel::LoadInMemory()
 	if (GetExportedFile() != nullptr)
     {
         char* buffer = nullptr;
-        uint size = App->fs->Load(LIBRARY_MESH_FOLDER, GetExportedFile(), &buffer);
+        uint size = App->fs->Load(LIBRARY_MODEL_FOLDER, GetExportedFile(), &buffer);
 
         simple::mem_istream<std::true_type> read_stream(buffer, size);
 
@@ -106,10 +106,49 @@ void ResourceModel::ReleaseFromMemory()
     nodes.clear();
 }
 
+// ---------------------------------------------------------
+bool ResourceModel::Save() 
+{
+    simple::mem_ostream<std::true_type> write_stream;
+
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+    if(exported_file.length() > 0)
+    {
+		char full_path[250];
+
+		sprintf_s(full_path, 250, "%s%s", LIBRARY_MODEL_FOLDER, exported_file.c_str());
+
+        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+    }
+
+	std::string output;
+
+	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MODEL_FOLDER, "model", "edumaterial"))
+	{
+        App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
+
+		return true;
+    }
+
+	return false;
+}
+
 bool ResourceModel::Save(std::string& output) const
 {
     simple::mem_ostream<std::true_type> write_stream;
 
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MODEL_FOLDER, "model", "edumodel");
+}
+
+void ResourceModel::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
+{
     write_stream << uint(nodes.size());
 
     for(uint i=0; i< nodes.size(); ++i)
@@ -119,11 +158,8 @@ bool ResourceModel::Save(std::string& output) const
         write_stream << nodes[i].parent;
         write_stream << nodes[i].mesh;
         write_stream << nodes[i].material;
+        write_stream << nodes[i].auto_generated;
     }
-
-    const std::vector<char>& data = write_stream.get_internal_vec();
-
-	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MESH_FOLDER, "model", "edumodel");
 }
 
 
@@ -176,7 +212,6 @@ void ResourceModel::GenerateMaterials(const aiScene* scene, const char* file, st
 	}
 }
 
-
 void ResourceModel::GenerateMeshes(const aiScene* scene, const char* file, std::vector<UID>& meshes)
 {
 	meshes.reserve(scene->mNumMeshes);
@@ -219,12 +254,13 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
         {
             Node mesh;
 
-            uint mesh_index = node->mMeshes[i];
+            uint mesh_index     = node->mMeshes[i];
 
-            mesh.parent   = index;
-            mesh.name     = model->mMeshes[mesh_index]->mName.C_Str();
-            mesh.mesh     = meshes[mesh_index];
-            mesh.material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
+            mesh.parent         = index;
+            mesh.name           = model->mMeshes[mesh_index]->mName.C_Str();
+            mesh.mesh           = meshes[mesh_index];
+            mesh.material       = materials[model->mMeshes[mesh_index]->mMaterialIndex];
+            mesh.auto_generated = true;
 
             if(mesh.name.length() == 0)
             {

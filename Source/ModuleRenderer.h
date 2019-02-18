@@ -17,12 +17,13 @@ class ModuleRenderer : public Module
 {
     struct TRenderInfo
     {
-        const char*         name        = nullptr;
-        GameObject*         go          = nullptr;
-        ComponentMesh*      mesh        = nullptr;
-        ComponentMaterial*  material    = nullptr;
-        float               distance    = 0.0f;
-        float4x4            transform   = float4x4::identity;
+        const char*         name         = nullptr;
+        GameObject*         go           = nullptr;
+        ComponentMesh*      mesh         = nullptr;
+        ComponentMaterial*  material     = nullptr;
+        float               distance     = 0.0f;
+        float4x4            transform    = float4x4::identity;
+        const float4x4*     skin_palette = nullptr;
     };
 
     struct TNearestMesh

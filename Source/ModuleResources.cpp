@@ -139,6 +139,7 @@ void ModuleResources::SaveResources() const
 		{
 			Config resource;
 			it->second->Save(resource);
+
 			save.AddArrayEntry(resource);
 		}
 	}

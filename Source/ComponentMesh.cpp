@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "ModuleResources.h"
 #include "ResourceMesh.h"
+#include "GameObject.h"
 
 #include "mmgr/mmgr.h"
 
@@ -18,6 +19,12 @@ ComponentMesh::~ComponentMesh()
 	{
 		res->Release();
 	}
+
+    delete [] skin_palette;
+    skin_palette = nullptr;
+
+    delete [] node_cache;
+    node_cache = nullptr;
 }
 
 void ComponentMesh::OnSave(Config& config) const 
@@ -55,16 +62,29 @@ bool ComponentMesh::SetResource(UID uid)
         }
     }
 
+    delete [] skin_palette;
+    skin_palette = nullptr;
+
+    delete [] node_cache;
+    node_cache = nullptr;
+
 	if (uid != 0)
 	{
-		Resource* res = App->resources->Get(uid);
+		ResourceMesh* res = static_cast<ResourceMesh*>(App->resources->Get(uid));
+
 		if (res != nullptr) 
 		{
             assert(res->GetType() == Resource::mesh);
 
 			if(res->LoadToMemory() == true)
 			{
-				resource = uid;
+				resource     = uid;
+
+                if(res->num_bones > 0)
+                {
+                    skin_palette = new float4x4[res->num_bones];
+                    node_cache   = new  const GameObject* [res->num_bones];
+                }
 
                 return true;
 			}
@@ -77,5 +97,46 @@ bool ComponentMesh::SetResource(UID uid)
 const ResourceMesh* ComponentMesh::GetResource() const
 {
 	return static_cast<const ResourceMesh*>(App->resources->Get(resource));
+}
+
+const float4x4* ComponentMesh::UpdateSkinPalette()
+{
+    ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(resource));
+    GameObject* root   = GetGameObject();
+
+    if(auto_generated && root)
+    {
+        root = root->GetParent();
+    }
+
+	if(root && mesh && mesh->num_bones > 0)
+	{
+        float4x4 inverse = root->GetGlobalTransformation();
+        inverse.InverseOrthonormal();
+
+		for(unsigned i=0; i < mesh->num_bones; ++i)
+		{
+			const ResourceMesh::Bone& bone = mesh->bones[i];
+			const GameObject* bone_node    = node_cache[i];
+
+            if(bone_node == nullptr)
+            {
+                bone_node = node_cache[i] = root->FindChild(bone.name.C_str(), true);
+            }
+
+			assert(bone_node != nullptr);
+
+			if(bone_node)
+			{	
+                skin_palette[i] = inverse*bone_node->GetGlobalTransformation()*bone.bind;
+			}
+			else
+			{
+				skin_palette[i] = float4x4::identity;
+			}
+		}
+	}
+
+    return skin_palette;
 }
 

@@ -95,7 +95,6 @@ public:
 
 	uint        num_bones			= 0;
 	Bone*       bones 		        = nullptr;
-	float4x4*   palette				= 0;
 
     uint        vao 	            = 0;
     uint        vbo 	            = 0;

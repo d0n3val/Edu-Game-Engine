@@ -261,12 +261,13 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
         mesh->GetBoundingBox(bbox);
 
         TRenderInfo render;
-        render.name     = go->name.c_str();
-        render.go       = go;
-        render.mesh     = mesh;
-        render.material = material;
-        render.transform = go->GetGlobalTransformation();
-        render.distance = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
+        render.name         = go->name.c_str();
+        render.go           = go;
+        render.mesh         = mesh;
+        render.material     = material;
+        render.transform    = go->GetGlobalTransformation();
+        render.distance     = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
+        render.skin_palette = mesh->UpdateSkinPalette();
 
         if(material->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
         {
