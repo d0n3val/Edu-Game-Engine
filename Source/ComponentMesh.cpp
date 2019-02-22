@@ -84,6 +84,11 @@ bool ComponentMesh::SetResource(UID uid)
                 {
                     skin_palette = new float4x4[res->num_bones];
                     node_cache   = new  const GameObject* [res->num_bones];
+
+                    for(uint i=0; i< res->num_bones; ++i)
+                    {
+                        node_cache[i] = nullptr;
+                    }
                 }
 
                 return true;
@@ -103,11 +108,16 @@ const float4x4* ComponentMesh::UpdateSkinPalette()
 {
     ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(resource));
     GameObject* root   = GetGameObject();
+	auto_generated = true;
 
     if(auto_generated && root)
     {
-        root = root->GetParent();
+        root = root->GetParent()->GetParent();
     }
+	else
+	{
+		root = root->GetParent();
+	}
 
 	if(root && mesh && mesh->num_bones > 0)
 	{
@@ -126,11 +136,11 @@ const float4x4* ComponentMesh::UpdateSkinPalette()
 
 			assert(bone_node != nullptr);
 
-			if(bone_node)
-			{	
-                skin_palette[i] = inverse*bone_node->GetGlobalTransformation()*bone.bind;
-			}
-			else
+			//if(bone_node)
+			//{	
+             //   skin_palette[i] = inverse*bone_node->GetGlobalTransformation()*bone.bind;
+			//}
+			//else
 			{
 				skin_palette[i] = float4x4::identity;
 			}

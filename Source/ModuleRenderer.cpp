@@ -316,6 +316,21 @@ void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info)
         UpdateMaterialUniform(mat_res);
         UpdateLightUniform();
 
+        unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
+
+        if((mesh_res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
+        {
+            glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_FALSE, reinterpret_cast<const float*>(render_info.skin_palette));
+
+            vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
+        }
+        else
+        {
+            vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_RIGID;
+        }
+
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, sizeof(vertex_indices)/sizeof(unsigned), vertex_indices);
+
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&render_info.transform));
 
         glBindVertexArray(mesh_res->vao);
@@ -411,27 +426,28 @@ void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) con
     glUniform1f(DIFFUSE_CONSTANT_LOC, material->GetKDiffuse());
     glUniform1f(SPECULAR_CONSTANT_LOC, material->GetKSpecular());
 
-    unsigned indices[NUM_SUBROUTINE_UNIFORMS];
+    unsigned fragment_indices[NUM_FRAGMENT_SUBROUTINE_UNIFORMS];
+
 
     if(normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING))
     {
-        indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_TEXTURE;
+        fragment_indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_TEXTURE;
     }
     else
     {
-        indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_VERTEX;
+        fragment_indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_VERTEX;
     }
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_FRESNEL))
     {
-        indices[GET_FRESNEL_LOCATION] = GET_FRESNEL_SCHLICK;
+        fragment_indices[GET_FRESNEL_LOCATION] = GET_FRESNEL_SCHLICK;
     }
     else
     {
-        indices[GET_FRESNEL_LOCATION] = GET_NO_FRESNEL;
+        fragment_indices[GET_FRESNEL_LOCATION] = GET_NO_FRESNEL;
     }
 
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(fragment_indices)/sizeof(unsigned), fragment_indices);
 }
 
 void ModuleRenderer::UpdateLightUniform() const

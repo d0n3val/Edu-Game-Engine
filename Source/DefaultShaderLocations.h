@@ -78,19 +78,31 @@ enum DefaultShaderLocations
     NUM_SPOT_LIGHT_LOC
 };
 
-enum DefaultSubroutineLocations
+enum DefaultFragmentSubroutineLocations
 {
     GET_NORMAL_LOCATION = 0,
     GET_FRESNEL_LOCATION,
-    NUM_SUBROUTINE_UNIFORMS
+    NUM_FRAGMENT_SUBROUTINE_UNIFORMS
 };
 
-enum DefaultSubroutineIndices
+enum DefaultFragmentSubroutineIndices
 {
     GET_NORMAL_FROM_VERTEX = 0,
     GET_NORMAL_FROM_TEXTURE,
     GET_FRESNEL_SCHLICK,
     GET_NO_FRESNEL
+};
+
+enum DefaultVertexSubroutineLocations
+{
+    TRANSFORM_OUTPUT = 0,
+    NUM_VERTEX_SUBROUTINE_UNIFORMS
+};
+
+enum DefaultVertexSubroutineIndices
+{
+    TRANSFORM_OUTPUT_RIGID = 0,
+    TRANSFORM_OUTPUT_SKINNING
 };
 
 #endif /* __DEFAULT_LOCATIONS_H__ */
