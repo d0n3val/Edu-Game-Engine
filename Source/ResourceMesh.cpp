@@ -557,6 +557,24 @@ void ResourceMesh::GenerateVBO(bool dynamic)
             }
         }
 
+        // ensure weights sum 1 \todo: move to generation
+
+        math::float4* weights4f = (math::float4*)(bone_weights);
+        for(unsigned i=0; i < num_vertices; ++i) 
+        {
+			float length = 0.0f;
+            for(unsigned j=0; j < 4; ++j) 
+            {
+                length += weights4f[i][j];
+            }
+
+            if(length > 0.0f)
+            {
+				weights4f[i] = weights4f[i] / length;
+            }
+        }
+
+
         glUnmapBuffer(GL_ARRAY_BUFFER);
     }
 

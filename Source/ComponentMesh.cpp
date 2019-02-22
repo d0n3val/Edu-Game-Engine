@@ -121,9 +121,6 @@ const float4x4* ComponentMesh::UpdateSkinPalette()
 
 	if(root && mesh && mesh->num_bones > 0)
 	{
-        float4x4 inverse = root->GetGlobalTransformation();
-        inverse.InverseOrthonormal();
-
 		for(unsigned i=0; i < mesh->num_bones; ++i)
 		{
 			const ResourceMesh::Bone& bone = mesh->bones[i];
@@ -136,11 +133,11 @@ const float4x4* ComponentMesh::UpdateSkinPalette()
 
 			assert(bone_node != nullptr);
 
-			//if(bone_node)
-			//{	
-             //   skin_palette[i] = inverse*bone_node->GetGlobalTransformation()*bone.bind;
-			//}
-			//else
+			if(bone_node)
+			{	
+                skin_palette[i] = bone_node->GetGlobalTransformation()*bone.bind;
+			}
+			else
 			{
 				skin_palette[i] = float4x4::identity;
 			}
