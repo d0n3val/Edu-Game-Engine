@@ -4,6 +4,7 @@
 #include "Resource.h"
 #include "Math.h"
 #include "HashString.h"
+#include "utils/SimpleBinStream.h"
 
 #include <string>
 
@@ -27,6 +28,7 @@ public:
 
 	bool        LoadInMemory        () override;
     void        ReleaseFromMemory   () override;
+    bool        Save                ();
     bool        Save                (std::string& output) const;
     static UID  Import              (const aiMesh* mesh, const char* source_file);
 
@@ -49,6 +51,7 @@ private:
     void        GenerateTangentSpace();
     void        Clear               ();
     bool        Save                (const char* source, std::string& output);
+	void        SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
 
 public:
 
@@ -60,17 +63,9 @@ public:
 		ATTRIB_BONES        = 1 << 3,
 	};
 
-	struct Weight
-	{
-		unsigned vertex = 0;
-		float weight    = 0.0f;
-	};
-
 	struct Bone
 	{
 		HashString	name;
-		Weight*		weights     =  nullptr;
-		unsigned	num_weights = 0;
 		float4x4	bind		= float4x4::identity;
 	};
 
@@ -89,6 +84,8 @@ public:
     float2*     src_texcoord0       = nullptr;
     float3*     src_normals         = nullptr;
     float3*     src_tangents        = nullptr;
+    unsigned*   src_bone_indices    = nullptr;
+    float4*     src_bone_weights    = nullptr;
 
     uint        num_indices 	    = 0;
     uint*       src_indices 	    = nullptr;

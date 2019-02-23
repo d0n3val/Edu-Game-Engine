@@ -20,6 +20,16 @@ ComponentAnimation::ComponentAnimation(GameObject* container) : Component(contai
 ComponentAnimation::~ComponentAnimation()
 {
     delete controller;
+
+	for (std::vector<Clip>::iterator it = clips.begin(), end = clips.end(); it != end; ++it)
+	{
+		Resource* res = App->resources->Get(it->resource);
+
+		if (res != nullptr)
+		{
+			res->Release();
+		}
+	}
 }
 
 // ---------------------------------------------------------

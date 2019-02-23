@@ -126,16 +126,15 @@ bool ResourceMesh::LoadInMemory()
 				{
 					read_stream >> bones[i].bind.ptr()[j];
 				}
+            }
 
-				read_stream >> bones[i].num_weights;
+            src_bone_indices = new unsigned[num_vertices*4];
+            src_bone_weights = new float4[num_vertices];
 
-				bones[i].weights = new Weight[bones[i].num_weights];
-
-                for(uint j=0; j< bones[i].num_weights; ++j)
-                {
-                    read_stream >> bones[i].weights[j].vertex;
-                    read_stream >> bones[i].weights[j].weight;
-                }
+            for(uint i=0; i< num_vertices; ++i)
+            {
+                read_stream >> src_bone_indices[i*4+0] >> src_bone_indices[i*4+1] >> src_bone_indices[i*4+2] >> src_bone_indices[i*4+3];
+                read_stream >> src_bone_weights[i].x >> src_bone_weights[i].y >>src_bone_weights[i].z >> src_bone_weights[i].w;
             }
         }
 
@@ -173,13 +172,14 @@ void ResourceMesh::ReleaseFromMemory()
     delete [] src_indices;
     src_indices = nullptr;
 
-    for(uint i=0; i< num_bones; ++i)
-    {
-        delete [] bones[i].weights;
-    }
-
     delete [] bones;
     bones = nullptr;
+
+    delete [] src_bone_indices;
+    src_bone_indices = nullptr;
+
+    delete [] src_bone_weights;
+    src_bone_weights = nullptr;
 
     if(vbo != 0)
     {
@@ -201,10 +201,38 @@ void ResourceMesh::ReleaseFromMemory()
 }
 
 // ---------------------------------------------------------
-bool ResourceMesh::Save(std::string& output) const
+bool ResourceMesh::Save() 
 {
     simple::mem_ostream<std::true_type> write_stream;
 
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+    if(exported_file.length() > 0)
+    {
+		char full_path[250];
+
+		sprintf_s(full_path, 250, "%s%s", LIBRARY_MESH_FOLDER, exported_file.c_str());
+
+        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+    }
+
+	std::string output;
+
+	if(App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MESH_FOLDER, "mesh", "edumesh"))
+	{
+        App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
+
+		return true;
+    }
+
+	return false;
+}
+
+// ---------------------------------------------------------
+void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
+{
     write_stream << name.C_str();
     write_stream << vertex_size;
     write_stream << attribs;
@@ -260,18 +288,27 @@ bool ResourceMesh::Save(std::string& output) const
         {
             write_stream << bones[i].name.C_str();
             write_stream << bones[i].bind;
-            write_stream << bones[i].num_weights;
+        }
 
-            for(uint j=0; j< bones[i].num_weights; ++j)
-            {
-                write_stream << bones[i].weights[j].vertex;
-                write_stream << bones[i].weights[j].weight;
-            }
+        for(uint i=0; i< num_vertices; ++i)
+        {
+            write_stream << src_bone_indices[i*4+0] << src_bone_indices[i*4+1] << src_bone_indices[i*4+2] << src_bone_indices[i*4+3];
+            write_stream << src_bone_weights[i].x << src_bone_weights[i].y << src_bone_weights[i].z << src_bone_weights[i].w;
         }
     }
 
     write_stream << bbox.minPoint.x << bbox.minPoint.y << bbox.minPoint.z;
     write_stream << bbox.maxPoint.x << bbox.maxPoint.y << bbox.maxPoint.z;
+
+}
+
+
+// ---------------------------------------------------------
+bool ResourceMesh::Save(std::string& output) const
+{
+    simple::mem_ostream<std::true_type> write_stream;
+
+    SaveToStream(write_stream);
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 
@@ -520,62 +557,8 @@ void ResourceMesh::GenerateVBO(bool dynamic)
 
     if((attribs & ATTRIB_BONES) != 0)
     {
-        unsigned* bone_indices = (unsigned*)glMapBufferRange(GL_ARRAY_BUFFER, bone_idx_offset, 
-                                                             (sizeof(unsigned)*4+sizeof(float)*4)*num_vertices, 
-                                                             GL_MAP_WRITE_BIT);
-        float* bone_weights    = (float*)(bone_indices+num_vertices*4);
-
-        for(unsigned i=0; i < num_vertices*4; ++i) 
-        {
-            bone_indices[i] = 0;
-            bone_weights[i] = 0.0f;
-        }
-
-        for(unsigned i=0; i< num_bones; ++i)
-        {
-            const Bone& bone = bones[i];
-
-            for(unsigned j=0; j < bone.num_weights; ++j)
-            {
-                unsigned index = bone.weights[j].vertex;
-                float weight   = bone.weights[j].weight;
-
-                unsigned* bone_idx = &bone_indices[index*4];
-                float* bone_weight = &bone_weights[index*4];
-
-                assert(bone_weight[3] == 0.0f);
-                for(unsigned l=0; l < 4; ++l)
-                {
-                    if(bone_weight[l] == 0.0f)
-                    {
-                        bone_idx[l] = i;
-                        bone_weight[l] = weight;
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        // ensure weights sum 1 \todo: move to generation
-
-        math::float4* weights4f = (math::float4*)(bone_weights);
-        for(unsigned i=0; i < num_vertices; ++i) 
-        {
-			float length = 0.0f;
-            for(unsigned j=0; j < 4; ++j) 
-            {
-                length += weights4f[i][j];
-            }
-
-            if(length > 0.0f)
-            {
-				weights4f[i] = weights4f[i] / length;
-            }
-        }
-
-
-        glUnmapBuffer(GL_ARRAY_BUFFER);
+        glBufferSubData(GL_ARRAY_BUFFER, bone_idx_offset, sizeof(unsigned)*num_vertices*4, src_bone_indices);
+        glBufferSubData(GL_ARRAY_BUFFER, bone_weight_offset, sizeof(float4)*num_vertices, src_bone_weights);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -599,17 +582,62 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
         Bone& dst_bone       = bones[i];
 
         dst_bone.name 	     = HashString(bone->mName.C_Str());
-        dst_bone.weights     = new Weight[bone->mNumWeights];
-        dst_bone.num_weights = bone->mNumWeights;
         dst_bone.bind 	     = float4x4(float4(bone->mOffsetMatrix.a1, bone->mOffsetMatrix.b1, bone->mOffsetMatrix.c1, bone->mOffsetMatrix.d1),
 								        float4(bone->mOffsetMatrix.a2, bone->mOffsetMatrix.b2, bone->mOffsetMatrix.c2, bone->mOffsetMatrix.d2),
                                         float4(bone->mOffsetMatrix.a3, bone->mOffsetMatrix.b3, bone->mOffsetMatrix.c3, bone->mOffsetMatrix.d3),
                                         float4(bone->mOffsetMatrix.a4, bone->mOffsetMatrix.b4, bone->mOffsetMatrix.c4, bone->mOffsetMatrix.d4));
+    }
+
+    unsigned* bone_indices = new unsigned[4*mesh->mNumVertices];
+    float* bone_weights    = new float[4*mesh->mNumVertices];
+
+    for(unsigned i=0; i < num_vertices*4; ++i) 
+    {
+        bone_indices[i] = 0;
+        bone_weights[i] = 0.0f;
+    }
+
+    for(unsigned i=0; i< num_bones; ++i)
+    {
+        const aiBone* bone = mesh->mBones[i];
 
         for(unsigned j=0; j < bone->mNumWeights; ++j)
         {
-            dst_bone.weights[j].vertex = bone->mWeights[j].mVertexId;
-            dst_bone.weights[j].weight = bone->mWeights[j].mWeight;
+            unsigned index = bone->mWeights[j].mVertexId;
+            float weight   = bone->mWeights[j].mWeight;
+
+            unsigned* bone_idx = &bone_indices[index*4];
+            float* bone_weight = &bone_weights[index*4];
+
+            assert(bone_weight[3] == 0.0f);
+            for(unsigned l=0; l < 4; ++l)
+            {
+                if(bone_weight[l] == 0.0f)
+                {
+                    bone_idx[l] = i;
+                    bone_weight[l] = weight;
+
+                    break;
+                }
+            }
+        }
+    }
+
+    src_bone_indices = bone_indices;
+    src_bone_weights = (float4*)bone_weights;
+
+    math::float4* src_bone_weights = (math::float4*)(bone_weights);
+    for(unsigned i=0; i < num_vertices; ++i) 
+    {
+        float length = 0.0f;
+        for(unsigned j=0; j < 4; ++j) 
+        {
+            length += src_bone_weights[i][j];
+        }
+
+        if(length > 0.0f)
+        {
+            src_bone_weights[i] = src_bone_weights[i] / length;
         }
     }
 
