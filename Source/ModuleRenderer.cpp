@@ -320,7 +320,7 @@ void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info)
 
         if((mesh_res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
         {
-            glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_FALSE, reinterpret_cast<const float*>(render_info.skin_palette));
+            glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_TRUE, reinterpret_cast<const float*>(render_info.skin_palette));
 
             vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
         }
@@ -550,7 +550,7 @@ void ModuleRenderer::DebugDrawHierarchy(const GameObject* go)
         const float4x4& parent_transform = go->GetParent()->GetGlobalTransformation();
 
         dd::line(parent_transform.TranslatePart(), transform.TranslatePart(), dd::colors::Blue, 0, false);
-		dd::axisTriad(transform, 1.0f,  10.f, 0, false);
+		//dd::axisTriad(transform, 1.0f,  10.f, 0, false);
     }
 
     for(std::list<GameObject*>::const_iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)

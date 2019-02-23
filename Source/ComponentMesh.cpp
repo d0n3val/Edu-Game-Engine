@@ -128,13 +128,13 @@ const float4x4* ComponentMesh::UpdateSkinPalette()
 
             if(bone_node == nullptr)
             {
-                bone_node = node_cache[i] = root->FindChild(bone.name.C_str(), true);
+				bone_node = node_cache[i] = root->FindChild(bone.name.C_str(), true);
             }
 
 			assert(bone_node != nullptr);
 
 			if(bone_node)
-			{	
+			{
                 skin_palette[i] = bone_node->GetGlobalTransformation()*bone.bind;
 			}
 			else
