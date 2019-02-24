@@ -70,6 +70,9 @@
     <Filter Include="3rd Party\SOIL2">
       <UniqueIdentifier>{12ce4457-e1e1-4727-a647-63cb490ccc7b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\imgui-node-editor">
+      <UniqueIdentifier>{4cd4b3a5-9f57-47f3-80a2-ff44fa8f504e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -603,6 +606,18 @@
     <ClInclude Include="ComponentAnimation.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="NodeEditor\Source\Interop.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor\Include\NodeEditor.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor\Include\ax\Math2D.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor\Source\Editor.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -935,6 +950,12 @@
     <ClCompile Include="ComponentAnimation.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
+    <ClCompile Include="NodeEditor\Source\NodeEditor.cpp">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeEditor\Source\Editor.cpp">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\appveyor.yml">
@@ -984,6 +1005,9 @@
     </None>
     <None Include="MathGeoLib\include\Geometry\TriangleMesh_IntersectRay_SSE.inl">
       <Filter>3rd Party\mathgeo\src</Filter>
+    </None>
+    <None Include="NodeEditor\Include\ax\Math2D.inl">
+      <Filter>3rd Party\imgui-node-editor</Filter>
     </None>
   </ItemGroup>
 </Project>

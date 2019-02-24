@@ -19,6 +19,9 @@
 #include "PanelAbout.h"
 #include "PanelResources.h"
 #include "Event.h"
+
+#include "NodeEditor.h"
+
 #include <string.h>
 #include <algorithm>
 
@@ -30,6 +33,10 @@ using namespace std;
 #include "examples/imgui_impl_opengl3.h"
 
 #include "mmgr/mmgr.h"
+
+namespace ed = ax::NodeEditor;
+
+ed::EditorContext* g_Context = nullptr;
 
 ModuleEditor::ModuleEditor(bool start_enabled) : Module("Editor", start_enabled)
 {
@@ -72,6 +79,10 @@ bool ModuleEditor::Init(Config* config)
 	tab_panels[TabPanelRight].panels.push_back(conf = new PanelConfiguration());
 	tab_panels[TabPanelRight].panels.push_back(about = new PanelAbout());
 	tab_panels[TabPanelLeft].panels.push_back(res = new PanelResources());
+
+    ed::Config cfg;
+    cfg.SettingsFile = "Simple.json";
+    g_Context = ed::CreateEditor(&cfg);
 
 	return true;
 }
@@ -187,19 +198,19 @@ update_status ModuleEditor::Update(float dt)
         }
     }
 
-	if (file_dialog == opened)
-		LoadFile((file_dialog_filter.length() > 0) ? file_dialog_filter.c_str() : nullptr);
-	else
-		in_modal = false;
+    if (file_dialog == opened)
+        LoadFile((file_dialog_filter.length() > 0) ? file_dialog_filter.c_str() : nullptr);
+    else
+        in_modal = false;
 
-	// Show showcase ? 
-	if (showcase)
-	{
-		ImGui::ShowTestWindow();
-		ImGui::ShowMetricsWindow();
-	}
+    // Show showcase ? 
+    if (showcase)
+    {
+        ImGui::ShowTestWindow();
+        ImGui::ShowMetricsWindow();
+    }
 
-	return ret;
+    return ret;
 }
 
 // Called before quitting
@@ -223,6 +234,8 @@ bool ModuleEditor::CleanUp()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
+
+    ed::DestroyEditor(g_Context);
 
 	return true;
 }

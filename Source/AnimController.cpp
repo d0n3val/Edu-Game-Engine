@@ -123,8 +123,8 @@ bool AnimController::GetTransformInstance(Instance* instance, const HashString& 
 		unsigned pos_index = unsigned(pos_key);
 		unsigned rot_index = unsigned(rot_key);
 
-		float pos_lambda = 0.0f; pos_key-float(pos_index);
-		float rot_lambda = 0.0f; rot_key-float(rot_index);
+		float pos_lambda = pos_key-float(pos_index);
+		float rot_lambda = rot_key-float(rot_index);
 
         if(pos_lambda > 0.0f)
         {

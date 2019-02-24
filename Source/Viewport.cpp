@@ -21,9 +21,14 @@
 
 #include "Config.h"
 #include "DebugDraw.h"
+#include "NodeEditor.h"
 
 #include "ImGui.h"
 #include "GL/glew.h"
+
+namespace ed = ax::NodeEditor;
+
+extern ed::EditorContext* g_Context;
 
 Viewport::Viewport()
 {
@@ -50,6 +55,33 @@ void Viewport::Draw(ComponentCamera* camera)
 	{
         if(ImGui::BeginChild("SceneCanvas", ImVec2(0, 0), true, ImGuiWindowFlags_NoMove))
         {
+            ed::SetCurrentEditor(g_Context);
+            ed::Begin("My Editor", ImVec2(0.0, 0.0f));
+            int uniqueId = 1;
+            // Start drawing nodes.
+            ed::BeginNode(uniqueId++);
+            ImGui::Text("Node A");
+            ed::BeginPin(uniqueId++, ed::PinKind::Input);
+            ImGui::Text("-> In");
+            ed::EndPin();
+            ImGui::SameLine();
+            ed::BeginPin(uniqueId++, ed::PinKind::Output);
+            ImGui::Text("Out ->");
+            ed::EndPin();
+            ed::EndNode();
+            ed::BeginNode(uniqueId++);
+            ImGui::Text("Node B");
+            ed::BeginPin(uniqueId++, ed::PinKind::Input);
+            ImGui::Text("-> In");
+            ed::EndPin();
+            ImGui::SameLine();
+            ed::BeginPin(uniqueId++, ed::PinKind::Output);
+            ImGui::Text("Out ->");
+            ed::EndPin();
+            ed::EndNode();
+            ed::End();
+            ed::SetCurrentEditor(nullptr);
+
             DrawQuickBar(camera);
 
             focused = ImGui::IsWindowFocused();
