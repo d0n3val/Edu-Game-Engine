@@ -282,7 +282,9 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	// If export was successfull, create a new resource
 	if (import_ok == true)
 	{
-        ret = ImportSuccess(type, new_file_in_assets, "", written_file);
+        std::string user_name;
+        App->fs->SplitFilePath(new_file_in_assets, nullptr, &user_name);
+        ret = ImportSuccess(type, new_file_in_assets, user_name.c_str(), written_file);
 	}
 	else
 		LOG("Importing of [%s] FAILED", new_file_in_assets);

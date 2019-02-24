@@ -65,6 +65,7 @@ bool ResourceModel::LoadInMemory()
             read_stream >> node.parent;
             read_stream >> node.mesh;
             read_stream >> node.material;
+			read_stream >> node.auto_generated;
 
             nodes.push_back(node);
         }
