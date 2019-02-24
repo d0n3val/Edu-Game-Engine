@@ -900,38 +900,71 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
     return modified;
 }
 
-void PanelProperties::DrawAnimationComponent(ComponentAnimation * component)
+void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
 {
-    UID new_res = PickResourceModal(Resource::animation);
-
-    ImGui::Separator();
-
     bool debug_draw = component->GetDebugDraw();
     if(ImGui::Checkbox("Debug draw", &debug_draw))
     {
         component->SetDebugDraw(debug_draw);
     }
 
-    if (new_res > 0)
+    if (ImGui::Button("Add clip"))
     {
-        component->AddClip(HashString("default"), new_res, true);
-        
-        App->resources->Get(new_res)->LoadToMemory();
+        component->AddClip(HashString("noname"), 0, true);
     }
 
-    uint index = component->FindClip(HashString("default"));
+    ImGui::Separator();
 
-    if(index < component->GetNumClips())
+    uint i=0; 
+    while(i < component->GetNumClips())
     {
-        ResourceAnimation* resource = static_cast<ResourceAnimation*>(App->resources->Get(component->GetClipRes(index)));
+        ResourceAnimation* resource = static_cast<ResourceAnimation*>(App->resources->Get(component->GetClipRes(i)));
 
-        ImGui::LabelText("Clip name", component->GetClipName(index).C_str());
+        char name[128];
+
+        strcpy_s(name, component->GetClipName(i).C_str());
+
+        ImGui::PushID(i);
+        if(ImGui::InputText("Clip name", name, 128))
+        {
+            component->SetClipName(i, HashString(name));
+        }
+
         ImGui::LabelText("Resource", resource ? resource->GetName() : "Unknown");
-        bool loop = component->GetClipLoop(index);
+		ImGui::SameLine();
+        if(ImGui::ArrowButton("resource", ImGuiDir_Right))
+        {
+            ImGui::OpenPopup("Select");
+        }
+
+        UID new_res = OpenResourceModal(Resource::animation, "Select");
+
+
+        if (new_res > 0)
+        {
+            component->SetClipRes(i, new_res);
+
+            App->resources->Get(new_res)->LoadToMemory();
+        }
+
+        bool loop = component->GetClipLoop(i);
         if(ImGui::Checkbox("Loop", &loop))
         {
-            component->SetClipLoop(index, loop);
+            component->SetClipLoop(i, loop);
         }
+
+        ImGui::SameLine();
+        if(ImGui::Button("Remove"))
+        {
+            component->RemoveClip(i);
+        }
+        else
+        {
+            ++i;
+        }
+
+        ImGui::Separator();
+        ImGui::PopID();
     }
 
 }

@@ -35,12 +35,11 @@ ComponentAnimation::~ComponentAnimation()
 // ---------------------------------------------------------
 void ComponentAnimation::OnPlay()
 {
-    uint index = FindClip(HashString("default"));
-    if(index < clips.size())
+    if(!clips.empty())
     {
-        if(App->resources->Get(clips[index].resource) != nullptr)
+        if(App->resources->Get(clips[0].resource) != nullptr)
         {
-            controller->Play(clips[index].resource, 0);
+            controller->Play(clips[0].resource, 0);
         }
     }
 }
@@ -129,16 +128,13 @@ void ComponentAnimation::UpdateGO(GameObject* go)
 // ---------------------------------------------------------
 void ComponentAnimation::AddClip(const HashString& name, UID resource, bool loop)
 {
-    std::vector<Clip>::iterator it = std::lower_bound(clips.begin(), clips.end(), name, TNearestClip());
-    if(it != clips.end() && it->name == name)
-    {
-        it->resource = resource;
-        it->loop = loop;
-    }
-    else
-    {
-        clips.insert(it, Clip(name, resource, loop));
-    }
+    clips.push_back(Clip(name, resource, loop));
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::RemoveClip(uint index)
+{
+    clips.erase(clips.begin()+index);
 }
 
 // ---------------------------------------------------------

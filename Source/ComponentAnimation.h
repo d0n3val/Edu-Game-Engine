@@ -24,6 +24,7 @@ public:
 	virtual void        OnLoad      (Config* config) override;
 
     void                AddClip     (const HashString& name, UID resource, bool loop);
+    void                RemoveClip  (uint index);
     uint                FindClip    (const HashString& name) const;
 
     uint                GetNumClips () const { return clips.size(); }
@@ -31,6 +32,7 @@ public:
     UID                 GetClipRes  (uint index) const { return clips[index].resource; }
     bool                GetClipLoop (uint index) const { return clips[index].loop; }
 
+    void                SetClipName (uint index, const HashString& name) { clips[index].name = name; }
     void                SetClipRes  (uint index, UID uid) { clips[index].resource = uid; }
     void                SetClipLoop (uint index, bool loop) { clips[index].loop = loop; }
 
