@@ -5,6 +5,7 @@
 #include "HashString.h"
 
 #include <vector>
+#include <list>
 
 class AnimController;
 
@@ -46,9 +47,10 @@ private:
 
     struct Clip
     {
-        HashString  name;
-        UID         resource = 0;
-        bool        loop     = false;
+        HashString      name;
+        UID             resource = 0;
+        bool            loop     = false;
+        std::list<uint> frame_tags;
 
         Clip() {;}
         Clip(const HashString& n, UID r, bool l) : name(n), resource(r), loop(l) {;}
@@ -62,8 +64,25 @@ private:
         }
     };
 
+    struct Transition
+    {
+        HashString trigger;
+        HashString target_node;
+        unsigned   blend_time = 200;
+    };
+
+    struct Node
+    {
+        HashString            name;
+        HashString            clip;
+        float                 speed = 1.0;
+        std::list<Transition> transitions;
+    };
+
     AnimController*   controller = nullptr;
     std::vector<Clip> clips;
+    std::vector<Node> nodes;
+    unsigned          current    = 0;
     bool              debug_draw = false;
 };
 
