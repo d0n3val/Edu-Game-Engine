@@ -463,7 +463,7 @@ void ed::Pin::Draw(ImDrawList* drawList, DrawFlags flags)
 
         if (m_BorderWidth > 0.0f)
         {
-            FringeScaleScope fringe(1.0f);
+            // [Carlos] not used FringeScaleScope fringe(1.0f);
             drawList->AddRect(to_imvec(m_Bounds.top_left()), to_imvec(m_Bounds.bottom_right()),
                 m_BorderColor, m_Rounding, m_Corners, m_BorderWidth);
         }
@@ -527,7 +527,7 @@ void ed::Node::Draw(ImDrawList* drawList, DrawFlags flags)
 
             if (m_GroupBorderWidth > 0.0f)
             {
-                FringeScaleScope fringe(1.0f);
+                // [Carlos] not used FringeScaleScope fringe(1.0f);
 
                 drawList->AddRect(
                     to_imvec(m_GroupBounds.top_left()),
@@ -861,7 +861,7 @@ void ed::EditorContext::Begin(const char* id, const ImVec2& size)
 
     m_Canvas = m_NavigateAction.GetCanvas();
 
-   // ImGui::GetWindowDrawList()->_FringeScale = std::min(std::max(m_Canvas.InvZoom.x, m_Canvas.InvZoom.y), 1.0f);
+    // [Carlo] not used ImGui::GetWindowDrawList()->_FringeScale = std::min(std::max(m_Canvas.InvZoom.x, m_Canvas.InvZoom.y), 1.0f);
     auto drawList = ImGui::GetWindowDrawList();
 
     // Save mouse positions
@@ -1172,7 +1172,7 @@ void ed::EditorContext::End()
     // ShowMetrics(control);
 
     // fringe scale
-   // ImGui::GetWindowDrawList()->_FringeScale = 1.0f;
+    // [Carlos] not used ImGui::GetWindowDrawList()->_FringeScale = 1.0f;
 
     ImGui::EndChild();
     ImGui::PopStyleColor();
@@ -2688,7 +2688,60 @@ ed::EditorAction::AcceptResult ed::NavigateAction::Accept(const Control& control
 
     auto& io = ImGui::GetIO();
 
- 
+	/* [Carlos ImGuiKey_F dissapear 
+    if (ImGui::IsWindowFocused() && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F)) && Editor->AreShortcutsEnabled())
+    {
+        const auto allowZoomIn = io.KeyShift;
+
+        auto findHotObjectToZoom = [this, &control, &io]() -> Object*
+        {
+            if (control.HotObject)
+            {
+                if (auto pin = control.HotObject->AsPin())
+                    return pin->m_Node;
+                else
+                    return control.HotObject;
+            }
+            else if (control.BackgroundHot)
+            {
+                auto node = Editor->FindNodeAt(io.MousePos);
+                if (IsGroup(node))
+                    return node;
+            }
+
+            return nullptr;
+        };
+
+        bool navigateToContent = false;
+        if (!Editor->GetSelectedObjects().empty())
+        {
+            if (m_Reason != NavigationReason::Selection || m_LastSelectionId != Editor->GetSelectionId() || allowZoomIn)
+            {
+                m_LastSelectionId = Editor->GetSelectionId();
+                NavigateTo(Editor->GetSelectionBounds(), allowZoomIn, -1.0f, NavigationReason::Selection);
+            }
+            else
+                navigateToContent = true;
+        }
+        else if(auto hotObject = findHotObjectToZoom())
+        {
+            if (m_Reason != NavigationReason::Object || m_LastObject != hotObject || allowZoomIn)
+            {
+                m_LastObject = hotObject;
+                auto bounds = hotObject->GetBounds();
+                NavigateTo(bounds, allowZoomIn, -1.0f, NavigationReason::Object);
+            }
+            else
+                navigateToContent = true;
+        }
+        else
+            navigateToContent = true;
+
+        if (navigateToContent)
+            NavigateTo(Editor->GetContentBounds(), true, -1.0f, NavigationReason::Content);
+    }
+	*/
+
     // // #debug
     // if (auto drawList = ImGui::GetWindowDrawList())
     //     drawList->AddCircleFilled(io.MousePos, 4.0f, IM_COL32(255, 0, 255, 255));
@@ -3500,7 +3553,7 @@ void ed::SelectAction::Draw(ImDrawList* drawList)
     auto max  = ImVec2(std::max(m_StartPoint.x, m_EndPoint.x), std::max(m_StartPoint.y, m_EndPoint.y));
 
     drawList->AddRectFilled(min, max, fillColor);
-    FringeScaleScope fringe(1.0f);
+    // [Carlos] not used FringeScaleScope fringe(1.0f);
     drawList->AddRect(min, max, outlineColor);
 }
 
@@ -3677,8 +3730,8 @@ ed::EditorAction::AcceptResult ed::ShortcutAction::Accept(const Control& control
         candidateAction = Copy;
     if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)))
         candidateAction = Paste;
-    //if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_D)))
-      //  candidateAction = Duplicate;
+    // [Carlos] not defined ImGuiKey_D if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_D)))
+        //candidateAction = Duplicate;
     if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space)))
         candidateAction = CreateNode;
 
@@ -4736,7 +4789,7 @@ bool ed::HintBuilder::Begin(NodeId nodeId)
     ImGui::GetWindowDrawList()->ChannelsSetCurrent(c_UserChannel_Hints);
     ImGui::PushClipRect(canvas.WindowScreenPos + ImVec2(1, 1), canvas.WindowScreenPos + canvas.WindowScreenSize - ImVec2(1, 1), false);
 
-   // m_LastFringe = ImGui::GetWindowDrawList()->_FringeScale;
+    // [Carlos] not used m_LastFringe = ImGui::GetWindowDrawList()->_FringeScale;
     //ImGui::GetWindowDrawList()->_FringeScale = 1.0f;
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 
@@ -4755,7 +4808,7 @@ void ed::HintBuilder::End()
     //ImGui::PopStyleVar(2);
     ImGui::PopStyleVar();
 
-//    ImGui::GetWindowDrawList()->_FringeScale = m_LastFringe;
+    // [Carlos]not used ImGui::GetWindowDrawList()->_FringeScale = m_LastFringe;
 
     Editor->Resume();
 

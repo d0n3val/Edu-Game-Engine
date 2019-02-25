@@ -34,7 +34,7 @@ void ModulePrograms::Load(const char* name, const char* vertex_shader, const cha
 
     for(unsigned i=0; i < num_macros; ++i)
     {
-        def.macros[i] = strdup(macros[i]);
+        def.macros[i] = _strdup(macros[i]);
     }
 
     def.num_macros   = num_macros;

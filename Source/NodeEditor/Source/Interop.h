@@ -16,17 +16,16 @@
 //namespace ax {
 //namespace ImGuiInterop {
 
+
 //------------------------------------------------------------------------------
 static inline bool operator==(const ImVec2& lhs, const ImVec2& rhs)     { return lhs.x == rhs.x && lhs.y == rhs.y; }
 static inline bool operator!=(const ImVec2& lhs, const ImVec2& rhs)     { return lhs.x != rhs.x || lhs.y != rhs.y; }
 static inline ImVec2 operator+(const ImVec2& lhs)                       { return ImVec2( lhs.x,  lhs.y); }
 static inline ImVec2 operator-(const ImVec2& lhs)                       { return ImVec2(-lhs.x, -lhs.y); }
-#if 0
-static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)    { return ImVec2(lhs.x+rhs.x, lhs.y+rhs.y); }
-static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs)    { return ImVec2(lhs.x-rhs.x, lhs.y-rhs.y); }
-static inline ImVec2 operator*(const ImVec2& lhs, float rhs)            { return ImVec2(lhs.x * rhs,   lhs.y * rhs); }
+// [Carlos] already defined static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)    { return ImVec2(lhs.x+rhs.x, lhs.y+rhs.y); }
+// [Carlos] already defined static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs)    { return ImVec2(lhs.x-rhs.x, lhs.y-rhs.y); }
+// [Carlos] already defined static inline ImVec2 operator*(const ImVec2& lhs, float rhs)            { return ImVec2(lhs.x * rhs,   lhs.y * rhs); }
 static inline ImVec2 operator*(float lhs,         const ImVec2& rhs)    { return ImVec2(lhs   * rhs.x, lhs   * rhs.y); }
-#endif 
 
 static inline int        roundi(float value)                { return static_cast<int>(value); }
 static inline ax::point  to_point(const ImVec2& value)      { return ax::point(roundi(value.x), roundi(value.y)); }
@@ -40,23 +39,25 @@ static inline ImVec2     to_imvec(const ax::size& value)    { return ImVec2(stat
 static inline ImVec2     to_imvec(const ax::sizef& value)   { return ImVec2(value.w, value.h); }
 static inline ax::rect   ImGui_GetItemRect()                { return ax::rect(to_point(ImGui::GetItemRectMin()), to_point(ImGui::GetItemRectMax())); }
 
-
+/* [Carlos] Not used in current imgui version
 //------------------------------------------------------------------------------
 struct FringeScaleScope
 {
     FringeScaleScope(float scale)
-        : m_LastFringeScale(scale)
+        : m_LastFringeScale(ImGui::GetWindowDrawList()->_FringeScale)
     {
+        ImGui::GetWindowDrawList()->_FringeScale = scale;
     }
 
     ~FringeScaleScope()
     {
+        ImGui::GetWindowDrawList()->_FringeScale = m_LastFringeScale;
     }
 
 private:
     float m_LastFringeScale;
 };
-
+*/
 
 //------------------------------------------------------------------------------
 //} // namespace ImGuiInterop

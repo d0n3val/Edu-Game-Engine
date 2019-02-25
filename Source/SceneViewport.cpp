@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "Viewport.h"
+#include "SceneViewport.h"
 
 #include "Application.h"
 
@@ -21,144 +21,85 @@
 
 #include "Config.h"
 #include "DebugDraw.h"
-#include "NodeEditor.h"
 
 #include "ImGui.h"
 #include "GL/glew.h"
 
-namespace ed = ax::NodeEditor;
-
-extern ed::EditorContext* g_Context;
-
-Viewport::Viewport()
+SceneViewport::SceneViewport()
 {
 }
 
-Viewport::~Viewport()
+SceneViewport::~SceneViewport()
 {
     RemoveFrameBuffer(fbuffer);
     RemoveFrameBuffer(msaa_fbuffer);
     RemoveFrameBuffer(post_fbuffer);
 }
 
-void Viewport::Draw(ComponentCamera* camera)
+void SceneViewport::Draw(ComponentCamera* camera)
 {
-	int posx = App->editor->GetPosX(ModuleEditor::TabPanelLeft) + App->editor->GetWidth(ModuleEditor::TabPanelLeft);
-	int posy = 21;
-	int width = App->editor->GetPosX(ModuleEditor::TabPanelRight) - posx;
-	int height = App->editor->GetPosY(ModuleEditor::TabPanelBottom) - 21;
+    if(ImGui::BeginChild("SceneCanvas", ImVec2(0, 0), true, ImGuiWindowFlags_NoMove))
+    {
+        DrawQuickBar(camera);
 
-    ImGui::SetNextWindowPos(ImVec2(float(posx), float(posy)));
-    ImGui::SetNextWindowSize(ImVec2(float(width), float(height)));
+        float width  = ImGui::GetWindowContentRegionWidth();
+        float height = ImGui::GetContentRegionAvail().y;
 
-	if (ImGui::Begin("Viewport", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing))
-	{
-        if (ImGui::BeginTabBar("##viewport_tabs", ImGuiTabBarFlags_None))
+        camera->SetAspectRatio(float(width)/float(height));
+        GenerateFBOs(unsigned(width), unsigned(height));
+
+        float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+        if (draw_plane == true)
         {
-            if (ImGui::BeginTabItem("Scene"))
-            {
-                if(ImGui::BeginChild("SceneCanvas", ImVec2(0, 0), true, ImGuiWindowFlags_NoMove))
-                {
-                    DrawQuickBar(camera);
-
-                    float width  = ImGui::GetWindowContentRegionWidth();
-                    float height = ImGui::GetContentRegionAvail().y;
-
-                    camera->SetAspectRatio(float(width)/float(height));
-                    GenerateFBOs(unsigned(width), unsigned(height));
-
-                    float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-                    if (draw_plane == true)
-                    {
-                        dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray, 0, true);
-                    }
-
-                    if(draw_axis == true)
-                    {
-                        dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, metric_proportion, 0, false);
-                    }
-
-                    if (debug_draw == true)
-                    {
-                        App->DebugDraw();
-                    }
-
-                    bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
-
-                    App->renderer->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
-                    App->debug_draw->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
-
-                    App->renderer->Postprocess(msaa ? msaa_fbuffer.tex : fbuffer.tex, post_fbuffer.id, fb_width, fb_height);
-
-                    ImVec2 screenPos = ImGui::GetCursorScreenPos();
-
-                    ImGui::GetWindowDrawList()->AddImage(
-                            (void*)post_fbuffer.tex,
-                            ImVec2(screenPos),
-                            ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
-                            ImVec2(0, 1), ImVec2(1, 0));
-
-                    DrawGuizmo(camera);
-
-                }
-                ImGui::EndChild();
-
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("StateMachine"))
-            {
-                ed::SetCurrentEditor(g_Context);
-                ed::Begin("My Editor", ImVec2(0.0, 0.0f));
-                int uniqueId = 1;
-                // Start drawing nodes.
-                ed::BeginNode(uniqueId++);
-                ImGui::Text("Node A");
-                ed::BeginPin(uniqueId++, ed::PinKind::Input);
-                ImGui::Text("-> In");
-                ed::EndPin();
-                ImGui::SameLine();
-                ed::BeginPin(uniqueId++, ed::PinKind::Output);
-                ImGui::Text("Out ->");
-                ed::EndPin();
-                ed::EndNode();
-                ed::BeginNode(uniqueId++);
-                ImGui::Text("Node B");
-                ed::BeginPin(uniqueId++, ed::PinKind::Input);
-                ImGui::Text("-> In");
-                ed::EndPin();
-                ImGui::SameLine();
-                ed::BeginPin(uniqueId++, ed::PinKind::Output);
-                ImGui::Text("Out ->");
-                ed::EndPin();
-                ed::EndNode();
-                ed::End();
-                ed::SetCurrentEditor(nullptr);
-
-                ImGui::EndTabItem();
-            }
-
-            ImGui::EndTabBar();
+            dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray, 0, true);
         }
+
+        if(draw_axis == true)
+        {
+            dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, metric_proportion, 0, false);
+        }
+
+        if (debug_draw == true)
+        {
+            App->DebugDraw();
+        }
+
+        bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
+
+        App->renderer->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
+        App->debug_draw->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
+
+        App->renderer->Postprocess(msaa ? msaa_fbuffer.tex : fbuffer.tex, post_fbuffer.id, fb_width, fb_height);
+
+        ImVec2 screenPos = ImGui::GetCursorScreenPos();
+
+        ImGui::GetWindowDrawList()->AddImage(
+                (void*)post_fbuffer.tex,
+                ImVec2(screenPos),
+                ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
+                ImVec2(0, 1), ImVec2(1, 0));
+
+        DrawGuizmo(camera);
+
     }
-	ImGui::End();
+    ImGui::EndChild();
 }
 
-void Viewport::Save(Config* config) const
+void SceneViewport::Save(Config* config) const
 {
     config->AddBool("Draw Plane", draw_plane);
     config->AddBool("Draw Axis", draw_axis);
     config->AddBool("Debug Draw", debug_draw);
 }
 
-void Viewport::Load(Config* config)
+void SceneViewport::Load(Config* config)
 {
 	draw_plane = config->GetBool("Draw Plane", true);
 	draw_axis = config->GetBool("Draw Axis", true);
 	debug_draw = config->GetBool("Debug Draw", true);
 }
 
-void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr)
+void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr)
 {
     RemoveFrameBuffer(buffer);
 
@@ -219,7 +160,7 @@ void Viewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool dep
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Viewport::GenerateFBOs(unsigned w, unsigned h)
+void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
 {
     if(w != fb_width || h != fb_height)
     {
@@ -232,7 +173,7 @@ void Viewport::GenerateFBOs(unsigned w, unsigned h)
     }
 }
 
-void Viewport::DrawQuickBar(ComponentCamera* camera)
+void SceneViewport::DrawQuickBar(ComponentCamera* camera)
 {
     Application::State state = App->GetState();
 
@@ -305,7 +246,7 @@ void Viewport::DrawQuickBar(ComponentCamera* camera)
 
 }
 
-void Viewport::DrawGuizmoProperties(GameObject* go)
+void SceneViewport::DrawGuizmoProperties(GameObject* go)
 {
     bool local = guizmo_mode == ImGuizmo::LOCAL && guizmo_op != ImGuizmo::SCALE;
 
@@ -362,7 +303,7 @@ void Viewport::DrawGuizmoProperties(GameObject* go)
 
 }
 
-void Viewport::DrawGuizmoProperties(PointLight* point)
+void SceneViewport::DrawGuizmoProperties(PointLight* point)
 {
     bool local = guizmo_mode == ImGuizmo::LOCAL && guizmo_op != ImGuizmo::SCALE;
 
@@ -383,7 +324,7 @@ void Viewport::DrawGuizmoProperties(PointLight* point)
     ImGui::InputFloat3("Snap", &guizmo_snap.x);
 }
 
-void Viewport::DrawGuizmoProperties(SpotLight* spot)
+void SceneViewport::DrawGuizmoProperties(SpotLight* spot)
 {
     float4x4 model = float4x4::LookAt(spot->GetPosition(), spot->GetPosition()+spot->GetDirection(), float3::unitZ, float3::unitY, float3::unitY);
     model.Transpose();
@@ -421,7 +362,7 @@ void Viewport::DrawGuizmoProperties(SpotLight* spot)
     }
 }
 
-void Viewport::DrawGuizmo(ComponentCamera* camera)
+void SceneViewport::DrawGuizmo(ComponentCamera* camera)
 {
 	if (App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go != nullptr)
 	{
@@ -437,7 +378,7 @@ void Viewport::DrawGuizmo(ComponentCamera* camera)
     }
 }
 
-void Viewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
 {
     float4x4 view = camera->GetOpenGLViewMatrix();
     float4x4 proj = camera->GetOpenGLProjectionMatrix();
@@ -479,7 +420,7 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
 	dd::box(points, dd::colors::Yellow);
 }
 
-void Viewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)
 {
     float4x4 view = camera->GetOpenGLViewMatrix();
     float4x4 proj = camera->GetOpenGLProjectionMatrix();
@@ -528,7 +469,7 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)
     }
 }
 
-void Viewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
 {
     float4x4 view = camera->GetOpenGLViewMatrix();
     float4x4 proj = camera->GetOpenGLProjectionMatrix();
@@ -572,7 +513,7 @@ void Viewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     }
 }
 
-float Viewport::DistanceFromAtt(float constant, float linear, float quadric, float epsilon)
+float SceneViewport::DistanceFromAtt(float constant, float linear, float quadric, float epsilon)
 {
     // Solve (1.0/constant+distance*linear+distance*distance*qua) <= 0.1; for solving distance for 0.1 attenuation
     // 1.0 <= 0.1*(c+d*l+d*d*q); 
@@ -607,7 +548,7 @@ float Viewport::DistanceFromAtt(float constant, float linear, float quadric, flo
     return distance;
 }
 
-void Viewport::RemoveFrameBuffer(Framebuffer& buffer)
+void SceneViewport::RemoveFrameBuffer(Framebuffer& buffer)
 {
     if(buffer.id != 0)
     {
