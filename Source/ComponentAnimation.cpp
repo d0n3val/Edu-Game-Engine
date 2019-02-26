@@ -140,11 +140,66 @@ void ComponentAnimation::RemoveClip(uint index)
 // ---------------------------------------------------------
 uint ComponentAnimation::FindClip(const HashString& name) const
 {
-	std::vector<Clip>::const_iterator it = std::lower_bound(clips.begin(), clips.end(), name, TNearestClip());
-    if(it != clips.end() && it->name == name)
+    uint i=0;
+
+    for(uint count = clips.size(); i < count; ++i)
     {
-        return it-clips.begin();
+        if(clips[i].name == name)
+            break;
     }
 
-    return clips.size();
+    return i;
 }
+
+// ---------------------------------------------------------
+void ComponentAnimation::AddNode(const HashString& name, const HashString& clip, float speed)
+{
+    nodes.push_back(Node(name, clip, speed));
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::RemoveNode(uint index)
+{
+    nodes.erase(nodes.begin()+index);
+}
+
+// ---------------------------------------------------------
+uint ComponentAnimation::FindNode(const HashString& name) const
+{
+    uint i=0;
+
+    for(uint count = nodes.size(); i < count; ++i)
+    {
+        if(nodes[i].name == name)
+            break;
+    }
+
+    return i;
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::AddTransition(const HashString& source, const HashString& target, const HashString& trigger, uint blend)
+{
+    transitions.push_back(Transition(source, target, trigger, blend));
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::RemoveTransition(uint index)
+{
+    transitions.erase(transitions.begin()+index);
+}
+
+// ---------------------------------------------------------
+uint ComponentAnimation::FindTransition(const HashString& source, const HashString& trigger) const
+{
+    uint i=0;
+
+    for(uint count = transitions.size(); i < count; ++i)
+    {
+        if(transitions[i].source == source && transitions[i].trigger == trigger)
+            break;
+    }
+
+    return i;
+}
+
