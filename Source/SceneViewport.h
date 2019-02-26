@@ -21,6 +21,7 @@ public:
 	void                Save                (Config* config) const;
 	void                Load                (Config* config);
 
+
     unsigned            GetWidth            () const { return fb_width; }
     unsigned            GetHeight           () const { return fb_height; }
     unsigned            GetXPos             () const { return x_pos; }
@@ -32,6 +33,7 @@ public:
     void                DrawGuizmoProperties(GameObject* go);
     void                DrawGuizmoProperties(PointLight* point);
     void                DrawGuizmoProperties(SpotLight* spot);
+
 
 private:
 

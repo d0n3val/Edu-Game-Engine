@@ -246,7 +246,7 @@ void SceneViewport::DrawQuickBar(ComponentCamera* camera)
 
 }
 
-void SceneViewport::DrawGuizmoProperties(GameObject* go)
+void SceneViewport::DrawGuizmoProperties(GameObject* go) 
 {
     bool local = guizmo_mode == ImGuizmo::LOCAL && guizmo_op != ImGuizmo::SCALE;
 
@@ -303,7 +303,7 @@ void SceneViewport::DrawGuizmoProperties(GameObject* go)
 
 }
 
-void SceneViewport::DrawGuizmoProperties(PointLight* point)
+void SceneViewport::DrawGuizmoProperties(PointLight* point) 
 {
     bool local = guizmo_mode == ImGuizmo::LOCAL && guizmo_op != ImGuizmo::SCALE;
 
@@ -324,7 +324,7 @@ void SceneViewport::DrawGuizmoProperties(PointLight* point)
     ImGui::InputFloat3("Snap", &guizmo_snap.x);
 }
 
-void SceneViewport::DrawGuizmoProperties(SpotLight* spot)
+void SceneViewport::DrawGuizmoProperties(SpotLight* spot) 
 {
     float4x4 model = float4x4::LookAt(spot->GetPosition(), spot->GetPosition()+spot->GetDirection(), float3::unitZ, float3::unitY, float3::unitY);
     model.Transpose();

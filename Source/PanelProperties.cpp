@@ -30,6 +30,7 @@
 #include "PanelResources.h"
 #include "PanelGOTree.h"
 #include "Viewport.h"
+#include "SceneViewport.h"
 
 #include "DirLight.h"
 #include "AmbientLight.h"
@@ -148,7 +149,7 @@ void PanelProperties::DrawPointLight(PointLight* light)
 
         ImGui::Separator();
 
-        App->renderer3D->viewport->DrawGuizmoProperties(light);
+        App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
 
         ImGui::Separator();
 
@@ -191,7 +192,7 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
 
         ImGui::Separator();
 
-        App->renderer3D->viewport->DrawGuizmoProperties(light);
+        App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
 
         ImGui::Separator();
 
@@ -298,7 +299,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         // Transform section ============================================
         if (ImGui::CollapsingHeader("Local Transformation", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            App->renderer3D->viewport->DrawGuizmoProperties(go);
+            App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(go);
 
             ImGui::Text("Bounding Box: ");
             ImGui::SameLine();

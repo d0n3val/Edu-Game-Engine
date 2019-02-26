@@ -618,6 +618,12 @@
     <ClInclude Include="NodeEditor\Source\Editor.h">
       <Filter>3rd Party\imgui-node-editor</Filter>
     </ClInclude>
+    <ClInclude Include="SceneViewport.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="StateViewport.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -955,6 +961,12 @@
     </ClCompile>
     <ClCompile Include="NodeEditor\Source\Editor.cpp">
       <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneViewport.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="StateViewport.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

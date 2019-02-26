@@ -7,6 +7,7 @@
 #include "ComponentCamera.h"
 #include "ModuleRenderer3D.h"
 #include "Viewport.h"
+#include "SceneViewport.h"
 #include "ModuleHints.h"
 #include "DebugDraw.h"
 #include "ModuleLevelManager.h"
@@ -89,11 +90,11 @@ update_status ModuleEditorCamera::Update(float dt)
 {
 	Frustum* frustum = &dummy->frustum;
 	// Keyboard for WASD movement -------
-	if (App->renderer3D->viewport->IsFocused()) 
+	if (App->renderer3D->viewport->GetScene()->IsFocused()) 
 		Move(dt);
 
 	// Mouse ----------------------------
-	if (App->renderer3D->viewport->IsFocused() && App->renderer3D->viewport->IsUsingGuizmo() == false)
+	if (App->renderer3D->viewport->GetScene()->IsFocused() && App->renderer3D->viewport->GetScene()->IsUsingGuizmo() == false)
 	{
 		// Check motion for lookat / Orbit cameras
 		int motion_x, motion_y;
