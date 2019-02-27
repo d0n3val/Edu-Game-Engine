@@ -40,6 +40,8 @@ void SceneViewport::Draw(ComponentCamera* camera)
 {
     if(ImGui::BeginChild("SceneCanvas", ImVec2(0, 0), true, ImGuiWindowFlags_NoMove))
     {
+		focused = ImGui::IsWindowFocused();
+
         DrawQuickBar(camera);
 
         float width  = ImGui::GetWindowContentRegionWidth();
