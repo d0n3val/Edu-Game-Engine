@@ -461,6 +461,10 @@ Resource * ModuleResources::CreateNewResource(Resource::Type type, UID force_uid
         case Resource::model:
             ret= new ResourceModel(uid);
             break;
+        case Resource::state_machine:
+            // \todo: ret= new ResourceStateMachine(uid);
+            break;
+
     }
 
 	if (ret != nullptr)

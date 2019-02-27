@@ -309,7 +309,7 @@ void StateViewport::ShowNodeMenu(ComponentAnimation* animation)
 
         ImGui::Text("Name %s", animation->GetNodeName(context_node).C_str());
 
-        int clip_index = animation->FindClip(animation->GetClipName(context_node));
+        int clip_index = animation->FindClip(animation->GetNodeClip(context_node));
         if(ImGui::Combo("Clip", &clip_index, &StateViewport::GetClip, animation, animation->GetNumClips()))
         {
             animation->SetNodeClip(context_node, animation->GetClipName(clip_index));

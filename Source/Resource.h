@@ -20,7 +20,7 @@ public:
 		mesh,
 		audio,
 		animation,
-        anim_controller,
+        state_machine,
 		unknown
 	};
 
