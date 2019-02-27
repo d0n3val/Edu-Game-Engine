@@ -11,6 +11,7 @@
 #include "ResourceAudio.h"
 #include "ResourceModel.h"
 #include "ResourceAnimation.h"
+#include "ResourceStateMachine.h"
 #include "Config.h"
 #include <string>
 
@@ -462,7 +463,7 @@ Resource * ModuleResources::CreateNewResource(Resource::Type type, UID force_uid
             ret= new ResourceModel(uid);
             break;
         case Resource::state_machine:
-            // \todo: ret= new ResourceStateMachine(uid);
+            ret= new ResourceStateMachine(uid);
             break;
 
     }

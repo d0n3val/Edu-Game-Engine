@@ -3,6 +3,7 @@
 #include "Application.h"
 #include "ModuleResources.h"
 #include "ResourceAnimation.h"
+#include "ResourceStateMachine.h"
 #include "AnimController.h"
 #include "gameObject.h"
 #include "Component.h"
@@ -21,25 +22,20 @@ ComponentAnimation::~ComponentAnimation()
 {
     delete controller;
 
-	for (std::vector<Clip>::iterator it = clips.begin(), end = clips.end(); it != end; ++it)
-	{
-		Resource* res = App->resources->Get(it->resource);
-
-		if (res != nullptr)
-		{
-			res->Release();
-		}
-	}
 }
 
 // ---------------------------------------------------------
 void ComponentAnimation::OnPlay()
 {
-    if(!clips.empty())
+    ResourceStateMachine* res = GetResource();
+
+    if(res != nullptr && res->GetNumClips() > 0)
     {
-        if(App->resources->Get(clips[0].resource) != nullptr)
+        UID anim = res->GetClipRes(0);
+
+        if(anim != 0)
         {
-            controller->Play(clips[0].resource, 0);
+            controller->Play(anim, 0);
         }
     }
 }
@@ -64,6 +60,7 @@ void ComponentAnimation::OnUpdate(float dt)
 // ---------------------------------------------------------
 void ComponentAnimation::OnSave(Config& config) const 
 {
+    /*
     config.AddArray("clips");
     for(uint i=0; i< clips.size(); ++i)
     {
@@ -77,12 +74,15 @@ void ComponentAnimation::OnSave(Config& config) const
         config.AddArrayEntry(clip_entry);
     }
 
+    */
+
     config.AddBool("DebugDraw", debug_draw);
 }
 
 // ---------------------------------------------------------
 void ComponentAnimation::OnLoad(Config* config) 
 {
+    /*
     uint count = config->GetArrayCount("clips");
 
     clips.clear();
@@ -102,6 +102,8 @@ void ComponentAnimation::OnLoad(Config* config)
             res->LoadToMemory();
         }
     }
+
+    */
 
     debug_draw = config->GetBool("DebugDraw", false);
 
@@ -126,115 +128,32 @@ void ComponentAnimation::UpdateGO(GameObject* go)
 }
 
 // ---------------------------------------------------------
-void ComponentAnimation::AddClip(const HashString& name, UID resource, bool loop)
+bool ComponentAnimation::SetResource(UID uid)
 {
-    clips.push_back(Clip(name, resource, loop));
-}
+    Resource* res = App->resources->Get(uid);
 
-// ---------------------------------------------------------
-void ComponentAnimation::RemoveClip(uint index)
-{
-    std::vector<Node>::iterator it = nodes.begin();
-
-    while(it != nodes.end())
+    if (res != nullptr && res->GetType() == Resource::state_machine)
     {
-        if(it->clip == clips[index].name)
+        if(res->LoadToMemory() == true)
         {
-            RemoveNodeTransitions(it->name);
-            it = nodes.erase(it);
-        }
-        else
-        {
-            ++it;
+            resource = uid;
+
+            return true;
         }
     }
 
-    clips.erase(clips.begin()+index);
+    return false;
 }
 
 // ---------------------------------------------------------
-uint ComponentAnimation::FindClip(const HashString& name) const
+const ResourceStateMachine* ComponentAnimation::GetResource () const
 {
-    uint i=0;
-
-    for(uint count = clips.size(); i < count; ++i)
-    {
-        if(clips[i].name == name)
-            break;
-    }
-
-    return i;
+    return static_cast<const ResourceStateMachine*>(App->resources->Get(resource));
 }
 
 // ---------------------------------------------------------
-void ComponentAnimation::AddNode(const HashString& name, const HashString& clip, float speed)
+ResourceStateMachine* ComponentAnimation::GetResource ()
 {
-    nodes.push_back(Node(name, clip, speed));
-}
-
-// ---------------------------------------------------------
-void ComponentAnimation::RemoveNode(uint index)
-{
-    RemoveNodeTransitions(nodes[index].name);
-    nodes.erase(nodes.begin()+index);
-}
-
-// ---------------------------------------------------------
-void ComponentAnimation::RemoveNodeTransitions(const HashString& name)
-{
-    std::vector<Transition>::iterator it = transitions.begin();
-
-    while(it != transitions.end())
-    {
-        if(it->source == name || it->target == name)
-        {
-            it = transitions.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
-    }
-
-}
-
-// ---------------------------------------------------------
-uint ComponentAnimation::FindNode(const HashString& name) const
-{
-    uint i=0;
-
-    for(uint count = nodes.size(); i < count; ++i)
-    {
-        if(nodes[i].name == name)
-            break;
-    }
-
-    return i;
-}
-
-// ---------------------------------------------------------
-void ComponentAnimation::AddTransition(const HashString& source, const HashString& target, const HashString& trigger, uint blend)
-{
-    transitions.push_back(Transition(source, target, trigger, blend));
-}
-
-// ---------------------------------------------------------
-void ComponentAnimation::RemoveTransition(uint index)
-{
-    transitions.erase(transitions.begin()+index);
-}
-
-// ---------------------------------------------------------
-uint ComponentAnimation::FindTransition(const HashString& source, const HashString& trigger) const
-{
-    uint i=0;
-
-    for(uint count = transitions.size(); i < count; ++i)
-    {
-        if(transitions[i].source == source && transitions[i].trigger == trigger)
-            break;
-    }
-
-    return i;
+    return static_cast<ResourceStateMachine*>(App->resources->Get(resource));
 }
 

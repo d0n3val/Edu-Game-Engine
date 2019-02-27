@@ -273,6 +273,7 @@
     <ClInclude Include="ResourceAnimation.h" />
     <ClInclude Include="ResourceMesh.h" />
     <ClInclude Include="ResourceModel.h" />
+    <ClInclude Include="ResourceStateMachine.h" />
     <ClInclude Include="ResourceTexture.h" />
     <ClInclude Include="SceneViewport.h" />
     <ClInclude Include="spotlight.h" />
@@ -385,6 +386,7 @@
     <ClCompile Include="ResourceMaterial.cpp" />
     <ClCompile Include="ResourceMesh.cpp" />
     <ClCompile Include="ResourceModel.cpp" />
+    <ClCompile Include="ResourceStateMachine.cpp" />
     <ClCompile Include="ResourceTexture.cpp" />
     <ClCompile Include="SceneViewport.cpp" />
     <ClCompile Include="SOIL2\srcs\etc1_utils.c" />

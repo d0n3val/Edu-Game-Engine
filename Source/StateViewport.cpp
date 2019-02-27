@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "StateViewport.h"
 #include "ComponentAnimation.h"
+#include "ResourceStateMachine.h"
 
 #include "mmgr/mmgr.h"
 
@@ -22,29 +23,34 @@ void StateViewport::Draw(ComponentAnimation* animation)
 {
     if(animation != nullptr)
     {
-		ed::SetCurrentEditor(context);
-		ed::Begin("State Machine Editor", ImVec2(0.0, 0.0f));
+        ResourceStateMachine* state_machine = animation->GetResource();
 
-		DrawNodes(animation);
-        DrawTransitions(animation);
-        ManageCreate(animation);
+        if(state_machine != nullptr)
+        {
+            ed::SetCurrentEditor(context);
+            ed::Begin("State Machine Editor", ImVec2(0.0, 0.0f));
 
-		ShowContextMenus(animation);
+            DrawNodes(state_machine);
+            DrawTransitions(state_machine);
+            ManageCreate(state_machine);
 
-        ed::Suspend();
-        ShowNodeMenu(animation);
-        ShowLinkMenu(animation);
-        ShowCreateNewNodeMenu(animation);
-        ed::Resume();
+            ShowContextMenus(state_machine);
 
-		ed::End();
-		ed::SetCurrentEditor(nullptr);
+            ed::Suspend();
+            ShowNodeMenu(state_machine);
+            ShowLinkMenu(state_machine);
+            ShowCreateNewNodeMenu(state_machine);
+            ed::Resume();
+
+            ed::End();
+            ed::SetCurrentEditor(nullptr);
+        }
     }
 }
 
 bool StateViewport::GetClip(void* data, int idx, const char** out_text)
 {
-    ComponentAnimation* animation = reinterpret_cast<ComponentAnimation*>(data);
+    ResourceStateMachine* animation = reinterpret_cast<ResourceStateMachine*>(data);
     if(uint(idx) < animation->GetNumClips())
     {
         *out_text = animation->GetClipName(idx).C_str();
@@ -57,7 +63,7 @@ bool StateViewport::GetClip(void* data, int idx, const char** out_text)
 
 bool StateViewport::GetNode(void* data, int idx, const char** out_text)
 {
-    ComponentAnimation* animation = reinterpret_cast<ComponentAnimation*>(data);
+    ResourceStateMachine* animation = reinterpret_cast<ResourceStateMachine*>(data);
     if(uint(idx) < animation->GetNumNodes())
     {
         *out_text = animation->GetNodeName(idx).C_str();
@@ -68,7 +74,7 @@ bool StateViewport::GetNode(void* data, int idx, const char** out_text)
     return false;
 }
 
-void StateViewport::DrawNodes(ComponentAnimation* animation)
+void StateViewport::DrawNodes(ResourceStateMachine* animation)
 {
     for(uint i=0, count = animation->GetNumNodes(); i < count; ++i)
     {
@@ -137,7 +143,7 @@ void StateViewport::DrawNodes(ComponentAnimation* animation)
     }
 }
 
-void StateViewport::DrawTransitions(ComponentAnimation* animation)
+void StateViewport::DrawTransitions(ResourceStateMachine* animation)
 {
     ed::PushStyleVar(ed::StyleVar_LinkStrength, 4.0f);
     uint num_nodes = animation->GetNumNodes();
@@ -154,7 +160,7 @@ void StateViewport::DrawTransitions(ComponentAnimation* animation)
     ed::PopStyleVar(1);
 }
 
-void StateViewport::AddAnimationNode(ComponentAnimation* animation, uint index)
+void StateViewport::AddAnimationNode(ResourceStateMachine* animation, uint index)
 {
     HashString name = animation->GetClipName(index);
     HashString clip = animation->GetClipName(index);
@@ -174,7 +180,7 @@ void StateViewport::AddAnimationNode(ComponentAnimation* animation, uint index)
     animation->AddNode(name, clip, 1.0f);
 }
 
-void StateViewport::ManageCreate(ComponentAnimation* animation)
+void StateViewport::ManageCreate(ResourceStateMachine* animation)
 {
     if (ed::BeginCreate(ImColor(255, 255, 255), 2.0f))
     {
@@ -263,7 +269,7 @@ void StateViewport::ManageCreate(ComponentAnimation* animation)
     ed::EndCreate();
 }
 
-void StateViewport::ShowContextMenus(ComponentAnimation* animation)
+void StateViewport::ShowContextMenus(ResourceStateMachine* animation)
 {
     ed::Suspend();
 
@@ -295,7 +301,7 @@ void StateViewport::ShowContextMenus(ComponentAnimation* animation)
 
 }
 
-void StateViewport::ShowCreateNewNodeMenu(ComponentAnimation* animation)
+void StateViewport::ShowCreateNewNodeMenu(ResourceStateMachine* animation)
 {
     if (ImGui::BeginPopup("Create New Node"))
     {
@@ -326,7 +332,7 @@ void StateViewport::ShowCreateNewNodeMenu(ComponentAnimation* animation)
     }
 }
 
-void StateViewport::ShowNodeMenu(ComponentAnimation* animation)
+void StateViewport::ShowNodeMenu(ResourceStateMachine* animation)
 {
     if (ImGui::BeginPopup("Node Context Menu"))
     {
@@ -365,7 +371,7 @@ void StateViewport::ShowNodeMenu(ComponentAnimation* animation)
     }
 }
 
-void StateViewport::ShowLinkMenu(ComponentAnimation* animation)
+void StateViewport::ShowLinkMenu(ResourceStateMachine* animation)
 {
     if (ImGui::BeginPopup("Link Context Menu"))
     {

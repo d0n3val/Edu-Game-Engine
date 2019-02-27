@@ -26,7 +26,7 @@ const char* Resource::GetTypeStr(Type type)
 {
 	static_assert(Resource::Type::unknown == 7, "String list needs update");
 
-	static const char* types[] = { "Model", "Material", "Texture", "Mesh", "Audio", "Animation", "AnimController", "Unknown" };
+	static const char* types[] = { "Model", "Material", "Texture", "Mesh", "Audio", "Animation", "State machine", "Unknown" };
 
 	return types[type];
 }

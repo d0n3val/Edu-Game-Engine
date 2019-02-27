@@ -6,6 +6,7 @@
 namespace ed = ax::NodeEditor;
 
 class ComponentAnimation;
+class ResourceStateMachine;
 
 class StateViewport
 {
@@ -17,14 +18,14 @@ public:
 
 private:
 
-    void DrawNodes(ComponentAnimation* animation);
-    void DrawTransitions(ComponentAnimation* animation);
-    void ShowContextMenus(ComponentAnimation* animation);
-    void ShowCreateNewNodeMenu(ComponentAnimation* animation);
-    void ShowNodeMenu(ComponentAnimation* animation);
-    void ShowLinkMenu(ComponentAnimation* animation);
-    void AddAnimationNode(ComponentAnimation* animation, uint index);
-    void ManageCreate(ComponentAnimation* animation);
+    void DrawNodes(ResourceStateMachine* animation);
+    void DrawTransitions(ResourceStateMachine* animation);
+    void ShowContextMenus(ResourceStateMachine* animation);
+    void ShowCreateNewNodeMenu(ResourceStateMachine* animation);
+    void ShowNodeMenu(ResourceStateMachine* animation);
+    void ShowLinkMenu(ResourceStateMachine* animation);
+    void AddAnimationNode(ResourceStateMachine* animation, uint index);
+    void ManageCreate(ResourceStateMachine* animation);
 
     static bool GetClip(void* data, int idx, const char** out_text);
     static bool GetNode(void* data, int idx, const char** out_text);

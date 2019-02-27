@@ -1,3 +1,4 @@
+#include "Globals.h"
 #include "ResourceAnimation.h"
 #include "Application.h"
 #include "Config.h"

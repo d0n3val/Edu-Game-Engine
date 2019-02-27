@@ -25,6 +25,7 @@
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
+#include "ResourceStateMachine.h"
 #include "ResourceAudio.h"
 #include "ResourceAnimation.h"
 #include "PanelResources.h"
@@ -903,69 +904,93 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 
 void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
 {
+    ResourceStateMachine* state_res = component->GetResource();
+
+    UID new_res = PickResourceModal(Resource::state_machine);
+
+    ImGui::SameLine();
+    if(ImGui::Button("New State machine"))
+    {
+        ResourceStateMachine* state_machine = static_cast<ResourceStateMachine*>(App->resources->CreateNewResource(Resource::state_machine, 0));
+
+        bool save_ok = state_machine->Save();
+
+        if(save_ok)
+        {
+            new_res = state_machine->GetUID();
+        }
+    }
+
+
     bool debug_draw = component->GetDebugDraw();
     if(ImGui::Checkbox("Debug draw", &debug_draw))
     {
         component->SetDebugDraw(debug_draw);
     }
 
-    if (ImGui::Button("Add clip"))
+    if(new_res > 0)
     {
-        component->AddClip(HashString("noname"), 0, true);
+		component->SetResource(new_res);
     }
-
-    ImGui::Separator();
-
-    uint i=0; 
-    while(i < component->GetNumClips())
+    else if(state_res != nullptr)
     {
-        ResourceAnimation* resource = static_cast<ResourceAnimation*>(App->resources->Get(component->GetClipRes(i)));
-
-        char name[128];
-
-        strcpy_s(name, component->GetClipName(i).C_str());
-
-        ImGui::PushID(i);
-        if(ImGui::InputText("Clip name", name, 128))
+        if (ImGui::Button("Add clip"))
         {
-            component->SetClipName(i, HashString(name));
-        }
-
-        ImGui::LabelText("Resource", resource ? resource->GetName() : "Unknown");
-		ImGui::SameLine();
-        if(ImGui::ArrowButton("resource", ImGuiDir_Right))
-        {
-            ImGui::OpenPopup("Select");
-        }
-
-        UID new_res = OpenResourceModal(Resource::animation, "Select");
-
-
-        if (new_res > 0)
-        {
-            component->SetClipRes(i, new_res);
-
-            App->resources->Get(new_res)->LoadToMemory();
-        }
-
-        bool loop = component->GetClipLoop(i);
-        if(ImGui::Checkbox("Loop", &loop))
-        {
-            component->SetClipLoop(i, loop);
-        }
-
-        ImGui::SameLine();
-        if(ImGui::Button("Remove"))
-        {
-            component->RemoveClip(i);
-        }
-        else
-        {
-            ++i;
+            state_res->AddClip(HashString("noname"), 0, true);
         }
 
         ImGui::Separator();
-        ImGui::PopID();
-    }
 
+        uint i=0; 
+        while(i < state_res->GetNumClips())
+        {
+            ResourceAnimation* resource = static_cast<ResourceAnimation*>(App->resources->Get(state_res->GetClipRes(i)));
+
+            char name[128];
+
+            strcpy_s(name, state_res->GetClipName(i).C_str());
+
+            ImGui::PushID(i);
+            if(ImGui::InputText("Clip name", name, 128))
+            {
+                state_res->SetClipName(i, HashString(name));
+            }
+
+            ImGui::LabelText("Resource", resource ? resource->GetName() : "Unknown");
+            ImGui::SameLine();
+            if(ImGui::ArrowButton("resource", ImGuiDir_Right))
+            {
+                ImGui::OpenPopup("Select");
+            }
+
+            UID new_res = OpenResourceModal(Resource::animation, "Select");
+
+
+            if (new_res > 0)
+            {
+                state_res->SetClipRes(i, new_res);
+
+                App->resources->Get(new_res)->LoadToMemory();
+            }
+
+            bool loop = state_res->GetClipLoop(i);
+            if(ImGui::Checkbox("Loop", &loop))
+            {
+                state_res->SetClipLoop(i, loop);
+            }
+
+            ImGui::SameLine();
+            if(ImGui::Button("Remove"))
+            {
+                state_res->RemoveClip(i);
+            }
+            else
+            {
+                ++i;
+            }
+
+            ImGui::Separator();
+            ImGui::PopID();
+        }
+    }
 }

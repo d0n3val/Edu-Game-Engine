@@ -31,7 +31,7 @@ void AnimController::UpdateInstance(Instance* instance, unsigned elapsed)
 {
 	ResourceAnimation* anim = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
 
-	if (anim->GetDuration() > 0)
+	if (anim != nullptr && anim->GetDuration() > 0)
 	{
 		elapsed = elapsed % anim->GetDuration();
 		unsigned to_end = anim->GetDuration() - instance->time;
@@ -111,57 +111,61 @@ bool AnimController::GetTransform(const HashString& channel_name, float3& positi
 bool AnimController::GetTransformInstance(Instance* instance, const HashString& channel_name, float3& position, Quat& rotation) const
 {
 	const ResourceAnimation* animation = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
-	unsigned channel_index  = animation->FindChannelIndex(channel_name);
 
-	if(channel_index < animation->GetNumChannels())
-	{
-		assert(instance->time <= animation->duration);
+    if(animation != nullptr)
+    {
+        unsigned channel_index  = animation->FindChannelIndex(channel_name);
 
-		float pos_key = float(instance->time*(animation->GetNumPositions(channel_index)-1))/float(animation->GetDuration());
-		float rot_key = float(instance->time*(animation->GetNumRotations(channel_index)-1))/float(animation->GetDuration());
-
-		unsigned pos_index = unsigned(pos_key);
-		unsigned rot_index = unsigned(rot_key);
-
-		float pos_lambda = pos_key-float(pos_index);
-		float rot_lambda = rot_key-float(rot_index);
-
-        if(pos_lambda > 0.0f)
+        if(channel_index < animation->GetNumChannels())
         {
-            position = Interpolate(animation->GetPosition(channel_index, pos_index), animation->GetPosition(channel_index, pos_index+1), pos_lambda);
+            assert(instance->time <= animation->duration);
+
+            float pos_key = float(instance->time*(animation->GetNumPositions(channel_index)-1))/float(animation->GetDuration());
+            float rot_key = float(instance->time*(animation->GetNumRotations(channel_index)-1))/float(animation->GetDuration());
+
+            unsigned pos_index = unsigned(pos_key);
+            unsigned rot_index = unsigned(rot_key);
+
+            float pos_lambda = pos_key-float(pos_index);
+            float rot_lambda = rot_key-float(rot_index);
+
+            if(pos_lambda > 0.0f)
+            {
+                position = Interpolate(animation->GetPosition(channel_index, pos_index), animation->GetPosition(channel_index, pos_index+1), pos_lambda);
+            }
+            else
+            {
+                position = animation->GetPosition(channel_index, pos_index);
+            }
+
+            if(rot_lambda > 0.0f)
+            {
+                rotation = Interpolate(animation->GetRotation(channel_index, rot_index), animation->GetRotation(channel_index, rot_index+1), rot_lambda);
+            }
+            else
+            {
+                rotation = animation->GetRotation(channel_index, rot_index);
+            }
+
+            if(instance->next != nullptr)
+            {
+                assert(instance->fade_duration > 0.0f);
+
+                float3 next_position;
+                Quat next_rotation;
+
+                if(GetTransformInstance(instance->next, channel_name, next_position, next_rotation))
+                {
+                    float blend_lambda = float(instance->fade_time) / float(instance->fade_duration);
+
+                    position = Interpolate(next_position, position, blend_lambda);
+                    rotation = Interpolate(next_rotation, rotation, blend_lambda);
+                }
+            }
+
+            return true;
         }
-        else
-        {
-            position = animation->GetPosition(channel_index, pos_index);
-        }
-
-        if(rot_lambda > 0.0f)
-        {
-            rotation = Interpolate(animation->GetRotation(channel_index, rot_index), animation->GetRotation(channel_index, rot_index+1), rot_lambda);
-        }
-        else
-        {
-            rotation = animation->GetRotation(channel_index, rot_index);
-        }
-
-		if(instance->next != nullptr)
-		{
-			assert(instance->fade_duration > 0.0f);
-
-            float3 next_position;
-            Quat next_rotation;
-
-			if(GetTransformInstance(instance->next, channel_name, next_position, next_rotation))
-			{
-                float blend_lambda = float(instance->fade_time) / float(instance->fade_duration);
-
-				position = Interpolate(next_position, position, blend_lambda);
-				rotation = Interpolate(next_rotation, rotation, blend_lambda);
-			}
-		}
-
-		return true;
-	}
+    }
 
 	return false;
 }

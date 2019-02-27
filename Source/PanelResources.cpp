@@ -121,7 +121,7 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
 	vector<const Resource*> resources;
 
 	static const char* titles[] = {
-		"Models", "Materials", "Textures", "Meshes", "Audios", "Animation", "Others" };
+		"Models", "Materials", "Textures", "Meshes", "Audios", "Animation", "State machines", "Others" };
 
     bool open_tree =ImGui::TreeNodeEx(titles[type], opened ? ImGuiTreeNodeFlags_DefaultOpen : 0);
 
