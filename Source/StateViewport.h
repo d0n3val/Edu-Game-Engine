@@ -1,7 +1,9 @@
 #ifndef _STATE_VIEWPORT_H_
 #define _STATE_VIEWPORT_H_
 
-namespace ax { namespace NodeEditor { struct EditorContext; } }
+#include "NodeEditor.h"
+
+namespace ed = ax::NodeEditor;
 
 class ComponentAnimation;
 
@@ -25,12 +27,14 @@ private:
     void ManageCreate(ComponentAnimation* animation);
 
     static bool GetClip(void* data, int idx, const char** out_text);
+    static bool GetNode(void* data, int idx, const char** out_text);
 
 private:
-    ax::NodeEditor::EditorContext* context = nullptr;
+    ed::EditorContext* context = nullptr;
     uint context_node = 0;
     uint context_link = 0;
-
+    ImVec2 new_node_pos;
+    ed::PinId new_node_pin = 0;
 };
 
 

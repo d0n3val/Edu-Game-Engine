@@ -134,6 +134,21 @@ void ComponentAnimation::AddClip(const HashString& name, UID resource, bool loop
 // ---------------------------------------------------------
 void ComponentAnimation::RemoveClip(uint index)
 {
+    std::vector<Node>::iterator it = nodes.begin();
+
+    while(it != nodes.end())
+    {
+        if(it->clip == clips[index].name)
+        {
+            RemoveNodeTransitions(it->name);
+            it = nodes.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
     clips.erase(clips.begin()+index);
 }
 
@@ -160,7 +175,27 @@ void ComponentAnimation::AddNode(const HashString& name, const HashString& clip,
 // ---------------------------------------------------------
 void ComponentAnimation::RemoveNode(uint index)
 {
+    RemoveNodeTransitions(nodes[index].name);
     nodes.erase(nodes.begin()+index);
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::RemoveNodeTransitions(const HashString& name)
+{
+    std::vector<Transition>::iterator it = transitions.begin();
+
+    while(it != transitions.end())
+    {
+        if(it->source == name || it->target == name)
+        {
+            it = transitions.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
 }
 
 // ---------------------------------------------------------

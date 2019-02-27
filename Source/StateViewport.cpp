@@ -2,11 +2,9 @@
 #include "StateViewport.h"
 #include "ComponentAnimation.h"
 
-#include "NodeEditor.h"
-
 #include "mmgr/mmgr.h"
 
-namespace ed = ax::NodeEditor;
+#define DEFAULT_BLEND 300
 
 StateViewport::StateViewport()
 {
@@ -50,6 +48,19 @@ bool StateViewport::GetClip(void* data, int idx, const char** out_text)
     if(uint(idx) < animation->GetNumClips())
     {
         *out_text = animation->GetClipName(idx).C_str();
+
+        return true;
+    }
+
+    return false;
+}
+
+bool StateViewport::GetNode(void* data, int idx, const char** out_text)
+{
+    ComponentAnimation* animation = reinterpret_cast<ComponentAnimation*>(data);
+    if(uint(idx) < animation->GetNumNodes())
+    {
+        *out_text = animation->GetNodeName(idx).C_str();
 
         return true;
     }
@@ -109,7 +120,7 @@ void StateViewport::DrawNodes(ComponentAnimation* animation)
         ed::PopStyleVar(4);
 
         // Out Pin
-        ImGui::SameLine(64.0);
+        ImGui::SameLine(size.x-40);
         ed::PushStyleVar(ed::StyleVar_PinArrowSize, 0.0f);
         ed::PushStyleVar(ed::StyleVar_PinArrowWidth, 0.0f);
         ed::PushStyleVar(ed::StyleVar_TargetDirection, ImVec2(0.0f, 0.0f));
@@ -119,6 +130,7 @@ void StateViewport::DrawNodes(ComponentAnimation* animation)
         ed::EndPin();
 
 		ed::EndNode();
+
         ed::PopStyleVar(3);
         ed::PopStyleColor(2);
 
@@ -137,7 +149,6 @@ void StateViewport::DrawTransitions(ComponentAnimation* animation)
         if(source < num_nodes && target < num_nodes)
         {
             ed::Link(num_nodes*3+i+1, source*3+3, target*3+2);
-            // \note: for blending ed::Flow(num_nodes*3+i+1);
         }
     }
     ed::PopStyleVar(1);
@@ -216,30 +227,35 @@ void StateViewport::ManageCreate(ComponentAnimation* animation)
                     {
                         if(startIsInput)
                         {
-                            animation->AddTransition(animation->GetNodeName(endNode), animation->GetNodeName(startNode), HashString(), 300);
+                            animation->AddTransition(animation->GetNodeName(endNode), animation->GetNodeName(startNode), HashString(), DEFAULT_BLEND);
                         }
                         else
                         {
-                            animation->AddTransition(animation->GetNodeName(startNode), animation->GetNodeName(endNode), HashString(), 300);
+                            animation->AddTransition(animation->GetNodeName(startNode), animation->GetNodeName(endNode), HashString(), DEFAULT_BLEND);
                         }
                     }
                 }
             }
         }
 
-        ed::PinId pinId = 0;
-        if (ed::QueryNewNode(&pinId))
+        if (ed::QueryNewNode(&new_node_pin))
         {
-            if(pinId != ed::PinId::Invalid)
-            {
-                showLabel("+ Create Node", ImColor(32, 45, 32, 180));
-            }
+            bool pinIsInput = uint(new_node_pin.Get()-1)%3 == 1;
 
-            if (ed::AcceptNewItem())
+            if(!pinIsInput)
             {
-                ed::Suspend();
-                ImGui::OpenPopup("Create New Node");
-                ed::Resume();
+                if(new_node_pin != ed::PinId::Invalid)
+                {
+                    showLabel("+ Create Node", ImColor(32, 45, 32, 180));
+                }
+
+                if (ed::AcceptNewItem())
+                {
+                    ed::Suspend();
+                    new_node_pos = ImGui::GetMousePos();
+                    ImGui::OpenPopup("Create New Node");
+                    ed::Resume();
+                }
             }
         }
     }
@@ -265,11 +281,13 @@ void StateViewport::ShowContextMenus(ComponentAnimation* animation)
     }
     else if (ed::ShowLinkContextMenu(&contextLinkId))
     {
-        context_link = uint(contextLinkId.Get())-animation->GetNumNodes()-1;
+        context_link = uint(contextLinkId.Get())-animation->GetNumNodes()*3-1;
         ImGui::OpenPopup("Link Context Menu");
     }
     else if (ed::ShowBackgroundContextMenu())
     {
+        new_node_pos = ImGui::GetMousePos();
+        new_node_pin = 0;
         ImGui::OpenPopup("Create New Node");
     }
 
@@ -290,7 +308,15 @@ void StateViewport::ShowCreateNewNodeMenu(ComponentAnimation* animation)
             {
                 if(ImGui::MenuItem(animation->GetClipName(i).C_str()))
                 {
+                    uint node_idx = animation->GetNumNodes();
+                    ed::SetNodePosition(node_idx*3+1, ed::ScreenToCanvas(new_node_pos));
                     AddAnimationNode(animation, i);
+
+                    if(new_node_pin != ed::PinId::Invalid)
+                    {
+                        uint out_node = uint(new_node_pin.Get()-1)/3;
+                        animation->AddTransition(animation->GetNodeName(out_node), animation->GetNodeName(node_idx), HashString(), DEFAULT_BLEND);
+                    }
                 }
             }
 
@@ -307,7 +333,13 @@ void StateViewport::ShowNodeMenu(ComponentAnimation* animation)
         ImGui::TextUnformatted("Node Context Menu");
         ImGui::Separator();
 
-        ImGui::Text("Name %s", animation->GetNodeName(context_node).C_str());
+        char tmp[128];
+
+        snprintf(tmp, 127, animation->GetNodeName(context_node).C_str());
+        if(ImGui::InputText("Name", tmp, 128))
+        {
+            animation->SetNodeName(context_node, HashString(tmp));
+        }
 
         int clip_index = animation->FindClip(animation->GetNodeClip(context_node));
         if(ImGui::Combo("Clip", &clip_index, &StateViewport::GetClip, animation, animation->GetNumClips()))
@@ -315,9 +347,8 @@ void StateViewport::ShowNodeMenu(ComponentAnimation* animation)
             animation->SetNodeClip(context_node, animation->GetClipName(clip_index));
         }
 
-        //ImGui::Text("Clip %s", animation->GetNodeClip(context_node).C_str());
         float speed = animation->GetNodeSpeed(context_node);
-        if(ImGui::DragFloat("Speed", &speed))
+        if(ImGui::DragFloat("Speed", &speed, 0.01f, 0.0f, 5.0f))
         {
             animation->SetNodeSpeed(context_node, speed);
         }
@@ -341,10 +372,20 @@ void StateViewport::ShowLinkMenu(ComponentAnimation* animation)
         ImGui::TextUnformatted("Transition Context Menu");
         ImGui::Separator();
 
-        ImGui::Text("Source %s", animation->GetTransitionSource(context_link).C_str());
-        ImGui::Text("Target %s", animation->GetTransitionTarget(context_link).C_str());
-        ImGui::Text("Trigger %s", animation->GetTransitionTrigger(context_link).C_str());
-        ImGui::Text("Blend %d", animation->GetTransitionBlend(context_link));
+        char tmp[128];
+
+        HashString trigger = animation->GetTransitionTrigger(context_link); 
+        snprintf(tmp, 127, trigger ? trigger.C_str() : "");
+        if(ImGui::InputText("Trigger", tmp, 128))
+        {
+            animation->SetTransitionTrigger(context_link, HashString(tmp));
+        }
+
+        uint blend = animation->GetTransitionBlend(context_link);
+        if(ImGui::DragInt("Blend", (int*)&blend, 1.0f, 0, 1000))
+        {
+            animation->SetTransitionBlend(context_node, blend);
+        }
 
         ImGui::Separator();
 

@@ -62,7 +62,7 @@ public:
     void                SetTransitionSource (uint index, const HashString& source) { transitions[index].source = source; }
     void                SetTransitionTarget (uint index, const HashString& target) { transitions[index].target = target; }
     void                SetTransitionTrigger(uint index, const HashString& trigger) { transitions[index].trigger = trigger; }
-    void                SetTransitionblend  (uint index, uint blend) { transitions[index].blend = blend; }
+    void                SetTransitionBlend  (uint index, uint blend) { transitions[index].blend = blend; }
 
     bool                GetDebugDraw        () const {return debug_draw;}
     void                SetDebugDraw        (bool enable) { debug_draw = enable; }
@@ -71,7 +71,8 @@ public:
 
 private:
 
-    void                UpdateGO            (GameObject* go);
+    void                UpdateGO                (GameObject* go);
+    void                RemoveNodeTransitions   (const HashString& name);
 
 private:
 
