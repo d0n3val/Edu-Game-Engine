@@ -49,6 +49,7 @@ void ComponentAnimation::OnPlay()
 void ComponentAnimation::OnStop()
 {
     controller->Stop();
+    active_node = 0;
 }
 
 // ---------------------------------------------------------

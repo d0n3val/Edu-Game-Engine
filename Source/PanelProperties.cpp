@@ -1008,16 +1008,20 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
 
         if(App->GetState() != Application::stop)
         {
-            HashString active_node = component->GetActiveNode();
 
-            for(uint i=0; i< state_res->GetNumTransitions(); ++i)
+            if (ImGui::CollapsingHeader("Animation triggers", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                if(state_res->GetTransitionSource(i) == active_node)
+                HashString active_node = component->GetActiveNode();
+
+                for(uint i=0; i< state_res->GetNumTransitions(); ++i)
                 {
-                    HashString trigger = state_res->GetTransitionTrigger(i);
-                    if(trigger && ImGui::Button(trigger.C_str()))
+                    if(state_res->GetTransitionSource(i) == active_node)
                     {
-                        component->SendTrigger(trigger);
+                        HashString trigger = state_res->GetTransitionTrigger(i);
+                        if(trigger && ImGui::Button(trigger.C_str()))
+                        {
+                            component->SendTrigger(trigger);
+                        }
                     }
                 }
             }
