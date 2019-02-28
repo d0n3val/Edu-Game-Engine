@@ -19,7 +19,90 @@ ResourceStateMachine::~ResourceStateMachine()
 // ---------------------------------------------------------
 bool ResourceStateMachine::LoadInMemory() 
 {
-	return true;
+	if (GetExportedFile() != nullptr)
+    {
+        char* buffer = nullptr;
+
+        uint size = App->fs->Load(LIBRARY_MATERIAL_FOLDER, GetExportedFile(), &buffer);
+
+        simple::mem_istream<std::true_type> read_stream(buffer, size);
+
+        uint size = 0;
+        read_stream >> size; 
+
+        clips.resize(size);
+
+        for(uint i=0; < clips.size(); ++i)
+        {
+            Clip& clip = clips[i];
+
+            std::string name;
+            read_stream >> name;
+
+            clip.name = HashString(name.c_str());
+
+            read_stream >> clip.resource;
+            read_stream >> clip.loop;
+        }
+
+        read_stream >> size;
+
+        nodes.resize(size);
+
+        for(uint i=0; i< nodes.size(); ++i)
+        {
+            Node& node = nodes[i];
+
+            std::string name;
+            read_stream >> name;
+
+            node.name = HashString(name.c_str());
+
+            name.clear();
+            read_stream >> name;
+
+            node.clip = HashString(name.c_str());
+        }
+
+        read_stream >> size;
+
+        transitions.resize(size);
+
+        for(uint i=0; i< transitions.size(); ++i)
+        {
+            Transition& transition = transitions[i];
+
+            std::string name;
+            read_stream >> name;
+
+            transition.source = HashString(name.c_str());
+            name.clear();
+            read_stream >> name;
+            transition.target = HashString(name.c_str());
+            name.clear();
+            read_stream >> name;
+            transition.trigger = HashString(name.c_str());
+
+            read_stream >> transition.blend;
+        }
+
+        for(uint i=0; < clips.size(); ++i)
+        {
+			if (clips[i].resource != 0)
+			{
+				Resource* anim_res = App->resources->Get(clips[i].resource);
+
+				if (anim_res)
+				{
+                    anim_res->LoadToMemory();
+				}
+			}
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 // ---------------------------------------------------------
@@ -46,6 +129,41 @@ bool ResourceStateMachine::Save()
 bool ResourceStateMachine::Save(std::string& output) const
 {
 	return true;
+}
+
+// ---------------------------------------------------------
+void ResourceStateMachine::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
+{
+    write_stream << clips.size();
+
+    for(uint i=0; < clips.size(); ++i)
+    {
+        const Clip& clip = clips[i];
+
+        write_stream << clip.name.C_str();
+        write_stream << clip.resource;
+        write_stream << clip.loop;
+    }
+
+    write_stream << nodes.size();
+    for(uint i=0; i< nodes.size(); ++i)
+    {
+        const Node& node = nodes[i];
+
+        write_stream << node.name.C_str();
+        write_stream << node.clip.C_str();
+    }
+
+    write_stream << transitions.size();
+    for(uint i=0; i< transitions.size(); ++i)
+    {
+        const Transition& transition = transitions[i];
+
+        write_stream << transition.source.C_str();
+        write_stream << transition.target.C_str();
+        write_stream << transition.trigger.C_str();
+        write_stream << transition.blend;
+    }
 }
 
 // ---------------------------------------------------------
