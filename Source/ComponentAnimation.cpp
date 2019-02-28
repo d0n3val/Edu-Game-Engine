@@ -29,13 +29,18 @@ void ComponentAnimation::OnPlay()
 {
     ResourceStateMachine* res = GetResource();
 
-    if(res != nullptr && res->GetNumClips() > 0)
+    if(res != nullptr && active_node <  res->GetNumNodes())
     {
-        UID anim = res->GetClipRes(0);
+        uint clip_idx = res->FindClip(res->GetNodeClip(active_node));
 
-        if(anim != 0)
+        if(clip_idx < res->GetNumClips())
         {
-            controller->Play(anim, 0);
+            UID anim_res = res->GetClipRes(clip_idx);
+
+            if(anim_res != 0)
+            {
+                controller->Play(anim_res, res->GetClipLoop(clip_idx), 0);
+            }
         }
     }
 }
@@ -119,3 +124,53 @@ ResourceStateMachine* ComponentAnimation::GetResource ()
     return static_cast<ResourceStateMachine*>(App->resources->Get(resource));
 }
 
+// ---------------------------------------------------------
+HashString ComponentAnimation::GetActiveNode() const
+{
+    const ResourceStateMachine* res = GetResource();
+
+    if(res != nullptr && active_node <  res->GetNumNodes() )
+    {
+        return res->GetNodeName(active_node);
+    }
+
+    return HashString();
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::SendTrigger(const HashString& trigger) 
+{
+    const ResourceStateMachine* state_res = GetResource();
+    HashString active = GetActiveNode();
+
+    for(uint i=0; i< state_res->GetNumTransitions(); ++i)
+    {
+        if(state_res->GetTransitionSource(i) == active && state_res->GetTransitionTrigger(i) == trigger)
+        {
+            PlayNode(state_res->GetTransitionTarget(i), state_res->GetTransitionBlend(i));
+        }
+    }
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::PlayNode(const HashString& node, uint blend)
+{
+    ResourceStateMachine* state_res = GetResource();
+
+    uint node_idx = state_res->FindNode(node);
+    if(node_idx < state_res->GetNumNodes())
+    {
+        active_node   = node_idx;
+        uint clip_idx = state_res->FindClip(state_res->GetNodeClip(node_idx));
+
+        if(clip_idx < state_res->GetNumClips())
+        {
+            UID anim_res = state_res->GetClipRes(clip_idx);
+
+            if(anim_res != 0)
+            {
+                controller->Play(anim_res, state_res->GetClipLoop(clip_idx), blend);
+            }
+        }
+    }
+}

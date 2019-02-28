@@ -26,7 +26,7 @@ public:
 
 	void            Update              (unsigned elapsed);
 
-	void            Play                (UID clip, unsigned fade_time);
+	void            Play                (UID clip, bool loop, unsigned fade_time);
 	void            Stop                ();
 
 	bool            GetTransform        (const HashString& channel_name, math::float3& position, Quat& rotation) const;

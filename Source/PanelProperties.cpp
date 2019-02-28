@@ -1005,5 +1005,22 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
             ImGui::Separator();
             ImGui::PopID();
         }
+
+        if(App->GetState() != Application::stop)
+        {
+            HashString active_node = component->GetActiveNode();
+
+            for(uint i=0; i< state_res->GetNumTransitions(); ++i)
+            {
+                if(state_res->GetTransitionSource(i) == active_node)
+                {
+                    HashString trigger = state_res->GetTransitionTrigger(i);
+                    if(trigger && ImGui::Button(trigger.C_str()))
+                    {
+                        component->SendTrigger(trigger);
+                    }
+                }
+            }
+        }
     }
 }

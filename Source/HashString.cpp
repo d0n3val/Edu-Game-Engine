@@ -43,6 +43,7 @@ HashString::HashString(const char* str)
 HashString::HashString(const HashString& rhs) : handle(rhs.handle)
 {
     strpool_incref(GetPool(), handle);
+	value = strpool_cstr(GetPool(), handle);
 }
 
 HashString::~HashString()

@@ -17,25 +17,29 @@ public:
 	ComponentAnimation (GameObject* container);
 	~ComponentAnimation ();
 
-	virtual void                OnPlay      () override;
-	virtual void                OnStop      () override;
-	virtual void                OnUpdate    (float dt) override;
+	virtual void                OnPlay          () override;
+	virtual void                OnStop          () override;
+	virtual void                OnUpdate        (float dt) override;
 
-	virtual void                OnSave      (Config& config) const override;
-	virtual void                OnLoad      (Config* config) override;
+	virtual void                OnSave          (Config& config) const override;
+	virtual void                OnLoad          (Config* config) override;
 
-	bool                        SetResource (UID uid);
-    const ResourceStateMachine* GetResource () const;
-    ResourceStateMachine*       GetResource ();
+	bool                        SetResource     (UID uid);
+    const ResourceStateMachine* GetResource     () const;
+    ResourceStateMachine*       GetResource     ();
 
-    bool                        GetDebugDraw() const {return debug_draw;}
-    void                        SetDebugDraw(bool enable) { debug_draw = enable; }
+    bool                        GetDebugDraw    () const {return debug_draw;}
+    void                        SetDebugDraw    (bool enable) { debug_draw = enable; }
 
-    static Types                GetClassType() { return Animation; }
+    static Types                GetClassType    () { return Animation; }
+
+    HashString                  GetActiveNode   () const;
+    void                        SendTrigger     (const HashString& trigger);
 
 private:
 
-    void                UpdateGO                (GameObject* go);
+    void                        UpdateGO        (GameObject* go);
+    void                        PlayNode        (const HashString& node, uint blend);
 
 private:
 

@@ -69,10 +69,11 @@ void AnimController::UpdateInstance(Instance* instance, unsigned elapsed)
 	}
 }
 
-void AnimController::Play(UID clip, unsigned fade_time)
+void AnimController::Play(UID clip, bool loop, unsigned fade_time)
 {
     Instance* new_instance = new Instance;
     new_instance->clip = clip;
+    new_instance->loop = loop;
     new_instance->fade_duration = fade_time;
     new_instance->next = current;
 
