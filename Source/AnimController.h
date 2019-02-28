@@ -8,9 +8,10 @@ class AnimController
 {
 	struct Instance
 	{
-		UID      clip = 0;
-		unsigned time = 0;
-		bool     loop = true;
+		UID      clip  = 0;
+		unsigned time  = 0;
+		bool     loop  = true;
+        float    speed = 1.0;
 
 		Instance* next         = nullptr;
 		unsigned fade_duration = 0;
@@ -28,6 +29,9 @@ public:
 
 	void            Play                (UID clip, bool loop, unsigned fade_time);
 	void            Stop                ();
+
+    float           GetSpeed            () const { return current ? current->speed : 0.0f; }
+    void            SetSpeed            (float speed) { if(current) current->speed = speed; }
 
 	bool            GetTransform        (const HashString& channel_name, math::float3& position, Quat& rotation) const;
 

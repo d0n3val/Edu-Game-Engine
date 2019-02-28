@@ -261,6 +261,15 @@ void ResourceStateMachine::RemoveNode(uint index)
 {
     RemoveNodeTransitions(nodes[index].name);
     nodes.erase(nodes.begin()+index);
+
+    if(nodes.empty())
+    {
+        default_node = 0;
+    }
+    else
+    {
+        default_node = std::min(default_node, uint(nodes.size()-1));
+    }
 }
 
 // ---------------------------------------------------------

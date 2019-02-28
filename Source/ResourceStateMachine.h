@@ -60,10 +60,13 @@ public:
     void                SetTransitionTrigger    (uint index, const HashString& trigger) { transitions[index].trigger = trigger; }
     void                SetTransitionBlend      (uint index, uint blend) { transitions[index].blend = blend; }
 
+    uint                GetDefaultNode          () const { return default_node; }
+    void                SetDefaultNode          (uint d) const { default_node = d; }
 private:
 
     void                SaveToStream            (simple::mem_ostream<std::true_type>& write_stream) const;
     void                RemoveNodeTransitions   (const HashString& name);
+
 
 private:
 
@@ -100,6 +103,7 @@ private:
     std::vector<Clip>       clips;
     std::vector<Node>       nodes;
     std::vector<Transition> transitions;
+    uint                    default_node = 0;
 };
 
 #endif /* __RESOURCE_STATE_MACHINE_H__ */

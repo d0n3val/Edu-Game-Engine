@@ -27,22 +27,7 @@ ComponentAnimation::~ComponentAnimation()
 // ---------------------------------------------------------
 void ComponentAnimation::OnPlay()
 {
-    ResourceStateMachine* res = GetResource();
-
-    if(res != nullptr && active_node <  res->GetNumNodes())
-    {
-        uint clip_idx = res->FindClip(res->GetNodeClip(active_node));
-
-        if(clip_idx < res->GetNumClips())
-        {
-            UID anim_res = res->GetClipRes(clip_idx);
-
-            if(anim_res != 0)
-            {
-                controller->Play(anim_res, res->GetClipLoop(clip_idx), 0);
-            }
-        }
-    }
+    PlayNode(GetResource()->GetDefaultNode(), 0);
 }
 
 // ---------------------------------------------------------

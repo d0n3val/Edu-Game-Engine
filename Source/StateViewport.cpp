@@ -105,6 +105,11 @@ void StateViewport::DrawNodes(ResourceStateMachine* animation)
 
 		ImGui::Dummy(ImVec2(96.0, 8.0));
         ImGui::BulletText("Clip: %s", animation->GetNodeClip(i).C_str());
+        if(i == animation->GetDefaultNode())
+        {
+            ImGui::BulletText("Default");
+        }
+
 		ImGui::Dummy(ImVec2(96.0, 8.0));
 
 		drawList->AddLine(
@@ -356,6 +361,19 @@ void StateViewport::ShowNodeMenu(ResourceStateMachine* animation)
         {
             animation->SetNodeClip(context_node, animation->GetClipName(clip_index));
             animation->Save();
+        }
+
+        bool def = animation->GetDefaultNode() == context_node;
+        if(ImGui::Checkbox("Default", &def))
+        {
+            if(def)
+            {
+                animation->SetDefaultNode(context_node);
+            }
+            else
+            {
+                animation->SetDefaultNode(0);
+            }
         }
 
         ImGui::Separator();
