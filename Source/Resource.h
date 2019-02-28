@@ -46,6 +46,8 @@ public:
 
     static const char*  GetTypeStr(Type type);
 
+    void                SetName(const char* n) { user_name = n; }
+
 protected:
 
 	virtual bool    LoadInMemory() = 0;

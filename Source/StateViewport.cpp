@@ -105,7 +105,6 @@ void StateViewport::DrawNodes(ResourceStateMachine* animation)
 
 		ImGui::Dummy(ImVec2(96.0, 8.0));
         ImGui::BulletText("Clip: %s", animation->GetNodeClip(i).C_str());
-        ImGui::BulletText("Speed: %g", animation->GetNodeSpeed(i));
 		ImGui::Dummy(ImVec2(96.0, 8.0));
 
 		drawList->AddLine(
@@ -177,7 +176,8 @@ void StateViewport::AddAnimationNode(ResourceStateMachine* animation, uint index
         node_idx = animation->FindNode(name);
     }
 
-    animation->AddNode(name, clip, 1.0f);
+    animation->AddNode(name, clip);
+    animation->Save();
 }
 
 void StateViewport::ManageCreate(ResourceStateMachine* animation)
@@ -239,6 +239,8 @@ void StateViewport::ManageCreate(ResourceStateMachine* animation)
                         {
                             animation->AddTransition(animation->GetNodeName(startNode), animation->GetNodeName(endNode), HashString(), DEFAULT_BLEND);
                         }
+
+                        animation->Save();
                     }
                 }
             }
@@ -322,6 +324,7 @@ void StateViewport::ShowCreateNewNodeMenu(ResourceStateMachine* animation)
                     {
                         uint out_node = uint(new_node_pin.Get()-1)/3;
                         animation->AddTransition(animation->GetNodeName(out_node), animation->GetNodeName(node_idx), HashString(), DEFAULT_BLEND);
+                        animation->Save();
                     }
                 }
             }
@@ -345,18 +348,14 @@ void StateViewport::ShowNodeMenu(ResourceStateMachine* animation)
         if(ImGui::InputText("Name", tmp, 128))
         {
             animation->SetNodeName(context_node, HashString(tmp));
+            animation->Save();
         }
 
         int clip_index = animation->FindClip(animation->GetNodeClip(context_node));
         if(ImGui::Combo("Clip", &clip_index, &StateViewport::GetClip, animation, animation->GetNumClips()))
         {
             animation->SetNodeClip(context_node, animation->GetClipName(clip_index));
-        }
-
-        float speed = animation->GetNodeSpeed(context_node);
-        if(ImGui::DragFloat("Speed", &speed, 0.01f, 0.0f, 5.0f))
-        {
-            animation->SetNodeSpeed(context_node, speed);
+            animation->Save();
         }
 
         ImGui::Separator();
@@ -365,6 +364,7 @@ void StateViewport::ShowNodeMenu(ResourceStateMachine* animation)
         {
             ed::DeleteNode(ed::NodeId((context_node+1)*3));
             animation->RemoveNode(context_node);
+            animation->Save();
         }
 
         ImGui::EndPopup();
@@ -385,12 +385,14 @@ void StateViewport::ShowLinkMenu(ResourceStateMachine* animation)
         if(ImGui::InputText("Trigger", tmp, 128))
         {
             animation->SetTransitionTrigger(context_link, HashString(tmp));
+            animation->Save();
         }
 
         uint blend = animation->GetTransitionBlend(context_link);
         if(ImGui::DragInt("Blend", (int*)&blend, 1.0f, 0, 1000))
         {
             animation->SetTransitionBlend(context_node, blend);
+            animation->Save();
         }
 
         ImGui::Separator();
@@ -399,6 +401,7 @@ void StateViewport::ShowLinkMenu(ResourceStateMachine* animation)
         {
             ed::DeleteLink(ed::LinkId((context_link+1)+2));
             animation->RemoveTransition(context_link);
+            animation->Save();
         }
 
         ImGui::EndPopup();

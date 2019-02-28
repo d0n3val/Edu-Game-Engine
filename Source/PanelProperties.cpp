@@ -934,9 +934,20 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
     }
     else if(state_res != nullptr)
     {
+        char name[128];
+
+        strcpy_s(name, state_res->GetName());
+
+        if(ImGui::InputText("Resource name", name, 128))
+        {
+            state_res->SetName(name);
+            state_res->Save();
+        }
+
         if (ImGui::Button("Add clip"))
         {
             state_res->AddClip(HashString("noname"), 0, true);
+            state_res->Save();
         }
 
         ImGui::Separator();
@@ -946,14 +957,13 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
         {
             ResourceAnimation* resource = static_cast<ResourceAnimation*>(App->resources->Get(state_res->GetClipRes(i)));
 
-            char name[128];
-
             strcpy_s(name, state_res->GetClipName(i).C_str());
 
             ImGui::PushID(i);
             if(ImGui::InputText("Clip name", name, 128))
             {
                 state_res->SetClipName(i, HashString(name));
+                state_res->Save();
             }
 
             ImGui::LabelText("Resource", resource ? resource->GetName() : "Unknown");
@@ -969,6 +979,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
             if (new_res > 0)
             {
                 state_res->SetClipRes(i, new_res);
+                state_res->Save();
 
                 App->resources->Get(new_res)->LoadToMemory();
             }
@@ -977,12 +988,14 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
             if(ImGui::Checkbox("Loop", &loop))
             {
                 state_res->SetClipLoop(i, loop);
+                state_res->Save();
             }
 
             ImGui::SameLine();
             if(ImGui::Button("Remove"))
             {
                 state_res->RemoveClip(i);
+                state_res->Save();
             }
             else
             {

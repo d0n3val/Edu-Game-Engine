@@ -106,6 +106,7 @@ void PanelResources::Draw()
 
     DrawResourceType(Resource::audio, &PanelResources::DrawResourcePopup, false);
     DrawResourceType(Resource::animation, &PanelResources::DrawResourcePopup, false);
+    DrawResourceType(Resource::state_machine, &PanelResources::DrawResourcePopup, false);
 
     //ImGui::End();
 }

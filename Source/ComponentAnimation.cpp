@@ -60,14 +60,15 @@ void ComponentAnimation::OnUpdate(float dt)
 // ---------------------------------------------------------
 void ComponentAnimation::OnSave(Config& config) const 
 {
+	config.AddUID("Resource", resource);
     config.AddBool("DebugDraw", debug_draw);
 }
 
 // ---------------------------------------------------------
 void ComponentAnimation::OnLoad(Config* config) 
 {
+    SetResource(config->GetUID("Resource", 0));
     debug_draw = config->GetBool("DebugDraw", false);
-
 }
 
 // ---------------------------------------------------------

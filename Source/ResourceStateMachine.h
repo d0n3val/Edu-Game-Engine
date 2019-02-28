@@ -38,7 +38,7 @@ public:
     const HashString&   GetNodeName             (uint index) const { return nodes[index].name; }
     const HashString&   GetNodeClip             (uint index) const { return nodes[index].clip; }
 
-    void                AddNode                 (const HashString& name, const HashString& clip, float speed);
+    void                AddNode                 (const HashString& name, const HashString& clip);
     void                RemoveNode              (uint index);
     uint                FindNode                (const HashString& name) const;
 
@@ -94,7 +94,7 @@ private:
         HashString clip;
 
         Node() {;}
-        Node(const HashString& n, const HashString& c, float s) : name(n), clip(c), speed(s) {;}
+        Node(const HashString& n, const HashString& c) : name(n), clip(c){;}
     };
 
     std::vector<Clip>       clips;

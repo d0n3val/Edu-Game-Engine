@@ -3,6 +3,7 @@
 
 #include "ModuleResources.h"
 #include "Application.h"
+#include "ModuleFileSystem.h"
 
 #include "mmgr/mmgr.h"
 
@@ -23,16 +24,16 @@ bool ResourceStateMachine::LoadInMemory()
     {
         char* buffer = nullptr;
 
-        uint size = App->fs->Load(LIBRARY_MATERIAL_FOLDER, GetExportedFile(), &buffer);
+        uint size = App->fs->Load(LIBRARY_STATE_MACHINE_FOLDER, GetExportedFile(), &buffer);
 
         simple::mem_istream<std::true_type> read_stream(buffer, size);
 
-        uint size = 0;
-        read_stream >> size; 
+        uint array_size = 0;
+        read_stream >> array_size; 
 
-        clips.resize(size);
+        clips.resize(array_size);
 
-        for(uint i=0; < clips.size(); ++i)
+        for(uint i=0; i < clips.size(); ++i)
         {
             Clip& clip = clips[i];
 
@@ -45,9 +46,9 @@ bool ResourceStateMachine::LoadInMemory()
             read_stream >> clip.loop;
         }
 
-        read_stream >> size;
+        read_stream >> array_size;
 
-        nodes.resize(size);
+        nodes.resize(array_size);
 
         for(uint i=0; i< nodes.size(); ++i)
         {
@@ -64,9 +65,9 @@ bool ResourceStateMachine::LoadInMemory()
             node.clip = HashString(name.c_str());
         }
 
-        read_stream >> size;
+        read_stream >> array_size;
 
-        transitions.resize(size);
+        transitions.resize(array_size);
 
         for(uint i=0; i< transitions.size(); ++i)
         {
@@ -86,7 +87,7 @@ bool ResourceStateMachine::LoadInMemory()
             read_stream >> transition.blend;
         }
 
-        for(uint i=0; < clips.size(); ++i)
+        for(uint i=0; i < clips.size(); ++i)
         {
 			if (clips[i].resource != 0)
 			{
@@ -126,13 +127,43 @@ void ResourceStateMachine::ReleaseFromMemory()
 // ---------------------------------------------------------
 bool ResourceStateMachine::Save()
 {
-    return true;
+    simple::mem_ostream<std::true_type> write_stream;
+
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+    if(exported_file.length() > 0)
+    {
+		char full_path[250];
+
+		sprintf_s(full_path, 250, "%s%s", LIBRARY_STATE_MACHINE_FOLDER, exported_file.c_str());
+
+        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+    }
+
+	std::string output;
+
+	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_STATE_MACHINE_FOLDER, "states", "edustates"))
+	{
+        App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
+
+		return true;
+    }
+
+	return false;
 }
 
 // ---------------------------------------------------------
 bool ResourceStateMachine::Save(std::string& output) const
 {
-	return true;
+    simple::mem_ostream<std::true_type> write_stream;
+
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+    return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_STATE_MACHINE_FOLDER, "states", "edustates");
 }
 
 // ---------------------------------------------------------
@@ -140,7 +171,7 @@ void ResourceStateMachine::SaveToStream(simple::mem_ostream<std::true_type>& wri
 {
     write_stream << clips.size();
 
-    for(uint i=0; < clips.size(); ++i)
+    for(uint i=0; i < clips.size(); ++i)
     {
         const Clip& clip = clips[i];
 
@@ -165,7 +196,15 @@ void ResourceStateMachine::SaveToStream(simple::mem_ostream<std::true_type>& wri
 
         write_stream << transition.source.C_str();
         write_stream << transition.target.C_str();
-        write_stream << transition.trigger.C_str();
+
+		if (transition.trigger)
+		{
+			write_stream << transition.trigger.C_str();
+		}
+        else
+        {
+            write_stream << "";
+        }
         write_stream << transition.blend;
     }
 }
@@ -212,9 +251,9 @@ uint ResourceStateMachine::FindClip(const HashString& name) const
 }
 
 // ---------------------------------------------------------
-void ResourceStateMachine::AddNode(const HashString& name, const HashString& clip, float speed)
+void ResourceStateMachine::AddNode(const HashString& name, const HashString& clip)
 {
-    nodes.push_back(Node(name, clip, speed));
+    nodes.push_back(Node(name, clip));
 }
 
 // ---------------------------------------------------------
