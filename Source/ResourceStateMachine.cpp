@@ -117,6 +117,10 @@ void ResourceStateMachine::ReleaseFromMemory()
 			res->Release();
 		}
 	}
+
+    clips.clear();
+    nodes.clear();
+    transitions.clear();
 }
 
 // ---------------------------------------------------------
