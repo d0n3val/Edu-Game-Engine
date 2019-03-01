@@ -61,7 +61,7 @@ public:
     void                SetTransitionBlend      (uint index, uint blend) { transitions[index].blend = blend; }
 
     uint                GetDefaultNode          () const { return default_node; }
-    void                SetDefaultNode          (uint d) const { default_node = d; }
+    void                SetDefaultNode          (uint d)  { default_node = d; }
 private:
 
     void                SaveToStream            (simple::mem_ostream<std::true_type>& write_stream) const;

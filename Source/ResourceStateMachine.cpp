@@ -268,7 +268,7 @@ void ResourceStateMachine::RemoveNode(uint index)
     }
     else
     {
-        default_node = std::min(default_node, uint(nodes.size()-1));
+        default_node = min(default_node, uint(nodes.size()-1));
     }
 }
 

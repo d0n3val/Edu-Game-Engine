@@ -31,6 +31,13 @@ void ComponentAnimation::OnPlay()
 }
 
 // ---------------------------------------------------------
+void ComponentAnimation::ResetState()
+{
+    controller->Stop();
+    PlayNode(GetResource()->GetDefaultNode(), 0);
+}
+
+// ---------------------------------------------------------
 void ComponentAnimation::OnStop()
 {
     controller->Stop();
@@ -141,9 +148,14 @@ void ComponentAnimation::SendTrigger(const HashString& trigger)
 // ---------------------------------------------------------
 void ComponentAnimation::PlayNode(const HashString& node, uint blend)
 {
+    PlayNode(GetResource()->FindNode(node), blend);
+}
+
+// ---------------------------------------------------------
+void ComponentAnimation::PlayNode(uint node_idx, uint blend)
+{
     ResourceStateMachine* state_res = GetResource();
 
-    uint node_idx = state_res->FindNode(node);
     if(node_idx < state_res->GetNumNodes())
     {
         active_node   = node_idx;

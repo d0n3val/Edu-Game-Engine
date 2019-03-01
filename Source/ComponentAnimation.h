@@ -36,10 +36,13 @@ public:
     HashString                  GetActiveNode   () const;
     void                        SendTrigger     (const HashString& trigger);
 
+    void                        ResetState      ();
+
 private:
 
     void                        UpdateGO        (GameObject* go);
     void                        PlayNode        (const HashString& node, uint blend);
+    void                        PlayNode        (uint node_idx, uint blend);
 
 private:
 

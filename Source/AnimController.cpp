@@ -34,7 +34,7 @@ void AnimController::UpdateInstance(Instance* instance, unsigned elapsed)
 
 	if (anim != nullptr && anim->GetDuration() > 0)
 	{
-        me_elapsed = unsigned(elapsed*instance->speed);
+        unsigned me_elapsed = unsigned(elapsed*instance->speed);
         me_elapsed = me_elapsed % anim->GetDuration();
 		unsigned to_end = anim->GetDuration() - instance->time;
 

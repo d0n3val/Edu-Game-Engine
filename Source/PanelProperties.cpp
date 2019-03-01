@@ -1024,6 +1024,11 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
                         }
                     }
                 }
+
+                if(ImGui::Button("Reset state"))
+                {
+                    component->ResetState();
+                }
             }
         }
     }
