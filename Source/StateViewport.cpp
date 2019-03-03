@@ -19,32 +19,27 @@ StateViewport::~StateViewport()
     ed::DestroyEditor(context);
 }
 
-void StateViewport::Draw(ComponentAnimation* animation)
+void StateViewport::Draw(ResourceStateMachine* animation)
 {
     if(animation != nullptr)
     {
-        ResourceStateMachine* state_machine = animation->GetResource();
+        ed::SetCurrentEditor(context);
+        ed::Begin("State Machine Editor", ImVec2(0.0, 0.0f));
 
-        if(state_machine != nullptr)
-        {
-            ed::SetCurrentEditor(context);
-            ed::Begin("State Machine Editor", ImVec2(0.0, 0.0f));
+        DrawNodes(animation);
+        DrawTransitions(animation);
+        ManageCreate(animation);
 
-            DrawNodes(state_machine);
-            DrawTransitions(state_machine);
-            ManageCreate(state_machine);
+        ShowContextMenus(animation);
 
-            ShowContextMenus(state_machine);
+        ed::Suspend();
+        ShowNodeMenu(animation);
+        ShowLinkMenu(animation);
+        ShowCreateNewNodeMenu(animation);
+        ed::Resume();
 
-            ed::Suspend();
-            ShowNodeMenu(state_machine);
-            ShowLinkMenu(state_machine);
-            ShowCreateNewNodeMenu(state_machine);
-            ed::Resume();
-
-            ed::End();
-            ed::SetCurrentEditor(nullptr);
-        }
+        ed::End();
+        ed::SetCurrentEditor(nullptr);
     }
 }
 
@@ -93,7 +88,18 @@ void StateViewport::DrawNodes(ResourceStateMachine* animation)
         ImVec2 size = ed::GetNodeSize(i*3+1);
         ImVec2 pos = ed::GetNodePosition(i*3+2);
 
+        /*
+        ImVec2 rmin = ImGui::GetItemRectMin();
+        ImVec2 rmax = ImGui::GetItemRectMax();
+        rmax.x = rmin.x+size.x-16.0f;
+        */
+
 		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(i * 3 + 1);
+
+        /*
+		drawList->AddRect(rmin, rmax, IM_COL32(255, 255, 255, 255), 1.0f);
+		drawList->AddRectFilled(rmin, rmax, IM_COL32(127, 127, 0, 64), 1.0f);
+        */
 
 		drawList->AddLine(
 			ImGui::GetCursorScreenPos(),

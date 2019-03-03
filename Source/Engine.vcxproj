@@ -147,6 +147,7 @@
     <ClInclude Include="ComponentMesh.h" />
     <ClInclude Include="ComponentPath.h" />
     <ClInclude Include="ComponentRigidBody.h" />
+    <ClInclude Include="ComponentRootMotion.h" />
     <ClInclude Include="ComponentSteering.h" />
     <ClInclude Include="ComponentWithResource.h" />
     <ClInclude Include="Config.h" />
@@ -298,6 +299,7 @@
     <ClCompile Include="ComponentMesh.cpp" />
     <ClCompile Include="ComponentPath.cpp" />
     <ClCompile Include="ComponentRigidBody.cpp" />
+    <ClCompile Include="ComponentRootMotion.cpp" />
     <ClCompile Include="ComponentSteering.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="Config.cpp" />

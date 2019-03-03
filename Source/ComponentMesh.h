@@ -1,7 +1,6 @@
 #ifndef __COMPONENT_MESH_H__
 #define __COMPONENT_MESH_H__
 
-#include "ComponentWithResource.h"
 #include "Component.h"
 
 class ResourceMesh;

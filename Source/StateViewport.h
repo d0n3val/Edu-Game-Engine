@@ -14,7 +14,7 @@ public:
     StateViewport();
     ~StateViewport();
 
-    void Draw  (ComponentAnimation* animation);
+    void Draw  (ResourceStateMachine* animation);
 
 private:
 

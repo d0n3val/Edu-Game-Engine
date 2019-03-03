@@ -22,6 +22,7 @@
 
 #include "ComponentCamera.h"
 #include "ComponentAnimation.h"
+#include "ResourceStateMachine.h"
 
 #include "Config.h"
 #include "DebugDraw.h"
@@ -68,15 +69,20 @@ void Viewport::Draw(ComponentCamera* camera)
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("StateMachine"))
+            ComponentAnimation* animation = nullptr;
+            if(App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go != nullptr)
             {
-                ComponentAnimation* animation = nullptr;
-                if(App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go != nullptr)
+                animation = static_cast<ComponentAnimation*>(App->editor->selected.go->FindFirstComponent(Component::Animation));
+            }
+            
+            ResourceStateMachine* state_machine = nullptr;
+            if(animation != nullptr && (state_machine = animation->GetResource()) != nullptr)
+            {
+                if (ImGui::BeginTabItem("StateMachine"))
                 {
-					animation = static_cast<ComponentAnimation*>(App->editor->selected.go->FindFirstComponent(Component::Animation));
+                    state->Draw(state_machine);
+                    ImGui::EndTabItem();
                 }
-                state->Draw(animation);
-                ImGui::EndTabItem();
             }
 
             ImGui::EndTabBar();

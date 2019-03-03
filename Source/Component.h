@@ -24,6 +24,7 @@ public:
 		Animation,
 		Steering,
 		Path,
+        RootMotion,
 		Unknown
 	};
 

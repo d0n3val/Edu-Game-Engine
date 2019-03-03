@@ -13,6 +13,7 @@ class ComponentMaterial;
 class ComponentCamera;
 class ComponentRigidBody;
 class ComponentAnimation;
+class ComponentRootMotion;
 class ComponentMesh;
 class ResourceMaterial;
 class AmbientLight;
@@ -57,6 +58,7 @@ private:
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
     bool TextureButton(ResourceMaterial* material, uint texture, const char* name);
 	void DrawAnimationComponent(ComponentAnimation * component);
+	void DrawRootMotionComponent(ComponentRootMotion * component);
 };
 
 #endif// __PANELPROPERTIES_H__
