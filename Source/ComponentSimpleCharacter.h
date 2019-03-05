@@ -9,8 +9,10 @@ public:
     explicit ComponentSimpleCharacter(GameObject* go);
     ~ComponentSimpleCharacter();
 
-    void OnSave (Config& config) const override;
-    void OnLoad (Config* config) override;
+    void OnSave     (Config& config) const override;
+    void OnLoad     (Config* config) override;
+
+	void OnUpdate   (float dt) override;
 };
 
 #endif /* __COMPONENT_SIMPLE_CHARACTER_H__ */

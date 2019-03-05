@@ -6,19 +6,31 @@
 class ComponentRootMotion : public Component
 {
 public:
+
+    enum Direction
+    {
+        Forward = 0,
+        Backward,
+        Left,
+        Right
+    }
+
     explicit ComponentRootMotion(GameObject* go);
     ~ComponentRootMotion();
 
-    void OnSave     (Config& config) const override;
-    void OnLoad     (Config* config) override;
+    void            OnSave          (Config& config) const override;
+    void            OnLoad          (Config* config) override;
 
-    void Forward    (const float3& speed);
-    void Backward   (const float3& speed);
+	void            OnUpdate        (float dt) override;
 
-    void StrafeLeft (const float3& speed);
-    void StrafeRight(const float3& speed);
+    void            Move            (Direction dir, const float3& sp) { direction = dir, speed = sp; }
+
+    static Types    GetClassType    () { return RootMotion; }
 
 private:
+
+    MovementType direction;
+    float3       speed;
 };
 
 #endif /* __COMPONENT_ROOT_MOTION_H__ */

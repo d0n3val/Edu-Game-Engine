@@ -25,6 +25,7 @@ public:
 		Steering,
 		Path,
         RootMotion,
+		CharacterController,
 		Unknown
 	};
 

@@ -250,7 +250,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
             go->SetLocalRotation(Quat::identity);
         }
 
-        static_assert(Component::Types::Unknown == 10, "code needs update");
+        static_assert(Component::Types::Unknown == 11, "code needs update");
         if (ImGui::BeginMenu("New Component", (go != nullptr)))
         {
             if (ImGui::MenuItem("Audio Listener"))
@@ -273,6 +273,8 @@ void PanelProperties::DrawGameObject(GameObject* go)
                 go->CreateComponent(Component::Types::Path);
 			if (ImGui::MenuItem("RootMotion"))
 				go->CreateComponent(Component::Types::RootMotion);
+			if (ImGui::MenuItem("SimpleCharacter"))
+				go->CreateComponent(Component::Types::CharacterController);
             ImGui::EndMenu();
         }
 
@@ -322,7 +324,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         }
 
         // Iterate all components and draw
-        static_assert(Component::Types::Unknown == 10, "code needs update");
+        static_assert(Component::Types::Unknown == 11, "code needs update");
         for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
         {
             ImGui::PushID(*it);
