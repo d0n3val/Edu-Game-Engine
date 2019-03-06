@@ -7,13 +7,14 @@ class ComponentRootMotion : public Component
 {
 public:
 
-    enum Direction
-    {
-        Forward = 0,
-        Backward,
-        Left,
-        Right
-    }
+	enum Direction
+	{
+		Forward = 0,
+		Backward,
+		Left,
+		Right,
+        Count
+	};
 
     explicit ComponentRootMotion(GameObject* go);
     ~ComponentRootMotion();
@@ -23,14 +24,15 @@ public:
 
 	void            OnUpdate        (float dt) override;
 
-    void            Move            (Direction dir, const float3& sp) { direction = dir, speed = sp; }
+    void            Move            (Direction dir, const float3& local_speed) { direction = dir, speed = local_speed; }
 
     static Types    GetClassType    () { return RootMotion; }
 
 private:
 
-    MovementType direction;
-    float3       speed;
+    Direction direction = Forward;
+    float3    speed = float3::zero;
+	static const float3 local_dir[Count];
 };
 
 #endif /* __COMPONENT_ROOT_MOTION_H__ */

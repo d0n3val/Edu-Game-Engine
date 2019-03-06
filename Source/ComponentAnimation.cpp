@@ -9,6 +9,8 @@
 #include "Component.h"
 #include <list>
 
+#include "mmgr/mmgr.h"
+
 using namespace std;
 
 // ---------------------------------------------------------

@@ -1,8 +1,18 @@
 #include "Globals.h"
 #include "ComponentRootMotion.h"
 
-#define MAX_ANGULAR_SPEED PI/8.0f;
-#define MAX_LINEAR_SPEED 2.0f;
+#include "GameObject.h"
+
+#include "Application.h"
+#include "ModuleHints.h"
+
+#include "mmgr/mmgr.h"
+
+#define MAX_ANGULAR_SPEED PI/8.0f
+#define MAX_LINEAR_SPEED 2.0f
+
+const float3 ComponentRootMotion::local_dir[Count] = { float3(0.0f, 0.0f, 1.0f), float3(0.0f, 0.0f, -1.0f), 
+                                                       float3(1.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f) };
 
 ComponentRootMotion::ComponentRootMotion(GameObject* go) : Component(go, Types::RootMotion)
 {
@@ -22,40 +32,26 @@ void ComponentRootMotion::OnLoad(Config* config)
 
 void ComponentRootMotion::OnUpdate(float dt)
 {
-    float speed_norm = speed.Lenght();
+    float speed_norm = speed.Length();
 
     if(speed_norm > 0.0001f)
     {
-        GameObject* go     = GetGameObject();
-        float4x4 transform = go->GetGlobalTransformation();
-        float3 cur_dir     = float3::zero;
+        float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
 
-        switch(direction)
-        {
-            case Forward:
-                cur_dir = transform.Col3(2);
-                break;
-            case Backward:
-                cur_dir = -transform.Col3(2);
-                break;
-            case Left:
-                cur_dir = transform.Col3(0);
-                break;
-            case Right:
-                cur_dir = -transform.Col3(0);
-                break;
-        };
+        GameObject* go   = GetGameObject();
 
         float3 speed_dir = speed/speed_norm;
-        float angle_diff = math::acos(speed_dir.Dot(cur_dir));
-        float max_angle  = MAX_ANGULAR_SPEED*dt;
-        float angle      = angle_diff > 0.0f ? min(max_angle, angle_diff) : min(-max_angle, angle_diff);
-        Quat rotation(float3::unitY, angle);
+        float angle_diff = atan2(speed_dir.x, speed_dir.z)- atan2(local_dir[direction].x, local_dir[direction].z);
+		float max_angle  = MAX_ANGULAR_SPEED*dt;
+        float angle      = angle_diff > 0.0f ? min(max_angle, angle_diff) : max(-max_angle, angle_diff);
 
-        go->SetLocalRotation(go->GetLocalRotation()*rotation);
+        go->SetLocalRotation((Quat(float3::unitY, angle)*go->GetLocalRotationQ()).Normalized());
 
-        cur_dir = rotation.Transform(cur_dir);
-        
-        // Update linear
+        float4x4 transform = go->GetGlobalTransformation();
+        float3 global_dir = transform.TransformDir(local_dir[direction]);
+
+        float speed = min(MAX_LINEAR_SPEED*metric_proportion, speed_norm);
+
+        go->SetLocalPosition(go->GetLocalPosition()+global_dir*(speed*dt));
     }
 }

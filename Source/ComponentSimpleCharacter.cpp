@@ -6,8 +6,12 @@
 
 #include "GameObject.h"
 
+#include "ModuleHints.h"
+
 #include "Application.h"
 #include "ModuleInput.h"
+
+#include "mmgr/mmgr.h"
 
 ComponentSimpleCharacter::ComponentSimpleCharacter(GameObject* go) : Component(go, Types::CharacterController)
 {
@@ -32,24 +36,29 @@ void ComponentSimpleCharacter::OnUpdate(float dt)
 
     if(animation != nullptr && motion != nullptr)
     {
+        float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+
         if(App->input->GetKey(SDL_SCANCODE_UP) == KEY_REPEAT)
         {
-            animation->SendTrigger(HashString("move"));
-        }
-        else if(App->input->GetKey(SDL_SCANCODE_DOWN) == KEY_REPEAT)
-        {
-            animation->SendTrigger(HashString("move"));
-        }
-        else if(App->input->GetKey(SDL_SCANCODE_LEFT) == KEY_REPEAT)
-        {
-            animation->SendTrigger(HashString("move"));
-        }
-        else if(App->input->GetKey(SDL_SCANCODE_RIGHT) == KEY_REPEAT)
-        {
-            animation->SendTrigger(HashString("move"));
+            if(App->input->GetKey(SDL_SCANCODE_LEFT) == KEY_REPEAT)
+            {
+                animation->SendTrigger(HashString("move"));
+                motion->Move(ComponentRootMotion::Forward, float3::unitX*metric_proportion*0.45f);
+            }
+            else if(App->input->GetKey(SDL_SCANCODE_RIGHT) == KEY_REPEAT)
+            {
+                animation->SendTrigger(HashString("move"));
+                motion->Move(ComponentRootMotion::Forward, -float3::unitX*metric_proportion*0.45f);
+            }
+            else
+            {
+                animation->SendTrigger(HashString("move"));
+                motion->Move(ComponentRootMotion::Forward, float3::unitZ*metric_proportion*0.45f);
+            }
         }
         else
         {
+            motion->Move(ComponentRootMotion::Forward, float3::zero);
             animation->SendTrigger(HashString("stop"));
         }
 
