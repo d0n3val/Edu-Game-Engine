@@ -14,6 +14,7 @@
 #include "ComponentPath.h"
 #include "ComponentAnimation.h"
 #include "ComponentRootMotion.h"
+#include "ComponentSimpleCharacter.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Config.h"
@@ -286,7 +287,7 @@ bool GameObject::RecursiveRemoveFlagged()
 // ---------------------------------------------------------
 Component* GameObject::CreateComponent(Component::Types type)
 {
-	static_assert(Component::Types::Unknown == 10, "code needs update");
+	static_assert(Component::Types::Unknown == 11, "code needs update");
 
 	Component* ret = nullptr;
 
@@ -321,6 +322,10 @@ Component* GameObject::CreateComponent(Component::Types type)
 		break;
 		case Component::Types::RootMotion:
 			ret = new ComponentRootMotion(this);
+			break;
+		case Component::Types::CharacterController:
+			ret = new ComponentSimpleCharacter(this);
+			break;
 	}
 
 	if (ret != nullptr)

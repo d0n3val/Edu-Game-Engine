@@ -630,6 +630,9 @@
     <ClInclude Include="ComponentRootMotion.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentSimpleCharacter.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -978,6 +981,9 @@
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="ComponentRootMotion.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentSimpleCharacter.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
