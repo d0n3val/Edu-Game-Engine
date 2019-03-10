@@ -112,6 +112,11 @@ bool ModuleFileSystem::IsDirectory(const char* file) const
 	return PHYSFS_isDirectory(file) != 0;
 }
 
+void ModuleFileSystem::CreateDirectory(const char* directory)
+{
+    PHYSFS_mkdir(directory);
+}
+
 void ModuleFileSystem::DiscoverFiles(const char* directory, vector<string> & file_list, vector<string> & dir_list) const
 {
 	char **rc = PHYSFS_enumerateFiles(directory);

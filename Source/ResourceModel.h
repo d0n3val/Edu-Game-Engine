@@ -19,7 +19,6 @@ public:
         uint                parent         = 0;
         UID                 mesh           = 0;
         UID                 material       = 0;
-        bool                auto_generated = false;
     };
 
 public:

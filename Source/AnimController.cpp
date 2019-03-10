@@ -121,7 +121,7 @@ bool AnimController::GetTransformInstance(Instance* instance, const HashString& 
 
         if(channel_index < animation->GetNumChannels())
         {
-            assert(instance->time <= animation->duration);
+            assert(instance->time <= animation->GetDuration());
 
             float pos_key = float(instance->time*(animation->GetNumPositions(channel_index)-1))/float(animation->GetDuration());
             float rot_key = float(instance->time*(animation->GetNumRotations(channel_index)-1))/float(animation->GetDuration());

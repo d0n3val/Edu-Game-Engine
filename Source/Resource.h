@@ -14,7 +14,7 @@ class Resource
 public:
 	enum Type 
     {
-        model,
+        model = 0,
         material,
 		texture,
 		mesh,

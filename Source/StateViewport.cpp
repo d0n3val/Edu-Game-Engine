@@ -79,27 +79,13 @@ void StateViewport::DrawNodes(ResourceStateMachine* animation)
         ed::BeginNode(i*3+1);
         ImGui::Indent(1.0);
         ImGui::TextColored(ImVec4(255, 255, 0, 255), animation->GetNodeName(i).C_str());
-		const float commentAlpha = 0.5f;
 
-		auto alpha = static_cast<int>(commentAlpha * ImGui::GetStyle().Alpha * 255);
-
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, commentAlpha * ImGui::GetStyle().Alpha);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f * ImGui::GetStyle().Alpha);
 
         ImVec2 size = ed::GetNodeSize(i*3+1);
         ImVec2 pos = ed::GetNodePosition(i*3+2);
 
-        /*
-        ImVec2 rmin = ImGui::GetItemRectMin();
-        ImVec2 rmax = ImGui::GetItemRectMax();
-        rmax.x = rmin.x+size.x-16.0f;
-        */
-
 		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(i * 3 + 1);
-
-        /*
-		drawList->AddRect(rmin, rmax, IM_COL32(255, 255, 255, 255), 1.0f);
-		drawList->AddRectFilled(rmin, rmax, IM_COL32(127, 127, 0, 64), 1.0f);
-        */
 
 		drawList->AddLine(
 			ImGui::GetCursorScreenPos(),

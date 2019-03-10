@@ -65,7 +65,6 @@ bool ResourceModel::LoadInMemory()
             read_stream >> node.parent;
             read_stream >> node.mesh;
             read_stream >> node.material;
-			read_stream >> node.auto_generated;
 
             nodes.push_back(node);
         }
@@ -159,7 +158,6 @@ void ResourceModel::SaveToStream(simple::mem_ostream<std::true_type>& write_stre
         write_stream << nodes[i].parent;
         write_stream << nodes[i].mesh;
         write_stream << nodes[i].material;
-        write_stream << nodes[i].auto_generated;
     }
 }
 
@@ -261,7 +259,6 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
             mesh.name           = model->mMeshes[mesh_index]->mName.C_Str();
             mesh.mesh           = meshes[mesh_index];
             mesh.material       = materials[model->mMeshes[mesh_index]->mMaterialIndex];
-            mesh.auto_generated = true;
 
             if(mesh.name.length() == 0)
             {

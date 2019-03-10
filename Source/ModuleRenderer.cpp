@@ -317,7 +317,6 @@ void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info)
         UpdateLightUniform();
 
         unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
-
         if((mesh_res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
         {
             glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_TRUE, reinterpret_cast<const float*>(render_info.skin_palette));

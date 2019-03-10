@@ -30,6 +30,7 @@ public:
 
 	void SaveResources() const;
 	void LoadResources();
+    void SaveResourcesTo(const char* path);
 
 	Resource::Type TypeFromExtension(const char* extension) const;
 	UID Find(const char* file_in_assets) const;

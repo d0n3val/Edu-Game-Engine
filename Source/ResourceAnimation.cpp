@@ -86,10 +86,50 @@ void ResourceAnimation::ReleaseFromMemory()
 }
 
 // ---------------------------------------------------------
+bool ResourceAnimation::Save()
+{
+    simple::mem_ostream<std::true_type> write_stream;
+
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+    if(exported_file.length() > 0)
+    {
+		char full_path[250];
+
+		sprintf_s(full_path, 250, "%s%s", LIBRARY_ANIMATION_FOLDER, exported_file.c_str());
+
+        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+    }
+
+	std::string output;
+
+	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_ANIMATION_FOLDER, "anim", "eduanim"))
+	{
+        App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
+
+		return true;
+    }
+
+	return false;
+}
+
+// ---------------------------------------------------------
 bool ResourceAnimation::Save(std::string& output) const
 {
     simple::mem_ostream<std::true_type> write_stream;
 
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_ANIMATION_FOLDER, "anim", "eduanim");
+}
+
+// ---------------------------------------------------------
+void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
+{
     write_stream << duration;
     write_stream << num_channels;
 
@@ -111,10 +151,6 @@ bool ResourceAnimation::Save(std::string& output) const
             write_stream << channel.rotations[j].x << channel.rotations[j].y << channel.rotations[j].z << channel.rotations[j].w;  
         }
     }
-
-    const std::vector<char>& data = write_stream.get_internal_vec();
-
-	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_ANIMATION_FOLDER, "anim", "eduanim");
 }
 
 // ---------------------------------------------------------

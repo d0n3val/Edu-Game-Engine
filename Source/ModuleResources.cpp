@@ -152,6 +152,66 @@ void ModuleResources::SaveResources() const
 	RELEASE_ARRAY(buf);
 }
 
+void ModuleResources::SaveResourcesTo(const char* path)
+{
+	bool ret = true;
+
+	// Make sure standard paths exist
+	const char* dirs[] = {
+		LIBRARY_FOLDER, SETTINGS_FOLDER, 
+		LIBRARY_AUDIO_FOLDER, LIBRARY_MESH_FOLDER,
+		LIBRARY_MATERIAL_FOLDER, LIBRARY_SCENE_FOLDER, LIBRARY_MODEL_FOLDER, 
+		LIBRARY_TEXTURES_FOLDER, LIBRARY_ANIMATION_FOLDER, LIBRARY_STATE_MACHINE_FOLDER,
+	};
+
+    char tmp[256];
+    char tmp2[256];
+
+	for (uint i = 0; i < sizeof(dirs)/sizeof(const char*); ++i)
+	{
+		sprintf_s(tmp, 255, "/%s%s", path, dirs[i]);
+		if (App->fs->Exists(tmp) == 0)
+			App->fs->CreateDirectory(tmp);
+	}
+
+	Config save;
+
+	// Add header info
+	Config desc(save.AddSection("Header"));
+
+	// Serialize GameObjects recursively
+	save.AddArray("Resources");
+
+	const char* dirs_by_type[] = {
+		LIBRARY_MODEL_FOLDER, LIBRARY_MATERIAL_FOLDER, LIBRARY_TEXTURES_FOLDER, 
+        LIBRARY_MESH_FOLDER, LIBRARY_AUDIO_FOLDER, LIBRARY_ANIMATION_FOLDER, 
+        LIBRARY_STATE_MACHINE_FOLDER, LIBRARY_SCENE_FOLDER
+	};
+
+	for (map<UID, Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+	{
+		if (it->first > RESERVED_RESOURCES)
+		{
+			Config resource;
+			it->second->Save(resource);
+
+            sprintf_s(tmp, 255, "%s%s", dirs_by_type[it->second->GetType()], it->second->GetExportedFile());
+            sprintf_s(tmp2, 255, "/%s%s%s", path, dirs_by_type[it->second->GetType()], it->second->GetExportedFile());
+            App->fs->Copy(tmp, tmp2);
+
+			save.AddArrayEntry(resource);
+		}
+	}
+
+	// Finally save to file
+	char* buf = nullptr;
+	uint size = save.Save(&buf, "Resources setup from the EDU Engine");
+
+    sprintf_s(tmp, 255, "/%s%s%s", path, SETTINGS_FOLDER, "resources.json");
+    App->fs->Save(tmp, buf, size);
+	RELEASE_ARRAY(buf);
+}
+
 void ModuleResources::LoadResources()
 {
 	char* buffer = nullptr;

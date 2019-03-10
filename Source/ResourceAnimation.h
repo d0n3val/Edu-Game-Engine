@@ -4,6 +4,7 @@
 #include "Resource.h"
 #include "Math.h"
 #include "HashString.h"
+#include "utils/SimpleBinStream.h"
 
 class ResourceAnimation : public Resource
 {
@@ -15,6 +16,7 @@ public:
 	bool            LoadInMemory     () override;
     void            ReleaseFromMemory() override;
 
+	bool			Save			 () ;
     bool            Save             (std::string& output) const;
 	static bool     Import           (const char* full_path, unsigned first, unsigned last, std::string& output);
 
@@ -29,7 +31,11 @@ public:
     uint            GetNumRotations  (uint channel_index) const { return channels[channel_index].num_rotations; }
     const Quat&     GetRotation      (uint channel_index, uint pos_index) const { return channels[channel_index].rotations[pos_index]; }
 
-public:
+private:
+
+    void             SaveToStream     (simple::mem_ostream<std::true_type>& write_stream) const;
+
+private:
 
 	struct Channel
 	{
