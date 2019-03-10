@@ -3,6 +3,7 @@
 
 #include "Component.h"
 #include "HashString.h"
+#include "NodeEditor.h"
 
 #include <vector>
 #include <list>
@@ -13,6 +14,7 @@ class ResourceStateMachine;
 class ComponentAnimation : public Component
 {
 public:
+    typedef ax::NodeEditor::EditorContext EditorContext;
 
 	ComponentAnimation (GameObject* container);
 	~ComponentAnimation ();
@@ -38,6 +40,8 @@ public:
 
     void                        ResetState      ();
 
+    EditorContext*              GetEditorContext();
+
 private:
 
     void                        UpdateGO        (GameObject* go);
@@ -46,10 +50,11 @@ private:
 
 private:
 
-    UID                     resource   = 0;
-    AnimController*         controller = nullptr;
-    unsigned                active_node = 0;
-    bool                    debug_draw  = false;
+    UID             resource   = 0;
+    AnimController* controller = nullptr;
+    unsigned        active_node = 0;
+    bool            debug_draw  = false;
+    EditorContext*  context = nullptr;
 };
 
 #endif // __COMPONENT_AUDIOSOURCE_H__

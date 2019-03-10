@@ -80,7 +80,7 @@ void Viewport::Draw(ComponentCamera* camera)
             {
                 if (ImGui::BeginTabItem("StateMachine"))
                 {
-                    state->Draw(state_machine);
+                    state->Draw(state_machine, animation->GetEditorContext());
                     ImGui::EndTabItem();
                 }
             }

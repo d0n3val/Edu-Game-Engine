@@ -81,8 +81,8 @@ void PanelResources::Draw()
 		if (ImGui::MenuItem("Load"))
 			App->resources->LoadResources();
 		if (ImGui::MenuItem("Save"))
-			//App->resources->SaveResources();
-			App->resources->SaveResourcesTo("test");
+			App->resources->SaveResources();
+			//App->resources->SaveResourcesTo("test");
 		ImGui::EndMenu();
 	}
 

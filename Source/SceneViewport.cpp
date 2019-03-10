@@ -81,7 +81,10 @@ void SceneViewport::Draw(ComponentCamera* camera)
                 ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
                 ImVec2(0, 1), ImVec2(1, 0));
 
-        DrawGuizmo(camera);
+        if(App->GetState() == Application::stop)
+        {
+            DrawGuizmo(camera);
+        }
 
     }
     ImGui::EndChild();

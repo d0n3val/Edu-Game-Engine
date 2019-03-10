@@ -9,17 +9,13 @@
 
 StateViewport::StateViewport()
 {
-    ed::Config cfg;
-    cfg.SettingsFile = "State.json";
-    context = ed::CreateEditor(&cfg);
 }
 
 StateViewport::~StateViewport()
 {
-    ed::DestroyEditor(context);
 }
 
-void StateViewport::Draw(ResourceStateMachine* animation)
+void StateViewport::Draw(ResourceStateMachine* animation, ax::NodeEditor::EditorContext* context)
 {
     if(animation != nullptr)
     {

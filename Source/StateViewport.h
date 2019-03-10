@@ -14,7 +14,7 @@ public:
     StateViewport();
     ~StateViewport();
 
-    void Draw  (ResourceStateMachine* animation);
+    void Draw  (ResourceStateMachine* animation, ax::NodeEditor::EditorContext* context);
 
 private:
 
@@ -31,7 +31,6 @@ private:
     static bool GetNode(void* data, int idx, const char** out_text);
 
 private:
-    ed::EditorContext* context = nullptr;
     uint context_node = 0;
     uint context_link = 0;
     ImVec2 new_node_pos;

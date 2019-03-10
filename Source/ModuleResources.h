@@ -51,6 +51,9 @@ public:
 	
     const ResourceTexture* GetWhiteFallback() const { return white_fallback; }
     const ResourceTexture* GetBlackFallback() const { return black_fallback; }
+
+    const char* GetDirByType(Resource::Type type) const;
+
 private:
 
 	void LoadUID();

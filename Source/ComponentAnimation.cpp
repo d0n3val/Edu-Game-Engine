@@ -7,6 +7,7 @@
 #include "AnimController.h"
 #include "gameObject.h"
 #include "Component.h"
+
 #include <list>
 
 #include "mmgr/mmgr.h"
@@ -23,7 +24,12 @@ ComponentAnimation::ComponentAnimation(GameObject* container) : Component(contai
 ComponentAnimation::~ComponentAnimation()
 {
     delete controller;
-
+	
+    if(context)
+    {
+        ax::NodeEditor::DestroyEditor(context);
+        context = nullptr;
+    }
 }
 
 // ---------------------------------------------------------
@@ -174,3 +180,22 @@ void ComponentAnimation::PlayNode(uint node_idx, uint blend)
         }
     }
 }
+
+// ---------------------------------------------------------
+ComponentAnimation::EditorContext* ComponentAnimation::GetEditorContext()
+{
+    if(context == nullptr)
+    {
+        char* tmp = (char*)malloc(sizeof(char)*255);
+
+		Resource* res = GetResource();
+        sprintf_s(tmp, 255, ".%s%s.json", App->resources->GetDirByType(res->GetType()), res->GetExportedFile());
+
+        ax::NodeEditor::Config cfg;
+        cfg.SettingsFile = tmp;
+        context = ax::NodeEditor::CreateEditor(&cfg);
+    }
+
+    return context;
+}
+

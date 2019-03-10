@@ -31,14 +31,14 @@ void ComponentMesh::OnSave(Config& config) const
 {
 	config.AddUID("Resource", resource);
 	config.AddBool("Visible", visible);
-	config.AddBool("Root", root_uid);
+	config.AddUID("Root", root_uid);
 }
 
 void ComponentMesh::OnLoad(Config* config) 
 {
 	SetResource(config->GetUID("Resource", 0));
     visible = config->GetBool("Visible", true);
-    root_uid = config->GetBool("Root", root_uid);
+    root_uid = config->GetUID("Root", root_uid);
 }
 
 void ComponentMesh::GetBoundingBox (AABB& box) const 
