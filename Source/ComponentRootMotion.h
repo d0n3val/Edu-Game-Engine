@@ -24,14 +24,16 @@ public:
 
 	void            OnUpdate        (float dt) override;
 
-    void            Move            (Direction dir, const float3& local_speed) { direction = dir, speed = local_speed; }
+    void            Move            (Direction axis, const float3& d, float s) { dir_axis = axis, dir = d.Normalized(); speed = s;}
 
     static Types    GetClassType    () { return RootMotion; }
 
 private:
 
-    Direction direction = Forward;
-    float3    speed = float3::zero;
+    Direction dir_axis = Forward;
+    float3    dir      = float3::zero;
+    float     speed    = 0.0f;
+
 	static const float3 local_dir[Count];
 };
 

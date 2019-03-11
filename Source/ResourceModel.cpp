@@ -256,16 +256,21 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
             uint mesh_index     = node->mMeshes[i];
 
             mesh.parent         = index;
-            mesh.name           = model->mMeshes[mesh_index]->mName.C_Str();
             mesh.mesh           = meshes[mesh_index];
             mesh.material       = materials[model->mMeshes[mesh_index]->mMaterialIndex];
 
-            if(mesh.name.length() == 0)
+            char buff[100];
+
+            if(model->mMeshes[mesh_index]->mName.length == 0)
             {
-                char buff[100];
                 snprintf(buff, sizeof(buff), "mesh_%d", i);
-                mesh.name = buff;
             }
+            else
+            {
+                snprintf(buff, sizeof(buff), "mesh_%s", model->mMeshes[mesh_index]->mName.C_Str());
+            }
+
+            mesh.name = buff;
 
             nodes.push_back(mesh);
         }
