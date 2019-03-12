@@ -26,6 +26,7 @@ public:
 		Path,
         RootMotion,
 		CharacterController,
+        ParticleSystem,
 		Unknown
 	};
 
