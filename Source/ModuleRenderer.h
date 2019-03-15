@@ -81,8 +81,8 @@ private:
     void                DrawNodes               (void (ModuleRenderer::*drawer)(const TRenderInfo& ));
 
     void                DrawMeshColor           (const TRenderInfo& render_info);
-    void                DrawMeshColor           (const ResourceMesh* mesh, const ResourceMaterial* material);
-    void                DrawParticles           (const ComponentParticleSystem* particles);
+    void                DrawMeshColor           (const ResourceMesh* mesh, const ResourceMaterial* material, const float4x4& transform, const float4x4* skin_palette);
+    void                DrawParticles           (const ComponentParticleSystem* particles, const float4x4& transform);
     void                UpdateLightUniform      () const;
     void                CollectObjects          (const float3& camera_pos, GameObject* go);
 

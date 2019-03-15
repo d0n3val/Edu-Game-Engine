@@ -15,6 +15,7 @@
 #include "ComponentMaterial.h"
 #include "ComponentCamera.h"
 #include "ComponentAnimation.h"
+#include "ComponentParticleSystem.h"
 
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
@@ -320,26 +321,26 @@ void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info)
 
         if(mat_res != nullptr && mesh_res != nullptr)
         {
-            DrawMeshColor(mesh_res, mat_res);
+            DrawMeshColor(mesh_res, mat_res, render_info.transform, render_info.skin_palette);
         }
     }
     else
     {
-        DrawParticles(render_info->particles);
+        DrawParticles(render_info.particles, render_info.transform);
     }
 }
 
-void ModuleRenderer::DrawMeshColor(const ResourceMesh* mesh, const ResourceMaterial* material)
+void ModuleRenderer::DrawMeshColor(const ResourceMesh* mesh, const ResourceMaterial* material, const float4x4& transform, const float4x4* skin_palette)
 {
     App->programs->UseProgram("default", 0);
 
-    mat_res->UpdateUniforms();
+    material->UpdateUniforms();
     UpdateLightUniform();
 
     unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
-    if((mesh_res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
+    if((mesh->attribs & ResourceMesh::ATTRIB_BONES) != 0)
     {
-        glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_TRUE, reinterpret_cast<const float*>(render_info.skin_palette));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh->num_bones, GL_TRUE, reinterpret_cast<const float*>(skin_palette));
 
         vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
     }
@@ -350,12 +351,12 @@ void ModuleRenderer::DrawMeshColor(const ResourceMesh* mesh, const ResourceMater
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, sizeof(vertex_indices)/sizeof(unsigned), vertex_indices);
 
-    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&render_info.transform));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
-    glBindVertexArray(mesh_res->vao);
+    glBindVertexArray(mesh->vao);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_res->ibo);
-    glDrawElements(GL_TRIANGLES, mesh_res->num_indices, GL_UNSIGNED_INT, nullptr);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo);
+    glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, nullptr);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -367,11 +368,11 @@ void ModuleRenderer::DrawMeshColor(const ResourceMesh* mesh, const ResourceMater
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void ModuleRenderer::DrawParticles(const ComponentParticleSystem* particles)
+void ModuleRenderer::DrawParticles(const ComponentParticleSystem* particles, const float4x4& transform)
 {
     App->programs->UseProgram("particles", 0);
 
-    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&render_info.transform));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
     particles->Draw();
 }

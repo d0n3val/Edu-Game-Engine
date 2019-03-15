@@ -1,8 +1,11 @@
 #include "Globals.h"
+
 #include "ComponentParticleSystem.h"
+#include "ResourceMaterial.h"
 
 #include "Application.h"
 #include "ModuleRenderer3D.h"
+#include "ModuleResources.h"
 
 #include "OpenGL.h"
 
@@ -149,9 +152,9 @@ void ComponentParticleSystem::UpdateBillboards()
     }
 }
 
-void ComponentParticleSystem::Draw()
+void ComponentParticleSystem::Draw() const
 {
-    ResourceMaterial* mat_res = static_cast<const ResourceMaterial*>(App->resources->Get(material));
+    const ResourceMaterial* mat_res = static_cast<const ResourceMaterial*>(App->resources->Get(material));
     
     if(mat_res)
     {
@@ -161,7 +164,7 @@ void ComponentParticleSystem::Draw()
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glDrawElements(GL_TRIANGLES, mesh_res->num_indices, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, vb_num_quads*6, GL_UNSIGNED_INT, nullptr);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

@@ -6,6 +6,7 @@
 #include "utils/SimpleBinStream.h"
 
 struct aiMaterial;
+class ResourceTexture;
 
 class ResourceMaterial : public Resource
 {
@@ -44,7 +45,7 @@ public:
 
     static UID              Import              (const aiMaterial* material, const char* source_file);
 
-    void                    UpdateUniforms      ();
+    void                    UpdateUniforms      () const;
 
     const float4&           GetDiffuseColor     () const { return diffuse_color;}
     void                    SetDiffuseColor     (const float4& value) { diffuse_color = value; }

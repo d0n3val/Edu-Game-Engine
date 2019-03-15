@@ -3,7 +3,9 @@
 #include "ModuleResources.h"
 #include "ResourceMaterial.h"
 #include "ResourceTexture.h"
+
 #include "Application.h"
+#include "ModuleHints.h"
 
 #include "DefaultShaderLocations.h"
 
@@ -287,7 +289,7 @@ ResourceTexture* ResourceMaterial::GetTextureRes(Texture t)
     return static_cast<ResourceTexture*>(App->resources->Get(textures[t]));
 }
 
-void ResourceMaterial::UpdateUniforms()
+void ResourceMaterial::UpdateUniforms() const
 {
     static const unsigned MATERIAL_LOCATION = 0;
 
@@ -311,6 +313,7 @@ void ResourceMaterial::UpdateUniforms()
     float3 emissive_color = emissive ? float3(1.0f) : GetEmissiveColor();
     float shininess	      = specular ? 1.0f :  GetShininess();
 
+	/*
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_2D, sky_brdf);
     glUniform1i(202, 7);
@@ -322,6 +325,7 @@ void ResourceMaterial::UpdateUniforms()
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_CUBE_MAP, sky_irradiance);
     glUniform1i(200, 5);
+	*/
 
     glUniform1f(SHININESS_LOC, shininess);
 

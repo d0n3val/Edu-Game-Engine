@@ -16,7 +16,7 @@ public:
 	void         OnStop      () override;
 	void         OnUpdate    (float dt) override;
     void         PreRender   ();
-    void         Draw        ();
+    void         Draw        () const;
 
 	void         OnSave      (Config& config) const override;
 	void         OnLoad      (Config* config) override;
