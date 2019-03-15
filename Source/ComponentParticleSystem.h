@@ -5,6 +5,8 @@
 #include "Billboard.h"
 #include <vector>
 
+class ResourceMaterial;
+
 class ComponentParticleSystem : public Component
 {
 public:
@@ -12,16 +14,21 @@ public:
 	ComponentParticleSystem  (GameObject* container);
 	~ComponentParticleSystem ();
 
-	void         OnPlay      () override;
-	void         OnStop      () override;
-	void         OnUpdate    (float dt) override;
-    void         PreRender   ();
-    void         Draw        () const;
+	void                    OnPlay          () override;
+	void                    OnStop          () override;
+	void                    OnUpdate        (float dt) override;
+    void                    Draw            ();
 
-	void         OnSave      (Config& config) const override;
-	void         OnLoad      (Config* config) override;
+	void                    OnSave          (Config& config) const override;
+	void                    OnLoad          (Config* config) override;
 
-    static Types GetClassType() { return ParticleSystem; }
+    static Types            GetClassType    () { return ParticleSystem; }
+
+    const ResourceMaterial* GetMaterialRes  () const;
+    ResourceMaterial*       GetMaterialRes  ();
+
+    UID                     GetMaterial     () const { return material; }
+    void                    SetMaterial     (UID mat) { material = mat; }
 
 private:
 
@@ -37,7 +44,7 @@ private:
     uint vb_min_num_quads  = 32;
     const uint vertex_size = sizeof(float3);
 
-    UID material;
+    UID material = 0;
 
     struct TextureSheet
     {

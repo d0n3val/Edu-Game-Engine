@@ -727,97 +727,99 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial* component)
     {
 		component->SetResource(new_res);
     }
-    else
+    else if(mat_res)
     {
-        if(mat_res)
+		DrawMaterialResource(mat_res);
+    }
+}
+
+void PanelProperties::DrawMaterialResource(ResourceMaterial* material)
+{
+    bool modified = false;
+
+    if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, ResourceMaterial::TextureOcclusion, "Occlusion");
+        float k_ambient = material->GetKAmbient();
+        if(ImGui::SliderFloat("k ambient", &k_ambient, 0.0f, 1.0f))
         {
-            bool modified = false;
-
-            if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                modified = TextureButton(mat_res, ResourceMaterial::TextureOcclusion, "Occlusion");
-                float k_ambient = mat_res->GetKAmbient();
-                if(ImGui::SliderFloat("k ambient", &k_ambient, 0.0f, 1.0f))
-                {
-                    mat_res->SetKAmbient(k_ambient);
-                    modified = true;
-                }
-            }
-
-            if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                modified = TextureButton(mat_res, ResourceMaterial::TextureDiffuse, "Diffuse") || modified;
-                float4 color = mat_res->GetDiffuseColor();
-                ImGui::PushID("diffuse");
-                if(ImGui::ColorEdit4("color", (float*)&color))
-                {
-                    mat_res->SetDiffuseColor(color);
-                    modified = true;
-                }
-                ImGui::PopID();
-
-                float k_diffuse = mat_res->GetKDiffuse();
-                if(ImGui::SliderFloat("k diffuse", &k_diffuse, 0.0f, 1.0f))
-                {
-                    mat_res->SetKDiffuse(k_diffuse);
-                    modified = true;
-                }
-            }
-
-            if(ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                modified = TextureButton(mat_res, ResourceMaterial::TextureSpecular, "Specular") || modified;
-                float3 color = mat_res->GetSpecularColor();
-                ImGui::PushID("specular");
-                if(ImGui::ColorEdit3("color", (float*)&color))
-                {
-                    mat_res->SetSpecularColor(color);
-                    modified = true;
-                }
-                ImGui::PopID();
-
-                float k_specular = mat_res->GetKSpecular();
-                if(ImGui::SliderFloat("k specular", &k_specular, 0.0f, 1.0f))
-                {
-                    mat_res->SetKSpecular(k_specular);
-                    modified = true;
-                }
-
-                float shininess = min(max(mat_res->GetShininess(), 0.0f), 1.0f);
-                if(ImGui::SliderFloat("Shininess", &shininess, 0.0f, 1.0f))
-                {
-                    mat_res->SetShininess(shininess);
-                    modified = true;
-                }
-            }
-
-            if(ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                modified = TextureButton(mat_res, ResourceMaterial::TextureNormal, "Normal") || modified;
-            }
-
-            if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                modified = TextureButton(mat_res, ResourceMaterial::TextureEmissive, "Emissive") || modified;
-                float3 color = mat_res->GetEmissiveColor();
-                ImGui::PushID("emissive");
-                if(ImGui::ColorEdit3("color", (float*)&color))
-                {
-                    mat_res->SetEmissiveColor(color);
-                    modified = true;
-                }
-                ImGui::PopID();
-
-            }
-
-
-            if(modified)
-            {
-                mat_res->Save();
-            }
-
+            material->SetKAmbient(k_ambient);
+            modified = true;
         }
     }
+
+    if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, ResourceMaterial::TextureDiffuse, "Diffuse") || modified;
+        float4 color = material->GetDiffuseColor();
+        ImGui::PushID("diffuse");
+        if(ImGui::ColorEdit4("color", (float*)&color))
+        {
+            material->SetDiffuseColor(color);
+            modified = true;
+        }
+        ImGui::PopID();
+
+        float k_diffuse = material->GetKDiffuse();
+        if(ImGui::SliderFloat("k diffuse", &k_diffuse, 0.0f, 1.0f))
+        {
+            material->SetKDiffuse(k_diffuse);
+            modified = true;
+        }
+    }
+
+    if(ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, ResourceMaterial::TextureSpecular, "Specular") || modified;
+        float3 color = material->GetSpecularColor();
+        ImGui::PushID("specular");
+        if(ImGui::ColorEdit3("color", (float*)&color))
+        {
+            material->SetSpecularColor(color);
+            modified = true;
+        }
+        ImGui::PopID();
+
+        float k_specular = material->GetKSpecular();
+        if(ImGui::SliderFloat("k specular", &k_specular, 0.0f, 1.0f))
+        {
+            material->SetKSpecular(k_specular);
+            modified = true;
+        }
+
+        float shininess = min(max(material->GetShininess(), 0.0f), 1.0f);
+        if(ImGui::SliderFloat("Shininess", &shininess, 0.0f, 1.0f))
+        {
+            material->SetShininess(shininess);
+            modified = true;
+        }
+    }
+
+    if(ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, ResourceMaterial::TextureNormal, "Normal") || modified;
+    }
+
+    if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, ResourceMaterial::TextureEmissive, "Emissive") || modified;
+        float3 color = material->GetEmissiveColor();
+        ImGui::PushID("emissive");
+        if(ImGui::ColorEdit3("color", (float*)&color))
+        {
+            material->SetEmissiveColor(color);
+            modified = true;
+        }
+        ImGui::PopID();
+
+    }
+
+
+    if(modified)
+    {
+        material->Save();
+    }
+
 }
 
 bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, const char* name)
@@ -1053,4 +1055,32 @@ void PanelProperties::DrawRootMotionComponent(ComponentRootMotion * component)
 
 void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* component)
 {
+    ResourceMaterial* mat_res = component->GetMaterialRes();
+
+    UID new_res = PickResourceModal(Resource::material);
+
+    ImGui::SameLine();
+    if(ImGui::Button("New material"))
+    {
+        mat_res = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material, 0));
+        bool save_ok = mat_res->Save();
+
+        if(save_ok)
+        {
+            new_res = mat_res->GetUID();
+        }
+    }
+
+    if (new_res > 0)
+    {
+        component->SetMaterial(new_res);
+        App->resources->Get(new_res)->LoadToMemory();
+    }
+    else if(mat_res)
+    {
+        DrawMaterialResource(mat_res);
+    }
+
+    ImGui::Separator();
+
 }

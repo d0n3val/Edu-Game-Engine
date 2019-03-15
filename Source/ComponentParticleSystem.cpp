@@ -66,6 +66,13 @@ void ComponentParticleSystem::OnLoad(Config* config)
         billboards[i].SetPosition(billboard.GetFloat3("position"));
         billboards[i].SetSize(billboard.GetFloat2("size"));
     }
+
+    if(count == 0) // \hack
+    {
+        billboards.resize(1);
+        billboards[0].SetPosition(float3::zero);
+        billboards[0].SetSize(float2(1, 1));
+    }
 }
 
 void ComponentParticleSystem::OnPlay() 
@@ -79,12 +86,6 @@ void ComponentParticleSystem::OnStop()
 void ComponentParticleSystem::OnUpdate(float dt) 
 {
     // Update particle positions
-}
-
-void ComponentParticleSystem::PreRender()
-{
-    UpdateBuffers();
-    UpdateBillboards();
 }
 
 void ComponentParticleSystem::UpdateBuffers()
@@ -109,16 +110,16 @@ void ComponentParticleSystem::UpdateBuffers()
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, vb_num_quads*6*sizeof(unsigned), nullptr, GL_STATIC_DRAW);
-        unsigned* indices = (unsigned*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, vb_num_quads*4, GL_MAP_WRITE_BIT);
+        unsigned* indices = (unsigned*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, vb_num_quads*6, GL_MAP_WRITE_BIT);
 
         for(uint i=0; i< vb_num_quads; ++i)
         {
             indices[i*6+0] = i*4+0;
             indices[i*6+1] = i*4+1;
             indices[i*6+2] = i*4+2;
-            indices[i*6+3] = i*4+1;
-            indices[i*6+3] = i*4+2;
-            indices[i*6+3] = i*4+3;
+            indices[i*6+3] = i*4+0;
+            indices[i*6+4] = i*4+2;
+            indices[i*6+5] = i*4+3;
         }
 
 		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
@@ -147,6 +148,7 @@ void ComponentParticleSystem::UpdateBillboards()
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         float3* vertices = (float3*)glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_size*vb_num_quads*4, GL_MAP_WRITE_BIT);
 
+        // todo: sort front to back
         Billboard::GetVertices(&billboards[0], billboards.size(), vertices, App->renderer3D->active_camera);
 
         glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -154,8 +156,11 @@ void ComponentParticleSystem::UpdateBillboards()
     }
 }
 
-void ComponentParticleSystem::Draw() const
+void ComponentParticleSystem::Draw()
 {
+    UpdateBuffers();
+    UpdateBillboards();
+
     const ResourceMaterial* mat_res = static_cast<const ResourceMaterial*>(App->resources->Get(material));
     
     if(mat_res)
@@ -179,4 +184,15 @@ void ComponentParticleSystem::Draw() const
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
+const ResourceMaterial* ComponentParticleSystem::GetMaterialRes() const
+{
+	return static_cast<const ResourceMaterial*>(App->resources->Get(this->material));
+}
+
+ResourceMaterial* ComponentParticleSystem::GetMaterialRes()
+{
+	return static_cast<ResourceMaterial*>(App->resources->Get(this->material));
 }

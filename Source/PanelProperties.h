@@ -61,6 +61,7 @@ private:
 	void DrawAnimationComponent(ComponentAnimation * component);
 	void DrawRootMotionComponent(ComponentRootMotion * component);
 	void DrawParticleSystemComponent(ComponentParticleSystem* component);
+    void DrawMaterialResource(ResourceMaterial* material);
 };
 
 #endif// __PANELPROPERTIES_H__

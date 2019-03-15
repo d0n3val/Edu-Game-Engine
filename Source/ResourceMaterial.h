@@ -40,8 +40,8 @@ public:
 	bool                    LoadInMemory        () override;
     void                    ReleaseFromMemory   () override;
 
-    bool                    Save                (std::string& output);
-    bool                    Save                ();
+    bool                    Save                (std::string& output) const;
+    bool                    Save                () ;
 
     static UID              Import              (const aiMaterial* material, const char* source_file);
 

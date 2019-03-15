@@ -97,7 +97,7 @@ void ResourceMaterial::ReleaseFromMemory()
 }
 
 // ---------------------------------------------------------
-bool ResourceMaterial::Save(std::string& output) 
+bool ResourceMaterial::Save(std::string& output) const
 {
     simple::mem_ostream<std::true_type> write_stream;
 

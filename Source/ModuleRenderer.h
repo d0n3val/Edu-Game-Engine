@@ -79,7 +79,7 @@ private:
 
     void                DrawColor               (const TRenderInfo& render_info);
     void                DrawMeshColor           (const ComponentMesh* mesh);
-    void                DrawParticles           (const ComponentParticleSystem* particles);
+    void                DrawParticles           (ComponentParticleSystem* particles);
     void                UpdateLightUniform      () const;
     void                CollectObjects          (const float3& camera_pos, GameObject* go);
 
