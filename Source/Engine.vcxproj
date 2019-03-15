@@ -135,6 +135,7 @@
     <ClInclude Include="Assimp\include\vector2.h" />
     <ClInclude Include="Assimp\include\vector3.h" />
     <ClInclude Include="Assimp\include\version.h" />
+    <ClInclude Include="Billboard.h" />
     <ClInclude Include="Bullet\include\btBulletCollisionCommon.h" />
     <ClInclude Include="Bullet\include\btBulletDynamicsCommon.h" />
     <ClInclude Include="Color.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="ComponentCamera.h" />
     <ClInclude Include="ComponentMaterial.h" />
     <ClInclude Include="ComponentMesh.h" />
+    <ClInclude Include="componentparticlesystem.h" />
     <ClInclude Include="ComponentPath.h" />
     <ClInclude Include="ComponentRigidBody.h" />
     <ClInclude Include="ComponentRootMotion.h" />
@@ -290,6 +292,7 @@
     <ClCompile Include="AmbientLight.cpp" />
     <ClCompile Include="AnimController.cpp" />
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Billboard.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentAnimation.cpp" />
@@ -298,6 +301,7 @@
     <ClCompile Include="ComponentCamera.cpp" />
     <ClCompile Include="ComponentMaterial.cpp" />
     <ClCompile Include="ComponentMesh.cpp" />
+    <ClCompile Include="ComponentParticleSystem.cpp" />
     <ClCompile Include="ComponentPath.cpp" />
     <ClCompile Include="ComponentRigidBody.cpp" />
     <ClCompile Include="ComponentRootMotion.cpp" />

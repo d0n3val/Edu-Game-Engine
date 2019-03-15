@@ -2,6 +2,7 @@
 #define __COMPONENT_PARTICLE_SYSTEM_H__
 
 #include "Component.h"
+#include "Billboard.h"
 #include <vector>
 
 class ComponentParticleSystem : public Component

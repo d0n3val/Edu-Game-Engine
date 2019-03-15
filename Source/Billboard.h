@@ -1,6 +1,8 @@
 #ifndef __BILLBOARD_H__
 #define __BILLBOARD_H__
 
+#include "Math.h"
+
 class ComponentCamera;
 
 class Billboard
@@ -10,7 +12,7 @@ public:
 	Billboard();
 	~Billboard();
 
-	void            GetVertices (float3* quad, const ComponentCamera* camera);
+	void            GetVertices (float3* quad, const ComponentCamera* camera) const;
     static void     GetVertices (const Billboard* billboards, uint count, float3* quads, const ComponentCamera* camera);
 
 	void            SetPosition (const float3& pos) { position = pos; }

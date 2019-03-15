@@ -14,6 +14,7 @@
 #include "ComponentMesh.h"
 #include "ComponentAnimation.h"
 #include "ComponentRootMotion.h"
+#include "ComponentParticleSystem.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
 #include "ModuleEditor.h"
@@ -250,7 +251,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
             go->SetLocalRotation(Quat::identity);
         }
 
-        static_assert(Component::Types::Unknown == 11, "code needs update");
+        static_assert(Component::Types::Unknown == 12, "code needs update");
         if (ImGui::BeginMenu("New Component", (go != nullptr)))
         {
             if (ImGui::MenuItem("Audio Listener"))
@@ -275,6 +276,8 @@ void PanelProperties::DrawGameObject(GameObject* go)
 				go->CreateComponent(Component::Types::RootMotion);
 			if (ImGui::MenuItem("SimpleCharacter"))
 				go->CreateComponent(Component::Types::CharacterController);
+			if (ImGui::MenuItem("ParticleSystem"))
+				go->CreateComponent(Component::Types::ParticleSystem);
             ImGui::EndMenu();
         }
 
@@ -324,7 +327,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         }
 
         // Iterate all components and draw
-        static_assert(Component::Types::Unknown == 11, "code needs update");
+        static_assert(Component::Types::Unknown == 12, "code needs update");
         for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
         {
             ImGui::PushID(*it);
@@ -363,6 +366,8 @@ void PanelProperties::DrawGameObject(GameObject* go)
 					case Component::Types::RootMotion:
 						DrawRootMotionComponent(static_cast<ComponentRootMotion*>(*it));
 						break;
+					case Component::Types::ParticleSystem:
+						DrawParticleSystemComponent(static_cast<ComponentParticleSystem*>(*it));
 				}
             }
             ImGui::PopID();
@@ -1043,5 +1048,9 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
 }
 
 void PanelProperties::DrawRootMotionComponent(ComponentRootMotion * component)
+{
+}
+
+void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* component)
 {
 }

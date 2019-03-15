@@ -61,6 +61,8 @@ public:
 	bool AddArrayString(const char* field, const char** values, int size);
 
 	// Custom
+	bool    AddFloat2(const char* field, const float2& value);
+	float2  GetFloat2(const char* filed, const float2& default = float2::zero);
 	bool    AddFloat3(const char* field, const float3& value);
 	float3  GetFloat3(const char* field, const float3& default = float3::zero);
 	bool    AddFloat4(const char* field, const float4& value);

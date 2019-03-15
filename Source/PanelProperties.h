@@ -15,6 +15,7 @@ class ComponentRigidBody;
 class ComponentAnimation;
 class ComponentRootMotion;
 class ComponentMesh;
+class ComponentParticleSystem;
 class ResourceMaterial;
 class AmbientLight;
 class DirLight;
@@ -59,6 +60,7 @@ private:
     bool TextureButton(ResourceMaterial* material, uint texture, const char* name);
 	void DrawAnimationComponent(ComponentAnimation * component);
 	void DrawRootMotionComponent(ComponentRootMotion * component);
+	void DrawParticleSystemComponent(ComponentParticleSystem* component);
 };
 
 #endif// __PANELPROPERTIES_H__

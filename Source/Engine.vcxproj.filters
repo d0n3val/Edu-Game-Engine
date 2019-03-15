@@ -633,6 +633,12 @@
     <ClInclude Include="ComponentSimpleCharacter.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Billboard.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="componentparticlesystem.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -984,6 +990,12 @@
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="ComponentSimpleCharacter.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Billboard.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentParticleSystem.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
