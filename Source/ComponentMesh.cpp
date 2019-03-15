@@ -3,8 +3,15 @@
 #include "ComponentMesh.h"
 #include "Application.h"
 #include "ModuleResources.h"
+#include "ModulePrograms.h"
+
 #include "ResourceMesh.h"
+#include "ResourceMaterial.h"
+
 #include "GameObject.h"
+#include "ComponentMaterial.h"
+
+#include "OpenGL.h"
 
 #include "mmgr/mmgr.h"
 
@@ -106,10 +113,10 @@ const ResourceMesh* ComponentMesh::GetResource() const
 	return static_cast<const ResourceMesh*>(App->resources->Get(resource));
 }
 
-const float4x4* ComponentMesh::UpdateSkinPalette()
+const float4x4* ComponentMesh::UpdateSkinPalette() const
 {
     ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(resource));
-    GameObject* root   = GetGameObject();
+    const GameObject* root   = GetGameObject();
 
     while(root != nullptr && root->GetUID() != root_uid)
     {
@@ -142,3 +149,21 @@ const float4x4* ComponentMesh::UpdateSkinPalette()
     return skin_palette;
 }
 
+void ComponentMesh::Draw() const
+{
+    const GameObject* go = GetGameObject();
+    const ComponentMaterial* material = GetGameObject()->FindFirstComponent<ComponentMaterial>();
+
+    if(material != nullptr)
+    {
+        float4x4 transform          = go->GetGlobalTransformation();
+        const ResourceMesh* mesh    = GetResource();
+        const ResourceMaterial* mat = material->GetResource();
+
+        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+
+        mat->UpdateUniforms();
+        mesh->UpdateUniforms(UpdateSkinPalette());
+        mesh->Draw();
+    }
+}

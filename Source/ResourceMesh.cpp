@@ -2,8 +2,10 @@
 #include "Application.h"
 #include "ModuleFileSystem.h"
 #include "ModuleResources.h"
+#include "ModulePrograms.h"
 
 #include "OpenGL.h"
+#include "DefaultShaderLocations.h"
 
 #include "Assimp/include/mesh.h"
 #include "utils/SimpleBinStream.h"
@@ -887,5 +889,40 @@ void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
     {
         GenerateTangentSpace();
     }
+}
+
+void ResourceMesh::UpdateUniforms(const float4x4* skin_palette) const
+{
+    unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
+
+    if((attribs & ResourceMesh::ATTRIB_BONES) != 0)
+    {
+        glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), num_bones, GL_TRUE, reinterpret_cast<const float*>(skin_palette));
+        vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
+    }
+    else
+    {
+        vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_RIGID;
+    }
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, sizeof(vertex_indices)/sizeof(unsigned), vertex_indices);
+
+}
+
+void ResourceMesh::Draw() const
+{
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, nullptr);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 

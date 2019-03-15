@@ -222,7 +222,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
     App->programs->UnuseProgram();
 
-    DrawNodes(&ModuleRenderer::DrawMeshColor);
+    DrawNodes(&ModuleRenderer::DrawColor);
 
     //DrawSkybox(proj, view);
 
@@ -261,14 +261,11 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
     render.name         = go->name.c_str();
     render.go           = go;
     render.particles    = nullptr;
-    render.transform    = go->GetGlobalTransformation();
     render.distance     = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
 
     if(mesh != nullptr && material != nullptr && mesh->GetVisible())
     {
-        render.mesh         = mesh;
-        render.material     = material;
-        render.skin_palette = mesh->UpdateSkinPalette();
+        render.mesh = mesh;
 
         if(material->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
         {
@@ -312,67 +309,29 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const TRenderInfo&
     App->programs->UnuseProgram();
 }
 
-void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info)
+void ModuleRenderer::DrawColor(const TRenderInfo& render_info)
 {    
-    if(render_info.mesh && render_info.material)
+    if(render_info.mesh)
     {
-        const ResourceMesh* mesh_res    = render_info.mesh->GetResource();
-        const ResourceMaterial* mat_res = render_info.material->GetResource();
-
-        if(mat_res != nullptr && mesh_res != nullptr)
-        {
-            DrawMeshColor(mesh_res, mat_res, render_info.transform, render_info.skin_palette);
-        }
+        DrawMeshColor(render_info.mesh);
     }
     else
     {
-        DrawParticles(render_info.particles, render_info.transform);
+        DrawParticles(render_info.particles);
     }
 }
 
-void ModuleRenderer::DrawMeshColor(const ResourceMesh* mesh, const ResourceMaterial* material, const float4x4& transform, const float4x4* skin_palette)
+void ModuleRenderer::DrawMeshColor(const ComponentMesh* mesh)
 {
     App->programs->UseProgram("default", 0);
 
-    material->UpdateUniforms();
     UpdateLightUniform();
-
-    unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
-    if((mesh->attribs & ResourceMesh::ATTRIB_BONES) != 0)
-    {
-        glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh->num_bones, GL_TRUE, reinterpret_cast<const float*>(skin_palette));
-
-        vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
-    }
-    else
-    {
-        vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_RIGID;
-    }
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, sizeof(vertex_indices)/sizeof(unsigned), vertex_indices);
-
-    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
-
-    glBindVertexArray(mesh->vao);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo);
-    glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_INT, nullptr);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    mesh->Draw();
 }
 
-void ModuleRenderer::DrawParticles(const ComponentParticleSystem* particles, const float4x4& transform)
+void ModuleRenderer::DrawParticles(const ComponentParticleSystem* particles)
 {
     App->programs->UseProgram("particles", 0);
-
-    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
     particles->Draw();
 }
@@ -499,6 +458,7 @@ void ModuleRenderer::DebugDrawHierarchy(const GameObject* go)
 
 void ModuleRenderer::DebugDrawTangentSpace()
 {
+	/*
     for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
     {
         if(it->material && it->material->GetDDTangent())
@@ -524,6 +484,7 @@ void ModuleRenderer::DebugDrawTangentSpace()
             }
         }
     }
+	*/
 }
 
 void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float4x4& transform)

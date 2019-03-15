@@ -21,11 +21,8 @@ class ModuleRenderer : public Module
         const char*              name         = nullptr;
         GameObject*              go           = nullptr;
         ComponentMesh*           mesh         = nullptr;
-        ComponentMaterial*       material     = nullptr;
         ComponentParticleSystem* particles    = nullptr;
         float                    distance     = 0.0f;
-        float4x4                 transform    = float4x4::identity;
-        const float4x4*          skin_palette = nullptr;
     };
 
     struct TNearestMesh
@@ -80,9 +77,9 @@ private:
     void                DrawSkybox              (const float4x4& proj, const float4x4& view);
     void                DrawNodes               (void (ModuleRenderer::*drawer)(const TRenderInfo& ));
 
-    void                DrawMeshColor           (const TRenderInfo& render_info);
-    void                DrawMeshColor           (const ResourceMesh* mesh, const ResourceMaterial* material, const float4x4& transform, const float4x4* skin_palette);
-    void                DrawParticles           (const ComponentParticleSystem* particles, const float4x4& transform);
+    void                DrawColor               (const TRenderInfo& render_info);
+    void                DrawMeshColor           (const ComponentMesh* mesh);
+    void                DrawParticles           (const ComponentParticleSystem* particles);
     void                UpdateLightUniform      () const;
     void                CollectObjects          (const float3& camera_pos, GameObject* go);
 

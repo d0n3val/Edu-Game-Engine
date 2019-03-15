@@ -26,6 +26,9 @@ public:
 	void        Save                (Config& config) const override;
 	void        Load                (const Config& config) override;
 
+    void        UpdateUniforms      (const float4x4* skin_palette) const;
+    void        Draw                () const;
+
 	bool        LoadInMemory        () override;
     void        ReleaseFromMemory   () override;
     bool        Save                ();

@@ -6,6 +6,8 @@
 #include "Application.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleResources.h"
+#include "ModulePrograms.h"
+#include "GameObject.h"
 
 #include "OpenGL.h"
 
@@ -160,6 +162,9 @@ void ComponentParticleSystem::Draw() const
     {
         mat_res->UpdateUniforms();
     }
+
+    float4x4 transform = GetGameObject()->GetGlobalTransformation();
+    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
     glBindVertexArray(vao);
 
