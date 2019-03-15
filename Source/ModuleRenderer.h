@@ -10,6 +10,7 @@ class GameObject;
 class ComponentCamera;
 class ComponentMesh;
 class ComponentMaterial;
+class ComponentParticleSystem;
 class ResourceMaterial;
 class ResourceMesh;
 
@@ -17,13 +18,14 @@ class ModuleRenderer : public Module
 {
     struct TRenderInfo
     {
-        const char*         name         = nullptr;
-        GameObject*         go           = nullptr;
-        ComponentMesh*      mesh         = nullptr;
-        ComponentMaterial*  material     = nullptr;
-        float               distance     = 0.0f;
-        float4x4            transform    = float4x4::identity;
-        const float4x4*     skin_palette = nullptr;
+        const char*              name         = nullptr;
+        GameObject*              go           = nullptr;
+        ComponentMesh*           mesh         = nullptr;
+        ComponentMaterial*       material     = nullptr;
+        ComponentParticleSystem* particles    = nullptr;
+        float                    distance     = 0.0f;
+        float4x4                 transform    = float4x4::identity;
+        const float4x4*          skin_palette = nullptr;
     };
 
     struct TNearestMesh
@@ -79,7 +81,8 @@ private:
     void                DrawNodes               (void (ModuleRenderer::*drawer)(const TRenderInfo& ));
 
     void                DrawMeshColor           (const TRenderInfo& render_info);
-    void                UpdateMaterialUniform   (const ResourceMaterial* material) const;
+    void                DrawMeshColor           (const ResourceMesh* mesh, const ResourceMaterial* material);
+    void                DrawParticles           (const ComponentParticleSystem* particles);
     void                UpdateLightUniform      () const;
     void                CollectObjects          (const float3& camera_pos, GameObject* go);
 

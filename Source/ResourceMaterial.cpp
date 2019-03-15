@@ -4,8 +4,13 @@
 #include "ResourceMaterial.h"
 #include "ResourceTexture.h"
 #include "Application.h"
+
+#include "DefaultShaderLocations.h"
+
 #include "Assimp/include/types.h"
 #include "Assimp/include/material.h"
+
+#include "OpenGL.h"
 
 #include "mmgr/mmgr.h"
 
@@ -282,3 +287,92 @@ ResourceTexture* ResourceMaterial::GetTextureRes(Texture t)
     return static_cast<ResourceTexture*>(App->resources->Get(textures[t]));
 }
 
+void ResourceMaterial::UpdateUniforms()
+{
+    static const unsigned MATERIAL_LOCATION = 0;
+
+    const ResourceTexture* specular  = GetTextureRes(ResourceMaterial::TextureSpecular);
+    const ResourceTexture* diffuse   = GetTextureRes(ResourceMaterial::TextureDiffuse);
+    const ResourceTexture* occlusion = GetTextureRes(ResourceMaterial::TextureOcclusion);
+    const ResourceTexture* emissive  = GetTextureRes(ResourceMaterial::TextureEmissive);
+    const ResourceTexture* normal    = GetTextureRes(ResourceMaterial::TextureNormal);
+
+    unsigned diffuse_id   = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
+
+    unsigned specular_id  = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? 
+        specular->GetID() : App->resources->GetWhiteFallback()->GetID();
+
+    unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned emissive_id  = emissive ? emissive->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned normal_id    = normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) ? normal->GetID() : 0;
+
+    float4 diffuse_color  = GetDiffuseColor();
+    float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : GetSpecularColor();
+    float3 emissive_color = emissive ? float3(1.0f) : GetEmissiveColor();
+    float shininess	      = specular ? 1.0f :  GetShininess();
+
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, sky_brdf);
+    glUniform1i(202, 7);
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, sky_prefilter);
+    glUniform1i(201, 6);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, sky_irradiance);
+    glUniform1i(200, 5);
+
+    glUniform1f(SHININESS_LOC, shininess);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, normal_id);
+    glUniform1i(NORMAL_MAP_LOC, 4);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, emissive_id);
+    glUniform1i(EMISSIVE_MAP_LOC, 3);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, occlusion_id);
+    glUniform1i(OCCLUSION_MAP_LOC, 2);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specular_id);
+    glUniform1i(SPECULAR_MAP_LOC, 1);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuse_id);
+    glUniform1i(DIFFUSE_MAP_LOC, 0);
+
+    glUniform4fv(DIFFUSE_COLOR_LOC, 1, (const float*)&diffuse_color);
+    glUniform3fv(SPECULAR_COLOR_LOC, 1, (const float*)&specular_color);
+    glUniform3fv(EMISSIVE_COLOR_LOC, 1, (const float*)&emissive_color);
+
+    glUniform1f(AMBIENT_CONSTANT_LOC, GetKAmbient());
+    glUniform1f(DIFFUSE_CONSTANT_LOC, GetKDiffuse());
+    glUniform1f(SPECULAR_CONSTANT_LOC, GetKSpecular());
+
+    unsigned fragment_indices[NUM_FRAGMENT_SUBROUTINE_UNIFORMS];
+
+
+    if(normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING))
+    {
+        fragment_indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_TEXTURE;
+    }
+    else
+    {
+        fragment_indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_VERTEX;
+    }
+
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_FRESNEL))
+    {
+        fragment_indices[GET_FRESNEL_LOCATION] = GET_FRESNEL_SCHLICK;
+    }
+    else
+    {
+        fragment_indices[GET_FRESNEL_LOCATION] = GET_NO_FRESNEL;
+    }
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(fragment_indices)/sizeof(unsigned), fragment_indices);
+}

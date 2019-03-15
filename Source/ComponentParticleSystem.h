@@ -16,6 +16,7 @@ public:
 	void         OnStop      () override;
 	void         OnUpdate    (float dt) override;
     void         PreRender   ();
+    void         Draw        ();
 
 	void         OnSave      (Config& config) const override;
 	void         OnLoad      (Config* config) override;
@@ -31,6 +32,7 @@ private:
 
     uint vao               = 0;
     uint vbo               = 0;
+    uint ibo               = 0;
     uint vb_num_quads      = 0;
     uint vb_min_num_quads  = 32;
     const uint vertex_size = sizeof(float3);

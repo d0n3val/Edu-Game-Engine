@@ -252,21 +252,21 @@ void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
 
 void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
 {
-    ComponentMesh* mesh = go->FindFirstComponent<ComponentMesh>();
-    ComponentMaterial* material = go->FindFirstComponent<ComponentMaterial>();
+    ComponentMesh* mesh                = go->FindFirstComponent<ComponentMesh>();
+    ComponentMaterial* material        = go->FindFirstComponent<ComponentMaterial>();
+    ComponentParticleSystem* particles = go->FindFirstComponent<ComponentParticleSystem>();
+
+    TRenderInfo render;
+    render.name         = go->name.c_str();
+    render.go           = go;
+    render.particles    = nullptr;
+    render.transform    = go->GetGlobalTransformation();
+    render.distance     = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
 
     if(mesh != nullptr && material != nullptr && mesh->GetVisible())
     {
-        AABB bbox;
-        mesh->GetBoundingBox(bbox);
-
-        TRenderInfo render;
-        render.name         = go->name.c_str();
-        render.go           = go;
         render.mesh         = mesh;
         render.material     = material;
-        render.transform    = go->GetGlobalTransformation();
-        render.distance     = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
         render.skin_palette = mesh->UpdateSkinPalette();
 
         if(material->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
@@ -281,6 +281,13 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
 
             transparent_nodes.insert(it, render);
         }
+    }
+    else if(particles != nullptr)
+    {
+        render.particles= nullptr;
+
+        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render.distance, TFarthestMesh());
+        transparent_nodes.insert(it, render);
     }
 
     for(std::list<GameObject*>::iterator lIt = go->childs.begin(), lEnd = go->childs.end(); lIt != lEnd; ++lIt)
@@ -306,46 +313,67 @@ void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const TRenderInfo&
 
 void ModuleRenderer::DrawMeshColor(const TRenderInfo& render_info)
 {    
-    const ResourceMesh* mesh_res    = render_info.mesh->GetResource();
-    const ResourceMaterial* mat_res = render_info.material->GetResource();
-
-    if(mat_res != nullptr && mesh_res != nullptr)
+    if(render_info.mesh && render_info.material)
     {
-        App->programs->UseProgram("default", 0);
+        const ResourceMesh* mesh_res    = render_info.mesh->GetResource();
+        const ResourceMaterial* mat_res = render_info.material->GetResource();
 
-        UpdateMaterialUniform(mat_res);
-        UpdateLightUniform();
-
-        unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
-        if((mesh_res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
+        if(mat_res != nullptr && mesh_res != nullptr)
         {
-            glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_TRUE, reinterpret_cast<const float*>(render_info.skin_palette));
-
-            vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
+            DrawMeshColor(mesh_res, mat_res);
         }
-        else
-        {
-            vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_RIGID;
-        }
-
-        glUniformSubroutinesuiv(GL_VERTEX_SHADER, sizeof(vertex_indices)/sizeof(unsigned), vertex_indices);
-
-        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&render_info.transform));
-
-        glBindVertexArray(mesh_res->vao);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_res->ibo);
-        glDrawElements(GL_TRIANGLES, mesh_res->num_indices, GL_UNSIGNED_INT, nullptr);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
+    else
+    {
+        DrawParticles(render_info->particles);
+    }
+}
+
+void ModuleRenderer::DrawMeshColor(const ResourceMesh* mesh, const ResourceMaterial* material)
+{
+    App->programs->UseProgram("default", 0);
+
+    mat_res->UpdateUniforms();
+    UpdateLightUniform();
+
+    unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
+    if((mesh_res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
+    {
+        glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), mesh_res->num_bones, GL_TRUE, reinterpret_cast<const float*>(render_info.skin_palette));
+
+        vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
+    }
+    else
+    {
+        vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_RIGID;
+    }
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, sizeof(vertex_indices)/sizeof(unsigned), vertex_indices);
+
+    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&render_info.transform));
+
+    glBindVertexArray(mesh_res->vao);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_res->ibo);
+    glDrawElements(GL_TRIANGLES, mesh_res->num_indices, GL_UNSIGNED_INT, nullptr);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void ModuleRenderer::DrawParticles(const ComponentParticleSystem* particles)
+{
+    App->programs->UseProgram("particles", 0);
+
+    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&render_info.transform));
+
+    particles->Draw();
 }
 
 void ModuleRenderer::LoadDefaultShaders()
@@ -357,96 +385,6 @@ void ModuleRenderer::LoadDefaultShaders()
 
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros, nullptr, 0);
     App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0, nullptr, 0);
-}
-
-void ModuleRenderer::UpdateMaterialUniform(const ResourceMaterial* material) const
-{
-    static const unsigned MATERIAL_LOCATION = 0;
-
-    const ResourceTexture* specular  = material->GetTextureRes(ResourceMaterial::TextureSpecular);
-    const ResourceTexture* diffuse   = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
-    const ResourceTexture* occlusion = material->GetTextureRes(ResourceMaterial::TextureOcclusion);
-    const ResourceTexture* emissive  = material->GetTextureRes(ResourceMaterial::TextureEmissive);
-    const ResourceTexture* normal    = material->GetTextureRes(ResourceMaterial::TextureNormal);
-
-    unsigned diffuse_id   = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
-
-    unsigned specular_id  = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? 
-                            specular->GetID() : App->resources->GetWhiteFallback()->GetID();
-
-    unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
-    unsigned emissive_id  = emissive ? emissive->GetID() : App->resources->GetWhiteFallback()->GetID();
-    unsigned normal_id    = normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) ? normal->GetID() : 0;
-
-    float4 diffuse_color  = material->GetDiffuseColor();
-    float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : material->GetSpecularColor();
-    float3 emissive_color = emissive ? float3(1.0f) : material->GetEmissiveColor();
-    float shininess	      = specular ? 1.0f :  material->GetShininess();
-
-    glActiveTexture(GL_TEXTURE7);
-    glBindTexture(GL_TEXTURE_2D, sky_brdf);
-    glUniform1i(202, 7);
-
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, sky_prefilter);
-    glUniform1i(201, 6);
-
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, sky_irradiance);
-    glUniform1i(200, 5);
-
-    glUniform1f(SHININESS_LOC, shininess);
-
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, normal_id);
-    glUniform1i(NORMAL_MAP_LOC, 4);
-
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, emissive_id);
-    glUniform1i(EMISSIVE_MAP_LOC, 3);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, occlusion_id);
-    glUniform1i(OCCLUSION_MAP_LOC, 2);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specular_id);
-    glUniform1i(SPECULAR_MAP_LOC, 1);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuse_id);
-    glUniform1i(DIFFUSE_MAP_LOC, 0);
-
-    glUniform4fv(DIFFUSE_COLOR_LOC, 1, (const float*)&diffuse_color);
-    glUniform3fv(SPECULAR_COLOR_LOC, 1, (const float*)&specular_color);
-    glUniform3fv(EMISSIVE_COLOR_LOC, 1, (const float*)&emissive_color);
-
-    glUniform1f(AMBIENT_CONSTANT_LOC, material->GetKAmbient());
-    glUniform1f(DIFFUSE_CONSTANT_LOC, material->GetKDiffuse());
-    glUniform1f(SPECULAR_CONSTANT_LOC, material->GetKSpecular());
-
-    unsigned fragment_indices[NUM_FRAGMENT_SUBROUTINE_UNIFORMS];
-
-
-    if(normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING))
-    {
-        fragment_indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_TEXTURE;
-    }
-    else
-    {
-        fragment_indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_VERTEX;
-    }
-
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_FRESNEL))
-    {
-        fragment_indices[GET_FRESNEL_LOCATION] = GET_FRESNEL_SCHLICK;
-    }
-    else
-    {
-        fragment_indices[GET_FRESNEL_LOCATION] = GET_NO_FRESNEL;
-    }
-
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(fragment_indices)/sizeof(unsigned), fragment_indices);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
@@ -562,7 +500,7 @@ void ModuleRenderer::DebugDrawTangentSpace()
 {
     for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
     {
-        if(it->material->GetDDTangent())
+        if(it->material && it->material->GetDDTangent())
         {
             const ResourceMesh* mesh = it->mesh->GetResource();
 
@@ -575,7 +513,7 @@ void ModuleRenderer::DebugDrawTangentSpace()
 
     for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
     {
-        if(it->material->GetDDTangent())
+        if(it->material && it->material->GetDDTangent())
         {
             const ResourceMesh* mesh = it->mesh->GetResource();
 
@@ -609,8 +547,7 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	bool msaa   = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
-
+	bool msaa  = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
     int flags  = msaa ? 1 << 0 : 0;
     flags      = flags | (App->hints->GetBoolValue(ModuleHints::ENABLE_GAMMA) ? 1 << 1 : 0);
 

@@ -44,6 +44,8 @@ public:
 
     static UID              Import              (const aiMaterial* material, const char* source_file);
 
+    void                    UpdateUniforms      ();
+
     const float4&           GetDiffuseColor     () const { return diffuse_color;}
     void                    SetDiffuseColor     (const float4& value) { diffuse_color = value; }
 
