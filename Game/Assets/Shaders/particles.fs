@@ -28,9 +28,6 @@ void main()
 	vec4 diffuse1 = texture(material.diffuse_map, fragment.uv1);
     vec4 diffuse  = mix(diffuse0, diffuse1, fragment.lambda);
 
-    if(length(diffuse.rgb) < 0.05)
-        discard;
-
     color = diffuse;
 
 	// gamma correction

@@ -158,11 +158,8 @@ update_status ModuleRenderer3D::Update(float dt)
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
-    //glEnable(GL_FRAMEBUFFER_SRGB);  
     viewport->Draw(active_camera);
-
     App->editor->Draw();
-    //glDisable(GL_FRAMEBUFFER_SRGB);  
 
     SDL_GL_SwapWindow(App->window->GetWindow());
 

@@ -1056,13 +1056,16 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
     bool modified = false;
     ResourceTexture* info = component->GetTextureRes();
 
-    char name[128];
-    strcpy_s(name, info->GetName());
+	if (info)
+	{
+		char name[128];
+		strcpy_s(name, info->GetName());
 
-    if(ImGui::InputText("Resource name", name, 128))
-    {
-        info->SetName(name);
-    }
+		if (ImGui::InputText("Resource name", name, 128))
+		{
+			info->SetName(name);
+		}
+	}
 
     ImVec2 size(64.0f, 64.0f);
 
@@ -1128,10 +1131,4 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
         component->SetTexture(new_res);
     }
 
-
-    float cur = component->GetCurrentVal();
-    if(ImGui::InputFloat("Current frame", &cur, 1.0))
-    {
-        component->SetCurrentVal(cur);
-    }
 }

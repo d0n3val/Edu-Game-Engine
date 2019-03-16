@@ -68,8 +68,13 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
         bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
 
-        App->renderer->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
-        App->debug_draw->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
+        glBindFramebuffer(GL_FRAMEBUFFER, msaa ? msaa_fbuffer.id : fbuffer.id);
+        glViewport(0, 0, fb_width, fb_height);
+        glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		App->debug_draw->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
+		App->renderer->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
 
         App->renderer->Postprocess(msaa ? msaa_fbuffer.tex : fbuffer.tex, post_fbuffer.id, fb_width, fb_height);
 

@@ -89,8 +89,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
 {
     // Update particle positions
     
-    const float speed = 15.0f; // fps; 
-    sheet_animation.current = min(sheet_animation.current+speed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles-1));
+    const float speed = 20.0f; // fps; 
+
+    sheet_animation.current = fmodf(sheet_animation.current+speed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles));
+    //sheet_animation.current = min(sheet_animation.current+speed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles-1));
 }
 
 void ComponentParticleSystem::UpdateBuffers()

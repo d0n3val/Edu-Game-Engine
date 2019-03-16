@@ -30,9 +30,6 @@ public:
     UID                     GetTexture      () const { return texture; }
     void                    SetTexture      (UID tex);
 
-    float                   GetCurrentVal   () const { return sheet_animation.current; }
-    void                    SetCurrentVal   (float v)  { sheet_animation.current = v; }
-
 private:
 
     void        UpdateBuffers();
@@ -42,8 +39,8 @@ private:
 
     struct TextureSheet
     {
-        uint x_tiles = 8;
-        uint y_tiles = 4;
+        uint x_tiles = 6;
+        uint y_tiles = 6;
         float current = 0.0f;
     };
 
