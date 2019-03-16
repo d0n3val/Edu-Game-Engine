@@ -6,6 +6,8 @@ struct Material
 struct VertexOut
 {
     vec2 uv0;
+    vec2 uv1;
+    float lambda;
     vec3 position;
 };
 
@@ -22,9 +24,14 @@ out vec4 color;
 
 void main()
 {
-	vec4 diffuse = texture(material.diffuse_map, fragment.uv0);
+	vec4 diffuse0 = texture(material.diffuse_map, fragment.uv0);
+	vec4 diffuse1 = texture(material.diffuse_map, fragment.uv1);
+    vec4 diffuse  = mix(diffuse0, diffuse1, fragment.lambda);
 
-    color = vec4(diffuse.rgb, 1.0);
+    if(length(diffuse.rgb) < 0.05)
+        discard;
+
+    color = diffuse;
 
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));

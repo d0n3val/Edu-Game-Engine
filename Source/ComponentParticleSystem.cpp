@@ -14,6 +14,7 @@
 #include "mmgr/mmgr.h"
 
 #define TEXTURE_MAP_LOC 0
+#define SHEET_LOC 10
 
 ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Component(container, Types::ParticleSystem)
 {
@@ -81,11 +82,15 @@ void ComponentParticleSystem::OnPlay()
 
 void ComponentParticleSystem::OnStop() 
 {
+    sheet_animation.current = 0.0f;
 }
 
 void ComponentParticleSystem::OnUpdate(float dt) 
 {
     // Update particle positions
+    
+    const float speed = 15.0f; // fps; 
+    sheet_animation.current = min(sheet_animation.current+speed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles-1));
 }
 
 void ComponentParticleSystem::UpdateBuffers()
@@ -187,6 +192,10 @@ void ComponentParticleSystem::Draw()
 
     float4x4 transform = GetGameObject()->GetGlobalTransformation();
     glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+
+    glUniform1i(SHEET_LOC, sheet_animation.x_tiles);
+    glUniform1i(SHEET_LOC+1, sheet_animation.y_tiles);
+    glUniform1f(SHEET_LOC+2, sheet_animation.current);
 
     glBindVertexArray(vao);
 

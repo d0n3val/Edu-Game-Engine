@@ -1056,40 +1056,46 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
     bool modified = false;
     ResourceTexture* info = component->GetTextureRes();
 
+    char name[128];
+    strcpy_s(name, info->GetName());
+
+    if(ImGui::InputText("Resource name", name, 128))
+    {
+        info->SetName(name);
+    }
+
     ImVec2 size(64.0f, 64.0f);
 
     if (info != nullptr)
     {
         if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
-			ImGui::OpenPopup("texture");
+            ImGui::OpenPopup("texture");
         }
         else 
         {
-			if (ImGui::IsItemHovered())
-			{
-				ImGui::SetTooltip("%s", info->GetFile());
-			}
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("%s", info->GetFile());
+            }
         }
     }
     else
     {
         if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
         {
-			ImGui::OpenPopup("texture");
+            ImGui::OpenPopup("texture");
         }
     }
 
-    /*
     ImGui::SameLine();
     ImGui::BeginGroup();
-    ImGui::Text("Texture:");
     if(info != nullptr)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
 
-		std::string file;
-		App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+        std::string file;
+        App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
         ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
@@ -1101,6 +1107,7 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
             info->EnableMips(mips);
         }
 
+        ImGui::SameLine();
         bool linear = !info->GetLinear();
         if(ImGui::Checkbox("sRGB", &linear))
         {
@@ -1110,17 +1117,21 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
         if(ImGui::SmallButton("Delete"))
         {
             component->SetTexture(0);
-            modified = true;
         }
     }
     ImGui::EndGroup();
-    */
 
     UID new_res = OpenResourceModal(Resource::texture, "texture");
 
     if(new_res != 0)
     {
         component->SetTexture(new_res);
-        modified = true;
+    }
+
+
+    float cur = component->GetCurrentVal();
+    if(ImGui::InputFloat("Current frame", &cur, 1.0))
+    {
+        component->SetCurrentVal(cur);
     }
 }

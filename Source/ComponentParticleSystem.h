@@ -30,12 +30,22 @@ public:
     UID                     GetTexture      () const { return texture; }
     void                    SetTexture      (UID tex);
 
+    float                   GetCurrentVal   () const { return sheet_animation.current; }
+    void                    SetCurrentVal   (float v)  { sheet_animation.current = v; }
+
 private:
 
     void        UpdateBuffers();
     void        UpdateBillboards();
 
 private:
+
+    struct TextureSheet
+    {
+        uint x_tiles = 8;
+        uint y_tiles = 4;
+        float current = 0.0f;
+    };
 
     uint vao               = 0;
     uint vbo               = 0;
@@ -45,11 +55,7 @@ private:
 
     UID texture = 0;
 
-    struct TextureSheet
-    {
-        uint x_tiles = 0;
-        uint y_tiles = 0;
-    };
+    TextureSheet sheet_animation;
 
     std::vector<Billboard> billboards; // \todo: live/dead pattern
 };
