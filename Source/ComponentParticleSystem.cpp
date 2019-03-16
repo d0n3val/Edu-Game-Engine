@@ -1,17 +1,19 @@
 #include "Globals.h"
 
 #include "ComponentParticleSystem.h"
-#include "ResourceMaterial.h"
 
 #include "Application.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleResources.h"
 #include "ModulePrograms.h"
 #include "GameObject.h"
+#include "ResourceTexture.h"
 
 #include "OpenGL.h"
 
 #include "mmgr/mmgr.h"
+
+#define TEXTURE_MAP_LOC 0
 
 ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Component(container, Types::ParticleSystem)
 {
@@ -35,8 +37,7 @@ ComponentParticleSystem::~ComponentParticleSystem()
 
 void ComponentParticleSystem::OnSave(Config& config) const 
 {
-	config.AddUID("Material", material);
-	config.AddUInt("Min_Num_Quads", vb_min_num_quads);
+	config.AddUID("Texture", texture);
 
 	config.AddArrayEntry("Billboards");
 
@@ -52,8 +53,7 @@ void ComponentParticleSystem::OnSave(Config& config) const
 
 void ComponentParticleSystem::OnLoad(Config* config) 
 {
-    material = config->GetUID("Material", 0);
-	vb_min_num_quads = config->GetUInt("Min_Num_Quads", 32);
+    SetTexture(config->GetUID("Texture", 0));
 
     uint count = config->GetArrayCount("Resources");
 
@@ -92,7 +92,7 @@ void ComponentParticleSystem::UpdateBuffers()
 {
     if(vb_num_quads < billboards.size())
     {
-        vb_num_quads = max(billboards.size(), vb_min_num_quads);
+        vb_num_quads = billboards.size();
 
         if(vbo == 0)
         {
@@ -101,6 +101,18 @@ void ComponentParticleSystem::UpdateBuffers()
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, vertex_size*vb_num_quads*4, nullptr, GL_DYNAMIC_DRAW);
+
+        float2* uv = (float2*)glMapBufferRange(GL_ARRAY_BUFFER, vb_num_quads*4*sizeof(float3), vb_num_quads*4*sizeof(float2), GL_MAP_WRITE_BIT);
+
+        for(uint i=0; i< vb_num_quads; ++i)
+        {
+            uv[i*4+0] = float2(0, 0); 
+            uv[i*4+1] = float2(1, 0);
+            uv[i*4+2] = float2(1, 1);
+            uv[i*4+3] = float2(0, 1);
+        }
+
+		glUnmapBuffer(GL_ARRAY_BUFFER);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         if(ibo == 0)
@@ -136,6 +148,9 @@ void ComponentParticleSystem::UpdateBuffers()
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)0);
 
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(vb_num_quads*4*sizeof(float3)));
+
         glBindVertexArray(0);
     }
 }
@@ -161,11 +176,13 @@ void ComponentParticleSystem::Draw()
     UpdateBuffers();
     UpdateBillboards();
 
-    const ResourceMaterial* mat_res = static_cast<const ResourceMaterial*>(App->resources->Get(material));
+    const ResourceTexture* tex_res = static_cast<const ResourceTexture*>(App->resources->Get(texture));
     
-    if(mat_res)
+    if(tex_res)
     {
-        mat_res->UpdateUniforms();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, tex_res->GetID());
+        glUniform1i(TEXTURE_MAP_LOC, 0);
     }
 
     float4x4 transform = GetGameObject()->GetGlobalTransformation();
@@ -179,20 +196,30 @@ void ComponentParticleSystem::Draw()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
-const ResourceMaterial* ComponentParticleSystem::GetMaterialRes() const
+const ResourceTexture* ComponentParticleSystem::GetTextureRes() const
 {
-	return static_cast<const ResourceMaterial*>(App->resources->Get(this->material));
+	return static_cast<const ResourceTexture*>(App->resources->Get(texture));
 }
 
-ResourceMaterial* ComponentParticleSystem::GetMaterialRes()
+ResourceTexture* ComponentParticleSystem::GetTextureRes()
 {
-	return static_cast<ResourceMaterial*>(App->resources->Get(this->material));
+	return static_cast<ResourceTexture*>(App->resources->Get(texture));
+}
+
+void ComponentParticleSystem::SetTexture(UID uid)
+{
+    Resource* res = App->resources->Get(uid);
+
+    if (res != nullptr && res->GetType() == Resource::texture)
+    {
+        if(res->LoadToMemory() == true)
+        {
+            texture = uid;
+        }
+    }
 }

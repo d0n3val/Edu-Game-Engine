@@ -222,6 +222,11 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
     App->programs->UnuseProgram();
 
+    App->programs->UseProgram("particles", 0);
+    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+    App->programs->UnuseProgram();
+
     DrawNodes(&ModuleRenderer::DrawColor);
 
     //DrawSkybox(proj, view);
@@ -330,7 +335,7 @@ void ModuleRenderer::DrawMeshColor(const ComponentMesh* mesh)
 
 void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)
 {
-    App->programs->UseProgram("default", 0);
+    App->programs->UseProgram("particles", 0);
 
     particles->Draw();
 }
@@ -344,6 +349,7 @@ void ModuleRenderer::LoadDefaultShaders()
 
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros, nullptr, 0);
     App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0, nullptr, 0);
+    App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const

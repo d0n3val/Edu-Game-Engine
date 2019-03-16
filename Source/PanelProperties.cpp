@@ -832,7 +832,6 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
     if (info != nullptr)
     {
 		ImGui::PushID(texture);
-        glEnable(GL_FRAMEBUFFER_SRGB);  
         if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
@@ -847,7 +846,6 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 				ImGui::SetTooltip("%s", info->GetFile());
 			}
         }
-        glDisable(GL_FRAMEBUFFER_SRGB);  
     }
     else
     {
@@ -1055,32 +1053,74 @@ void PanelProperties::DrawRootMotionComponent(ComponentRootMotion * component)
 
 void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* component)
 {
-    ResourceMaterial* mat_res = component->GetMaterialRes();
+    bool modified = false;
+    ResourceTexture* info = component->GetTextureRes();
 
-    UID new_res = PickResourceModal(Resource::material);
+    ImVec2 size(64.0f, 64.0f);
 
-    ImGui::SameLine();
-    if(ImGui::Button("New material"))
+    if (info != nullptr)
     {
-        mat_res = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material, 0));
-        bool save_ok = mat_res->Save();
-
-        if(save_ok)
+        if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
-            new_res = mat_res->GetUID();
+			ImGui::OpenPopup("texture");
+        }
+        else 
+        {
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("%s", info->GetFile());
+			}
+        }
+    }
+    else
+    {
+        if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
+        {
+			ImGui::OpenPopup("texture");
         }
     }
 
-    if (new_res > 0)
+    /*
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+    ImGui::Text("Texture:");
+    if(info != nullptr)
     {
-        component->SetMaterial(new_res);
-        App->resources->Get(new_res)->LoadToMemory();
+        ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
+
+		std::string file;
+		App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+
+        ImGui::Text("%s", file.c_str());
+        ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
+        ImGui::PopStyleColor();
+
+        bool mips = info->HasMips();
+        if(ImGui::Checkbox("Mipmaps", &mips))
+        {
+            info->EnableMips(mips);
+        }
+
+        bool linear = !info->GetLinear();
+        if(ImGui::Checkbox("sRGB", &linear))
+        {
+            info->SetLinear(!linear);
+        }
+
+        if(ImGui::SmallButton("Delete"))
+        {
+            component->SetTexture(0);
+            modified = true;
+        }
     }
-    else if(mat_res)
+    ImGui::EndGroup();
+    */
+
+    UID new_res = OpenResourceModal(Resource::texture, "texture");
+
+    if(new_res != 0)
     {
-        DrawMaterialResource(mat_res);
+        component->SetTexture(new_res);
+        modified = true;
     }
-
-    ImGui::Separator();
-
 }

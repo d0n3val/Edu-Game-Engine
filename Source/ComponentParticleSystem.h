@@ -5,7 +5,7 @@
 #include "Billboard.h"
 #include <vector>
 
-class ResourceMaterial;
+class ResourceTexture;
 
 class ComponentParticleSystem : public Component
 {
@@ -24,11 +24,11 @@ public:
 
     static Types            GetClassType    () { return ParticleSystem; }
 
-    const ResourceMaterial* GetMaterialRes  () const;
-    ResourceMaterial*       GetMaterialRes  ();
+    const ResourceTexture*  GetTextureRes   () const;
+    ResourceTexture*        GetTextureRes   ();
 
-    UID                     GetMaterial     () const { return material; }
-    void                    SetMaterial     (UID mat) { material = mat; }
+    UID                     GetTexture      () const { return texture; }
+    void                    SetTexture      (UID tex);
 
 private:
 
@@ -41,10 +41,9 @@ private:
     uint vbo               = 0;
     uint ibo               = 0;
     uint vb_num_quads      = 0;
-    uint vb_min_num_quads  = 32;
-    const uint vertex_size = sizeof(float3);
+    const uint vertex_size = sizeof(float3)+sizeof(float2);
 
-    UID material = 0;
+    UID texture = 0;
 
     struct TextureSheet
     {
