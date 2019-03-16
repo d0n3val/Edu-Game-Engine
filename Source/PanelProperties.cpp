@@ -1131,4 +1131,21 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
         component->SetTexture(new_res);
     }
 
+    uint x_tiles = 1, y_tiles = 1;
+    component->GetSheetTiles(x_tiles, y_tiles);
+    if(ImGui::InputInt("sheet x tiles", (int*)&x_tiles) || ImGui::InputInt("sheet y tiles", (int*)&y_tiles))
+    {
+        component->SetSheetTiles(x_tiles, y_tiles);
+    }
+
+    float speed = component->GetSheetSpeed();
+    if(ImGui::InputFloat("sheet speed", &speed, 0.1f))
+    {
+        component->SetSheetSpeed(speed);
+    }
+
+    if(ImGui::Button("Add particle"))
+    {
+        component->AddParticle();
+    }
 }

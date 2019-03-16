@@ -30,18 +30,26 @@ public:
     UID                     GetTexture      () const { return texture; }
     void                    SetTexture      (UID tex);
 
+    void                    GetSheetTiles   (uint& x, uint& y) const { x = sheet_animation.x_tiles; y = sheet_animation.y_tiles;}
+    void                    SetSheetTiles   (uint x, uint y)  { sheet_animation.x_tiles = x; sheet_animation.y_tiles = y;}
+    float                   GetSheetSpeed   () const { return sheet_animation.speed; }
+    void                    SetSheetSpeed   (float s)  { sheet_animation.speed = s; }
+
+    void                    AddParticle     ();
+
 private:
 
     void        UpdateBuffers();
-    void        UpdateBillboards();
+    void        UpdateParticles();
 
 private:
 
     struct TextureSheet
     {
-        uint x_tiles = 6;
-        uint y_tiles = 6;
+        uint x_tiles  = 1;
+        uint y_tiles  = 1;
         float current = 0.0f;
+        float speed   = 24.0f;
     };
 
     uint vao               = 0;
@@ -54,7 +62,18 @@ private:
 
     TextureSheet sheet_animation;
 
-    std::vector<Billboard> billboards; // \todo: live/dead pattern
+    struct TParticle
+    {
+        Billboard billboard;
+        float     distance = 0.0f;
+
+        bool operator<(const TParticle& rhs) const
+        {
+            return distance < rhs.distance;
+        }
+    };
+
+    std::vector<TParticle> particles; 
 };
 
 #endif /* __COMPONENT_PARTICLE_SYSTEM_H__ */

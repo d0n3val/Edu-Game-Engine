@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "ComponentParticleSystem.h"
+#include "ComponentCamera.h"
 
 #include "Application.h"
 #include "ModuleRenderer3D.h"
@@ -10,6 +11,8 @@
 #include "ResourceTexture.h"
 
 #include "OpenGL.h"
+
+#include <algorithm>
 
 #include "mmgr/mmgr.h"
 
@@ -40,16 +43,20 @@ void ComponentParticleSystem::OnSave(Config& config) const
 {
 	config.AddUID("Texture", texture);
 
-	config.AddArrayEntry("Billboards");
+	config.AddArrayEntry("Particles");
 
-	for (uint i = 0; i < billboards.size(); ++i)
+	for (uint i = 0; i < particles.size(); ++i)
 	{
-		Config billboard;
-		billboard.AddFloat3("position", billboards[i].GetPosition());
-		billboard.AddFloat2("size", billboards[i].GetSize());
+		Config particle;
+		particle.AddFloat3("position", particles[i].billboard.GetPosition());
+		particle.AddFloat2("size", particles[i].billboard.GetSize());
 
-        config.AddArrayEntry(billboard);
+        config.AddArrayEntry(particle);
 	}
+
+    config.AddInt("Sheet x", sheet_animation.x_tiles);
+    config.AddInt("Sheet y", sheet_animation.y_tiles);
+    config.AddFloat("Sheet speed", sheet_animation.speed);
 }
 
 void ComponentParticleSystem::OnLoad(Config* config) 
@@ -58,22 +65,19 @@ void ComponentParticleSystem::OnLoad(Config* config)
 
     uint count = config->GetArrayCount("Resources");
 
-    billboards.resize(count);
+    particles.resize(count);
 
     for(uint i=0; i < count; ++i)
     {
-        Config billboard(config->GetArray("Resources", i));
+        Config particle(config->GetArray("Particles", i));
 
-        billboards[i].SetPosition(billboard.GetFloat3("position"));
-        billboards[i].SetSize(billboard.GetFloat2("size"));
+        particles[i].billboard.SetPosition(particle.GetFloat3("position"));
+        particles[i].billboard.SetSize(particle.GetFloat2("size"));
     }
 
-    if(count == 0) // \hack
-    {
-        billboards.resize(1);
-        billboards[0].SetPosition(float3::zero);
-        billboards[0].SetSize(float2(1, 1));
-    }
+    sheet_animation.x_tiles = config->GetInt("Sheet x", 1);
+    sheet_animation.y_tiles = config->GetInt("Sheet y", 1);
+    sheet_animation.speed   = config->GetFloat("Sheet speed", 24.0);
 }
 
 void ComponentParticleSystem::OnPlay() 
@@ -89,17 +93,15 @@ void ComponentParticleSystem::OnUpdate(float dt)
 {
     // Update particle positions
     
-    const float speed = 20.0f; // fps; 
-
-    sheet_animation.current = fmodf(sheet_animation.current+speed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles));
-    //sheet_animation.current = min(sheet_animation.current+speed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles-1));
+    sheet_animation.current = fmodf(sheet_animation.current+sheet_animation.speed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles));
+    //sheet_animation.current = min(sheet_animation.current+sheet_animation.peed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles-1));
 }
 
 void ComponentParticleSystem::UpdateBuffers()
 {
-    if(vb_num_quads < billboards.size())
+    if(vb_num_quads < particles.size())
     {
-        vb_num_quads = billboards.size();
+        vb_num_quads = particles.size();
 
         if(vbo == 0)
         {
@@ -143,35 +145,48 @@ void ComponentParticleSystem::UpdateBuffers()
 
 		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
 
-    if(vao == 0)
-    {
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
+        if(vao == 0)
+        {
+            glGenVertexArrays(1, &vao);
+            glBindVertexArray(vao);
 
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)0);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)0);
 
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(vb_num_quads*4*sizeof(float3)));
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(vb_num_quads*4*sizeof(float3)));
 
-        glBindVertexArray(0);
+            glBindVertexArray(0);
+        }
     }
 }
 
 
-void ComponentParticleSystem::UpdateBillboards()
+void ComponentParticleSystem::UpdateParticles()
 {
-    if(!billboards.empty())
+    if(!particles.empty())
     {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         float3* vertices = (float3*)glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_size*vb_num_quads*4, GL_MAP_WRITE_BIT);
 
-        // todo: sort front to back
-        Billboard::GetVertices(&billboards[0], billboards.size(), vertices, App->renderer3D->active_camera);
+        ComponentCamera* camera = App->renderer3D->active_camera;
+
+        float3 camera_pos = camera->GetViewMatrix().RotatePart().Transposed().Transform(-camera->GetViewMatrix().TranslatePart());
+
+        for(uint i=0; i< particles.size(); ++i)
+        {
+            particles[i].distance = (particles[i].billboard.GetPosition()-camera_pos).LengthSq();
+        }
+
+        std::sort(particles.begin(), particles.end());
+
+        for(uint i=0; i< particles.size(); ++i)
+        {
+            particles[i].billboard.GetVertices(vertices, camera);
+        }
 
         glUnmapBuffer(GL_ARRAY_BUFFER);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -181,7 +196,7 @@ void ComponentParticleSystem::UpdateBillboards()
 void ComponentParticleSystem::Draw()
 {
     UpdateBuffers();
-    UpdateBillboards();
+    UpdateParticles();
 
     const ResourceTexture* tex_res = static_cast<const ResourceTexture*>(App->resources->Get(texture));
     
@@ -233,4 +248,11 @@ void ComponentParticleSystem::SetTexture(UID uid)
             texture = uid;
         }
     }
+}
+
+void ComponentParticleSystem::AddParticle()
+{
+    particles.push_back(TParticle());
+    particles.back().billboard.SetPosition(float3(App->random->Float01Incl(), App->random->Float01Incl(), App->random->Float01Incl()));
+    particles.back().billboard.SetSize(float2(1.0f, 1.0f));
 }
