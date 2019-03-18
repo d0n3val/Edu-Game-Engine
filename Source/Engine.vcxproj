@@ -135,7 +135,6 @@
     <ClInclude Include="Assimp\include\vector2.h" />
     <ClInclude Include="Assimp\include\vector3.h" />
     <ClInclude Include="Assimp\include\version.h" />
-    <ClInclude Include="Billboard.h" />
     <ClInclude Include="Bullet\include\btBulletCollisionCommon.h" />
     <ClInclude Include="Bullet\include\btBulletDynamicsCommon.h" />
     <ClInclude Include="Color.h" />
@@ -292,7 +291,6 @@
     <ClCompile Include="AmbientLight.cpp" />
     <ClCompile Include="AnimController.cpp" />
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="Billboard.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentAnimation.cpp" />

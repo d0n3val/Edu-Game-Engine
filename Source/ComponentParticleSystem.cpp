@@ -21,6 +21,37 @@
 
 ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Component(container, Types::ParticleSystem)
 {
+    static const float vertices[] = { -0.5f, -0.5f, 0.0f , 0.5f, -0.5f, 0.0f , 0.5f, 0.5f, 0.0f , -0.5f, 0.5f, 0.0f, 
+                                        0.0f,  0.0f,        1.0f,  0.0f,        1.0f, 1.0f,        0.0f, 1.0f };
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    static const unsigned indices[] = { 0, 1, 2, 0, 2, 3 };
+
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    if(vao == 0)
+    {
+        glGenVertexArrays(1, &vao);
+    }
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, (void*)0);
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (void*)(4*sizeof(float)*3));
+
+    glBindVertexArray(0);
 }
 
 ComponentParticleSystem::~ComponentParticleSystem()
@@ -48,8 +79,8 @@ void ComponentParticleSystem::OnSave(Config& config) const
 	for (uint i = 0; i < particles.size(); ++i)
 	{
 		Config particle;
-		particle.AddFloat3("position", particles[i].billboard.GetPosition());
-		particle.AddFloat2("size", particles[i].billboard.GetSize());
+		particle.AddFloat3("position", particles[i].position);
+		particle.AddFloat2("size", particles[i].size);
 
         config.AddArrayEntry(particle);
 	}
@@ -71,8 +102,8 @@ void ComponentParticleSystem::OnLoad(Config* config)
     {
         Config particle(config->GetArray("Particles", i));
 
-        particles[i].billboard.SetPosition(particle.GetFloat3("position"));
-        particles[i].billboard.SetSize(particle.GetFloat2("size"));
+        particles[i].position = particle.GetFloat3("position");
+        particles[i].size = particle.GetFloat2("size");
     }
 
     sheet_animation.x_tiles = config->GetInt("Sheet x", 1);
@@ -97,108 +128,31 @@ void ComponentParticleSystem::OnUpdate(float dt)
     //sheet_animation.current = min(sheet_animation.current+sheet_animation.peed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles-1));
 }
 
-void ComponentParticleSystem::UpdateBuffers()
-{
-    if(vb_num_quads < particles.size())
-    {
-        vb_num_quads = particles.size();
-
-        if(vbo == 0)
-        {
-            glGenBuffers(1, &vbo);
-        }
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertex_size*vb_num_quads*4, nullptr, GL_DYNAMIC_DRAW);
-
-        float2* uv = (float2*)glMapBufferRange(GL_ARRAY_BUFFER, vb_num_quads*4*sizeof(float3), vb_num_quads*4*sizeof(float2), GL_MAP_WRITE_BIT);
-
-        for(uint i=0; i< vb_num_quads; ++i)
-        {
-            uv[i*4+0] = float2(0, 0); 
-            uv[i*4+1] = float2(1, 0);
-            uv[i*4+2] = float2(1, 1);
-            uv[i*4+3] = float2(0, 1);
-        }
-
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        if(ibo == 0)
-        {
-            glGenBuffers(1, &ibo);
-        }
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, vb_num_quads*6*sizeof(unsigned), nullptr, GL_STATIC_DRAW);
-        unsigned* indices = (unsigned*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, vb_num_quads*6, GL_MAP_WRITE_BIT);
-
-        for(uint i=0; i< vb_num_quads; ++i)
-        {
-            indices[i*6+0] = i*4+0;
-            indices[i*6+1] = i*4+1;
-            indices[i*6+2] = i*4+2;
-            indices[i*6+3] = i*4+0;
-            indices[i*6+4] = i*4+2;
-            indices[i*6+5] = i*4+3;
-        }
-
-		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-        if(vao == 0)
-        {
-            glGenVertexArrays(1, &vao);
-            glBindVertexArray(vao);
-
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)0);
-
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(vb_num_quads*4*sizeof(float3)));
-
-            glBindVertexArray(0);
-        }
-    }
-}
-
-
 void ComponentParticleSystem::UpdateParticles()
 {
-    if(!particles.empty())
+    ComponentCamera* camera = App->renderer3D->active_camera;
+
+    for(uint i=0; i< particles.size(); ++i)
     {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        float3* vertices = (float3*)glMapBufferRange(GL_ARRAY_BUFFER, 0, vertex_size*vb_num_quads*4, GL_MAP_WRITE_BIT);
-
-        ComponentCamera* camera = App->renderer3D->active_camera;
-
         float3 camera_pos = camera->GetViewMatrix().RotatePart().Transposed().Transform(-camera->GetViewMatrix().TranslatePart());
+        float3 z_axis = camera_pos-particles[i].position; z_axis.Normalize();
+        float3 y_axis = float3::unitY;
+        float3 x_axis = z_axis.Cross(y_axis); x_axis.Normalize();
 
-        for(uint i=0; i< particles.size(); ++i)
-        {
-            particles[i].distance = (particles[i].billboard.GetPosition()-camera_pos).LengthSq();
-        }
-
-        std::sort(particles.begin(), particles.end());
-
-        for(uint i=0; i< particles.size(); ++i)
-        {
-            particles[i].billboard.GetVertices(vertices, camera);
-        }
-
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        particles[i].transform.SetCol3(0, x_axis);
+        particles[i].transform.SetCol3(1, y_axis);
+        particles[i].transform.SetCol3(2, z_axis);
     }
 }
 
 void ComponentParticleSystem::Draw()
 {
-    UpdateBuffers();
     UpdateParticles();
 
     const ResourceTexture* tex_res = static_cast<const ResourceTexture*>(App->resources->Get(texture));
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
     
     if(tex_res)
     {
@@ -217,13 +171,15 @@ void ComponentParticleSystem::Draw()
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glDrawElements(GL_TRIANGLES, vb_num_quads*6, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    glDisable(GL_BLEND);
 }
 
 
@@ -253,6 +209,6 @@ void ComponentParticleSystem::SetTexture(UID uid)
 void ComponentParticleSystem::AddParticle()
 {
     particles.push_back(TParticle());
-    particles.back().billboard.SetPosition(float3(App->random->Float01Incl(), App->random->Float01Incl(), App->random->Float01Incl()));
-    particles.back().billboard.SetSize(float2(1.0f, 1.0f));
+    particles.back().position = float3(App->random->Float01Incl()*0.5f-0.25f, 0.5f, App->random->Float01Incl()*0.5f-0.25f);
+    particles.back().size = float2(1.0f, 1.0f);
 }

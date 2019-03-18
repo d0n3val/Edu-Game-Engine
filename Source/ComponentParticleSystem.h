@@ -2,7 +2,6 @@
 #define __COMPONENT_PARTICLE_SYSTEM_H__
 
 #include "Component.h"
-#include "Billboard.h"
 #include <vector>
 
 class ResourceTexture;
@@ -39,8 +38,7 @@ public:
 
 private:
 
-    void        UpdateBuffers();
-    void        UpdateParticles();
+    void                    UpdateParticles ();
 
 private:
 
@@ -55,7 +53,6 @@ private:
     uint vao               = 0;
     uint vbo               = 0;
     uint ibo               = 0;
-    uint vb_num_quads      = 0;
     const uint vertex_size = sizeof(float3)+sizeof(float2);
 
     UID texture = 0;
@@ -64,13 +61,9 @@ private:
 
     struct TParticle
     {
-        Billboard billboard;
-        float     distance = 0.0f;
-
-        bool operator<(const TParticle& rhs) const
-        {
-            return distance < rhs.distance;
-        }
+        float3    position;
+        float2    size;
+        float4x4  transform;
     };
 
     std::vector<TParticle> particles; 
