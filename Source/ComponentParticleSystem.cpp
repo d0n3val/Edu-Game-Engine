@@ -79,8 +79,8 @@ void ComponentParticleSystem::OnSave(Config& config) const
 	for (uint i = 0; i < particles.size(); ++i)
 	{
 		Config particle;
-		particle.AddFloat3("position", particles[i].position);
-		particle.AddFloat2("size", particles[i].size);
+		particle.AddFloat3("position", particles[i].transform.TranslatePart());
+		particle.AddFloat("size", particles[i].size);
 
         config.AddArrayEntry(particle);
 	}
@@ -102,8 +102,8 @@ void ComponentParticleSystem::OnLoad(Config* config)
     {
         Config particle(config->GetArray("Particles", i));
 
-        particles[i].position = particle.GetFloat3("position");
-        particles[i].size = particle.GetFloat2("size");
+        particles[i].transform.SetTranslatePart(particle.GetFloat3("position"));
+        particles[i].size = particle.GetFloat("size");
     }
 
     sheet_animation.x_tiles = config->GetInt("Sheet x", 1);
@@ -135,9 +135,9 @@ void ComponentParticleSystem::UpdateParticles()
     for(uint i=0; i< particles.size(); ++i)
     {
         float3 camera_pos = camera->GetViewMatrix().RotatePart().Transposed().Transform(-camera->GetViewMatrix().TranslatePart());
-        float3 z_axis = camera_pos-particles[i].position; z_axis.Normalize();
+        float3 z_axis = camera_pos-particles[i].transform.TranslatePart(); z_axis.Normalize();
         float3 y_axis = float3::unitY;
-        float3 x_axis = z_axis.Cross(y_axis); x_axis.Normalize();
+        float3 x_axis = y_axis.Cross(z_axis); x_axis.Normalize();
 
         particles[i].transform.SetCol3(0, x_axis);
         particles[i].transform.SetCol3(1, y_axis);
@@ -152,7 +152,7 @@ void ComponentParticleSystem::Draw()
     const ResourceTexture* tex_res = static_cast<const ResourceTexture*>(App->resources->Get(texture));
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     
     if(tex_res)
     {
@@ -163,6 +163,14 @@ void ComponentParticleSystem::Draw()
 
     float4x4 transform = GetGameObject()->GetGlobalTransformation();
     glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+    if(particles.empty())
+    {
+        glUniformMatrix4fv(App->programs->GetUniformLocation("transform"), 1, GL_TRUE, reinterpret_cast<const float*>(&float4x4::identity));
+    }
+    else
+    {
+        glUniformMatrix4fv(App->programs->GetUniformLocation("transform"), 1, GL_TRUE, reinterpret_cast<const float*>(&particles.front().transform));
+    }
 
     glUniform1i(SHEET_LOC, sheet_animation.x_tiles);
     glUniform1i(SHEET_LOC+1, sheet_animation.y_tiles);
@@ -209,6 +217,6 @@ void ComponentParticleSystem::SetTexture(UID uid)
 void ComponentParticleSystem::AddParticle()
 {
     particles.push_back(TParticle());
-    particles.back().position = float3(App->random->Float01Incl()*0.5f-0.25f, 0.5f, App->random->Float01Incl()*0.5f-0.25f);
-    particles.back().size = float2(1.0f, 1.0f);
+    particles.back().transform.SetTranslatePart(float3(App->random->Float01Incl()*0.5f-0.25f, 0.5f, App->random->Float01Incl()*0.5f-0.25f));
+    particles.back().size = 1.0f;
 }

@@ -6,6 +6,7 @@ layout(location = 2) in vec2 vertex_uv0;
 uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 model;
+uniform mat4 transform;
 
 struct Sheet
 {
@@ -38,7 +39,7 @@ void GetSheetUV(out vec2 uv, in vec2 src_uv, in float current, in float x_tiles,
 
 void main()
 {
-    fragment.position = (model*vec4(vertex_position, 1.0)).xyz;
+    fragment.position = ((model*transform)*vec4(vertex_position, 1.0)).xyz;
 
     GetSheetUV(fragment.uv0, vertex_uv0, sheet.current, sheet.x_tiles, sheet.y_tiles);
     GetSheetUV(fragment.uv1, vertex_uv0, sheet.current+1.0, sheet.x_tiles, sheet.y_tiles);

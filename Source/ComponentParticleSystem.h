@@ -61,9 +61,8 @@ private:
 
     struct TParticle
     {
-        float3    position;
-        float2    size;
-        float4x4  transform;
+        float    size = 1.0f;
+		float4x4 transform = float4x4::identity;
     };
 
     std::vector<TParticle> particles; 
