@@ -23,7 +23,7 @@ ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Compon
 {
     static const float vertices[] = { -0.5f, -0.5f, 0.0f , 0.5f, -0.5f, 0.0f , 0.5f, 0.5f, 0.0f , -0.5f, 0.5f, 0.0f, 
                                         0.0f,  0.0f,        1.0f,  0.0f,        1.0f, 1.0f,        0.0f, 1.0f };
-
+    glGenBuffers(1, &instance_vbo);
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -51,11 +51,36 @@ ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Compon
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (void*)(4*sizeof(float)*3));
 
+    glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)0);
+    glVertexAttribDivisor(3, 1);
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(sizeof(float)*4));
+    glVertexAttribDivisor(4, 1);
+
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(2*sizeof(float)*4));
+    glVertexAttribDivisor(5, 1);
+
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(3*sizeof(float)*4));
+    glVertexAttribDivisor(6, 1);
+
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 ComponentParticleSystem::~ComponentParticleSystem()
 {
+    if(instance_vbo != 0)
+    {
+        glDeleteBuffers(1, &instance_vbo);
+        instance_vbo = 0;
+    }
+
     if(vbo != 0)
     {
         glDeleteBuffers(1, &vbo);
@@ -66,6 +91,12 @@ ComponentParticleSystem::~ComponentParticleSystem()
     {
         glDeleteBuffers(1, &ibo);
         ibo = 0;
+    }
+
+    if(vao != 0)
+    {
+        glDeleteVertexArrays(1, &vao);
+        vao = 0;
     }
 
 }
@@ -122,72 +153,90 @@ void ComponentParticleSystem::OnStop()
 
 void ComponentParticleSystem::OnUpdate(float dt) 
 {
-    // Update particle positions
-    
     sheet_animation.current = fmodf(sheet_animation.current+sheet_animation.speed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles));
-    //sheet_animation.current = min(sheet_animation.current+sheet_animation.peed*dt, float(sheet_animation.x_tiles*sheet_animation.y_tiles-1));
+}
+
+void ComponentParticleSystem::UpdateInstanceBuffer()
+{
+    if(num_instances < particles.size())
+    {
+        num_instances = particles.size();
+        glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*4*3*num_instances, nullptr, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 }
 
 void ComponentParticleSystem::UpdateParticles()
 {
     ComponentCamera* camera = App->renderer3D->active_camera;
 
+    glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
+    float3* matrices = (float3*)glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof(float3)*4*num_instances, GL_MAP_WRITE_BIT);
+
     for(uint i=0; i< particles.size(); ++i)
     {
         float3 camera_pos = camera->GetViewMatrix().RotatePart().Transposed().Transform(-camera->GetViewMatrix().TranslatePart());
-        float3 z_axis = camera_pos-particles[i].transform.TranslatePart(); z_axis.Normalize();
+
+        float3 translation = particles[i].transform.TranslatePart();
+        float3 z_axis = camera_pos-translation; z_axis.Normalize();
         float3 y_axis = float3::unitY;
         float3 x_axis = y_axis.Cross(z_axis); x_axis.Normalize();
 
         particles[i].transform.SetCol3(0, x_axis);
         particles[i].transform.SetCol3(1, y_axis);
         particles[i].transform.SetCol3(2, z_axis);
+
+		matrices[i * 3 + 0] = float3::unitX; // x_axis;
+		matrices[i * 3 + 1] = float3::unitY; // y_axis;
+		matrices[i * 3 + 2] = float3::unitZ; // z_axis;
+        matrices[i*3+3] = translation;
     }
+
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void ComponentParticleSystem::Draw()
 {
-    UpdateParticles();
+    UpdateInstanceBuffer();
+    UpdateParticles(); 
 
-    const ResourceTexture* tex_res = static_cast<const ResourceTexture*>(App->resources->Get(texture));
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    
-    if(tex_res)
+    if(!particles.empty())
     {
+        const ResourceTexture* tex_res = static_cast<const ResourceTexture*>(App->resources->Get(texture));
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+        if(tex_res)
+        {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, tex_res->GetID());
+            glUniform1i(TEXTURE_MAP_LOC, 0);
+        }
+
+        float4x4 transform = GetGameObject()->GetGlobalTransformation();
+        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+
+        glUniform1i(SHEET_LOC, sheet_animation.x_tiles);
+        glUniform1i(SHEET_LOC+1, sheet_animation.y_tiles);
+        glUniform1f(SHEET_LOC+2, sheet_animation.current);
+
+        glBindVertexArray(vao);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, 1); 
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tex_res->GetID());
-        glUniform1i(TEXTURE_MAP_LOC, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glDisable(GL_BLEND);
     }
-
-    float4x4 transform = GetGameObject()->GetGlobalTransformation();
-    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
-    if(particles.empty())
-    {
-        glUniformMatrix4fv(App->programs->GetUniformLocation("transform"), 1, GL_TRUE, reinterpret_cast<const float*>(&float4x4::identity));
-    }
-    else
-    {
-        glUniformMatrix4fv(App->programs->GetUniformLocation("transform"), 1, GL_TRUE, reinterpret_cast<const float*>(&particles.front().transform));
-    }
-
-    glUniform1i(SHEET_LOC, sheet_animation.x_tiles);
-    glUniform1i(SHEET_LOC+1, sheet_animation.y_tiles);
-    glUniform1f(SHEET_LOC+2, sheet_animation.current);
-
-    glBindVertexArray(vao);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glDisable(GL_BLEND);
 }
 
 

@@ -3,10 +3,14 @@ layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_normal;
 layout(location = 2) in vec2 vertex_uv0;
 
+layout(location = 3) in vec3 instance_right;
+layout(location = 4) in vec3 instance_up;
+layout(location = 5) in vec3 instance_front;
+layout(location = 6) in vec3 instance_translation;
+
 uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 model;
-uniform mat4 transform;
 
 struct Sheet
 {
@@ -39,6 +43,9 @@ void GetSheetUV(out vec2 uv, in vec2 src_uv, in float current, in float x_tiles,
 
 void main()
 {
+    //mat4 transform = mat4(vec4(instance_right, 0.0), vec4(instance_up, 0.0), vec4(instance_front, 0.0), vec4(instance_translation, 1.0));
+    mat4 transform = mat4(vec4(instance_right, 0.0), vec4(0.0, 1.0, 0.0, 0.0), vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
+
     fragment.position = ((model*transform)*vec4(vertex_position, 1.0)).xyz;
 
     GetSheetUV(fragment.uv0, vertex_uv0, sheet.current, sheet.x_tiles, sheet.y_tiles);

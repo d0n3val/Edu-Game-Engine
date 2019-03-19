@@ -38,7 +38,8 @@ public:
 
 private:
 
-    void                    UpdateParticles ();
+    void                    UpdateInstanceBuffer ();
+    void                    UpdateParticles      ();
 
 private:
 
@@ -52,8 +53,9 @@ private:
 
     uint vao               = 0;
     uint vbo               = 0;
+    uint instance_vbo      = 0;
     uint ibo               = 0;
-    const uint vertex_size = sizeof(float3)+sizeof(float2);
+    uint num_instances     = 0;
 
     UID texture = 0;
 
