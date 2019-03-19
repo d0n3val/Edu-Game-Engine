@@ -267,7 +267,7 @@ void ComponentParticleSystem::SetTexture(UID uid)
 
 void ComponentParticleSystem::AddParticle()
 {
-    particles.push_back(TParticle());
+    particles.push_back(Particle());
     particles.back().transform.SetTranslatePart(float3(App->random->Float01Incl()*0.5f-0.25f, 0.5f, App->random->Float01Incl()*0.5f-0.25f));
     particles.back().size = 1.0f;
 }
