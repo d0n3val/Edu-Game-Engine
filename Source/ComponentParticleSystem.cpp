@@ -105,7 +105,7 @@ void ComponentParticleSystem::OnSave(Config& config) const
 {
 	config.AddUID("Texture", texture);
 
-	config.AddArrayEntry("Particles");
+	config.AddArray("Particles");
 
 	for (uint i = 0; i < particles.size(); ++i)
 	{
@@ -125,7 +125,7 @@ void ComponentParticleSystem::OnLoad(Config* config)
 {
     SetTexture(config->GetUID("Texture", 0));
 
-    uint count = config->GetArrayCount("Resources");
+    uint count = config->GetArrayCount("Particles");
 
     particles.resize(count);
 
