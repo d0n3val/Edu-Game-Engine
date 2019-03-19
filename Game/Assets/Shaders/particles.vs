@@ -43,8 +43,7 @@ void GetSheetUV(out vec2 uv, in vec2 src_uv, in float current, in float x_tiles,
 
 void main()
 {
-    //mat4 transform = mat4(vec4(instance_right, 0.0), vec4(instance_up, 0.0), vec4(instance_front, 0.0), vec4(instance_translation, 1.0));
-    mat4 transform = mat4(vec4(instance_right, 0.0), vec4(0.0, 1.0, 0.0, 0.0), vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
+    mat4 transform = mat4(vec4(instance_right, 0.0), vec4(instance_up, 0.0), vec4(instance_front, 0.0), vec4(instance_translation, 1.0));
 
     fragment.position = ((model*transform)*vec4(vertex_position, 1.0)).xyz;
 

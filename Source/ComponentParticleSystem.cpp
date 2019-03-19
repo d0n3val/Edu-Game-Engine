@@ -58,15 +58,15 @@ ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Compon
     glVertexAttribDivisor(3, 1);
 
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(sizeof(float)*4));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(sizeof(float)*3));
     glVertexAttribDivisor(4, 1);
 
     glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(2*sizeof(float)*4));
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(2*sizeof(float)*3));
     glVertexAttribDivisor(5, 1);
 
     glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(3*sizeof(float)*4));
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4, (void*)(3*sizeof(float)*3));
     glVertexAttribDivisor(6, 1);
 
     glBindVertexArray(0);
@@ -187,10 +187,10 @@ void ComponentParticleSystem::UpdateParticles()
         particles[i].transform.SetCol3(1, y_axis);
         particles[i].transform.SetCol3(2, z_axis);
 
-		matrices[i * 3 + 0] = float3::unitX; // x_axis;
-		matrices[i * 3 + 1] = float3::unitY; // y_axis;
-		matrices[i * 3 + 2] = float3::unitZ; // z_axis;
-        matrices[i*3+3] = translation;
+		matrices[i * 4 + 0] = x_axis;
+		matrices[i * 4 + 1] = y_axis;
+		matrices[i * 4 + 2] = z_axis;
+		matrices[i * 4 + 3] = translation;
     }
 
     glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -208,6 +208,7 @@ void ComponentParticleSystem::Draw()
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glDepthMask(GL_FALSE);
 
         if(tex_res)
         {
@@ -226,7 +227,7 @@ void ComponentParticleSystem::Draw()
         glBindVertexArray(vao);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, 1); 
+        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, num_instances); 
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -236,6 +237,7 @@ void ComponentParticleSystem::Draw()
         glBindTexture(GL_TEXTURE_2D, 0);
 
         glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
     }
 }
 
