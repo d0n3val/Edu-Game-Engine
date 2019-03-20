@@ -60,7 +60,6 @@ private:
     bool TextureButton(ResourceMaterial* material, uint texture, const char* name);
 	void DrawAnimationComponent(ComponentAnimation * component);
 	void DrawRootMotionComponent(ComponentRootMotion * component);
-	void DrawParticleSystemComponent(ComponentParticleSystem* component);
     void DrawMaterialResource(ResourceMaterial* material);
 };
 

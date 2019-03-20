@@ -7,6 +7,7 @@ layout(location = 3) in vec3 instance_right;
 layout(location = 4) in vec3 instance_up;
 layout(location = 5) in vec3 instance_front;
 layout(location = 6) in vec3 instance_translation;
+layout(location = 7) in vec4 instance_color;
 
 uniform mat4 proj;
 uniform mat4 view;
@@ -27,6 +28,7 @@ struct VertexOut
     vec2 uv1;
     float lambda;
     vec3 position;
+    vec4 color;
 };
 
 out VertexOut fragment;
@@ -51,6 +53,7 @@ void main()
     GetSheetUV(fragment.uv1, vertex_uv0, sheet.current+1.0, sheet.x_tiles, sheet.y_tiles);
 
     fragment.lambda = sheet.current-trunc(sheet.current);
+    fragment.color = instance_color;
 
     gl_Position = proj*view*vec4(fragment.position, 1.0);
 }

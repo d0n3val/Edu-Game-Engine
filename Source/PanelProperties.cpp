@@ -1051,101 +1051,126 @@ void PanelProperties::DrawRootMotionComponent(ComponentRootMotion * component)
 {
 }
 
-void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* component)
+void DrawParticleSystemComponent(ComponentParticleSystem* component)
 {
     bool modified = false;
     ResourceTexture* info = component->GetTextureRes();
 
-	if (info)
-	{
-		char name[128];
-		strcpy_s(name, info->GetName());
-
-		if (ImGui::InputText("Resource name", name, 128))
-		{
-			info->SetName(name);
-		}
-	}
-
-    ImVec2 size(64.0f, 64.0f);
-
-    if (info != nullptr)
+    if(ImGui::CollapsingHeader("Texture", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+        if (info)
         {
-            ImGui::OpenPopup("texture");
-        }
-        else 
-        {
-            if (ImGui::IsItemHovered())
+            char name[128];
+            strcpy_s(name, info->GetName());
+
+            if (ImGui::InputText("Resource name", name, 128))
             {
-                ImGui::SetTooltip("%s", info->GetFile());
+                info->SetName(name);
             }
         }
-    }
-    else
-    {
-        if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
+
+        ImVec2 size(64.0f, 64.0f);
+
+        if (info != nullptr)
         {
-            ImGui::OpenPopup("texture");
+            if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+            {
+                ImGui::OpenPopup("texture");
+            }
+            else 
+            {
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("%s", info->GetFile());
+                }
+            }
         }
-    }
-
-    ImGui::SameLine();
-    ImGui::BeginGroup();
-    if(info != nullptr)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
-
-        std::string file;
-        App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
-
-        ImGui::Text("%s", file.c_str());
-        ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
-        ImGui::PopStyleColor();
-
-        bool mips = info->HasMips();
-        if(ImGui::Checkbox("Mipmaps", &mips))
+        else
         {
-            info->EnableMips(mips);
+            if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
+            {
+                ImGui::OpenPopup("texture");
+            }
         }
 
         ImGui::SameLine();
-        bool linear = !info->GetLinear();
-        if(ImGui::Checkbox("sRGB", &linear))
+        ImGui::BeginGroup();
+        if(info != nullptr)
         {
-            info->SetLinear(!linear);
+            ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
+
+            std::string file;
+            App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+
+            ImGui::Text("%s", file.c_str());
+            ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
+            ImGui::PopStyleColor();
+
+            bool mips = info->HasMips();
+            if(ImGui::Checkbox("Mipmaps", &mips))
+            {
+                info->EnableMips(mips);
+            }
+
+            ImGui::SameLine();
+            bool linear = !info->GetLinear();
+            if(ImGui::Checkbox("sRGB", &linear))
+            {
+                info->SetLinear(!linear);
+            }
+
+            if(ImGui::SmallButton("Delete"))
+            {
+                component->SetTexture(0);
+            }
+        }
+        ImGui::EndGroup();
+
+        UID new_res = App->editor->props->OpenResourceModal(Resource::texture, "texture");
+
+        if(new_res != 0)
+        {
+            component->SetTexture(new_res);
         }
 
-        if(ImGui::SmallButton("Delete"))
-        {
-            component->SetTexture(0);
-        }
+        ImGui::InputInt("sheet x tiles", (int*)&component->texture_info.x_tiles); 
+        ImGui::InputInt("sheet y tiles", (int*)&component->texture_info.y_tiles);
+        ImGui::InputFloat("sheet speed", &component->texture_info.speed, 0.1f);
     }
-    ImGui::EndGroup();
 
-    UID new_res = OpenResourceModal(Resource::texture, "texture");
-
-    if(new_res != 0)
+    if(ImGui::CollapsingHeader("Initialization", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        component->SetTexture(new_res);
+        ImGui::InputInt("Duration", (int*)&component->init.duration);
+        ImGui::InputInt("Max particles", (int*)&component->init.max_particles);
+        ImGui::Checkbox("Loop", &component->init.loop);
+        ImGui::InputFloat("Life", &component->init.life, 0.01f);
+        ImGui::InputFloat("Speed", &component->init.speed, 0.01f);
+        ImGui::InputFloat("Size", &component->init.size, 0.01f);
+        ImGui::InputFloat("Whole speed", &component->init.whole_speed, 0.01f);
     }
 
-    uint x_tiles = 1, y_tiles = 1;
-    component->GetSheetTiles(x_tiles, y_tiles);
-    if(ImGui::InputInt("sheet x tiles", (int*)&x_tiles) || ImGui::InputInt("sheet y tiles", (int*)&y_tiles))
+    if(ImGui::CollapsingHeader("Emissor", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        component->SetSheetTiles(x_tiles, y_tiles);
+        ImGui::InputInt("Particles per second", (int*)&component->emissor.particles_per_second);
+        ImGui::InputFloat("Radius", &component->shape.radius, 0.01f);
     }
 
-    float speed = component->GetSheetSpeed();
-    if(ImGui::InputFloat("sheet speed", &speed, 0.1f))
+    if(ImGui::CollapsingHeader("Speed over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        component->SetSheetSpeed(speed);
+        ImGui::DragFloat3("init", (float*)&component->speed_over_time.init);
+        ImGui::DragFloat3("end", (float*)&component->speed_over_time.end);
     }
 
-    if(ImGui::Button("Add particle"))
+    if(ImGui::CollapsingHeader("Size over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        component->AddParticle();
+        ImGui::DragFloat("init", &component->size_over_time.init);
+        ImGui::DragFloat("end", &component->size_over_time.end);
     }
+
+    if(ImGui::CollapsingHeader("Color over time", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::ColorEdit4("init", (float*)&component->color_over_time.init);
+        ImGui::ColorEdit4("end", (float*)&component->color_over_time.end);
+    }
+
 }
