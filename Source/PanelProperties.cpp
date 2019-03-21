@@ -1152,7 +1152,19 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
     if(ImGui::CollapsingHeader("Emissor", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::InputInt("Particles per second", (int*)&component->emissor.particles_per_second);
-        ImGui::InputFloat("Radius", &component->shape.radius, 0.01f);
+
+        const char* names[ComponentParticleSystem::ShapeCount] = { "Circle", "Cone" };
+
+        ImGui::Combo("Type", (int*)&component->shape.type, names, int(ComponentParticleSystem::ShapeCount));
+        if(component->shape.type == ComponentParticleSystem::Circle)
+        {
+            ImGui::InputFloat("Radius", &component->shape.radius, 0.01f);
+        }
+        else if(component->shape.type == ComponentParticleSystem::Cone)
+        {
+            ImGui::SliderAngle("Angle", &component->shape.angle, 0.0, 90.0f);
+            ImGui::InputFloat("Radius", &component->shape.radius, 0.01f);
+        }
     }
 
     if(ImGui::CollapsingHeader("Speed over time", ImGuiTreeNodeFlags_DefaultOpen))

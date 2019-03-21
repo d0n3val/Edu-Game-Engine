@@ -76,12 +76,15 @@ private:
 
     enum ShapeType
     {
-        Circle = 0
+        Circle = 0,
+        Cone,
+        ShapeCount
     };
 
     struct EmissorShape
     {
         ShapeType type   = Circle;
+        float     angle  = 0.0f;
         float     radius = 1.0f;
     };
 

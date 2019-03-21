@@ -360,12 +360,31 @@ void ComponentParticleSystem::AddNewParticle()
 
     if(found)
     {
-        float angle = App->random->Float01Incl()*2*PI;
-        float len = App->random->Float01Incl()*shape.radius;
-        particles[last_used_particle].transform.SetTranslatePart(float3(cos(angle)*len, 0.0f, sin(angle)*len));
-        particles[last_used_particle].size = init.size;
-        particles[last_used_particle].life = init.life;
-        particles[last_used_particle].speed = float3::zero;
+        if(shape.type == Circle)
+        {
+            float angle = App->random->Float01Incl()*2*PI;
+            float len = App->random->Float01Incl()*shape.radius;
+            float3 direction = float3(cos(angle), 0.0f, sin(angle));
+            particles[last_used_particle].transform.SetTranslatePart(direction*len);
+            particles[last_used_particle].speed = direction*init.speed;
+        }
+        else if(shape.type == Cone)
+        {
+            float angle0 = App->random->Float01Incl()*2*PI;
+            float angle1 = App->random->Float01Incl()*2*PI;
+            float len = App->random->Float01Incl()*shape.radius;
+            float len2 = atan(angle1);
+            float3 direction = float3(cos(angle0), 0.0f, sin(angle0))*len;
+            float3 direction2 = float3(cos(angle0), 0.0f, sin(angle0))*len2;
+            float3 speed_dir = direction2-direction;
+            speed_dir.Normalize();
+
+            particles[last_used_particle].transform.SetTranslatePart(direction);
+            particles[last_used_particle].speed = speed_dir*init.speed;
+        }
+
+        particles[last_used_particle].size  = init.size;
+        particles[last_used_particle].life  = init.life;
         particles[last_used_particle].color = float4::one;
         ++alive_particles;
     }
