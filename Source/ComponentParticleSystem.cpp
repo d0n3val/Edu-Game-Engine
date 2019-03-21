@@ -193,10 +193,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
         if((particle.life = max(particle.life-dt, 0.0f)) > 0.0f)
         {
             float lambda = particle.life/init.life;
-            float3 speed = particle.speed+speed_over_time.Interpolate(lambda);
+            float3 speed = particle.speed+speed_over_time.Interpolate(lambda*lambda);
             particles[i].transform.SetTranslatePart(particles[i].transform.TranslatePart()+speed*dt);
-            particles[i].size = init.size*size_over_time.Interpolate(lambda);
-            particles[i].color = color_over_time.Interpolate(lambda);
+            particles[i].size = init.size*size_over_time.Interpolate(lambda*lambda);
+            particles[i].color = color_over_time.Interpolate(lambda*lambda);
 
             ++alive_particles;
         }
@@ -301,6 +301,7 @@ void ComponentParticleSystem::Draw()
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_buffers.ibo);
         glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
+        //glDrawElementsInstanced(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
