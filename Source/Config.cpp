@@ -290,6 +290,25 @@ bool Config::AddArrayFloat(const char * field, const float * values, int size)
 	return false;
 }
 
+bool Config::AddArrayFloat3(const char* field, const float3* values, int size)
+{
+	if (values != nullptr && size > 0)
+	{
+		JSON_Value* va = json_value_init_array();
+		array = json_value_get_array(va);
+		json_object_set_value(root, field, va);
+
+		for(int i=0; i < size; ++i)
+        {
+			json_array_append_number(array, values[i].x);
+			json_array_append_number(array, values[i].y);
+			json_array_append_number(array, values[i].z);
+        }
+		return true;
+	}
+	return false;
+}
+
 bool Config::AddArrayString(const char * field, const char ** values, int size)
 {
 	if (values != nullptr && size > 0)

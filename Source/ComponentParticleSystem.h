@@ -4,6 +4,8 @@
 #include "Component.h"
 #include <vector>
 
+#include "imgui/imgui_color_gradient.h"
+
 class ResourceTexture;
 
 class ComponentParticleSystem : public Component
@@ -124,6 +126,13 @@ private:
         uint vbo               = 0;
         uint ibo               = 0;
     };
+
+    struct ColorGradient
+    {
+        ImGradient      gradient;
+        ImGradientMark* draggingMark = nullptr;
+        ImGradientMark* selectedMark = nullptr;
+    };
     
 private:
 
@@ -136,7 +145,7 @@ private:
     EmissorShape           shape;
     Interpolator<float3>   speed_over_time = Interpolator<float3>(float3::zero, float3::zero);       
     Interpolator<float>    size_over_time  = Interpolator<float>(1.0f, 1.0f);       
-	Interpolator<float4>   color_over_time = Interpolator<float4>(float4::one, float4::one);
+	ColorGradient          color_over_time;
 
     RenderObjects          render_buffers;
     TextureSheet           texture_info;

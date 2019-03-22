@@ -135,8 +135,20 @@ void ComponentParticleSystem::OnSave(Config& config) const
     config.AddFloat("Size init", size_over_time.init);
     config.AddFloat("Size end", size_over_time.end);
 
-    config.AddFloat4("Color init", color_over_time.init);
-    config.AddFloat4("Color end", color_over_time.end);
+    config.AddArray("Color over time");
+
+    const std::list<ImGradientMark*>& marks = color_over_time.gradient.getMarks();
+
+    for(std::list<ImGradientMark*>::const_iterator it = marks.begin(), end = marks.end(); it != end; ++it)
+    {
+        Config mark;
+        mark.AddFloat4("color", float4(((*it)->color)));
+        mark.AddFloat("position", (*it)->position);
+        config.AddArrayEntry(mark);
+    }
+
+    //config.AddFloat4("Color init", color_over_time.init);
+    //config.AddFloat4("Color end", color_over_time.end);
 
 	config.AddUID("Texture", texture_info.texture);
     config.AddInt("Sheet x", texture_info.x_tiles);
@@ -176,8 +188,16 @@ void ComponentParticleSystem::OnLoad(Config* config)
     size_over_time.init = config->GetFloat("Size init", 1.0f);
     size_over_time.end = config->GetFloat("Size end", 1.0f);
 
-    color_over_time.init = config->GetFloat4("Color init", float4::one);
-    color_over_time.end = config->GetFloat4("Color end", float4::one);
+    uint count = config->GetArrayCount("Color over time");
+    for(uint i=0; i< count; ++i)
+    {
+        Config mark = config->GetArray("Color over time", i);
+        
+        float4 color = mark.GetFloat4("color", float4::one); 
+        float position = mark.GetFloat("position", 0.0f); 
+
+        color_over_time.gradient.addMark(position, ImColor(color.x, color.y, color.z));
+    }
 
     SetTexture(config->GetUID("Texture", 0));
 
@@ -215,10 +235,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
         if((particle.life = max(particle.life-dt, 0.0f)) > 0.0f)
         {
             float lambda = particle.life/particle.init_life;
-            float3 speed = particle.speed+speed_over_time.Interpolate(lambda*lambda);
+            float3 speed = particle.speed+speed_over_time.Interpolate(lambda);
             particles[i].transform.SetTranslatePart(particles[i].transform.TranslatePart()+speed*dt);
-            particles[i].size = particle.init_size*size_over_time.Interpolate(lambda*lambda);
-            particles[i].color = color_over_time.Interpolate(lambda*lambda);
+            particles[i].size = particle.init_size*size_over_time.Interpolate(lambda);
+            color_over_time.gradient.getColorAt(1.0f-lambda, (float*)&particles[i].color);
 
             ++alive_particles;
         }

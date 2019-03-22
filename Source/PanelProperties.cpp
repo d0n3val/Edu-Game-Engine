@@ -1198,8 +1198,16 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
 
     if(ImGui::CollapsingHeader("Color over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::ColorEdit4("init", (float*)&component->color_over_time.init);
-        ImGui::ColorEdit4("end", (float*)&component->color_over_time.end);
+        if(ImGui::GradientButton(&component->color_over_time.gradient))
+        {
+			ImGui::OpenPopup("Show color gradient");
+        }
+ 
+        if (ImGui::BeginPopup("Show color gradient"))
+        {
+            bool updated = ImGui::GradientEditor(&component->color_over_time.gradient, component->color_over_time.draggingMark, component->color_over_time.selectedMark);
+            ImGui::EndPopup();
+        }
     }
 
 }

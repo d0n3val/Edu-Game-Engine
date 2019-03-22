@@ -636,6 +636,9 @@
     <ClInclude Include="componentparticlesystem.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Imgui\imgui_color_gradient.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -991,6 +994,9 @@
     </ClCompile>
     <ClCompile Include="ComponentParticleSystem.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui_color_gradient.cpp">
+      <Filter>3rd Party\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -58,6 +58,7 @@ public:
 	bool AddArrayUInt(const char* field, const uint* values, int size);
 	bool AddArrayUID(const char* field, const UID* values, int size);
 	bool AddArrayFloat(const char* field, const float* values, int size);
+	bool AddArrayFloat3(const char* field, const float3* values, int size);
 	bool AddArrayString(const char* field, const char** values, int size);
 
 	// Custom
