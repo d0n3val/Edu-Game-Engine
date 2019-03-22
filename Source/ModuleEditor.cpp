@@ -292,7 +292,7 @@ void ModuleEditor::OnResize(int width, int height)
 
 void ModuleEditor::HandleInput(SDL_Event* event)
 {
-    if(App->GetState() != Application::play)
+    //if(App->GetState() != Application::play)
     {
         ImGui_ImplSDL2_ProcessEvent(event);
     }

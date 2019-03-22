@@ -463,14 +463,16 @@ void DebugDrawParticles(ComponentParticleSystem* particles)
 	float4x4 transform = particles->GetGameObject()->GetGlobalTransformation();
 	switch (particles->shape.type)
 	{
-	case ComponentParticleSystem::Circle:
-		dd::circle(transform.TranslatePart(), transform.Col3(1), dd::colors::Gray, particles->shape.radius, 20);
-		break;
-	case ComponentParticleSystem::Cone:
-		// todo: compute radius
-		dd::cone(transform.TranslatePart(),transform.Col3(1), dd::colors::Gray, particles->shape.radius, 2.0f*particles->shape.radius, 20);
-		break;
-	}
+        case ComponentParticleSystem::Circle:
+            dd::circle(transform.TranslatePart(), transform.Col3(1), dd::colors::Gray, particles->shape.radius, 20);
+            break;
+        case ComponentParticleSystem::Cone:
+            {
+                float base_radius = tan(particles->shape.angle) + particles->shape.radius;
+                dd::cone(transform.TranslatePart(), transform.Col3(1), dd::colors::Gray, base_radius, particles->shape.radius, 20);
+                break;
+            }
+    }
 }
 
 void ModuleRenderer::DebugDrawParticles()
