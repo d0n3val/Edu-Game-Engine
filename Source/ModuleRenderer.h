@@ -85,6 +85,7 @@ private:
 
     void                CreateCameraBuffer      ();
 
+    void                DebugDrawParticles      ();
     void                DebugDrawTangentSpace   ();
     void                DebugDrawTangentSpace   (const ResourceMesh* mesh, const float4x4& transform);
     void                DebugDrawAnimation      ();

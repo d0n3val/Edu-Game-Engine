@@ -107,7 +107,7 @@ ComponentParticleSystem::~ComponentParticleSystem()
 
 void ComponentParticleSystem::OnSave(Config& config) const 
 {
-	config.AddUInt("Duration", init.duration);
+	config.AddFloat("Duration", init.duration);
 	config.AddUInt("Max particles", init.max_particles);
 	config.AddBool("Loop", init.loop);
 	config.AddFloat("Life", init.life);
@@ -117,7 +117,16 @@ void ComponentParticleSystem::OnSave(Config& config) const
 
     config.AddUInt("Particles per second", emissor.particles_per_second);
     config.AddUInt("Particles per distance", emissor.particles_per_distance);
-    config.AddFloat("Circle radius", shape.radius);
+    config.AddUInt("Shape type", (uint)shape.type);
+    if(shape.type == Circle)
+    {
+        config.AddFloat("Circle radius", shape.radius);
+    }
+    else if(shape.type == Cone)
+    {
+        config.AddFloat("Cone radius", shape.radius);
+        config.AddFloat("Cone angle", shape.angle);
+    }
 
     config.AddFloat3("Speed init", speed_over_time.init);
     config.AddFloat3("Speed end", speed_over_time.end);
@@ -136,7 +145,7 @@ void ComponentParticleSystem::OnSave(Config& config) const
 
 void ComponentParticleSystem::OnLoad(Config* config) 
 {
-	init.duration = config->GetUInt("Duration", 0);
+	init.duration = config->GetFloat("Duration", 0.0f);
 	init.max_particles = config->GetUInt("Max particles", 100);
     init.loop = config->GetBool("Loop", false);
     init.life = config->GetFloat("Life", 0.0f);
@@ -146,7 +155,17 @@ void ComponentParticleSystem::OnLoad(Config* config)
 
     emissor.particles_per_second = config->GetUInt("Particles per second", 0);
     emissor.particles_per_distance = config->GetUInt("Particles per distance", 0);
-    shape.radius = config->GetFloat("Circle radius", 1.0f);
+    shape.type = (ShapeType)config->GetUInt("Shape type", (uint)Circle);
+    if(shape.type == Circle)
+    {
+        shape.radius = config->GetFloat("Circle radius", 1.0f);
+    }
+    else if(shape.type == Cone)
+    {
+        shape.radius = config->GetFloat("Cone radius", 1.0f);
+        shape.angle = config->GetFloat("Cone angle", 0.0f);
+    }
+
 
     speed_over_time.init = config->GetFloat3("Speed init", float3::zero);
     speed_over_time.end = config->GetFloat3("Speed end", float3::zero);
@@ -370,16 +389,29 @@ void ComponentParticleSystem::AddNewParticle()
         }
         else if(shape.type == Cone)
         {
-            float angle0 = App->random->Float01Incl()*2*PI;
-            float angle1 = App->random->Float01Incl()*2*PI;
+            float angle = App->random->Float01Incl()*2*PI;
             float len = App->random->Float01Incl()*shape.radius;
-            float len2 = atan(angle1);
-            float3 direction = float3(cos(angle0), 0.0f, sin(angle0))*len;
-            float3 direction2 = float3(cos(angle0), 0.0f, sin(angle0))*len2;
-            float3 speed_dir = direction2-direction;
-            speed_dir.Normalize();
+			float3 direction = float3(cos(angle), 0.0f, sin(angle));
+			float3 position  = direction*len;
+            float3 speed_dir = float3(0.0f, 1.0f, 0.0f);
 
-            particles[last_used_particle].transform.SetTranslatePart(direction);
+            if(shape.angle > 0.0001f)
+            {
+				if (shape.radius > 0.0001f)
+				{
+					float height = shape.radius / tan(shape.angle);
+					speed_dir = position - float3(0.0f, -height, 0.0f);
+					speed_dir.Normalize();
+				}
+				else
+				{
+					float height = 1.0f / tan(shape.angle);
+					speed_dir = direction + float3(0.0f, height, 0.0f);
+					speed_dir.Normalize();
+				}
+            }
+
+            particles[last_used_particle].transform.SetTranslatePart(position);
             particles[last_used_particle].speed = speed_dir*init.speed;
         }
 
@@ -388,4 +420,9 @@ void ComponentParticleSystem::AddNewParticle()
         particles[last_used_particle].color = float4::one;
         ++alive_particles;
     }
+}
+
+float ComponentParticleSystem::RandomValue::GetValue() const
+{
+    return init +(end-init)*App->random->Float01Incl();
 }

@@ -37,6 +37,7 @@ private:
 
 private:
     friend void DrawParticleSystemComponent(ComponentParticleSystem* component);
+    friend void DebugDrawParticles(ComponentParticleSystem* particles);
 
     struct TextureSheet
     {
@@ -56,11 +57,19 @@ private:
         float4 color       = float4::one;
     };
 
+    struct RandomValue
+    {
+        float init = 0.0f;
+        float end  = 0.0f;
+
+        float GetValue() const;
+    };
+
     struct InitParams
     {
-        uint duration      = 0;
         uint max_particles = 100;
         bool loop          = false;
+        float duration     = 0;
         float life         = 0.0f;
         float speed        = 0.0f;
         float size         = 0.0f;

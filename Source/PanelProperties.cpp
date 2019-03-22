@@ -1140,7 +1140,7 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
 
     if(ImGui::CollapsingHeader("Initialization", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::InputInt("Duration", (int*)&component->init.duration);
+        ImGui::InputFloat("Duration", &component->init.duration, 0.01f);
         ImGui::InputInt("Max particles", (int*)&component->init.max_particles);
         ImGui::Checkbox("Loop", &component->init.loop);
         ImGui::InputFloat("Life", &component->init.life, 0.01f);

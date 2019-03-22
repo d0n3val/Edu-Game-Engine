@@ -416,6 +416,7 @@ void ModuleRenderer::DrawDebug()
 {
     DebugDrawTangentSpace();
     DebugDrawAnimation();
+    DebugDrawParticles();
 }
 
 void ModuleRenderer::DebugDrawAnimation()
@@ -454,6 +455,32 @@ void ModuleRenderer::DebugDrawHierarchy(const GameObject* go)
     for(std::list<GameObject*>::const_iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
     {
         DebugDrawHierarchy((*it));
+    }
+}
+
+void DebugDrawParticles(ComponentParticleSystem* particles)
+{
+	float4x4 transform = particles->GetGameObject()->GetGlobalTransformation();
+	switch (particles->shape.type)
+	{
+	case ComponentParticleSystem::Circle:
+		dd::circle(transform.TranslatePart(), transform.Col3(1), dd::colors::Gray, particles->shape.radius, 20);
+		break;
+	case ComponentParticleSystem::Cone:
+		// todo: compute radius
+		dd::cone(transform.TranslatePart(),transform.Col3(1), dd::colors::Gray, particles->shape.radius, 2.0f*particles->shape.radius, 20);
+		break;
+	}
+}
+
+void ModuleRenderer::DebugDrawParticles()
+{
+    for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
+    {
+        if(it->particles)
+        {
+            ::DebugDrawParticles(it->particles);
+        }
     }
 }
 
