@@ -1140,12 +1140,29 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
 
     if(ImGui::CollapsingHeader("Initialization", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::InputFloat("Duration", &component->init.duration, 0.01f);
+        auto ShowRandom = [](const char* name, ComponentParticleSystem::RandomValue* value)
+        {
+            if(value->random)
+            {
+                ImGui::InputFloat2(name, value->range, 3);
+            }
+            else
+            {
+                ImGui::InputFloat(name, &value->range[0], 0.001f);
+            }
+
+			ImGui::SameLine();
+            ImGui::PushID(name);
+			ImGui::Checkbox("Ran", &value->random);
+            ImGui::PopID();
+        };
+
         ImGui::InputInt("Max particles", (int*)&component->init.max_particles);
         ImGui::Checkbox("Loop", &component->init.loop);
-        ImGui::InputFloat("Life", &component->init.life, 0.01f);
-        ImGui::InputFloat("Speed", &component->init.speed, 0.01f);
-        ImGui::InputFloat("Size", &component->init.size, 0.01f);
+        ShowRandom("Durat", &component->init.duration);
+        ShowRandom("Life ", &component->init.life);
+        ShowRandom("Speed", &component->init.speed);
+        ShowRandom("Size ", &component->init.size);
         ImGui::InputFloat("Whole speed", &component->init.whole_speed, 0.01f);
     }
 

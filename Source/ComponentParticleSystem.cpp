@@ -107,12 +107,13 @@ ComponentParticleSystem::~ComponentParticleSystem()
 
 void ComponentParticleSystem::OnSave(Config& config) const 
 {
-	config.AddFloat("Duration", init.duration);
 	config.AddUInt("Max particles", init.max_particles);
 	config.AddBool("Loop", init.loop);
-	config.AddFloat("Life", init.life);
-	config.AddFloat("Speed", init.speed);
-	config.AddFloat("Size", init.size);
+
+    init.duration.Save("Duration", config);
+    init.life.Save("Life", config);
+    init.speed.Save("Speed", config);
+    init.size.Save("Size", config);
 	config.AddFloat("Whole speed", init.whole_speed);
 
     config.AddUInt("Particles per second", emissor.particles_per_second);
@@ -145,12 +146,14 @@ void ComponentParticleSystem::OnSave(Config& config) const
 
 void ComponentParticleSystem::OnLoad(Config* config) 
 {
-	init.duration = config->GetFloat("Duration", 0.0f);
 	init.max_particles = config->GetUInt("Max particles", 100);
     init.loop = config->GetBool("Loop", false);
-    init.life = config->GetFloat("Life", 0.0f);
-	init.speed = config->GetFloat("Speed", 0.0f);
-	init.size = config->GetFloat("Size", 0.0f);
+
+    init.duration.Load("Duration", *config);
+    init.life.Load("Life", *config);
+    init.speed.Load("Speed", *config);
+    init.size.Load("Size", *config);
+
 	init.whole_speed = config->GetFloat("Whole speed", 1.0f);
 
     emissor.particles_per_second = config->GetUInt("Particles per second", 0);
@@ -211,10 +214,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
 		Particle& particle = particles[i];
         if((particle.life = max(particle.life-dt, 0.0f)) > 0.0f)
         {
-            float lambda = particle.life/init.life;
+            float lambda = particle.life/particle.init_life;
             float3 speed = particle.speed+speed_over_time.Interpolate(lambda*lambda);
             particles[i].transform.SetTranslatePart(particles[i].transform.TranslatePart()+speed*dt);
-            particles[i].size = init.size*size_over_time.Interpolate(lambda*lambda);
+            particles[i].size = particle.init_size*size_over_time.Interpolate(lambda*lambda);
             particles[i].color = color_over_time.Interpolate(lambda*lambda);
 
             ++alive_particles;
@@ -379,13 +382,14 @@ void ComponentParticleSystem::AddNewParticle()
 
     if(found)
     {
+        float init_speed = init.speed.GetValue();
         if(shape.type == Circle)
         {
             float angle = App->random->Float01Incl()*2*PI;
             float len = App->random->Float01Incl()*shape.radius;
             float3 direction = float3(cos(angle), 0.0f, sin(angle));
             particles[last_used_particle].transform.SetTranslatePart(direction*len);
-            particles[last_used_particle].speed = direction*init.speed;
+            particles[last_used_particle].speed = direction*init_speed;
         }
         else if(shape.type == Cone)
         {
@@ -412,11 +416,12 @@ void ComponentParticleSystem::AddNewParticle()
             }
 
             particles[last_used_particle].transform.SetTranslatePart(position);
-            particles[last_used_particle].speed = speed_dir*init.speed;
+            particles[last_used_particle].speed = speed_dir*init_speed;
         }
 
-        particles[last_used_particle].size  = init.size;
-        particles[last_used_particle].life  = init.life;
+        particles[last_used_particle].init_speed = init_speed;
+        particles[last_used_particle].init_size = particles[last_used_particle].size  = init.size.GetValue();
+        particles[last_used_particle].init_life = particles[last_used_particle].life  = init.life.GetValue();
         particles[last_used_particle].color = float4::one;
         ++alive_particles;
     }
@@ -424,5 +429,36 @@ void ComponentParticleSystem::AddNewParticle()
 
 float ComponentParticleSystem::RandomValue::GetValue() const
 {
-    return init +(end-init)*App->random->Float01Incl();
+    return random ? range[0] +(range[1]-range[0])*App->random->Float01Incl() : range[0];
+}
+
+void ComponentParticleSystem::RandomValue::Save(const char* name, Config& config) const
+{
+    Config section = config.AddSection(name);
+    section.AddBool("random", random); 
+    if(random)
+    {
+        section.AddFloat("init", range[0]); 
+        section.AddFloat("end", range[1]); 
+    }
+    else
+    {
+        section.AddFloat("value", range[0]); 
+    }
+}
+
+void ComponentParticleSystem::RandomValue::Load(const char* name, const Config& config)
+{
+    Config section = config.GetSection(name);
+    random = section.GetBool("random", false); 
+
+    if(random)
+    {
+        range[0] = section.GetFloat("init", 0.0f); 
+        range[1] = section.GetFloat("end", 0.0f); 
+    }
+    else
+    {
+        range[0] = range[1] = section.GetFloat("value", 0.0f); 
+    }
 }

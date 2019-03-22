@@ -53,27 +53,33 @@ private:
         float  size        = 1.0f;
 		float4x4 transform = float4x4::identity;
         float life         = 0.0f;
+        float init_life    = 0.0f;
+        float init_size    = 1.0f;
+        float init_speed   = 1.0f;
         float3 speed       = float3::zero;
         float4 color       = float4::one;
     };
 
     struct RandomValue
     {
-        float init = 0.0f;
-        float end  = 0.0f;
+        float range[2] = {0.0f, 0.0f};
+		bool random = false;
 
         float GetValue() const;
+
+        void  Save    (const char* name, Config& config) const;
+        void  Load    (const char* name, const Config& config);
     };
 
     struct InitParams
     {
-        uint max_particles = 100;
-        bool loop          = false;
-        float duration     = 0;
-        float life         = 0.0f;
-        float speed        = 0.0f;
-        float size         = 0.0f;
-        float whole_speed  = 0.0f;
+        uint        max_particles = 100;
+        bool        loop          = false;
+        RandomValue duration;
+        RandomValue life;
+        RandomValue speed;
+        RandomValue size;
+        float       whole_speed;
     };
 
     struct Emissor
