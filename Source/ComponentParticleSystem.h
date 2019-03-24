@@ -61,6 +61,7 @@ private:
         float    life          = 0.0f;
         float    size          = 1.0f;
         float    rotation      = 0.0f;
+        float    gravity       = 0.0f;
         float3   speed         = float3::zero;
         float4   color         = float4::one;
         float    texture_frame = 0.0f;
@@ -87,10 +88,11 @@ private:
         RandomValue speed;
         RandomValue size;
         RandomValue rotation;
+        RandomValue gravity;
         float       whole_speed;
     };
 
-    struct Emissor
+    struct Emitter
     {
         uint particles_per_second   = 0;
         uint particles_per_distance = 0;
@@ -104,7 +106,7 @@ private:
         ShapeCount
     };
 
-    struct EmissorShape
+    struct EmitterShape
     {
         ShapeType type   = Circle;
         float     angle  = 0.0f;
@@ -169,8 +171,8 @@ private:
     uint                   num_instances     = 0;
 
     InitParams             init;
-    Emissor                emissor;
-    EmissorShape           shape;
+    Emitter                emissor;
+    EmitterShape           shape;
     Interpolator<float3>   speed_over_time = Interpolator<float3>(float3::zero, float3::zero);       
     Interpolator<float>    size_over_time  = Interpolator<float>(1.0f, 1.0f);       
 	ColorGradient          color_over_time;

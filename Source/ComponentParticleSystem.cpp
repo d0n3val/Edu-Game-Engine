@@ -18,6 +18,7 @@
 
 #define TEXTURE_MAP_LOC 0
 #define SHEET_LOC 10
+#define GRAVITY 9.8
 
 ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Component(container, Types::ParticleSystem)
 {
@@ -121,6 +122,7 @@ void ComponentParticleSystem::OnSave(Config& config) const
     init.speed.Save("Speed", config);
     init.size.Save("Size", config);
     init.rotation.Save("Rotation", config);
+    init.gravity.Save("Gravity", config);
 	config.AddFloat("Whole speed", init.whole_speed);
 
     config.AddUInt("Particles per second", emissor.particles_per_second);
@@ -173,6 +175,7 @@ void ComponentParticleSystem::OnLoad(Config* config)
     init.speed.Load("Speed", *config);
     init.size.Load("Size", *config);
     init.rotation.Load("Rotation", *config);
+    init.gravity.Load("Gravity", *config);
 
 	init.whole_speed = config->GetFloat("Whole speed", 1.0f);
 
@@ -253,20 +256,20 @@ void ComponentParticleSystem::OnUpdate(float dt)
         if((particle.life = max(particle.life-dt, 0.0f)) > 0.0f)
         {
             float lambda = 1.0f-particle.life/particle.init_life;
-            
-            float3 speed = particle.init_speed+speed_over_time.Interpolate(lambda);
 
-            particles[i].transform.SetTranslatePart(particles[i].transform.TranslatePart()+speed*dt);
+			// TODO: Calcular bien gravedad. Hacer que se pueda seleccionar un tile aleatorio y no animar siempre el sheet
+            float3 speed = particle.init_speed+speed_over_time.Interpolate(lambda)+float3(0.0f, -particle.gravity*(particle.init_life-particle.life), 0.0f);
+            particle.transform.SetTranslatePart(particle.transform.TranslatePart()+speed*dt);
 
-            particles[i].size = particle.init_size*size_over_time.Interpolate(lambda);
+            particle.size = particle.init_size*size_over_time.Interpolate(lambda);
 
-            color_over_time.gradient.getColorAt(lambda, (float*)&particles[i].color);
+            color_over_time.gradient.getColorAt(lambda, (float*)&particle.color);
 
-            particles[i].texture_frame = fmodf(particles[i].texture_frame+texture_info.speed*dt, float(texture_info.x_tiles*texture_info.y_tiles));
+            particle.texture_frame = fmodf(particles[i].texture_frame+texture_info.speed*dt, float(texture_info.x_tiles*texture_info.y_tiles));
 
             if(blend_mode == AlphaBlend)
             {
-                particles[i].distance = particles[i].transform.TranslatePart().DistanceSq(camera_pos);
+                particle.distance = particles[i].transform.TranslatePart().DistanceSq(camera_pos);
                 std::vector<uint>::iterator it = std::lower_bound(sorted.begin(), sorted.end(), i, TSortParticles(this));
                 sorted.insert(it, i);
             }
@@ -502,6 +505,7 @@ bool ComponentParticleSystem::AddNewParticle()
         particles[last_used_particle].init_size = particles[last_used_particle].size  = init.size.GetValue();
         particles[last_used_particle].init_life = particles[last_used_particle].life  = init.life.GetValue();
         particles[last_used_particle].init_rotation = particles[last_used_particle].rotation = init.rotation.GetValue();
+        particles[last_used_particle].gravity = init.gravity.GetValue();
 
          color_over_time.gradient.getColorAt(0.0f, (float*)&particles[last_used_particle].color);
         ++alive_particles;

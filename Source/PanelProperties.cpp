@@ -1186,10 +1186,11 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
         ShowRandom("Speed", &component->init.speed, false);
         ShowRandom("Size ", &component->init.size, false);
         ShowRandom("Rot  ", &component->init.rotation, true);
+        ShowRandom("Grav ", &component->init.gravity, false);
         ImGui::InputFloat("Whole speed", &component->init.whole_speed, 0.01f);
     }
 
-    if(ImGui::CollapsingHeader("Emissor", ImGuiTreeNodeFlags_DefaultOpen))
+    if(ImGui::CollapsingHeader("Emitter", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::InputInt("Particles per second", (int*)&component->emissor.particles_per_second);
 
