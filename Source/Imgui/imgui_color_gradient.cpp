@@ -121,7 +121,7 @@ void ImGradient::computeColorAt(float position, float* color) const
         color[0] = ((1.0f - delta) * lower->color[0]) + ((delta) * upper->color[0]);
         color[1] = ((1.0f - delta) * lower->color[1]) + ((delta) * upper->color[1]);
         color[2] = ((1.0f - delta) * lower->color[2]) + ((delta) * upper->color[2]);
-        color[2] = ((1.0f - delta) * lower->color[3]) + ((delta) * upper->color[3]);
+        color[3] = ((1.0f - delta) * lower->color[3]) + ((delta) * upper->color[3]);
     }
 }
 
@@ -151,12 +151,6 @@ namespace ImGui
         ImGradientMark* prevMark = nullptr;
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         
-        /*
-        draw_list->AddRectFilled(ImVec2(bar_pos.x - 2, bar_pos.y - 2),
-                                 ImVec2(bar_pos.x + maxWidth + 2, barBottom + 2),
-                                 IM_COL32(100, 100, 100, 255));
-        */
-
         RenderColorRectWithAlphaCheckerboard(ImVec2(bar_pos.x, bar_pos.y),
                                  ImVec2(bar_pos.x + maxWidth, barBottom),
                                  IM_COL32(0, 0, 0, 0), 10.0f, ImVec2(0.0f, 0.0f));

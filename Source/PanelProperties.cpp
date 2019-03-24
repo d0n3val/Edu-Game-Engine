@@ -1140,30 +1140,52 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
 
     if(ImGui::CollapsingHeader("Initialization", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        auto ShowRandom = [](const char* name, ComponentParticleSystem::RandomValue* value)
+        auto ShowRandom = [](const char* name, ComponentParticleSystem::RandomValue* value, bool angle)
         {
             if(value->random)
             {
-                ImGui::InputFloat2(name, value->range, 3);
+                if(angle)
+                {
+                    ImGui::SliderAngle(name, &value->range[0], 0.0f, 360);
+                    ImGui::SameLine();
+                    ImGui::PushID(name);
+                    ImGui::Checkbox("Ran", &value->random);
+                    ImGui::PopID();
+                    ImGui::SliderAngle("", &value->range[1], 0.0f, 360);
+                }
+                else
+                {
+                    ImGui::InputFloat2(name, value->range, 3);
+                }
             }
             else
             {
-                ImGui::InputFloat(name, &value->range[0], 0.001f);
+                if(angle)
+                {
+                    ImGui::SliderAngle(name, &value->range[0], 0.0f, 360);
+                }
+                else
+                {
+                    ImGui::InputFloat(name, &value->range[0], 0.001f);
+                }
             }
 
-			ImGui::SameLine();
-            ImGui::PushID(name);
-			ImGui::Checkbox("Ran", &value->random);
-            ImGui::PopID();
+            if(!value->random || !angle)
+            {
+                ImGui::SameLine();
+                ImGui::PushID(name);
+                ImGui::Checkbox("Ran", &value->random);
+                ImGui::PopID();
+            }
         };
 
         ImGui::InputInt("Max particles", (int*)&component->init.max_particles);
         ImGui::Checkbox("Loop", &component->init.loop);
         ImGui::InputFloat("Duration", &component->init.duration, 0.01f);
-        ShowRandom("Life ", &component->init.life);
-        ShowRandom("Speed", &component->init.speed);
-        ShowRandom("Size ", &component->init.size);
-        ShowRandom("Rotation ", &component->init.rotation);
+        ShowRandom("Life ", &component->init.life, false);
+        ShowRandom("Speed", &component->init.speed, false);
+        ShowRandom("Size ", &component->init.size, false);
+        ShowRandom("Rot  ", &component->init.rotation, true);
         ImGui::InputFloat("Whole speed", &component->init.whole_speed, 0.01f);
     }
 

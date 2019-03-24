@@ -156,13 +156,11 @@ void ComponentParticleSystem::OnSave(Config& config) const
         config.AddArrayEntry(mark);
     }
 
-    //config.AddFloat4("Color init", color_over_time.init);
-    //config.AddFloat4("Color end", color_over_time.end);
-
 	config.AddUID("Texture", texture_info.texture);
     config.AddInt("Sheet x", texture_info.x_tiles);
     config.AddInt("Sheet y", texture_info.y_tiles);
     config.AddFloat("Sheet speed", texture_info.speed);
+    config.AddInt("Blend mode", (int)blend_mode);
 }
 
 void ComponentParticleSystem::OnLoad(Config* config) 
@@ -210,7 +208,7 @@ void ComponentParticleSystem::OnLoad(Config* config)
         float4 color = mark.GetFloat4("color", float4::one); 
         float position = mark.GetFloat("position", 0.0f); 
 
-        color_over_time.gradient.addMark(position, ImColor(color.x, color.y, color.z));
+        color_over_time.gradient.addMark(position, ImColor(color.x, color.y, color.z, color.w));
     }
 
     SetTexture(config->GetUID("Texture", 0));
@@ -218,6 +216,7 @@ void ComponentParticleSystem::OnLoad(Config* config)
     texture_info.x_tiles = config->GetInt("Sheet x", 1);
     texture_info.y_tiles = config->GetInt("Sheet y", 1);
     texture_info.speed   = config->GetFloat("Sheet speed", 24.0);
+    blend_mode = (RenderBlendMode)config->GetInt("Blend mode", (int)AdditiveBlend);
 }
 
 void ComponentParticleSystem::OnPlay() 
@@ -255,11 +254,11 @@ void ComponentParticleSystem::OnUpdate(float dt)
         {
             float lambda = 1.0f-particle.life/particle.init_life;
             
-            float3 speed = particle.speed+speed_over_time.Interpolate(lambda);
+            float3 speed = particle.init_speed+speed_over_time.Interpolate(lambda);
 
             particles[i].transform.SetTranslatePart(particles[i].transform.TranslatePart()+speed*dt);
 
-            particles[i].size = particle.init_size+size_over_time.Interpolate(lambda);
+            particles[i].size = particle.init_size*size_over_time.Interpolate(lambda);
 
             color_over_time.gradient.getColorAt(lambda, (float*)&particles[i].color);
 
@@ -323,11 +322,10 @@ void ComponentParticleSystem::UpdateInstanceBuffer()
             float3 y_axis = float3::unitY;
             float3 x_axis = y_axis.Cross(z_axis); x_axis.Normalize();
 
-            Quat rotation(float3::unitZ, particles[i].rotation);
+            Quat rotation(z_axis, particles[i].rotation);
 
             x_axis = rotation.Transform(x_axis);
             y_axis = rotation.Transform(y_axis);
-            z_axis = rotation.Transform(z_axis);
 
             x_axis *= particles[i].size;
             y_axis *= particles[i].size;
@@ -471,7 +469,7 @@ bool ComponentParticleSystem::AddNewParticle()
             float len = App->random->Float01Incl()*shape.radius;
             float3 direction = float3(cos(angle), 0.0f, sin(angle));
             particles[last_used_particle].transform.SetTranslatePart(direction*len);
-            particles[last_used_particle].speed = direction*init_speed;
+            particles[last_used_particle].init_speed = particles[last_used_particle].speed = direction*init_speed;
         }
         else if(shape.type == Cone)
         {
@@ -498,10 +496,9 @@ bool ComponentParticleSystem::AddNewParticle()
             }
 
             particles[last_used_particle].transform.SetTranslatePart(position);
-            particles[last_used_particle].speed = speed_dir*init_speed;
+            particles[last_used_particle].init_speed = particles[last_used_particle].speed = speed_dir*init_speed;
         }
 
-        particles[last_used_particle].init_speed = init_speed;
         particles[last_used_particle].init_size = particles[last_used_particle].size  = init.size.GetValue();
         particles[last_used_particle].init_life = particles[last_used_particle].life  = init.life.GetValue();
         particles[last_used_particle].init_rotation = particles[last_used_particle].rotation = init.rotation.GetValue();

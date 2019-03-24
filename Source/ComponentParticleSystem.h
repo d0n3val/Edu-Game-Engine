@@ -53,18 +53,18 @@ private:
 
     struct Particle
     {
-		float4x4 transform  = float4x4::identity;
-        float init_life     = 0.0f;
-        float init_size     = 1.0f;
-        float init_speed    = 1.0f;
-        float init_rotation = 0.0f;
-        float life          = 0.0f;
-        float size          = 1.0f;
-        float rotation      = 0.0f;
-        float3 speed        = float3::zero;
-        float4 color        = float4::one;
-        float texture_frame = 0.0f;
-        float distance      = 0.0f;
+		float4x4 transform     = float4x4::identity;
+        float    init_life     = 0.0f;
+        float    init_size     = 1.0f;
+        float3   init_speed    = float3::one;
+        float    init_rotation = 0.0f;
+        float    life          = 0.0f;
+        float    size          = 1.0f;
+        float    rotation      = 0.0f;
+        float3   speed         = float3::zero;
+        float4   color         = float4::one;
+        float    texture_frame = 0.0f;
+        float    distance      = 0.0f;
     };
 
     struct RandomValue
