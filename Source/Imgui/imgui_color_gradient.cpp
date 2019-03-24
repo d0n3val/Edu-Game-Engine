@@ -46,6 +46,12 @@ void ImGradient::removeMark(ImGradientMark* mark)
     refreshCache();
 }
 
+void ImGradient::clearMarks()
+{
+    m_marks.clear();
+    refreshCache();
+}
+
 void ImGradient::getColorAt(float position, float* color) const
 {
     position = ImClamp(position, 0.0f, 1.0f);    

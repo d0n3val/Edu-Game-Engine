@@ -8,6 +8,7 @@ layout(location = 4) in vec3 instance_up;
 layout(location = 5) in vec3 instance_front;
 layout(location = 6) in vec3 instance_translation;
 layout(location = 7) in vec4 instance_color;
+layout(location = 7) in float instance_frame;
 
 uniform mat4 proj;
 uniform mat4 view;
@@ -17,7 +18,6 @@ struct Sheet
 {
     int   x_tiles;
     int   y_tiles;
-    float current;
 };
 
 layout(location=10) uniform Sheet sheet;
@@ -49,10 +49,10 @@ void main()
 
     fragment.position = ((model*transform)*vec4(vertex_position, 1.0)).xyz;
 
-    GetSheetUV(fragment.uv0, vertex_uv0, sheet.current, sheet.x_tiles, sheet.y_tiles);
-    GetSheetUV(fragment.uv1, vertex_uv0, sheet.current+1.0, sheet.x_tiles, sheet.y_tiles);
+    GetSheetUV(fragment.uv0, vertex_uv0, instance_frame, sheet.x_tiles, sheet.y_tiles);
+    GetSheetUV(fragment.uv1, vertex_uv0, instance_frame+1.0, sheet.x_tiles, sheet.y_tiles);
 
-    fragment.lambda = sheet.current-trunc(sheet.current);
+    fragment.lambda = instance_frame-trunc(instance_frame);
     fragment.color = instance_color;
 
     gl_Position = proj*view*vec4(fragment.position, 1.0);

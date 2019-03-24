@@ -1159,10 +1159,11 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
 
         ImGui::InputInt("Max particles", (int*)&component->init.max_particles);
         ImGui::Checkbox("Loop", &component->init.loop);
-        ShowRandom("Durat", &component->init.duration);
+        ImGui::InputFloat("Duration", &component->init.duration, 0.01f);
         ShowRandom("Life ", &component->init.life);
         ShowRandom("Speed", &component->init.speed);
         ShowRandom("Size ", &component->init.size);
+        ShowRandom("Rotation ", &component->init.rotation);
         ImGui::InputFloat("Whole speed", &component->init.whole_speed, 0.01f);
     }
 
@@ -1186,15 +1187,33 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
 
     if(ImGui::CollapsingHeader("Speed over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
+        ImGui::Bezier("Speed", (float*)&component->speed_over_time.bezier);
+
+        if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->speed_over_time.bezier = float4(0.550f, 0.055f, 0.675f, 0.190f);
+        ImGui::SameLine();
+        if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->speed_over_time.bezier = float4(0.215f, 0.610f, 0.355f, 1.000f);
+        ImGui::SameLine();
+        if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->speed_over_time.bezier = float4(0.645f, 0.045f, 0.355f, 1.000f);
+
         ImGui::DragFloat3("init", (float*)&component->speed_over_time.init);
         ImGui::DragFloat3("end", (float*)&component->speed_over_time.end);
+
     }
 
+    ImGui::PushID("Size");
     if(ImGui::CollapsingHeader("Size over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
+        ImGui::Bezier("Size", (float*)&component->size_over_time.bezier);
+        if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->size_over_time.bezier = float4(0.550f, 0.055f, 0.675f, 0.190f);
+        ImGui::SameLine();
+        if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->size_over_time.bezier = float4(0.215f, 0.610f, 0.355f, 1.000f);
+        ImGui::SameLine();
+        if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->size_over_time.bezier = float4(0.645f, 0.045f, 0.355f, 1.000f);
+
         ImGui::DragFloat("init", &component->size_over_time.init);
         ImGui::DragFloat("end", &component->size_over_time.end);
     }
+    ImGui::PopID();
 
     if(ImGui::CollapsingHeader("Color over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -1205,9 +1224,17 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
  
         if (ImGui::BeginPopup("Show color gradient"))
         {
-            bool updated = ImGui::GradientEditor(&component->color_over_time.gradient, component->color_over_time.draggingMark, component->color_over_time.selectedMark);
+            bool updated = ImGui::GradientEditor(&component->color_over_time.gradient, component->color_over_time.draggingMark, 
+                                                 component->color_over_time.selectedMark);
             ImGui::EndPopup();
         }
+    }
+
+    if(ImGui::CollapsingHeader("Rendering", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        const char* names[ComponentParticleSystem::BlendCount] = { "Additive", "Alpha" };
+
+        ImGui::Combo("Blend mode", (int*)&component->blend_mode, names, int(ComponentParticleSystem::BlendCount));
     }
 
 }

@@ -53,25 +53,31 @@ ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Compon
 
     glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
 
+    uint sizeof_vertex = sizeof(float)*3*4+sizeof(float)*4+sizeof(float);
+
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4+sizeof(float)*4, (void*)0);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof_vertex, (void*)0);
     glVertexAttribDivisor(3, 1);
 
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4+sizeof(float)*4, (void*)(sizeof(float)*3));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof_vertex, (void*)(sizeof(float)*3));
     glVertexAttribDivisor(4, 1);
 
     glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4+sizeof(float)*4, (void*)(2*sizeof(float)*3));
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof_vertex, (void*)(2*sizeof(float)*3));
     glVertexAttribDivisor(5, 1);
 
     glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3*4+sizeof(float)*4, (void*)(3*sizeof(float)*3));
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof_vertex, (void*)(3*sizeof(float)*3));
     glVertexAttribDivisor(6, 1);
 
     glEnableVertexAttribArray(7);
-    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(float)*3*4+sizeof(float)*4, (void*)(4*sizeof(float)*3));
+    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof_vertex, (void*)(4*sizeof(float)*3));
     glVertexAttribDivisor(7, 1);
+
+    glEnableVertexAttribArray(8);
+    glVertexAttribPointer(8, 1, GL_FLOAT, GL_FALSE, sizeof_vertex, (void*)(4*sizeof(float)*3+sizeof(float)*4));
+    glVertexAttribDivisor(8, 1);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -110,10 +116,11 @@ void ComponentParticleSystem::OnSave(Config& config) const
 	config.AddUInt("Max particles", init.max_particles);
 	config.AddBool("Loop", init.loop);
 
-    init.duration.Save("Duration", config);
+    config.AddFloat("Duration", init.duration);
     init.life.Save("Life", config);
     init.speed.Save("Speed", config);
     init.size.Save("Size", config);
+    init.rotation.Save("Rotation", config);
 	config.AddFloat("Whole speed", init.whole_speed);
 
     config.AddUInt("Particles per second", emissor.particles_per_second);
@@ -131,9 +138,11 @@ void ComponentParticleSystem::OnSave(Config& config) const
 
     config.AddFloat3("Speed init", speed_over_time.init);
     config.AddFloat3("Speed end", speed_over_time.end);
+    config.AddFloat4("Speed bezier", speed_over_time.bezier);
 
     config.AddFloat("Size init", size_over_time.init);
     config.AddFloat("Size end", size_over_time.end);
+    config.AddFloat4("Size bezier", size_over_time.bezier);
 
     config.AddArray("Color over time");
 
@@ -161,10 +170,11 @@ void ComponentParticleSystem::OnLoad(Config* config)
 	init.max_particles = config->GetUInt("Max particles", 100);
     init.loop = config->GetBool("Loop", false);
 
-    init.duration.Load("Duration", *config);
+    init.duration = config->GetFloat("Duration", 0.0f);
     init.life.Load("Life", *config);
     init.speed.Load("Speed", *config);
     init.size.Load("Size", *config);
+    init.rotation.Load("Rotation", *config);
 
 	init.whole_speed = config->GetFloat("Whole speed", 1.0f);
 
@@ -184,9 +194,13 @@ void ComponentParticleSystem::OnLoad(Config* config)
 
     speed_over_time.init = config->GetFloat3("Speed init", float3::zero);
     speed_over_time.end = config->GetFloat3("Speed end", float3::zero);
+    speed_over_time.bezier = config->GetFloat4("Speed bezier", float4(0.0f, 1.0f, 0.0f, 1.0f));
 
     size_over_time.init = config->GetFloat("Size init", 1.0f);
     size_over_time.end = config->GetFloat("Size end", 1.0f);
+    size_over_time.bezier = config->GetFloat4("Size bezier", float4(0.0f, 1.0f, 0.0f, 1.0f));
+
+    color_over_time.gradient.clearMarks();
 
     uint count = config->GetArrayCount("Color over time");
     for(uint i=0; i< count; ++i)
@@ -216,7 +230,6 @@ void ComponentParticleSystem::OnPlay()
 
 void ComponentParticleSystem::OnStop() 
 {
-    texture_info.current = 0.0f;
     alive_particles = 0;
     for(uint i=0; i< particles.size(); ++i)
     {
@@ -229,16 +242,35 @@ void ComponentParticleSystem::OnUpdate(float dt)
     dt = dt*init.whole_speed;
     alive_particles = 0;
 
+    sorted.clear();
+
+    ComponentCamera* camera = App->renderer3D->active_camera;
+    float3 camera_pos = camera->GetViewMatrix().RotatePart().Transposed().Transform(-camera->GetViewMatrix().TranslatePart());
+
     for(uint i=0; i< particles.size(); ++i)
     {
 		Particle& particle = particles[i];
+
         if((particle.life = max(particle.life-dt, 0.0f)) > 0.0f)
         {
-            float lambda = particle.life/particle.init_life;
+            float lambda = 1.0f-particle.life/particle.init_life;
+            
             float3 speed = particle.speed+speed_over_time.Interpolate(lambda);
+
             particles[i].transform.SetTranslatePart(particles[i].transform.TranslatePart()+speed*dt);
-            particles[i].size = particle.init_size*size_over_time.Interpolate(lambda);
-            color_over_time.gradient.getColorAt(1.0f-lambda, (float*)&particles[i].color);
+
+            particles[i].size = particle.init_size+size_over_time.Interpolate(lambda);
+
+            color_over_time.gradient.getColorAt(lambda, (float*)&particles[i].color);
+
+            particles[i].texture_frame = fmodf(particles[i].texture_frame+texture_info.speed*dt, float(texture_info.x_tiles*texture_info.y_tiles));
+
+            if(blend_mode == AlphaBlend)
+            {
+                particles[i].distance = particles[i].transform.TranslatePart().DistanceSq(camera_pos);
+                std::vector<uint>::iterator it = std::lower_bound(sorted.begin(), sorted.end(), i, TSortParticles(this));
+                sorted.insert(it, i);
+            }
 
             ++alive_particles;
         }
@@ -250,17 +282,22 @@ void ComponentParticleSystem::OnUpdate(float dt)
 		float emission_period = 1.0f / float(emissor.particles_per_second);
 		while (alive_particles < init.max_particles && (elapsed_emission-emission_period) > 0.0f)
 		{
-			AddNewParticle();
+			if(AddNewParticle() && blend_mode == AlphaBlend)
+            {
+                particles[last_used_particle].distance = particles[last_used_particle].transform.TranslatePart().DistanceSq(camera_pos);
+                std::vector<uint>::iterator it = std::lower_bound(sorted.begin(), sorted.end(), last_used_particle, TSortParticles(this));
+                sorted.insert(it, last_used_particle);
+            }
+
 			elapsed_emission -= emission_period;
 		}
-	}
+    }
 
-    texture_info.current = fmodf(texture_info.current+texture_info.speed*dt, float(texture_info.x_tiles*texture_info.y_tiles));
 }
 
 void ComponentParticleSystem::UpdateInstanceBuffer()
 {
-    unsigned stride = sizeof(float3)*4+sizeof(float4);
+    unsigned stride = sizeof(float3)*4+sizeof(float4)+sizeof(float);
 
     if(num_instances < alive_particles)
     {
@@ -271,6 +308,7 @@ void ComponentParticleSystem::UpdateInstanceBuffer()
     }
 
     ComponentCamera* camera = App->renderer3D->active_camera;
+    float3 camera_pos = camera->GetViewMatrix().RotatePart().Transposed().Transform(-camera->GetViewMatrix().TranslatePart());
 
     glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
     char* instance_data = (char*)glMapBufferRange(GL_ARRAY_BUFFER, 0, stride*num_instances, GL_MAP_WRITE_BIT);
@@ -280,12 +318,16 @@ void ComponentParticleSystem::UpdateInstanceBuffer()
     {
         if(particles[i].life > 0.0f)
         {
-            float3 camera_pos = camera->GetViewMatrix().RotatePart().Transposed().Transform(-camera->GetViewMatrix().TranslatePart());
-
             float3 translation = particles[i].transform.TranslatePart();
             float3 z_axis = camera_pos-translation; z_axis.Normalize();
             float3 y_axis = float3::unitY;
             float3 x_axis = y_axis.Cross(z_axis); x_axis.Normalize();
+
+            Quat rotation(float3::unitZ, particles[i].rotation);
+
+            x_axis = rotation.Transform(x_axis);
+            y_axis = rotation.Transform(y_axis);
+            z_axis = rotation.Transform(z_axis);
 
             x_axis *= particles[i].size;
             y_axis *= particles[i].size;
@@ -305,6 +347,9 @@ void ComponentParticleSystem::UpdateInstanceBuffer()
             float4* color = (float4*)(instance_data+(index*stride+sizeof(float3)*4));
             *color = particles[i].color;
 
+            float* frame = (float*)(instance_data+(index*stride+sizeof(float3)*4+sizeof(float4)));
+            *frame = particles[i].texture_frame;
+
             ++index;
         }
     }
@@ -313,7 +358,7 @@ void ComponentParticleSystem::UpdateInstanceBuffer()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void ComponentParticleSystem::Draw()
+void ComponentParticleSystem::Draw(bool show_billboard)
 {
     if(alive_particles > 0)
     {
@@ -321,9 +366,21 @@ void ComponentParticleSystem::Draw()
 
         const ResourceTexture* tex_res = static_cast<const ResourceTexture*>(App->resources->Get(texture_info.texture));
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		glDepthMask(GL_FALSE);
+        if(!show_billboard)
+        {
+            glEnable(GL_BLEND);
+            if(blend_mode == AdditiveBlend)
+            {
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            }
+            else
+            {
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+        }
+
+
+        glDepthMask(GL_FALSE);
 
         if(tex_res)
         {
@@ -337,14 +394,19 @@ void ComponentParticleSystem::Draw()
 
         glUniform1i(SHEET_LOC, texture_info.x_tiles);
         glUniform1i(SHEET_LOC+1, texture_info.y_tiles);
-        glUniform1f(SHEET_LOC+2, texture_info.current);
 
         glBindVertexArray(render_buffers.vao);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_buffers.ibo);
-        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
-        //glDrawElementsInstanced(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+        if(show_billboard)
+        {
+            glDrawElementsInstanced(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
+        }
+        else
+        {
+            glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
+        }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -381,7 +443,7 @@ void ComponentParticleSystem::SetTexture(UID uid)
     }
 }
 
-void ComponentParticleSystem::AddNewParticle()
+bool ComponentParticleSystem::AddNewParticle()
 {
     bool found = false;
     for(uint i=last_used_particle; !found && i< particles.size(); ++i)
@@ -442,9 +504,15 @@ void ComponentParticleSystem::AddNewParticle()
         particles[last_used_particle].init_speed = init_speed;
         particles[last_used_particle].init_size = particles[last_used_particle].size  = init.size.GetValue();
         particles[last_used_particle].init_life = particles[last_used_particle].life  = init.life.GetValue();
-        particles[last_used_particle].color = float4::one;
+        particles[last_used_particle].init_rotation = particles[last_used_particle].rotation = init.rotation.GetValue();
+
+         color_over_time.gradient.getColorAt(0.0f, (float*)&particles[last_used_particle].color);
         ++alive_particles;
+
+        return true;
     }
+
+    return false;
 }
 
 float ComponentParticleSystem::RandomValue::GetValue() const

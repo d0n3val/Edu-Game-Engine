@@ -332,8 +332,7 @@ void ModuleRenderer::DrawMeshColor(const ComponentMesh* mesh)
 void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)
 {
     App->programs->UseProgram("particles", 0);
-
-    particles->Draw();
+    particles->Draw(false);
 }
 
 void ModuleRenderer::LoadDefaultShaders()

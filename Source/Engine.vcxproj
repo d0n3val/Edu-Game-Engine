@@ -168,6 +168,7 @@
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="Imgui\ImGuizmo.h" />
+    <ClInclude Include="Imgui\imgui_bezier.h" />
     <ClInclude Include="Imgui\imgui_color_gradient.h" />
     <ClInclude Include="imgui\imgui_internal.h" />
     <ClInclude Include="Imgui\imgui_user.h" />
@@ -317,6 +318,7 @@
     <ClCompile Include="imgui\examples\imgui_impl_sdl.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="Imgui\ImGuizmo.cpp" />
+    <ClCompile Include="Imgui\imgui_bezier.cpp" />
     <ClCompile Include="Imgui\imgui_color_gradient.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />

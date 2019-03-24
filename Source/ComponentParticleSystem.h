@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "imgui/imgui_color_gradient.h"
+#include "imgui/imgui_bezier.h"
 
 class ResourceTexture;
 
@@ -18,7 +19,7 @@ public:
 	void                    OnPlay              () override;
 	void                    OnStop              () override;
 	void                    OnUpdate            (float dt) override;
-    void                    Draw                ();
+    void                    Draw                (bool show_billboard);
 
 	void                    OnSave              (Config& config) const override;
 	void                    OnLoad              (Config* config) override;
@@ -35,9 +36,10 @@ public:
 private:
 
     void                    UpdateInstanceBuffer();
-    void                    AddNewParticle      ();
+    bool                    AddNewParticle      ();
 
 private:
+
     friend void DrawParticleSystemComponent(ComponentParticleSystem* component);
     friend void DebugDrawParticles(ComponentParticleSystem* particles);
 
@@ -45,21 +47,24 @@ private:
     {
         uint x_tiles  = 1;
         uint y_tiles  = 1;
-        float current = 0.0f;
         float speed   = 24.0f;
         UID texture   = 0;
     };
 
     struct Particle
     {
-        float  size        = 1.0f;
-		float4x4 transform = float4x4::identity;
-        float life         = 0.0f;
-        float init_life    = 0.0f;
-        float init_size    = 1.0f;
-        float init_speed   = 1.0f;
-        float3 speed       = float3::zero;
-        float4 color       = float4::one;
+		float4x4 transform  = float4x4::identity;
+        float init_life     = 0.0f;
+        float init_size     = 1.0f;
+        float init_speed    = 1.0f;
+        float init_rotation = 0.0f;
+        float life          = 0.0f;
+        float size          = 1.0f;
+        float rotation      = 0.0f;
+        float3 speed        = float3::zero;
+        float4 color        = float4::one;
+        float texture_frame = 0.0f;
+        float distance      = 0.0f;
     };
 
     struct RandomValue
@@ -77,10 +82,11 @@ private:
     {
         uint        max_particles = 100;
         bool        loop          = false;
-        RandomValue duration;
+        float       duration;
         RandomValue life;
         RandomValue speed;
         RandomValue size;
+        RandomValue rotation;
         float       whole_speed;
     };
 
@@ -110,13 +116,16 @@ private:
     {
         T init;
         T end;
+        float4  bezier = float4(0.0f, 1.0f, 0.0f, 1.0f);
 
         Interpolator() {;}
         Interpolator(const T& i, const T& e) : init(i), end(e) {;}
 
+        float GetBezier(float lambda);
+
         T Interpolate(float lambda)
         {
-            return init*lambda+end*(1.0f-lambda);
+            return init+(end-init)*ImGui::BezierValue(lambda, (float*)&bezier);
         }
     };
 
@@ -132,6 +141,25 @@ private:
         ImGradient      gradient;
         ImGradientMark* draggingMark = nullptr;
         ImGradientMark* selectedMark = nullptr;
+    };
+
+    enum RenderBlendMode
+    {
+        AdditiveBlend = 0, 
+        AlphaBlend,
+        BlendCount
+    };
+
+    struct TSortParticles
+    {
+        ComponentParticleSystem* component;
+
+        explicit TSortParticles(ComponentParticleSystem* co) : component(co) {;}
+
+        bool operator()(uint first, uint second) const
+        {
+            return component->particles[first].distance > component->particles[second].distance;
+        }
     };
     
 private:
@@ -151,9 +179,11 @@ private:
     TextureSheet           texture_info;
 
     std::vector<Particle>  particles;  
+    std::vector<uint>      sorted;
     uint                   alive_particles    = 0;
     uint                   last_used_particle = 0;
     float                  elapsed_emission   = 0;
+    RenderBlendMode        blend_mode         = AdditiveBlend;
 };
 
 #endif /* __COMPONENT_PARTICLE_SYSTEM_H__ */

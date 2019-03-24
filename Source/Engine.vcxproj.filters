@@ -639,6 +639,9 @@
     <ClInclude Include="Imgui\imgui_color_gradient.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="Imgui\imgui_bezier.h">
+      <Filter>3rd Party\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -996,6 +999,9 @@
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="Imgui\imgui_color_gradient.cpp">
+      <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui_bezier.cpp">
       <Filter>3rd Party\imgui</Filter>
     </ClCompile>
   </ItemGroup>
