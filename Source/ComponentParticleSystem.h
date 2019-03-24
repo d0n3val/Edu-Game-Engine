@@ -43,14 +43,6 @@ private:
     friend void DrawParticleSystemComponent(ComponentParticleSystem* component);
     friend void DebugDrawParticles(ComponentParticleSystem* particles);
 
-    struct TextureSheet
-    {
-        uint x_tiles  = 1;
-        uint y_tiles  = 1;
-        float speed   = 24.0f;
-        UID texture   = 0;
-    };
-
     struct Particle
     {
 		float4x4 transform     = float4x4::identity;
@@ -163,6 +155,16 @@ private:
             return component->particles[first].distance > component->particles[second].distance;
         }
     };
+
+    struct TextureSheet
+    {
+        uint                x_tiles         = 1;
+        uint                y_tiles         = 1;
+        UID                 texture         = 0;
+        Interpolator<float> frame_over_time = Interpolator<float>(0.0f, 0.0f);
+        bool                random          = false;
+    };
+
     
 private:
 

@@ -32,5 +32,5 @@ void main()
     color = diffuse;
 
 	// gamma correction
-    //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
+    color.rgb   = pow(color.rgb, vec3(2.2));
 }

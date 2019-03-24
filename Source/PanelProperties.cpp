@@ -1135,48 +1135,38 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
 
         ImGui::InputInt("sheet x tiles", (int*)&component->texture_info.x_tiles); 
         ImGui::InputInt("sheet y tiles", (int*)&component->texture_info.y_tiles);
-        ImGui::InputFloat("sheet speed", &component->texture_info.speed, 0.1f);
+
     }
 
     if(ImGui::CollapsingHeader("Initialization", ImGuiTreeNodeFlags_DefaultOpen))
     {
         auto ShowRandom = [](const char* name, ComponentParticleSystem::RandomValue* value, bool angle)
         {
+            if(angle)
+            {
+                value->range[0] *= 180.0f/PI;
+                value->range[1] *= 180.0f/PI;
+            }
+
             if(value->random)
             {
-                if(angle)
-                {
-                    ImGui::SliderAngle(name, &value->range[0], 0.0f, 360);
-                    ImGui::SameLine();
-                    ImGui::PushID(name);
-                    ImGui::Checkbox("Ran", &value->random);
-                    ImGui::PopID();
-                    ImGui::SliderAngle("", &value->range[1], 0.0f, 360);
-                }
-                else
-                {
-                    ImGui::InputFloat2(name, value->range, 3);
-                }
+                ImGui::InputFloat2(name, value->range, 3);
             }
             else
             {
-                if(angle)
-                {
-                    ImGui::SliderAngle(name, &value->range[0], 0.0f, 360);
-                }
-                else
-                {
-                    ImGui::InputFloat(name, &value->range[0], 0.001f);
-                }
+                ImGui::InputFloat(name, &value->range[0], 0.001f);
             }
 
-            if(!value->random || !angle)
+            if(angle)
             {
-                ImGui::SameLine();
-                ImGui::PushID(name);
-                ImGui::Checkbox("Ran", &value->random);
-                ImGui::PopID();
+                value->range[0] *= PI/180.0f;
+                value->range[1] *= PI/180.0f;
             }
+
+            ImGui::SameLine();
+            ImGui::PushID(name);
+            ImGui::Checkbox("Ran", &value->random);
+            ImGui::PopID();
         };
 
         ImGui::InputInt("Max particles", (int*)&component->init.max_particles);
@@ -1237,6 +1227,25 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
         ImGui::DragFloat("end", &component->size_over_time.end);
     }
     ImGui::PopID();
+
+    if(ImGui::CollapsingHeader("Frame over time", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Checkbox("random", &component->texture_info.random);
+
+        if(!component->texture_info.random)
+        {
+            ImGui::Bezier("sheet frame over time", (float*)&component->texture_info.frame_over_time.bezier);
+
+            if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->texture_info.frame_over_time.bezier = float4(0.550f, 0.055f, 0.675f, 0.190f);
+            ImGui::SameLine();
+            if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->texture_info.frame_over_time.bezier = float4(0.215f, 0.610f, 0.355f, 1.000f);
+            ImGui::SameLine();
+            if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->texture_info.frame_over_time.bezier = float4(0.645f, 0.045f, 0.355f, 1.000f);
+        }
+
+        ImGui::DragFloat("init", (float*)&component->texture_info.frame_over_time.init);
+        ImGui::DragFloat("end", (float*)&component->texture_info.frame_over_time.end);
+    }
 
     if(ImGui::CollapsingHeader("Color over time", ImGuiTreeNodeFlags_DefaultOpen))
     {

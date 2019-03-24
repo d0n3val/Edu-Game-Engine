@@ -8,7 +8,7 @@ layout(location = 4) in vec3 instance_up;
 layout(location = 5) in vec3 instance_front;
 layout(location = 6) in vec3 instance_translation;
 layout(location = 7) in vec4 instance_color;
-layout(location = 7) in float instance_frame;
+layout(location = 8) in float instance_frame;
 
 uniform mat4 proj;
 uniform mat4 view;

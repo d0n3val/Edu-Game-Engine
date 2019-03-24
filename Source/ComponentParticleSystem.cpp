@@ -161,7 +161,11 @@ void ComponentParticleSystem::OnSave(Config& config) const
 	config.AddUID("Texture", texture_info.texture);
     config.AddInt("Sheet x", texture_info.x_tiles);
     config.AddInt("Sheet y", texture_info.y_tiles);
-    config.AddFloat("Sheet speed", texture_info.speed);
+    config.AddBool("Sheet random", texture_info.random);
+    config.AddFloat("Sheet init", texture_info.frame_over_time.init);
+    config.AddFloat("Sheet end", texture_info.frame_over_time.end);
+    config.AddFloat4("Sheet bezier", texture_info.frame_over_time.bezier);
+
     config.AddInt("Blend mode", (int)blend_mode);
 }
 
@@ -218,7 +222,10 @@ void ComponentParticleSystem::OnLoad(Config* config)
 
     texture_info.x_tiles = config->GetInt("Sheet x", 1);
     texture_info.y_tiles = config->GetInt("Sheet y", 1);
-    texture_info.speed   = config->GetFloat("Sheet speed", 24.0);
+    texture_info.random = config->GetBool("Sheet random", false);
+    texture_info.frame_over_time.init = config->GetFloat("Sheet init", 0.0f);
+    texture_info.frame_over_time.end = config->GetFloat("Sheet end", 0.0f);
+    texture_info.frame_over_time.bezier = config->GetFloat4("Sheet bezier", float4(0.0f, 1.0f, 0.0f, 1.0f));
     blend_mode = (RenderBlendMode)config->GetInt("Blend mode", (int)AdditiveBlend);
 }
 
@@ -265,7 +272,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
 
             color_over_time.gradient.getColorAt(lambda, (float*)&particle.color);
 
-            particle.texture_frame = fmodf(particles[i].texture_frame+texture_info.speed*dt, float(texture_info.x_tiles*texture_info.y_tiles));
+            if(!texture_info.random)
+            {
+                particle.texture_frame = texture_info.frame_over_time.Interpolate(lambda);
+            }
 
             if(blend_mode == AlphaBlend)
             {
@@ -315,43 +325,43 @@ void ComponentParticleSystem::UpdateInstanceBuffer()
     glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
     char* instance_data = (char*)glMapBufferRange(GL_ARRAY_BUFFER, 0, stride*num_instances, GL_MAP_WRITE_BIT);
 	
-    uint index = 0;
-    for(uint i=0; i< particles.size(); ++i)
+    assert(alive_particles == sorted.size());
+
+    for(uint i=0; i< sorted.size(); ++i)
     {
-        if(particles[i].life > 0.0f)
+        Particle& particle = particles[sorted[i]];
+        if(particle.life > 0.0f)
         {
-            float3 translation = particles[i].transform.TranslatePart();
+            float3 translation = particle.transform.TranslatePart();
             float3 z_axis = camera_pos-translation; z_axis.Normalize();
             float3 y_axis = float3::unitY;
             float3 x_axis = y_axis.Cross(z_axis); x_axis.Normalize();
 
-            Quat rotation(z_axis, particles[i].rotation);
+            Quat rotation(z_axis, particle.rotation);
 
             x_axis = rotation.Transform(x_axis);
             y_axis = rotation.Transform(y_axis);
 
-            x_axis *= particles[i].size;
-            y_axis *= particles[i].size;
-            z_axis *= particles[i].size;
+            x_axis *= particle.size;
+            y_axis *= particle.size;
+            z_axis *= particle.size;
 
-            particles[i].transform.SetCol3(0, x_axis);
-            particles[i].transform.SetCol3(1, y_axis);
-            particles[i].transform.SetCol3(2, z_axis);
+            particle.transform.SetCol3(0, x_axis);
+            particle.transform.SetCol3(1, y_axis);
+            particle.transform.SetCol3(2, z_axis);
 
-            float3* matrix = (float3*)(instance_data+(index*stride));
+            float3* matrix = (float3*)(instance_data+(i*stride));
 
 			matrix[0] = x_axis;
 			matrix[1] = y_axis;
 			matrix[2] = z_axis;
 			matrix[3] = translation;
 
-            float4* color = (float4*)(instance_data+(index*stride+sizeof(float3)*4));
-            *color = particles[i].color;
+            float4* color = (float4*)(instance_data+(i*stride+sizeof(float3)*4));
+            *color = particle.color;
 
-            float* frame = (float*)(instance_data+(index*stride+sizeof(float3)*4+sizeof(float4)));
-            *frame = particles[i].texture_frame;
-
-            ++index;
+            float* frame = (float*)(instance_data+(i*stride+sizeof(float3)*4+sizeof(float4)));
+			*frame = particle.texture_frame;
         }
     }
 
@@ -472,7 +482,7 @@ bool ComponentParticleSystem::AddNewParticle()
             float len = App->random->Float01Incl()*shape.radius;
             float3 direction = float3(cos(angle), 0.0f, sin(angle));
             particles[last_used_particle].transform.SetTranslatePart(direction*len);
-            particles[last_used_particle].init_speed = particles[last_used_particle].speed = direction*init_speed;
+            particles[last_used_particle].init_speed = direction*init_speed;
         }
         else if(shape.type == Cone)
         {
@@ -499,13 +509,25 @@ bool ComponentParticleSystem::AddNewParticle()
             }
 
             particles[last_used_particle].transform.SetTranslatePart(position);
-            particles[last_used_particle].init_speed = particles[last_used_particle].speed = speed_dir*init_speed;
+            particles[last_used_particle].init_speed = speed_dir*init_speed;
         }
 
-        particles[last_used_particle].init_size = particles[last_used_particle].size  = init.size.GetValue();
-        particles[last_used_particle].init_life = particles[last_used_particle].life  = init.life.GetValue();
+        particles[last_used_particle].speed = particles[last_used_particle].init_speed+speed_over_time.Interpolate(0.0f);
+
+        particles[last_used_particle].init_size = init.size.GetValue();
+        particles[last_used_particle].size = particles[last_used_particle].init_size*size_over_time.Interpolate(0.0f);
+        particles[last_used_particle].init_life = particles[last_used_particle].life = init.life.GetValue();
         particles[last_used_particle].init_rotation = particles[last_used_particle].rotation = init.rotation.GetValue();
         particles[last_used_particle].gravity = init.gravity.GetValue();
+
+        if(texture_info.random)
+        {
+            particles[last_used_particle].texture_frame = texture_info.frame_over_time.init+(texture_info.frame_over_time.end - texture_info.frame_over_time.init)*App->random->Float01Incl();
+        }
+        else
+        {
+            particles[last_used_particle].texture_frame = texture_info.frame_over_time.Interpolate(0.0f);
+        }
 
          color_over_time.gradient.getColorAt(0.0f, (float*)&particles[last_used_particle].color);
         ++alive_particles;
