@@ -32,6 +32,8 @@ public:
     UID                     GetTexture          () const { return texture_info.texture; }
     void                    SetTexture          (UID tex);
 
+    bool                    GetVisible          () const { return visible; }
+
 
 private:
 
@@ -188,6 +190,7 @@ private:
     uint                   last_used_particle = 0;
     float                  elapsed_emission   = 0;
     RenderBlendMode        blend_mode         = AdditiveBlend;
+    bool                   visible            = true;
 };
 
 #endif /* __COMPONENT_PARTICLE_SYSTEM_H__ */

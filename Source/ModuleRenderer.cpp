@@ -261,11 +261,11 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
     TRenderInfo render;
     render.name         = go->name.c_str();
     render.go           = go;
-    render.distance     = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
 
     if(mesh != nullptr && material != nullptr && mesh->GetVisible())
     {
-        render.mesh = mesh;
+        render.distance = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
+        render.mesh     = mesh;
 
         if(material->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
         {
@@ -282,6 +282,7 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
     }
     else if(particles != nullptr)
     {
+        render.distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
         render.particles= particles;
 
         NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render.distance, TFarthestMesh());
@@ -315,7 +316,7 @@ void ModuleRenderer::DrawColor(const TRenderInfo& render_info)
     {
         DrawMeshColor(render_info.mesh);
     }
-    else if(render_info.particles)
+    else if(render_info.particles && render_info.particles->GetVisible())
     {
         DrawParticles(render_info.particles);
     }

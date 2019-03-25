@@ -27,7 +27,8 @@ void main()
 {
 	vec4 diffuse0 = texture(material.diffuse_map, fragment.uv0);
 	vec4 diffuse1 = texture(material.diffuse_map, fragment.uv1);
-    vec4 diffuse  = mix(diffuse0, diffuse1, fragment.lambda)*fragment.color;
+    vec4 diffuse  = diffuse0*fragment.color;
+    //vec4 diffuse  = mix(diffuse0, diffuse1, fragment.lambda)*fragment.color;
 
     color = diffuse;
 

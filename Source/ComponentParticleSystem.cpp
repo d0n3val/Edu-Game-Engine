@@ -283,6 +283,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
                 std::vector<uint>::iterator it = std::lower_bound(sorted.begin(), sorted.end(), i, TSortParticles(this));
                 sorted.insert(it, i);
             }
+            else
+            {
+                sorted.push_back(i);
+            }
 
             ++alive_particles;
         }
@@ -300,6 +304,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
                 std::vector<uint>::iterator it = std::lower_bound(sorted.begin(), sorted.end(), last_used_particle, TSortParticles(this));
                 sorted.insert(it, last_used_particle);
             }
+			else
+			{
+				sorted.push_back(last_used_particle);
+			}
 
 			elapsed_emission -= emission_period;
 		}

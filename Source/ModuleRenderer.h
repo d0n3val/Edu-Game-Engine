@@ -37,7 +37,7 @@ class ModuleRenderer : public Module
     {
         bool operator()(const TRenderInfo& info, float distance)
         {
-            return info.distance > distance;
+            return info.distance >= distance;
         }
     };
 
