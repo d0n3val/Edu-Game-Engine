@@ -123,10 +123,11 @@ void ComponentParticleSystem::OnSave(Config& config) const
     init.size.Save("Size", config);
     init.rotation.Save("Rotation", config);
     init.gravity.Save("Gravity", config);
+    config.AddFloat4("Color", init.color);
 	config.AddFloat("Whole speed", init.whole_speed);
 
-    config.AddUInt("Particles per second", emissor.particles_per_second);
-    config.AddUInt("Particles per distance", emissor.particles_per_distance);
+    config.AddUInt("Particles per second", emitter.particles_per_second);
+    config.AddUInt("Particles per distance", emitter.particles_per_distance);
     config.AddUInt("Shape type", (uint)shape.type);
     if(shape.type == Circle)
     {
@@ -180,11 +181,12 @@ void ComponentParticleSystem::OnLoad(Config* config)
     init.size.Load("Size", *config);
     init.rotation.Load("Rotation", *config);
     init.gravity.Load("Gravity", *config);
+    init.color = config->GetFloat4("Color", float4::one);
 
 	init.whole_speed = config->GetFloat("Whole speed", 1.0f);
 
-    emissor.particles_per_second = config->GetUInt("Particles per second", 0);
-    emissor.particles_per_distance = config->GetUInt("Particles per distance", 0);
+    emitter.particles_per_second = config->GetUInt("Particles per second", 0);
+    emitter.particles_per_distance = config->GetUInt("Particles per distance", 0);
     shape.type = (ShapeType)config->GetUInt("Shape type", (uint)Circle);
     if(shape.type == Circle)
     {
@@ -271,6 +273,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
             particle.size = particle.init_size*size_over_time.Interpolate(lambda);
 
             color_over_time.gradient.getColorAt(lambda, (float*)&particle.color);
+			particle.color.x *= init.color.x;
+			particle.color.y *= init.color.y;
+			particle.color.z *= init.color.z;
+			particle.color.w *= init.color.w;
 
             if(!texture_info.random)
             {
@@ -292,10 +298,10 @@ void ComponentParticleSystem::OnUpdate(float dt)
         }
     }
 
-	if (emissor.particles_per_second > 0)
+	if (emitter.particles_per_second > 0)
 	{
 		elapsed_emission += dt;
-		float emission_period = 1.0f / float(emissor.particles_per_second);
+		float emission_period = 1.0f / float(emitter.particles_per_second);
 		while (alive_particles < init.max_particles && (elapsed_emission-emission_period) > 0.0f)
 		{
 			if(AddNewParticle() && blend_mode == AlphaBlend)
@@ -537,7 +543,11 @@ bool ComponentParticleSystem::AddNewParticle()
             particles[last_used_particle].texture_frame = texture_info.frame_over_time.Interpolate(0.0f);
         }
 
-         color_over_time.gradient.getColorAt(0.0f, (float*)&particles[last_used_particle].color);
+        color_over_time.gradient.getColorAt(0.0f, (float*)&particles[last_used_particle].color);
+        particles[last_used_particle].color.x *= init.color.x;
+        particles[last_used_particle].color.y *= init.color.y;
+        particles[last_used_particle].color.z *= init.color.z;
+        particles[last_used_particle].color.w *= init.color.w;
         ++alive_particles;
 
         return true;

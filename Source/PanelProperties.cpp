@@ -1177,12 +1177,13 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
         ShowRandom("Size ", &component->init.size, false);
         ShowRandom("Rot  ", &component->init.rotation, true);
         ShowRandom("Grav ", &component->init.gravity, false);
+        ImGui::ColorEdit4("Color", (float*)&component->init.color);
         ImGui::InputFloat("Whole speed", &component->init.whole_speed, 0.01f);
     }
 
     if(ImGui::CollapsingHeader("Emitter", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::InputInt("Particles per second", (int*)&component->emissor.particles_per_second);
+        ImGui::InputInt("Particles per second", (int*)&component->emitter.particles_per_second);
 
         const char* names[ComponentParticleSystem::ShapeCount] = { "Circle", "Cone" };
 
@@ -1202,11 +1203,11 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
     {
         ImGui::Bezier("Speed", (float*)&component->speed_over_time.bezier);
 
-        if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->speed_over_time.bezier = float4(0.550f, 0.055f, 0.675f, 0.190f);
+        if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->speed_over_time.bezier = float4(0.0f, 0.0f, 1.0f, 0.0f);
         ImGui::SameLine();
-        if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->speed_over_time.bezier = float4(0.215f, 0.610f, 0.355f, 1.000f);
+        if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->speed_over_time.bezier = float4(0.0f, 0.0f, 0.0f, 1.f);
         ImGui::SameLine();
-        if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->speed_over_time.bezier = float4(0.645f, 0.045f, 0.355f, 1.000f);
+        if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->speed_over_time.bezier = float4(0.0, 1.0f, 1.0f, 0.0f);
 
         ImGui::DragFloat3("init", (float*)&component->speed_over_time.init);
         ImGui::DragFloat3("end", (float*)&component->speed_over_time.end);
@@ -1217,17 +1218,20 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
     if(ImGui::CollapsingHeader("Size over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Bezier("Size", (float*)&component->size_over_time.bezier);
-        if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->size_over_time.bezier = float4(0.550f, 0.055f, 0.675f, 0.190f);
+
+        if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->size_over_time.bezier = float4(0.0f, 0.0f, 1.0f, 0.0f);
         ImGui::SameLine();
-        if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->size_over_time.bezier = float4(0.215f, 0.610f, 0.355f, 1.000f);
+        if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->size_over_time.bezier = float4(0.0f, 0.0f, 0.0f, 1.f);
         ImGui::SameLine();
-        if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->size_over_time.bezier = float4(0.645f, 0.045f, 0.355f, 1.000f);
+        if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->size_over_time.bezier = float4(0.0, 1.0f, 1.0f, 0.0f);
+
 
         ImGui::DragFloat("init", &component->size_over_time.init);
         ImGui::DragFloat("end", &component->size_over_time.end);
     }
     ImGui::PopID();
 
+    ImGui::PushID("Frame");
     if(ImGui::CollapsingHeader("Frame over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Checkbox("random", &component->texture_info.random);
@@ -1236,16 +1240,17 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
         {
             ImGui::Bezier("sheet frame over time", (float*)&component->texture_info.frame_over_time.bezier);
 
-            if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->texture_info.frame_over_time.bezier = float4(0.550f, 0.055f, 0.675f, 0.190f);
+            if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->texture_info.frame_over_time.bezier = float4(0.0f, 0.0f, 1.0f, 0.0f);
             ImGui::SameLine();
-            if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->texture_info.frame_over_time.bezier = float4(0.215f, 0.610f, 0.355f, 1.000f);
+            if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->texture_info.frame_over_time.bezier = float4(0.0f, 0.0f, 0.0f, 1.f);
             ImGui::SameLine();
-            if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->texture_info.frame_over_time.bezier = float4(0.645f, 0.045f, 0.355f, 1.000f);
+            if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->texture_info.frame_over_time.bezier = float4(0.0, 1.0f, 1.0f, 0.0f);
         }
 
         ImGui::DragFloat("init", (float*)&component->texture_info.frame_over_time.init);
         ImGui::DragFloat("end", (float*)&component->texture_info.frame_over_time.end);
     }
+    ImGui::PopID();
 
     if(ImGui::CollapsingHeader("Color over time", ImGuiTreeNodeFlags_DefaultOpen))
     {

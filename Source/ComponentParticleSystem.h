@@ -52,6 +52,7 @@ private:
         float    init_size     = 1.0f;
         float3   init_speed    = float3::one;
         float    init_rotation = 0.0f;
+        float4   init_color    = float4::one;
         float    life          = 0.0f;
         float    size          = 1.0f;
         float    rotation      = 0.0f;
@@ -67,6 +68,9 @@ private:
         float range[2] = {0.0f, 0.0f};
 		bool random = false;
 
+		RandomValue() { ; }
+        RandomValue(float a, float b) { range[0] = a; range[1] = b; }
+
         float GetValue() const;
 
         void  Save    (const char* name, Config& config) const;
@@ -76,19 +80,21 @@ private:
     struct InitParams
     {
         uint        max_particles = 100;
-        bool        loop          = false;
-        float       duration;
-        RandomValue life;
-        RandomValue speed;
-        RandomValue size;
-        RandomValue rotation;
-        RandomValue gravity;
-        float       whole_speed;
+        bool        loop          = true;
+        float       duration      = 10.0f;
+        RandomValue life          = RandomValue(1.0f, 1.0f);
+        RandomValue speed         = RandomValue(1.0f, 1.0f);
+        RandomValue size          = RandomValue(1.0f, 1.0f);
+        RandomValue rotation      = RandomValue(0.0f, 0.0f);
+        RandomValue gravity       = RandomValue(1.0f, 1.0f);
+        float4      color         = float4::one;
+        float       whole_speed   = 1.0f;
+
     };
 
     struct Emitter
     {
-        uint particles_per_second   = 0;
+        uint particles_per_second   = 10;
         uint particles_per_distance = 0;
         uint bursts                 = 0;
     };
@@ -102,9 +108,9 @@ private:
 
     struct EmitterShape
     {
-        ShapeType type   = Circle;
-        float     angle  = 0.0f;
-        float     radius = 1.0f;
+        ShapeType type   = Cone;
+        float     angle  = 0.45f;
+        float     radius = 0.2f;
     };
 
     template<class T>
@@ -112,7 +118,7 @@ private:
     {
         T init;
         T end;
-        float4  bezier = float4(0.0f, 1.0f, 0.0f, 1.0f);
+        float4  bezier = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
         Interpolator() {;}
         Interpolator(const T& i, const T& e) : init(i), end(e) {;}
@@ -175,7 +181,7 @@ private:
     uint                   num_instances     = 0;
 
     InitParams             init;
-    Emitter                emissor;
+    Emitter                emitter;
     EmitterShape           shape;
     Interpolator<float3>   speed_over_time = Interpolator<float3>(float3::zero, float3::zero);       
     Interpolator<float>    size_over_time  = Interpolator<float>(1.0f, 1.0f);       
