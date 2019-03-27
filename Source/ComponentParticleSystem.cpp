@@ -218,10 +218,7 @@ void ComponentParticleSystem::OnLoad(Config* config)
         float position = mark.GetFloat("position", 0.0f); 
 
         color_over_time.gradient.addMark(position, ImColor(color.x, color.y, color.z, 1.0f));
-        if(color.w < 1.0f)
-        {
-            color_over_time.gradient.addAlphaMark(position, color.w);
-        }
+        color_over_time.gradient.addAlphaMark(position, color.w);
     }
 
     SetTexture(config->GetUID("Texture", 0));

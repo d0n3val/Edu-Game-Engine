@@ -65,8 +65,8 @@ public:
     ~ImGradient();
     
     void getColorAt(float position, float* color) const;
-    void addMark(float position, ImColor const color);
-    void addAlphaMark(float position, float alpha);
+    ImGradientMark* addMark(float position, ImColor const color);
+    ImGradientMark* addAlphaMark(float position, float alpha);
     void removeMark(ImGradientMark* mark);
     void clearMarks();
     void refreshCache();

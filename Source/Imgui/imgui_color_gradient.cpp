@@ -14,8 +14,10 @@ static const float GRADIENT_MARK_DELETE_DIFFY = 40;
 
 ImGradient::ImGradient()
 {
-    addMark(0.0f, ImColor(0.0f,0.0f,0.0f));
+    addMark(0.0f, ImColor(1.0f,1.0f, 1.0f));
+    addMark(0.0f, 1.0f);
     addMark(1.0f, ImColor(1.0f,1.0f,1.0f));
+    addMark(1.0f, 1.0f);
 }
 
 ImGradient::~ImGradient()
@@ -26,7 +28,7 @@ ImGradient::~ImGradient()
 	}
 }
 
-void ImGradient::addMark(float position, ImColor const color)
+ImGradientMark* ImGradient::addMark(float position, ImColor const color)
 {
     position = ImClamp(position, 0.0f, 1.0f);
 	ImGradientMark* newMark = new ImGradientMark();
@@ -39,9 +41,11 @@ void ImGradient::addMark(float position, ImColor const color)
     m_marks.push_back(newMark);
     
     refreshCache();
+
+    return newMark;
 }
 
-void ImGradient::addAlphaMark(float position, float alpha)
+ImGradientMark* ImGradient::addAlphaMark(float position, float alpha)
 {
     position = ImClamp(position, 0.0f, 1.0f);
 	ImGradientMark* newMark = new ImGradientMark();
@@ -52,6 +56,8 @@ void ImGradient::addAlphaMark(float position, float alpha)
     m_marks.push_back(newMark);
     
     refreshCache();
+
+    return newMark;
 }
 
 void ImGradient::removeMark(ImGradientMark* mark)
@@ -360,7 +366,8 @@ namespace ImGui
         DrawGradientBar(gradient, bar_pos, maxWidth, GRADIENT_BAR_EDITOR_HEIGHT);
         DrawGradientMarks(gradient, draggingMark, selectedMark, bar_pos, maxWidth, GRADIENT_BAR_EDITOR_HEIGHT);
         
-        ImGui::InvisibleButton("gradient_editor_bar", ImVec2(maxWidth, GRADIENT_BAR_EDITOR_HEIGHT));
+        ImGui::SetCursorScreenPos(ImVec2(bar_pos.x, bar_pos.y -10.0f));
+        ImGui::InvisibleButton("gradient_editor_bar", ImVec2(maxWidth, 10.0f));
         
         if(ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
         {
@@ -369,8 +376,20 @@ namespace ImGui
             float newMarkCol[4];
             gradient->getColorAt(pos, newMarkCol);
             
-
-            gradient->addMark(pos, ImColor(newMarkCol[0], newMarkCol[1], newMarkCol[2]));
+            selectedMark = gradient->addAlphaMark(pos, newMarkCol[3]);
+        }
+        
+        ImGui::SetCursorScreenPos(ImVec2(bar_pos.x, bar_pos.y + GRADIENT_BAR_EDITOR_HEIGHT));
+        ImGui::InvisibleButton("gradient_editor_bar", ImVec2(maxWidth, 10.0f));
+        
+        if(ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
+        {
+            float pos = (ImGui::GetIO().MousePos.x - bar_pos.x) / maxWidth;
+            
+            float newMarkCol[4];
+            gradient->getColorAt(pos, newMarkCol);
+            
+            selectedMark = gradient->addMark(pos, ImColor(newMarkCol[0], newMarkCol[1], newMarkCol[2]));
         }
         
         if(!ImGui::IsMouseDown(0) && draggingMark)
@@ -394,7 +413,17 @@ namespace ImGui
             
             float diffY = ImGui::GetIO().MousePos.y - barBottom;
             
-            if(diffY >= GRADIENT_MARK_DELETE_DIFFY)
+            if(diffY >= GRADIENT_MARK_DELETE_DIFFY && !draggingMark->alpha)
+            {
+                gradient->removeMark(draggingMark);
+                draggingMark = nullptr;
+                selectedMark = nullptr;
+                modified = true;
+            }
+
+			diffY = ImGui::GetIO().MousePos.y - bar_pos.y;
+
+            if(diffY < -GRADIENT_MARK_DELETE_DIFFY && draggingMark->alpha)
             {
                 gradient->removeMark(draggingMark);
                 draggingMark = nullptr;
@@ -410,15 +439,22 @@ namespace ImGui
         
         if(selectedMark)
         {
-            ImGui::PushID("color");
-            bool colorModified = ImGui::ColorPicker4("", selectedMark->color);
-            ImGui::PopID();
-            
-            if(selectedMark && colorModified)
-            {
-                modified = true;
-                gradient->refreshCache();
-            }
+			if (selectedMark->alpha)
+			{
+                if(ImGui::SliderFloat("alpha", selectedMark->color, 0.0f, 1.0f))
+                {
+                    modified = true;
+                    gradient->refreshCache();
+                }
+			}
+			else
+			{
+				if(ImGui::ColorEdit3("color", selectedMark->color))
+				{
+					modified = true;
+					gradient->refreshCache();
+				}
+			}
         }
         
         return modified;
