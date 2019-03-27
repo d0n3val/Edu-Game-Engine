@@ -53,8 +53,9 @@
 
 struct ImGradientMark
 {
-    float color[4];
-    float position; //0 to 1
+    float color[3] = {0.0f, 0.0f, 0.0f};
+    float position = 0.0f; //0 to 1
+    bool alpha     = false;
 };
 
 class ImGradient
@@ -65,14 +66,16 @@ public:
     
     void getColorAt(float position, float* color) const;
     void addMark(float position, ImColor const color);
+    void addAlphaMark(float position, float alpha);
     void removeMark(ImGradientMark* mark);
     void clearMarks();
     void refreshCache();
     std::list<ImGradientMark*> & getMarks(){ return m_marks; }
 	const std::list<ImGradientMark*> & getMarks() const { return m_marks; }
 
-private:
     void computeColorAt(float position, float* color) const;
+private:
+
     std::list<ImGradientMark*> m_marks;
     float m_cachedValues[256 * 4];
 };

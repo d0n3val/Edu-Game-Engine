@@ -34,7 +34,20 @@ void ImGradient::addMark(float position, ImColor const color)
     newMark->color[0] = color.Value.x;
     newMark->color[1] = color.Value.y;
     newMark->color[2] = color.Value.z;
-    newMark->color[3] = color.Value.w;
+    newMark->alpha    = false;
+    
+    m_marks.push_back(newMark);
+    
+    refreshCache();
+}
+
+void ImGradient::addAlphaMark(float position, float alpha)
+{
+    position = ImClamp(position, 0.0f, 1.0f);
+	ImGradientMark* newMark = new ImGradientMark();
+    newMark->position = position;
+    newMark->color[0] = alpha;
+    newMark->alpha    = true;
     
     m_marks.push_back(newMark);
     
@@ -68,49 +81,77 @@ void ImGradient::computeColorAt(float position, float* color) const
 {
     position = ImClamp(position, 0.0f, 1.0f);
     
-    ImGradientMark* lower = nullptr;
-    ImGradientMark* upper = nullptr;
+    ImGradientMark* lower = nullptr, *lower_alpha = nullptr;
+    ImGradientMark* upper = nullptr, *upper_alpha = nullptr;
     
     for(ImGradientMark* mark : m_marks)
     {
         if(mark->position < position)
         {
-            if(!lower || lower->position < mark->position)
+            if(!mark->alpha)
             {
-                lower = mark;
+                if(!lower || lower->position < mark->position)
+                {
+                    lower = mark;
+                }
+            }
+            else
+            {
+                if(!lower_alpha || lower_alpha->position < mark->position)
+                {
+                    lower_alpha = mark;
+                }
             }
         }
         
         if(mark->position >= position)
         {
-            if(!upper || upper->position > mark->position)
+            if(!mark->alpha)
             {
-                upper = mark;
+                if(!upper || upper->position > mark->position)
+                {
+                    upper = mark;
+                }
+            }
+            else
+            {
+                if(!upper_alpha || upper_alpha->position > mark->position)
+                {
+                    upper_alpha = mark;
+                }
             }
         }
     }
     
-    if(upper && !lower)
+    if(!lower)
     {
         lower = upper;
     }
-    else if(!upper && lower)
+
+    if(!upper)
     {
         upper = lower;
     }
-    else if(!lower && !upper)
+
+    if(!lower_alpha)
     {
-        color[0] = color[1] = color[2] = 0;
-        color[3] = 1.0f;
-        return;
+        lower_alpha = upper_alpha;
     }
-    
-    if(upper == lower)
+
+    if(!upper_alpha)
+    {
+        upper_alpha = lower_alpha;
+    }
+
+    if(!lower && !upper)
+    {
+        color[0] = color[1] = color[2] = 0.0f;
+    }
+    else if(upper == lower)
     {
         color[0] = upper->color[0];
         color[1] = upper->color[1];
         color[2] = upper->color[2];
-        color[3] = upper->color[3];
     }
     else
     {
@@ -121,7 +162,22 @@ void ImGradient::computeColorAt(float position, float* color) const
         color[0] = ((1.0f - delta) * lower->color[0]) + ((delta) * upper->color[0]);
         color[1] = ((1.0f - delta) * lower->color[1]) + ((delta) * upper->color[1]);
         color[2] = ((1.0f - delta) * lower->color[2]) + ((delta) * upper->color[2]);
-        color[3] = ((1.0f - delta) * lower->color[3]) + ((delta) * upper->color[3]);
+    }
+
+    if(!lower_alpha && !upper_alpha)
+    {
+        color[3] = 1.0f;
+    }
+    else if(upper_alpha == lower_alpha)
+    {
+        color[3] = upper_alpha->color[0];
+    }
+    else
+    {
+        float distance = upper_alpha->position - lower_alpha->position;
+        float delta = (position - lower_alpha->position) / distance;
+        
+        color[3] = ((1.0f - delta) * lower_alpha->color[0]) + ((delta) * upper_alpha->color[0]);
     }
 }
 
@@ -154,7 +210,6 @@ namespace ImGui
         RenderColorRectWithAlphaCheckerboard(ImVec2(bar_pos.x, bar_pos.y),
                                  ImVec2(bar_pos.x + maxWidth, barBottom),
                                  IM_COL32(0, 0, 0, 0), 10.0f, ImVec2(0.0f, 0.0f));
-
         
         if(gradient->getMarks().size() == 0)
         {
@@ -174,25 +229,8 @@ namespace ImGui
             float from = prevX;
             float to = prevX = bar_pos.x + mark->position * maxWidth;
             
-            if(prevMark == nullptr)
-            {
-                colorA.x = mark->color[0];
-                colorA.y = mark->color[1];
-                colorA.z = mark->color[2];
-                colorA.w = mark->color[3];
-            }
-            else
-            {
-                colorA.x = prevMark->color[0];
-                colorA.y = prevMark->color[1];
-                colorA.z = prevMark->color[2];
-                colorA.w = prevMark->color[3];
-            }
-            
-            colorB.x = mark->color[0];
-            colorB.y = mark->color[1];
-            colorB.z = mark->color[2];
-            colorB.w = mark->color[3];
+            gradient->computeColorAt((from-bar_pos.x)/maxWidth, (float*)&colorA);
+            gradient->computeColorAt((to-bar_pos.x)/maxWidth, (float*)&colorB);
             
             colorAU32 = ImGui::ColorConvertFloat4ToU32(colorA);
             colorBU32 = ImGui::ColorConvertFloat4ToU32(colorB);
@@ -226,89 +264,66 @@ namespace ImGui
                                   float maxWidth,
                                   float height)
     {
-        ImVec4 colorA = {1,1,1,1};
-        ImVec4 colorB = {1,1,1,1};
-        float barBottom = bar_pos.y + height;
-        ImGradientMark* prevMark = nullptr;
+        ImVec4 color          = {1,1,1,1};
+        float barBottom       = bar_pos.y + height;
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImU32 colorAU32 = 0;
-        ImU32 colorBU32 = 0;
+        ImU32 colorU32 = 0;
         
         for(auto markIt = gradient->getMarks().begin(); markIt != gradient->getMarks().end(); ++markIt )
         {
             ImGradientMark* mark = *markIt;
             
-            if(!selectedMark)
-            {
-                selectedMark = mark;
-            }
-            
             float to = bar_pos.x + mark->position * maxWidth;
-            
-            if(prevMark == nullptr)
+            gradient->computeColorAt((to-bar_pos.x)/maxWidth, (float*)&color);
+
+            float barY = mark->alpha ? bar_pos.y : barBottom;
+            float sign = mark->alpha ? -1.0f : 1.0f;
+
+            if(mark->alpha)
             {
-                colorA.x = mark->color[0];
-                colorA.y = mark->color[1];
-                colorA.z = mark->color[2];
-                colorA.w = mark->color[3];
-            }
-            else
-            {
-                colorA.x = prevMark->color[0];
-                colorA.y = prevMark->color[1];
-                colorA.z = prevMark->color[2];
-                colorA.w = prevMark->color[3];
+                color.x = color.y = color.z = 0.0f;
             }
             
-            colorB.x = mark->color[0];
-            colorB.y = mark->color[1];
-            colorB.z = mark->color[2];
-            colorB.w = mark->color[3];
+            colorU32 = ImGui::ColorConvertFloat4ToU32(color);
             
-            colorAU32 = ImGui::ColorConvertFloat4ToU32(colorA);
-            colorBU32 = ImGui::ColorConvertFloat4ToU32(colorB);
+            draw_list->AddTriangleFilled(ImVec2(to, barY -sign*6),
+                                         ImVec2(to - 6, barY),
+                                         ImVec2(to + 6, barY), IM_COL32(100, 100, 100, 255));
             
-            draw_list->AddTriangleFilled(ImVec2(to, bar_pos.y + (height - 6)),
-                                         ImVec2(to - 6, barBottom),
-                                         ImVec2(to + 6, barBottom), IM_COL32(100, 100, 100, 255));
-            
-            draw_list->AddRectFilled(ImVec2(to - 6, barBottom),
-                                     ImVec2(to + 6, bar_pos.y + (height + 12)),
+            draw_list->AddRectFilled(ImVec2(to - 6, barY),
+                                     ImVec2(to + 6, barY+sign*12),
                                      IM_COL32(100, 100, 100, 255), 0.0f, 0);
             
-            draw_list->AddRectFilled(ImVec2(to - 5, bar_pos.y + (height + 1)),
-                                     ImVec2(to + 5, bar_pos.y + (height + 11)),
+            draw_list->AddRectFilled(ImVec2(to - 5, barY + sign*1),
+                                     ImVec2(to + 5, barY + sign*11),
                                      IM_COL32(0, 0, 0, 255), 0.0f, 0);
             
             if(selectedMark == mark)
             {
-                draw_list->AddTriangleFilled(ImVec2(to, bar_pos.y + (height - 3)),
-                                             ImVec2(to - 4, barBottom + 1),
-                                             ImVec2(to + 4, barBottom + 1), IM_COL32(0, 255, 0, 255));
+                draw_list->AddTriangleFilled(ImVec2(to, barY - sign*3),
+                                             ImVec2(to - 4, barY + sign*1),
+                                             ImVec2(to + 4, barY + sign*1), IM_COL32(0, 255, 0, 255));
                 
-                draw_list->AddRect(ImVec2(to - 5, bar_pos.y + (height + 1)),
-                                   ImVec2(to + 5, bar_pos.y + (height + 11)),
+                draw_list->AddRect(ImVec2(to - 5, barY + sign*1),
+                                   ImVec2(to + 5, barY + sign*11),
                                    IM_COL32(0, 255, 0, 255), 0.0f, 0);
             }
             
-            draw_list->AddRectFilledMultiColor(ImVec2(to - 3, bar_pos.y + (height + 3)),
-                                               ImVec2(to + 3, bar_pos.y + (height + 9)),
-                                               colorBU32, colorBU32, colorBU32, colorBU32);
+            draw_list->AddRectFilledMultiColor(ImVec2(to - 3, barY + sign*3),
+                                               ImVec2(to + 3, barY + sign*9),
+                                               colorU32, colorU32, colorU32, colorU32);
             
-            ImGui::SetCursorScreenPos(ImVec2(to - 6, barBottom));
-            ImGui::InvisibleButton("mark", ImVec2(12, 12));
+            ImGui::SetCursorScreenPos(ImVec2(to - 6, barY+(sign < 0.0f ? -12.0 : 0)));
+			ImGui::InvisibleButton("mark", ImVec2(12, 12));
             
             if(ImGui::IsItemHovered())
             {
                 if(ImGui::IsMouseClicked(0))
                 {
-                    selectedMark = mark;
-                    draggingMark = mark;
-                }
+					selectedMark = mark;
+					draggingMark = mark;
+				}
             }
-            
-            
-            prevMark = mark;
         }
         
         ImGui::SetCursorScreenPos(ImVec2(bar_pos.x, bar_pos.y + height + 20.0f));
@@ -319,7 +334,6 @@ namespace ImGui
         if(!gradient) return false;
         
         ImVec2 widget_pos = ImGui::GetCursorScreenPos();
-        // ImDrawList* draw_list = ImGui::GetWindowDrawList();
         
         float maxWidth = ImMax(250.0f, ImGui::GetContentRegionAvailWidth() - 100.0f);
         bool clicked = ImGui::InvisibleButton("gradient_bar", ImVec2(maxWidth, GRADIENT_BAR_WIDGET_HEIGHT));
@@ -339,8 +353,12 @@ namespace ImGui
         
         ImVec2 bar_pos = ImGui::GetCursorScreenPos();
         bar_pos.x += 10;
+        bar_pos.y += 10;
         float maxWidth = ImGui::GetContentRegionAvailWidth() - 20;
         float barBottom = bar_pos.y + GRADIENT_BAR_EDITOR_HEIGHT;
+        
+        DrawGradientBar(gradient, bar_pos, maxWidth, GRADIENT_BAR_EDITOR_HEIGHT);
+        DrawGradientMarks(gradient, draggingMark, selectedMark, bar_pos, maxWidth, GRADIENT_BAR_EDITOR_HEIGHT);
         
         ImGui::InvisibleButton("gradient_editor_bar", ImVec2(maxWidth, GRADIENT_BAR_EDITOR_HEIGHT));
         
@@ -354,9 +372,6 @@ namespace ImGui
 
             gradient->addMark(pos, ImColor(newMarkCol[0], newMarkCol[1], newMarkCol[2]));
         }
-        
-        DrawGradientBar(gradient, bar_pos, maxWidth, GRADIENT_BAR_EDITOR_HEIGHT);
-        DrawGradientMarks(gradient, draggingMark, selectedMark, bar_pos, maxWidth, GRADIENT_BAR_EDITOR_HEIGHT);
         
         if(!ImGui::IsMouseDown(0) && draggingMark)
         {
