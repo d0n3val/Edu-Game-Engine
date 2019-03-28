@@ -154,7 +154,16 @@ void ComponentParticleSystem::OnSave(Config& config) const
     for(std::list<ImGradientMark*>::const_iterator it = marks.begin(), end = marks.end(); it != end; ++it)
     {
         Config mark;
-        mark.AddFloat4("color", float4(((*it)->color)));
+        mark.AddBool("alpha", (*it)->alpha);
+        if((*it)->alpha)
+        {
+            mark.AddFloat("color", (*it)->color[0]);
+        }
+        else
+        {
+            mark.AddFloat4("color", float4(((*it)->color)));
+        }
+
         mark.AddFloat("position", (*it)->position);
         config.AddArrayEntry(mark);
     }
@@ -168,6 +177,7 @@ void ComponentParticleSystem::OnSave(Config& config) const
     config.AddFloat4("Sheet bezier", texture_info.frame_over_time.bezier);
 
     config.AddInt("Blend mode", (int)blend_mode);
+    config.AddFloat("Layer", layer);
 }
 
 void ComponentParticleSystem::OnLoad(Config* config) 
@@ -214,11 +224,18 @@ void ComponentParticleSystem::OnLoad(Config* config)
     {
         Config mark = config->GetArray("Color over time", i);
         
-        float4 color = mark.GetFloat4("color", float4::one); 
+        bool alpha = mark.GetBool("alpha", false);
         float position = mark.GetFloat("position", 0.0f); 
-
-        color_over_time.gradient.addMark(position, ImColor(color.x, color.y, color.z, 1.0f));
-        color_over_time.gradient.addAlphaMark(position, color.w);
+        if(alpha)
+        {
+            float color = mark.GetFloat("color", 1.0f); 
+            color_over_time.gradient.addAlphaMark(position, color);
+        }
+        else
+        {
+            float4 color = mark.GetFloat4("color", float4::one); 
+            color_over_time.gradient.addMark(position, ImColor(color.x, color.y, color.z, 1.0f));
+        }
     }
 
     SetTexture(config->GetUID("Texture", 0));
@@ -230,6 +247,7 @@ void ComponentParticleSystem::OnLoad(Config* config)
     texture_info.frame_over_time.end = config->GetFloat("Sheet end", 0.0f);
     texture_info.frame_over_time.bezier = config->GetFloat4("Sheet bezier", float4(0.0f, 1.0f, 0.0f, 1.0f));
     blend_mode = (RenderBlendMode)config->GetInt("Blend mode", (int)AdditiveBlend);
+    layer = config->GetFloat("Layer", 0.0f);
 }
 
 void ComponentParticleSystem::OnPlay() 

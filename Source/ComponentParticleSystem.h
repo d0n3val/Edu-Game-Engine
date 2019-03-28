@@ -33,6 +33,7 @@ public:
     void                    SetTexture          (UID tex);
 
     bool                    GetVisible          () const { return visible; }
+    float                   GetLayer            () const { return layer; }
 
 
 private:
@@ -197,6 +198,7 @@ private:
     float                  elapsed_emission   = 0;
     RenderBlendMode        blend_mode         = AdditiveBlend;
     bool                   visible            = true;
+    float                  layer              = 0;
 };
 
 #endif /* __COMPONENT_PARTICLE_SYSTEM_H__ */

@@ -269,13 +269,13 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
 
         if(material->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
         {
-            NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render.distance, TNearestMesh());
+            NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render, TNearestMesh());
 
             opaque_nodes.insert(it, render);
         }
         else
         {
-            NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render.distance, TFarthestMesh());
+            NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
 
             transparent_nodes.insert(it, render);
         }
@@ -284,8 +284,9 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
     {
         render.distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
         render.particles= particles;
+        render.layer = particles->GetLayer();
 
-        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render.distance, TFarthestMesh());
+        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
         transparent_nodes.insert(it, render);
     }
 

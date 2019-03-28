@@ -23,21 +23,22 @@ class ModuleRenderer : public Module
         ComponentMesh*           mesh         = nullptr;
         ComponentParticleSystem* particles    = nullptr;
         float                    distance     = 0.0f;
+        float                    layer        = 0.0f;
     };
 
     struct TNearestMesh
     {
-        bool operator()(const TRenderInfo& info, float distance)
+        bool operator()(const TRenderInfo& info, const TRenderInfo& new_info)
         {
-            return info.distance < distance;
+            return info.distance < new_info.distance;
         }
     };
 
     struct TFarthestMesh
     {
-        bool operator()(const TRenderInfo& info, float distance)
+        bool operator()(const TRenderInfo& info, const TRenderInfo& new_info)
         {
-            return info.distance >= distance;
+            return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
         }
     };
 

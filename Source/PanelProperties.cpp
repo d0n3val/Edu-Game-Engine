@@ -1272,6 +1272,7 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
         const char* names[ComponentParticleSystem::BlendCount] = { "Additive", "Alpha" };
 
         ImGui::Combo("Blend mode", (int*)&component->blend_mode, names, int(ComponentParticleSystem::BlendCount));
+        ImGui::InputFloat("Layer", &component->layer, 0.1f);
         ImGui::Checkbox("Visible", &component->visible);
     }
 
