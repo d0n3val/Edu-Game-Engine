@@ -27,6 +27,7 @@ public:
         RootMotion,
 		CharacterController,
         ParticleSystem,
+        Trail,
 		Unknown
 	};
 
