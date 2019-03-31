@@ -1063,6 +1063,18 @@ void DrawTrailComponent(ComponentTrail* component)
     ImGui::InputFloat("duration", &component->config_trail.duration, 0.1f);
     ImGui::InputFloat("min vertex distance", &component->config_trail.min_vertex_distance, 0.1f);
     ImGui::InputFloat("width", &component->config_trail.width, 0.1f);
+
+    if(ImGui::GradientButton(&component->color_over_time.gradient))
+    {
+        ImGui::OpenPopup("Show color gradient");
+    }
+
+    if (ImGui::BeginPopup("Show color gradient"))
+    {
+        bool updated = ImGui::GradientEditor(&component->color_over_time.gradient, component->color_over_time.draggingMark, 
+                component->color_over_time.selectedMark);
+        ImGui::EndPopup();
+    }
 }
 
 void DrawParticleSystemComponent(ComponentParticleSystem* component)

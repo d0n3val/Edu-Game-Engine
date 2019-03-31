@@ -238,6 +238,11 @@ void ComponentParticleSystem::OnLoad(Config* config)
         }
     }
 
+    if(color_over_time.gradient.getMarks().empty())
+    {
+        color_over_time.gradient.addMark(0.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));
+    }
+
     SetTexture(config->GetUID("Texture", 0));
 
     texture_info.x_tiles = config->GetInt("Sheet x", 1);
