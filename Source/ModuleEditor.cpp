@@ -276,7 +276,7 @@ void ModuleEditor::OnResize(int width, int height)
     // \todo: Viewport
 	tab_panels[TabPanelLeft].posx      = 2;
 	tab_panels[TabPanelLeft].posy      = 21;
-	tab_panels[TabPanelLeft].width     = 350;
+	tab_panels[TabPanelLeft].width     = 450;
 	tab_panels[TabPanelLeft].height    = height- tab_panels[TabPanelLeft].posy;
 
 	tab_panels[TabPanelBottom].posx     = tab_panels[TabPanelLeft].posx + tab_panels[TabPanelLeft].width;

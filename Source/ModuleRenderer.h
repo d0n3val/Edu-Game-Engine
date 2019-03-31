@@ -11,6 +11,7 @@ class ComponentCamera;
 class ComponentMesh;
 class ComponentMaterial;
 class ComponentParticleSystem;
+class ComponentTrail;
 class ResourceMaterial;
 class ResourceMesh;
 
@@ -22,6 +23,7 @@ class ModuleRenderer : public Module
         GameObject*              go           = nullptr;
         ComponentMesh*           mesh         = nullptr;
         ComponentParticleSystem* particles    = nullptr;
+        ComponentTrail*          trail        = nullptr;
         float                    distance     = 0.0f;
         float                    layer        = 0.0f;
     };
@@ -81,6 +83,7 @@ private:
     void                DrawColor               (const TRenderInfo& render_info);
     void                DrawMeshColor           (const ComponentMesh* mesh);
     void                DrawParticles           (ComponentParticleSystem* particles);
+    void                DrawTrails              (ComponentTrail* trail);
     void                UpdateLightUniform      () const;
     void                CollectObjects          (const float3& camera_pos, GameObject* go);
 

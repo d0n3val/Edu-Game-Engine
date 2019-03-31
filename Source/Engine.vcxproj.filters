@@ -642,6 +642,9 @@
     <ClInclude Include="Imgui\imgui_bezier.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentTrail.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1003,6 +1006,9 @@
     </ClCompile>
     <ClCompile Include="Imgui\imgui_bezier.cpp">
       <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentTrail.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

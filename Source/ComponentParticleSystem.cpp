@@ -23,7 +23,7 @@
 ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Component(container, Types::ParticleSystem)
 {
     static const float vertices[] = { -0.5f, -0.5f, 0.0f , 0.5f, -0.5f, 0.0f , 0.5f, 0.5f, 0.0f , -0.5f, 0.5f, 0.0f, 
-                                        0.0f,  0.0f,        1.0f,  0.0f,        1.0f, 1.0f,        0.0f, 1.0f };
+                                       0.0f,  0.0f,        1.0f,  0.0f,        1.0f, 1.0f,        0.0f, 1.0f };
     glGenBuffers(1, &instance_vbo);
     glGenBuffers(1, &render_buffers.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, render_buffers.vbo);

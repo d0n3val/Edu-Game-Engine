@@ -16,6 +16,7 @@
 #include "ComponentCamera.h"
 #include "ComponentAnimation.h"
 #include "ComponentParticleSystem.h"
+#include "ComponentTrail.h"
 
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
@@ -223,6 +224,11 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
     App->programs->UnuseProgram();
 
+    App->programs->UseProgram("trails", 0);
+    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+    App->programs->UnuseProgram();
+
     DrawNodes(&ModuleRenderer::DrawColor);
 
     //DrawSkybox(proj, view);
@@ -257,6 +263,7 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
     ComponentMesh* mesh                = go->FindFirstComponent<ComponentMesh>();
     ComponentMaterial* material        = go->FindFirstComponent<ComponentMaterial>();
     ComponentParticleSystem* particles = go->FindFirstComponent<ComponentParticleSystem>();
+    ComponentTrail* trail              = go->FindFirstComponent<ComponentTrail>();
 
     TRenderInfo render;
     render.name         = go->name.c_str();
@@ -285,6 +292,14 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
         render.distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
         render.particles= particles;
         render.layer = particles->GetLayer();
+
+        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
+        transparent_nodes.insert(it, render);
+    }
+    else if(trail != nullptr)
+    {
+        render.distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
+        render.trail = trail;
 
         NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
         transparent_nodes.insert(it, render);
@@ -321,6 +336,10 @@ void ModuleRenderer::DrawColor(const TRenderInfo& render_info)
     {
         DrawParticles(render_info.particles);
     }
+    else if(render_info.trail && render_info.trail)
+    {
+        DrawTrails(render_info.trail);
+    }
 }
 
 void ModuleRenderer::DrawMeshColor(const ComponentMesh* mesh)
@@ -337,6 +356,12 @@ void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)
     particles->Draw(false);
 }
 
+void ModuleRenderer::DrawTrails(ComponentTrail* trail)
+{
+    App->programs->UseProgram("trails", 0);
+    trail->Draw();
+}
+
 void ModuleRenderer::LoadDefaultShaders()
 {
     App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", nullptr, 0, nullptr, 0);
@@ -347,6 +372,7 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros, nullptr, 0);
     App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0, nullptr, 0);
     App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0, nullptr, 0);
+    App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const

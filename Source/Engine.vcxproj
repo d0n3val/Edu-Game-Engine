@@ -151,6 +151,7 @@
     <ClInclude Include="ComponentRootMotion.h" />
     <ClInclude Include="ComponentSimpleCharacter.h" />
     <ClInclude Include="ComponentSteering.h" />
+    <ClInclude Include="ComponentTrail.h" />
     <ClInclude Include="ComponentWithResource.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="DebugDraw.h" />
@@ -307,6 +308,7 @@
     <ClCompile Include="ComponentRootMotion.cpp" />
     <ClCompile Include="ComponentSimpleCharacter.cpp" />
     <ClCompile Include="ComponentSteering.cpp" />
+    <ClCompile Include="ComponentTrail.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="DirLight.cpp" />
