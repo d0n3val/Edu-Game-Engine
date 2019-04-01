@@ -3,12 +3,15 @@
 #include "GameObject.h"
 #include "Application.h"
 #include "ModuleHints.h"
+#include "ModuleResources.h"
+#include "ResourceTexture.h"
 
 #include "DebugDraw.h"
 #include "OpenGL.h"
 
 #define MIN_VERTICES 64
 #define MIN_INDICES 256
+#define TEXTURE_MAP_LOC 0
 
 ComponentTrail::ComponentTrail(GameObject* go) : Component(go, Types::Trail)
 {
@@ -86,6 +89,7 @@ void ComponentTrail::UpdateBuffers()
 
     uint vertex_idx = 0;
     float3 prev0, prev1;
+    float total_size = 0.0f;
 
     std::deque<Segment>::iterator prev = segments.begin();
     for(std::deque<Segment>::iterator it = segments.begin(); it != segments.end(); ++it)
@@ -130,10 +134,23 @@ void ComponentTrail::UpdateBuffers()
             vertex1.color  = vertex0.color;
             vertex3.color  = vertex2.color;
 
-            vertex0.uv  = float2(0.0f, 1.0f);
-            vertex1.uv  = float2(0.0f, 0.0f);
-            vertex2.uv  = float2(1.0f, 1.0f);
-            vertex3.uv  = float2(1.0f, 0.0f);
+            if(texture_mode == Stretch)
+            {
+                vertex0.uv  = float2(total_size, 1.0f);
+                vertex1.uv  = float2(total_size, 0.0f);
+
+                total_size += prev_pos.Distance(pos);
+
+                vertex2.uv  = float2(total_size, 1.0f);
+                vertex3.uv  = float2(total_size, 0.0f);
+            }
+            else
+            {
+                vertex0.uv  = float2(0.0f, 1.0f);
+                vertex1.uv  = float2(0.0f, 0.0f);
+                vertex2.uv  = float2(1.0f, 1.0f);
+                vertex3.uv  = float2(1.0f, 0.0f);
+            }
         }
 
         prev = it;
@@ -171,10 +188,29 @@ void ComponentTrail::UpdateBuffers()
     vertex1.color  = vertex0.color;
     vertex3.color  = vertex2.color;
 
-    vertex0.uv  = float2(0.0f, 1.0f);
-    vertex1.uv  = float2(0.0f, 0.0f);
-    vertex2.uv  = float2(1.0f, 1.0f);
-    vertex3.uv  = float2(1.0f, 0.0f);
+    if(texture_mode == Stretch)
+    {
+        vertex0.uv  = float2(total_size, 1.0f);
+        vertex1.uv  = float2(total_size, 0.0f);
+
+        total_size += prev_pos.Distance(pos);
+
+        vertex2.uv  = float2(total_size, 1.0f);
+        vertex3.uv  = float2(total_size, 0.0f);
+
+        for (uint i = 0; i < num_vertices; ++i)
+        {
+            vertex_data[i].uv.x /= total_size;
+        }
+    }
+    else
+    {
+        vertex0.uv  = float2(0.0f, 1.0f);
+        vertex1.uv  = float2(0.0f, 0.0f);
+        vertex2.uv  = float2(1.0f, 1.0f);
+        vertex3.uv  = float2(1.0f, 0.0f);
+    }
+       
     glUnmapBuffer(GL_ARRAY_BUFFER);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -225,10 +261,27 @@ void ComponentTrail::Draw()
     {
         UpdateBuffers();
 
+        const ResourceTexture* tex_res = static_cast<const ResourceTexture*>(App->resources->Get(texture));
+
+        if(tex_res)
+        {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, tex_res->GetID());
+            glUniform1i(TEXTURE_MAP_LOC, 0);
+        }
+
         glDepthMask(GL_FALSE);
         glDisable(GL_CULL_FACE);
+
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        if(blend_mode == AdditiveBlend)
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        }
+        else
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
 
         glBindVertexArray(render_buffers.vao);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_buffers.ibo);
@@ -240,6 +293,9 @@ void ComponentTrail::Draw()
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
         glEnable(GL_CULL_FACE);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
 #if 0
@@ -266,6 +322,7 @@ void ComponentTrail::Draw()
 
 void ComponentTrail::OnSave(Config& config) const 
 {
+	config.AddUID("Texture", texture);
 	config.AddFloat("Duration", config_trail.duration);
 	config.AddFloat("Min vertex distance", config_trail.min_vertex_distance);
 	config.AddFloat("width", config_trail.width);
@@ -291,10 +348,13 @@ void ComponentTrail::OnSave(Config& config) const
         config.AddArrayEntry(mark);
     }
 
+    config.AddInt("Blend mode", (int)blend_mode);
+    config.AddInt("Texture mode", (int)texture_mode);
 }
 
 void ComponentTrail::OnLoad(Config* config) 
 {
+    SetTexture(config->GetUID("Texture", 0));
 	config_trail.duration = config->GetFloat("Duration", 0.5f);
 	config_trail.min_vertex_distance = config->GetFloat("Min vertex distance", 0.1f);
 	config_trail.width = config->GetFloat("width", 0.25f);
@@ -324,6 +384,9 @@ void ComponentTrail::OnLoad(Config* config)
     {
         color_over_time.gradient.addMark(0.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));
     }
+
+    blend_mode = (RenderBlendMode)config->GetInt("Blend mode", (int)AdditiveBlend);
+    texture_mode = (TextureMode)config->GetInt("Texture mode", (int)Stretch);
 }
 
 void ComponentTrail::OnPlay()
@@ -371,4 +434,26 @@ void ComponentTrail::OnUpdate(float dt)
     }
 }
 
+void ComponentTrail::SetTexture(UID uid)
+{
+    Resource* res = App->resources->Get(uid);
+
+    if (res != nullptr && res->GetType() == Resource::texture)
+    {
+        if(res->LoadToMemory() == true)
+        {
+            texture = uid;
+        }
+    }
+}
+
+const ResourceTexture* ComponentTrail::GetTextureRes() const
+{
+	return static_cast<const ResourceTexture*>(App->resources->Get(texture));
+}
+
+ResourceTexture* ComponentTrail::GetTextureRes()
+{
+	return static_cast<ResourceTexture*>(App->resources->Get(texture));
+}
 

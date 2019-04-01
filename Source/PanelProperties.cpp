@@ -1060,6 +1060,87 @@ void PanelProperties::DrawRootMotionComponent(ComponentRootMotion * component)
 
 void DrawTrailComponent(ComponentTrail* component)
 {
+    bool modified = false;
+    ResourceTexture* info = component->GetTextureRes();
+
+    if(ImGui::CollapsingHeader("Texture", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (info)
+        {
+            char name[128];
+            strcpy_s(name, info->GetName());
+
+            if (ImGui::InputText("Resource name", name, 128))
+            {
+                info->SetName(name);
+            }
+        }
+
+        ImVec2 size(64.0f, 64.0f);
+
+        if (info != nullptr)
+        {
+            if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+            {
+                ImGui::OpenPopup("texture");
+            }
+            else 
+            {
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("%s", info->GetFile());
+                }
+            }
+        }
+        else
+        {
+            if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
+            {
+                ImGui::OpenPopup("texture");
+            }
+        }
+
+        ImGui::SameLine();
+        ImGui::BeginGroup();
+        if(info != nullptr)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
+
+            std::string file;
+            App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+
+            ImGui::Text("%s", file.c_str());
+            ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
+            ImGui::PopStyleColor();
+
+            bool mips = info->HasMips();
+            if(ImGui::Checkbox("Mipmaps", &mips))
+            {
+                info->EnableMips(mips);
+            }
+
+            ImGui::SameLine();
+            bool linear = !info->GetLinear();
+            if(ImGui::Checkbox("sRGB", &linear))
+            {
+                info->SetLinear(!linear);
+            }
+
+            if(ImGui::SmallButton("Delete"))
+            {
+                component->SetTexture(0);
+            }
+        }
+        ImGui::EndGroup();
+
+        UID new_res = App->editor->props->OpenResourceModal(Resource::texture, "texture");
+
+        if(new_res != 0)
+        {
+            component->SetTexture(new_res);
+        }
+    }
+
     ImGui::InputFloat("duration", &component->config_trail.duration, 0.1f);
     ImGui::InputFloat("min vertex distance", &component->config_trail.min_vertex_distance, 0.1f);
     ImGui::InputFloat("width", &component->config_trail.width, 0.1f);
@@ -1075,6 +1156,12 @@ void DrawTrailComponent(ComponentTrail* component)
                 component->color_over_time.selectedMark);
         ImGui::EndPopup();
     }
+
+    const char* names[ComponentTrail::BlendCount] = { "Additive", "Alpha" };
+    ImGui::Combo("Blend mode", (int*)&component->blend_mode, names, int(ComponentTrail::BlendCount));
+
+    const char* texture_names[ComponentTrail::TextureCount] = { "Stretch", "Wrap" };
+    ImGui::Combo("Texture mode", (int*)&component->texture_mode, texture_names, int(ComponentTrail::TextureCount));
 }
 
 void DrawParticleSystemComponent(ComponentParticleSystem* component)

@@ -8,6 +8,8 @@
 
 #include <deque>
 
+class ResourceTexture;
+
 class ComponentTrail : public Component
 {
 public:
@@ -24,6 +26,12 @@ public:
     virtual void OnLoad(Config* config);
 
     static Types GetClassType () { return Trail; }
+
+    const ResourceTexture*  GetTextureRes       () const;
+    ResourceTexture*        GetTextureRes       ();
+
+    UID                     GetTexture   () const { return texture; }
+    void                    SetTexture   (UID tex);
 
 private:
 
@@ -72,10 +80,27 @@ private:
         ImGradientMark* selectedMark = nullptr;
     };
 
+    enum RenderBlendMode
+    {
+        AdditiveBlend = 0, 
+        AlphaBlend,
+        BlendCount
+    };
+
+    enum TextureMode
+    {
+        Stretch,
+        Wrap,
+        TextureCount
+    };
+
     ConfigTrail          config_trail;
-	RenderObjects	     render_buffers;
+    UID                  texture            = 0;
+    RenderObjects	     render_buffers;
     std::deque<Segment>  segments;
 	ColorGradient        color_over_time;
+    RenderBlendMode      blend_mode = AdditiveBlend;
+    TextureMode          texture_mode = Stretch;
 };
 
 #endif /* __COMPONENT_TRAIL_H_ */
