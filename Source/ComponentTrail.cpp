@@ -101,6 +101,8 @@ void ComponentTrail::UpdateBuffers()
             float3 front    = (pos-prev_pos); front.Normalize();
             float3 up       = it->transform.Col3(1);
             float3 right    = front.Cross(up); right.Normalize();
+            float prev_size = size_over_time.Interpolate(1.0f-max(0.0f, prev->life_time)/config_trail.duration);
+            float size      = size_over_time.Interpolate(1.0f-max(0.0f, it->life_time)/config_trail.duration);
 
             Vertex& vertex0 = vertex_data[vertex_idx++];
             Vertex& vertex1 = vertex_data[vertex_idx++];
@@ -121,12 +123,12 @@ void ComponentTrail::UpdateBuffers()
                     prev_pos = prev_pos+(dif_pos)*(-prev->life_time)/dif_time;
                 }
 
-                vertex0.pos = prev_pos-right*config_trail.width;
-                vertex1.pos = prev_pos+right*config_trail.width;
+                vertex0.pos = prev_pos-right*config_trail.width*prev_size;
+                vertex1.pos = prev_pos+right*config_trail.width*prev_size;
             }
 
-            prev0 = vertex2.pos = pos-right*config_trail.width;
-            prev1 = vertex3.pos = pos+right*config_trail.width;
+            prev0 = vertex2.pos = pos-right*config_trail.width*size;
+            prev1 = vertex3.pos = pos+right*config_trail.width*size;
 
             color_over_time.gradient.getColorAt(1.0f-max(0.0f, prev->life_time)/config_trail.duration, (float*)&vertex0.color);
             color_over_time.gradient.getColorAt(1.0f-max(0.0f, it->life_time)/config_trail.duration, (float*)&vertex2.color);
@@ -162,6 +164,8 @@ void ComponentTrail::UpdateBuffers()
     float3 front    = (pos-prev_pos); front.Normalize();
     float3 up       = trans.Col3(1);
     float3 right    = front.Cross(up); right.Normalize();
+    float prev_size = size_over_time.Interpolate(1.0f-max(0.0f, prev->life_time)/config_trail.duration);
+    float size      = size_over_time.Interpolate(0.0f);
 
     Vertex& vertex0 = vertex_data[vertex_idx++];
     Vertex& vertex1 = vertex_data[vertex_idx++];
@@ -175,12 +179,12 @@ void ComponentTrail::UpdateBuffers()
     }
     else
     {
-        vertex0.pos = prev_pos-right*config_trail.width;
-        vertex1.pos = prev_pos+right*config_trail.width;
+        vertex0.pos = prev_pos-right*config_trail.width*prev_size;
+        vertex1.pos = prev_pos+right*config_trail.width*prev_size;
     }
 
-    prev0 = vertex2.pos = pos-right*config_trail.width;
-    prev1 = vertex3.pos = pos+right*config_trail.width;
+    prev0 = vertex2.pos = pos-right*config_trail.width*size;
+    prev1 = vertex3.pos = pos+right*config_trail.width*size;
 
     color_over_time.gradient.getColorAt(1.0f-max(0.0f, prev->life_time)/config_trail.duration, (float*)&vertex0.color);
     color_over_time.gradient.getColorAt(0.0f, (float*)&vertex2.color);
@@ -348,6 +352,10 @@ void ComponentTrail::OnSave(Config& config) const
         config.AddArrayEntry(mark);
     }
 
+    config.AddFloat("Size init", size_over_time.init);
+    config.AddFloat("Size end", size_over_time.end);
+    config.AddFloat4("Size bezier", size_over_time.bezier);
+
     config.AddInt("Blend mode", (int)blend_mode);
     config.AddInt("Texture mode", (int)texture_mode);
 }
@@ -384,6 +392,10 @@ void ComponentTrail::OnLoad(Config* config)
     {
         color_over_time.gradient.addMark(0.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));
     }
+
+    size_over_time.init = config->GetFloat("Size init", 1.0f);
+    size_over_time.end = config->GetFloat("Size end", 1.0f);
+    size_over_time.bezier = config->GetFloat4("Size bezier", float4(0.0f, 1.0f, 0.0f, 1.0f));
 
     blend_mode = (RenderBlendMode)config->GetInt("Blend mode", (int)AdditiveBlend);
     texture_mode = (TextureMode)config->GetInt("Texture mode", (int)Stretch);

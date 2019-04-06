@@ -1157,6 +1157,18 @@ void DrawTrailComponent(ComponentTrail* component)
         ImGui::EndPopup();
     }
 
+    ImGui::Bezier("Size", (float*)&component->size_over_time.bezier);
+
+    if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->size_over_time.bezier = float4(0.0f, 0.0f, 1.0f, 0.0f);
+    ImGui::SameLine();
+    if(ImGui::Button("EaseOut", ImVec2(60, 20))) component->size_over_time.bezier = float4(0.0f, 0.0f, 0.0f, 1.f);
+    ImGui::SameLine();
+    if(ImGui::Button("EaseInOut", ImVec2(70, 20))) component->size_over_time.bezier = float4(0.0, 1.0f, 1.0f, 0.0f);
+
+
+        ImGui::DragFloat("init", &component->size_over_time.init);
+        ImGui::DragFloat("end", &component->size_over_time.end);
+
     const char* names[ComponentTrail::BlendCount] = { "Additive", "Alpha" };
     ImGui::Combo("Blend mode", (int*)&component->blend_mode, names, int(ComponentTrail::BlendCount));
 

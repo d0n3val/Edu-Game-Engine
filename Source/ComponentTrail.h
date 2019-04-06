@@ -94,6 +94,25 @@ private:
         TextureCount
     };
 
+    template<class T>
+    struct Interpolator
+    {
+        T init;
+        T end;
+        float4  bezier = float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+        Interpolator() {;}
+        Interpolator(const T& i, const T& e) : init(i), end(e) {;}
+
+        float GetBezier(float lambda);
+
+        T Interpolate(float lambda)
+        {
+            return init+(end-init)*ImGui::BezierValue(lambda, (float*)&bezier);
+        }
+    };
+
+
     ConfigTrail          config_trail;
     UID                  texture            = 0;
     RenderObjects	     render_buffers;
@@ -101,6 +120,7 @@ private:
 	ColorGradient        color_over_time;
     RenderBlendMode      blend_mode = AdditiveBlend;
     TextureMode          texture_mode = Stretch;
+    Interpolator<float>  size_over_time  = Interpolator<float>(1.0f, 1.0f);       
 };
 
 #endif /* __COMPONENT_TRAIL_H_ */
