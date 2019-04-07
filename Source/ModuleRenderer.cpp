@@ -41,6 +41,39 @@
 
 #include "mmgr/mmgr.h"
 
+void GetOrtho(float4x4& projection, float left, float right, float bottom, float top, float nearP, float farP)
+{
+	float a = 2.0f / (right - left);
+	float b = 2.0f / (top - bottom);
+	float c = -2.0f / (farP - nearP);
+
+	float tx = -(right + left) / (right - left);
+	float ty = - (top + bottom)/(top - bottom);
+	float tz = - (farP + nearP)/(farP - nearP);
+
+    projection.SetCol(0, float4(a, 0.0f, 0.0f, 0.0f));
+    projection.SetCol(1, float4(0.0f , b, 0.0f, 0.0f));
+    projection.SetCol(2, float4(0.0f , 0.0f, c, 0.0f));
+    projection.SetCol(3, float4(tx, ty, tz, 1.0f));
+}
+
+void GetView(float4x4& view, float3 position, Quat quat)
+{
+	float3 front = quat.Transform(float3(0.0f, 0.0f, 1.0f));
+	float3 right = quat.Transform(float3(1.0f, 0.0f, 0.0f));
+	float3 up    = quat.Transform(float3(0.0f, 1.0f, 0.0f));
+
+    float3 zaxis = front.Normalized();
+    float3 yaxis = up.Normalized();
+    float3 xaxis = right.Normalized(); 
+
+	view.SetCol(3, float4(-xaxis.Dot(position), -yaxis.Dot(position), -zaxis.Dot(position), 1.0f));
+
+    view.SetCol(0, float4(xaxis.x, yaxis.x, zaxis.x, 0.0f));
+    view.SetCol(1, float4(xaxis.y, yaxis.y, zaxis.y, 0.0f));
+    view.SetCol(2, float4(xaxis.z, yaxis.z, zaxis.z, 0.0f));
+}
+
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
 }
@@ -195,20 +228,14 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 	opaque_nodes.clear();
     transparent_nodes.clear();
 
-	//if (camera->frustum_culling == true)
-	//{
-		//App->level->quadtree.CollectIntersections(draw_nodes, camera->frustum);
-	//}
-	//else
-	//{
-		//App->level->quadtree.CollectObjects(draw_nodes);
-	//}
-
 	float4x4 proj   = camera->GetProjectionMatrix();	
 	float4x4 view   = camera->GetViewMatrix();
     float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
 
     CollectObjects(view_pos, App->level->GetRoot());
+
+    float4x4 light_view, light_proj;
+    ComputeDirLightViewProj(light_view, light_proj);
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
@@ -613,8 +640,144 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ModuleRenderer::CreateCameraBuffer()
+void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
 {
-    //uint camera_binding = 1;
-    //uint block_index = glGetUniformBlockIndex();
+    const DirLight* light = App->level->GetDirLight();
+
+	if (light == nullptr)
+    {
+        proj = float4x4::identity;
+        view = float4x4::identity;
+    }
+    else
+	{
+        AABB aabb;
+        aabb.SetNegativeInfinity();
+
+        Quat light_rotation = Quat::LookAt(float3::unitZ, light->GetDir(), float3::unitY, float3::unitY);
+
+        CalcLightSpaceBBox(light_rotation, aabb);
+
+        // Setting light params
+
+        float3 center = aabb.CenterPoint();
+
+        float3 light_pos = light_rotation.Transform(float3(center.x, center.y, aabb.maxPoint.z+0.0f));
+
+        Frustum frustum; 
+
+        frustum.type  = FrustumType::OrthographicFrustum;
+        frustum.pos   = light_pos;
+        frustum.front = light->GetDir();
+        frustum.up    = float3::unitY;
+
+        frustum.nearPlaneDistance  = 0.0f;
+        frustum.farPlaneDistance   = (aabb.maxPoint.z - aabb.minPoint.z)*2.0f;
+        frustum.orthographicWidth  = (aabb.maxPoint.x - aabb.minPoint.x);
+        frustum.orthographicHeight = (aabb.maxPoint.y - aabb.minPoint.y);
+
+        float2 size((aabb.maxPoint.x - aabb.minPoint.x), (aabb.maxPoint.y - aabb.minPoint.y));
+        GetOrtho(proj, -size.x*0.5, size.x*0.5f, -size.y*0.5f, size.y*0.5f,  1.0f, (aabb.maxPoint.z - aabb.minPoint.z)*2.0f+0.0f);
+        GetView(view, light_pos, light_rotation);
+
+
+        //proj = frustum.ProjectionMatrix();
+        //view = frustum.ViewMatrix();
+    }
+
+    //if(hints->GetBoolValue(Hint::SHOW_SHADOW_CLIPPING))
+    //{
+        DrawClippingSpace(proj, view);
+    //}
 }
+
+void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
+{
+    float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
+
+    for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
+    {
+        const TRenderInfo& render_info = *it;
+
+        //if(material->cast_shadows)
+        {
+            AABB bbox = render_info.go->GetLocalBBox();
+
+            if(bbox.IsFinite())
+            {
+                //bbox.TransformAsAABB(light_mat*render_info.go->GetGlobalTransformation());
+
+                math::float3 points[8];
+                points[0] = math::float3(bbox.minPoint.x, bbox.minPoint.y, bbox.minPoint.z);
+                points[1] = math::float3(bbox.minPoint.x, bbox.minPoint.y, bbox.maxPoint.z);
+                points[2] = math::float3(bbox.maxPoint.x, bbox.minPoint.y, bbox.maxPoint.z);
+                points[3] = math::float3(bbox.maxPoint.x, bbox.minPoint.y, bbox.minPoint.z);
+                points[4] = math::float3(bbox.minPoint.x, bbox.maxPoint.y, bbox.minPoint.z);
+                points[5] = math::float3(bbox.minPoint.x, bbox.maxPoint.y, bbox.maxPoint.z);
+                points[6] = math::float3(bbox.maxPoint.x, bbox.maxPoint.y, bbox.maxPoint.z);
+                points[7] = math::float3(bbox.maxPoint.x, bbox.maxPoint.y, bbox.minPoint.z);
+
+                for(unsigned i=0; i < 8; ++i)
+                {
+                    for(unsigned j=0; j< 3; ++j)
+                    {
+                        bbox.minPoint[j] = min(bbox.minPoint[j], points[i][j]);
+                        bbox.maxPoint[j] = max(bbox.maxPoint[j], points[i][j]);
+                    }
+                }
+
+                aabb.Enclose(bbox);
+            }
+        }
+    }
+
+    // \todo: for transparents
+
+    // \todo: 
+    // En una situación real faltaria meter objetos que, estando fuera del frustum estan dentro de los dos planos laterales de volumen ortogonal en
+    // dirección a la luz. Estos objetos, a pesar de no estar en el frustum, prodrían arrojar sombras sobre otros que si lo están.
+    // Ojo!!!!!!!!!!!!!!!
+}
+
+void ModuleRenderer::DrawClippingSpace(const math::float4x4& proj, const math::float4x4& view) const
+{
+    // build camera transform from view transform
+
+    float4x4 inverse = view;
+    inverse.InverseOrthonormal();
+
+    dd::axisTriad(inverse, 0.1f, 1.0f, 0);
+
+    math::float3 p[8];
+    GetClippingPoints(proj, view, p);
+
+    dd::box(p, dd::colors::Yellow);
+}
+
+void ModuleRenderer::GetClippingPoints(const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const
+{
+    math::float4x4 clip_to_world = (proj*view).Inverted();
+
+    // Homogenous points for source cube in clip-space
+    math::float4 v[8] =
+    {
+        {-1, -1, -1, 1},
+        {-1,  1, -1, 1},
+        { 1,  1, -1, 1},
+        { 1, -1, -1, 1},
+        {-1, -1, 1, 1},
+        {-1,  1, 1, 1},
+        { 1,  1, 1, 1},
+        { 1, -1, 1, 1}
+    };
+
+    for (int i = 0; i < 8; i++)
+    {
+        v[i] = clip_to_world.Transform(v[i]);
+
+        v[i] /= v[i].w;
+        points[i] = float3(v[i].x, v[i].y, v[i].z);
+    }
+}
+
+

@@ -84,10 +84,14 @@ private:
     void                DrawMeshColor           (const ComponentMesh* mesh);
     void                DrawParticles           (ComponentParticleSystem* particles);
     void                DrawTrails              (ComponentTrail* trail);
-    void                UpdateLightUniform      () const;
-    void                CollectObjects          (const float3& camera_pos, GameObject* go);
 
-    void                CreateCameraBuffer      ();
+    void                CollectObjects          (const float3& camera_pos, GameObject* go);
+    void                UpdateLightUniform      () const;
+
+    void                ComputeDirLightViewProj (float4x4& view, float4x4& proj);
+    void                CalcLightSpaceBBox      (const Quat& light_rotation, AABB& aabb);
+    void                DrawClippingSpace       (const math::float4x4& proj, const math::float4x4& view) const;
+    void                GetClippingPoints       (const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const;
 
     void                DebugDrawParticles      ();
     void                DebugDrawTangentSpace   ();
