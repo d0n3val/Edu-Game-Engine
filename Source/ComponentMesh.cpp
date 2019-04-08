@@ -132,7 +132,7 @@ const float4x4* ComponentMesh::UpdateSkinPalette() const
 
             if(bone_node == nullptr)
             {
-				bone_node = node_cache[i] = root ? root->FindChild(bone.name.C_str(), true) : nullptr;
+				//bone_node = node_cache[i] = root ? root->FindChild(bone.name.C_str(), true) : nullptr;
             }
 
 			if(bone_node)

@@ -1,5 +1,4 @@
 #include "Globals.h"
-
 #include "ModuleRenderer.h"
 #include "ModulePrograms.h"
 #include "ModuleLevelManager.h"
@@ -40,70 +39,6 @@
 #include <functional>
 
 #include "mmgr/mmgr.h"
-
-void GetOrtho(float4x4& projection, float left, float right, float bottom, float top, float nearP, float farP)
-{
-	float a = 2.0f / (right - left);
-	float b = 2.0f / (top - bottom);
-	float c = -2.0f / (farP - nearP);
-
-	float tx = -(right + left) / (right - left);
-	float ty = - (top + bottom)/(top - bottom);
-	float tz = - (farP + nearP)/(farP - nearP);
-
-    projection.SetCol(0, float4(a, 0.0f, 0.0f, 0.0f));
-    projection.SetCol(1, float4(0.0f , b, 0.0f, 0.0f));
-    projection.SetCol(2, float4(0.0f , 0.0f, c, 0.0f));
-    projection.SetCol(3, float4(tx, ty, tz, 1.0f));
-}
-
-void GetView(float4x4& view, float3 position, Quat quat)
-{
-	float3 front = quat.Transform(float3(0.0f, 0.0f, 1.0f));
-	float3 right = quat.Transform(float3(1.0f, 0.0f, 0.0f));
-	float3 up    = quat.Transform(float3(0.0f, 1.0f, 0.0f));
-
-    float3 zaxis = -front.Normalized();
-    float3 yaxis = up.Normalized();
-    float3 xaxis = right.Normalized(); 
-
-	view.SetCol(3, float4(-xaxis.Dot(position), -yaxis.Dot(position), -zaxis.Dot(position), 1.0f));
-
-    view.SetCol(0, float4(xaxis.x, yaxis.x, zaxis.x, 0.0f));
-    view.SetCol(1, float4(xaxis.y, yaxis.y, zaxis.y, 0.0f));
-    view.SetCol(2, float4(xaxis.z, yaxis.z, zaxis.z, 0.0f));
-}
-
-Quat LookRotation(const float3& front, const float3& up)
-{
-    float3 f       = front.Normalized();
-    float3 b       = (front+float3(0.0f, 0.0f, -1.0f)).Normalized();
-    float3 axis    = float3(0.0f, 0.0f, -1.0f).Cross(b);
-    float sin_half = axis.Length();
-
-    if(sin_half > -0.00001f && sin_half < 0.00001f) // parallel vectors
-    {
-        float dot_res = float3(0.0f, 0.0f, -1.0f).Dot(f);
-
-        if(dot_res < 0.0f) // opposite
-        {
-            return up.Dot(float3(0.0f, 1.0f, 0.0f)) < 0.0f ? Quat(0.0f, -1.0f, 0.0f, 0.0f) : Quat(0.0f, 1.0f, 0.0f, 0.0f);
-        }
-
-        return Quat(0.0f, 0.0f, 0.0f, 1.0f);
-    }
-
-    float cos_half = sqrt(1.0f-sin_half*sin_half);
-
-    if(axis.Dot(up) < 0.0f)
-    {
-        axis	 = -axis;
-        cos_half = -cos_half;
-    }
-
-    return Quat(axis, cos_half);
-}
-
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
@@ -685,44 +620,56 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
         AABB aabb;
         aabb.SetNegativeInfinity();
 
-        Quat light_rotation = LookRotation(light->GetDir(), float3::unitY);
-        light_rotation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
+		float3 right = light->GetDir().Cross(float3::unitY); 
+		float3 up;
+		if (right.Length() < 0.00001f)
+		{
+			up = float3::unitZ*light->GetDir().Dot(float3::unitY);
+		}
+		else
+		{
+			right.Normalize();
+			up = right.Cross(light->GetDir()); up.Normalize();
+		}
+		
+		Quat light_rotation = Quat::LookAt(-float3::unitZ, light->GetDir(), float3::unitY, up); 
 
         CalcLightSpaceBBox(light_rotation, aabb);
 
         // Setting light params
 
         float3 center = aabb.CenterPoint();
-
-        float3 light_pos = light_rotation.Transform(float3(center.x, center.y, aabb.minPoint.z+0.0f));
+        float3 light_pos = light_rotation.Transform(float3(center.x, center.y, aabb.maxPoint.z));
 
         dd::line(light_rotation.Transform(aabb.minPoint), light_rotation.Transform(aabb.maxPoint), dd::colors::Blue, 0, false);
 
         Frustum frustum; 
 
+
         frustum.type  = FrustumType::OrthographicFrustum;
         frustum.pos   = light_pos;
         frustum.front = light->GetDir();
-        frustum.up    = float3::unitY;
+        frustum.up    = up;
 
         frustum.nearPlaneDistance  = 0.0f;
         frustum.farPlaneDistance   = (aabb.maxPoint.z - aabb.minPoint.z);
         frustum.orthographicWidth  = (aabb.maxPoint.x - aabb.minPoint.x);
         frustum.orthographicHeight = (aabb.maxPoint.y - aabb.minPoint.y);
 
-        float2 size((aabb.maxPoint.x - aabb.minPoint.x), (aabb.maxPoint.y - aabb.minPoint.y));
-        GetOrtho(proj, -size.x*0.5, size.x*0.5f, -size.y*0.5f, size.y*0.5f,  1.0f, (aabb.maxPoint.z - aabb.minPoint.z)*2.0f+0.0f);
-        GetView(view, light_pos, light_rotation);
+        proj = frustum.ProjectionMatrix();
+        view = frustum.ViewMatrix();
 
+        math::float3 p[8];
+        frustum.GetCornerPoints(p);
+        std::swap(p[2], p[5]);
+        std::swap(p[3], p[4]);
+        std::swap(p[4], p[5]);
+        std::swap(p[6], p[7]);
+        dd::box(p, dd::colors::Green);
 
-        //proj = frustum.ProjectionMatrix();
-        //view = frustum.ViewMatrix();
+        float4x4 inverted = view.Inverted();
+        dd::axisTriad(inverted, 10.0f, 100.0f, 0, false);
     }
-
-    //if(hints->GetBoolValue(Hint::SHOW_SHADOW_CLIPPING))
-    //{
-       // DrawClippingSpace(proj, view);
-    //}
 }
 
 void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
@@ -741,27 +688,17 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
             if(bbox.IsFinite())
             {
                 float4x4 transform = light_mat*render_info.go->GetGlobalTransformation();
-                //bbox.TransformAsAABB(light_mat*render_info.go->GetGlobalTransformation());
 
                 float3 oriented_half_size = bbox.HalfSize();
                 float3 points[8];
-
-                points[0] = bbox.CenterPoint() + math::float3(-oriented_half_size.x, -oriented_half_size.y, -oriented_half_size.z);
-                points[1] = bbox.CenterPoint() + math::float3(-oriented_half_size.x, -oriented_half_size.y,  oriented_half_size.z);
-                points[2] = bbox.CenterPoint() + math::float3( oriented_half_size.x, -oriented_half_size.y,  oriented_half_size.z);
-                points[3] = bbox.CenterPoint() + math::float3( oriented_half_size.x, -oriented_half_size.y, -oriented_half_size.z);
-                points[4] = bbox.CenterPoint() + math::float3(-oriented_half_size.x,  oriented_half_size.y, -oriented_half_size.z);
-                points[5] = bbox.CenterPoint() + math::float3(-oriented_half_size.x,  oriented_half_size.y,  oriented_half_size.z);
-                points[6] = bbox.CenterPoint() + math::float3( oriented_half_size.x,  oriented_half_size.y,  oriented_half_size.z);
-                points[7] = bbox.CenterPoint() + math::float3( oriented_half_size.x,  oriented_half_size.y, -oriented_half_size.z);
+                bbox.GetCornerPoints(points);
 
                 for(unsigned i=0; i < 8; ++i)
                 {
                     points[i] = transform.TransformPos(points[i]);
                 }
 
-                //aabb.Enclose(points, 8);
-                aabb.Enclose(bbox);
+                aabb.Enclose(points, 8);
             }
         }
     }
@@ -773,46 +710,4 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
     // dirección a la luz. Estos objetos, a pesar de no estar en el frustum, prodrían arrojar sombras sobre otros que si lo están.
     // Ojo!!!!!!!!!!!!!!!
 }
-
-void ModuleRenderer::DrawClippingSpace(const math::float4x4& proj, const math::float4x4& view) const
-{
-    // build camera transform from view transform
-
-    float4x4 inverse = view;
-    inverse.InverseOrthonormal();
-
-    dd::axisTriad(inverse, 10.0f, 100.0f, 0);
-
-    math::float3 p[8];
-    GetClippingPoints(proj, view, p);
-
-    dd::box(p, dd::colors::Yellow);
-}
-
-void ModuleRenderer::GetClippingPoints(const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const
-{
-    math::float4x4 clip_to_world = (proj*view).Inverted();
-
-    // Homogenous points for source cube in clip-space
-    math::float4 v[8] =
-    {
-        {-1, -1, -1, 1},
-        {-1,  1, -1, 1},
-        { 1,  1, -1, 1},
-        { 1, -1, -1, 1},
-        {-1, -1, 1, 1},
-        {-1,  1, 1, 1},
-        { 1,  1, 1, 1},
-        { 1, -1, 1, 1}
-    };
-
-    for (int i = 0; i < 8; i++)
-    {
-        v[i] = clip_to_world.Transform(v[i]);
-
-        v[i] /= v[i].w;
-        points[i] = float3(v[i].x, v[i].y, v[i].z);
-    }
-}
-
 
