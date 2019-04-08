@@ -63,7 +63,7 @@ void GetView(float4x4& view, float3 position, Quat quat)
 	float3 right = quat.Transform(float3(1.0f, 0.0f, 0.0f));
 	float3 up    = quat.Transform(float3(0.0f, 1.0f, 0.0f));
 
-    float3 zaxis = front.Normalized();
+    float3 zaxis = -front.Normalized();
     float3 yaxis = up.Normalized();
     float3 xaxis = right.Normalized(); 
 
@@ -73,6 +73,37 @@ void GetView(float4x4& view, float3 position, Quat quat)
     view.SetCol(1, float4(xaxis.y, yaxis.y, zaxis.y, 0.0f));
     view.SetCol(2, float4(xaxis.z, yaxis.z, zaxis.z, 0.0f));
 }
+
+Quat LookRotation(const float3& front, const float3& up)
+{
+    float3 f       = front.Normalized();
+    float3 b       = (front+float3(0.0f, 0.0f, -1.0f)).Normalized();
+    float3 axis    = float3(0.0f, 0.0f, -1.0f).Cross(b);
+    float sin_half = axis.Length();
+
+    if(sin_half > -0.00001f && sin_half < 0.00001f) // parallel vectors
+    {
+        float dot_res = float3(0.0f, 0.0f, -1.0f).Dot(f);
+
+        if(dot_res < 0.0f) // opposite
+        {
+            return up.Dot(float3(0.0f, 1.0f, 0.0f)) < 0.0f ? Quat(0.0f, -1.0f, 0.0f, 0.0f) : Quat(0.0f, 1.0f, 0.0f, 0.0f);
+        }
+
+        return Quat(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+
+    float cos_half = sqrt(1.0f-sin_half*sin_half);
+
+    if(axis.Dot(up) < 0.0f)
+    {
+        axis	 = -axis;
+        cos_half = -cos_half;
+    }
+
+    return Quat(axis, cos_half);
+}
+
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
@@ -654,7 +685,8 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
         AABB aabb;
         aabb.SetNegativeInfinity();
 
-        Quat light_rotation = Quat::LookAt(float3::unitZ, light->GetDir(), float3::unitY, float3::unitY);
+        Quat light_rotation = LookRotation(light->GetDir(), float3::unitY);
+        light_rotation = Quat(0.0f, 0.0f, 0.0f, 1.0f);
 
         CalcLightSpaceBBox(light_rotation, aabb);
 
@@ -662,7 +694,9 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
 
         float3 center = aabb.CenterPoint();
 
-        float3 light_pos = light_rotation.Transform(float3(center.x, center.y, aabb.maxPoint.z+0.0f));
+        float3 light_pos = light_rotation.Transform(float3(center.x, center.y, aabb.minPoint.z+0.0f));
+
+        dd::line(light_rotation.Transform(aabb.minPoint), light_rotation.Transform(aabb.maxPoint), dd::colors::Blue, 0, false);
 
         Frustum frustum; 
 
@@ -672,7 +706,7 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
         frustum.up    = float3::unitY;
 
         frustum.nearPlaneDistance  = 0.0f;
-        frustum.farPlaneDistance   = (aabb.maxPoint.z - aabb.minPoint.z)*2.0f;
+        frustum.farPlaneDistance   = (aabb.maxPoint.z - aabb.minPoint.z);
         frustum.orthographicWidth  = (aabb.maxPoint.x - aabb.minPoint.x);
         frustum.orthographicHeight = (aabb.maxPoint.y - aabb.minPoint.y);
 
@@ -687,7 +721,7 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
 
     //if(hints->GetBoolValue(Hint::SHOW_SHADOW_CLIPPING))
     //{
-        DrawClippingSpace(proj, view);
+       // DrawClippingSpace(proj, view);
     //}
 }
 
@@ -701,31 +735,32 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
 
         //if(material->cast_shadows)
         {
+			render_info.go->RecalculateBoundingBox();
             AABB bbox = render_info.go->GetLocalBBox();
 
             if(bbox.IsFinite())
             {
+                float4x4 transform = light_mat*render_info.go->GetGlobalTransformation();
                 //bbox.TransformAsAABB(light_mat*render_info.go->GetGlobalTransformation());
 
-                math::float3 points[8];
-                points[0] = math::float3(bbox.minPoint.x, bbox.minPoint.y, bbox.minPoint.z);
-                points[1] = math::float3(bbox.minPoint.x, bbox.minPoint.y, bbox.maxPoint.z);
-                points[2] = math::float3(bbox.maxPoint.x, bbox.minPoint.y, bbox.maxPoint.z);
-                points[3] = math::float3(bbox.maxPoint.x, bbox.minPoint.y, bbox.minPoint.z);
-                points[4] = math::float3(bbox.minPoint.x, bbox.maxPoint.y, bbox.minPoint.z);
-                points[5] = math::float3(bbox.minPoint.x, bbox.maxPoint.y, bbox.maxPoint.z);
-                points[6] = math::float3(bbox.maxPoint.x, bbox.maxPoint.y, bbox.maxPoint.z);
-                points[7] = math::float3(bbox.maxPoint.x, bbox.maxPoint.y, bbox.minPoint.z);
+                float3 oriented_half_size = bbox.HalfSize();
+                float3 points[8];
+
+                points[0] = bbox.CenterPoint() + math::float3(-oriented_half_size.x, -oriented_half_size.y, -oriented_half_size.z);
+                points[1] = bbox.CenterPoint() + math::float3(-oriented_half_size.x, -oriented_half_size.y,  oriented_half_size.z);
+                points[2] = bbox.CenterPoint() + math::float3( oriented_half_size.x, -oriented_half_size.y,  oriented_half_size.z);
+                points[3] = bbox.CenterPoint() + math::float3( oriented_half_size.x, -oriented_half_size.y, -oriented_half_size.z);
+                points[4] = bbox.CenterPoint() + math::float3(-oriented_half_size.x,  oriented_half_size.y, -oriented_half_size.z);
+                points[5] = bbox.CenterPoint() + math::float3(-oriented_half_size.x,  oriented_half_size.y,  oriented_half_size.z);
+                points[6] = bbox.CenterPoint() + math::float3( oriented_half_size.x,  oriented_half_size.y,  oriented_half_size.z);
+                points[7] = bbox.CenterPoint() + math::float3( oriented_half_size.x,  oriented_half_size.y, -oriented_half_size.z);
 
                 for(unsigned i=0; i < 8; ++i)
                 {
-                    for(unsigned j=0; j< 3; ++j)
-                    {
-                        bbox.minPoint[j] = min(bbox.minPoint[j], points[i][j]);
-                        bbox.maxPoint[j] = max(bbox.maxPoint[j], points[i][j]);
-                    }
+                    points[i] = transform.TransformPos(points[i]);
                 }
 
+                //aabb.Enclose(points, 8);
                 aabb.Enclose(bbox);
             }
         }
@@ -746,7 +781,7 @@ void ModuleRenderer::DrawClippingSpace(const math::float4x4& proj, const math::f
     float4x4 inverse = view;
     inverse.InverseOrthonormal();
 
-    dd::axisTriad(inverse, 0.1f, 1.0f, 0);
+    dd::axisTriad(inverse, 10.0f, 100.0f, 0);
 
     math::float3 p[8];
     GetClippingPoints(proj, view, p);

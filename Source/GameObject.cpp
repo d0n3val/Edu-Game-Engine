@@ -504,6 +504,7 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force
 // ---------------------------------------------------------
 void GameObject::RecursiveCalcBoundingBoxes()
 {
+	was_dirty = true;
 	if (was_dirty == true)
 	{
 		RecalculateBoundingBox();
