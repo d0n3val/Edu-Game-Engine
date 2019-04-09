@@ -224,7 +224,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
                 int width = ilGetInteger(IL_IMAGE_WIDTH);
                 int height = ilGetInteger(IL_IMAGE_HEIGHT);
 
-                glTexImage2D(GL_TEXTURE_2D, 0, !resource->GetLinear() ? GL_SRGB8_ALPHA8 : ilGetInteger(IL_IMAGE_FORMAT), width, height, 0, 
+                glTexImage2D(GL_TEXTURE_2D, 0, !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, width, height, 0, 
                         ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE, data);
 
                 if(resource->has_mips)

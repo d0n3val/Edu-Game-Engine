@@ -728,6 +728,12 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial* component)
         component->SetDDTangent(debug_draw);
     }
 
+    bool cast_shadows = component->CastShadows();
+    if(ImGui::Checkbox("Cast shadows", &cast_shadows))
+    {
+        component->SetCastShadows(cast_shadows);
+    }
+
     ImGui::Separator();
 
     if(new_res > 0)

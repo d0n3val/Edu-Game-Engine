@@ -17,6 +17,7 @@ public:
     virtual void        OnLoad              (Config* config) override;
 
     void                Draw                () const;
+    void                DrawShadowPass      () const;
 
 	void                GetBoundingBox      (AABB& box) const override;
 

@@ -11,6 +11,11 @@ subroutine void TransformOutput();
 
 layout(location=0) subroutine uniform TransformOutput transform_output;
 
+#if SHADOWS_ENABLED
+uniform mat4 light_proj;
+uniform mat4 light_view;
+#endif 
+
 uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 model;
@@ -23,6 +28,9 @@ struct VertexOut
     vec3 normal;
     vec3 tangent;
     vec3 position;
+#if SHADOWS_ENABLED
+    vec4 shadow_coord;
+#endif
 };
 
 out VertexOut fragment;
@@ -52,4 +60,9 @@ void main()
     transform_output();
 
     gl_Position = proj*view*vec4(fragment.position, 1.0);
+
+#if SHADOWS_ENABLED
+	fragment.shadow_coord = light_proj*light_view*vec4(vertex_position, 1.0);
+	fragment.shadow_coord /= fragment.shadow_coord.w;
+#endif
 }

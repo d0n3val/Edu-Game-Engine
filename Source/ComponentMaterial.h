@@ -28,6 +28,7 @@ public:
     void                    SetDDTangent    (bool enable) { debug_draw_tangent = enable; }
 
     bool                    CastShadows     () const { return cast_shadows; }
+    void                    SetCastShadows  (bool casts) { cast_shadows = casts; }
     bool                    RecvShadows     () const { return recv_shadows; }
 
     ERenderMode             RenderMode      () const { return render_mode; }

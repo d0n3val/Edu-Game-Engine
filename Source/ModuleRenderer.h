@@ -50,15 +50,20 @@ class ModuleRenderer : public Module
     NodeList opaque_nodes;
     NodeList transparent_nodes;
 
-    unsigned post_vbo       = 0;
-    unsigned post_vao       = 0;
-    unsigned sky_vbo        = 0;
-    unsigned sky_vao        = 0;
-    unsigned sky_cubemap    = 0;
-    unsigned sky_irradiance = 0;
-    unsigned sky_prefilter  = 0;
-    unsigned sky_brdf       = 0;
-    unsigned camera_buffer  = 0;
+    uint post_vbo       = 0;
+    uint post_vao       = 0;
+    uint sky_vbo        = 0;
+    uint sky_vao        = 0;
+    uint sky_cubemap    = 0;
+    uint sky_irradiance = 0;
+    uint sky_prefilter  = 0;
+    uint sky_brdf       = 0;
+    uint camera_buffer  = 0;
+
+    uint shadow_fbo     = 0;
+    uint shadow_width   = 0; 
+    uint shadow_height  = 0; 
+    uint shadow_tex     = 0;
 
 public:
 
@@ -70,6 +75,8 @@ public:
     void                Postprocess             (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
 
 	void                DrawDebug               () override;
+
+    uint                GetShadowTex            () const { return shadow_tex; }
     
 private:
 
@@ -81,6 +88,7 @@ private:
     void                DrawNodes               (void (ModuleRenderer::*drawer)(const TRenderInfo& ));
 
     void                DrawColor               (const TRenderInfo& render_info);
+    void                DrawShadow              (const TRenderInfo& render_info);
     void                DrawMeshColor           (const ComponentMesh* mesh);
     void                DrawParticles           (ComponentParticleSystem* particles);
     void                DrawTrails              (ComponentTrail* trail);
@@ -99,6 +107,8 @@ private:
     void                DebugDrawAnimation      ();
     void                DebugDrawAnimation      (const GameObject* go);
     void                DebugDrawHierarchy      (const GameObject* go);
+
+    void                GenerateShadowFBO       (unsigned width, unsigned height);
 };
 
 

@@ -70,6 +70,9 @@ struct VertexOut
     vec3 normal;
     vec3 tangent;
     vec3 position;
+#if SHADOWS_ENABLED
+    vec4 shadow_coord;
+#endif
 };
 
 subroutine vec3 GetNormal(const VertexOut vertex, const Material mat);
@@ -80,6 +83,11 @@ subroutine vec3 GetFresnel(vec3 dir0, vec3 dir1, const vec3 f0);
 layout(location=0) uniform Material material;
 layout(location=20) uniform Lights lights;
 layout(location=100) uniform vec3 view_pos;
+
+#if SHADOWS_ENABLED
+layout(location=110) uniform sampler2D shadow_map;
+layout(location=111) uniform float shadow_bias;
+#endif
 
 //layout(location=200) uniform samplerCube irradiance_map;
 //layout(location=201) uniform samplerCube prefilter_map;
@@ -343,6 +351,19 @@ void main()
     vec3 normal = get_normal(fragment, material);
     float len   = length(normal);
     color	    = lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
+
+#if SHADOWS_ENABLED 
+    vec4 shadow_coord = fragment.shadow_coord*0.5+0.5;
+    float depth       = clamp(shadow_coord.z, 0.0, 1.0);
+    vec2 coord        = vec2(shadow_coord.x, shadow_coord.y);
+
+	if(coord.x >= 0.0 && coord.x <= 1.0 && coord.y >= 0.0 && coord.y <= 1.0 && texture2D(shadow_map, coord.xy).x < depth-shadow_bias)
+	{
+		color.rgb = color.rgb*0.15;
+	}
+
+#endif
+
 
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));

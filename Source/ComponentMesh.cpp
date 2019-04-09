@@ -152,12 +152,12 @@ const float4x4* ComponentMesh::UpdateSkinPalette() const
 void ComponentMesh::Draw() const
 {
     const GameObject* go = GetGameObject();
-    const ComponentMaterial* material = GetGameObject()->FindFirstComponent<ComponentMaterial>();
+	const ResourceMesh* mesh = GetResource();
+	const ComponentMaterial* material = go->FindFirstComponent<ComponentMaterial>();
 
-    if(material != nullptr)
+    if(material != nullptr && mesh != nullptr)
     {
         float4x4 transform          = go->GetGlobalTransformation();
-        const ResourceMesh* mesh    = GetResource();
         const ResourceMaterial* mat = material->GetResource();
 
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
@@ -167,3 +167,20 @@ void ComponentMesh::Draw() const
         mesh->Draw();
     }
 }
+
+void ComponentMesh::DrawShadowPass() const
+{
+    const GameObject* go              = GetGameObject();
+    const ResourceMesh* mesh          = GetResource();
+    float4x4 transform                = go->GetGlobalTransformation();
+    const ComponentMaterial* material = go->FindFirstComponent<ComponentMaterial>();
+
+	if (mesh != nullptr && material != nullptr && material->CastShadows())
+	{
+		glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+
+		mesh->UpdateUniforms(UpdateSkinPalette());
+		mesh->Draw();
+	}
+}
+

@@ -173,6 +173,8 @@ void ModuleRenderer::CreateSkybox()
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenFramebuffers(1, &shadow_fbo);
 }
 
 ModuleRenderer::~ModuleRenderer()
@@ -187,6 +189,10 @@ ModuleRenderer::~ModuleRenderer()
         glDeleteVertexArrays(1, &post_vao);
     }
 
+    if(shadow_fbo != 0)
+    {
+        glDeleteFramebuffers(1, &shadow_fbo);
+    }
 }
 
 void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height)
@@ -203,13 +209,33 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     float4x4 light_view, light_proj;
     ComputeDirLightViewProj(light_view, light_proj);
 
+    GenerateShadowFBO(width, height);
+
+    glViewport(0, 0, width, height);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+    App->programs->UseProgram("shadow", 1);
+    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_proj));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_view));
+    DrawNodes(&ModuleRenderer::DrawShadow);
+
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     // Set camera uniforms shared for all
-    App->programs->UseProgram("default", 0);
+    App->programs->UseProgram("default", 1);
+
     glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
     glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
+
+    glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_proj));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("light_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_view));
+    glUniform1f(App->programs->GetUniformLocation("shadow_bias"), 0.001f); //hints->GetFloatValue(Hint::SHADOW_BIAS));
+    glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, shadow_tex);
+	glUniform1i(App->programs->GetUniformLocation("shadow_map"), 8);
+
     App->programs->UnuseProgram();
 
     App->programs->UseProgram("particles", 0);
@@ -335,9 +361,17 @@ void ModuleRenderer::DrawColor(const TRenderInfo& render_info)
     }
 }
 
+void ModuleRenderer::DrawShadow(const TRenderInfo& render_info)
+{
+    if(render_info.mesh /*&& render_info.mesh->cast_shadows*/)
+    {
+        render_info.mesh->DrawShadowPass();
+    }
+}
+
 void ModuleRenderer::DrawMeshColor(const ComponentMesh* mesh)
 {
-    App->programs->UseProgram("default", 0);
+    App->programs->UseProgram("default", 1);
 
     UpdateLightUniform();
     mesh->Draw();
@@ -357,7 +391,10 @@ void ModuleRenderer::DrawTrails(ComponentTrail* trail)
 
 void ModuleRenderer::LoadDefaultShaders()
 {
-    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", nullptr, 0, nullptr, 0);
+    const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" }; 
+    const unsigned num_default_macros  = sizeof(default_macros)/sizeof(const char*);
+
+    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", default_macros, num_default_macros, nullptr, 0);
 
     const char* macros[]		  = { "#define MSAA 1 \n", "#define GAMMA 1\n" }; 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
@@ -366,6 +403,7 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0, nullptr, 0);
     App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0, nullptr, 0);
     App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0, nullptr, 0);
+    App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
@@ -661,8 +699,9 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
     for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
     {
         const TRenderInfo& render_info = *it;
+        ComponentMaterial* material = render_info.go->FindFirstComponent<ComponentMaterial>();
 
-        //if(material->cast_shadows)
+        if(material && material->CastShadows())
         {
 			render_info.go->RecalculateBoundingBox();
             AABB bbox = render_info.go->GetLocalBBox();
@@ -684,5 +723,40 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
     // En una situación real faltaria meter objetos que, estando fuera del frustum estan dentro de los dos planos laterales de volumen ortogonal en
     // dirección a la luz. Estos objetos, a pesar de no estar en el frustum, prodrían arrojar sombras sobre otros que si lo están.
     // Ojo!!!!!!!!!!!!!!!
+}
+
+void ModuleRenderer::GenerateShadowFBO(unsigned width, unsigned height)
+{
+    if(width != shadow_width || height != shadow_height)
+    {
+        if(shadow_tex != 0)
+        {
+            glDeleteTextures(1, &shadow_tex);
+        }
+
+        if(width != 0 && height != 0)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
+            glGenTextures(1, &shadow_tex);
+            glBindTexture(GL_TEXTURE_2D, shadow_tex);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_tex, 0);
+
+            glDrawBuffer(GL_NONE);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
+		shadow_width  = width;
+		shadow_height = height;
+    }
 }
 
