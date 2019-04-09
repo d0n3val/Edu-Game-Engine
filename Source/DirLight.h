@@ -24,6 +24,7 @@ public:
     void            SetAzimuthal(float a) { azimuthal = a; }
 
     float3          GetDir      () const;
+    float3          GetUp       () const;
 
 private:
 

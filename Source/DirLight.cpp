@@ -35,3 +35,9 @@ float3 DirLight::GetDir() const
 {
     return float3(-sin(polar)*cos(azimuthal), -cos(polar), -sin(polar)*sin(azimuthal));
 }
+
+// ---------------------------------------------------------
+float3 DirLight::GetUp() const
+{
+    return float3(-sin(polar+PI*0.5f)*cos(azimuthal), -cos(polar+PI*0.5f), -sin(polar+PI*0.5f)*sin(azimuthal));
+}

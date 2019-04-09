@@ -620,37 +620,19 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
         AABB aabb;
         aabb.SetNegativeInfinity();
 
-		float3 right = light->GetDir().Cross(float3::unitY); 
-		float3 up;
-		if (right.Length() < 0.00001f)
-		{
-			up = float3::unitZ*light->GetDir().Dot(float3::unitY);
-		}
-		else
-		{
-			right.Normalize();
-			up = right.Cross(light->GetDir()); up.Normalize();
-		}
-		
-		Quat light_rotation = Quat::LookAt(-float3::unitZ, light->GetDir(), float3::unitY, up); 
+        float3 front        = light->GetDir();
+		float3 up           = light->GetUp();
+		Quat light_rotation = Quat::LookAt(-float3::unitZ, front, float3::unitY, up); 
 
         CalcLightSpaceBBox(light_rotation, aabb);
 
-        // Setting light params
-
         float3 center = aabb.CenterPoint();
-        float3 light_pos = light_rotation.Transform(float3(center.x, center.y, aabb.maxPoint.z));
-
-        dd::line(light_rotation.Transform(aabb.minPoint), light_rotation.Transform(aabb.maxPoint), dd::colors::Blue, 0, false);
 
         Frustum frustum; 
-
-
-        frustum.type  = FrustumType::OrthographicFrustum;
-        frustum.pos   = light_pos;
-        frustum.front = light->GetDir();
-        frustum.up    = up;
-
+        frustum.type               = FrustumType::OrthographicFrustum;
+        frustum.pos                = light_rotation.Transform(float3(center.x, center.y, aabb.maxPoint.z));
+        frustum.front              = front;
+        frustum.up                 = up;
         frustum.nearPlaneDistance  = 0.0f;
         frustum.farPlaneDistance   = (aabb.maxPoint.z - aabb.minPoint.z);
         frustum.orthographicWidth  = (aabb.maxPoint.x - aabb.minPoint.x);
@@ -689,16 +671,9 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
             {
                 float4x4 transform = light_mat*render_info.go->GetGlobalTransformation();
 
-                float3 oriented_half_size = bbox.HalfSize();
-                float3 points[8];
-                bbox.GetCornerPoints(points);
-
-                for(unsigned i=0; i < 8; ++i)
-                {
-                    points[i] = transform.TransformPos(points[i]);
-                }
-
-                aabb.Enclose(points, 8);
+                bbox.TransformAsAABB(transform);
+                bbox.Scale(bbox.CenterPoint(), 1.25f);
+                aabb.Enclose(bbox);
             }
         }
     }
