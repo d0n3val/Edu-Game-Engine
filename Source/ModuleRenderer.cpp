@@ -205,36 +205,58 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
 
     CollectObjects(view_pos, App->level->GetRoot());
-
     float4x4 light_view, light_proj;
-    ComputeDirLightViewProj(light_view, light_proj);
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
+    {
 
-    GenerateShadowFBO(width, height);
+        ComputeDirLightViewProj(light_view, light_proj);
+
+        uint shadow_width = width*2;
+        uint shadow_height = height*2;
+
+        GenerateShadowFBO(shadow_width, shadow_height);
+
+        glViewport(0, 0, shadow_width, shadow_height);
+        glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        App->programs->UseProgram("shadow", 0);
+        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_proj));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_view));
+
+        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+        {
+            glCullFace(GL_FRONT);
+        }
+
+        DrawNodes(&ModuleRenderer::DrawShadow);
+
+        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+        {
+            glCullFace(GL_BACK);
+        }
+    }
 
     glViewport(0, 0, width, height);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-    App->programs->UseProgram("shadow", 1);
-    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_view));
-    DrawNodes(&ModuleRenderer::DrawShadow);
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     // Set camera uniforms shared for all
-    App->programs->UseProgram("default", 1);
+    App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
 
     glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
     glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
 
-    glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("light_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_view));
-    glUniform1f(App->programs->GetUniformLocation("shadow_bias"), 0.001f); //hints->GetFloatValue(Hint::SHADOW_BIAS));
-    glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, shadow_tex);
-	glUniform1i(App->programs->GetUniformLocation("shadow_map"), 8);
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
+    {
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_proj));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_view));
+        glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+        glActiveTexture(GL_TEXTURE8);
+        glBindTexture(GL_TEXTURE_2D, shadow_tex);
+        glUniform1i(App->programs->GetUniformLocation("shadow_map"), 8);
+    }
 
     App->programs->UnuseProgram();
 
@@ -371,7 +393,7 @@ void ModuleRenderer::DrawShadow(const TRenderInfo& render_info)
 
 void ModuleRenderer::DrawMeshColor(const ComponentMesh* mesh)
 {
-    App->programs->UseProgram("default", 1);
+    App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
 
     UpdateLightUniform();
     mesh->Draw();
@@ -679,16 +701,19 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
         proj = frustum.ProjectionMatrix();
         view = frustum.ViewMatrix();
 
-        math::float3 p[8];
-        frustum.GetCornerPoints(p);
-        std::swap(p[2], p[5]);
-        std::swap(p[3], p[4]);
-        std::swap(p[4], p[5]);
-        std::swap(p[6], p[7]);
-        dd::box(p, dd::colors::Green);
+        if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
+        {
+            math::float3 p[8];
+            frustum.GetCornerPoints(p);
+            std::swap(p[2], p[5]);
+            std::swap(p[3], p[4]);
+            std::swap(p[4], p[5]);
+            std::swap(p[6], p[7]);
+            dd::box(p, dd::colors::Green);
 
-        float4x4 inverted = view.Inverted();
-        dd::axisTriad(inverted, 10.0f, 100.0f, 0, false);
+            float4x4 inverted = view.Inverted();
+            dd::axisTriad(inverted, 10.0f, 100.0f, 0, false);
+        }
     }
 }
 

@@ -378,6 +378,32 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 		tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
     }
 
+    enable = module->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING);
+    if(ImGui::Checkbox("Enable shadows", &enable))
+    {
+        module->SetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING, enable);
+    }
+
+    if(enable)
+    {
+        enable = module->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING);
+        if(ImGui::Checkbox("Show clipping volume", &enable))
+        {
+            module->SetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING, enable);
+        }
+
+        enable = module->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING);
+        if(ImGui::Checkbox("Enable shadow front face culling", &enable))
+        {
+            module->SetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING, enable);
+        }
+
+        float bias = module->GetFloatValue(ModuleHints::SHADOW_BIAS);
+        if(ImGui::InputFloat("Shadow bias", &bias, 0.001f))
+        {
+            module->SetFloatValue(ModuleHints::SHADOW_BIAS, bias);
+        }
+    }
 }
 
 void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)

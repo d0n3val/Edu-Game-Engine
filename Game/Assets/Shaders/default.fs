@@ -357,9 +357,9 @@ void main()
     float depth       = clamp(shadow_coord.z, 0.0, 1.0);
     vec2 coord        = vec2(shadow_coord.x, shadow_coord.y);
 
-	if(coord.x >= 0.0 && coord.x <= 1.0 && coord.y >= 0.0 && coord.y <= 1.0 && texture2D(shadow_map, coord.xy).x < depth-shadow_bias)
+	if(coord.x >= 0.0 && coord.x <= 1.0 && coord.y >= 0.0 && coord.y <= 1.0 && texture2D(shadow_map, coord.xy).z < depth-shadow_bias)
 	{
-		color.rgb = color.rgb*0.15;
+		color.rgb = color.rgb*0.25;
 	}
 
 #endif

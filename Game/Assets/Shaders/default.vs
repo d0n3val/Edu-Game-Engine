@@ -62,7 +62,7 @@ void main()
     gl_Position = proj*view*vec4(fragment.position, 1.0);
 
 #if SHADOWS_ENABLED
-	fragment.shadow_coord = light_proj*light_view*vec4(vertex_position, 1.0);
+	fragment.shadow_coord = light_proj*light_view*vec4(fragment.position, 1.0);
 	fragment.shadow_coord /= fragment.shadow_coord.w;
 #endif
 }
