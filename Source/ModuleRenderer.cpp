@@ -209,10 +209,10 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
 
-        ComputeDirLightViewProj(light_view, light_proj);
+        ComputeDirLightViewProj(camera, light_view, light_proj);
 
-        uint shadow_width = width*2;
-        uint shadow_height = height*2;
+        uint shadow_width = 4096;
+        uint shadow_height = 4096;
 
         GenerateShadowFBO(shadow_width, shadow_height);
 
@@ -666,7 +666,7 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
+void ModuleRenderer::ComputeDirLightViewProj(ComponentCamera* camera, float4x4& view, float4x4& proj)
 {
     const DirLight* light = App->level->GetDirLight();
 
@@ -677,14 +677,49 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
     }
     else
 	{
-        AABB aabb;
-        aabb.SetNegativeInfinity();
+        static AABB aabb;
+        static float3 camera_points[8];
+        static float3 light_points[8];
+        static bool update = true;
 
         float3 front        = light->GetDir();
-		float3 up           = light->GetUp();
-		Quat light_rotation = Quat::LookAt(-float3::unitZ, front, float3::unitY, up); 
+        float3 up           = light->GetUp();
+        Quat light_rotation = Quat::LookAt(-float3::unitZ, front, float3::unitY, up); 
 
-        CalcLightSpaceBBox(light_rotation, aabb);
+        if(update)
+        {
+            aabb.SetNegativeInfinity();
+
+            float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
+
+            Frustum f = camera->frustum;
+            f.farPlaneDistance = 500;
+            f.GetCornerPoints(camera_points);
+            std::swap(camera_points[2], camera_points[5]);
+            std::swap(camera_points[3], camera_points[4]);
+            std::swap(camera_points[4], camera_points[5]);
+            std::swap(camera_points[6], camera_points[7]);
+
+            for(uint i=0; i< 8; ++i)
+            {
+                light_points[i] = light_mat.TransformPos(camera_points[i]);
+            }
+
+            aabb.Enclose(light_points, 8);
+        }
+
+        dd::box(camera_points, dd::colors::White);
+        dd::box(light_points, dd::colors::Green);
+
+        AABB object_aabb;
+        CalcLightSpaceBBox(light_rotation, object_aabb);
+
+        aabb.minPoint.x = max(aabb.minPoint.x, object_aabb.minPoint.x);
+        aabb.minPoint.y = max(aabb.minPoint.y, object_aabb.minPoint.y);
+        aabb.minPoint.z = max(aabb.minPoint.z, object_aabb.minPoint.z);
+        aabb.maxPoint.x = min(aabb.maxPoint.x, object_aabb.maxPoint.x);
+        aabb.maxPoint.y = min(aabb.maxPoint.y, object_aabb.maxPoint.y);
+        aabb.maxPoint.z = max(aabb.maxPoint.z, object_aabb.maxPoint.z);
 
         float3 center = aabb.CenterPoint();
 
@@ -701,6 +736,13 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
         proj = frustum.ProjectionMatrix();
         view = frustum.ViewMatrix();
 
+        frustum.GetCornerPoints(light_points);
+        std::swap(light_points[2], light_points[5]);
+        std::swap(light_points[3], light_points[4]);
+        std::swap(light_points[4], light_points[5]);
+        std::swap(light_points[6], light_points[7]);
+
+#if 0
         if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
         {
             math::float3 p[8];
@@ -714,6 +756,7 @@ void ModuleRenderer::ComputeDirLightViewProj(float4x4& view, float4x4& proj)
             float4x4 inverted = view.Inverted();
             dd::axisTriad(inverted, 10.0f, 100.0f, 0, false);
         }
+#endif
     }
 }
 
@@ -765,7 +808,7 @@ void ModuleRenderer::GenerateShadowFBO(unsigned width, unsigned height)
             glGenTextures(1, &shadow_tex);
             glBindTexture(GL_TEXTURE_2D, shadow_tex);
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

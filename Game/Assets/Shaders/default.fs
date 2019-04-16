@@ -359,7 +359,7 @@ void main()
 
 	if(coord.x >= 0.0 && coord.x <= 1.0 && coord.y >= 0.0 && coord.y <= 1.0 && texture2D(shadow_map, coord.xy).z < depth-shadow_bias)
 	{
-		color.rgb = color.rgb*0.25;
+		color.rgb = color.rgb*0.55;
 	}
 
 #endif
