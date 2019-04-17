@@ -70,45 +70,46 @@ public:
     explicit ModuleRenderer();
     ~ModuleRenderer();
 
-	bool                Init                    (Config* config = nullptr) override;
-    void                Draw                    (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
-    void                Postprocess             (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
+	bool                Init                        (Config* config = nullptr) override;
+    void                Draw                        (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
+    void                Postprocess                 (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
 
-	void                DrawDebug               () override;
+	void                DrawDebug                   () override;
 
-    uint                GetShadowTex            () const { return shadow_tex; }
+    uint                GetShadowTex                () const { return shadow_tex; }
     
 private:
 
-    void                LoadDefaultShaders      ();
-    void                CreatePostprocessData   ();
-    void                CreateSkybox            ();
+    void                LoadDefaultShaders          ();
+    void                CreatePostprocessData       ();
+    void                CreateSkybox                ();
 
-    void                DrawSkybox              (const float4x4& proj, const float4x4& view);
-    void                DrawNodes               (void (ModuleRenderer::*drawer)(const TRenderInfo& ));
+    void                DrawSkybox                  (const float4x4& proj, const float4x4& view);
+    void                DrawNodes                   (const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo& ));
 
-    void                DrawColor               (const TRenderInfo& render_info);
-    void                DrawShadow              (const TRenderInfo& render_info);
-    void                DrawMeshColor           (const ComponentMesh* mesh);
-    void                DrawParticles           (ComponentParticleSystem* particles);
-    void                DrawTrails              (ComponentTrail* trail);
+    void                DrawColor                   (const TRenderInfo& render_info);
+    void                DrawShadow                  (const TRenderInfo& render_info);
+    void                DrawMeshColor               (const ComponentMesh* mesh);
+    void                DrawParticles               (ComponentParticleSystem* particles);
+    void                DrawTrails                  (ComponentTrail* trail);
 
-    void                CollectObjects          (const float3& camera_pos, GameObject* go);
-    void                UpdateLightUniform      () const;
+    void                CollectObjects              (const float3& camera_pos, GameObject* go);
+    void                UpdateLightUniform          () const;
 
-    void                ComputeDirLightViewProj (ComponentCamera* camera, float4x4& view, float4x4& proj);
-    void                CalcLightSpaceBBox      (const Quat& light_rotation, AABB& aabb);
-    void                DrawClippingSpace       (const math::float4x4& proj, const math::float4x4& view) const;
-    void                GetClippingPoints       (const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const;
+    void                ComputeDirLightShadowVolume (ComponentCamera* camera, float far_distance, float4x4& view, float4x4& proj, NodeList& casters);
+    void                CalcLightCameraBBox         (const Quat& light_rotation, const ComponentCamera* camera, float far_distance, AABB& aabb);
+    void                CalcLightObjectsBBox        (const Quat& light_rotation, AABB& aabb, NodeList& casters);
+    void                DrawClippingSpace           (const math::float4x4& proj, const math::float4x4& view) const;
+    void                GetClippingPoints           (const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const;
 
-    void                DebugDrawParticles      ();
-    void                DebugDrawTangentSpace   ();
-    void                DebugDrawTangentSpace   (const ResourceMesh* mesh, const float4x4& transform);
-    void                DebugDrawAnimation      ();
-    void                DebugDrawAnimation      (const GameObject* go);
-    void                DebugDrawHierarchy      (const GameObject* go);
+    void                DebugDrawParticles          ();
+    void                DebugDrawTangentSpace       ();
+    void                DebugDrawTangentSpace       (const ResourceMesh* mesh, const float4x4& transform);
+    void                DebugDrawAnimation          ();
+    void                DebugDrawAnimation          (const GameObject* go);
+    void                DebugDrawHierarchy          (const GameObject* go);
 
-    void                GenerateShadowFBO       (unsigned width, unsigned height);
+    void                GenerateShadowFBO           (unsigned width, unsigned height);
 };
 
 

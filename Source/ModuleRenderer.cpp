@@ -209,7 +209,8 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
 
-        ComputeDirLightViewProj(camera, light_view, light_proj);
+        NodeList casters;
+        ComputeDirLightShadowVolume(camera, 1500, light_view, light_proj, casters);
 
         uint shadow_width = 4096;
         uint shadow_height = 4096;
@@ -229,7 +230,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
             glCullFace(GL_FRONT);
         }
 
-        DrawNodes(&ModuleRenderer::DrawShadow);
+        DrawNodes(casters, &ModuleRenderer::DrawShadow);
 
         if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
         {
@@ -270,7 +271,8 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
     App->programs->UnuseProgram();
 
-    DrawNodes(&ModuleRenderer::DrawColor);
+    DrawNodes(opaque_nodes, &ModuleRenderer::DrawColor);
+    DrawNodes(transparent_nodes, &ModuleRenderer::DrawColor);
 
     //DrawSkybox(proj, view);
 
@@ -352,19 +354,12 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
     }
 }
 
-void ModuleRenderer::DrawNodes(void (ModuleRenderer::*drawer)(const TRenderInfo&))
+void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo&))
 {
-	for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
+	for(NodeList::const_iterator it = nodes.begin(), end = nodes.end(); it != end; ++it)
 	{
         (this->*drawer)(*it);
     }
-
-	for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
-	{
-        (this->*drawer)(*it);
-    }
-
-    App->programs->UnuseProgram();
 }
 
 void ModuleRenderer::DrawColor(const TRenderInfo& render_info)
@@ -666,7 +661,7 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ModuleRenderer::ComputeDirLightViewProj(ComponentCamera* camera, float4x4& view, float4x4& proj)
+void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, float far_distance, float4x4& view, float4x4& proj, NodeList& casters)
 {
     const DirLight* light = App->level->GetDirLight();
 
@@ -677,49 +672,16 @@ void ModuleRenderer::ComputeDirLightViewProj(ComponentCamera* camera, float4x4& 
     }
     else
 	{
-        static AABB aabb;
-        static float3 camera_points[8];
-        static float3 light_points[8];
-        static bool update = true;
+        static AABB frustum_aabb;
 
         float3 front        = light->GetDir();
         float3 up           = light->GetUp();
         Quat light_rotation = Quat::LookAt(-float3::unitZ, front, float3::unitY, up); 
 
-        if(update)
-        {
-            aabb.SetNegativeInfinity();
+        CalcLightCameraBBox(light_rotation, camera, far_distance, frustum_aabb);
 
-            float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
-
-            Frustum f = camera->frustum;
-            f.farPlaneDistance = 500;
-            f.GetCornerPoints(camera_points);
-            std::swap(camera_points[2], camera_points[5]);
-            std::swap(camera_points[3], camera_points[4]);
-            std::swap(camera_points[4], camera_points[5]);
-            std::swap(camera_points[6], camera_points[7]);
-
-            for(uint i=0; i< 8; ++i)
-            {
-                light_points[i] = light_mat.TransformPos(camera_points[i]);
-            }
-
-            aabb.Enclose(light_points, 8);
-        }
-
-        dd::box(camera_points, dd::colors::White);
-        dd::box(light_points, dd::colors::Green);
-
-        AABB object_aabb;
-        CalcLightSpaceBBox(light_rotation, object_aabb);
-
-        aabb.minPoint.x = max(aabb.minPoint.x, object_aabb.minPoint.x);
-        aabb.minPoint.y = max(aabb.minPoint.y, object_aabb.minPoint.y);
-        aabb.minPoint.z = max(aabb.minPoint.z, object_aabb.minPoint.z);
-        aabb.maxPoint.x = min(aabb.maxPoint.x, object_aabb.maxPoint.x);
-        aabb.maxPoint.y = min(aabb.maxPoint.y, object_aabb.maxPoint.y);
-        aabb.maxPoint.z = max(aabb.maxPoint.z, object_aabb.maxPoint.z);
+        AABB aabb = frustum_aabb;
+        CalcLightObjectsBBox(light_rotation, aabb, casters);
 
         float3 center = aabb.CenterPoint();
 
@@ -736,11 +698,15 @@ void ModuleRenderer::ComputeDirLightViewProj(ComponentCamera* camera, float4x4& 
         proj = frustum.ProjectionMatrix();
         view = frustum.ViewMatrix();
 
+        float3 light_points[8];
         frustum.GetCornerPoints(light_points);
+
         std::swap(light_points[2], light_points[5]);
         std::swap(light_points[3], light_points[4]);
         std::swap(light_points[4], light_points[5]);
         std::swap(light_points[6], light_points[7]);
+
+        dd::box(light_points, dd::colors::Green);
 
 #if 0
         if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
@@ -760,9 +726,51 @@ void ModuleRenderer::ComputeDirLightViewProj(ComponentCamera* camera, float4x4& 
     }
 }
 
-void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
+void ModuleRenderer::CalcLightCameraBBox(const Quat& light_rotation, const ComponentCamera* camera, float far_distance, AABB& aabb)
+{
+    static float3 camera_points[8];
+    static float3 light_points[8];
+    static bool update = true;
+ 
+	if(update)
+    {
+        aabb.SetNegativeInfinity();
+
+        float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
+			
+        Frustum f = camera->frustum;
+        f.farPlaneDistance = far_distance;
+        f.GetCornerPoints(camera_points);
+        std::swap(camera_points[2], camera_points[5]);
+        std::swap(camera_points[3], camera_points[4]);
+        std::swap(camera_points[4], camera_points[5]);
+        std::swap(camera_points[6], camera_points[7]);
+
+        for(uint i=0; i< 8; ++i)
+        {
+            light_points[i] = light_mat.TransformPos(camera_points[i]);
+        }
+
+        aabb.Enclose(light_points, 8);
+    }
+
+	float3 frustum_points[8];
+	aabb.Transform(light_rotation).GetCornerPoints(frustum_points);
+	std::swap(frustum_points[2], frustum_points[5]);
+	std::swap(frustum_points[3], frustum_points[4]);
+	std::swap(frustum_points[4], frustum_points[5]);
+	std::swap(frustum_points[6], frustum_points[7]);
+
+    dd::box(camera_points, dd::colors::White);
+    dd::box(frustum_points, dd::colors::Red);
+}
+
+void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, AABB& aabb, NodeList& casters)
 {
     float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
+    AABB camera_aabb = aabb;
+	camera_aabb.maxPoint.z = FLOAT_INF;
+    aabb.SetNegativeInfinity();
 
     for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
     {
@@ -779,11 +787,19 @@ void ModuleRenderer::CalcLightSpaceBBox(const Quat& light_rotation, AABB& aabb)
                 float4x4 transform = light_mat*render_info.go->GetGlobalTransformation();
 
                 bbox.TransformAsAABB(transform);
+
                 bbox.Scale(bbox.CenterPoint(), 1.25f);
-                aabb.Enclose(bbox);
+
+                if(camera_aabb.Intersects(bbox))
+                {
+                    aabb.Enclose(bbox);
+                    casters.push_back(render_info);
+                }
             }
         }
     }
+
+	aabb = aabb.Intersection(camera_aabb);
 
     // \todo: for transparents
 
