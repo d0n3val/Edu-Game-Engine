@@ -174,7 +174,10 @@ void ModuleRenderer::CreateSkybox()
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glGenFramebuffers(1, &shadow_fbo);
+    for(uint i=0; i< CASCADE_COUNT; ++i)
+    {
+        glGenFramebuffers(1, &cascades[i].fbo);
+    }
 }
 
 ModuleRenderer::~ModuleRenderer()
@@ -189,9 +192,12 @@ ModuleRenderer::~ModuleRenderer()
         glDeleteVertexArrays(1, &post_vao);
     }
 
-    if(shadow_fbo != 0)
+    for(uint i=0; i< CASCADE_COUNT; ++i)
     {
-        glDeleteFramebuffers(1, &shadow_fbo);
+        if(cascades[i].fbo != 0)
+        {
+            glDeleteFramebuffers(1, &cascades[i].fbo);
+        }
     }
 }
 
@@ -205,39 +211,55 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
 
     CollectObjects(view_pos, App->level->GetRoot());
-    float4x4 light_view, light_proj;
+
+    ShadowPass(camera, width, height);
+    ColorPass(proj, view, view_pos, fbo, width, height);
+
+}
+
+void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigned height)
+{
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
-
-        NodeList casters;
-        ComputeDirLightShadowVolume(camera, 1500, light_view, light_proj, casters);
-
         uint shadow_width = 4096;
         uint shadow_height = 4096;
 
-        GenerateShadowFBO(shadow_width, shadow_height);
+        NodeList casters;
 
-        glViewport(0, 0, shadow_width, shadow_height);
-        glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        App->programs->UseProgram("shadow", 0);
-        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_view));
-
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+        for(uint i=0; i<  CASCADE_COUNT; ++i)
         {
-            glCullFace(GL_FRONT);
-        }
+            casters.clear();
+            ComputeDirLightShadowVolume(camera, 1500, cascades[i].view, cascades[i].proj, casters);
 
-        DrawNodes(casters, &ModuleRenderer::DrawShadow);
+            GenerateShadowFBO(cascades[i], shadow_width, shadow_height);
 
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
-        {
-            glCullFace(GL_BACK);
+            glViewport(0, 0, shadow_width, shadow_height);
+            glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
+            glClear(GL_DEPTH_BUFFER_BIT);
+
+            App->programs->UseProgram("shadow", 0);
+            glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].proj));
+            glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].view));
+
+            if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+            {
+                glCullFace(GL_FRONT);
+            }
+
+            DrawNodes(casters, &ModuleRenderer::DrawShadow);
+
+            if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+            {
+                glCullFace(GL_BACK);
+            }
         }
     }
 
+}
+
+void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const float3& view_pos, 
+                               unsigned fbo, unsigned width, unsigned height)
+{
     glViewport(0, 0, width, height);
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -251,11 +273,11 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&light_view));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].proj));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].view));
         glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
         glActiveTexture(GL_TEXTURE8);
-        glBindTexture(GL_TEXTURE_2D, shadow_tex);
+        glBindTexture(GL_TEXTURE_2D, cascades[0].tex);
         glUniform1i(App->programs->GetUniformLocation("shadow_map"), 8);
     }
 
@@ -809,20 +831,20 @@ void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, AABB& aabb
     // Ojo!!!!!!!!!!!!!!!
 }
 
-void ModuleRenderer::GenerateShadowFBO(unsigned width, unsigned height)
+void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned height)
 {
-    if(width != shadow_width || height != shadow_height)
+    if(width != map.width || height != map.height)
     {
-        if(shadow_tex != 0)
+        if(map.tex != 0)
         {
-            glDeleteTextures(1, &shadow_tex);
+            glDeleteTextures(1, &map.tex);
         }
 
         if(width != 0 && height != 0)
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
-            glGenTextures(1, &shadow_tex);
-            glBindTexture(GL_TEXTURE_2D, shadow_tex);
+            glBindFramebuffer(GL_FRAMEBUFFER, map.fbo);
+            glGenTextures(1, &map.tex);
+            glBindTexture(GL_TEXTURE_2D, map.tex);
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
@@ -831,7 +853,7 @@ void ModuleRenderer::GenerateShadowFBO(unsigned width, unsigned height)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_tex, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, map.tex, 0);
 
             glDrawBuffer(GL_NONE);
 
@@ -839,8 +861,8 @@ void ModuleRenderer::GenerateShadowFBO(unsigned width, unsigned height)
             glBindTexture(GL_TEXTURE_2D, 0);
         }
 
-		shadow_width  = width;
-		shadow_height = height;
+		map.width  = width;
+		map.height = height;
     }
 }
 

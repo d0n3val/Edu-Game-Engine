@@ -60,10 +60,19 @@ class ModuleRenderer : public Module
     uint sky_brdf       = 0;
     uint camera_buffer  = 0;
 
-    uint shadow_fbo     = 0;
-    uint shadow_width   = 0; 
-    uint shadow_height  = 0; 
-    uint shadow_tex     = 0;
+    struct ShadowMap
+    {
+        float4x4 proj = float4x4::identity;
+        float4x4 view = float4x4::identity;
+        uint fbo      = 0;
+        uint width    = 0; 
+        uint height   = 0; 
+        uint tex      = 0;
+    };
+
+    enum EShadows { CASCADE_COUNT = 3 };
+
+    ShadowMap cascades[CASCADE_COUNT];
 
 public:
 
@@ -76,9 +85,11 @@ public:
 
 	void                DrawDebug                   () override;
 
-    uint                GetShadowTex                () const { return shadow_tex; }
-    
 private:
+
+    void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);
+    void                ColorPass                   (const float4x4& proj, const float4x4& view, const float3& view_pos, 
+                                                     unsigned fbo, unsigned width, unsigned height);
 
     void                LoadDefaultShaders          ();
     void                CreatePostprocessData       ();
@@ -109,7 +120,7 @@ private:
     void                DebugDrawAnimation          (const GameObject* go);
     void                DebugDrawHierarchy          (const GameObject* go);
 
-    void                GenerateShadowFBO           (unsigned width, unsigned height);
+    void                GenerateShadowFBO           (ShadowMap& map, unsigned width, unsigned height);
 };
 
 
