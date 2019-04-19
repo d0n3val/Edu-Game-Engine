@@ -65,9 +65,11 @@ class ModuleRenderer : public Module
         float4x4 proj       = float4x4::identity;
         float4x4 view       = float4x4::identity;
         uint fbo            = 0;
+        uint blur_fbo       = 0;
         uint width          = 0; 
         uint height         = 0; 
         uint tex            = 0;
+        uint blur_tex       = 0;
         float far_distance  = 0.0f;
     };
 

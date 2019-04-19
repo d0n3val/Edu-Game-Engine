@@ -367,18 +367,19 @@ void main()
 
             //color[i] *= 5.0;
 
-            //if(texture2D(shadow_map[i], shadow_coord.xy).x < shadow_coord.z-shadow_bias)
-           
-            vec2 moments = texture2D(shadow_map[i], shadow_coord.xy).rg;
-            if( shadow_coord.z-shadow_bias > moments.x)
+            vec2 moments = texture(shadow_map[i], shadow_coord.xy).rg;
+
+            if( shadow_coord.z-shadow_bias > moments.r)
             {
-                //float variance = moments.g - (moments.r*moments.r);
-                //variance = max(variance,0.00002);
+                /*
+                float variance = moments.g - (moments.r*moments.r);
+                variance = max(variance,0.00002);
 
-                //float d = moments.x - shadow_coord.z;
-                //float p_max = variance / (variance + d*d);
+                float d = moments.x - shadow_coord.z;
+                float p_max = variance / (variance + d*d);
 
-                //color.rgb = color.rgb*(0.2+p_max);
+                color.rgb = color.rgb*(0.2+p_max);
+                */
 
                 color.rgb = color.rgb*0.5;
             }

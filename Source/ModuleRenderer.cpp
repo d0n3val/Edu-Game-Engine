@@ -177,6 +177,7 @@ void ModuleRenderer::CreateSkybox()
     for(uint i=0; i< CASCADE_COUNT; ++i)
     {
         glGenFramebuffers(1, &cascades[i].fbo);
+        glGenFramebuffers(1, &cascades[i].blur_fbo);
     }
 }
 
@@ -197,6 +198,11 @@ ModuleRenderer::~ModuleRenderer()
         if(cascades[i].fbo != 0)
         {
             glDeleteFramebuffers(1, &cascades[i].fbo);
+        }
+
+        if(cascades[i].blur_fbo != 0)
+        {
+            glDeleteFramebuffers(1, &cascades[i].blur_fbo);
         }
     }
 }
@@ -874,6 +880,22 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.tex, 0);
+
+            //glDrawBuffer(GL_NONE);
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, map.blur_fbo);
+            glGenTextures(1, &map.blur_tex);
+            glBindTexture(GL_TEXTURE_2D, map.blur_tex);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.blur_tex, 0);
 
             //glDrawBuffer(GL_NONE);
             glDrawBuffer(GL_COLOR_ATTACHMENT0);
