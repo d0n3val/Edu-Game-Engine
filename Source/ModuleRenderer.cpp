@@ -284,9 +284,6 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[0]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].view));
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[1]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[1].view));
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[2]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[2].view));
-        glUniform1f(App->programs->GetUniformLocation("light_far[0]"), cascades[0].far_distance);
-        glUniform1f(App->programs->GetUniformLocation("light_far[1]"), cascades[1].far_distance);
-        glUniform1f(App->programs->GetUniformLocation("light_far[2]"), cascades[2].far_distance);
 
         glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
         glActiveTexture(GL_TEXTURE8);
