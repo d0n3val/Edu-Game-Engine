@@ -86,6 +86,8 @@ public:
 
 	void                DrawDebug                   () override;
 
+    uint                GetTexture                  () const { return cascades[0].tex; }
+
 private:
 
     void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);

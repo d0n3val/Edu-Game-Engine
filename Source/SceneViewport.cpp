@@ -81,7 +81,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
         ImVec2 screenPos = ImGui::GetCursorScreenPos();
 
         ImGui::GetWindowDrawList()->AddImage(
-                //(void*)App->renderer->GetShadowTex(),
+                //(void*)App->renderer->GetTexture(),
                 (void*)post_fbuffer.tex,
                 ImVec2(screenPos),
                 ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
