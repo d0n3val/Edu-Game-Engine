@@ -221,23 +221,28 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
 {
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
-        uint shadow_width = 4096;
-        uint shadow_height = 4096;
+        uint shadow_width[3] = { 1024, 512, 256 };
+        uint shadow_height[3] = { 1024, 512, 256 };
 
         NodeList casters;
+
+        cascades[0].far_distance = 1500;
+        cascades[1].far_distance = 3000;
+        cascades[2].far_distance = 10000;
 
         for(uint i=0; i<  CASCADE_COUNT; ++i)
         {
             casters.clear();
-            ComputeDirLightShadowVolume(camera, 1500, cascades[i].view, cascades[i].proj, casters);
+            ComputeDirLightShadowVolume(camera, cascades[i].far_distance, cascades[i].view, cascades[i].proj, casters);
 
-            GenerateShadowFBO(cascades[i], shadow_width, shadow_height);
+            GenerateShadowFBO(cascades[i], shadow_width[i], shadow_height[i]);
 
-            glViewport(0, 0, shadow_width, shadow_height);
+            glViewport(0, 0, shadow_width[i], shadow_height[i]);
             glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
             glClear(GL_DEPTH_BUFFER_BIT);
 
             App->programs->UseProgram("shadow", 0);
+
             glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].proj));
             glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].view));
 
@@ -273,12 +278,28 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].view));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[0]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].proj));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[1]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[1].proj));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[2]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[2].proj));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[0]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].view));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[1]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[1].view));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[2]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[2].view));
+        glUniform1f(App->programs->GetUniformLocation("light_far[0]"), cascades[0].far_distance);
+        glUniform1f(App->programs->GetUniformLocation("light_far[1]"), cascades[1].far_distance);
+        glUniform1f(App->programs->GetUniformLocation("light_far[2]"), cascades[2].far_distance);
+
         glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
         glActiveTexture(GL_TEXTURE8);
         glBindTexture(GL_TEXTURE_2D, cascades[0].tex);
-        glUniform1i(App->programs->GetUniformLocation("shadow_map"), 8);
+        glUniform1i(App->programs->GetUniformLocation("shadow_map[0]"), 8);
+
+        glActiveTexture(GL_TEXTURE9);
+        glBindTexture(GL_TEXTURE_2D, cascades[1].tex);
+        glUniform1i(App->programs->GetUniformLocation("shadow_map[1]"), 9);
+
+        glActiveTexture(GL_TEXTURE9+1);
+        glBindTexture(GL_TEXTURE_2D, cascades[2].tex);
+        glUniform1i(App->programs->GetUniformLocation("shadow_map[2]"), 10);
     }
 
     App->programs->UnuseProgram();

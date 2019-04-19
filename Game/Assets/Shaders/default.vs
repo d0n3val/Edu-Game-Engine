@@ -1,20 +1,16 @@
 #define MAX_BONES 64
+#define CASCADE_COUNT 3
 
 layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_normal;
 layout(location = 2) in vec2 vertex_uv0;
 layout(location = 3) in ivec4 bone_indices;
-layout(location = 4) in vec4  bone_weights;
+layout(location = 4) in vec4 bone_weights;
 layout(location = 5) in vec3 vertex_tangent;
 
 subroutine void TransformOutput();
 
 layout(location=0) subroutine uniform TransformOutput transform_output;
-
-#if SHADOWS_ENABLED
-uniform mat4 light_proj;
-uniform mat4 light_view;
-#endif 
 
 uniform mat4 proj;
 uniform mat4 view;
@@ -28,9 +24,6 @@ struct VertexOut
     vec3 normal;
     vec3 tangent;
     vec3 position;
-#if SHADOWS_ENABLED
-    vec4 shadow_coord;
-#endif
 };
 
 out VertexOut fragment;
@@ -61,8 +54,4 @@ void main()
 
     gl_Position = proj*view*vec4(fragment.position, 1.0);
 
-#if SHADOWS_ENABLED
-	fragment.shadow_coord = light_proj*light_view*vec4(fragment.position, 1.0);
-	fragment.shadow_coord /= fragment.shadow_coord.w;
-#endif
 }

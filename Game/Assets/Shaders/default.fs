@@ -1,6 +1,7 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 4
 #define PI 3.141597
+#define CASCADE_COUNT 3
 //#define SCHLICK_GGX_GSF
 
 //////////////////// STRUCTS ////////////////////////
@@ -70,9 +71,6 @@ struct VertexOut
     vec3 normal;
     vec3 tangent;
     vec3 position;
-#if SHADOWS_ENABLED
-    vec4 shadow_coord;
-#endif
 };
 
 subroutine vec3 GetNormal(const VertexOut vertex, const Material mat);
@@ -85,9 +83,12 @@ layout(location=20) uniform Lights lights;
 layout(location=100) uniform vec3 view_pos;
 
 #if SHADOWS_ENABLED
-layout(location=110) uniform sampler2D shadow_map;
-layout(location=111) uniform float shadow_bias;
+layout(location=110) uniform sampler2D shadow_map[3];
+layout(location=113) uniform float shadow_bias;
 #endif
+
+uniform mat4 light_proj[CASCADE_COUNT];
+uniform mat4 light_view[CASCADE_COUNT];
 
 //layout(location=200) uniform samplerCube irradiance_map;
 //layout(location=201) uniform samplerCube prefilter_map;
@@ -353,14 +354,27 @@ void main()
     color	    = lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
 
 #if SHADOWS_ENABLED 
-    vec4 shadow_coord = fragment.shadow_coord*0.5+0.5;
-    float depth       = clamp(shadow_coord.z, 0.0, 1.0);
-    vec2 coord        = vec2(shadow_coord.x, shadow_coord.y);
 
-	if(coord.x >= 0.0 && coord.x <= 1.0 && coord.y >= 0.0 && coord.y <= 1.0 && texture2D(shadow_map, coord.xy).z < depth-shadow_bias)
-	{
-		color.rgb = color.rgb*0.55;
-	}
+    for(uint i=0; i< 3; ++i)
+    {
+        vec4 shadow_coord = light_proj[i]*light_view[i]*vec4(fragment.position, 1.0);
+        shadow_coord /= shadow_coord.w;
+        shadow_coord = shadow_coord*0.5+0.5;
+
+        if(shadow_coord.x >= 0.0 && shadow_coord.x < 1.0 && shadow_coord.y >= 0.0 && shadow_coord.y < 1.0 && 
+           shadow_coord.z >= 0.0 && shadow_coord.z < 1.0)
+        {
+
+            //color[i] *= 5.0;
+
+            if(texture2D(shadow_map[i], shadow_coord.xy).z < shadow_coord.z-shadow_bias)
+            {
+                color.rgb = color.rgb*0.55;
+            }
+
+            break;
+        }
+    }
 
 #endif
 

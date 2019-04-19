@@ -62,12 +62,13 @@ class ModuleRenderer : public Module
 
     struct ShadowMap
     {
-        float4x4 proj = float4x4::identity;
-        float4x4 view = float4x4::identity;
-        uint fbo      = 0;
-        uint width    = 0; 
-        uint height   = 0; 
-        uint tex      = 0;
+        float4x4 proj       = float4x4::identity;
+        float4x4 view       = float4x4::identity;
+        uint fbo            = 0;
+        uint width          = 0; 
+        uint height         = 0; 
+        uint tex            = 0;
+        float far_distance  = 0.0f;
     };
 
     enum EShadows { CASCADE_COUNT = 3 };
