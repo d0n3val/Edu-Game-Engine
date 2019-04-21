@@ -386,6 +386,12 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 
     if(enable)
     {
+        enable = module->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME);
+        if(ImGui::Checkbox("Update shadow volume", &enable))
+        {
+            module->SetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME, enable);
+        }
+
         enable = module->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING);
         if(ImGui::Checkbox("Show clipping volume", &enable))
         {

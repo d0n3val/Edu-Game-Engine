@@ -381,7 +381,7 @@ void main()
                 color.rgb = color.rgb*(0.2+p_max);
                 */
 
-                color.rgb = color.rgb*0.5;
+                color.rgb = color.rgb*0.35;
             }
 
             break;

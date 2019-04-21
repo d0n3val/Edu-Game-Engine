@@ -227,19 +227,37 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
 {
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
-        uint shadow_width[3] = { 1024, 512, 256 };
-        uint shadow_height[3] = { 1024, 512, 256 };
-
-        NodeList casters;
+        uint shadow_width[3] = { 1024, 768, 512 };
+        uint shadow_height[3] = { 1024, 768, 512 };
 
         cascades[0].far_distance = 1500;
-        cascades[1].far_distance = 3000;
+        cascades[1].far_distance = 2500;
         cascades[2].far_distance = 10000;
 
         for(uint i=0; i<  CASCADE_COUNT; ++i)
         {
-            casters.clear();
-            ComputeDirLightShadowVolume(camera, cascades[i].far_distance, cascades[i].view, cascades[i].proj, casters);
+            if(App->hints->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME))
+            {
+                ComputeDirLightShadowVolume(camera, i);
+            }
+
+            if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
+            {
+                math::float3 p[8];
+                cascades[i].world_bb.GetCornerPoints(p);
+                std::swap(p[2], p[5]);
+                std::swap(p[3], p[4]);
+                std::swap(p[4], p[5]);
+                std::swap(p[6], p[7]);
+                dd::box(p, i== 0 ? dd::colors::Red : (i == 1 ? dd::colors::Green : dd::colors::Blue));
+
+                cascades[i].frustum.GetCornerPoints(p);
+                std::swap(p[2], p[5]);
+                std::swap(p[3], p[4]);
+                std::swap(p[4], p[5]);
+                std::swap(p[6], p[7]);
+                dd::box(p, dd::colors::White);
+			}
 
             GenerateShadowFBO(cascades[i], shadow_width[i], shadow_height[i]);
 
@@ -259,7 +277,7 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
                 glCullFace(GL_FRONT);
             }
 
-            DrawNodes(casters, &ModuleRenderer::DrawShadow);
+            DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
 
             if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
             {
@@ -709,68 +727,44 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, float far_distance, float4x4& view, float4x4& proj, NodeList& casters)
+void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint index)
 {
     const DirLight* light = App->level->GetDirLight();
 
 	if (light == nullptr)
     {
-        proj = float4x4::identity;
-        view = float4x4::identity;
+        cascades[index].proj = float4x4::identity;
+        cascades[index].view = float4x4::identity;
     }
     else
 	{
-        static AABB frustum_aabb;
-
         float3 front        = light->GetDir();
         float3 up           = light->GetUp();
         Quat light_rotation = Quat::LookAt(-float3::unitZ, front, float3::unitY, up); 
 
-        CalcLightCameraBBox(light_rotation, camera, far_distance, frustum_aabb);
+        cascades[index].casters.clear();
+		cascades[index].frustum = camera->frustum;
 
-        AABB aabb = frustum_aabb;
-        CalcLightObjectsBBox(light_rotation, aabb, casters);
+        CalcLightCameraBBox(light_rotation, camera, cascades[index].far_distance, cascades[index].aabb);
+        CalcLightObjectsBBox(light_rotation, cascades[index].aabb, cascades[index].casters);
 
-        float3 center = aabb.CenterPoint();
+
+        cascades[index].world_bb = cascades[index].aabb.Transform(light_rotation);
+        float3 center = cascades[index].aabb.CenterPoint();
 
         Frustum frustum; 
         frustum.type               = FrustumType::OrthographicFrustum;
-        frustum.pos                = light_rotation.Transform(float3(center.x, center.y, aabb.maxPoint.z));
+        frustum.pos                = light_rotation.Transform(float3(center.x, center.y, cascades[index].aabb.maxPoint.z));
         frustum.front              = front;
         frustum.up                 = up;
         frustum.nearPlaneDistance  = 0.0f;
-        frustum.farPlaneDistance   = (aabb.maxPoint.z - aabb.minPoint.z);
-        frustum.orthographicWidth  = (aabb.maxPoint.x - aabb.minPoint.x);
-        frustum.orthographicHeight = (aabb.maxPoint.y - aabb.minPoint.y);
+        frustum.farPlaneDistance   = (cascades[index].aabb.maxPoint.z - cascades[index].aabb.minPoint.z);
+        frustum.orthographicWidth  = (cascades[index].aabb.maxPoint.x - cascades[index].aabb.minPoint.x);
+        frustum.orthographicHeight = (cascades[index].aabb.maxPoint.y - cascades[index].aabb.minPoint.y);
 
-        proj = frustum.ProjectionMatrix();
-        view = frustum.ViewMatrix();
+        cascades[index].proj = frustum.ProjectionMatrix();
+        cascades[index].view = frustum.ViewMatrix();
 
-        float3 light_points[8];
-        frustum.GetCornerPoints(light_points);
-
-        std::swap(light_points[2], light_points[5]);
-        std::swap(light_points[3], light_points[4]);
-        std::swap(light_points[4], light_points[5]);
-        std::swap(light_points[6], light_points[7]);
-
-        dd::box(light_points, dd::colors::Green);
-
-#if 0
-        if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
-        {
-            math::float3 p[8];
-            frustum.GetCornerPoints(p);
-            std::swap(p[2], p[5]);
-            std::swap(p[3], p[4]);
-            std::swap(p[4], p[5]);
-            std::swap(p[6], p[7]);
-            dd::box(p, dd::colors::Green);
-
-            float4x4 inverted = view.Inverted();
-            dd::axisTriad(inverted, 10.0f, 100.0f, 0, false);
-        }
-#endif
     }
 }
 
@@ -801,16 +795,6 @@ void ModuleRenderer::CalcLightCameraBBox(const Quat& light_rotation, const Compo
 
         aabb.Enclose(light_points, 8);
     }
-
-	float3 frustum_points[8];
-	aabb.Transform(light_rotation).GetCornerPoints(frustum_points);
-	std::swap(frustum_points[2], frustum_points[5]);
-	std::swap(frustum_points[3], frustum_points[4]);
-	std::swap(frustum_points[4], frustum_points[5]);
-	std::swap(frustum_points[6], frustum_points[7]);
-
-    dd::box(camera_points, dd::colors::White);
-    dd::box(frustum_points, dd::colors::Red);
 }
 
 void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, AABB& aabb, NodeList& casters)

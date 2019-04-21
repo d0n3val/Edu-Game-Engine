@@ -62,15 +62,19 @@ class ModuleRenderer : public Module
 
     struct ShadowMap
     {
-        float4x4 proj       = float4x4::identity;
-        float4x4 view       = float4x4::identity;
-        uint fbo            = 0;
-        uint blur_fbo       = 0;
-        uint width          = 0; 
-        uint height         = 0; 
-        uint tex            = 0;
-        uint blur_tex       = 0;
-        float far_distance  = 0.0f;
+        float4x4    proj            = float4x4::identity;
+        float4x4    view            = float4x4::identity;
+        uint        fbo             = 0;
+        uint        blur_fbo        = 0;
+        uint        width           = 0; 
+        uint        height          = 0; 
+        uint        tex             = 0;
+        uint        blur_tex        = 0;
+        float       far_distance    = 0.0f;
+        AABB        aabb;
+        OBB         world_bb;
+        Frustum     frustum;
+        NodeList    casters;
     };
 
     enum EShadows { CASCADE_COUNT = 3 };
@@ -112,7 +116,7 @@ private:
     void                CollectObjects              (const float3& camera_pos, GameObject* go);
     void                UpdateLightUniform          () const;
 
-    void                ComputeDirLightShadowVolume (ComponentCamera* camera, float far_distance, float4x4& view, float4x4& proj, NodeList& casters);
+    void                ComputeDirLightShadowVolume (ComponentCamera* camera, uint index);
     void                CalcLightCameraBBox         (const Quat& light_rotation, const ComponentCamera* camera, float far_distance, AABB& aabb);
     void                CalcLightObjectsBBox        (const Quat& light_rotation, AABB& aabb, NodeList& casters);
     void                DrawClippingSpace           (const math::float4x4& proj, const math::float4x4& view) const;
