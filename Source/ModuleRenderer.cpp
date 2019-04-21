@@ -177,7 +177,8 @@ void ModuleRenderer::CreateSkybox()
     for(uint i=0; i< CASCADE_COUNT; ++i)
     {
         glGenFramebuffers(1, &cascades[i].fbo);
-        glGenFramebuffers(1, &cascades[i].blur_fbo);
+        glGenFramebuffers(1, &cascades[i].blur_fbo_0);
+        glGenFramebuffers(1, &cascades[i].blur_fbo_1);
     }
 }
 
@@ -200,9 +201,14 @@ ModuleRenderer::~ModuleRenderer()
             glDeleteFramebuffers(1, &cascades[i].fbo);
         }
 
-        if(cascades[i].blur_fbo != 0)
+        if(cascades[i].blur_fbo_0 != 0)
         {
-            glDeleteFramebuffers(1, &cascades[i].blur_fbo);
+            glDeleteFramebuffers(1, &cascades[i].blur_fbo_0);
+        }
+
+        if(cascades[i].blur_fbo_1 != 0)
+        {
+            glDeleteFramebuffers(1, &cascades[i].blur_fbo_1);
         }
     }
 }
@@ -218,74 +224,73 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 
     CollectObjects(view_pos, App->level->GetRoot());
 
-    ShadowPass(camera, width, height);
-    ColorPass(proj, view, view_pos, fbo, width, height);
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
+    {
+        ShadowPass(camera, width, height);
+    }
 
+    ColorPass(proj, view, view_pos, fbo, width, height);
 }
 
 void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigned height)
 {
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
+    uint shadow_width[3] = { 1024, 768, 512 };
+    uint shadow_height[3] = { 1024, 768, 512 };
+
+    cascades[0].far_distance = 1500;
+    cascades[1].far_distance = 2500;
+    cascades[2].far_distance = 10000;
+
+    for(uint i=0; i<  CASCADE_COUNT; ++i)
     {
-        uint shadow_width[3] = { 1024, 768, 512 };
-        uint shadow_height[3] = { 1024, 768, 512 };
-
-        cascades[0].far_distance = 1500;
-        cascades[1].far_distance = 2500;
-        cascades[2].far_distance = 10000;
-
-        for(uint i=0; i<  CASCADE_COUNT; ++i)
+        if(App->hints->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME))
         {
-            if(App->hints->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME))
-            {
-                ComputeDirLightShadowVolume(camera, i);
-            }
+            ComputeDirLightShadowVolume(camera, i);
+        }
 
-            if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
-            {
-                math::float3 p[8];
-                cascades[i].world_bb.GetCornerPoints(p);
-                std::swap(p[2], p[5]);
-                std::swap(p[3], p[4]);
-                std::swap(p[4], p[5]);
-                std::swap(p[6], p[7]);
-                dd::box(p, i== 0 ? dd::colors::Red : (i == 1 ? dd::colors::Green : dd::colors::Blue));
+        if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
+        {
+            math::float3 p[8];
+            cascades[i].world_bb.GetCornerPoints(p);
+            std::swap(p[2], p[5]);
+            std::swap(p[3], p[4]);
+            std::swap(p[4], p[5]);
+            std::swap(p[6], p[7]);
+            dd::box(p, i== 0 ? dd::colors::Red : (i == 1 ? dd::colors::Green : dd::colors::Blue));
 
-                cascades[i].frustum.GetCornerPoints(p);
-                std::swap(p[2], p[5]);
-                std::swap(p[3], p[4]);
-                std::swap(p[4], p[5]);
-                std::swap(p[6], p[7]);
-                dd::box(p, dd::colors::White);
-			}
+            cascades[i].frustum.GetCornerPoints(p);
+            std::swap(p[2], p[5]);
+            std::swap(p[3], p[4]);
+            std::swap(p[4], p[5]);
+            std::swap(p[6], p[7]);
+            dd::box(p, dd::colors::White);
+        }
 
-            GenerateShadowFBO(cascades[i], shadow_width[i], shadow_height[i]);
+        GenerateShadowFBO(cascades[i], shadow_width[i], shadow_height[i]);
 
-            glViewport(0, 0, shadow_width[i], shadow_height[i]);
-            glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
-            glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            //glClear(GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, shadow_width[i], shadow_height[i]);
+        glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glClear(GL_DEPTH_BUFFER_BIT);
 
-            App->programs->UseProgram("shadow", 0);
+        App->programs->UseProgram("shadow", 0);
 
-            glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].proj));
-            glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].view));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].proj));
+        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].view));
 
-            if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
-            {
-                glCullFace(GL_FRONT);
-            }
+        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+        {
+            glCullFace(GL_FRONT);
+        }
 
-            DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
+        DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
 
-            if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
-            {
-                glCullFace(GL_BACK);
-            }
+        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+        {
+            glCullFace(GL_BACK);
         }
     }
-
 }
 
 void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const float3& view_pos, 
@@ -865,12 +870,11 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
             
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.tex, 0);
 
-            //glDrawBuffer(GL_NONE);
             glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-            glBindFramebuffer(GL_FRAMEBUFFER, map.blur_fbo);
-            glGenTextures(1, &map.blur_tex);
-            glBindTexture(GL_TEXTURE_2D, map.blur_tex);
+            glBindFramebuffer(GL_FRAMEBUFFER, map.blur_fbo_0);
+            glGenTextures(1, &map.blur_tex_0);
+            glBindTexture(GL_TEXTURE_2D, map.blur_tex_0);
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
 
@@ -879,9 +883,23 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.blur_tex, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.blur_tex_0, 0);
 
-            //glDrawBuffer(GL_NONE);
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, map.blur_fbo_1);
+            glGenTextures(1, &map.blur_tex_1);
+            glBindTexture(GL_TEXTURE_2D, map.blur_tex_1);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.blur_tex_1, 0);
+
             glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);

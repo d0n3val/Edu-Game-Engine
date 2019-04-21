@@ -65,11 +65,13 @@ class ModuleRenderer : public Module
         float4x4    proj            = float4x4::identity;
         float4x4    view            = float4x4::identity;
         uint        fbo             = 0;
-        uint        blur_fbo        = 0;
+        uint        blur_fbo_0      = 0;
+        uint        blur_fbo_1      = 0;
         uint        width           = 0; 
         uint        height          = 0; 
         uint        tex             = 0;
-        uint        blur_tex        = 0;
+        uint        blur_tex_0      = 0;
+        uint        blur_tex_1      = 0;
         float       far_distance    = 0.0f;
         AABB        aabb;
         OBB         world_bb;
@@ -92,7 +94,9 @@ public:
 
 	void                DrawDebug                   () override;
 
-    uint                GetTexture                  () const { return cascades[0].tex; }
+    unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
+    unsigned            GetShadowMapWidth           (uint index) const { return cascades[index].width; }
+    unsigned            GetShadowMapHeight          (uint index) const { return cascades[index].height; }
 
 private:
 

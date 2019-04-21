@@ -26,6 +26,9 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[UPDATE_SHADOW_VOLUME].type                 = TYPE_BOOL; 
     hints[UPDATE_SHADOW_VOLUME].value.bvalue         = true;
 
+    hints[SHOW_SHADOW_MAP].type                     = TYPE_BOOL; 
+    hints[SHOW_SHADOW_MAP].value.bvalue             = false;
+
     hints[SHADOW_BIAS].type                       = TYPE_FLOAT;
     hints[SHADOW_BIAS].value.fvalue               = 0.05f;
 
@@ -62,6 +65,7 @@ void ModuleHints::Save(Config* config) const
     config->AddBool("Show shadow clipping", hints[SHOW_SHADOW_CLIPPING].value.bvalue);
     config->AddBool("Enable shadow front culling", hints[ENABLE_SHADOW_FRONT_CULLING].value.bvalue);
     config->AddBool("Update shadow volume", hints[UPDATE_SHADOW_VOLUME].value.bvalue);
+    config->AddBool("Show shadow map", hints[SHOW_SHADOW_MAP].value.bvalue);
 
     config->AddFloat("Shadow bias", hints[SHADOW_BIAS].value.fvalue);
     config->AddFloat("Shadow resolution", hints[SHADOW_RESOLUTION].value.fvalue);
@@ -82,6 +86,7 @@ bool ModuleHints::Init(Config* config)
     hints[SHOW_SHADOW_CLIPPING].value.bvalue = config->GetBool("Show shadow clipping", false);
     hints[ENABLE_SHADOW_FRONT_CULLING].value.bvalue = config->GetBool("Enable shadow front culling", true);
     hints[UPDATE_SHADOW_VOLUME].value.bvalue = config->GetBool("Update shadow volume", true);
+    hints[SHOW_SHADOW_MAP].value.bvalue = config->GetBool("Show shadow map", true);
 
     hints[SHADOW_BIAS].value.fvalue = config->GetFloat("Shadow bias", 0.05f);
     hints[SHADOW_RESOLUTION].value.fvalue = config->GetFloat("Shadow resolution", 1.0f);

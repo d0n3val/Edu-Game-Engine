@@ -398,6 +398,12 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
             module->SetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING, enable);
         }
 
+        enable = module->GetBoolValue(ModuleHints::SHOW_SHADOW_MAP);
+        if(ImGui::Checkbox("Show shadow map", &enable))
+        {
+            module->SetBoolValue(ModuleHints::SHOW_SHADOW_MAP, enable);
+        }
+
         enable = module->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING);
         if(ImGui::Checkbox("Enable shadow front face culling", &enable))
         {

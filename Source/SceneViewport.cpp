@@ -80,12 +80,24 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
         ImVec2 screenPos = ImGui::GetCursorScreenPos();
 
-        ImGui::GetWindowDrawList()->AddImage(
-                //(void*)App->renderer->GetTexture(),
-                (void*)post_fbuffer.tex,
-                ImVec2(screenPos),
-                ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
-                ImVec2(0, 1), ImVec2(1, 0));
+        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) && App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_MAP))
+        {
+            ImGui::GetWindowDrawList()->AddImage(
+                    (ImTextureID)App->renderer->GetShadowMap(0),
+                    ImVec2(screenPos),
+                    ImVec2(screenPos.x + min(App->renderer->GetShadowMapWidth(0), fb_width), screenPos.y + min(App->renderer->GetShadowMapHeight(0), fb_height)), 
+                    ImVec2(0, 1), ImVec2(1, 0));
+        }
+        else
+        {
+            ImGui::GetWindowDrawList()->AddImage(
+                    //(void*)App->renderer->GetTexture(),
+                    (void*)post_fbuffer.tex,
+                    ImVec2(screenPos),
+                    ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
+                    ImVec2(0, 1), ImVec2(1, 0));
+        }
+
 
         if(App->GetState() == Application::stop)
         {
