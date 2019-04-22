@@ -177,6 +177,7 @@ void ModuleRenderer::CreateSkybox()
     for(uint i=0; i< CASCADE_COUNT; ++i)
     {
         glGenFramebuffers(1, &cascades[i].fbo);
+        glGenFramebuffers(1, &cascades[i].sq_fbo);
         glGenFramebuffers(1, &cascades[i].blur_fbo_0);
         glGenFramebuffers(1, &cascades[i].blur_fbo_1);
     }
@@ -201,15 +202,42 @@ ModuleRenderer::~ModuleRenderer()
             glDeleteFramebuffers(1, &cascades[i].fbo);
         }
 
+        if(cascades[i].tex != 0)
+        {
+            glDeleteTextures(1, &cascades[i].tex);
+        }
+
+
+        if(cascades[i].sq_fbo != 0)
+        {
+            glDeleteFramebuffers(1, &cascades[i].sq_fbo);
+        }
+
+        if(cascades[i].sq_tex != 0)
+        {
+            glDeleteTextures(1, &cascades[i].sq_tex);
+        }
+
         if(cascades[i].blur_fbo_0 != 0)
         {
             glDeleteFramebuffers(1, &cascades[i].blur_fbo_0);
+        }
+
+        if(cascades[i].blur_tex_0 != 0)
+        {
+            glDeleteTextures(1, &cascades[i].blur_tex_0);
         }
 
         if(cascades[i].blur_fbo_1 != 0)
         {
             glDeleteFramebuffers(1, &cascades[i].blur_fbo_1);
         }
+
+        if(cascades[i].blur_tex_1 != 0)
+        {
+            glDeleteTextures(1, &cascades[i].blur_tex_1);
+        }
+
     }
 }
 
@@ -270,9 +298,7 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
 
         glViewport(0, 0, shadow_width[i], shadow_height[i]);
         glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         App->programs->UseProgram("shadow", 0);
 
@@ -285,6 +311,8 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
         }
 
         DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
+
+        BlurShadow(i);
 
         if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
         {
@@ -318,15 +346,15 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
 
         glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
         glActiveTexture(GL_TEXTURE8);
-        glBindTexture(GL_TEXTURE_2D, cascades[0].tex);
+        glBindTexture(GL_TEXTURE_2D, cascades[0].blur_tex_1);
         glUniform1i(App->programs->GetUniformLocation("shadow_map[0]"), 8);
 
         glActiveTexture(GL_TEXTURE9);
-        glBindTexture(GL_TEXTURE_2D, cascades[1].tex);
+        glBindTexture(GL_TEXTURE_2D, cascades[1].blur_tex_1);
         glUniform1i(App->programs->GetUniformLocation("shadow_map[1]"), 9);
 
         glActiveTexture(GL_TEXTURE9+1);
-        glBindTexture(GL_TEXTURE_2D, cascades[2].tex);
+        glBindTexture(GL_TEXTURE_2D, cascades[2].blur_tex_1);
         glUniform1i(App->programs->GetUniformLocation("shadow_map[2]"), 10);
     }
 
@@ -492,6 +520,12 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0, nullptr, 0);
     App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0, nullptr, 0);
     App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0, nullptr, 0);
+
+    const char* gaussian_macros[]       = { "#define HORIZONTAL 1 \n" }; 
+    const unsigned num_gaussian_macros  = sizeof(gaussian_macros)/sizeof(const char*);
+
+    App->programs->Load("gaussian", "Assets/Shaders/gaussian.vs", "Assets/Shaders/gaussian.fs", gaussian_macros, num_gaussian_macros, nullptr, 0);
+    App->programs->Load("chebyshev", "Assets/Shaders/chebyshev.vs", "Assets/Shaders/chebyshev.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
@@ -732,6 +766,53 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void ModuleRenderer::BlurShadow(uint index)
+{
+    glBindVertexArray(post_vao);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].sq_fbo);
+    {
+        App->programs->UseProgram("chebyshev", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, cascades[index].tex);
+        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glDrawArrays(GL_TRIANGLES, 0, 6); 
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].blur_fbo_0);
+    {
+        App->programs->UseProgram("gaussian", 1);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, cascades[index].tex);
+        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glBindVertexArray(post_vao);
+        glDrawArrays(GL_TRIANGLES, 0, 6); 
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].blur_fbo_0);
+    {
+        App->programs->UseProgram("gaussian", 1);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, cascades[index].sq_tex);
+        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glDrawArrays(GL_TRIANGLES, 0, 6); 
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].blur_fbo_1);
+    {
+        App->programs->UseProgram("gaussian", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, cascades[index].blur_tex_0);
+        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glDrawArrays(GL_TRIANGLES, 0, 6); 
+    }
+
+    glBindVertexArray(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    App->programs->UnuseProgram();
+}
+
 void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint index)
 {
     const DirLight* light = App->level->GetDirLight();
@@ -861,14 +942,29 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
             glGenTextures(1, &map.tex);
             glBindTexture(GL_TEXTURE_2D, map.tex);
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.tex, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, map.tex, 0);
+
+            glDrawBuffer(GL_NONE);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, map.sq_fbo);
+            glGenTextures(1, &map.sq_tex);
+            glBindTexture(GL_TEXTURE_2D, map.sq_tex);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.sq_tex, 0);
 
             glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -876,7 +972,7 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
             glGenTextures(1, &map.blur_tex_0);
             glBindTexture(GL_TEXTURE_2D, map.blur_tex_0);
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -891,7 +987,7 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
             glGenTextures(1, &map.blur_tex_1);
             glBindTexture(GL_TEXTURE_2D, map.blur_tex_1);
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

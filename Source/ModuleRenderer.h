@@ -65,11 +65,13 @@ class ModuleRenderer : public Module
         float4x4    proj            = float4x4::identity;
         float4x4    view            = float4x4::identity;
         uint        fbo             = 0;
+        uint        sq_fbo          = 0;
         uint        blur_fbo_0      = 0;
         uint        blur_fbo_1      = 0;
         uint        width           = 0; 
         uint        height          = 0; 
         uint        tex             = 0;
+        uint        sq_tex          = 0;
         uint        blur_tex_0      = 0;
         uint        blur_tex_1      = 0;
         float       far_distance    = 0.0f;
@@ -94,7 +96,7 @@ public:
 
 	void                DrawDebug                   () override;
 
-    unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
+    unsigned            GetShadowMap                (uint index) const { return cascades[index].blur_tex_1; }
     unsigned            GetShadowMapWidth           (uint index) const { return cascades[index].width; }
     unsigned            GetShadowMapHeight          (uint index) const { return cascades[index].height; }
 
@@ -120,6 +122,7 @@ private:
     void                CollectObjects              (const float3& camera_pos, GameObject* go);
     void                UpdateLightUniform          () const;
 
+    void                BlurShadow                  (uint index);
     void                ComputeDirLightShadowVolume (ComponentCamera* camera, uint index);
     void                CalcLightCameraBBox         (const Quat& light_rotation, const ComponentCamera* camera, float far_distance, AABB& aabb);
     void                CalcLightObjectsBBox        (const Quat& light_rotation, AABB& aabb, NodeList& casters);

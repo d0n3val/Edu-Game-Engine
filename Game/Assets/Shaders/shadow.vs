@@ -14,8 +14,6 @@ uniform mat4 model;
 
 uniform mat4 palette[MAX_BONES];
 
-out vec4 frag_pos;
-
 layout(index=0) subroutine(TransformOutput) void transform_output_rigid()
 {
     gl_Position = proj*view*model*vec4(vertex_position, 1.0);
@@ -32,6 +30,5 @@ layout(index=1) subroutine(TransformOutput) void transform_output_skinning()
 void main()
 {
     transform_output();
-    frag_pos = gl_Position;
 }
 

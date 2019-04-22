@@ -371,17 +371,13 @@ void main()
 
             if( shadow_coord.z-shadow_bias > moments.r)
             {
-                /*
                 float variance = moments.g - (moments.r*moments.r);
                 variance = max(variance,0.00002);
 
                 float d = moments.x - shadow_coord.z;
                 float p_max = variance / (variance + d*d);
 
-                color.rgb = color.rgb*(0.2+p_max);
-                */
-
-                color.rgb = color.rgb*0.35;
+                color.rgb = color.rgb*max(0.4, p_max);
             }
 
             break;
