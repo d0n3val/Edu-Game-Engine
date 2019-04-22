@@ -137,6 +137,7 @@ private:
     void                DebugDrawHierarchy          (const GameObject* go);
 
     void                GenerateShadowFBO           (ShadowMap& map, unsigned width, unsigned height);
+    float4x4            SetOrtho                    (float left, float right, float bottom, float top, float _near, float _far);
 };
 
 

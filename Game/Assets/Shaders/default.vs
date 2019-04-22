@@ -53,5 +53,4 @@ void main()
     transform_output();
 
     gl_Position = proj*view*vec4(fragment.position, 1.0);
-
 }

@@ -783,16 +783,6 @@ void ModuleRenderer::BlurShadow(uint index)
     {
         App->programs->UseProgram("gaussian", 1);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, cascades[index].tex);
-        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
-        glBindVertexArray(post_vao);
-        glDrawArrays(GL_TRIANGLES, 0, 6); 
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].blur_fbo_0);
-    {
-        App->programs->UseProgram("gaussian", 1);
-        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, cascades[index].sq_tex);
         glUniform1i(App->programs->GetUniformLocation("image"), 0); 
         glDrawArrays(GL_TRIANGLES, 0, 6); 
@@ -806,6 +796,7 @@ void ModuleRenderer::BlurShadow(uint index)
         glUniform1i(App->programs->GetUniformLocation("image"), 0); 
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
+
 
     glBindVertexArray(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -829,15 +820,15 @@ void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint i
         Quat light_rotation = Quat::LookAt(-float3::unitZ, front, float3::unitY, up); 
 
         cascades[index].casters.clear();
-		cascades[index].frustum = camera->frustum;
+        cascades[index].frustum = camera->frustum;
 
         CalcLightCameraBBox(light_rotation, camera, cascades[index].far_distance, cascades[index].aabb);
         CalcLightObjectsBBox(light_rotation, cascades[index].aabb, cascades[index].casters);
 
-
         cascades[index].world_bb = cascades[index].aabb.Transform(light_rotation);
         float3 center = cascades[index].aabb.CenterPoint();
 
+        // \note: Orthographic projection is invalid z [0..1] like DirectX
         Frustum frustum; 
         frustum.type               = FrustumType::OrthographicFrustum;
         frustum.pos                = light_rotation.Transform(float3(center.x, center.y, cascades[index].aabb.maxPoint.z));
@@ -848,10 +839,31 @@ void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint i
         frustum.orthographicWidth  = (cascades[index].aabb.maxPoint.x - cascades[index].aabb.minPoint.x);
         frustum.orthographicHeight = (cascades[index].aabb.maxPoint.y - cascades[index].aabb.minPoint.y);
 
-        cascades[index].proj = frustum.ProjectionMatrix();
+        //cascades[index].proj = frustum.ProjectionMatrix();
+        cascades[index].proj = SetOrtho(-frustum.orthographicWidth/2, frustum.orthographicWidth/2,
+                -frustum.orthographicHeight/2, frustum.orthographicHeight/2, 
+                frustum.nearPlaneDistance, frustum.farPlaneDistance);
         cascades[index].view = frustum.ViewMatrix();
-
     }
+}
+
+float4x4 ModuleRenderer::SetOrtho(float left, float right, float bottom, float top, float _near, float _far)
+{
+	float a = 2.0f / (right - left);
+	float b = 2.0f / (top - bottom);
+	float c = -2.0f / (_far - _near);
+
+	float tx = -(right + left) / (right - left);
+	float ty = - (top + bottom)/(top - bottom);
+	float tz = - (_far + _near)/(_far - _near);
+
+    float4x4 projection;
+    projection.SetCol(0, math::float4(a, 0.0f, 0.0f, 0.0f));
+    projection.SetCol(1, math::float4(0.0f , b, 0.0f, 0.0f));
+    projection.SetCol(2, math::float4(0.0f , 0.0f, c, 0.0f));
+    projection.SetCol(3, math::float4(tx, ty, tz, 1.0f));
+
+    return projection;
 }
 
 void ModuleRenderer::CalcLightCameraBBox(const Quat& light_rotation, const ComponentCamera* camera, float far_distance, AABB& aabb)

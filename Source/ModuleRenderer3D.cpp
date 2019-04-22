@@ -96,6 +96,7 @@ bool ModuleRenderer3D::Init(Config* config)
 			ret = false;
 		}
 		
+        //glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
         glClearDepth(1.0f);
