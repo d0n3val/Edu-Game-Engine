@@ -524,8 +524,8 @@ void ModuleRenderer::LoadDefaultShaders()
     const char* gaussian_macros[]       = { "#define HORIZONTAL 1 \n" }; 
     const unsigned num_gaussian_macros  = sizeof(gaussian_macros)/sizeof(const char*);
 
-    App->programs->Load("gaussian", "Assets/Shaders/gaussian.vs", "Assets/Shaders/gaussian.fs", gaussian_macros, num_gaussian_macros, nullptr, 0);
-    App->programs->Load("chebyshev", "Assets/Shaders/chebyshev.vs", "Assets/Shaders/chebyshev.fs", nullptr, 0, nullptr, 0);
+    App->programs->Load("gaussian", "Assets/Shaders/postprocess.vs", "Assets/Shaders/gaussian.fs", gaussian_macros, num_gaussian_macros, nullptr, 0);
+    App->programs->Load("chebyshev", "Assets/Shaders/postprocess.vs", "Assets/Shaders/chebyshev.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
