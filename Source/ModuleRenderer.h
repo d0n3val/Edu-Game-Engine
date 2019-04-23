@@ -74,6 +74,7 @@ class ModuleRenderer : public Module
         uint        sq_tex          = 0;
         uint        blur_tex_0      = 0;
         uint        blur_tex_1      = 0;
+        float       near_distance   = 0.0f;
         float       far_distance    = 0.0f;
         AABB        aabb;
         OBB         world_bb;
@@ -124,7 +125,7 @@ private:
 
     void                BlurShadow                  (uint index);
     void                ComputeDirLightShadowVolume (ComponentCamera* camera, uint index);
-    void                CalcLightCameraBBox         (const Quat& light_rotation, const ComponentCamera* camera, float far_distance, AABB& aabb);
+    void                CalcLightCameraBBox         (const Quat& light_rotation, const ComponentCamera* camera, float near_distance, float far_distance, AABB& aabb);
     void                CalcLightObjectsBBox        (const Quat& light_rotation, AABB& aabb, NodeList& casters);
     void                DrawClippingSpace           (const math::float4x4& proj, const math::float4x4& view) const;
     void                GetClippingPoints           (const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const;

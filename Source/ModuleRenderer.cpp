@@ -265,6 +265,10 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
     uint shadow_width[3] = { 1024, 768, 512 };
     uint shadow_height[3] = { 1024, 768, 512 };
 
+    cascades[0].near_distance = 100;
+    cascades[1].near_distance = 1500;
+    cascades[2].near_distance = 2500;
+
     cascades[0].far_distance = 1500;
     cascades[1].far_distance = 2500;
     cascades[2].far_distance = 10000;
@@ -821,8 +825,10 @@ void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint i
 
         cascades[index].casters.clear();
         cascades[index].frustum = camera->frustum;
+        cascades[index].frustum.nearPlaneDistance = cascades[index].near_distance;
+        cascades[index].frustum.farPlaneDistance = cascades[index].far_distance;
 
-        CalcLightCameraBBox(light_rotation, camera, cascades[index].far_distance, cascades[index].aabb);
+        CalcLightCameraBBox(light_rotation, camera, cascades[index].near_distance, cascades[index].far_distance, cascades[index].aabb);
         CalcLightObjectsBBox(light_rotation, cascades[index].aabb, cascades[index].casters);
 
         cascades[index].world_bb = cascades[index].aabb.Transform(light_rotation);
@@ -866,33 +872,30 @@ float4x4 ModuleRenderer::SetOrtho(float left, float right, float bottom, float t
     return projection;
 }
 
-void ModuleRenderer::CalcLightCameraBBox(const Quat& light_rotation, const ComponentCamera* camera, float far_distance, AABB& aabb)
+void ModuleRenderer::CalcLightCameraBBox(const Quat& light_rotation, const ComponentCamera* camera, float near_distance, float far_distance, AABB& aabb)
 {
-    static float3 camera_points[8];
-    static float3 light_points[8];
-    static bool update = true;
- 
-	if(update)
+    float3 camera_points[8];
+    float3 light_points[8];
+
+    aabb.SetNegativeInfinity();
+
+    float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
+
+    Frustum f = camera->frustum;
+    f.farPlaneDistance = far_distance;
+    f.nearPlaneDistance = near_distance;
+    f.GetCornerPoints(camera_points);
+    std::swap(camera_points[2], camera_points[5]);
+    std::swap(camera_points[3], camera_points[4]);
+    std::swap(camera_points[4], camera_points[5]);
+    std::swap(camera_points[6], camera_points[7]);
+
+    for(uint i=0; i< 8; ++i)
     {
-        aabb.SetNegativeInfinity();
-
-        float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
-			
-        Frustum f = camera->frustum;
-        f.farPlaneDistance = far_distance;
-        f.GetCornerPoints(camera_points);
-        std::swap(camera_points[2], camera_points[5]);
-        std::swap(camera_points[3], camera_points[4]);
-        std::swap(camera_points[4], camera_points[5]);
-        std::swap(camera_points[6], camera_points[7]);
-
-        for(uint i=0; i< 8; ++i)
-        {
-            light_points[i] = light_mat.TransformPos(camera_points[i]);
-        }
-
-        aabb.Enclose(light_points, 8);
+        light_points[i] = light_mat.TransformPos(camera_points[i]);
     }
+
+    aabb.Enclose(light_points, 8);
 }
 
 void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, AABB& aabb, NodeList& casters)
