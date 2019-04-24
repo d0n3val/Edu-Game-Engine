@@ -355,11 +355,13 @@ void main()
 
 #if SHADOWS_ENABLED 
 
+    float bias = shadow_bias*length(cross(normal, lights.directional.dir));
+
     for(uint i=0; i< 3; ++i)
     {
         vec4 shadow_coord = light_proj[i]*light_view[i]*vec4(fragment.position, 1.0);
         shadow_coord /= shadow_coord.w;
-        shadow_coord = shadow_coord*0.5+0.5;
+        shadow_coord.xy = shadow_coord.xy*0.5+0.5;
 
         if(shadow_coord.x >= 0.0 && shadow_coord.x < 1.0 && shadow_coord.y >= 0.0 && shadow_coord.y < 1.0 && 
            shadow_coord.z >= 0.0 && shadow_coord.z < 1.0)
@@ -369,7 +371,7 @@ void main()
 
             vec2 moments = texture(shadow_map[i], shadow_coord.xy).rg;
 
-            if( shadow_coord.z-shadow_bias > moments.r)
+            if(shadow_coord.z > moments.r)
             {
                 float variance = moments.g - (moments.r*moments.r);
                 variance = max(variance,0.00002);
@@ -377,7 +379,7 @@ void main()
                 float d = moments.x - shadow_coord.z;
                 float p_max = variance / (variance + d*d);
 
-                color.rgb = color.rgb*max(0.4, p_max);
+                color.rgb = color.rgb*(p_max/2+0.5);
             }
 
             break;

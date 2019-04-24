@@ -205,6 +205,7 @@ float4x4 ComponentCamera::GetViewMatrix() const
 // -----------------------------------------------------------------
 float4x4 ComponentCamera::GetProjectionMatrix() const
 {
-    return frustum.ProjectionMatrix();
+    //return frustum.ProjectionMatrix();
+	return float4x4::D3DPerspProjRH(frustum.nearPlaneDistance, frustum.farPlaneDistance, frustum.NearPlaneWidth(), frustum.NearPlaneHeight());
 }
 

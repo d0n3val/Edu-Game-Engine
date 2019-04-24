@@ -207,7 +207,6 @@ ModuleRenderer::~ModuleRenderer()
             glDeleteTextures(1, &cascades[i].tex);
         }
 
-
         if(cascades[i].sq_fbo != 0)
         {
             glDeleteFramebuffers(1, &cascades[i].sq_fbo);
@@ -262,15 +261,15 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 
 void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigned height)
 {
-    uint shadow_width[3] = { 1024, 768, 512 };
-    uint shadow_height[3] = { 1024, 768, 512 };
+    uint shadow_width[3] = { width*3, width*2, width};
+    uint shadow_height[3] = { height*3, height*2, height};
 
     cascades[0].near_distance = 100;
-    cascades[1].near_distance = 1500;
-    cascades[2].near_distance = 2500;
+    cascades[1].near_distance = 100;
+    cascades[2].near_distance = 100;
 
-    cascades[0].far_distance = 1500;
-    cascades[1].far_distance = 2500;
+    cascades[0].far_distance = 1000;
+    cascades[1].far_distance = 2000;
     cascades[2].far_distance = 10000;
 
     for(uint i=0; i<  CASCADE_COUNT; ++i)
@@ -314,14 +313,17 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
             glCullFace(GL_FRONT);
         }
 
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS), 0.0f);
         DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
+        glDisable(GL_POLYGON_OFFSET_FILL);
 
-        BlurShadow(i);
-
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
-        {
-            glCullFace(GL_BACK);
-        }
+		if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+		{
+			glCullFace(GL_BACK);
+		}
+		
+		BlurShadow(i);
     }
 }
 
@@ -845,11 +847,12 @@ void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint i
         frustum.orthographicWidth  = (cascades[index].aabb.maxPoint.x - cascades[index].aabb.minPoint.x);
         frustum.orthographicHeight = (cascades[index].aabb.maxPoint.y - cascades[index].aabb.minPoint.y);
 
-        //cascades[index].proj = frustum.ProjectionMatrix();
+
         cascades[index].proj = SetOrtho(-frustum.orthographicWidth/2, frustum.orthographicWidth/2,
                 -frustum.orthographicHeight/2, frustum.orthographicHeight/2, 
                 frustum.nearPlaneDistance, frustum.farPlaneDistance);
-        cascades[index].view = frustum.ViewMatrix();
+		cascades[index].proj = frustum.ProjectionMatrix();
+		cascades[index].view = frustum.ViewMatrix();
     }
 }
 
