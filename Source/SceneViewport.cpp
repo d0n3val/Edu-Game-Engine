@@ -90,10 +90,19 @@ void SceneViewport::Draw(ComponentCamera* camera)
         if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) && App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_MAP))
         {
             ImGui::GetWindowDrawList()->AddImage(
+                    (ImTextureID)fbuffer.bloom_tex,
+                    //(ImTextureID)App->renderer->GetShadowMap(0),
+                    ImVec2(screenPos),
+                    ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
+                    ImVec2(0, 1), ImVec2(1, 0));
+
+            /*
+                ImGui::GetWindowDrawList()->AddImage(
                     (ImTextureID)App->renderer->GetShadowMap(0),
                     ImVec2(screenPos),
                     ImVec2(screenPos.x + min(App->renderer->GetShadowMapWidth(0), fb_width), screenPos.y + min(App->renderer->GetShadowMapHeight(0), fb_height)), 
                     ImVec2(0, 1), ImVec2(1, 0));
+                    */
         }
         else
         {
@@ -154,6 +163,7 @@ void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, boo
         if(bloom)
         {
             glGenTextures(1, &buffer.bloom_tex);
+            glBindTexture(GL_TEXTURE_2D, buffer.bloom_tex);
             glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, hdr ? GL_RGBA16F : GL_RGBA, w, h, GL_TRUE);
 
             glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -182,6 +192,7 @@ void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, boo
         if(bloom)
         {
             glGenTextures(1, &buffer.bloom_tex);
+            glBindTexture(GL_TEXTURE_2D, buffer.bloom_tex);
             glTexImage2D(GL_TEXTURE_2D, 0, hdr ? GL_RGBA16F : GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -189,7 +200,7 @@ void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, boo
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, buffer.bloom_tex, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, buffer.bloom_tex, 0);
         }
 
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -213,7 +224,15 @@ void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, boo
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    if(bloom)
+    {
+        unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+        glDrawBuffers(2, attachments);  
+    }
+    else
+    {
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

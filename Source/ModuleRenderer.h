@@ -84,8 +84,10 @@ class ModuleRenderer : public Module
         uint        period          = 1;
     };
 
-    uint bloom_blur_fbo = 0;
-    uint bloom_blur_tex = 0;
+    uint bloom_blur_fbo_0 = 0;
+    uint bloom_blur_tex_0 = 0;
+    uint bloom_blur_fbo_1 = 0;
+    uint bloom_blur_tex_1 = 0;
     uint bloom_width    = 0;
     uint bloom_height   = 0;
 
@@ -104,7 +106,7 @@ public:
 
 	void                DrawDebug                   () override;
 
-    unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
+    unsigned            GetShadowMap                (uint index) const { return bloom_blur_tex_1; } //cascades[index].blur_tex_1; }
     unsigned            GetShadowMapWidth           (uint index) const { return cascades[index].width; }
     unsigned            GetShadowMapHeight          (uint index) const { return cascades[index].height; }
 

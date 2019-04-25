@@ -182,7 +182,8 @@ void ModuleRenderer::CreateSkybox()
         glGenFramebuffers(1, &cascades[i].blur_fbo_1);
     }
 
-    glGenFramebuffers(1, &bloom_fbo);
+    glGenFramebuffers(1, &bloom_blur_fbo_0);
+    glGenFramebuffers(1, &bloom_blur_fbo_1);
 }
 
 ModuleRenderer::~ModuleRenderer()
@@ -240,9 +241,14 @@ ModuleRenderer::~ModuleRenderer()
         }
     }
 
-    if(bloom_fbo)
+    if(bloom_blur_fbo_0)
     {
-        glDeleteFramebuffers(1, &bloom_fbo);
+        glDeleteFramebuffers(1, &bloom_blur_fbo_0);
+    }
+
+    if(bloom_blur_fbo_1)
+    {
+        glDeleteFramebuffers(1, &bloom_blur_fbo_1);
     }
 }
 
@@ -742,12 +748,36 @@ void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float
 
 void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned bloom_texture,unsigned fbo, unsigned width, unsigned height)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     // \todo: apply bloom gaussian
 
 	bool msaa  = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
+
+    // blur
+    glBindVertexArray(post_vao);
+    glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_0);
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+        App->programs->UseProgram("bloom_gaussian", msaa ? 3 : 1);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, bloom_texture);
+        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glDrawArrays(GL_TRIANGLES, 0, 6); 
+    }
+
+    glBindVertexArray(post_vao);
+    glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_1);
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+        App->programs->UseProgram("bloom_gaussian", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_0);
+        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glDrawArrays(GL_TRIANGLES, 0, 6); 
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     int flags  = msaa ? 1 << 0 : 0;
     flags      = flags | (App->hints->GetBoolValue(ModuleHints::ENABLE_GAMMA) ? 1 << 1 : 0);
 
@@ -776,11 +806,11 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned bloom_texture
 
     if(msaa)
     {
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, bloom_texture);
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, bloom_blur_tex_1);
     }
     else
     {
-        glBindTexture(GL_TEXTURE_2D, bloom_texture);
+        glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
     }
 
     glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
@@ -1062,16 +1092,21 @@ void ModuleRenderer::GenerateBloomFBO(unsigned width, unsigned height)
 {
     if(width != bloom_width || height != bloom_height)
     {
-        if(bloom_tex != 0)
+        if(bloom_blur_tex_0 != 0)
         {
-            glDeleteTextures(1, &bloom_tex);
+            glDeleteTextures(1, &bloom_blur_tex_0);
+        }
+
+        if(bloom_blur_tex_1 != 0)
+        {
+            glDeleteTextures(1, &bloom_blur_tex_1);
         }
 
         if(width != 0 && height != 0)
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, bloom_fbo);
-            glGenTextures(1, &bloom_tex);
-            glBindTexture(GL_TEXTURE_2D, bloom_tex);
+            glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_0);
+            glGenTextures(1, &bloom_blur_tex_0);
+            glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_0);
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
 
@@ -1080,7 +1115,22 @@ void ModuleRenderer::GenerateBloomFBO(unsigned width, unsigned height)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.sq_tex, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloom_blur_tex_0, 0);
+
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_1);
+            glGenTextures(1, &bloom_blur_tex_1);
+            glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloom_blur_tex_1, 0);
 
             glDrawBuffer(GL_COLOR_ATTACHMENT0);
         }
