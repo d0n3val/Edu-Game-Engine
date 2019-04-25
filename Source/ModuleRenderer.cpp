@@ -181,6 +181,8 @@ void ModuleRenderer::CreateSkybox()
         glGenFramebuffers(1, &cascades[i].blur_fbo_0);
         glGenFramebuffers(1, &cascades[i].blur_fbo_1);
     }
+
+    glGenFramebuffers(1, &bloom_fbo);
 }
 
 ModuleRenderer::~ModuleRenderer()
@@ -236,7 +238,11 @@ ModuleRenderer::~ModuleRenderer()
         {
             glDeleteTextures(1, &cascades[i].blur_tex_1);
         }
+    }
 
+    if(bloom_fbo)
+    {
+        glDeleteFramebuffers(1, &bloom_fbo);
     }
 }
 
@@ -272,8 +278,8 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
     cascades[1].far_distance = 2000;
     cascades[2].far_distance = 10000;
 
-    cascades[0].period = 8;
-    cascades[1].period = 10;
+    cascades[0].period = 6;
+    cascades[1].period = 8;
     cascades[2].period = 12;
 
     for(uint i=0; i<  CASCADE_COUNT; ++i)
@@ -540,6 +546,12 @@ void ModuleRenderer::LoadDefaultShaders()
 
     App->programs->Load("gaussian", "Assets/Shaders/postprocess.vs", "Assets/Shaders/gaussian.fs", gaussian_macros, num_gaussian_macros, nullptr, 0);
     App->programs->Load("chebyshev", "Assets/Shaders/postprocess.vs", "Assets/Shaders/chebyshev.fs", nullptr, 0, nullptr, 0);
+
+    const char* bloom_gaussian_macros[]       = { "#define HORIZONTAL 1 \n", "#define MSAA 1 \n" }; 
+    const unsigned num_bloom_gaussian_macros  = sizeof(bloom_gaussian_macros)/sizeof(const char*);
+
+    App->programs->Load("bloom_gaussian", "Assets/Shaders/postprocess.vs", "Assets/Shaders/bloom_gaussian.fs", bloom_gaussian_macros, 
+            num_bloom_gaussian_macros, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
@@ -728,10 +740,12 @@ void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float
     }
 }
 
-void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned width, unsigned height)
+void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned bloom_texture,unsigned fbo, unsigned width, unsigned height)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // \todo: apply bloom gaussian
 
 	bool msaa  = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
     int flags  = msaa ? 1 << 0 : 0;
@@ -757,8 +771,19 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
     }
 
     glUniform1i(SCREEN_TEXTURE_LOCATION, 0); 
-    glUniform1i(VIEWPORT_WIDTH, width); 
-    glUniform1i(VIEWPORT_HEIGHT, height); 
+
+    glActiveTexture(GL_TEXTURE1);
+
+    if(msaa)
+    {
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, bloom_texture);
+    }
+    else
+    {
+        glBindTexture(GL_TEXTURE_2D, bloom_texture);
+    }
+
+    glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
 
     glBindVertexArray(post_vao);
 
@@ -1033,3 +1058,34 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
     }
 }
 
+void ModuleRenderer::GenerateBloomFBO(unsigned width, unsigned height)
+{
+    if(width != bloom_width || height != bloom_height)
+    {
+        if(bloom_tex != 0)
+        {
+            glDeleteTextures(1, &bloom_tex);
+        }
+
+        if(width != 0 && height != 0)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, bloom_fbo);
+            glGenTextures(1, &bloom_tex);
+            glBindTexture(GL_TEXTURE_2D, bloom_tex);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.sq_tex, 0);
+
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        }
+
+		bloom_width  = width;
+		bloom_height = height;
+    }
+}

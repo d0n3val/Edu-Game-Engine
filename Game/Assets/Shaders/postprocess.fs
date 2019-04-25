@@ -6,12 +6,12 @@ out vec4 color;
 
 #if MSAA
 layout(location=0) uniform sampler2DMS screen_texture;
+layout(location=1) uniform sampler2DMS bloom_texture;
 #else 
 layout(location=0) uniform sampler2D screen_texture;
+layout(location=1) uniform sampler2D bloom_texture;
 #endif 
 
-layout(location=1) uniform int viewport_width;
-layout(location=2) uniform int viewport_height;
 
 layout(location=0) subroutine uniform ToneMapping tonemap;
 
@@ -53,9 +53,8 @@ layout(index=2) subroutine(ToneMapping) vec3 no_tonemap(const vec3 hdr)
 void main()
 {
 #if MSAA 
-    ivec2 vp = ivec2(viewport_width, viewport_height);
-    vp.x = int(viewport_width  * uv.x); 
-    vp.y = int(viewport_height * uv.y);
+    ivec2 vp = textureSize(screen_texture);
+    vp = ivec2(vec2(vp)*uv);
 
     vec4 sample1 = texelFetch(screen_texture, vp, 0);
     vec4 sample2 = texelFetch(screen_texture, vp, 1);
@@ -63,9 +62,20 @@ void main()
 	vec4 sample4 = texelFetch(screen_texture, vp, 3);
 
 	vec4 hdr = (sample1 + sample2 + sample3 + sample4) / 4.0f;
+
+    sample1 = texelFetch(bloom_texture, vp, 0);
+    sample2 = texelFetch(bloom_texture, vp, 1);
+	sample3 = texelFetch(bloom_texture, vp, 2);
+	sample4 = texelFetch(bloom_texture, vp, 3);
+
+	vec4 bloom = (sample1 + sample2 + sample3 + sample4) / 4.0f;
+
 #else
     vec4 hdr = texture(screen_texture, uv);
+    vec4 bloom = texture(bloom_texture, uv);
 #endif
+
+    hdr.rgb += bloom.rgb;
 
     vec3 mapped = tonemap(hdr.rgb);
 

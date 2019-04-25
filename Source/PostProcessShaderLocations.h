@@ -4,8 +4,7 @@
 enum PostprocessLocations
 {
     SCREEN_TEXTURE_LOCATION = 0,
-    VIEWPORT_WIDTH,
-    VIEWPORT_HEIGHT
+    BLOOM_TEXTURE_LOCATION
 };
 
 enum PostprocessSubroutineLocations

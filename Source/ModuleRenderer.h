@@ -84,6 +84,11 @@ class ModuleRenderer : public Module
         uint        period          = 1;
     };
 
+    uint bloom_blur_fbo = 0;
+    uint bloom_blur_tex = 0;
+    uint bloom_width    = 0;
+    uint bloom_height   = 0;
+
     enum EShadows { CASCADE_COUNT = 3 };
 
     ShadowMap cascades[CASCADE_COUNT];
@@ -95,7 +100,7 @@ public:
 
 	bool                Init                        (Config* config = nullptr) override;
     void                Draw                        (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
-    void                Postprocess                 (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
+    void                Postprocess                 (unsigned screen_texture, unsigned bloom_texture, unsigned fbo, unsigned width, unsigned height);
 
 	void                DrawDebug                   () override;
 
@@ -140,6 +145,7 @@ private:
     void                DebugDrawHierarchy          (const GameObject* go);
 
     void                GenerateShadowFBO           (ShadowMap& map, unsigned width, unsigned height);
+    void                GenerateBloomFBO            (unsigned width, unsigned height);
     float4x4            SetOrtho                    (float left, float right, float bottom, float top, float _near, float _far);
 };
 
