@@ -90,8 +90,8 @@ void SceneViewport::Draw(ComponentCamera* camera)
         if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) && App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_MAP))
         {
             ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)fbuffer.bloom_tex,
-                    //(ImTextureID)App->renderer->GetShadowMap(0),
+                   // (ImTextureID)fbuffer.bloom_tex,
+                    (ImTextureID)App->renderer->GetShadowMap(0),
                     ImVec2(screenPos),
                     ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
                     ImVec2(0, 1), ImVec2(1, 0));

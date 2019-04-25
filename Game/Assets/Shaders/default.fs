@@ -388,7 +388,7 @@ void main()
 #endif
 
 
-    float bright = dot(color.rgb, vec3(0.3, 0.7, 0.0));
+    float bright = dot(color.rgb, vec3(0.3, 0.6, 0.0));
 
     if(bright > 1.0)
          bloom = color;

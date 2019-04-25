@@ -752,6 +752,8 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned bloom_texture
 
 	bool msaa  = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
 
+    GenerateBloomFBO(width, height);
+
     // blur
     glBindVertexArray(post_vao);
     glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_0);
