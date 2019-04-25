@@ -411,7 +411,7 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
         }
 
         float bias = module->GetFloatValue(ModuleHints::SHADOW_BIAS);
-        if(ImGui::InputFloat("Shadow bias", &bias, 0.001f))
+        if(ImGui::InputFloat("Shadow bias", &bias, 0.001f, 0.1f, "%.5f"))
         {
             module->SetFloatValue(ModuleHints::SHADOW_BIAS, bias);
         }

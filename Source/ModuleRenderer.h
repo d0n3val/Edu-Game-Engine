@@ -80,6 +80,8 @@ class ModuleRenderer : public Module
         OBB         world_bb;
         Frustum     frustum;
         NodeList    casters;
+        uint        tick            = 0;
+        uint        period          = 1;
     };
 
     enum EShadows { CASCADE_COUNT = 3 };
@@ -97,7 +99,7 @@ public:
 
 	void                DrawDebug                   () override;
 
-    unsigned            GetShadowMap                (uint index) const { return cascades[index].blur_tex_1; }
+    unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
     unsigned            GetShadowMapWidth           (uint index) const { return cascades[index].width; }
     unsigned            GetShadowMapHeight          (uint index) const { return cascades[index].height; }
 

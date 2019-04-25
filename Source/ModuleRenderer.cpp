@@ -261,69 +261,77 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 
 void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigned height)
 {
-    uint shadow_width[3] = { width*3, width*2, width};
-    uint shadow_height[3] = { height*3, height*2, height};
+    uint shadow_width[3] = { 384, 384, 256};
+    uint shadow_height[3] = { 384, 384, 256};
 
     cascades[0].near_distance = 100;
-    cascades[1].near_distance = 100;
-    cascades[2].near_distance = 100;
+    cascades[1].near_distance = 1000;
+    cascades[2].near_distance = 2000;
 
     cascades[0].far_distance = 1000;
     cascades[1].far_distance = 2000;
     cascades[2].far_distance = 10000;
 
+    cascades[0].period = 8;
+    cascades[1].period = 10;
+    cascades[2].period = 12;
+
     for(uint i=0; i<  CASCADE_COUNT; ++i)
     {
-        if(App->hints->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME))
+        cascades[i].tick = ((cascades[i].tick+1)%cascades[i].period);
+
+        if(cascades[i].tick == 0)
         {
-            ComputeDirLightShadowVolume(camera, i);
+            if(App->hints->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME))
+            {
+                ComputeDirLightShadowVolume(camera, i);
+            }
+
+            if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
+            {
+                math::float3 p[8];
+                cascades[i].world_bb.GetCornerPoints(p);
+                std::swap(p[2], p[5]);
+                std::swap(p[3], p[4]);
+                std::swap(p[4], p[5]);
+                std::swap(p[6], p[7]);
+                dd::box(p, i== 0 ? dd::colors::Red : (i == 1 ? dd::colors::Green : dd::colors::Blue));
+
+                cascades[i].frustum.GetCornerPoints(p);
+                std::swap(p[2], p[5]);
+                std::swap(p[3], p[4]);
+                std::swap(p[4], p[5]);
+                std::swap(p[6], p[7]);
+                dd::box(p, dd::colors::White);
+            }
+
+            GenerateShadowFBO(cascades[i], shadow_width[i], shadow_height[i]);
+
+            glViewport(0, 0, shadow_width[i], shadow_height[i]);
+            glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            //glClear(GL_DEPTH_BUFFER_BIT);
+
+            App->programs->UseProgram("shadow", 0);
+
+            glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].proj));
+            glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].view));
+
+            if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+            {
+                glCullFace(GL_FRONT);
+            }
+
+            DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
+
+            if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
+            {
+                glCullFace(GL_BACK);
+            }
+
+            BlurShadow(i);
         }
-
-        if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
-        {
-            math::float3 p[8];
-            cascades[i].world_bb.GetCornerPoints(p);
-            std::swap(p[2], p[5]);
-            std::swap(p[3], p[4]);
-            std::swap(p[4], p[5]);
-            std::swap(p[6], p[7]);
-            dd::box(p, i== 0 ? dd::colors::Red : (i == 1 ? dd::colors::Green : dd::colors::Blue));
-
-            cascades[i].frustum.GetCornerPoints(p);
-            std::swap(p[2], p[5]);
-            std::swap(p[3], p[4]);
-            std::swap(p[4], p[5]);
-            std::swap(p[6], p[7]);
-            dd::box(p, dd::colors::White);
-        }
-
-        GenerateShadowFBO(cascades[i], shadow_width[i], shadow_height[i]);
-
-        glViewport(0, 0, shadow_width[i], shadow_height[i]);
-        glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        App->programs->UseProgram("shadow", 0);
-
-        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].view));
-
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
-        {
-            glCullFace(GL_FRONT);
-        }
-
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glPolygonOffset(App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS), 0.0f);
-        DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
-        glDisable(GL_POLYGON_OFFSET_FILL);
-
-		if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
-		{
-			glCullFace(GL_BACK);
-		}
-		
-		BlurShadow(i);
     }
 }
 
