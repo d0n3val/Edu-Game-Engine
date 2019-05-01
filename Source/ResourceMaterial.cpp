@@ -310,7 +310,7 @@ void ResourceMaterial::UpdateUniforms() const
 
     float4 diffuse_color  = GetDiffuseColor();
     float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : GetSpecularColor();
-    float3 emissive_color = emissive ? float3(1.0f) : GetEmissiveColor();
+    float3 emissive_color = GetEmissiveColor();
     float shininess	      = specular ? 1.0f :  GetShininess();
 
 	/*

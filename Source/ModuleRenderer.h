@@ -84,6 +84,9 @@ class ModuleRenderer : public Module
         uint        period          = 1;
     };
 
+    uint bloom_fbo        = 0;
+    uint bloom_tex        = 0;
+    uint color_tex        = 0;
     uint bloom_blur_fbo_0 = 0;
     uint bloom_blur_tex_0 = 0;
     uint bloom_blur_fbo_1 = 0;
@@ -102,7 +105,7 @@ public:
 
 	bool                Init                        (Config* config = nullptr) override;
     void                Draw                        (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
-    void                Postprocess                 (unsigned screen_texture, unsigned bloom_texture, unsigned fbo, unsigned width, unsigned height);
+    void                Postprocess                 (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
 
 	void                DrawDebug                   () override;
 

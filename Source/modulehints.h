@@ -23,6 +23,7 @@ public:
         TONEMAPPING,
         ENABLE_MSAA,
         ENABLE_GAMMA,
+        ENABLE_BLOOM,
 		COUNT
 	};
 

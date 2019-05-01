@@ -4,8 +4,6 @@ in vec2 uv;
 uniform sampler2D image;
 
 float weight[3] = float[] (0.38774,	0.24477, 0.06136);
-//float weight[4] = float[] (0.383103, 0.241843, 0.060626, 0.00598);
-//float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
 void main()
 {

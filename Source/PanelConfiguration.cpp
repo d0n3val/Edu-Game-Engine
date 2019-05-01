@@ -370,6 +370,12 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
         module->SetBoolValue(ModuleHints::ENABLE_GAMMA, enable);
     }
 
+    enable = module->GetBoolValue(ModuleHints::ENABLE_BLOOM);
+    if(ImGui::Checkbox("Enable BLOOM", &enable))
+    {
+        module->SetBoolValue(ModuleHints::ENABLE_BLOOM, enable);
+    }
+
     int tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
     const char* names[] = { "Uncharted 2", "Reinhard", "None" };
     if(ImGui::Combo("Tonemapping", &tonemapping, names, sizeof(names)/sizeof(char*)))

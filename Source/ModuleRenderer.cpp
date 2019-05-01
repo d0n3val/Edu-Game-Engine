@@ -182,6 +182,7 @@ void ModuleRenderer::CreateSkybox()
         glGenFramebuffers(1, &cascades[i].blur_fbo_1);
     }
 
+    glGenFramebuffers(1, &bloom_fbo);
     glGenFramebuffers(1, &bloom_blur_fbo_0);
     glGenFramebuffers(1, &bloom_blur_fbo_1);
 }
@@ -239,6 +240,31 @@ ModuleRenderer::~ModuleRenderer()
         {
             glDeleteTextures(1, &cascades[i].blur_tex_1);
         }
+    }
+
+    if(bloom_tex)
+    {
+        glDeleteTextures(1, &bloom_tex);
+    }
+
+    if(color_tex)
+    {
+        glDeleteTextures(1, &color_tex);
+    }
+
+    if(bloom_blur_tex_0)
+    {
+        glDeleteTextures(1, &bloom_blur_tex_0);
+    }
+
+    if(bloom_blur_tex_1)
+    {
+        glDeleteTextures(1, &bloom_blur_tex_1);
+    }
+
+    if(bloom_fbo)
+    {
+        glDeleteFramebuffers(1, &bloom_fbo);
     }
 
     if(bloom_blur_fbo_0)
@@ -538,7 +564,7 @@ void ModuleRenderer::LoadDefaultShaders()
 
     App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", default_macros, num_default_macros, nullptr, 0);
 
-    const char* macros[]		  = { "#define MSAA 1 \n", "#define GAMMA 1\n" }; 
+    const char* macros[]		  = { "#define BLOOM 1 \n", "#define GAMMA 1\n" }; 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
 
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros, nullptr, 0);
@@ -553,11 +579,11 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("gaussian", "Assets/Shaders/postprocess.vs", "Assets/Shaders/gaussian.fs", gaussian_macros, num_gaussian_macros, nullptr, 0);
     App->programs->Load("chebyshev", "Assets/Shaders/postprocess.vs", "Assets/Shaders/chebyshev.fs", nullptr, 0, nullptr, 0);
 
-    const char* bloom_gaussian_macros[]       = { "#define HORIZONTAL 1 \n", "#define MSAA 1 \n" }; 
-    const unsigned num_bloom_gaussian_macros  = sizeof(bloom_gaussian_macros)/sizeof(const char*);
+    const char* bloom_macros[]       = { "#define MSAA 1 \n" }; 
+    const unsigned num_bloom_macros  = sizeof(bloom_macros)/sizeof(const char*);
 
-    App->programs->Load("bloom_gaussian", "Assets/Shaders/postprocess.vs", "Assets/Shaders/bloom_gaussian.fs", bloom_gaussian_macros, 
-            num_bloom_gaussian_macros, nullptr, 0);
+    App->programs->Load("bloom", "Assets/Shaders/postprocess.vs", "Assets/Shaders/bloom.fs", bloom_macros, 
+            num_bloom_macros, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
@@ -746,7 +772,7 @@ void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float
     }
 }
 
-void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned bloom_texture,unsigned fbo, unsigned width, unsigned height)
+void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned width, unsigned height)
 {
     // \todo: apply bloom gaussian
 
@@ -754,15 +780,32 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned bloom_texture
 
     GenerateBloomFBO(width, height);
 
+    // bloom
+    glBindVertexArray(post_vao);
+    glBindFramebuffer(GL_FRAMEBUFFER, bloom_fbo);
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+        App->programs->UseProgram("bloom", msaa ? 1 : 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(msaa ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, screen_texture);
+        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glDrawArrays(GL_TRIANGLES, 0, 6); 
+    }
+
+
+	
+    float weights[] = { 0.198596,	0.175713f,	0.121703f,	0.065984f,	0.028002f,	0.0093f };
+
     // blur
     glBindVertexArray(post_vao);
     glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_0);
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        App->programs->UseProgram("bloom_gaussian", msaa ? 3 : 1);
+        App->programs->UseProgram("gaussian", 1);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, bloom_texture);
+        glBindTexture(GL_TEXTURE_2D, bloom_tex);
         glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glUniform1fv(App->programs->GetUniformLocation("weight"), sizeof(weights)/sizeof(float), weights);
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
 
@@ -770,18 +813,19 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned bloom_texture
     glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_1);
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        App->programs->UseProgram("bloom_gaussian", 0);
+        App->programs->UseProgram("gaussian", 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_0);
         glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glUniform1fv(App->programs->GetUniformLocation("weight"), sizeof(weights)/sizeof(float), weights);
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    int flags  = msaa ? 1 << 0 : 0;
-    flags      = flags | (App->hints->GetBoolValue(ModuleHints::ENABLE_GAMMA) ? 1 << 1 : 0);
+    int flags = App->hints->GetBoolValue(ModuleHints::ENABLE_BLOOM) ? 1 : 0;
+    flags = flags | (App->hints->GetBoolValue(ModuleHints::ENABLE_GAMMA) ? 1 << 1 : 0);
 
     App->programs->UseProgram("postprocess", flags);
 
@@ -792,46 +836,17 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned bloom_texture
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
 
     glActiveTexture(GL_TEXTURE0);
-
-    if(msaa)
-    {
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, screen_texture);
-    }
-    else
-    {
-        glBindTexture(GL_TEXTURE_2D, screen_texture);
-    }
-
+    glBindTexture(GL_TEXTURE_2D, color_tex);
     glUniform1i(SCREEN_TEXTURE_LOCATION, 0); 
 
     glActiveTexture(GL_TEXTURE1);
-
-    if(msaa)
-    {
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, bloom_blur_tex_1);
-    }
-    else
-    {
-        glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
-    }
-
+    glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
     glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
 
     glBindVertexArray(post_vao);
-
     glDrawArrays(GL_TRIANGLES, 0, 6); 
 
     glBindVertexArray(0);
-
-
-    if(msaa)
-    {
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-    }
-    else
-    {
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
 
     App->programs->UnuseProgram();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -850,12 +865,16 @@ void ModuleRenderer::BlurShadow(uint index)
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
 
+    float weights[] = { 0.38774f,	0.24477f, 0.06136f };
+
+
     glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].blur_fbo_0);
     {
         App->programs->UseProgram("gaussian", 1);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, cascades[index].sq_tex);
         glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glUniform1fv(App->programs->GetUniformLocation("weight"), sizeof(weights)/sizeof(float), weights);
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
 
@@ -865,6 +884,8 @@ void ModuleRenderer::BlurShadow(uint index)
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, cascades[index].blur_tex_0);
         glUniform1i(App->programs->GetUniformLocation("image"), 0); 
+        glUniform1fv(App->programs->GetUniformLocation("weight"), sizeof(weights)/sizeof(float), weights);
+        glDrawArrays(GL_TRIANGLES, 0, 6); 
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
 
@@ -1106,6 +1127,36 @@ void ModuleRenderer::GenerateBloomFBO(unsigned width, unsigned height)
 
         if(width != 0 && height != 0)
         {
+            // split bloom color
+            glBindFramebuffer(GL_FRAMEBUFFER, bloom_fbo);
+            glGenTextures(1, &color_tex);
+            glBindTexture(GL_TEXTURE_2D, color_tex);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0);
+
+            glGenTextures(1, &bloom_tex);
+            glBindTexture(GL_TEXTURE_2D, bloom_tex);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bloom_tex, 0);
+
+            unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+            glDrawBuffers(2, attachments);  
+
+            // blur 
+
             glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_0);
             glGenTextures(1, &bloom_blur_tex_0);
             glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_0);

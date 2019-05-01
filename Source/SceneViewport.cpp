@@ -78,11 +78,11 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
         if(msaa)
         {
-            App->renderer->Postprocess(msaa_fbuffer.tex, msaa_fbuffer.bloom_tex, post_fbuffer.id, fb_width, fb_height);
+            App->renderer->Postprocess(msaa_fbuffer.tex, post_fbuffer.id, fb_width, fb_height);
         }
         else
         {
-            App->renderer->Postprocess(fbuffer.tex, fbuffer.bloom_tex, post_fbuffer.id, fb_width, fb_height);
+            App->renderer->Postprocess(fbuffer.tex, post_fbuffer.id, fb_width, fb_height);
         }
 
         ImVec2 screenPos = ImGui::GetCursorScreenPos();
@@ -90,7 +90,6 @@ void SceneViewport::Draw(ComponentCamera* camera)
         if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) && App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_MAP))
         {
             ImGui::GetWindowDrawList()->AddImage(
-                   // (ImTextureID)fbuffer.bloom_tex,
                     (ImTextureID)App->renderer->GetShadowMap(0),
                     ImVec2(screenPos),
                     ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
@@ -138,7 +137,7 @@ void SceneViewport::Load(Config* config)
 	debug_draw = config->GetBool("Debug Draw", true);
 }
 
-void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr, bool bloom)
+void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr)
 {
     RemoveFrameBuffer(buffer);
 
@@ -160,20 +159,6 @@ void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, boo
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, buffer.tex, 0); 
 
-        if(bloom)
-        {
-            glGenTextures(1, &buffer.bloom_tex);
-            glBindTexture(GL_TEXTURE_2D, buffer.bloom_tex);
-            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, hdr ? GL_RGBA16F : GL_RGBA, w, h, GL_TRUE);
-
-            glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D_MULTISAMPLE, buffer.bloom_tex, 0); 
-        }
-
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
     }
     else
@@ -188,21 +173,6 @@ void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, boo
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.tex, 0);
-
-        if(bloom)
-        {
-            glGenTextures(1, &buffer.bloom_tex);
-            glBindTexture(GL_TEXTURE_2D, buffer.bloom_tex);
-            glTexImage2D(GL_TEXTURE_2D, 0, hdr ? GL_RGBA16F : GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, buffer.bloom_tex, 0);
-        }
-
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
@@ -224,15 +194,7 @@ void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, boo
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
-    if(bloom)
-    {
-        unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-        glDrawBuffers(2, attachments);  
-    }
-    else
-    {
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    }
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -241,9 +203,9 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
 {
     if(w != fb_width || h != fb_height)
     {
-        GenerateFBO(fbuffer, w, h, true, false, true, true);
-        GenerateFBO(msaa_fbuffer, w, h, true, true, true, true);
-        GenerateFBO(post_fbuffer, w, h, false, false, false, false);
+        GenerateFBO(fbuffer, w, h, true, false, true);
+        GenerateFBO(msaa_fbuffer, w, h, true, true, true);
+        GenerateFBO(post_fbuffer, w, h, false, false, false);
 
 		fb_width = w;
 		fb_height = h;
