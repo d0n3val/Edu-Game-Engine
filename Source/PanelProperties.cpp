@@ -413,10 +413,8 @@ UID PanelProperties::PickResource(UID resource, int type)
 
 	if (ImGui::BeginPopup("Load Resource"))
 	{
-			UID r = 0;
-			r = App->editor->res->DrawResourceType((Resource::Type) type);
-			ret = (r) ? r : ret;
-		ImGui::EndPopup();
+        ret = DrawResourceType((Resource::Type) type, false);
+        ImGui::EndPopup();
 	}
 
 	return ret;
@@ -445,7 +443,7 @@ UID PanelProperties::OpenResourceModal(int type, const char* popup_name)
         if(ImGui::BeginChild("Canvas", ImVec2(400, 240), true, ImGuiWindowFlags_NoMove))
         {
             UID r = 0;
-            r = App->editor->res->DrawResourceType(Resource::Type(type), true);
+            r = DrawResourceType(Resource::Type(type), true);
 
             if(r != 0)
             {
@@ -1416,3 +1414,53 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
     }
 
 }
+
+UID PanelProperties::DrawResourceType(Resource::Type type, bool opened)
+{
+    static UID selected = 0;
+	vector<const Resource*> resources;
+
+	static const char* titles[] = {
+		"Models", "Materials", "Textures", "Meshes", "Audios", "Animation", "State machines", "Others" };
+
+    bool open_tree =ImGui::TreeNodeEx(titles[type], opened ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+
+    if (open_tree)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_LIGHT_GREY);
+        bool remove = false;
+        App->resources->GatherResourceType(resources, type);
+        for (vector<const Resource*>::const_iterator it = resources.begin(); !remove && it != resources.end(); ++it)
+        {
+            const Resource* info = (*it);
+
+            ImGui::PushID(info->GetExportedFile());
+
+            if (ImGui::TreeNodeEx(info->GetName(), info->GetUID() == selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
+            {
+                if (ImGui::IsItemClicked(0) )
+                {
+                    selected = info->GetUID();
+                }
+
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text("UID: %llu", info->GetUID());
+                    ImGui::Text("Source: %s", info->GetFile());
+                    ImGui::Text("Exported: %s", info->GetExportedFile());
+                    ImGui::Text("References: %u", info->CountReferences());
+                    ImGui::EndTooltip();
+                }
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
+        }
+
+        ImGui::TreePop();
+        ImGui::PopStyleColor();
+    }
+
+    return selected;
+}
+

@@ -5,6 +5,7 @@
 #include "Resource.h"
 
 #include <vector>
+#include <set>
 
 class PanelResources : public Panel
 {
@@ -15,10 +16,8 @@ public:
 	void Draw() override;
 
 
-	UID DrawResourceType(Resource::Type type, bool opened = false);
-
 private:
-	UID  DrawResourceType(Resource::Type type, void (PanelResources::*popup)(Resource::Type), bool opened);
+	void  DrawResourceType(Resource::Type type, void (PanelResources::*popup)(Resource::Type));
 
     void DrawMeshPopup(Resource::Type type);
     void DrawResourcePopup(Resource::Type type);
@@ -90,6 +89,7 @@ private:
 
 	bool waiting_to_load_file      = false;
     Resource::Type waiting_to_load = Resource::unknown;
+    std::set<UID> selection;
 
 };
 

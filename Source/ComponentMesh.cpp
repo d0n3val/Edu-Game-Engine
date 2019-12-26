@@ -162,9 +162,12 @@ void ComponentMesh::Draw() const
 
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
-        mat->UpdateUniforms();
-        mesh->UpdateUniforms(UpdateSkinPalette());
-        mesh->Draw();
+		if (mat)
+		{
+			mat->UpdateUniforms();
+			mesh->UpdateUniforms(UpdateSkinPalette());
+			mesh->Draw();
+		}
     }
 }
 

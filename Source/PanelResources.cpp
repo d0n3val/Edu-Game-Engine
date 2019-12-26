@@ -99,33 +99,27 @@ void PanelResources::Draw()
         }
 	}
 
-	DrawResourceType(Resource::model, &PanelResources::DrawResourcePopup, false);
-	DrawResourceType(Resource::material, &PanelResources::DrawResourcePopup, false);
-	DrawResourceType(Resource::texture, &PanelResources::DrawResourcePopup, false);
+	DrawResourceType(Resource::model, &PanelResources::DrawResourcePopup);
+	DrawResourceType(Resource::material, &PanelResources::DrawResourcePopup);
+	DrawResourceType(Resource::texture, &PanelResources::DrawResourcePopup);
 
-	DrawResourceType(Resource::mesh, &PanelResources::DrawMeshPopup, false);
+	DrawResourceType(Resource::mesh, &PanelResources::DrawMeshPopup);
 
-    DrawResourceType(Resource::audio, &PanelResources::DrawResourcePopup, false);
-    DrawResourceType(Resource::animation, &PanelResources::DrawResourcePopup, false);
-    DrawResourceType(Resource::state_machine, &PanelResources::DrawResourcePopup, false);
+    DrawResourceType(Resource::audio, &PanelResources::DrawResourcePopup);
+    DrawResourceType(Resource::animation, &PanelResources::DrawResourcePopup);
+    DrawResourceType(Resource::state_machine, &PanelResources::DrawResourcePopup);
 
     //ImGui::End();
 }
 
-UID PanelResources::DrawResourceType(Resource::Type type, bool opened)
+void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::*popup)(Resource::Type))
 {
-    return DrawResourceType(type, nullptr, opened);
-}
-
-UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::*popup)(Resource::Type), bool opened)
-{
-	UID selected = 0;
 	vector<const Resource*> resources;
 
 	static const char* titles[] = {
 		"Models", "Materials", "Textures", "Meshes", "Audios", "Animation", "State machines", "Others" };
 
-    bool open_tree =ImGui::TreeNodeEx(titles[type], opened ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+    bool open_tree =ImGui::TreeNodeEx(titles[type], 0);
 
     if(popup != nullptr)
     {
@@ -141,6 +135,8 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
 
     if (open_tree)
     {
+        bool append_selection = App->input->GetKey(SDL_SCANCODE_LCTRL) || App->input->GetKey(SDL_SCANCODE_RCTRL);
+
         ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_LIGHT_GREY);
         bool remove = false;
         App->resources->GatherResourceType(resources, type);
@@ -149,19 +145,39 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
             const Resource* info = (*it);
 
             ImGui::PushID(info->GetExportedFile());
-            if (ImGui::TreeNodeEx(info->GetName(), ImGuiTreeNodeFlags_Leaf))
+
+			bool selected = selection.find(info->GetUID()) != selection.end();
+
+            if (ImGui::TreeNodeEx(info->GetName(), selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_WHITE);
-                if (ImGui::IsItemClicked(0))
+                if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
                 {
-                    selected = info->GetUID();
+					if (append_selection)
+					{
+                        if(selected)
+                        {
+                            selection.erase(info->GetUID());
+                        }
+                        else
+                        {
+                            selection.insert(info->GetUID());
+                        }
+					}
+					else
+                    {
+                        selection.clear();
+                        selection.insert(info->GetUID());
+                    }
                 }
 
                 if (ImGui::BeginPopupContextItem())
                 {
-                    if (true == (remove = ImGui::MenuItem("Remove")))
+					if (true == (remove = ImGui::MenuItem("Remove")))
                     {
-                        App->resources->RemoveResource((*it)->GetUID());
+                        for(std::set<UID>::const_iterator selected_it = selection.begin(), selected_end = selection.end(); selected_it != selected_end; ++selected_it)
+                        {
+                            App->resources->RemoveResource(*selected_it);
+                        }
                     }
                     ImGui::EndPopup();
                 }
@@ -176,7 +192,7 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
                     ImGui::EndTooltip();
                 }
 
-                ImGui::PopStyleColor();
+                //ImGui::PopStyleColor();
                 ImGui::TreePop();
             }
             ImGui::PopID();
@@ -185,8 +201,6 @@ UID PanelResources::DrawResourceType(Resource::Type type, void (PanelResources::
         ImGui::TreePop();
         ImGui::PopStyleColor();
     }
-
-    return selected;
 }
 
 void PanelResources::DrawResourcePopup(Resource::Type type)

@@ -4,6 +4,7 @@
 // Editor Panel to show the properties of a single GameObject and its components
 #include "Globals.h"
 #include "Panel.h"
+#include "Resource.h"
 
 class GameObject;
 class Component;
@@ -61,6 +62,7 @@ private:
 	void DrawAnimationComponent(ComponentAnimation * component);
 	void DrawRootMotionComponent(ComponentRootMotion * component);
     void DrawMaterialResource(ResourceMaterial* material);
+    UID DrawResourceType(Resource::Type type, bool opened);
 };
 
 #endif// __PANELPROPERTIES_H__

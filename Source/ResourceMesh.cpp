@@ -53,102 +53,105 @@ bool ResourceMesh::LoadInMemory()
         char* buffer = nullptr;
         uint size = App->fs->Load(LIBRARY_MESH_FOLDER, GetExportedFile(), &buffer);
 
-        simple::mem_istream<std::true_type> read_stream(buffer, size);
-        std::string tmp;
-
-        read_stream >> tmp;
-        name = HashString(tmp.c_str());
-
-        read_stream >> vertex_size;
-        read_stream >> attribs;
-        read_stream >> texcoord_offset;
-        read_stream >> normal_offset;
-        read_stream >> tangent_offset;
-		read_stream >> bone_idx_offset;
-        read_stream >> bone_weight_offset;
-
-        read_stream >> num_vertices;
-
-		src_vertices = new float3[num_vertices];
-
-        for(uint i=0; i< num_vertices; ++i)
+        if(size > 0)
         {
-            read_stream >> src_vertices[i].x >> src_vertices[i].y >> src_vertices[i].z;
-        }
+            simple::mem_istream<std::true_type> read_stream(buffer, size);
+            std::string tmp;
 
-        if((attribs & ATTRIB_TEX_COORDS_0) != 0)
-        {
-			src_texcoord0 = new float2[num_vertices];
+            read_stream >> tmp;
+            name = HashString(tmp.c_str());
+
+            read_stream >> vertex_size;
+            read_stream >> attribs;
+            read_stream >> texcoord_offset;
+            read_stream >> normal_offset;
+            read_stream >> tangent_offset;
+            read_stream >> bone_idx_offset;
+            read_stream >> bone_weight_offset;
+
+            read_stream >> num_vertices;
+
+            src_vertices = new float3[num_vertices];
 
             for(uint i=0; i< num_vertices; ++i)
             {
-                read_stream >> src_texcoord0[i].x >> src_texcoord0[i].y;
+                read_stream >> src_vertices[i].x >> src_vertices[i].y >> src_vertices[i].z;
             }
-        }
 
-        if((attribs & ATTRIB_NORMALS) != 0)
-        {
-			src_normals = new float3[num_vertices];
-
-            for(uint i=0; i< num_vertices; ++i)
+            if((attribs & ATTRIB_TEX_COORDS_0) != 0)
             {
-                read_stream >> src_normals[i].x >> src_normals[i].y >> src_normals[i].z;
+                src_texcoord0 = new float2[num_vertices];
+
+                for(uint i=0; i< num_vertices; ++i)
+                {
+                    read_stream >> src_texcoord0[i].x >> src_texcoord0[i].y;
+                }
             }
-        }
 
-        if((attribs & ATTRIB_TANGENTS) != 0)
-        {
-			src_tangents = new float3[num_vertices];
-
-            for(uint i=0; i< num_vertices; ++i)
+            if((attribs & ATTRIB_NORMALS) != 0)
             {
-                read_stream >> src_tangents[i].x >> src_tangents[i].y >> src_tangents[i].z;
+                src_normals = new float3[num_vertices];
+
+                for(uint i=0; i< num_vertices; ++i)
+                {
+                    read_stream >> src_normals[i].x >> src_normals[i].y >> src_normals[i].z;
+                }
             }
-        }
 
-        read_stream >> num_indices;
-		src_indices = new unsigned[num_indices];
-
-        for(uint i=0; i< num_indices; ++i)
-        {
-            read_stream >> src_indices[i];
-        }
-
-        if((attribs & ATTRIB_BONES) != 0)
-        {
-            read_stream >> num_bones;
-
-			bones = new Bone[num_bones];
-
-            for(uint i=0; i< num_bones; ++i)
+            if((attribs & ATTRIB_TANGENTS) != 0)
             {
-                read_stream >> tmp;
-                bones[i].name = HashString(tmp.c_str());
-				for (uint j = 0; j < 16; ++j)
-				{
-					read_stream >> bones[i].bind.ptr()[j];
-				}
+                src_tangents = new float3[num_vertices];
+
+                for(uint i=0; i< num_vertices; ++i)
+                {
+                    read_stream >> src_tangents[i].x >> src_tangents[i].y >> src_tangents[i].z;
+                }
             }
 
-            src_bone_indices = new unsigned[num_vertices*4];
-            src_bone_weights = new float4[num_vertices];
+            read_stream >> num_indices;
+            src_indices = new unsigned[num_indices];
 
-            for(uint i=0; i< num_vertices; ++i)
+            for(uint i=0; i< num_indices; ++i)
             {
-                read_stream >> src_bone_indices[i*4+0] >> src_bone_indices[i*4+1] >> src_bone_indices[i*4+2] >> src_bone_indices[i*4+3];
-                read_stream >> src_bone_weights[i].x >> src_bone_weights[i].y >>src_bone_weights[i].z >> src_bone_weights[i].w;
+                read_stream >> src_indices[i];
             }
+
+            if((attribs & ATTRIB_BONES) != 0)
+            {
+                read_stream >> num_bones;
+
+                bones = new Bone[num_bones];
+
+                for(uint i=0; i< num_bones; ++i)
+                {
+                    read_stream >> tmp;
+                    bones[i].name = HashString(tmp.c_str());
+                    for (uint j = 0; j < 16; ++j)
+                    {
+                        read_stream >> bones[i].bind.ptr()[j];
+                    }
+                }
+
+                src_bone_indices = new unsigned[num_vertices*4];
+                src_bone_weights = new float4[num_vertices];
+
+                for(uint i=0; i< num_vertices; ++i)
+                {
+                    read_stream >> src_bone_indices[i*4+0] >> src_bone_indices[i*4+1] >> src_bone_indices[i*4+2] >> src_bone_indices[i*4+3];
+                    read_stream >> src_bone_weights[i].x >> src_bone_weights[i].y >>src_bone_weights[i].z >> src_bone_weights[i].w;
+                }
+            }
+
+            read_stream >> bbox.minPoint.x >> bbox.minPoint.y >> bbox.minPoint.z;
+            read_stream >> bbox.maxPoint.x >> bbox.maxPoint.y >> bbox.maxPoint.z;
+
+            GenerateVBO(false);
+            GenerateVAO();
+
+            delete [] buffer;
+
+            return true;
         }
-
-        read_stream >> bbox.minPoint.x >> bbox.minPoint.y >> bbox.minPoint.z;
-        read_stream >> bbox.maxPoint.x >> bbox.maxPoint.y >> bbox.maxPoint.z;
-
-        GenerateVBO(false);
-        GenerateVAO();
-
-        delete [] buffer;
-
-		return true;
     }
 
 	return false;

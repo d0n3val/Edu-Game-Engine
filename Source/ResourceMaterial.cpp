@@ -164,9 +164,38 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
 
     ResourceMaterial* m = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material));
 
-    material->Get(AI_MATKEY_COLOR_DIFFUSE, m->diffuse_color);
-    material->Get(AI_MATKEY_COLOR_SPECULAR, m->specular_color);
-    material->Get(AI_MATKEY_COLOR_EMISSIVE, m->emissive_color);
+    auto copy_color4 = [](math::float4& out, const aiColor4D& color)
+    {
+        out.x = color.r;
+        out.y = color.g;
+        out.z = color.b;
+        out.w = color.a;
+	};
+
+    auto copy_color3 = [](math::float3& out, const aiColor4D& color)
+    {
+        out.x = color.r;
+        out.y = color.g;
+        out.z = color.b;
+	};
+
+	aiColor4D color;
+
+	if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS)
+	{
+		copy_color4(m->diffuse_color, color);
+	}
+
+    if(material->Get(AI_MATKEY_COLOR_SPECULAR, color) == aiReturn_SUCCESS)
+    {
+        copy_color3(m->specular_color, color);
+    }
+
+    if(material->Get(AI_MATKEY_COLOR_EMISSIVE, color) == aiReturn_SUCCESS)
+    {
+        copy_color3(m->emissive_color, color);
+    }
+
     material->Get(AI_MATKEY_SHININESS, m->shininess);
 
     aiString file;
