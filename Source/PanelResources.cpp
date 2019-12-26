@@ -191,7 +191,6 @@ void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources:
                     ImGui::EndTooltip();
                 }
 
-                //ImGui::PopStyleColor();
                 ImGui::TreePop();
             }
             ImGui::PopID();

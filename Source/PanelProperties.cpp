@@ -1461,6 +1461,6 @@ UID PanelProperties::DrawResourceType(Resource::Type type, bool opened)
         ImGui::PopStyleColor();
     }
 
-    return selected;
+    return ImGui::IsMouseDoubleClicked(0) ? selected : 0;
 }
 
