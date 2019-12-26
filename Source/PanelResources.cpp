@@ -121,7 +121,7 @@ void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources:
 
     bool open_tree =ImGui::TreeNodeEx(titles[type], 0);
 
-    if(popup != nullptr)
+	if(popup != nullptr)
     {
         if (ImGui::IsItemClicked(1))
         {
@@ -135,7 +135,9 @@ void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources:
 
     if (open_tree)
     {
-        bool append_selection = App->input->GetKey(SDL_SCANCODE_LCTRL) || App->input->GetKey(SDL_SCANCODE_RCTRL);
+        bool append_selection = !selection.empty() && (App->input->GetKey(SDL_SCANCODE_LCTRL) || App->input->GetKey(SDL_SCANCODE_RCTRL));
+        bool multiple_select = App->input->GetKey(SDL_SCANCODE_LSHIFT) || App->input->GetKey(SDL_SCANCODE_RSHIFT);
+        uint pivot = multiple_select_type == type ? multiple_select_pivot : 0;
 
         ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_LIGHT_GREY);
         bool remove = false;
@@ -150,39 +152,36 @@ void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources:
 
             if (ImGui::TreeNodeEx(info->GetName(), selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
             {
-                if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
+                if (ImGui::IsItemClicked(0))
                 {
-					if (append_selection)
-					{
-                        if(selected)
-                        {
-                            selection.erase(info->GetUID());
-                        }
-                        else
-                        {
-                            selection.insert(info->GetUID());
-                        }
-					}
-					else
-                    {
-                        selection.clear();
-                        selection.insert(info->GetUID());
-                    }
+                    ManageSelection(resources, uint(it-resources.begin()), append_selection, multiple_select, pivot, false);
                 }
-
-                if (ImGui::BeginPopupContextItem())
+                
+				if(ImGui::IsItemClicked(1))
                 {
+                    ManageSelection(resources, uint(it-resources.begin()), append_selection, multiple_select, pivot, true);
+					
+					if(ImGui::IsItemHovered())
+						ImGui::OpenPopup("Item popup");
+				}
+
+				if (ImGui::BeginPopup("Item popup"))
+				{
 					if (true == (remove = ImGui::MenuItem("Remove")))
-                    {
-                        for(std::set<UID>::const_iterator selected_it = selection.begin(), selected_end = selection.end(); selected_it != selected_end; ++selected_it)
-                        {
-                            App->resources->RemoveResource(*selected_it);
-                        }
-                    }
-                    ImGui::EndPopup();
-                }
+					{
+						for (std::set<UID>::const_iterator selected_it = selection.begin(), selected_end = selection.end(); selected_it != selected_end; ++selected_it)
+						{
+							App->resources->RemoveResource(*selected_it);
+						}
 
-                if (ImGui::IsItemHovered())
+						multiple_select_type = Resource::unknown;
+						multiple_select_pivot = 0;
+						selection.clear();
+					}
+
+					ImGui::EndPopup();
+				}
+                else if (ImGui::IsItemHovered())
                 {
                     ImGui::BeginTooltip();
                     ImGui::Text("UID: %llu", info->GetUID());
@@ -200,6 +199,78 @@ void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources:
 
         ImGui::TreePop();
         ImGui::PopStyleColor();
+    }
+}
+
+void PanelResources::ManageSelection(const std::vector<const Resource*>& resources, uint current, bool append, bool multiple, uint pivot, bool popup)
+{
+    if (append)
+    {
+        if(multiple)
+        {
+            if(pivot > current)
+            {
+                for(vector<const Resource*>::const_iterator multiple_it = resources.begin()+current, multipole_end = resources.begin()+pivot+1; 
+                        multiple_it != multipole_end; ++multiple_it)
+                {
+                    selection.insert((*multiple_it)->GetUID());
+                }
+            }
+            else
+            {
+                for(vector<const Resource*>::const_iterator multiple_it = resources.begin()+pivot, multipole_end = resources.begin()+current+1; 
+                        multiple_it != multipole_end; ++multiple_it)
+                {
+                    selection.insert((*multiple_it)->GetUID());
+                }
+            }
+        }
+        else
+        {
+            std::set<UID>::iterator it = selection.find(resources[current]->GetUID());
+            if(it == selection.end())
+            {
+                selection.insert(resources[current]->GetUID());
+            }
+            else
+            {
+                selection.erase(it);
+            }
+        }
+    }
+    else
+    {
+        std::set<UID>::iterator it = selection.find(resources[current]->GetUID());
+        if(!popup || it == selection.end())
+        {
+            selection.clear();
+        }
+
+        if(!popup && multiple)
+        {
+            if(pivot > current)
+            {
+                for(vector<const Resource*>::const_iterator multiple_it = resources.begin()+current, multipole_end = resources.begin()+pivot+1; 
+                        multiple_it != multipole_end; ++multiple_it)
+                {
+                    selection.insert((*multiple_it)->GetUID());
+                }
+            }
+            else
+            {
+                for(vector<const Resource*>::const_iterator multiple_it = resources.begin()+pivot, multipole_end = resources.begin()+current+1; 
+                        multiple_it != multipole_end; ++multiple_it)
+                {
+                    selection.insert((*multiple_it)->GetUID());
+                }
+            }
+        }
+        else
+        {
+            selection.insert(resources[current]->GetUID());
+            multiple_select_type = resources[current]->GetType();
+            multiple_select_pivot = current;
+        }
     }
 }
 

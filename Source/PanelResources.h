@@ -27,6 +27,7 @@ private:
 
     void DrawTextureProperties();
     void DrawAnimationProperties();
+    void ManageSelection(const std::vector<const Resource*>& resources, uint current, bool append, bool multiple, uint pivot, bool popup);
 
 private:
 
@@ -90,6 +91,8 @@ private:
 	bool waiting_to_load_file      = false;
     Resource::Type waiting_to_load = Resource::unknown;
     std::set<UID> selection;
+    Resource::Type multiple_select_type = Resource::unknown;
+    uint multiple_select_pivot          = 0;
 
 };
 
