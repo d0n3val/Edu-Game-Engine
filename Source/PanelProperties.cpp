@@ -23,6 +23,7 @@
 #include "ModuleFileSystem.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleEditorCamera.h"
+#include "ModuleWindow.h"
 #include "ModuleHints.h"
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
@@ -44,10 +45,14 @@
 #include "OpenGL.h"
 
 #include <list>
+#include <algorithm>
 
 #include "mmgr/mmgr.h"
 
 using namespace std;
+
+#undef min
+#undef max
 
 // ---------------------------------------------------------
 PanelProperties::PanelProperties() : Panel("Properties")
@@ -751,12 +756,6 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material)
     if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
     {
         modified = TextureButton(material, ResourceMaterial::TextureOcclusion, "Occlusion");
-        float k_ambient = material->GetKAmbient();
-        if(ImGui::SliderFloat("k ambient", &k_ambient, 0.0f, 1.0f))
-        {
-            material->SetKAmbient(k_ambient);
-            modified = true;
-        }
     }
 
     if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
@@ -770,13 +769,6 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material)
             modified = true;
         }
         ImGui::PopID();
-
-        float k_diffuse = material->GetKDiffuse();
-        if(ImGui::SliderFloat("k diffuse", &k_diffuse, 0.0f, 1.0f))
-        {
-            material->SetKDiffuse(k_diffuse);
-            modified = true;
-        }
     }
 
     if(ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
@@ -790,13 +782,6 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material)
             modified = true;
         }
         ImGui::PopID();
-
-        float k_specular = material->GetKSpecular();
-        if(ImGui::SliderFloat("k specular", &k_specular, 0.0f, 1.0f))
-        {
-            material->SetKSpecular(k_specular);
-            modified = true;
-        }
 
         float shininess = min(max(material->GetShininess(), 0.0f), 1.0f);
         if(ImGui::SliderFloat("Shininess", &shininess, 0.0f, 1.0f))
@@ -848,13 +833,13 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 
     ImVec2 size(64.0f, 64.0f);
 
-    if (info != nullptr)
+    if(info != nullptr)
     {
 		ImGui::PushID(texture);
         if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
-			ImGui::OpenPopup(name);
+            ImGui::OpenPopup("show texture");
         }
         else 
         {
@@ -865,31 +850,14 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
 				ImGui::SetTooltip("%s", info->GetFile());
 			}
         }
-    }
-    else
-    {
-		ImGui::PushID(texture);
-        if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
-        {
-			ImGui::PopID();
-			ImGui::OpenPopup(name);
-        }
-		else
-		{
-			ImGui::PopID();
-		}
 
-    }
-
-    ImGui::SameLine();
-    ImGui::BeginGroup();
-    ImGui::Text("Texture:");
-    if(info != nullptr)
-    {
+        ImGui::SameLine();
+        ImGui::BeginGroup();
+        ImGui::Text("Texture:");
         ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
 
-		std::string file;
-		App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+        std::string file;
+        App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
         ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
@@ -902,6 +870,8 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
             info->EnableMips(mips);
         }
         ImGui::PopID();
+
+        ImGui::SameLine();
 
         char tmp[128];
         sprintf_s(tmp, 127, "%sLinear", name);
@@ -920,8 +890,35 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
             modified = true;
         }
         ImGui::PopID();
+
+        ImGui::SameLine();
+        ImGui::PushID(name);
+        if(ImGui::SmallButton("Select texture"))
+        {
+            ImGui::PopID();
+            ImGui::OpenPopup(name);
+        }
+        else
+        {
+            ImGui::PopID();
+        }
+
+        ShowTextureModal(info);
+        ImGui::EndGroup();
     }
-    ImGui::EndGroup();
+    else
+    {
+        ImGui::PushID(name);
+        if(ImGui::SmallButton("Select texture"))
+        {
+            ImGui::PopID();
+            ImGui::OpenPopup(name);
+        }
+        else
+        {
+            ImGui::PopID();
+        }
+    }
 
     UID new_res = OpenResourceModal(Resource::texture, name);
 
@@ -1464,3 +1461,36 @@ UID PanelProperties::DrawResourceType(Resource::Type type, bool opened)
     return ImGui::IsMouseDoubleClicked(0) ? selected : 0;
 }
 
+void PanelProperties::ShowTextureModal(const ResourceTexture* texture)
+{
+	int window_width  = App->window->GetWidth();
+	int window_height = App->window->GetHeight();
+
+    if(window_width > 50 && window_height > 110)
+    {
+        float width_av = float(window_width-50)/float(texture->GetWidth());
+        float height_av = float(window_height-110)/float(texture->GetHeight());
+
+        float min_av = std::min(std::min(width_av, height_av), 1.0f);
+
+        ImVec2 tex_size(float(texture->GetWidth())*min_av, float(texture->GetHeight())*min_av);
+
+        ImGui::SetNextWindowSize(ImVec2(tex_size.x+20,tex_size.y+80));
+        if (ImGui::BeginPopupModal("show texture", nullptr, ImGuiWindowFlags_NoResize))
+        {
+            if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove))
+            {
+                ImGui::Image((ImTextureID)texture->GetID(), tex_size, ImVec2(0, 1), ImVec2(1, 0));
+            }
+            ImGui::EndChild();
+
+            ImGui::Indent(tex_size.x-128);
+            if(ImGui::Button("Close", ImVec2(128, 0)))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+}

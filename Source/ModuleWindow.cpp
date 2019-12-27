@@ -318,3 +318,8 @@ void ModuleWindow::SetDefaultIcon()
 	SDL_SetWindowIcon(window, surface);
 	SDL_FreeSurface(surface);
 }
+
+void ModuleWindow::GetDrawableSize(int& width, int& height) const
+{
+    SDL_GL_GetDrawableSize(window, &width, &height);
+}

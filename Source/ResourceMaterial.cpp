@@ -58,6 +58,7 @@ bool ResourceMaterial::LoadInMemory()
             read_stream >> textures[i];
         }
 
+        float k_ambient, k_diffuse, k_specular;
 		read_stream >> k_ambient >> k_diffuse >> k_specular;
 
         read_stream >> shininess;
@@ -150,7 +151,7 @@ void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_s
         write_stream << textures[i];
     }
 
-    write_stream << k_ambient << k_diffuse << k_specular;
+    write_stream << 0.0f << 0.0f << 0.0f;
 
     write_stream << shininess;
 
@@ -381,10 +382,6 @@ void ResourceMaterial::UpdateUniforms() const
     glUniform4fv(DIFFUSE_COLOR_LOC, 1, (const float*)&diffuse_color);
     glUniform3fv(SPECULAR_COLOR_LOC, 1, (const float*)&specular_color);
     glUniform3fv(EMISSIVE_COLOR_LOC, 1, (const float*)&emissive_color);
-
-    glUniform1f(AMBIENT_CONSTANT_LOC, GetKAmbient());
-    glUniform1f(DIFFUSE_CONSTANT_LOC, GetKDiffuse());
-    glUniform1f(SPECULAR_CONSTANT_LOC, GetKSpecular());
 
     unsigned fragment_indices[NUM_FRAGMENT_SUBROUTINE_UNIFORMS];
 

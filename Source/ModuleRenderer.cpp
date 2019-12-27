@@ -794,7 +794,7 @@ void ModuleRenderer::Postprocess(unsigned screen_texture, unsigned fbo, unsigned
 
 
 	
-    float weights[] = { 0.198596,	0.175713f,	0.121703f,	0.065984f,	0.028002f,	0.0093f };
+    float weights[] = { 0.198596f,	0.175713f,	0.121703f,	0.065984f,	0.028002f,	0.0093f };
 
     // blur
     glBindVertexArray(post_vao);

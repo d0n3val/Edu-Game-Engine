@@ -19,10 +19,6 @@ struct Material
     vec3      emissive_color;
 
     sampler2D normal_map;
-
-    float     k_ambient;
-    float     k_diffuse;
-    float     k_specular;
 };
 
 struct AmbientLight
@@ -229,7 +225,7 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     color += spot_blinn(pos, normal, view_dir, lights.spots[2], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
     color += spot_blinn(pos, normal, view_dir, lights.spots[3], mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);
 
-    color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
+    color += diffuse_color.rgb*(lights.ambient.color*occlusion_color);
     color += emissive_color;
 
     return vec4(color, diffuse_color.a); 

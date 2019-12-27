@@ -28,9 +28,6 @@ private:
     float3      emissive_color         = float4::zero;
     UID         textures[TextureCount] = { 0, 0, 0, 0, 0 };
     float       shininess              = 0.5f;
-    float       k_ambient              = 0.5f;
-    float       k_diffuse              = 0.5f;
-    float       k_specular             = 0.5f;
 
 public:
 
@@ -55,15 +52,6 @@ public:
 
     const float3&           GetEmissiveColor    () const { return emissive_color;}
     void                    SetEmissiveColor    (const float3& value) { emissive_color = value; }
-
-    float                   GetKSpecular        () const { return k_specular; }
-    void                    SetKSpecular        (float value)  { k_specular = value; }
-
-    float                   GetKDiffuse         () const { return k_diffuse; }
-    void                    SetKDiffuse         (float value)  { k_diffuse = value; }
-
-    float                   GetKAmbient         () const { return k_ambient; }
-    void                    SetKAmbient         (float value)  { k_ambient = value; }
 
     UID                     GetTexture          (Texture texture) const { return textures[texture]; }
     const ResourceTexture*  GetTextureRes       (Texture texture) const;

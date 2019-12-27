@@ -36,6 +36,7 @@ public:
 	void GetMaxMinSize(uint& min_width, uint& min_height, uint& max_width, uint& max_height) const;
 	uint GetRefreshRate() const;
 	void OnResize(int width, int height);
+    void GetDrawableSize(int& width, int& height) const;
 
 	bool IsFullscreen() const;
 	bool IsResizable() const;

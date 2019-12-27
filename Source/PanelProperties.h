@@ -18,6 +18,7 @@ class ComponentRootMotion;
 class ComponentMesh;
 class ComponentParticleSystem;
 class ResourceMaterial;
+class ResourceTexture;
 class AmbientLight;
 class DirLight;
 class PointLight;
@@ -63,6 +64,7 @@ private:
 	void DrawRootMotionComponent(ComponentRootMotion * component);
     void DrawMaterialResource(ResourceMaterial* material);
     UID DrawResourceType(Resource::Type type, bool opened);
+    void ShowTextureModal(const ResourceTexture* texture);
 };
 
 #endif// __PANELPROPERTIES_H__
