@@ -3,6 +3,7 @@
 
 #include "Math.h"
 #include "ImGuizmo.h"
+#include "OGL.h"
 
 class ComponentCamera;
 class GameObject;
@@ -37,30 +38,30 @@ public:
 
 private:
 
-    struct Framebuffer;
+    struct FramebufferInfo;
 
     void GenerateFBOs(unsigned w, unsigned h);
-    void GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr);
+    void GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr);
     void DrawQuickBar(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera);
     void DrawGuizmo(ComponentCamera* camera, GameObject* go);
     void DrawGuizmo(ComponentCamera* camera, PointLight* point);
     void DrawGuizmo(ComponentCamera* camera, SpotLight* spot);
     float DistanceFromAtt(float constant, float linear, float quadric, float epsilon);
-    void RemoveFrameBuffer(Framebuffer& buffer);
 
 private:
 
-    struct Framebuffer
+    struct FramebufferInfo
     {
-        unsigned id        = 0;
-        unsigned depth     = 0;
-        unsigned tex       = 0;
+        std::unique_ptr<Framebuffer> framebuffer;
+        std::unique_ptr<Texture2D>   texture_color;
+        std::unique_ptr<Texture2D>   texture_depth;
     };
 
-    Framebuffer fbuffer;
-    Framebuffer msaa_fbuffer;
-    Framebuffer post_fbuffer;
+    FramebufferInfo fbuffer;
+    FramebufferInfo msaa_fbuffer;
+    FramebufferInfo post_fbuffer;
+
 
     unsigned    fb_width    = 0;
     unsigned    fb_height   = 0;

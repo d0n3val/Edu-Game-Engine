@@ -31,9 +31,6 @@ SceneViewport::SceneViewport()
 
 SceneViewport::~SceneViewport()
 {
-    RemoveFrameBuffer(fbuffer);
-    RemoveFrameBuffer(msaa_fbuffer);
-    RemoveFrameBuffer(post_fbuffer);
 }
 
 void SceneViewport::Draw(ComponentCamera* camera)
@@ -68,22 +65,20 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
         bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, msaa ? msaa_fbuffer.id : fbuffer.id);
+        const Framebuffer* framebuffer = msaa ? msaa_fbuffer.framebuffer.get() : fbuffer.framebuffer.get();
+        const Texture2D* texture_color = msaa ? msaa_fbuffer.texture_color.get() : fbuffer.texture_color.get();
+
+        framebuffer->bind();
+
+
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		App->debug_draw->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
-		App->renderer->Draw(camera, msaa ? msaa_fbuffer.id : fbuffer.id, fb_width, fb_height);
+		App->debug_draw->Draw(camera, framebuffer->id(), fb_width, fb_height);
+		App->renderer->Draw(camera, framebuffer->id(), fb_width, fb_height);
 
-        if(msaa)
-        {
-            App->renderer->Postprocess(msaa_fbuffer.tex, post_fbuffer.id, fb_width, fb_height);
-        }
-        else
-        {
-            App->renderer->Postprocess(fbuffer.tex, post_fbuffer.id, fb_width, fb_height);
-        }
+        App->renderer->Postprocess(texture_color->id(), post_fbuffer.framebuffer->id(), fb_width, fb_height);
 
         ImVec2 screenPos = ImGui::GetCursorScreenPos();
 
@@ -107,7 +102,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
         {
             ImGui::GetWindowDrawList()->AddImage(
                     //(void*)App->renderer->GetTexture(),
-                    (void*)post_fbuffer.tex,
+                    (void*)post_fbuffer.texture_color->id(),
                     ImVec2(screenPos),
                     ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
                     ImVec2(0, 1), ImVec2(1, 0));
@@ -137,66 +132,34 @@ void SceneViewport::Load(Config* config)
 	debug_draw = config->GetBool("Debug Draw", true);
 }
 
-void SceneViewport::GenerateFBO(Framebuffer& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr)
+void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr)
 {
-    RemoveFrameBuffer(buffer);
-
-    assert(w != 0 && h != 0);
-
-    glGenFramebuffers(1, &buffer.id);
-    glBindFramebuffer(GL_FRAMEBUFFER, buffer.id);
-    glGenTextures(1, &buffer.tex);
+    buffer.framebuffer = std::make_unique<Framebuffer>(); 
 
     if(msaa)
     {
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, buffer.tex);
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, hdr ? GL_RGBA16F : GL_RGBA, w, h, GL_TRUE);
-
-        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, buffer.tex, 0); 
-
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+        buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D_MULTISAMPLE, 4, w, h, hdr ? GL_RGBA16F : GL_RGBA, true);
     }
     else
     {
-        glBindTexture(GL_TEXTURE_2D, buffer.tex);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, hdr ? GL_RGBA16F : GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.tex, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, hdr ? GL_RGBA16F : GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
     }
+
+    buffer.framebuffer->attach_color(buffer.texture_color.get());
 
     if(depth)
     {
-        glGenRenderbuffers(1, &buffer.depth);
-        glBindRenderbuffer(GL_RENDERBUFFER, buffer.depth);
-
         if(msaa)
         {
-            glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, w, h);
+            buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D_MULTISAMPLE, 4, w, h, GL_DEPTH24_STENCIL8, true);
         }
         else
         {
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h);
+            buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         }
 
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, buffer.depth);            
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        buffer.framebuffer->attach_depth_stencil(buffer.texture_depth.get());
     }
-
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
@@ -587,24 +550,3 @@ float SceneViewport::DistanceFromAtt(float constant, float linear, float quadric
     return distance;
 }
 
-void SceneViewport::RemoveFrameBuffer(Framebuffer& buffer)
-{
-    if(buffer.id != 0)
-    {
-        glDeleteFramebuffers(1, &buffer.id);
-        buffer.id = 0;
-    }
-
-    if(buffer.depth != 0)
-    {
-        glDeleteRenderbuffers(1, &buffer.depth);
-        buffer.depth = 0;
-    }
-
-    if(buffer.tex != 0)
-    {
-        glDeleteTextures(1, &buffer.tex);
-        buffer.tex = 0;
-    }
-
-}
