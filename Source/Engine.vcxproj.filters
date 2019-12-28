@@ -645,6 +645,9 @@
     <ClInclude Include="ComponentTrail.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="OGL.h">
+      <Filter>Main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1009,6 +1012,9 @@
     </ClCompile>
     <ClCompile Include="ComponentTrail.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="OGL.cpp">
+      <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
