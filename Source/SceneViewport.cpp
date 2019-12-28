@@ -65,11 +65,10 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
         bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
 
-        const Framebuffer* framebuffer = msaa ? msaa_fbuffer.framebuffer.get() : fbuffer.framebuffer.get();
-        const Texture2D* texture_color = msaa ? msaa_fbuffer.texture_color.get() : fbuffer.texture_color.get();
+        Framebuffer* framebuffer = msaa ? framebuffers[FRAMEBUFFER_MSAA].framebuffer.get() : framebuffers[FRAMEBUFFER_NO_MSAA].framebuffer.get();
+        Texture2D* texture_color = msaa ? framebuffers[FRAMEBUFFER_MSAA].texture_color.get() : framebuffers[FRAMEBUFFER_NO_MSAA].texture_color.get();
 
         framebuffer->bind();
-
 
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
@@ -78,7 +77,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
 		App->debug_draw->Draw(camera, framebuffer->id(), fb_width, fb_height);
 		App->renderer->Draw(camera, framebuffer->id(), fb_width, fb_height);
 
-        App->renderer->Postprocess(texture_color->id(), post_fbuffer.framebuffer->id(), fb_width, fb_height);
+        App->renderer->Postprocess(texture_color->id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->id(), fb_width, fb_height);
 
         ImVec2 screenPos = ImGui::GetCursorScreenPos();
 
@@ -89,20 +88,11 @@ void SceneViewport::Draw(ComponentCamera* camera)
                     ImVec2(screenPos),
                     ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
                     ImVec2(0, 1), ImVec2(1, 0));
-
-            /*
-                ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)App->renderer->GetShadowMap(0),
-                    ImVec2(screenPos),
-                    ImVec2(screenPos.x + min(App->renderer->GetShadowMapWidth(0), fb_width), screenPos.y + min(App->renderer->GetShadowMapHeight(0), fb_height)), 
-                    ImVec2(0, 1), ImVec2(1, 0));
-                    */
         }
         else
         {
             ImGui::GetWindowDrawList()->AddImage(
-                    //(void*)App->renderer->GetTexture(),
-                    (void*)post_fbuffer.texture_color->id(),
+                    (void*)framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->id(),
                     ImVec2(screenPos),
                     ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
                     ImVec2(0, 1), ImVec2(1, 0));
@@ -166,9 +156,9 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
 {
     if(w != fb_width || h != fb_height)
     {
-        GenerateFBO(fbuffer, w, h, true, false, true);
-        GenerateFBO(msaa_fbuffer, w, h, true, true, true);
-        GenerateFBO(post_fbuffer, w, h, false, false, false);
+        GenerateFBO(framebuffers[FRAMEBUFFER_NO_MSAA], w, h, true, false, true);
+        GenerateFBO(framebuffers[FRAMEBUFFER_MSAA], w, h, true, true, true);
+        GenerateFBO(framebuffers[FRAMEBUFFER_POSTPROCESS], w, h, false, false, false);
 
 		fb_width = w;
 		fb_height = h;

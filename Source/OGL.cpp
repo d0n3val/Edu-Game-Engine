@@ -30,13 +30,13 @@ Texture2D::~Texture2D()
     glDeleteTextures(1, &texture);
 }
 
-void Texture2D::bind(uint unit) const 
+void Texture2D::bind(uint unit) 
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, texture);
 }
 
-void Texture2D::unbind(uint unit) const 
+void Texture2D::unbind(uint unit) 
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, 0);
@@ -104,17 +104,17 @@ Framebuffer::~Framebuffer()
     glDeleteFramebuffers(1, &fbo);
 }
 
-void Framebuffer::bind() const 
+void Framebuffer::bind() 
 {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 }
 
-void Framebuffer::unbind() const
+void Framebuffer::unbind() 
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Framebuffer::attach_color(const Texture2D* texture, uint attachment, uint mip_level, bool draw, bool read)
+void Framebuffer::attach_color(Texture2D* texture, uint attachment, uint mip_level, bool draw, bool read) 
 {
     bind();
 
@@ -126,10 +126,17 @@ void Framebuffer::attach_color(const Texture2D* texture, uint attachment, uint m
     unbind();
 }
 
-void Framebuffer::attach_depth_stencil(const Texture2D* texture)
+void Framebuffer::attach_depth_stencil(Texture2D* texture) 
 {
     bind();
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture->id(), 0);
     unbind();
 }
 
+void Framebuffer::blit_to(Framebuffer* target, uint src_x0, uint src_y0, uint src_x1, uint src_y1, uint dst_x0, uint dst_y0, 
+                          uint dst_x1, uint dst_y1, uint flags, uint filter) 
+{
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->id());
+    glBlitFramebuffer(src_x0, src_y0, src_x1, src_y1, dst_x0, dst_y0, dst_x1, dst_y1, flags, filter);
+}

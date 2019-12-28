@@ -32,11 +32,7 @@ bool ResourceTexture::LoadInMemory()
 // ---------------------------------------------------------
 void ResourceTexture::ReleaseFromMemory() 
 {
-    if(gpu_id != 0)
-    { 
-        glDeleteTextures(1, &gpu_id);
-        gpu_id = 0;
-    }
+    texture.reset(nullptr);
 }
 
 // ---------------------------------------------------------
@@ -71,28 +67,19 @@ void ResourceTexture::EnableMips(bool enable)
     {
         has_mips = enable;
 
-        if(gpu_id != 0)
+        if(texture->id())
         {
             if(has_mips)
             {
-                glBindTexture(GL_TEXTURE_2D, gpu_id);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1000);
-                glGenerateMipmap(GL_TEXTURE_2D);
+                texture->set_min_max_filer(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+                texture->generate_mipmaps(0, 1000);
             }
             else
             {
-                glBindTexture(GL_TEXTURE_2D, gpu_id);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-
+                texture->set_min_max_filer(GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR);
+                texture->generate_mipmaps(0, 1000);
             }
         }
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
 }
 

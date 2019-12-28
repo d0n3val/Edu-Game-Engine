@@ -58,10 +58,15 @@ private:
         std::unique_ptr<Texture2D>   texture_depth;
     };
 
-    FramebufferInfo fbuffer;
-    FramebufferInfo msaa_fbuffer;
-    FramebufferInfo post_fbuffer;
+    enum FrameBuffers
+    {
+        FRAMEBUFFER_NO_MSAA = 0,
+        FRAMEBUFFER_MSAA,
+        FRAMEBUFFER_POSTPROCESS,
+        FRAME_BUFFER_COUNT
+    };
 
+    FramebufferInfo framebuffers[FRAME_BUFFER_COUNT];
 
     unsigned    fb_width    = 0;
     unsigned    fb_height   = 0;

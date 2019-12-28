@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "Application.h"
 #include "OpenGL.h"
+#include "OGL.h"
 #include "ModuleTextures.h"
 #include "ModuleFileSystem.h"
 #include "Devil/include/il.h"
@@ -150,13 +151,13 @@ bool ModuleTextures::Load(ResourceTexture* resource)
         if(header.dwMagic == DDS_MAGIC && false)
         {
             bool is_cubemap = 0;
-            resource->gpu_id = SOIL_direct_load_DDS_from_memory((const unsigned char* const)buffer, size, 0, 0, is_cubemap);
+            resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, SOIL_direct_load_DDS_from_memory((const unsigned char* const)buffer, size, 0, 0, is_cubemap));
             resource->width = header.dwWidth;
             resource->height = header.dwHeight;
             //resource->bpp = ;
             resource->depth = header.dwDepth;
             //resource->bytes = ImageInfo.SizeOfData;
-            assert(resource->gpu_id);
+            assert(resource->texture->id());
             ret = true;
         }
         else
@@ -168,9 +169,6 @@ bool ModuleTextures::Load(ResourceTexture* resource)
             if (ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size))
             {
                 GLuint textureId = 0;
-                glGenTextures(1, &resource->gpu_id);
-
-                glBindTexture(GL_TEXTURE_2D, resource->gpu_id);
 
                 ILinfo ImageInfo;
                 iluGetImageInfo(&ImageInfo);
@@ -224,28 +222,10 @@ bool ModuleTextures::Load(ResourceTexture* resource)
                 int width = ilGetInteger(IL_IMAGE_WIDTH);
                 int height = ilGetInteger(IL_IMAGE_HEIGHT);
 
-                glTexImage2D(GL_TEXTURE_2D, 0, !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, width, height, 0, 
-					ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE, data);
-
-                if(resource->has_mips)
-                {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1000);
-                    glGenerateMipmap(GL_TEXTURE_2D);
-                }
-                else
-                {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-                }
+                resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, width, height, !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, 
+                                                                ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE, data, resource->has_mips);
 
                 ilDeleteImages(1, &ImageName);
-
-                glBindTexture(GL_TEXTURE_2D, 0);
 
                 ret = true;
             }
@@ -283,6 +263,7 @@ bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
 		}
 	}
 
+    /*
 	uint ImageName = 0;
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -296,6 +277,7 @@ bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CHECKERS_WIDTH, CHECKERS_HEIGHT, 
 	   0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
+    */
 
 	resource->width = CHECKERS_WIDTH;
 	resource->height = CHECKERS_HEIGHT;
@@ -304,7 +286,9 @@ bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
 	resource->has_mips = false;
 	resource->bytes = sizeof(GLubyte) * CHECKERS_HEIGHT * CHECKERS_WIDTH * 4;
 	resource->format = ResourceTexture::rgba;
-	resource->gpu_id = ImageName;
+	//resource->gpu_id = ImageName;
+    
+    resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, CHECKERS_WIDTH, CHECKERS_HEIGHT, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, checkImage, false);
 
 	return true;
 }
@@ -318,6 +302,7 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
 
 	uint ImageName = 0;
 
+    /*
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	glGenTextures(1, &ImageName );
@@ -328,6 +313,7 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage);
+    */
 
 	resource->width = 1;
 	resource->height = 1;
@@ -336,7 +322,9 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
 	resource->has_mips = false;
 	resource->bytes = sizeof(GLubyte) * 3;
 	resource->format = ResourceTexture::rgb;
-	resource->gpu_id = ImageName;
+	//resource->gpu_id = ImageName;
+
+    resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, 1, 1, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage, false);
 
 	return true;
 }

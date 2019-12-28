@@ -24,6 +24,9 @@ class DirLight;
 class PointLight;
 class SpotLight;
 
+class Texture2D;
+class Framebuffer;
+
 class PanelProperties : public Panel
 {
 
@@ -65,6 +68,16 @@ private:
     void DrawMaterialResource(ResourceMaterial* material);
     UID DrawResourceType(Resource::Type type, bool opened);
     void ShowTextureModal(const ResourceTexture* texture);
+
+    void GeneratePreview(uint width, uint height, Texture2D* texture);
+    void GeneratePreviewFB(uint width, uint height);
+    void GeneratePreviewBlitFB(Texture2D* texture);
+
+private:
+
+    std::unique_ptr<Framebuffer> preview_blit_fb;
+    std::unique_ptr<Framebuffer> preview_fb;
+    std::unique_ptr<Texture2D>   preview_texture;
 };
 
 #endif// __PANELPROPERTIES_H__

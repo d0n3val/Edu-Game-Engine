@@ -840,6 +840,8 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
         {
 			ImGui::PopID();
             ImGui::OpenPopup("show texture");
+            GeneratePreview(info->GetWidth(), info->GetHeight(), info->GetTexture());
+
         }
         else 
         {
@@ -1480,7 +1482,7 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture)
         {
             if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove))
             {
-                ImGui::Image((ImTextureID)texture->GetID(), tex_size, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)preview_texture->id(), tex_size, ImVec2(0, 1), ImVec2(1, 0));
             }
             ImGui::EndChild();
 
@@ -1494,3 +1496,26 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture)
         }
     }
 }
+
+void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* texture)
+{
+    GeneratePreviewBlitFB(texture);
+    GeneratePreviewFB(width, height);
+
+	preview_blit_fb->blit_to(preview_fb.get(), 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+}
+
+void PanelProperties::GeneratePreviewBlitFB(Texture2D* texture)
+{
+    preview_blit_fb = std::make_unique<Framebuffer>();
+    preview_blit_fb->attach_color(texture, 0, 0, false, true);
+}
+
+void PanelProperties::GeneratePreviewFB(uint width, uint height)
+{
+    preview_fb = std::make_unique<Framebuffer>(); 
+    preview_texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+
+    preview_fb->attach_color(preview_texture.get());
+}
+
