@@ -45,10 +45,15 @@
 
 #include "OpenGL.h"
 
+#include "thekla_atlas/thekla_atlas.h"
+
 #include <list>
 #include <algorithm>
 
 #include "mmgr/mmgr.h"
+
+#pragma comment( lib, "thekla_atlas/thekla_atlas.lib" )
+
 
 using namespace std;
 
