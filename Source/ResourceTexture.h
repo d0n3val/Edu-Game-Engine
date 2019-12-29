@@ -33,7 +33,7 @@ public:
 	void             Load         (const Config& config) override;
 
     Texture2D*		 GetTexture   () const { return texture.get(); }
-    uint             GetID        () const { return texture ? texture->id() : 0; }
+    uint             GetID        () const { return texture ? texture->Id() : 0; }
     uint             GetWidth     () const { return width; }
     uint             GetHeight    () const { return height; }
     uint             GetDepth     () const { return depth; }

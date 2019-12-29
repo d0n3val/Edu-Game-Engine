@@ -25,6 +25,7 @@
 #include "ModuleEditorCamera.h"
 #include "ModuleWindow.h"
 #include "ModuleHints.h"
+#include "ModulePrograms.h"
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
@@ -745,22 +746,23 @@ void PanelProperties::DrawMaterialComponent(ComponentMaterial* component)
     }
     else if(mat_res)
     {
-		DrawMaterialResource(mat_res);
+        ComponentMesh* mesh = component->GetGameObject()->FindFirstComponent<ComponentMesh>();
+		DrawMaterialResource(mat_res, mesh->GetResource());
     }
 }
 
-void PanelProperties::DrawMaterialResource(ResourceMaterial* material)
+void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh)
 {
     bool modified = false;
 
     if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, ResourceMaterial::TextureOcclusion, "Occlusion");
+        modified = TextureButton(material, mesh, ResourceMaterial::TextureOcclusion, "Occlusion");
     }
 
     if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, ResourceMaterial::TextureDiffuse, "Diffuse") || modified;
+        modified = TextureButton(material, mesh, ResourceMaterial::TextureDiffuse, "Diffuse") || modified;
         float4 color = material->GetDiffuseColor();
         ImGui::PushID("diffuse");
         if(ImGui::ColorEdit4("color", (float*)&color))
@@ -773,7 +775,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material)
 
     if(ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, ResourceMaterial::TextureSpecular, "Specular") || modified;
+        modified = TextureButton(material, mesh, ResourceMaterial::TextureSpecular, "Specular") || modified;
         float3 color = material->GetSpecularColor();
         ImGui::PushID("specular");
         if(ImGui::ColorEdit3("color", (float*)&color))
@@ -793,12 +795,12 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material)
 
     if(ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, ResourceMaterial::TextureNormal, "Normal") || modified;
+        modified = TextureButton(material, mesh, ResourceMaterial::TextureNormal, "Normal") || modified;
     }
 
     if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, ResourceMaterial::TextureEmissive, "Emissive") || modified;
+        modified = TextureButton(material, mesh, ResourceMaterial::TextureEmissive, "Emissive") || modified;
         float3 color = material->GetEmissiveColor();
         float intensity = max(color.Length(), 1.0f);
         color = color/intensity;
@@ -826,7 +828,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material)
 
 }
 
-bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, const char* name)
+bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name)
 {
     bool modified = false;
     ResourceTexture* info = material->GetTextureRes(ResourceMaterial::Texture(texture));
@@ -840,7 +842,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
         {
 			ImGui::PopID();
             ImGui::OpenPopup("show texture");
-            GeneratePreview(info->GetWidth(), info->GetHeight(), info->GetTexture());
+            GeneratePreview(info->GetWidth(), info->GetHeight(), info->GetTexture(), mesh);
 
         }
         else 
@@ -905,7 +907,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, uint texture, co
             ImGui::PopID();
         }
 
-        ShowTextureModal(info);
+        ShowTextureModal(info, mesh);
         ImGui::EndGroup();
     }
     else
@@ -1463,59 +1465,99 @@ UID PanelProperties::DrawResourceType(Resource::Type type, bool opened)
     return ImGui::IsMouseDoubleClicked(0) ? selected : 0;
 }
 
-void PanelProperties::ShowTextureModal(const ResourceTexture* texture)
+void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const ResourceMesh* mesh)
+{
+    ImVec2 tex_size = ImVec2(float(preview_width), float(preview_height));
+
+    ImGui::SetNextWindowSize(ImVec2(tex_size.x+20, tex_size.y+80));
+    if (ImGui::BeginPopupModal("show texture", nullptr, ImGuiWindowFlags_NoResize))
+    {
+        if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove))
+        {
+            ImGui::Image((ImTextureID)preview_texture->Id(), tex_size, ImVec2(0, 1), ImVec2(1, 0));
+        }
+        ImGui::EndChild();
+
+        ImGui::Indent(tex_size.x-210);
+
+        if(ImGui::Checkbox("show uvs", &preview_uvs))
+        {
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+        }
+
+        ImGui::SameLine();
+
+        //ImGui::Indent(tex_size.x-128);
+        if(ImGui::Button("Close", ImVec2(128, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* texture, const ResourceMesh* mesh)
 {
 	int window_width  = App->window->GetWidth();
 	int window_height = App->window->GetHeight();
 
     if(window_width > 50 && window_height > 110)
     {
-        float width_av = float(window_width-50)/float(texture->GetWidth());
-        float height_av = float(window_height-110)/float(texture->GetHeight());
+        float width_av  = float(window_width-50)/float(width);
+        float height_av = float(window_height-110)/float(height);
 
-        float min_av = std::min(std::min(width_av, height_av), 1.0f);
+        float min_av    = std::min(std::min(width_av, height_av), 1.0f);
 
-        ImVec2 tex_size(float(texture->GetWidth())*min_av, float(texture->GetHeight())*min_av);
+        preview_width   = uint(float(width)*min_av);
+        preview_height  = uint(float(height)*min_av);
 
-        ImGui::SetNextWindowSize(ImVec2(tex_size.x+20,tex_size.y+80));
-        if (ImGui::BeginPopupModal("show texture", nullptr, ImGuiWindowFlags_NoResize))
+        GeneratePreviewBlitFB(texture);
+        GeneratePreviewFB(preview_width, preview_height);
+
+        preview_blit_fb->BlitTo(preview_fb.get(), 0, 0, width, height, 0, 0, preview_width, preview_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        if(preview_uvs)
         {
-            if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove))
-            {
-                ImGui::Image((ImTextureID)preview_texture->id(), tex_size, ImVec2(0, 1), ImVec2(1, 0));
-            }
-            ImGui::EndChild();
-
-            ImGui::Indent(tex_size.x-128);
-            if(ImGui::Button("Close", ImVec2(128, 0)))
-            {
-                ImGui::CloseCurrentPopup();
-            }
-
-            ImGui::EndPopup();
+            DrawPreviewUVs(mesh);
         }
     }
-}
-
-void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* texture)
-{
-    GeneratePreviewBlitFB(texture);
-    GeneratePreviewFB(width, height);
-
-	preview_blit_fb->blit_to(preview_fb.get(), 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    else
+    {
+        preview_blit_fb.reset(nullptr);
+        preview_fb.reset(nullptr);
+        preview_texture.reset(nullptr);
+        preview_width = 0;
+        preview_height = 0;
+    }
 }
 
 void PanelProperties::GeneratePreviewBlitFB(Texture2D* texture)
 {
     preview_blit_fb = std::make_unique<Framebuffer>();
-    preview_blit_fb->attach_color(texture, 0, 0, false, true);
+    preview_blit_fb->AttachColor(texture, 0, 0, false, true);
 }
 
 void PanelProperties::GeneratePreviewFB(uint width, uint height)
 {
-    preview_fb = std::make_unique<Framebuffer>(); 
+    preview_fb      = std::make_unique<Framebuffer>(); 
     preview_texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
 
-    preview_fb->attach_color(preview_texture.get());
+    preview_fb->AttachColor(preview_texture.get());
+}
+
+void PanelProperties::DrawPreviewUVs(const ResourceMesh* mesh)
+{
+    // \todo: Use program
+    preview_fb->Bind();
+    glViewport(0, 0, preview_width, preview_height);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    App->programs->UseProgram("show_uvs", 0);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    mesh->Draw();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+    glPointSize(4.0f);
+    mesh->Draw();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    App->programs->UnuseProgram();
 }
 

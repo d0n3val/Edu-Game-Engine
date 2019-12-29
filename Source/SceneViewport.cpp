@@ -68,16 +68,16 @@ void SceneViewport::Draw(ComponentCamera* camera)
         Framebuffer* framebuffer = msaa ? framebuffers[FRAMEBUFFER_MSAA].framebuffer.get() : framebuffers[FRAMEBUFFER_NO_MSAA].framebuffer.get();
         Texture2D* texture_color = msaa ? framebuffers[FRAMEBUFFER_MSAA].texture_color.get() : framebuffers[FRAMEBUFFER_NO_MSAA].texture_color.get();
 
-        framebuffer->bind();
+        framebuffer->Bind();
 
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		App->debug_draw->Draw(camera, framebuffer->id(), fb_width, fb_height);
-		App->renderer->Draw(camera, framebuffer->id(), fb_width, fb_height);
+		App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
+		App->renderer->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
-        App->renderer->Postprocess(texture_color->id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->id(), fb_width, fb_height);
+        App->renderer->Postprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
 
         ImVec2 screenPos = ImGui::GetCursorScreenPos();
 
@@ -92,7 +92,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
         else
         {
             ImGui::GetWindowDrawList()->AddImage(
-                    (void*)framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->id(),
+                    (void*)framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->Id(),
                     ImVec2(screenPos),
                     ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
                     ImVec2(0, 1), ImVec2(1, 0));
@@ -135,7 +135,7 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
         buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, hdr ? GL_RGBA16F : GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
     }
 
-    buffer.framebuffer->attach_color(buffer.texture_color.get());
+    buffer.framebuffer->AttachColor(buffer.texture_color.get());
 
     if(depth)
     {
@@ -148,7 +148,7 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
             buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         }
 
-        buffer.framebuffer->attach_depth_stencil(buffer.texture_depth.get());
+        buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get());
     }
 }
 

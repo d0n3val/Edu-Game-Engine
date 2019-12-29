@@ -13,6 +13,7 @@ public:
 
 	bool                SetResource         (UID uid);
     const ResourceMesh* GetResource         () const;
+    ResourceMesh*       GetResource         ();
     virtual void        OnSave              (Config& config) const override;
     virtual void        OnLoad              (Config* config) override;
 

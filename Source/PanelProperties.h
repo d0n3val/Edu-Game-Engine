@@ -19,6 +19,7 @@ class ComponentMesh;
 class ComponentParticleSystem;
 class ResourceMaterial;
 class ResourceTexture;
+class ResourceMesh;
 class AmbientLight;
 class DirLight;
 class PointLight;
@@ -62,22 +63,26 @@ private:
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
-    bool TextureButton(ResourceMaterial* material, uint texture, const char* name);
+    bool TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name);
 	void DrawAnimationComponent(ComponentAnimation * component);
 	void DrawRootMotionComponent(ComponentRootMotion * component);
-    void DrawMaterialResource(ResourceMaterial* material);
+    void DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh);
     UID DrawResourceType(Resource::Type type, bool opened);
-    void ShowTextureModal(const ResourceTexture* texture);
+    void ShowTextureModal(const ResourceTexture* texture, const ResourceMesh* mesh);
 
-    void GeneratePreview(uint width, uint height, Texture2D* texture);
+    void GeneratePreview(uint width, uint height, Texture2D* texture, const ResourceMesh* mesh);
     void GeneratePreviewFB(uint width, uint height);
     void GeneratePreviewBlitFB(Texture2D* texture);
+    void DrawPreviewUVs(const ResourceMesh* mesh);
 
 private:
 
     std::unique_ptr<Framebuffer> preview_blit_fb;
     std::unique_ptr<Framebuffer> preview_fb;
     std::unique_ptr<Texture2D>   preview_texture;
+    uint                         preview_width  = 0;
+    uint                         preview_height = 0;
+    bool                         preview_uvs    = false;
 };
 
 #endif// __PANELPROPERTIES_H__

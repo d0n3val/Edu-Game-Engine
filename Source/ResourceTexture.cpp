@@ -67,17 +67,17 @@ void ResourceTexture::EnableMips(bool enable)
     {
         has_mips = enable;
 
-        if(texture->id())
+        if(texture->Id())
         {
             if(has_mips)
             {
-                texture->set_min_max_filer(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-                texture->generate_mipmaps(0, 1000);
+                texture->SetMinMaxFiler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+                texture->GenerateMipmaps(0, 1000);
             }
             else
             {
-                texture->set_min_max_filer(GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR);
-                texture->generate_mipmaps(0, 1000);
+                texture->SetMinMaxFiler(GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR);
+                texture->GenerateMipmaps(0, 1000);
             }
         }
     }

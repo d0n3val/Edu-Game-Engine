@@ -113,6 +113,11 @@ const ResourceMesh* ComponentMesh::GetResource() const
 	return static_cast<const ResourceMesh*>(App->resources->Get(resource));
 }
 
+ResourceMesh* ComponentMesh::GetResource() 
+{
+	return static_cast<ResourceMesh*>(App->resources->Get(resource));
+}
+
 const float4x4* ComponentMesh::UpdateSkinPalette() const
 {
     ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(resource));
@@ -166,8 +171,16 @@ void ComponentMesh::Draw() const
 		{
 			mat->UpdateUniforms();
 			mesh->UpdateUniforms(UpdateSkinPalette());
+            mat->BindTextures();
 			mesh->Draw();
-		}
+            mat->UnbindTextures();
+
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
     }
 }
 

@@ -9,7 +9,7 @@ Texture2D::Texture2D(uint target, uint samples, uint width, uint height, uint in
 
     glTexImage2DMultisample(tex_target, samples, internal_format, width, height, fixed_samples ? GL_TRUE : GL_FALSE);
 
-    default_initialize(false);
+    DefaultInitialize(false);
 
     glBindTexture(tex_target, 0);
 }
@@ -20,7 +20,7 @@ Texture2D::Texture2D(uint target, uint width, uint height, uint internal_format,
     glBindTexture(tex_target, texture);
 
     glTexImage2D(tex_target, 0, internal_format, width, height, 0, format, type, data);
-    default_initialize(mipmaps);
+    DefaultInitialize(mipmaps);
 
     glBindTexture(tex_target, 0);
 }
@@ -30,19 +30,19 @@ Texture2D::~Texture2D()
     glDeleteTextures(1, &texture);
 }
 
-void Texture2D::bind(uint unit) 
+void Texture2D::Bind(uint unit) 
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, texture);
 }
 
-void Texture2D::unbind(uint unit) 
+void Texture2D::Unbind(uint unit) 
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, 0);
 }
 
-void Texture2D::default_initialize(bool mipmaps)
+void Texture2D::DefaultInitialize(bool mipmaps)
 {
     if(mipmaps)
     {
@@ -61,14 +61,14 @@ void Texture2D::default_initialize(bool mipmaps)
     }
 }
 
-void Texture2D::set_data(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data)
+void Texture2D::SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data)
 {
     glBindTexture(tex_target, texture);
     glTexImage2D(tex_target, mip_level, internal_format, width, height, 0, format, type, data);
     glBindTexture(tex_target, 0);
 }
 
-void Texture2D::set_wrapping(uint wrap_s, uint wrap_t, uint wrap_r)
+void Texture2D::SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r)
 {
     glBindTexture(tex_target, texture);
     glTexParameteri(tex_target, GL_TEXTURE_WRAP_S, wrap_s);
@@ -77,7 +77,7 @@ void Texture2D::set_wrapping(uint wrap_s, uint wrap_t, uint wrap_r)
     glBindTexture(tex_target, 0);
 }
 
-void Texture2D::set_min_max_filer(uint min_filter, uint max_filter)
+void Texture2D::SetMinMaxFiler(uint min_filter, uint max_filter)
 {
     glBindTexture(tex_target, texture);
     glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, min_filter);
@@ -85,7 +85,7 @@ void Texture2D::set_min_max_filer(uint min_filter, uint max_filter)
     glBindTexture(tex_target, 0);
 }
 
-void Texture2D::generate_mipmaps(uint base, uint max)
+void Texture2D::GenerateMipmaps(uint base, uint max)
 {
     glBindTexture(tex_target, texture);
 	glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, base);
@@ -104,39 +104,39 @@ Framebuffer::~Framebuffer()
     glDeleteFramebuffers(1, &fbo);
 }
 
-void Framebuffer::bind() 
+void Framebuffer::Bind() 
 {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 }
 
-void Framebuffer::unbind() 
+void Framebuffer::Unbind() 
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Framebuffer::attach_color(Texture2D* texture, uint attachment, uint mip_level, bool draw, bool read) 
+void Framebuffer::AttachColor(Texture2D* texture, uint attachment, uint mip_level, bool draw, bool read) 
 {
-    bind();
+    Bind();
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+attachment, texture->target(), texture->id(), mip_level);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+attachment, texture->Target(), texture->Id(), mip_level);
 
     glDrawBuffer(draw ? GL_COLOR_ATTACHMENT0+attachment : GL_NONE);
     glReadBuffer(read ? GL_COLOR_ATTACHMENT0+attachment : GL_NONE);
 
-    unbind();
+    Unbind();
 }
 
-void Framebuffer::attach_depth_stencil(Texture2D* texture) 
+void Framebuffer::AttachDepthStencil(Texture2D* texture) 
 {
-    bind();
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture->id(), 0);
-    unbind();
+    Bind();
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture->Id(), 0);
+    Unbind();
 }
 
-void Framebuffer::blit_to(Framebuffer* target, uint src_x0, uint src_y0, uint src_x1, uint src_y1, uint dst_x0, uint dst_y0, 
+void Framebuffer::BlitTo(Framebuffer* target, uint src_x0, uint src_y0, uint src_x1, uint src_y1, uint dst_x0, uint dst_y0, 
                           uint dst_x1, uint dst_y1, uint flags, uint filter) 
 {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->id());
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->Id());
     glBlitFramebuffer(src_x0, src_y0, src_x1, src_y1, dst_x0, dst_y0, dst_x1, dst_y1, flags, filter);
 }

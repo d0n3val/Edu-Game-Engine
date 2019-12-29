@@ -157,7 +157,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
             //resource->bpp = ;
             resource->depth = header.dwDepth;
             //resource->bytes = ImageInfo.SizeOfData;
-            assert(resource->texture->id());
+            assert(resource->texture->Id());
             ret = true;
         }
         else
