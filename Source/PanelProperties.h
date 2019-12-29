@@ -5,6 +5,7 @@
 #include "Globals.h"
 #include "Panel.h"
 #include "Resource.h"
+#include "Math.h"
 
 class GameObject;
 class Component;
@@ -83,6 +84,7 @@ private:
     uint                         preview_width  = 0;
     uint                         preview_height = 0;
     bool                         preview_uvs    = false;
+    math::float4                 uv_color       = math::float4(1.0f, 1.0f, 1.0f, 1.0f);
 };
 
 #endif// __PANELPROPERTIES_H__

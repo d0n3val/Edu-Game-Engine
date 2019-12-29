@@ -1483,9 +1483,16 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
         }
         ImGui::EndChild();
 
-        ImGui::Indent(tex_size.x-210);
+        ImGui::Indent(tex_size.x-300);
 
-        if(ImGui::Checkbox("show uvs", &preview_uvs))
+        if(ImGui::Checkbox("show uvs", &preview_uvs) )
+        {
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+        }
+
+        ImGui::SameLine();
+
+        if(ImGui::ColorEdit4("uv color", (float*)&uv_color, ImGuiColorEditFlags_NoInputs) && preview_uvs)
         {
             GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
         }
@@ -1552,17 +1559,16 @@ void PanelProperties::GeneratePreviewFB(uint width, uint height)
 
 void PanelProperties::DrawPreviewUVs(const ResourceMesh* mesh)
 {
-    // \todo: Use program
     preview_fb->Bind();
     glViewport(0, 0, preview_width, preview_height);
     glClear(GL_DEPTH_BUFFER_BIT);
     App->programs->UseProgram("show_uvs", 0);
+    glUniform4fv(0, 1, (const float*)&uv_color);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    mesh->Draw();
-	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-    glPointSize(4.0f);
-    mesh->Draw();
+	glDisable(GL_CULL_FACE);
+	mesh->Draw();
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    App->programs->UnuseProgram();
+	glEnable(GL_CULL_FACE);
+	App->programs->UnuseProgram();
 }
 
