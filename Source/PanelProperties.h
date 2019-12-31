@@ -81,12 +81,13 @@ private:
     std::unique_ptr<Framebuffer> preview_blit_fb;
     std::unique_ptr<Framebuffer> preview_fb;
     std::unique_ptr<Texture2D>   preview_texture;
-    uint                         preview_width  = 0;
-    uint                         preview_height = 0;
-    bool                         preview_uvs    = false;
-    math::float4                 uv_color       = math::float4(1.0f, 1.0f, 1.0f, 1.0f);
-    uint                         preview_set    = 0;
-    float                        preview_zoom   = 100.0;
+    uint                         preview_width   = 0;
+    uint                         preview_height  = 0;
+    bool                         preview_uvs     = false;
+    bool                         preview_text    = true;
+    math::float4                 uv_color        = math::float4(1.0f, 1.0f, 1.0f, 1.0f);
+    uint                         preview_set     = 0;
+    float                        preview_zoom    = 100.0;
 };
 
 #endif// __PANELPROPERTIES_H__

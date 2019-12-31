@@ -1499,7 +1499,7 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
         }
         ImGui::EndChild();
 
-        ImGui::Indent(tex_size.x - 564.0f);
+        ImGui::Indent(tex_size.x - 680.0f);
 
 		if (App->input->GetMouseWheel() != 0)
 		{
@@ -1514,6 +1514,13 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
             GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
         }
         ImGui::PushItemWidth(0);
+
+        ImGui::SameLine();
+
+        if(ImGui::Checkbox("show texture", &preview_text) )
+        {
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+        }
 
         ImGui::SameLine();
 
@@ -1569,10 +1576,18 @@ void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* textur
         uint out_width  = uint(width*float(preview_zoom/100.0f));
         uint out_height = uint(height*(preview_zoom/100.0f));
 
-        GeneratePreviewBlitFB(texture);
+        if(preview_text)
+        {
+            GeneratePreviewBlitFB(texture);
+        }
+
         GeneratePreviewFB(out_width, out_height);
 
-        preview_blit_fb->BlitTo(preview_fb.get(), 0, 0, width, height, 0, 0, out_width, out_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        if(preview_text)
+        {
+            preview_blit_fb->BlitTo(preview_fb.get(), 0, 0, width, height, 0, 0, out_width, out_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        }
+
         if(preview_uvs)
         {
             DrawPreviewUVs(mesh, out_width, out_height);
@@ -1607,6 +1622,12 @@ void PanelProperties::DrawPreviewUVs(const ResourceMesh* mesh, uint width, uint 
     preview_fb->Bind();
     glViewport(0, 0, width, height);
     glClear(GL_DEPTH_BUFFER_BIT);
+    if(!preview_text)
+    {
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
     App->programs->UseProgram("show_uvs", preview_set);
     glUniform4fv(0, 1, (const float*)&uv_color);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
