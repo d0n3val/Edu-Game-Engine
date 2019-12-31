@@ -12,6 +12,8 @@ class Resource;
 struct aiMesh;
 struct par_shapes_mesh_s;
 
+namespace Thekla { struct Atlas_Output_Mesh; }
+
 class ResourceMesh : public Resource
 {
 	friend class ModuleMeshes;
@@ -41,14 +43,16 @@ public:
     static UID  LoadCylinder        (const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks);
     static UID  LoadPlane           (const char* plane_name, float width, float height, unsigned slices, unsigned stacks); 
 
+    void        GenerateTexCoord1   ();
+
 private:
 
     static UID  Generate            (const char* shape_name, par_shapes_mesh_s* shape);
-    void        GenerateAttribInfo  (par_shapes_mesh_s* shape);
-    void        GenerateAttribInfo  (const aiMesh* mesh);
+    void        GenerateAttribInfo  ();
+    void        GenerateCPUBuffers  (const Thekla::Atlas_Output_Mesh* atlas);
     void        GenerateCPUBuffers  (const aiMesh* mesh);
 	void        GenerateCPUBuffers  (par_shapes_mesh_s* shape);
-    void        GenerateVBO         (bool dynamic);
+    void        GenerateVBO         ();
     void        GenerateBoneData    (const aiMesh* mesh);
     void        GenerateVAO         ();
     void        GenerateTangentSpace();
@@ -64,19 +68,21 @@ public:
 		ATTRIB_NORMALS      = 1 << 1,
         ATTRIB_TANGENTS     = 1 << 2,
 		ATTRIB_BONES        = 1 << 3,
+		ATTRIB_TEX_COORDS_1 = 1 << 4,
 	};
 
 	struct Bone
 	{
 		HashString	name;
-		float4x4	bind		= float4x4::identity;
+		float4x4	bind = float4x4::identity;
 	};
 
     HashString  name;
 
     uint        vertex_size         = 0;
     uint        attribs             = 0;
-    uint        texcoord_offset     = 0;
+    uint        texcoord0_offset    = 0;
+    uint        texcoord1_offset    = 0;
     uint        normal_offset       = 0;
     uint        tangent_offset      = 0;
 	uint        bone_idx_offset		= 0;
@@ -85,6 +91,7 @@ public:
     uint        num_vertices        = 0;
     float3*     src_vertices        = nullptr;
     float2*     src_texcoord0       = nullptr;
+    float2*     src_texcoord1       = nullptr;
     float3*     src_normals         = nullptr;
     float3*     src_tangents        = nullptr;
     unsigned*   src_bone_indices    = nullptr;
@@ -95,6 +102,7 @@ public:
 
 	uint        num_bones			= 0;
 	Bone*       bones 		        = nullptr;
+    bool        static_mesh         = false;
 
     uint        vao 	            = 0;
     uint        vbo 	            = 0;

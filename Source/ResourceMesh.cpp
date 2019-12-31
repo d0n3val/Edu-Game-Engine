@@ -9,6 +9,7 @@
 
 #include "Assimp/include/mesh.h"
 #include "utils/SimpleBinStream.h"
+#include "thekla_atlas/thekla_atlas.h"
 
 #pragma warning(push)
 #pragma warning(disable : 4996)  
@@ -21,6 +22,30 @@
 #pragma warning(pop)
 
 #include "mmgr/mmgr.h"
+
+using namespace Thekla;
+
+namespace
+{
+
+    template<class T>
+    void copy_new_vertices(T*& src, Atlas_Output_Vertex* vertices, uint count)
+    {
+        if(src != nullptr)
+        {
+            T* new_src = new T[count];
+            for(uint i=0; i < count ; ++i)
+            {
+                new_src[i] = src[vertices[i].xref];
+            }
+
+            delete [] src;
+
+            src = new_src;
+        }
+    }
+
+}
 
 // ---------------------------------------------------------
 ResourceMesh::ResourceMesh(UID uid) : Resource(uid, Resource::Type::mesh)
@@ -63,7 +88,7 @@ bool ResourceMesh::LoadInMemory()
 
             read_stream >> vertex_size;
             read_stream >> attribs;
-            read_stream >> texcoord_offset;
+            read_stream >> texcoord0_offset;
             read_stream >> normal_offset;
             read_stream >> tangent_offset;
             read_stream >> bone_idx_offset;
@@ -145,7 +170,7 @@ bool ResourceMesh::LoadInMemory()
             read_stream >> bbox.minPoint.x >> bbox.minPoint.y >> bbox.minPoint.z;
             read_stream >> bbox.maxPoint.x >> bbox.maxPoint.y >> bbox.maxPoint.z;
 
-            GenerateVBO(false);
+            GenerateVBO();
             GenerateVAO();
 
             delete [] buffer;
@@ -241,7 +266,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
     write_stream << name.C_str();
     write_stream << vertex_size;
     write_stream << attribs;
-    write_stream << texcoord_offset;
+    write_stream << texcoord0_offset;
     write_stream << normal_offset;
     write_stream << tangent_offset;
 	write_stream << bone_idx_offset;
@@ -259,6 +284,14 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         for(uint i=0; i< num_vertices; ++i)
         {
             write_stream << src_texcoord0[i].x << src_texcoord0[i].y;
+        }
+    }
+
+    if((attribs & ATTRIB_TEX_COORDS_1) != 0)
+    {
+        for(uint i=0; i< num_vertices; ++i)
+        {
+            write_stream << src_texcoord1[i].x << src_texcoord1[i].y;
         }
     }
 
@@ -302,9 +335,9 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         }
     }
 
+    write_stream << static_mesh;
     write_stream << bbox.minPoint.x << bbox.minPoint.y << bbox.minPoint.z;
     write_stream << bbox.maxPoint.x << bbox.maxPoint.y << bbox.maxPoint.z;
-
 }
 
 
@@ -327,13 +360,13 @@ UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file)
 
     m->name   = HashString(mesh->mName.C_Str());
 
-    m->GenerateAttribInfo(mesh);
     m->GenerateCPUBuffers(mesh);
-
-    if((m->attribs & ATTRIB_BONES) != 0)
+    if(mesh->HasBones())
     {
         m->GenerateBoneData(mesh);
     }
+
+    m->GenerateAttribInfo();
 
     std::string output;
 
@@ -390,45 +423,51 @@ bool ResourceMesh::Save(const char* source, std::string& output)
     return save_ok;
 }
 
-void ResourceMesh::GenerateAttribInfo(const aiMesh* mesh)
+void ResourceMesh::GenerateAttribInfo()
 {
     vertex_size         = sizeof(float3);
     attribs             = 0;
-    texcoord_offset     = 0;
+    texcoord0_offset    = 0;
     normal_offset       = 0;
     tangent_offset      = 0;
     bone_weight_offset  = 0;
 
-    if(mesh->HasNormals())
+    if(src_normals != nullptr)
     {
         attribs |= ATTRIB_NORMALS;
-        normal_offset = vertex_size*mesh->mNumVertices;
+        normal_offset = vertex_size*num_vertices;
         vertex_size += sizeof(float3);
     }
 
-    if(mesh->HasTextureCoords(0))
+    if(src_texcoord0 != nullptr)
     {
         attribs |= ATTRIB_TEX_COORDS_0;
-        texcoord_offset = vertex_size*mesh->mNumVertices;
+        texcoord0_offset = vertex_size*num_vertices;
         vertex_size += sizeof(float2);
     }
 
-    if(mesh->HasTangentsAndBitangents())
+    if(src_texcoord1 != nullptr)
+    {
+        attribs |= ATTRIB_TEX_COORDS_1;
+        texcoord1_offset = vertex_size*num_vertices;
+        vertex_size += sizeof(float2);
+    }
+
+    if(src_tangents != nullptr)
     {
         attribs |= ATTRIB_TANGENTS;
-        tangent_offset = vertex_size*mesh->mNumVertices;
+        tangent_offset = vertex_size*num_vertices;
         vertex_size += sizeof(float3);
     }
 
-    if(mesh->HasBones())
+    if(src_bone_indices != nullptr && src_bone_weights != nullptr)
     {
         attribs |= ATTRIB_BONES;
-        bone_idx_offset = vertex_size*mesh->mNumVertices;
+        bone_idx_offset = vertex_size*num_vertices;
         vertex_size += sizeof(unsigned)*4;
-        bone_weight_offset = vertex_size*mesh->mNumVertices;
+        bone_weight_offset = vertex_size*num_vertices;
         vertex_size += sizeof(float)*4;
     }
-
 }
 
 void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
@@ -537,17 +576,21 @@ void ResourceMesh::GenerateTangentSpace()
     }
 }
 
-void ResourceMesh::GenerateVBO(bool dynamic)
+void ResourceMesh::GenerateVBO()
 {
-    glGenBuffers(1, &vbo);
+    if(vbo == 0)
+    {
+        glGenBuffers(1, &vbo);
+    }
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, vertex_size*num_vertices, nullptr, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertex_size*num_vertices, nullptr, static_mesh ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float3)*num_vertices, src_vertices);
 
     if((attribs & ATTRIB_TEX_COORDS_0) != 0)
     {
-        glBufferSubData(GL_ARRAY_BUFFER, texcoord_offset, sizeof(float2)*num_vertices, src_texcoord0);
+        glBufferSubData(GL_ARRAY_BUFFER, texcoord0_offset, sizeof(float2)*num_vertices, src_texcoord0);
     }
 
     if((attribs & ATTRIB_NORMALS) != 0)
@@ -568,7 +611,11 @@ void ResourceMesh::GenerateVBO(bool dynamic)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glGenBuffers(1, &ibo);
+    if(ibo == 0)
+    {
+        glGenBuffers(1, &ibo);
+    }
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, num_indices*sizeof(unsigned), src_indices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -576,7 +623,7 @@ void ResourceMesh::GenerateVBO(bool dynamic)
 
 void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
 {
-    assert((attribs & ATTRIB_BONES) != 0);
+    assert(mesh->HasBones());
 
     bones      = new Bone[mesh->mNumBones];
     num_bones  = mesh->mNumBones;
@@ -650,7 +697,11 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
 
 void ResourceMesh::GenerateVAO()
 {
-    glGenVertexArrays(1, &vao);
+    if(vao == 0)
+    {
+        glGenVertexArrays(1, &vao);
+    }
+
     glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -667,7 +718,7 @@ void ResourceMesh::GenerateVAO()
 	if ((attribs & ATTRIB_TEX_COORDS_0) != 0)
 	{
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(texcoord_offset));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(texcoord0_offset));
 	}
 
 	if((attribs & ATTRIB_BONES) != 0)
@@ -683,6 +734,13 @@ void ResourceMesh::GenerateVAO()
 		glEnableVertexAttribArray(5);
         glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(tangent_offset));
     }
+
+	if ((attribs & ATTRIB_TEX_COORDS_1) != 0)
+	{
+		glEnableVertexAttribArray(6);
+		glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(texcoord1_offset));
+	}
+
 
     glBindVertexArray(0);
 }
@@ -820,8 +878,8 @@ UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape)
 
     m->name = HashString(shape_name);
 
-    m->GenerateAttribInfo(shape);
     m->GenerateCPUBuffers(shape);
+    m->GenerateAttribInfo();
 
 	std::string output;
     bool ok = m->Save(shape_name, output);
@@ -829,37 +887,6 @@ UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape)
     m->ReleaseFromMemory();
 
     return ok ? m->uid : 0;
-}
-
-void ResourceMesh::GenerateAttribInfo (par_shapes_mesh* shape)
-{
-    vertex_size         = sizeof(float3);
-    attribs             = 0;
-    texcoord_offset     = 0;
-    normal_offset       = 0;
-    tangent_offset      = 0;
-    bone_weight_offset  = 0;
-
-    if(shape->normals)
-    {
-        attribs |= ATTRIB_NORMALS;
-        normal_offset = vertex_size*shape->npoints;
-        vertex_size += sizeof(float3);
-    }
-
-    if(shape->tcoords)
-    {
-        attribs |= ATTRIB_TEX_COORDS_0;
-        texcoord_offset = vertex_size*shape->npoints;
-        vertex_size += sizeof(float2);
-    }
-
-    if(shape->normals)
-    {
-        attribs |= ATTRIB_TANGENTS;
-        tangent_offset = vertex_size*shape->npoints;
-        vertex_size += sizeof(float3);
-    }
 }
 
 void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
@@ -888,7 +915,7 @@ void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
 	num_vertices = shape->npoints;
     num_indices  = shape->ntriangles*3;
 
-    if((attribs & ATTRIB_TANGENTS) != 0)
+    if(shape->normals)
     {
         GenerateTangentSpace();
     }
@@ -923,3 +950,91 @@ void ResourceMesh::Draw() const
     glBindVertexArray(0);
 }
 
+void ResourceMesh::GenerateTexCoord1()
+{
+    Atlas_Input_Mesh mesh_input;
+
+    mesh_input.vertex_count = num_vertices;
+    mesh_input.face_count   = num_indices/3;
+    mesh_input.vertex_array = new Atlas_Input_Vertex[num_vertices]; 
+    mesh_input.face_array   = new Atlas_Input_Face[num_indices/3]; 
+
+    for(uint i=0; i< num_vertices; ++i)
+    {
+        mesh_input.vertex_array[i].position[0] = src_vertices[i][0];
+        mesh_input.vertex_array[i].position[1] = src_vertices[i][1];
+        mesh_input.vertex_array[i].position[2] = src_vertices[i][2];
+
+        // \note: what if no normals or uvs?
+        mesh_input.vertex_array[i].normal[0] = src_normals[i][0];
+        mesh_input.vertex_array[i].normal[1] = src_normals[i][1];
+        mesh_input.vertex_array[i].normal[2] = src_normals[i][2];
+
+        mesh_input.vertex_array[i].uv[0] = src_texcoord0[i][0];
+        mesh_input.vertex_array[i].uv[1] = src_texcoord0[i][1];
+        mesh_input.vertex_array[i].uv[2] = src_texcoord0[i][2];
+
+        mesh_input.vertex_array[i].first_colocal = i;
+
+        for(uint j=0; j < i; ++j)
+        {
+            if(src_vertices[j].x == src_vertices[i].x &&
+			   src_vertices[j].y == src_vertices[i].y &&
+			   src_vertices[j].z == src_vertices[i].z)
+            {
+                mesh_input.vertex_array[i].first_colocal = j;
+                break;
+            }
+        }
+    }
+
+    for(uint i=0; i< num_indices/3; ++i)
+    {
+        mesh_input.face_array[i].material_index = 0;
+        mesh_input.face_array[i].vertex_index[0] = src_indices[i*3+0];
+        mesh_input.face_array[i].vertex_index[1] = src_indices[i*3+1];
+        mesh_input.face_array[i].vertex_index[2] = src_indices[i*3+2];
+    }
+
+    Atlas_Options atlas_options;
+    atlas_set_default_options(&atlas_options);
+
+    atlas_options.packer_options.witness.packing_quality = 1;
+
+    Atlas_Error error = Atlas_Error_Success;
+    Atlas_Output_Mesh * mesh_output = atlas_generate(&mesh_input, &atlas_options, &error);
+
+    GenerateCPUBuffers(mesh_output);
+    GenerateAttribInfo();
+    GenerateVBO();
+    GenerateVAO();
+
+    delete [] mesh_input.vertex_array;
+    delete [] mesh_input.face_array;
+
+    atlas_free(mesh_output);
+}
+
+void ResourceMesh::GenerateCPUBuffers(const Atlas_Output_Mesh* atlas)
+{
+    num_indices = atlas->index_count;
+    memcpy(src_indices, atlas->index_array, sizeof(int)*num_indices);
+
+    num_vertices  = atlas->vertex_count;
+    src_texcoord1 = new float2[num_vertices];
+
+    if(src_texcoord1)
+    {
+        delete [] src_texcoord1;
+    }
+
+    for(uint i=0; i < num_vertices; ++i)
+    {
+        src_texcoord1[i] = float2(atlas->vertex_array[i].uv[0], atlas->vertex_array[i].uv[1]);
+    }
+
+    copy_new_vertices(src_vertices, atlas->vertex_array, num_vertices);
+    copy_new_vertices(src_texcoord0, atlas->vertex_array, num_vertices);
+    copy_new_vertices(src_normals, atlas->vertex_array, num_vertices);
+    copy_new_vertices(src_tangents, atlas->vertex_array, num_vertices);
+}
