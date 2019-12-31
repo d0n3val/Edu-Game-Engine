@@ -593,6 +593,11 @@ void ResourceMesh::GenerateVBO()
         glBufferSubData(GL_ARRAY_BUFFER, texcoord0_offset, sizeof(float2)*num_vertices, src_texcoord0);
     }
 
+    if((attribs & ATTRIB_TEX_COORDS_1) != 0)
+    {
+        glBufferSubData(GL_ARRAY_BUFFER, texcoord1_offset, sizeof(float2)*num_vertices, src_texcoord1);
+    }
+
     if((attribs & ATTRIB_NORMALS) != 0)
     {
         glBufferSubData(GL_ARRAY_BUFFER, normal_offset, sizeof(float3)*num_vertices, src_normals);
@@ -983,7 +988,7 @@ void ResourceMesh::GenerateTexCoord1()
 			   src_vertices[j].z == src_vertices[i].z)
             {
                 mesh_input.vertex_array[i].first_colocal = j;
-                break;
+                //break;
             }
         }
     }
@@ -1021,16 +1026,16 @@ void ResourceMesh::GenerateCPUBuffers(const Atlas_Output_Mesh* atlas)
     memcpy(src_indices, atlas->index_array, sizeof(int)*num_indices);
 
     num_vertices  = atlas->vertex_count;
-    src_texcoord1 = new float2[num_vertices];
-
     if(src_texcoord1)
     {
         delete [] src_texcoord1;
     }
 
-    for(uint i=0; i < num_vertices; ++i)
+	src_texcoord1 = new float2[num_vertices];
+
+	for(uint i=0; i < num_vertices; ++i)
     {
-        src_texcoord1[i] = float2(atlas->vertex_array[i].uv[0], atlas->vertex_array[i].uv[1]);
+        src_texcoord1[i] = float2(atlas->vertex_array[i].uv[0]/atlas->atlas_width, atlas->vertex_array[i].uv[1]/atlas->atlas_height);
     }
 
     copy_new_vertices(src_vertices, atlas->vertex_array, num_vertices);

@@ -568,6 +568,10 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
         {
             strcat_s(attributes, "\n\tTexCoords0");
         }
+        if((res->attribs & ResourceMesh::ATTRIB_TEX_COORDS_1) != 0)
+        {
+            strcat_s(attributes, "\n\tTexCoords1");
+        }
         if((res->attribs & ResourceMesh::ATTRIB_NORMALS) != 0)
         {
             strcat_s(attributes, "\n\tNormals");
@@ -583,6 +587,11 @@ void PanelProperties::DrawMeshComponent(ComponentMesh * component)
         strcat_s(attributes, "\n\n");
 
         ImGui::TextColored(ImVec4(1,1,0,1), attributes);
+
+        if(ImGui::Button("Generate lightmap UVs"))
+        {
+            component->GetResource()->GenerateTexCoord1();
+        }
 
         bool visible = component->GetVisible();
         if(ImGui::Checkbox("Visible", &visible))
@@ -1483,12 +1492,22 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
         }
         ImGui::EndChild();
 
-        ImGui::Indent(tex_size.x-300);
+        ImGui::Indent(tex_size.x-400);
 
         if(ImGui::Checkbox("show uvs", &preview_uvs) )
         {
             GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
         }
+
+        ImGui::SameLine();
+        ImGui::PushItemWidth(96);
+
+        if(ImGui::Combo("Set",(int*)&preview_set, "UV set 0\0UV set 1"))
+        {
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+        }
+
+        ImGui::PushItemWidth(0.0);
 
         ImGui::SameLine();
 
@@ -1562,7 +1581,7 @@ void PanelProperties::DrawPreviewUVs(const ResourceMesh* mesh)
     preview_fb->Bind();
     glViewport(0, 0, preview_width, preview_height);
     glClear(GL_DEPTH_BUFFER_BIT);
-    App->programs->UseProgram("show_uvs", 0);
+    App->programs->UseProgram("show_uvs", preview_set);
     glUniform4fv(0, 1, (const float*)&uv_color);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);

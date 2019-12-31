@@ -1,8 +1,13 @@
 layout(location = 0) in vec3 vertex_position;
-layout(location = 2) in vec2 vertex_uv0;
+
+#if TEXCOORD1
+layout(location = 6) in vec2 vertex_uv;
+#else
+layout(location = 2) in vec2 vertex_uv;
+#endif
 
 void main()
 {
-    gl_Position = vec4(vertex_uv0*2-1, 0.0, 1.0);
+    gl_Position = vec4(vertex_uv*2-1, 0.0, 1.0);
 }
 	

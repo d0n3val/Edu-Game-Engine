@@ -585,7 +585,9 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("bloom", "Assets/Shaders/postprocess.vs", "Assets/Shaders/bloom.fs", bloom_macros, 
             num_bloom_macros, nullptr, 0);
 
-    App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", nullptr, 0, nullptr, 0);
+    const char* show_uv_macros[]       = { "#define TEXCOORD1 1 \n" }; 
+    const unsigned num_uv_macros  = sizeof(show_uv_macros)/sizeof(const char*);
+    App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const
