@@ -26,6 +26,7 @@
 #include "ModuleWindow.h"
 #include "ModuleHints.h"
 #include "ModulePrograms.h"
+#include "ModuleInput.h"
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
@@ -1483,16 +1484,38 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
 {
     ImVec2 tex_size = ImVec2(float(preview_width), float(preview_height));
 
+    float out_width = texture->GetWidth()*float(preview_zoom/100.0f);
+    float out_height = texture->GetHeight()*(preview_zoom/100.0f);
+
+    ImVec2 out_size = ImVec2(out_width, out_height);
+
     ImGui::SetNextWindowSize(ImVec2(tex_size.x+20, tex_size.y+80));
     if (ImGui::BeginPopupModal("show texture", nullptr, ImGuiWindowFlags_NoResize))
     {
-        if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove))
+
+        if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar))
         {
-            ImGui::Image((ImTextureID)preview_texture->Id(), tex_size, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((ImTextureID)preview_texture->Id(), out_size, ImVec2(0, 1), ImVec2(1, 0));
         }
         ImGui::EndChild();
 
-        ImGui::Indent(tex_size.x-400);
+        ImGui::Indent(tex_size.x - 564.0f);
+
+		if (App->input->GetMouseWheel() != 0)
+		{
+			preview_zoom = std::max(preview_zoom + App->input->GetMouseWheel()*1.0f, 0.0f);
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+		}
+
+        ImGui::PushItemWidth(96);
+        if(ImGui::DragFloat("Zoom", &preview_zoom))
+        {
+			preview_zoom = std::max(preview_zoom, 0.0f);
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+        }
+        ImGui::PushItemWidth(0);
+
+        ImGui::SameLine();
 
         if(ImGui::Checkbox("show uvs", &preview_uvs) )
         {
@@ -1543,13 +1566,16 @@ void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* textur
         preview_width   = uint(float(width)*min_av);
         preview_height  = uint(float(height)*min_av);
 
-        GeneratePreviewBlitFB(texture);
-        GeneratePreviewFB(preview_width, preview_height);
+        uint out_width  = uint(width*float(preview_zoom/100.0f));
+        uint out_height = uint(height*(preview_zoom/100.0f));
 
-        preview_blit_fb->BlitTo(preview_fb.get(), 0, 0, width, height, 0, 0, preview_width, preview_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        GeneratePreviewBlitFB(texture);
+        GeneratePreviewFB(out_width, out_height);
+
+        preview_blit_fb->BlitTo(preview_fb.get(), 0, 0, width, height, 0, 0, out_width, out_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
         if(preview_uvs)
         {
-            DrawPreviewUVs(mesh);
+            DrawPreviewUVs(mesh, out_width, out_height);
         }
     }
     else
@@ -1576,10 +1602,10 @@ void PanelProperties::GeneratePreviewFB(uint width, uint height)
     preview_fb->AttachColor(preview_texture.get());
 }
 
-void PanelProperties::DrawPreviewUVs(const ResourceMesh* mesh)
+void PanelProperties::DrawPreviewUVs(const ResourceMesh* mesh, uint width, uint height)
 {
     preview_fb->Bind();
-    glViewport(0, 0, preview_width, preview_height);
+    glViewport(0, 0, width, height);
     glClear(GL_DEPTH_BUFFER_BIT);
     App->programs->UseProgram("show_uvs", preview_set);
     glUniform4fv(0, 1, (const float*)&uv_color);

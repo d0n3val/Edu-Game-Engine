@@ -988,7 +988,6 @@ void ResourceMesh::GenerateTexCoord1()
 			   src_vertices[j].z == src_vertices[i].z)
             {
                 mesh_input.vertex_array[i].first_colocal = j;
-                //break;
             }
         }
     }

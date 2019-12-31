@@ -74,7 +74,7 @@ private:
     void GeneratePreview(uint width, uint height, Texture2D* texture, const ResourceMesh* mesh);
     void GeneratePreviewFB(uint width, uint height);
     void GeneratePreviewBlitFB(Texture2D* texture);
-    void DrawPreviewUVs(const ResourceMesh* mesh);
+    void DrawPreviewUVs(const ResourceMesh* mesh, uint width, uint height);
 
 private:
 
@@ -86,6 +86,7 @@ private:
     bool                         preview_uvs    = false;
     math::float4                 uv_color       = math::float4(1.0f, 1.0f, 1.0f, 1.0f);
     uint                         preview_set    = 0;
+    float                        preview_zoom   = 100.0;
 };
 
 #endif// __PANELPROPERTIES_H__
