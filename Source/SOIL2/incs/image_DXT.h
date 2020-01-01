@@ -12,6 +12,20 @@
 
 /**
 	Converts an image from an array of unsigned chars (RGB or RGBA) to
+	DXT1 or DXT5, then saves the converted image to function.
+	\return 0 if failed, otherwise returns 1
+**/
+int
+save_image_as_DDS_to_func
+(
+    void (*func) (void *context, void *data, int size),
+    void* context,
+    int width, int height, int channels,
+    const unsigned char *const data
+);
+
+/**
+	Converts an image from an array of unsigned chars (RGB or RGBA) to
 	DXT1 or DXT5, then saves the converted image to disk.
 	\return 0 if failed, otherwise returns 1
 **/

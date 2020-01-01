@@ -122,6 +122,17 @@ void ModuleResources::ReceiveEvent(const Event& event)
 	}
 }
 
+void ModuleResources::SaveTypedResources(Resource::Type type)
+{
+    for (map<UID, Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+    {
+        if (it->first > RESERVED_RESOURCES && it->second->GetType() == Resource::texture)
+        {
+            static_cast<ResourceTexture*>(it->second)->Save();
+        }
+    }
+}
+
 void ModuleResources::SaveResources() const
 {
 	bool ret = true;

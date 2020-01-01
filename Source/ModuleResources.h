@@ -28,6 +28,7 @@ public:
 	bool CleanUp() override;
 	void ReceiveEvent(const Event& event) override;
 
+    void SaveTypedResources(Resource::Type type);
 	void SaveResources() const;
 	void LoadResources();
     void SaveResourcesTo(const char* path);

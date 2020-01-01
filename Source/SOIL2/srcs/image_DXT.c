@@ -98,6 +98,62 @@ int
 	return 1;
 }
 
+int
+	save_image_as_DDS_to_func
+	(
+    void (*func) (void *context, void *data, int size),
+    void* context, int width, int height, int channels,
+     const unsigned char *const data
+    )
+{
+	/*	variables	*/
+	unsigned char *DDS_data;
+	DDS_header header;
+	int DDS_size;
+	/*	error check	*/
+	if( (NULL == func) ||
+		(width < 1) || (height < 1) ||
+		(channels < 1) || (channels > 4) ||
+		(data == NULL ) )
+	{
+		return 0;
+	}
+	/*	Convert the image	*/
+	if( (channels & 1) == 1 )
+	{
+		/*	no alpha, just use DXT1	*/
+		DDS_data = convert_image_to_DXT1( data, width, height, channels, &DDS_size );
+	} else
+	{
+		/*	has alpha, so use DXT5	*/
+		DDS_data = convert_image_to_DXT5( data, width, height, channels, &DDS_size );
+	}
+	/*	save it	*/
+	memset( &header, 0, sizeof( DDS_header ) );
+	header.dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
+	header.dwSize = 124;
+	header.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_LINEARSIZE;
+	header.dwWidth = width;
+	header.dwHeight = height;
+	header.dwPitchOrLinearSize = DDS_size;
+	header.sPixelFormat.dwSize = 32;
+	header.sPixelFormat.dwFlags = DDPF_FOURCC;
+	if( (channels & 1) == 1 )
+	{
+		header.sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('1' << 24);
+	} else
+	{
+		header.sPixelFormat.dwFourCC = ('D' << 0) | ('X' << 8) | ('T' << 16) | ('5' << 24);
+	}
+	header.sCaps.dwCaps1 = DDSCAPS_TEXTURE;
+
+   (*func)(context, &header, sizeof(header));
+   (*func)(context, DDS_data, DDS_size);
+
+   free( DDS_data );
+   return 1;
+}
+
 unsigned char* convert_image_to_DXT1(
 		const unsigned char *const uncompressed,
 		int width, int height, int channels,

@@ -3,6 +3,7 @@
 
 #include "Resource.h"
 #include "OGL.h"
+#include "utils/SimpleBinStream.h"
 
 class ResourceTexture : public Resource
 {
@@ -29,6 +30,7 @@ public:
 	bool             LoadInMemory() override;
     void             ReleaseFromMemory() override;
 
+    bool             Save         ();
 	void             Save         (Config& config) const override;
 	void             Load         (const Config& config) override;
 
@@ -45,6 +47,10 @@ public:
 
     void             SetLinear    (bool l);
     void             EnableMips   (bool enable);
+
+private:
+
+    bool             SaveToStream (simple::mem_ostream<std::true_type>& write_stream) const;
 
 private:
 
