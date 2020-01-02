@@ -18,11 +18,12 @@
 int
 save_image_as_DDS_to_func
 (
-    void (*func) (void *context, void *data, int size),
-    void* context,
+    void (*func)(void *context, void *data, int size),
+    void* context,  
     int width, int height, int channels,
     const unsigned char *const data
 );
+
 
 /**
 	Converts an image from an array of unsigned chars (RGB or RGBA) to
@@ -58,6 +59,7 @@ convert_image_to_DXT5
     int width, int height, int channels,
     int *out_size
 );
+
 
 /**	A bunch of DirectDraw Surface structures and flags **/
 typedef struct

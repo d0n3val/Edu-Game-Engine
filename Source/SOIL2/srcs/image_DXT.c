@@ -99,12 +99,13 @@ int
 }
 
 int
-	save_image_as_DDS_to_func
-	(
-    void (*func) (void *context, void *data, int size),
-    void* context, int width, int height, int channels,
-     const unsigned char *const data
-    )
+save_image_as_DDS_to_func
+(
+    void (*func)(void *context, void *data, int size),
+	void* context,
+	int width, int height, int channels,
+	const unsigned char *const data
+)
 {
 	/*	variables	*/
 	unsigned char *DDS_data;
@@ -147,8 +148,8 @@ int
 	}
 	header.sCaps.dwCaps1 = DDSCAPS_TEXTURE;
 
-   (*func)(context, &header, sizeof(header));
-   (*func)(context, DDS_data, DDS_size);
+    (*func)(context, &header, sizeof(header));
+    (*func)(context, DDS_data, DDS_size);
 
    free( DDS_data );
    return 1;

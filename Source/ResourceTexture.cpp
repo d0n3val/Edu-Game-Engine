@@ -88,14 +88,8 @@ bool ResourceTexture::SaveToStream(simple::mem_ostream<std::true_type>& write_st
 		int width, height, channels;
 		unsigned char* bytes = SOIL_load_image_from_memory((unsigned char*)buffer, size, &width, &height, &channels, SOIL_LOAD_AUTO);
 
-		if (compressed)
-		{
-			ok = stbi_write_tga_to_func(&my_stbi_write_func, &write_stream, width, height, channels, (void*)bytes);
-		}
-		else
-		{
-			ok = save_image_as_DDS_to_func(&my_stbi_write_func, &write_stream, width, height, channels, (const unsigned char*)bytes);
-		}
+        ok = SOIL_save_image_to_func(&my_stbi_write_func, &write_stream, compressed ? SOIL_SAVE_TYPE_DDS : SOIL_SAVE_TYPE_TGA, 
+                                     width, height , channels, bytes);
 	}
 
     RELEASE_ARRAY(buffer);

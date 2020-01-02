@@ -428,6 +428,17 @@ int
 		const unsigned char *const data
 	);
 
+int
+	SOIL_save_image_to_func
+	(
+        void (*func)(void *context, void *data, int size),
+        void* context,  
+		int image_type,
+		int width, int height, int channels,
+		const unsigned char *const data
+	);
+
+
 /**
 	Frees the image data (note, this is just C's "free()"...this function is
 	present mostly so C++ programmers don't forget to use "free()" and call
