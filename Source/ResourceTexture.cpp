@@ -57,6 +57,7 @@ bool ResourceTexture::Save()
 {
     simple::mem_ostream<std::true_type> write_stream;
 
+    // note: is better option to just save the buffer but for now is a good soil2 test
     bool ok = SaveToStream(write_stream);
 
     if(ok)
@@ -90,6 +91,8 @@ bool ResourceTexture::SaveToStream(simple::mem_ostream<std::true_type>& write_st
 
         ok = SOIL_save_image_to_func(&my_stbi_write_func, &write_stream, compressed ? SOIL_SAVE_TYPE_DDS : SOIL_SAVE_TYPE_TGA, 
                                      width, height , channels, bytes);
+
+        SOIL_free_image_data(bytes);
 	}
 
     RELEASE_ARRAY(buffer);

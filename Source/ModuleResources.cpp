@@ -124,19 +124,30 @@ void ModuleResources::ReceiveEvent(const Event& event)
 
 void ModuleResources::SaveTypedResources(Resource::Type type)
 {
-    for (map<UID, Resource*>::const_iterator it = resources.begin(); it != resources.end(); ++it)
+    for (map<UID, Resource*>::const_iterator it = resources.begin(); it != resources.end(); )
     {
         if (it->first > RESERVED_RESOURCES && it->second->GetType() == Resource::texture)
         {
-            static_cast<ResourceTexture*>(it->second)->Save();
+            if(!static_cast<ResourceTexture*>(it->second)->Save())
+            {
+                it = resources.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        else
+        {
+            ++it;
         }
     }
+
+    SaveResources();
 }
 
 void ModuleResources::SaveResources() const
 {
-	bool ret = true;
-
 	Config save;
 
 	// Add header info
