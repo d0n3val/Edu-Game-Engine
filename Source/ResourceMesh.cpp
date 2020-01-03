@@ -998,6 +998,10 @@ void ResourceMesh::GenerateTexCoord1()
         mesh_input.face_array[i].vertex_index[0] = src_indices[i*3+0];
         mesh_input.face_array[i].vertex_index[1] = src_indices[i*3+1];
         mesh_input.face_array[i].vertex_index[2] = src_indices[i*3+2];
+
+		assert(src_indices[i * 3 + 0] < num_vertices);
+		assert(src_indices[i * 3 + 1] < num_vertices);
+		assert(src_indices[i * 3 + 2] < num_vertices);
     }
 
     Atlas_Options atlas_options;
