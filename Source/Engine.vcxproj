@@ -59,7 +59,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnablePREfast>false</EnablePREfast>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
@@ -85,7 +85,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnablePREfast>false</EnablePREfast>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -409,6 +409,55 @@
     <ClCompile Include="SOIL2\srcs\SOIL2.c" />
     <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="StateViewport.cpp" />
+    <ClCompile Include="thekla_atlas\extern\poshlib\posh.c" />
+    <ClCompile Include="thekla_atlas\src\nvcore\Debug.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvcore\FileSystem.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvcore\Memory.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvcore\RadixSort.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvcore\StrLib.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvcore\TextWriter.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvimage\BitMap.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvimage\Image.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\Basis.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\Box.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\ConvexHull.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\Fitting.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\Matrix.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\NVPlane.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\NVSphere.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\ProximityGrid.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\Random.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\Solver.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\Sparse.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\TypeSerialization.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmath\Vector.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\BaseMesh.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\export\MeshExportOBJ.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\geometry\Bounds.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\geometry\Measurements.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\halfedge\Edge.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\halfedge\Face.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\halfedge\Mesh.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\halfedge\Vertex.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\MeshBuilder.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\MeshTopology.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\nvmesh.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\Atlas.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\AtlasBuilder.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\AtlasPacker.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\BoundaryMap.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\ConformalMap.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\LeastSquaresConformalMap.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\OrthogonalProjectionMap.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\ParameterizationQuality.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\SingleFaceMap.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\Util.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\QuadTriMesh.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\raster\Raster.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\TriMesh.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\weld\Snap.cpp" />
+    <ClCompile Include="thekla_atlas\src\nvmesh\weld\VertexWeld.cpp" />
+    <ClCompile Include="thekla_atlas\src\thekla\thekla_atlas.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="PhysVehicle3D.cpp" />
     <ClCompile Include="tinyspline\include\tinyspline.c" />

@@ -73,6 +73,9 @@
     <Filter Include="3rd Party\imgui-node-editor">
       <UniqueIdentifier>{4cd4b3a5-9f57-47f3-80a2-ff44fa8f504e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\thekla">
+      <UniqueIdentifier>{956abef9-717b-4a0c-8a66-1cde369193c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -1015,6 +1018,153 @@
     </ClCompile>
     <ClCompile Include="OGL.cpp">
       <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\Atlas.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\AtlasBuilder.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\AtlasPacker.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\BaseMesh.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\Basis.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvimage\BitMap.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\BoundaryMap.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\geometry\Bounds.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\Box.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\ConformalMap.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\ConvexHull.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvcore\Debug.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\halfedge\Edge.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\halfedge\Face.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvcore\FileSystem.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\Fitting.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvimage\Image.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\LeastSquaresConformalMap.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\Matrix.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\geometry\Measurements.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvcore\Memory.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\halfedge\Mesh.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\MeshBuilder.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\export\MeshExportOBJ.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\MeshTopology.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\nvmesh.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\OrthogonalProjectionMap.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\ParameterizationQuality.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\extern\poshlib\posh.c">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\ProximityGrid.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\QuadTriMesh.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvcore\RadixSort.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\Random.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\raster\Raster.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\SingleFaceMap.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\weld\Snap.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\Solver.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\Sparse.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvcore\StrLib.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvcore\TextWriter.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\thekla\thekla_atlas.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\TriMesh.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\TypeSerialization.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\param\Util.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\Vector.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\halfedge\Vertex.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmesh\weld\VertexWeld.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\NVPlane.cpp">
+      <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="thekla_atlas\src\nvmath\NVSphere.cpp">
+      <Filter>3rd Party\thekla</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

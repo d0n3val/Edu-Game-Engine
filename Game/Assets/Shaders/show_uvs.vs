@@ -8,6 +8,6 @@ layout(location = 2) in vec2 vertex_uv;
 
 void main()
 {
-    gl_Position = vec4(vertex_uv*2-1, 0.0, 1.0);
+    gl_Position = vec4(mod(vertex_uv, 1.0f)*2-1, 0.0, 1.0);
 }
 	

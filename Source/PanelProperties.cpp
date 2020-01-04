@@ -46,15 +46,10 @@
 
 #include "OpenGL.h"
 
-#include "thekla_atlas/thekla_atlas.h"
-
 #include <list>
 #include <algorithm>
 
 #include "mmgr/mmgr.h"
-
-#pragma comment( lib, "thekla_atlas/thekla_atlas.lib" )
-
 
 using namespace std;
 
@@ -1563,15 +1558,18 @@ void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* textur
 	int window_width  = App->window->GetWidth();
 	int window_height = App->window->GetHeight();
 
+	uint new_width = std::max(width, uint(1024));
+	uint new_height = std::max(height, uint(1024));
+
     if(window_width > 50 && window_height > 110)
     {
-        float width_av  = float(window_width-50)/float(width);
-        float height_av = float(window_height-110)/float(height);
+        float width_av  = float(window_width-50)/float(new_width);
+        float height_av = float(window_height-110)/float(new_height);
 
         float min_av    = std::min(std::min(width_av, height_av), 1.0f);
 
-        preview_width   = uint(float(width)*min_av);
-        preview_height  = uint(float(height)*min_av);
+        preview_width   = uint(float(new_width)*min_av);
+        preview_height  = uint(float(new_height)*min_av);
 
         uint out_width  = uint(width*float(preview_zoom/100.0f));
         uint out_height = uint(height*(preview_zoom/100.0f));

@@ -55,47 +55,24 @@ void ResourceTexture::ReleaseFromMemory()
 // ---------------------------------------------------------
 bool ResourceTexture::Save() 
 {
-    simple::mem_ostream<std::true_type> write_stream;
+	char* buffer = nullptr;
 
-    // note: is better option to just save the buffer but for now is a good soil2 test
-    bool ok = SaveToStream(write_stream);
+    uint size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, GetExportedFile(), &buffer);
+
+    bool ok = size > 0 && buffer != nullptr;
 
     if(ok)
     {
-        const std::vector<char>& data = write_stream.get_internal_vec();
-
         assert(exported_file.length() > 0);
 
         char full_path[250];
 
         sprintf_s(full_path, 250, "%s%s", LIBRARY_TEXTURES_FOLDER, exported_file.c_str());
 
-        ok = App->fs->Save(full_path, &data[0], data.size()) > 0;
+        ok = App->fs->Save(full_path, buffer, size) > 0;
+
+        RELEASE_ARRAY(buffer);
     }
-
-    return ok;
-}
-
-// ---------------------------------------------------------
-bool ResourceTexture::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
-{
-	char* buffer = nullptr;
-	uint size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, GetExportedFile(), &buffer);
-
-    bool ok = buffer != nullptr && size > 0;
-
-	if(ok)
-	{
-		int width, height, channels;
-		unsigned char* bytes = SOIL_load_image_from_memory((unsigned char*)buffer, size, &width, &height, &channels, SOIL_LOAD_AUTO);
-
-        ok = SOIL_save_image_to_func(&my_stbi_write_func, &write_stream, compressed ? SOIL_SAVE_TYPE_DDS : SOIL_SAVE_TYPE_TGA, 
-                                     width, height , channels, bytes);
-
-        SOIL_free_image_data(bytes);
-	}
-
-    RELEASE_ARRAY(buffer);
 
     return ok;
 }

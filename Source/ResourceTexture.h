@@ -50,10 +50,6 @@ public:
 
 private:
 
-    bool             SaveToStream (simple::mem_ostream<std::true_type>& write_stream) const;
-
-private:
-
 	uint width      = 0;
 	uint height     = 0;
 	uint depth      = 0;

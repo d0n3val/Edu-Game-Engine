@@ -9,7 +9,7 @@
 
 #include "Assimp/include/mesh.h"
 #include "utils/SimpleBinStream.h"
-#include "thekla_atlas/thekla_atlas.h"
+#include "thekla_atlas/src/thekla/thekla_atlas.h"
 
 #pragma warning(push)
 #pragma warning(disable : 4996)  
@@ -975,12 +975,12 @@ void ResourceMesh::GenerateTexCoord1()
         mesh_input.vertex_array[i].normal[1] = src_normals[i][1];
         mesh_input.vertex_array[i].normal[2] = src_normals[i][2];
 
-        mesh_input.vertex_array[i].uv[0] = src_texcoord0[i][0];
-        mesh_input.vertex_array[i].uv[1] = src_texcoord0[i][1];
-        mesh_input.vertex_array[i].uv[2] = src_texcoord0[i][2];
+		mesh_input.vertex_array[i].uv[0] = src_texcoord0[i][0];
+		mesh_input.vertex_array[i].uv[1] = src_texcoord0[i][1];
 
         mesh_input.vertex_array[i].first_colocal = i;
 
+		/*
         for(uint j=0; j < i; ++j)
         {
             if(src_vertices[j].x == src_vertices[i].x &&
@@ -990,6 +990,7 @@ void ResourceMesh::GenerateTexCoord1()
                 mesh_input.vertex_array[i].first_colocal = j;
             }
         }
+		*/
     }
 
     for(uint i=0; i< num_indices/3; ++i)
@@ -1008,6 +1009,7 @@ void ResourceMesh::GenerateTexCoord1()
     atlas_set_default_options(&atlas_options);
 
     atlas_options.packer_options.witness.packing_quality = 1;
+	atlas_options.packer_options.witness.texels_per_unit = 2.0f;
 
     Atlas_Error error = Atlas_Error_Success;
     Atlas_Output_Mesh * mesh_output = atlas_generate(&mesh_input, &atlas_options, &error);
