@@ -11,6 +11,7 @@
 #include "ModuleEditorCamera.h"
 #include "ModuleHints.h"
 #include "ModulePrograms.h"
+#include "ModuleLevelManager.h"
 
 #include "GameObject.h"
 
@@ -61,6 +62,26 @@ void SceneViewport::Draw(ComponentCamera* camera)
         if (debug_draw == true)
         {
             App->DebugDraw();
+        }
+
+
+        ImVec2 cursor = ImGui::GetCursorScreenPos();
+        ImVec2 mouse = ImGui::GetMousePos();
+        ImVec2 rel_position = ImVec2(mouse.x-cursor.x, mouse.y-cursor.y);
+        if(ImGui::IsMouseClicked(0, false) && rel_position.x >= 0 && rel_position.x <= width && rel_position.y >= 0 && rel_position.y <= height)
+        {
+            selection_buffer.framebuffer->Bind();
+            glViewport(0, 0, fb_width, fb_height);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			App->renderer->DrawForSelection(camera);
+
+			float selection_value;
+            glReadPixels(int(rel_position.x), int(height-rel_position.y), 1, 1, GL_RED, GL_FLOAT, &selection_value);
+            unsigned uid = *((unsigned*)&selection_value);
+
+            App->editor->SetSelected(App->level->Find(uid), false);
         }
 
         bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
@@ -160,8 +181,15 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
         GenerateFBO(framebuffers[FRAMEBUFFER_MSAA], w, h, true, true, true);
         GenerateFBO(framebuffers[FRAMEBUFFER_POSTPROCESS], w, h, false, false, false);
 
-		fb_width = w;
-		fb_height = h;
+        selection_buffer.framebuffer = std::make_unique<Framebuffer>(); 
+        selection_buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_R32F, GL_RED, GL_FLOAT, nullptr, false);
+        selection_buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+
+        selection_buffer.framebuffer->AttachColor(selection_buffer.texture_color.get());
+		selection_buffer.framebuffer->AttachDepthStencil(selection_buffer.texture_depth.get());
+
+        fb_width = w;
+        fb_height = h;
     }
 }
 

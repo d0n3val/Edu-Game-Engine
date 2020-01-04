@@ -297,6 +297,20 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
     ColorPass(proj, view, view_pos, fbo, width, height);
 }
 
+void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
+{
+	opaque_nodes.clear();
+    transparent_nodes.clear();
+
+	float4x4 proj   = camera->GetProjectionMatrix();	
+	float4x4 view   = camera->GetViewMatrix();
+    float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
+
+    CollectObjects(view_pos, App->level->GetRoot());
+
+    SelectionPass(proj, view);
+}
+
 void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigned height)
 {
     uint shadow_width[3] = { 384, 384, 256};
@@ -376,10 +390,7 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
 void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const float3& view_pos, 
                                unsigned fbo, unsigned width, unsigned height)
 {
-    glViewport(0, 0, width, height);
-
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
     // Set camera uniforms shared for all
     App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
 
@@ -428,6 +439,19 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
     //DrawSkybox(proj, view);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
+{
+    // Set camera uniforms shared for all
+    App->programs->UseProgram("selection", 0);
+
+    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+
+
+    DrawNodes(opaque_nodes, &ModuleRenderer::DrawSelection);
+    DrawNodes(transparent_nodes, &ModuleRenderer::DrawSelection);
 }
 
 void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
@@ -537,6 +561,31 @@ void ModuleRenderer::DrawShadow(const TRenderInfo& render_info)
     }
 }
 
+void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
+{
+    App->programs->UseProgram("selection", 0);
+
+    uint uid = render_info.go->GetUID();
+
+	glUniform1f(1, *((float*)&uid));
+
+    if(render_info.mesh)
+    {
+        // update selection uniform
+        render_info.mesh->Draw();
+    }
+    else if(render_info.particles)
+    {
+        // update selection uniform
+        render_info.particles->Draw(false);
+    }
+    else if(render_info.trail && render_info.trail)
+    {
+        // update selection uniform
+        render_info.trail->Draw();
+    }
+}
+
 void ModuleRenderer::DrawMeshColor(const ComponentMesh* mesh)
 {
     App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
@@ -588,6 +637,8 @@ void ModuleRenderer::LoadDefaultShaders()
     const char* show_uv_macros[]       = { "#define TEXCOORD1 1 \n" }; 
     const unsigned num_uv_macros  = sizeof(show_uv_macros)/sizeof(const char*);
     App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros, nullptr, 0);
+
+    App->programs->Load("selection", "Assets/Shaders/selection.vs", "Assets/Shaders/selection.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const

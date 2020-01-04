@@ -105,6 +105,7 @@ public:
 
 	bool                Init                        (Config* config = nullptr) override;
     void                Draw                        (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
+    void                DrawForSelection            (ComponentCamera* camera);
     void                Postprocess                 (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
 
 	void                DrawDebug                   () override;
@@ -118,6 +119,7 @@ private:
     void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);
     void                ColorPass                   (const float4x4& proj, const float4x4& view, const float3& view_pos, 
                                                      unsigned fbo, unsigned width, unsigned height);
+    void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();
     void                CreatePostprocessData       ();
@@ -131,6 +133,7 @@ private:
     void                DrawMeshColor               (const ComponentMesh* mesh);
     void                DrawParticles               (ComponentParticleSystem* particles);
     void                DrawTrails                  (ComponentTrail* trail);
+    void                DrawSelection               (const TRenderInfo& render_info);
 
     void                CollectObjects              (const float3& camera_pos, GameObject* go);
     void                UpdateLightUniform          () const;

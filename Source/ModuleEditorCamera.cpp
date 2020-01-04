@@ -99,7 +99,7 @@ update_status ModuleEditorCamera::Update(float dt)
 		// Check motion for lookat / Orbit cameras
 		int motion_x, motion_y;
 		App->input->GetMouseMotion(motion_x, motion_y);
-		if (App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_REPEAT && (motion_x != 0 || motion_y != 0))
+		if (App->input->GetMouseButton(SDL_BUTTON_MIDDLE) == KEY_REPEAT && (motion_x != 0 || motion_y != 0))
 		{
 			float dx = (float)-motion_x * rot_speed * dt;
 			float dy = (float)-motion_y * rot_speed * dt;

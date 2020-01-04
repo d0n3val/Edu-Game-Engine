@@ -67,6 +67,7 @@ private:
     };
 
     FramebufferInfo framebuffers[FRAME_BUFFER_COUNT];
+    FramebufferInfo selection_buffer;
 
     unsigned    fb_width    = 0;
     unsigned    fb_height   = 0;
