@@ -462,36 +462,41 @@ void ModuleRenderer::ColorPass(GameObject* selection, const float4x4& proj, cons
 
     if(selected_info.mesh)
     {
-		glEnable(GL_STENCIL_TEST);
-		glStencilMask(0XFF);
-		glStencilFunc(GL_ALWAYS, 1, 0XFF);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        static bool enable = true;
 
-		DrawMeshColor(selected_info.mesh);
+        if(enable)
+        {
+            glStencilMask(0XFF);
+            glStencilFunc(GL_ALWAYS, 1, 0XFF);
+			glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
 
-        App->programs->UseProgram("outline", 0);
+            App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
 
-        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+            DrawMeshColor(selected_info.mesh);
 
-		
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00);
-        glDisable(GL_DEPTH_TEST);
+            App->programs->UseProgram("outline", 0);
 
-        float4x4 transform = App->editor->selected.go->GetGlobalTransformation();
+            glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+            glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
 
-        glLineWidth(3);
-        glPolygonMode(GL_FRONT, GL_LINE);
+            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+            glStencilMask(0xFF);
+            glDisable(GL_DEPTH_TEST);
 
-        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+            float4x4 transform = App->editor->selected.go->GetGlobalTransformation();
 
-        selected_info.mesh->GetResource()->UpdateUniforms(selected_info.mesh->UpdateSkinPalette());
-		selected_info.mesh->GetResource()->Draw();
+            glLineWidth(5);
+            glPolygonMode(GL_FRONT, GL_LINE);
 
-        glPolygonMode(GL_FRONT, GL_FILL);
-        glEnable(GL_DEPTH_TEST);
-        App->programs->UnuseProgram();
+            glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+
+            selected_info.mesh->GetResource()->UpdateUniforms(selected_info.mesh->UpdateSkinPalette());
+            selected_info.mesh->GetResource()->Draw();
+
+            glPolygonMode(GL_FRONT, GL_FILL);
+            glEnable(GL_DEPTH_TEST);
+            App->programs->UnuseProgram();
+        }
     }
 
     //DrawSkybox(proj, view);

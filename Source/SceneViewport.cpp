@@ -68,7 +68,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
         ImVec2 mouse = ImGui::GetMousePos();
         ImVec2 rel_position = ImVec2(mouse.x-cursor.x, mouse.y-cursor.y);
 
-        if(ImGui::IsMouseClicked(0, false) && rel_position.x >= 0 && rel_position.x <= width && rel_position.y >= 0 && rel_position.y <= height)
+        if(focused && ImGui::IsMouseClicked(0, false) && rel_position.x >= 0 && rel_position.x <= width && rel_position.y >= 0 && rel_position.y <= height)
         {
             PickSelection(camera, (int)rel_position.x, (int)rel_position.y);
         }
@@ -83,7 +83,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
         glEnable(GL_STENCIL_TEST);
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
-		glClearStencil(0);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -205,7 +205,7 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
         selection_buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
         selection_buffer.framebuffer->AttachColor(selection_buffer.texture_color.get());
-		selection_buffer.framebuffer->AttachDepthStencil(selection_buffer.texture_depth.get(), GL_DEPTH_STENCIL_ATTACHMENT);
+		selection_buffer.framebuffer->AttachDepthStencil(selection_buffer.texture_depth.get(), GL_DEPTH_ATTACHMENT);
 
         fb_width = w;
         fb_height = h;
