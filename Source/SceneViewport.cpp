@@ -64,24 +64,13 @@ void SceneViewport::Draw(ComponentCamera* camera)
             App->DebugDraw();
         }
 
-
         ImVec2 cursor = ImGui::GetCursorScreenPos();
         ImVec2 mouse = ImGui::GetMousePos();
         ImVec2 rel_position = ImVec2(mouse.x-cursor.x, mouse.y-cursor.y);
+
         if(ImGui::IsMouseClicked(0, false) && rel_position.x >= 0 && rel_position.x <= width && rel_position.y >= 0 && rel_position.y <= height)
         {
-            selection_buffer.framebuffer->Bind();
-            glViewport(0, 0, fb_width, fb_height);
-            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			App->renderer->DrawForSelection(camera);
-
-			float selection_value;
-            glReadPixels(int(rel_position.x), int(height-rel_position.y), 1, 1, GL_RED, GL_FLOAT, &selection_value);
-            unsigned uid = *((unsigned*)&selection_value);
-
-            App->editor->SetSelected(App->level->Find(uid), false);
+            PickSelection(camera, (int)rel_position.x, (int)rel_position.y);
         }
 
         bool msaa = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
@@ -91,34 +80,25 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
         framebuffer->Bind();
 
+        glEnable(GL_STENCIL_TEST);
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearStencil(0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
-		App->renderer->Draw(camera, framebuffer->Id(), fb_width, fb_height);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glStencilMask(0x00);
+		glStencilFunc(GL_ALWAYS, 0, 0XFF);
+
+ 		App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
+
+		GameObject* selection = App->editor->selection_type == ModuleEditor::SelectionGameObject ? App->editor->selected.go : nullptr;
+		App->renderer->Draw(camera, selection, framebuffer->Id(), fb_width, fb_height);
 
         App->renderer->Postprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
 
-        ImVec2 screenPos = ImGui::GetCursorScreenPos();
 
-        if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) && App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_MAP))
-        {
-            ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)App->renderer->GetShadowMap(0),
-                    ImVec2(screenPos),
-                    ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
-                    ImVec2(0, 1), ImVec2(1, 0));
-        }
-        else
-        {
-            ImGui::GetWindowDrawList()->AddImage(
-                    (void*)framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->Id(),
-                    ImVec2(screenPos),
-                    ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
-                    ImVec2(0, 1), ImVec2(1, 0));
-        }
-
+        ShowTexture();
 
         if(App->GetState() == Application::stop)
         {
@@ -127,6 +107,45 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
     }
     ImGui::EndChild();
+}
+
+void SceneViewport::PickSelection(ComponentCamera* camera, int mouse_x, int mouse_y)
+{
+    selection_buffer.framebuffer->Bind();
+    glViewport(0, 0, fb_width, fb_height);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    App->renderer->DrawForSelection(camera);
+
+    float selection_value;
+    glReadPixels(mouse_x, fb_height-mouse_y, 1, 1, GL_RED, GL_FLOAT, &selection_value);
+    unsigned uid = *((unsigned*)&selection_value);
+
+    App->editor->SetSelected(App->level->Find(uid), false);
+}
+
+void SceneViewport::ShowTexture()
+{
+    ImVec2 screenPos = ImGui::GetCursorScreenPos();
+
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) && App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_MAP))
+    {
+        ImGui::GetWindowDrawList()->AddImage(
+                (ImTextureID)App->renderer->GetShadowMap(0),
+                ImVec2(screenPos),
+                ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
+                ImVec2(0, 1), ImVec2(1, 0));
+    }
+    else
+    {
+        ImGui::GetWindowDrawList()->AddImage(
+                (void*)framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->Id(),
+                ImVec2(screenPos),
+                ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
+                ImVec2(0, 1), ImVec2(1, 0));
+    }
+
 }
 
 void SceneViewport::Save(Config* config) const
@@ -169,7 +188,7 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
             buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         }
 
-        buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get());
+        buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_STENCIL_ATTACHMENT);
     }
 }
 
@@ -186,7 +205,7 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
         selection_buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
         selection_buffer.framebuffer->AttachColor(selection_buffer.texture_color.get());
-		selection_buffer.framebuffer->AttachDepthStencil(selection_buffer.texture_depth.get());
+		selection_buffer.framebuffer->AttachDepthStencil(selection_buffer.texture_depth.get(), GL_DEPTH_STENCIL_ATTACHMENT);
 
         fb_width = w;
         fb_height = h;

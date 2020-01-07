@@ -100,6 +100,7 @@ bool ModuleRenderer3D::Init(Config* config)
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
         glClearDepth(1.0f);
+		glClearStencil(0);
 		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 		
 		//Initialize clear color
@@ -148,7 +149,7 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 
 	Color c = cam->background;
 	glClearColor(c.r, c.g, c.b, c.a);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	return UPDATE_CONTINUE;
 }

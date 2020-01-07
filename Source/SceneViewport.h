@@ -40,14 +40,16 @@ private:
 
     struct FramebufferInfo;
 
-    void GenerateFBOs(unsigned w, unsigned h);
-    void GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr);
-    void DrawQuickBar(ComponentCamera* camera);
-    void DrawGuizmo(ComponentCamera* camera);
-    void DrawGuizmo(ComponentCamera* camera, GameObject* go);
-    void DrawGuizmo(ComponentCamera* camera, PointLight* point);
-    void DrawGuizmo(ComponentCamera* camera, SpotLight* spot);
-    float DistanceFromAtt(float constant, float linear, float quadric, float epsilon);
+    void    GenerateFBOs    (unsigned w, unsigned h);
+    void    GenerateFBO     (FramebufferInfo& buffer, unsigned w, unsigned h, bool depth, bool msaa, bool hdr);
+    void    DrawQuickBar    (ComponentCamera* camera);
+    void    DrawGuizmo      (ComponentCamera* camera);
+    void    DrawGuizmo      (ComponentCamera* camera, GameObject* go);
+    void    DrawGuizmo      (ComponentCamera* camera, PointLight* point);
+    void    DrawGuizmo      (ComponentCamera* camera, SpotLight* spot);
+    float   DistanceFromAtt (float constant, float linear, float quadric, float epsilon);
+    void    PickSelection   (ComponentCamera* camera, int mouse_x, int mouse_y);
+    void    ShowTexture     ();
 
 private:
 

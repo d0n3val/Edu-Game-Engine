@@ -104,7 +104,7 @@ public:
     ~ModuleRenderer();
 
 	bool                Init                        (Config* config = nullptr) override;
-    void                Draw                        (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
+    void                Draw                        (ComponentCamera* camera, GameObject* selection, unsigned fbo, unsigned width, unsigned height);
     void                DrawForSelection            (ComponentCamera* camera);
     void                Postprocess                 (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
 
@@ -117,8 +117,8 @@ public:
 private:
 
     void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);
-    void                ColorPass                   (const float4x4& proj, const float4x4& view, const float3& view_pos, 
-                                                     unsigned fbo, unsigned width, unsigned height);
+    void                ColorPass                   (GameObject* selection, const float4x4& proj, const float4x4& view, 
+                                                     const float3& view_pos, unsigned fbo, unsigned width, unsigned height);
     void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();

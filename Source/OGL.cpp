@@ -126,10 +126,11 @@ void Framebuffer::AttachColor(Texture2D* texture, uint attachment, uint mip_leve
     Unbind();
 }
 
-void Framebuffer::AttachDepthStencil(Texture2D* texture) 
+void Framebuffer::AttachDepthStencil(Texture2D* texture, uint attachment) 
 {
     Bind();
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture->Id(), 0);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, attachment, texture->Id(), 0);
     Unbind();
 }
 
