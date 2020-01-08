@@ -175,6 +175,7 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 
             glPolygonMode(GL_FRONT, GL_FILL);
             glEnable(GL_DEPTH_TEST);
+            glLineWidth(1);
             App->programs->UnuseProgram();
         }
     }

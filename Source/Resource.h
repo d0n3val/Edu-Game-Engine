@@ -41,7 +41,7 @@ public:
 
 	uint                CountReferences() const;
 
-    //virtual void        Save() = 0;
+    //virtual bool        Save() = 0;
 	virtual void        Save(Config& config) const;
 	virtual void        Load(const Config& config);
 

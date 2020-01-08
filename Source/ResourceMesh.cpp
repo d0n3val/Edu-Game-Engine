@@ -59,6 +59,23 @@ ResourceMesh::~ResourceMesh()
 }
 
 // ---------------------------------------------------------
+bool ResourceMesh::Save()
+{
+    simple::mem_ostream<std::true_type> write_stream;
+
+    SaveToStream(write_stream);
+
+    const std::vector<char>& data = write_stream.get_internal_vec();
+
+    assert(exported_file.length() > 0);
+    char full_path[250];
+
+    sprintf_s(full_path, 250, "%s%s", LIBRARY_MESH_FOLDER, exported_file.c_str());
+
+    return App->fs->Save(full_path, &data[0], data.size()) > 0;
+}
+
+// ---------------------------------------------------------
 void ResourceMesh::Save(Config & config) const
 {
 	Resource::Save(config);
@@ -89,6 +106,7 @@ bool ResourceMesh::LoadInMemory()
             read_stream >> vertex_size;
             read_stream >> attribs;
             read_stream >> texcoord0_offset;
+            read_stream >> texcoord1_offset;
             read_stream >> normal_offset;
             read_stream >> tangent_offset;
             read_stream >> bone_idx_offset;
@@ -231,42 +249,13 @@ void ResourceMesh::ReleaseFromMemory()
 }
 
 // ---------------------------------------------------------
-bool ResourceMesh::Save() 
-{
-    simple::mem_ostream<std::true_type> write_stream;
-
-    SaveToStream(write_stream);
-
-    const std::vector<char>& data = write_stream.get_internal_vec();
-
-    if(exported_file.length() > 0)
-    {
-		char full_path[250];
-
-		sprintf_s(full_path, 250, "%s%s", LIBRARY_MESH_FOLDER, exported_file.c_str());
-
-        return App->fs->Save(full_path, &data[0], data.size()) > 0;
-    }
-
-	std::string output;
-
-	if(App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MESH_FOLDER, "mesh", "edumesh"))
-	{
-        App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
-
-		return true;
-    }
-
-	return false;
-}
-
-// ---------------------------------------------------------
 void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
 {
     write_stream << name.C_str();
     write_stream << vertex_size;
     write_stream << attribs;
     write_stream << texcoord0_offset;
+    write_stream << texcoord1_offset;
     write_stream << normal_offset;
     write_stream << tangent_offset;
 	write_stream << bone_idx_offset;

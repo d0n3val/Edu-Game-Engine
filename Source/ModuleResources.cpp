@@ -126,11 +126,25 @@ void ModuleResources::SaveTypedResources(Resource::Type type)
 {
     for (map<UID, Resource*>::const_iterator it = resources.begin(); it != resources.end(); )
     {
-        if (it->first > RESERVED_RESOURCES && it->second->GetType() == Resource::texture)
+        if (it->first > RESERVED_RESOURCES && it->second->GetType() == type)
         {
-            if(!static_cast<ResourceTexture*>(it->second)->Save())
+            if(type == Resource::texture && !static_cast<ResourceTexture*>(it->second)->Save())
             {
                 it = resources.erase(it);
+            }
+            else if(type == Resource::mesh)
+            {
+                ResourceMesh* mesh = static_cast<ResourceMesh*>(it->second);
+                mesh->LoadInMemory();
+                if(!mesh->Save())
+                {
+                    it = resources.erase(it);
+                }
+				else
+				{
+					++it;
+				}
+                mesh->Release();
             }
             else
             {

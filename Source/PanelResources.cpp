@@ -306,6 +306,11 @@ void PanelResources::DrawMeshPopup(Resource::Type type)
             waiting_to_load = type;
         }
 
+        if(ImGui::MenuItem("Force save"))
+        {
+            App->resources->SaveTypedResources(type);
+        }
+
         if (ImGui::BeginMenu("Add prefab"))
         {
             open_plane = ImGui::MenuItem("Plane");
