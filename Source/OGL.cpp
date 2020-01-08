@@ -140,4 +140,14 @@ void Framebuffer::BlitTo(Framebuffer* target, uint src_x0, uint src_y0, uint src
     glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->Id());
     glBlitFramebuffer(src_x0, src_y0, src_x1, src_y1, dst_x0, dst_y0, dst_x1, dst_y1, flags, filter);
+	Unbind();
+}
+
+uint Framebuffer::Check()
+{
+	Bind();
+    uint res = uint(glCheckFramebufferStatus(GL_FRAMEBUFFER));
+	Unbind();
+
+	return res;
 }

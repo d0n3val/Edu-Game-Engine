@@ -246,6 +246,8 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
 
         buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_STENCIL_ATTACHMENT);
     }
+
+    assert(buffer.framebuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 }
 
 void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
@@ -258,10 +260,12 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
 
         selection_buffer.framebuffer = std::make_unique<Framebuffer>(); 
         selection_buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_R32F, GL_RED, GL_FLOAT, nullptr, false);
-        selection_buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+        selection_buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
         selection_buffer.framebuffer->AttachColor(selection_buffer.texture_color.get());
 		selection_buffer.framebuffer->AttachDepthStencil(selection_buffer.texture_depth.get(), GL_DEPTH_ATTACHMENT);
+
+        assert(selection_buffer.framebuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
         fb_width = w;
         fb_height = h;

@@ -45,6 +45,8 @@ public:
                  uint dest_x1, uint dest_y1, uint flags, uint filter);
 
     uint Id() const { return fbo; }
+
+    uint Check();
 };
 
 
