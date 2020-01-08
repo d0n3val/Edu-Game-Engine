@@ -280,7 +280,7 @@ ModuleRenderer::~ModuleRenderer()
     }
 }
 
-void ModuleRenderer::Draw(ComponentCamera* camera, GameObject* selection, unsigned fbo, unsigned width, unsigned height)
+void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height)
 {
 	opaque_nodes.clear();
     transparent_nodes.clear();
@@ -296,7 +296,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, GameObject* selection, unsign
         ShadowPass(camera, width, height);
     }
 
-    ColorPass(selection, proj, view, view_pos, fbo, width, height);
+    ColorPass(proj, view, view_pos, fbo, width, height);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
@@ -389,8 +389,7 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
     }
 }
 
-void ModuleRenderer::ColorPass(GameObject* selection, const float4x4& proj, const float4x4& view, const float3& view_pos, 
-                               unsigned fbo, unsigned width, unsigned height)
+void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const float3& view_pos, unsigned fbo, unsigned width, unsigned height)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     // Set camera uniforms shared for all
@@ -436,48 +435,34 @@ void ModuleRenderer::ColorPass(GameObject* selection, const float4x4& proj, cons
     App->programs->UnuseProgram();
 
 
-	auto find_selection = [selection](const TRenderInfo& info) { return info.go == selection; };
-
-    NodeList::iterator it = std::find_if(opaque_nodes.begin(), opaque_nodes.end(), find_selection);
-    TRenderInfo selected_info;
-
-    if(it != opaque_nodes.end())
-    {
-        selected_info = *it;
-        opaque_nodes.erase(it);
-    }
-    else
-    {
-        it = std::find_if(transparent_nodes.begin(), transparent_nodes.end(), find_selection);
-        if(it != transparent_nodes.end())
-        {
-            selected_info = *it;
-            transparent_nodes.erase(it);
-        }
-    }
-
-
     DrawNodes(opaque_nodes, &ModuleRenderer::DrawColor);
     DrawNodes(transparent_nodes, &ModuleRenderer::DrawColor);
 
-    if(selected_info.mesh)
+    /*
+    if(selection)
     {
-        static bool enable = true;
+        ComponentMesh* mesh = selection->FindFirstComponent<ComponentMesh>();
 
-        if(enable)
+        if(mesh)
         {
             glStencilMask(0XFF);
             glStencilFunc(GL_ALWAYS, 1, 0XFF);
 			glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+			glDepthFunc(GL_LESS);
+			
+			App->programs->UseProgram("color", 0);
 
-            App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
+            float4 no_color(1.0, 1.0, 1.0, 1.0);
+            glUniform4fv(App->programs->GetUniformLocation("color"), 1, (float*)&no_color);
 
-            DrawMeshColor(selected_info.mesh);
+            mesh->GetResource()->UpdateUniforms(mesh->UpdateSkinPalette());
+            mesh->GetResource()->Draw();
 
-            App->programs->UseProgram("outline", 0);
+            float4 selection_color(1.0, 1.0, 0.0, 1.0);
 
             glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
             glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+            glUniform4fv(App->programs->GetUniformLocation("color"), 1, (float*)&selection_color);
 
             glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
             glStencilMask(0xFF);
@@ -490,14 +475,15 @@ void ModuleRenderer::ColorPass(GameObject* selection, const float4x4& proj, cons
 
             glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
-            selected_info.mesh->GetResource()->UpdateUniforms(selected_info.mesh->UpdateSkinPalette());
-            selected_info.mesh->GetResource()->Draw();
+            mesh->GetResource()->UpdateUniforms(mesh->UpdateSkinPalette());
+            mesh->GetResource()->Draw();
 
             glPolygonMode(GL_FRONT, GL_FILL);
             glEnable(GL_DEPTH_TEST);
             App->programs->UnuseProgram();
         }
     }
+    */
 
     //DrawSkybox(proj, view);
 
@@ -701,7 +687,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const unsigned num_uv_macros  = sizeof(show_uv_macros)/sizeof(const char*);
     App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros, nullptr, 0);
     App->programs->Load("selection", "Assets/Shaders/selection.vs", "Assets/Shaders/selection.fs", nullptr, 0, nullptr, 0);
-    App->programs->Load("outline", "Assets/Shaders/outline.vs", "Assets/Shaders/outline.fs", nullptr, 0, nullptr, 0);
+    App->programs->Load("color", "Assets/Shaders/color.vs", "Assets/Shaders/color.fs", nullptr, 0, nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const

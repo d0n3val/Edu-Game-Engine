@@ -118,7 +118,7 @@ bool ModuleRenderer3D::Init(Config* config)
         glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glDepthFunc(GL_LEQUAL);
+		glDepthFunc(GL_LESS);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_TEXTURE_2D);

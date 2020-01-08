@@ -19,6 +19,8 @@
 #include "SpotLight.h"
 
 #include "ComponentCamera.h"
+#include "ComponentMesh.h"
+#include "ResourceMesh.h"
 
 #include "Config.h"
 #include "DebugDraw.h"
@@ -92,8 +94,9 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
  		App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
-		GameObject* selection = App->editor->selection_type == ModuleEditor::SelectionGameObject ? App->editor->selected.go : nullptr;
-		App->renderer->Draw(camera, selection, framebuffer->Id(), fb_width, fb_height);
+		App->renderer->Draw(camera, framebuffer->Id(), fb_width, fb_height);
+
+        DrawSelection(camera, framebuffer);
 
         App->renderer->Postprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
 
@@ -123,6 +126,59 @@ void SceneViewport::PickSelection(ComponentCamera* camera, int mouse_x, int mous
     unsigned uid = *((unsigned*)&selection_value);
 
     App->editor->SetSelected(App->level->Find(uid), false);
+}
+
+void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuffer)
+{
+    GameObject* selection = App->editor->selection_type == ModuleEditor::SelectionGameObject ? App->editor->selected.go : nullptr;
+
+    if(selection)
+    {
+        ComponentMesh* mesh = selection->FindFirstComponent<ComponentMesh>();
+
+        if(mesh)
+        {
+            framebuffer->Bind();
+            float4x4 proj   = camera->GetProjectionMatrix();	
+            float4x4 view   = camera->GetViewMatrix();
+            glStencilMask(0XFF);
+            glStencilFunc(GL_ALWAYS, 1, 0XFF);
+            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+            glDepthFunc(GL_LESS);
+
+            App->programs->UseProgram("color", 0);
+
+            float4 no_color(1.0, 1.0, 1.0, 1.0);
+
+            float4x4 transform = App->editor->selected.go->GetGlobalTransformation();
+            glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+            glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+            glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+            glUniform4fv(App->programs->GetUniformLocation("color"), 1, (float*)&no_color);
+
+            mesh->GetResource()->UpdateUniforms(mesh->UpdateSkinPalette());
+            mesh->GetResource()->Draw();
+
+            float4 selection_color(1.0, 1.0, 0.0, 1.0);
+
+            glUniform4fv(App->programs->GetUniformLocation("color"), 1, (float*)&selection_color);
+
+            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+            glStencilMask(0xFF);
+            glDisable(GL_DEPTH_TEST);
+
+            glLineWidth(5);
+            glPolygonMode(GL_FRONT, GL_LINE);
+
+            mesh->GetResource()->UpdateUniforms(mesh->UpdateSkinPalette());
+            mesh->GetResource()->Draw();
+
+            glPolygonMode(GL_FRONT, GL_FILL);
+            glEnable(GL_DEPTH_TEST);
+            App->programs->UnuseProgram();
+        }
+    }
+
 }
 
 void SceneViewport::ShowTexture()

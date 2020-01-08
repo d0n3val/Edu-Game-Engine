@@ -49,6 +49,7 @@ private:
     void    DrawGuizmo      (ComponentCamera* camera, SpotLight* spot);
     float   DistanceFromAtt (float constant, float linear, float quadric, float epsilon);
     void    PickSelection   (ComponentCamera* camera, int mouse_x, int mouse_y);
+    void    DrawSelection   (ComponentCamera* camera, Framebuffer* framebuffer);
     void    ShowTexture     ();
 
 private:
