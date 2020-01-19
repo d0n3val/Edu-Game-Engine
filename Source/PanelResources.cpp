@@ -282,7 +282,7 @@ void PanelResources::DrawResourcePopup(Resource::Type type)
         {
             waiting_to_load = type;
         }
-        if(type == Resource::texture && ImGui::MenuItem("Force save"))
+        if((type == Resource::texture || type == Resource::model) && ImGui::MenuItem("Force save"))
         {
             App->resources->SaveTypedResources(type);
         }

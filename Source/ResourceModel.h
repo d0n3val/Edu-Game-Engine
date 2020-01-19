@@ -12,13 +12,18 @@ class ResourceModel : public Resource
 {
 public:
 
+    struct MeshRenderer
+    {
+        UID  mesh       = 0;
+        UID  material   = 0;
+    };
+
     struct Node
     {
-        std::string         name;
-        float4x4            transform      = float4x4::identity;
-        uint                parent         = 0;
-        UID                 mesh           = 0;
-        UID                 material       = 0;
+        std::string               name;
+        float4x4                  transform = float4x4::identity;
+        uint                      parent    = 0;
+        std::vector<MeshRenderer> renderers;
     };
 
 public:
@@ -41,7 +46,8 @@ public:
 
 private:
 
-    void        GenerateNodes      (const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials);
+    void        GenerateNodes      (const aiScene* model, const aiNode* node, uint parent, const float4x4& accum, 
+                                    const std::vector<UID>& meshes, const std::vector<UID>& materials);
     void        GenerateMaterials  (const aiScene* scene, const char* file, std::vector<UID>& materials);
 	void        GenerateMeshes     (const aiScene* scene, const char* file, std::vector<UID>& meshes);
 	void        SaveToStream       (simple::mem_ostream<std::true_type>& write_stream) const;

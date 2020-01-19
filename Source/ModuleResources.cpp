@@ -132,6 +132,10 @@ void ModuleResources::SaveTypedResources(Resource::Type type)
             {
                 it = resources.erase(it);
             }
+            else if(type == Resource::model && !static_cast<ResourceModel*>(it->second)->Save())
+            {
+                it = resources.erase(it);
+            }
             else if(type == Resource::mesh)
             {
                 ResourceMesh* mesh = static_cast<ResourceMesh*>(it->second);

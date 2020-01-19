@@ -45,7 +45,7 @@ const char * Component::GetTypeStr() const
 	static const char* names[] = {
 	"Mesh",
 	"Material",
-	"MeshRenderer"
+	"MeshRenderer",
 	"AudioListener",
 	"AudioSource",
 	"Camera",

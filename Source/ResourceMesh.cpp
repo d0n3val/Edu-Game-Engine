@@ -63,7 +63,9 @@ bool ResourceMesh::Save()
 {
     simple::mem_ostream<std::true_type> write_stream;
 
+    LoadToMemory();
     SaveToStream(write_stream);
+    Release();
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 

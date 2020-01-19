@@ -678,6 +678,7 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
         component->SetMeshRes(new_res);
     }
 
+    ImGui::SameLine();
 
     // Material
 
@@ -729,9 +730,8 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
 		component->SetMaterialRes(new_res);
     }
     else if(mat_res)
-    {
-        ComponentMesh* mesh = component->GetGameObject()->FindFirstComponent<ComponentMesh>();
-		DrawMaterialResource(mat_res, mesh->GetResource());
+	{
+		DrawMaterialResource(mat_res, component->GetMeshRes());
     }
 }
 

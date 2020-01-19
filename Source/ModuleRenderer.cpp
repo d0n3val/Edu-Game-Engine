@@ -11,6 +11,7 @@
 
 #include "GameObject.h"
 
+#include "ComponentMeshRenderer.h"
 #include "ComponentMesh.h"
 #include "ComponentMaterial.h"
 #include "ComponentCamera.h"
@@ -438,53 +439,6 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
     DrawNodes(opaque_nodes, &ModuleRenderer::DrawColor);
     DrawNodes(transparent_nodes, &ModuleRenderer::DrawColor);
 
-    /*
-    if(selection)
-    {
-        ComponentMesh* mesh = selection->FindFirstComponent<ComponentMesh>();
-
-        if(mesh)
-        {
-            glStencilMask(0XFF);
-            glStencilFunc(GL_ALWAYS, 1, 0XFF);
-			glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-			glDepthFunc(GL_LESS);
-			
-			App->programs->UseProgram("color", 0);
-
-            float4 no_color(1.0, 1.0, 1.0, 1.0);
-            glUniform4fv(App->programs->GetUniformLocation("color"), 1, (float*)&no_color);
-
-            mesh->GetResource()->UpdateUniforms(mesh->UpdateSkinPalette());
-            mesh->GetResource()->Draw();
-
-            float4 selection_color(1.0, 1.0, 0.0, 1.0);
-
-            glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-            glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
-            glUniform4fv(App->programs->GetUniformLocation("color"), 1, (float*)&selection_color);
-
-            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-            glStencilMask(0xFF);
-            glDisable(GL_DEPTH_TEST);
-
-            float4x4 transform = App->editor->selected.go->GetGlobalTransformation();
-
-            glLineWidth(5);
-            glPolygonMode(GL_FRONT, GL_LINE);
-
-            glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
-
-            mesh->GetResource()->UpdateUniforms(mesh->UpdateSkinPalette());
-            mesh->GetResource()->Draw();
-
-            glPolygonMode(GL_FRONT, GL_FILL);
-            glEnable(GL_DEPTH_TEST);
-            App->programs->UnuseProgram();
-        }
-    }
-    */
-
     //DrawSkybox(proj, view);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -527,8 +481,7 @@ void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
 
 void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
 {
-    ComponentMesh* mesh                = go->FindFirstComponent<ComponentMesh>();
-    ComponentMaterial* material        = go->FindFirstComponent<ComponentMaterial>();
+    ComponentMeshRenderer* mesh        = go->FindFirstComponent<ComponentMeshRenderer>();
     ComponentParticleSystem* particles = go->FindFirstComponent<ComponentParticleSystem>();
     ComponentTrail* trail              = go->FindFirstComponent<ComponentTrail>();
 
@@ -536,12 +489,12 @@ void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
     render.name         = go->name.c_str();
     render.go           = go;
 
-    if(mesh != nullptr && material != nullptr && mesh->GetVisible())
+    if(mesh != nullptr && mesh->GetVisible())
     {
         render.distance = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
         render.mesh     = mesh;
 
-        if(material->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
+        if(mesh->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
         {
             NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render, TNearestMesh());
 
@@ -636,7 +589,7 @@ void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
     }
 }
 
-void ModuleRenderer::DrawMeshColor(const ComponentMesh* mesh)
+void ModuleRenderer::DrawMeshColor(const ComponentMeshRenderer* mesh)
 {
     App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
 

@@ -16,7 +16,7 @@
 
 #include "ComponentCamera.h"
 #include "ComponentMesh.h"
-#include "ComponentMaterial.h"
+#include "ComponentMeshRenderer.h"
 
 #include "Event.h"
 
@@ -493,12 +493,12 @@ void ModuleLevelManager::RecursiveTestRay(const Ray& ray, float& dist, GameObjec
 		GameObject* go = it->second;
 
 		vector<Component*> meshes;
-		go->FindComponents(Component::Types::Mesh, meshes);
+		go->FindComponents(Component::Types::MeshRenderer, meshes);
 
 		if (meshes.size() > 0)
 		{
-			const ComponentMesh* cmesh = (const ComponentMesh*)meshes[0];
-			const ResourceMesh* mesh = (ResourceMesh*) cmesh->GetResource();
+			const ComponentMeshRenderer* cmesh = (const ComponentMeshRenderer*)meshes[0];
+			const ResourceMesh* mesh = (ResourceMesh*) cmesh->GetMeshRes();
 
 			// test all triangles
 			Ray ray_local_space(ray);
@@ -560,26 +560,31 @@ GameObject* ModuleLevelManager::AddModel(UID id)
             go->SetLocalTransform(node.transform);
             go->name = node.name.c_str();
 
-            if(node.mesh != 0)
+            for(uint j=0; j < node.renderers.size(); ++j)
             {
-                ComponentMesh* mesh = new ComponentMesh(go);
-                ok = mesh->SetResource(node.mesh);
+                ComponentMeshRenderer* mesh = new ComponentMeshRenderer(go);
+
+                if(node.renderers[j].mesh != 0)
+                {
+                    ok = mesh->SetMeshRes(node.renderers[j].mesh);
+                }
+
+                if(ok && node.renderers[j].material != 0)
+                {
+                    ok = mesh->SetMaterialRes(node.renderers[j].material);
+                }
 
                 mesh->SetRootUID(gos[0]->GetUID());
                 go->components.push_back(mesh);
             }
+        }
 
-            if(ok && node.material != 0)
-            {
-                ComponentMaterial* material = new ComponentMaterial(go);
-                ok = material->SetResource(node.material);
-                go->components.push_back(material);
-            }
-
+        if(!gos.empty())
+        {
+            gos.front()->name = model->GetName();
         }
 
         model->Release();
-
     }
 
     GameObject* ret = nullptr;

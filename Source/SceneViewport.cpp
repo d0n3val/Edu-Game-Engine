@@ -19,7 +19,7 @@
 #include "SpotLight.h"
 
 #include "ComponentCamera.h"
-#include "ComponentMesh.h"
+#include "ComponentMeshRenderer.h"
 #include "ResourceMesh.h"
 
 #include "Config.h"
@@ -134,7 +134,7 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 
     if(selection)
     {
-        ComponentMesh* mesh = selection->FindFirstComponent<ComponentMesh>();
+        ComponentMeshRenderer* mesh = selection->FindFirstComponent<ComponentMeshRenderer>();
 
         if(mesh)
         {
@@ -156,8 +156,8 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
             glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
             glUniform4fv(App->programs->GetUniformLocation("color"), 1, (float*)&no_color);
 
-            mesh->GetResource()->UpdateUniforms(mesh->UpdateSkinPalette());
-            mesh->GetResource()->Draw();
+            mesh->GetMeshRes()->UpdateUniforms(mesh->UpdateSkinPalette());
+            mesh->GetMeshRes()->Draw();
 
             float4 selection_color(1.0, 1.0, 0.0, 1.0);
 
@@ -170,8 +170,8 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
             glLineWidth(5);
             glPolygonMode(GL_FRONT, GL_LINE);
 
-            mesh->GetResource()->UpdateUniforms(mesh->UpdateSkinPalette());
-            mesh->GetResource()->Draw();
+            mesh->GetMeshRes()->UpdateUniforms(mesh->UpdateSkinPalette());
+            mesh->GetMeshRes()->Draw();
 
             glPolygonMode(GL_FRONT, GL_FILL);
             glEnable(GL_DEPTH_TEST);

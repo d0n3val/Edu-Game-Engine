@@ -91,8 +91,14 @@ void ResourceMaterial::ReleaseFromMemory()
     {
         if(textures[i] != 0)
         {
-            App->resources->Get(textures[i])->Release();
-            textures[i] = 0;
+			Resource* res = App->resources->Get(textures[i]);
+			
+			if (res)
+			{
+				res->Release();
+			}
+			
+			textures[i] = 0;
         }
     }
 }

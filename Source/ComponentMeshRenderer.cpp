@@ -14,7 +14,7 @@
 #include "mmgr/mmgr.h"
 
 
-ComponentMeshRenderer::ComponentMeshRenderer(GameObject* go) : Component(go, Types::Mesh)
+ComponentMeshRenderer::ComponentMeshRenderer(GameObject* go) : Component(go, Types::MeshRenderer)
 {
 }
 
@@ -94,11 +94,12 @@ bool ComponentMeshRenderer::SetMeshRes(UID uid)
     }
 
 	ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(uid));
-	assert(mesh->GetType() == Resource::mesh);
 
 	if (mesh != nullptr)
 	{
-        if(mesh->LoadToMemory() == true)
+		assert(mesh->GetType() == Resource::mesh);
+		
+		if(mesh->LoadToMemory() == true)
         {
             mesh_resource = uid;
 
@@ -112,8 +113,6 @@ bool ComponentMeshRenderer::SetMeshRes(UID uid)
                     node_cache[i] = nullptr;
                 }
             }
-
-			mesh->Release();
 
             return true;
         }
@@ -150,9 +149,6 @@ bool ComponentMeshRenderer::SetMaterialRes(UID uid)
         if(res->LoadToMemory() == true)
         {
             material_resource = uid;
-
-
-            res->Release();
 
             return true;
         }

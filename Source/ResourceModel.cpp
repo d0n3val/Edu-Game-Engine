@@ -63,22 +63,41 @@ bool ResourceModel::LoadInMemory()
             }
 
             read_stream >> node.parent;
-            read_stream >> node.mesh;
-            read_stream >> node.material;
 
-            nodes.push_back(node);
+            uint renderers_size = 0;
+            read_stream >> renderers_size;
+			
+            node.renderers.reserve(renderers_size);
+
+            for(uint j=0; j < renderers_size; ++j)
+            {
+                MeshRenderer renderer;
+
+                read_stream >> renderer.mesh;
+                read_stream >> renderer.material;
+
+				if (renderer.mesh != 0)
+				{
+					node.renderers.emplace_back(renderer);
+				}
+            }
+
+            nodes.emplace_back(node);
         }
 
         for(uint i=0; i< nodes.size(); ++i)
         {
-            if(nodes[i].mesh != 0)
+            for(uint j=0; j < nodes[i].renderers.size(); ++j)
             {
-                App->resources->Get(nodes[i].mesh)->LoadToMemory();
-            }
+                if(nodes[i].renderers[j].mesh != 0)
+                {
+                    App->resources->Get(nodes[i].renderers[j].mesh)->LoadToMemory();
+                }
 
-            if(nodes[i].material != 0)
-            {
-                App->resources->Get(nodes[i].material)->LoadToMemory();
+                if(nodes[i].renderers[j].material != 0)
+                {
+                    App->resources->Get(nodes[i].renderers[j].material)->LoadToMemory();
+                }
             }
         }
 
@@ -92,14 +111,17 @@ void ResourceModel::ReleaseFromMemory()
 {
     for(uint i=0; i< nodes.size(); ++i)
     {
-        if(nodes[i].mesh != 0)
+        for(uint j=0; j < nodes[i].renderers.size(); ++j)
         {
-            App->resources->Get(nodes[i].mesh)->Release();
-        }
+            if(nodes[i].renderers[j].mesh != 0)
+            {
+                App->resources->Get(nodes[i].renderers[j].mesh)->Release();
+            }
 
-        if(nodes[i].material != 0)
-        {
-            App->resources->Get(nodes[i].material)->Release();
+            if(nodes[i].renderers[j].material != 0)
+            {
+                App->resources->Get(nodes[i].renderers[j].material)->Release();
+            }
         }
     }
 
@@ -111,7 +133,9 @@ bool ResourceModel::Save()
 {
     simple::mem_ostream<std::true_type> write_stream;
 
+    LoadToMemory();
     SaveToStream(write_stream);
+    Release();
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 
@@ -126,12 +150,13 @@ bool ResourceModel::Save()
 
 	std::string output;
 
-	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MODEL_FOLDER, "model", "edumaterial"))
+	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MODEL_FOLDER, "model", "edumodel"))
 	{
         App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
 
 		return true;
     }
+
 
 	return false;
 }
@@ -156,8 +181,14 @@ void ResourceModel::SaveToStream(simple::mem_ostream<std::true_type>& write_stre
         write_stream << nodes[i].name;
         write_stream << nodes[i].transform;
         write_stream << nodes[i].parent;
-        write_stream << nodes[i].mesh;
-        write_stream << nodes[i].material;
+
+        write_stream << uint(nodes[i].renderers.size());
+
+        for(uint j=0; j< nodes[i].renderers.size(); ++j)
+        {
+            write_stream << nodes[i].renderers[j].mesh;
+            write_stream << nodes[i].renderers[j].material;
+        }
     }
 }
 
@@ -189,7 +220,7 @@ bool ResourceModel::Import(const char* full_path, std::string& output)
         std::vector<UID> materials, meshes;
         m.GenerateMaterials(scene, full_path, materials);
         m.GenerateMeshes(scene, full_path, meshes);
-        m.GenerateNodes(scene, scene->mRootNode, 0, meshes, materials);
+        m.GenerateNodes(scene, scene->mRootNode, 0, float4x4::identity, meshes, materials);
 
         aiReleaseImport(scene);
 
@@ -223,57 +254,47 @@ void ResourceModel::GenerateMeshes(const aiScene* scene, const char* file, std::
 	}
 }
 
-void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials)
+void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint parent, const float4x4& accum, 
+                                  const std::vector<UID>& meshes, const std::vector<UID>& materials)
 {
-    uint index = nodes.size();
-
 	Node dst;
 
-    dst.transform = reinterpret_cast<const float4x4&>(node->mTransformation);
-    dst.name      = node->mName.C_Str();
-    dst.parent    = parent;
+    float4x4 transform = accum;
 
-    nodes.push_back(dst);
+    // avoid Fbx pivoting nodes
+
+    if(strstr(node->mName.C_Str(), "_$AssimpFbx$_") == nullptr)
+    {
+        dst.transform = accum*reinterpret_cast<const float4x4&>(node->mTransformation);
+        dst.name      = node->mName.C_Str();
+        dst.parent    = parent;
+
+        for(uint i=0; i< node->mNumMeshes; ++i)
+        {
+            MeshRenderer renderer;
+
+            uint mesh_index   = node->mMeshes[i];
+
+            renderer.mesh     = meshes[mesh_index];
+            renderer.material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
+
+            dst.renderers.push_back(renderer);
+        }
+
+        parent = nodes.size();
+
+        nodes.emplace_back(dst);
+
+        transform = float4x4::identity;
+    }
+    else
+    {
+        transform = transform*reinterpret_cast<const float4x4&>(node->mTransformation);
+    }
 
     for(unsigned i=0; i < node->mNumChildren; ++i)
     {
-        GenerateNodes(model, node->mChildren[i], index, meshes, materials);
-    }
-
-    if(node->mNumMeshes == 1)
-    {
-        uint mesh_index = node->mMeshes[0];
-
-        nodes[index].mesh     = meshes[mesh_index];
-        nodes[index].material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
-    }
-    else 
-    {
-        for(uint i=0; i< node->mNumMeshes; ++i)
-        {
-            Node mesh;
-
-            uint mesh_index     = node->mMeshes[i];
-
-            mesh.parent         = index;
-            mesh.mesh           = meshes[mesh_index];
-            mesh.material       = materials[model->mMeshes[mesh_index]->mMaterialIndex];
-
-            char buff[100];
-
-            if(model->mMeshes[mesh_index]->mName.length == 0)
-            {
-                snprintf(buff, sizeof(buff), "mesh_%d", i);
-            }
-            else
-            {
-                snprintf(buff, sizeof(buff), "mesh_%s", model->mMeshes[mesh_index]->mName.C_Str());
-            }
-
-            mesh.name = buff;
-
-            nodes.push_back(mesh);
-        }
+        GenerateNodes(model, node->mChildren[i], parent, transform, meshes, materials);
     }
 }
 
