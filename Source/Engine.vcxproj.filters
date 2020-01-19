@@ -651,6 +651,9 @@
     <ClInclude Include="OGL.h">
       <Filter>Main</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentMeshRenderer.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1165,6 +1168,9 @@
     </ClCompile>
     <ClCompile Include="thekla_atlas\src\nvmath\NVSphere.cpp">
       <Filter>3rd Party\thekla</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentMeshRenderer.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

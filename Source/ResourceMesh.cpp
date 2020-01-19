@@ -7,7 +7,7 @@
 #include "OpenGL.h"
 #include "DefaultShaderLocations.h"
 
-#include "Assimp/include/mesh.h"
+#include "Assimp/mesh.h"
 #include "utils/SimpleBinStream.h"
 #include "thekla_atlas/src/thekla/thekla_atlas.h"
 

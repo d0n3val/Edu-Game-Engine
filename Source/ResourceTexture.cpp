@@ -109,7 +109,7 @@ void ResourceTexture::EnableMips(bool enable)
     {
         has_mips = enable;
 
-        if(texture->Id())
+        if(loaded > 0)
         {
             if(has_mips)
             {

@@ -17,6 +17,7 @@ public:
 	{
 		Mesh,
 		Material,
+        MeshRenderer,
 		AudioListener,
 		AudioSource,
 		Camera,

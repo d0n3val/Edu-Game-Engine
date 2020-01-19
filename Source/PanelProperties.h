@@ -17,6 +17,7 @@ class ComponentRigidBody;
 class ComponentAnimation;
 class ComponentRootMotion;
 class ComponentMesh;
+class ComponentMeshRenderer;
 class ComponentParticleSystem;
 class ResourceMaterial;
 class ResourceTexture;
@@ -61,6 +62,7 @@ private:
     void DrawSpotLight(SpotLight* light);
 	// TODO move editor code as a component method like component rigidbody
 	void DrawMeshComponent(ComponentMesh* component);
+	void DrawMeshRendererComponent(ComponentMeshRenderer* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);

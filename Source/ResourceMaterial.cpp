@@ -9,8 +9,8 @@
 
 #include "DefaultShaderLocations.h"
 
-#include "Assimp/include/types.h"
-#include "Assimp/include/material.h"
+#include "Assimp/types.h"
+#include "Assimp/material.h"
 
 #include "OpenGL.h"
 

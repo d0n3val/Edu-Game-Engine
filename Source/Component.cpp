@@ -40,11 +40,12 @@ Component::Types Component::GetType() const
 // ---------------------------------------------------------
 const char * Component::GetTypeStr() const
 {
-	static_assert(Component::Types::Unknown == 13, "String list needs update");
+	static_assert(Component::Types::Unknown == 14, "String list needs update");
 
 	static const char* names[] = {
 	"Mesh",
 	"Material",
+	"MeshRenderer"
 	"AudioListener",
 	"AudioSource",
 	"Camera",

@@ -8,6 +8,7 @@
 #include "ComponentAudioListener.h"
 #include "ComponentAudioSource.h"
 #include "ComponentMesh.h"
+#include "ComponentMeshRenderer.h"
 #include "ComponentCamera.h"
 #include "ComponentRigidBody.h"
 #include "ComponentSteering.h"
@@ -289,7 +290,7 @@ bool GameObject::RecursiveRemoveFlagged()
 // ---------------------------------------------------------
 Component* GameObject::CreateComponent(Component::Types type)
 {
-	static_assert(Component::Types::Unknown == 13, "code needs update");
+	static_assert(Component::Types::Unknown == 14, "code needs update");
 
 	Component* ret = nullptr;
 
@@ -300,6 +301,9 @@ Component* GameObject::CreateComponent(Component::Types type)
 		break;
 		case Component::Types::Mesh:
 			ret = new ComponentMesh(this);
+		break;
+		case Component::Types::MeshRenderer:
+			ret = new ComponentMeshRenderer(this);
 		break;
 		case Component::Types::AudioListener:
 			ret = new ComponentAudioListener(this);

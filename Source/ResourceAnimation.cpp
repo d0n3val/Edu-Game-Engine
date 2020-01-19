@@ -4,9 +4,9 @@
 #include "Config.h"
 #include "ModuleFileSystem.h"
 
-#include "Assimp/include/scene.h"
-#include "Assimp/include/cimport.h"
-#include "Assimp/include/postprocess.h"
+#include "Assimp/scene.h"
+#include "Assimp/cimport.h"
+#include "Assimp/postprocess.h"
 
 #include "utils/SimpleBinStream.h"
 

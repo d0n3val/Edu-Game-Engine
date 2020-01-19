@@ -4,9 +4,9 @@
 #include "ModuleFileSystem.h"
 #include "ModuleResources.h"
 
-#include "Assimp/include/scene.h"
-#include "Assimp/include/cimport.h"
-#include "Assimp/include/postprocess.h"
+#include "Assimp/scene.h"
+#include "Assimp/cimport.h"
+#include "Assimp/postprocess.h"
 
 #include "ResourceMaterial.h"
 #include "ResourceMesh.h"
@@ -16,7 +16,7 @@
 
 #include "mmgr/mmgr.h"
 
-#pragma comment (lib, "Assimp/libx86/assimp.lib")
+#pragma comment (lib, "Assimp/lib/assimp-vc141-mt.lib")
 
 ResourceModel::ResourceModel(UID id) : Resource(id, Resource::Type::model)
 {
