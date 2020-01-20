@@ -18,6 +18,7 @@
 
 #pragma comment (lib, "Assimp/lib/assimp-vc141-mt.lib")
 
+
 ResourceModel::ResourceModel(UID id) : Resource(id, Resource::Type::model)
 {
 }
@@ -78,11 +79,11 @@ bool ResourceModel::LoadInMemory()
 
 				if (renderer.mesh != 0)
 				{
-					node.renderers.emplace_back(renderer);
+					node.renderers.push_back(renderer);
 				}
             }
 
-            nodes.emplace_back(node);
+			nodes.push_back(std::move(node));
         }
 
         for(uint i=0; i< nodes.size(); ++i)
@@ -257,14 +258,13 @@ void ResourceModel::GenerateMeshes(const aiScene* scene, const char* file, std::
 void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint parent, const float4x4& accum, 
                                   const std::vector<UID>& meshes, const std::vector<UID>& materials)
 {
-	Node dst;
-
     float4x4 transform = accum;
 
     // avoid Fbx pivoting nodes
 
     if(strstr(node->mName.C_Str(), "_$AssimpFbx$_") == nullptr)
     {
+        Node dst;
         dst.transform = accum*reinterpret_cast<const float4x4&>(node->mTransformation);
         dst.name      = node->mName.C_Str();
         dst.parent    = parent;
@@ -283,7 +283,7 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
 
         parent = nodes.size();
 
-        nodes.emplace_back(dst);
+        nodes.push_back(std::move(dst));
 
         transform = float4x4::identity;
     }

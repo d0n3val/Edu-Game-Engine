@@ -20,6 +20,12 @@ public:
 
     struct Node
     {
+		Node() { ; }
+		Node(const Node& o) = default;
+        Node(Node&& o) = default;
+		Node& operator=(const Node& o) = default;
+		Node& operator=(Node&& o) = default;
+
         std::string               name;
         float4x4                  transform = float4x4::identity;
         uint                      parent    = 0;
