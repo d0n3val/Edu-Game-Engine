@@ -134,10 +134,12 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 
     if(selection)
     {
-        ComponentMeshRenderer* mesh = selection->FindFirstComponent<ComponentMeshRenderer>();
-
-        if(mesh)
+        std::vector<Component*> components;
+        selection->FindComponents(Component::MeshRenderer, components);
+        for(Component* comp : components)
         {
+            ComponentMeshRenderer* mesh = static_cast<ComponentMeshRenderer*>(comp);
+
             framebuffer->Bind();
             float4x4 proj   = camera->GetProjectionMatrix();	
             float4x4 view   = camera->GetViewMatrix();
@@ -148,7 +150,7 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 
             App->programs->UseProgram("color", 0);
 
-            float4 no_color(1.0, 1.0, 1.0, 1.0);
+            float4 no_color(0.0, 0.0, 0.0, 0.0);
 
             float4x4 transform = App->editor->selected.go->GetGlobalTransformation();
             glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
