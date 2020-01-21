@@ -4,10 +4,8 @@
 #include "ModuleTextures.h"
 #include "ModuleLevelManager.h"
 #include "Component.h"
-#include "ComponentMaterial.h"
 #include "ComponentAudioListener.h"
 #include "ComponentAudioSource.h"
-#include "ComponentMesh.h"
 #include "ComponentMeshRenderer.h"
 #include "ComponentCamera.h"
 #include "ComponentRigidBody.h"
@@ -290,18 +288,12 @@ bool GameObject::RecursiveRemoveFlagged()
 // ---------------------------------------------------------
 Component* GameObject::CreateComponent(Component::Types type)
 {
-	static_assert(Component::Types::Unknown == 14, "code needs update");
+	static_assert(Component::Types::Unknown == 12, "code needs update");
 
 	Component* ret = nullptr;
 
 	switch (type)
 	{
-		case Component::Types::Material:
-			ret = new ComponentMaterial(this);
-		break;
-		case Component::Types::Mesh:
-			ret = new ComponentMesh(this);
-		break;
 		case Component::Types::MeshRenderer:
 			ret = new ComponentMeshRenderer(this);
 		break;

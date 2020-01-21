@@ -15,8 +15,6 @@ public:
 
 	enum Types
 	{
-		Mesh,
-		Material,
         MeshRenderer,
 		AudioListener,
 		AudioSource,

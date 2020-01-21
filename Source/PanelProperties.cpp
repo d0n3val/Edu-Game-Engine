@@ -4,14 +4,12 @@
 #include "Imgui/imguizmo.h"
 #include "GameObject.h"
 #include "Component.h"
-#include "ComponentMaterial.h"
 #include "ComponentAudioSource.h"
 #include "ComponentAudioListener.h"
 #include "ComponentCamera.h"
 #include "ComponentPath.h"
 #include "ComponentRigidBody.h"
 #include "ComponentSteering.h"
-#include "ComponentMesh.h"
 #include "ComponentMeshRenderer.h"
 #include "ComponentAnimation.h"
 #include "ComponentRootMotion.h"
@@ -260,17 +258,13 @@ void PanelProperties::DrawGameObject(GameObject* go)
             go->SetLocalRotation(Quat::identity);
         }
 
-        static_assert(Component::Types::Unknown == 14, "code needs update");
+        static_assert(Component::Types::Unknown == 12, "code needs update");
         if (ImGui::BeginMenu("New Component", (go != nullptr)))
         {
             if (ImGui::MenuItem("Audio Listener"))
                 go->CreateComponent(Component::Types::AudioListener);
             if (ImGui::MenuItem("Audio Source"))
                 go->CreateComponent(Component::Types::AudioSource);
-            if (ImGui::MenuItem("Mesh"))
-                go->CreateComponent(Component::Types::Mesh);
-            if (ImGui::MenuItem("Material"))
-                go->CreateComponent(Component::Types::Material);
 			if (ImGui::MenuItem("MeshRenderer"))
 				go->CreateComponent(Component::Types::MeshRenderer);
             if (ImGui::MenuItem("Camera"))
@@ -340,7 +334,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         }
 
         // Iterate all components and draw
-        static_assert(Component::Types::Unknown == 14, "code needs update");
+        static_assert(Component::Types::Unknown == 12, "code needs update");
         for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
         {
             ImGui::PushID(*it);
@@ -349,12 +343,6 @@ void PanelProperties::DrawGameObject(GameObject* go)
 
                 switch ((*it)->GetType())
                 {
-                    case Component::Types::Mesh:
-                        DrawMeshComponent((ComponentMesh*)(*it));
-                        break;
-                    case Component::Types::Material:
-                        DrawMaterialComponent((ComponentMaterial*)(*it));
-                        break;
 					case Component::Types::MeshRenderer:
 						DrawMeshRendererComponent((ComponentMeshRenderer*)(*it));
 						break;
@@ -544,73 +532,6 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 	return ret;
 }
 
-void PanelProperties::DrawMeshComponent(ComponentMesh * component)
-{
-    UID new_res = 0;
-
-	const ResourceMesh* res = component->GetResource();
-
-    if(res != nullptr)
-    {
-        ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
-        if (ImGui::IsItemHovered())
-        {
-            ImGui::BeginTooltip();
-            ImGui::Text("Type: %s", res->GetTypeStr());
-            ImGui::Text("UID: %llu", res->GetUID());
-            ImGui::Text("Lib: %s", res->GetExportedFile());
-            ImGui::EndTooltip();
-        }
-
-        ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)", res->num_indices / 3, res->num_indices, res->num_vertices); 
-
-        char attributes[256];
-        strcpy_s(attributes, "\nAttributes: \n\n\tPositions");
-        if((res->attribs & ResourceMesh::ATTRIB_TEX_COORDS_0) != 0)
-        {
-            strcat_s(attributes, "\n\tTexCoords0");
-        }
-        if((res->attribs & ResourceMesh::ATTRIB_TEX_COORDS_1) != 0)
-        {
-            strcat_s(attributes, "\n\tTexCoords1");
-        }
-        if((res->attribs & ResourceMesh::ATTRIB_NORMALS) != 0)
-        {
-            strcat_s(attributes, "\n\tNormals");
-        }
-        if((res->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0)
-        {
-            strcat_s(attributes, "\n\tTangents");
-        }
-        if((res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
-        {
-            strcat_s(attributes, "\n\tBones");
-        }
-        strcat_s(attributes, "\n\n");
-
-        ImGui::TextColored(ImVec4(1,1,0,1), attributes);
-
-        if(ImGui::Button("Generate lightmap UVs"))
-        {
-            component->GetResource()->GenerateTexCoord1();
-        }
-
-        bool visible = component->GetVisible();
-        if(ImGui::Checkbox("Visible", &visible))
-        {
-            component->SetVisible(visible);
-        }
-    }
-
-    new_res = PickResourceModal(Resource::mesh);
-
-    if (new_res > 0)
-    {
-        component->SetResource(new_res);
-        App->resources->Get(new_res)->LoadToMemory();
-    }
-}
-
 void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component)
 {
     // Mesh
@@ -701,10 +622,10 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
 
     ImGui::Separator();
 
-    const char* names[ComponentMaterial::RENDER_COUNT] = { "Opaque", "Transparent" };
+    const char* names[ComponentMeshRenderer::RENDER_COUNT] = { "Opaque", "Transparent" };
 
     int index = int(component->RenderMode());
-    if(ImGui::Combo("Render mode", &index, names, int(ComponentMaterial::RENDER_COUNT)))
+    if(ImGui::Combo("Render mode", &index, names, int(ComponentMeshRenderer::RENDER_COUNT)))
     {
 		component->SetRenderMode(ComponentMeshRenderer::ERenderMode(index));
     }
@@ -833,62 +754,6 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 		else
 			App->renderer3D->active_camera = App->camera->GetDummy();
 	}
-}
-
-void PanelProperties::DrawMaterialComponent(ComponentMaterial* component)
-{
-    ResourceMaterial* mat_res = component->GetResource();
-
-    UID new_res = PickResourceModal(Resource::material);
-
-    ImGui::SameLine();
-    if(ImGui::Button("New material"))
-    {
-        ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material, 0));
-
-        bool save_ok = material->Save();
-
-        if(save_ok)
-        {
-            new_res = material->GetUID();
-        }
-    }
-
-    ImGui::Separator();
-
-    const char* names[ComponentMaterial::RENDER_COUNT] = { "Opaque", "Transparent" };
-
-    int index = int(component->RenderMode());
-    if(ImGui::Combo("Render mode", &index, names, int(ComponentMaterial::RENDER_COUNT)))
-    {
-		component->SetRenderMode(ComponentMaterial::ERenderMode(index));
-    }
-
-    ImGui::Separator();
-
-    bool debug_draw = component->GetDDTangent();
-    if(ImGui::Checkbox("Debug draw tangent space", &debug_draw))
-    {
-        component->SetDDTangent(debug_draw);
-    }
-
-    bool cast_shadows = component->CastShadows();
-    if(ImGui::Checkbox("Cast shadows", &cast_shadows))
-    {
-        component->SetCastShadows(cast_shadows);
-    }
-
-    ImGui::Separator();
-
-    if(new_res > 0)
-    {
-		component->SetResource(new_res);
-    }
-    else if(mat_res)
-    {
-        ComponentMesh* mesh = component->GetGameObject()->FindFirstComponent<ComponentMesh>();
-		DrawMaterialResource(mat_res, mesh->GetResource());
-    }
 }
 
 void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh)

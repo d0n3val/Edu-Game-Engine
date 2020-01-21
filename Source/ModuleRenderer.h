@@ -135,6 +135,9 @@ private:
     void                DrawSelection               (const TRenderInfo& render_info);
 
     void                CollectObjects              (const float3& camera_pos, GameObject* go);
+    void                CollectMeshRenderers        (const float3& camera_pos, GameObject* go);
+    void                CollectParticleSystems      (const float3& camera_pos, GameObject* go);
+    void                CollectTrails               (const float3& camera_pos, GameObject* go);
     void                UpdateLightUniform          () const;
 
     void                BlurShadow                  (uint index);

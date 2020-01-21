@@ -498,9 +498,6 @@
     <ClInclude Include="ComponentCamera.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentMaterial.h">
-      <Filter>Game Objects\Components</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentRigidBody.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
@@ -542,9 +539,6 @@
     </ClInclude>
     <ClInclude Include="ResourceModel.h">
       <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentMesh.h">
-      <Filter>Game Objects\Components</Filter>
     </ClInclude>
     <ClInclude Include="imgui\imconfig.h">
       <Filter>3rd Party\imgui</Filter>
@@ -869,9 +863,6 @@
     <ClCompile Include="ComponentCamera.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentMaterial.cpp">
-      <Filter>Game Objects\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentRigidBody.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
@@ -913,9 +904,6 @@
     </ClCompile>
     <ClCompile Include="ResourceModel.cpp">
       <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentMesh.cpp">
-      <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="imgui\imgui.cpp">
       <Filter>3rd Party\imgui</Filter>

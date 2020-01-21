@@ -145,8 +145,6 @@
     <ClInclude Include="ComponentAudioListener.h" />
     <ClInclude Include="ComponentAudioSource.h" />
     <ClInclude Include="ComponentCamera.h" />
-    <ClInclude Include="ComponentMaterial.h" />
-    <ClInclude Include="ComponentMesh.h" />
     <ClInclude Include="ComponentMeshRenderer.h" />
     <ClInclude Include="componentparticlesystem.h" />
     <ClInclude Include="ComponentPath.h" />
@@ -304,8 +302,6 @@
     <ClCompile Include="ComponentAudioListener.cpp" />
     <ClCompile Include="ComponentAudioSource.cpp" />
     <ClCompile Include="ComponentCamera.cpp" />
-    <ClCompile Include="ComponentMaterial.cpp" />
-    <ClCompile Include="ComponentMesh.cpp" />
     <ClCompile Include="ComponentMeshRenderer.cpp" />
     <ClCompile Include="ComponentParticleSystem.cpp" />
     <ClCompile Include="ComponentPath.cpp" />

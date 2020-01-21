@@ -12,8 +12,7 @@
 #include "GameObject.h"
 
 #include "ComponentMeshRenderer.h"
-#include "ComponentMesh.h"
-#include "ComponentMaterial.h"
+
 #include "ComponentCamera.h"
 #include "ComponentAnimation.h"
 #include "ComponentParticleSystem.h"
@@ -481,53 +480,89 @@ void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
 
 void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
 {
-    ComponentMeshRenderer* mesh        = go->FindFirstComponent<ComponentMeshRenderer>();
-    ComponentParticleSystem* particles = go->FindFirstComponent<ComponentParticleSystem>();
-    ComponentTrail* trail              = go->FindFirstComponent<ComponentTrail>();
-
-    TRenderInfo render;
-    render.name         = go->name.c_str();
-    render.go           = go;
-
-    if(mesh != nullptr && mesh->GetVisible())
-    {
-        render.distance = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
-        render.mesh     = mesh;
-
-        if(mesh->RenderMode() == ComponentMaterial::RENDER_OPAQUE)
-        {
-            NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render, TNearestMesh());
-
-            opaque_nodes.insert(it, render);
-        }
-        else
-        {
-            NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
-
-            transparent_nodes.insert(it, render);
-        }
-    }
-    else if(particles != nullptr)
-    {
-        render.distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
-        render.particles= particles;
-        render.layer = particles->GetLayer();
-
-        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
-        transparent_nodes.insert(it, render);
-    }
-    else if(trail != nullptr)
-    {
-        render.distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
-        render.trail = trail;
-
-        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
-        transparent_nodes.insert(it, render);
-    }
+    CollectMeshRenderers(camera_pos, go);
+    CollectParticleSystems(camera_pos, go);
+    CollectTrails(camera_pos, go);
 
     for(std::list<GameObject*>::iterator lIt = go->childs.begin(), lEnd = go->childs.end(); lIt != lEnd; ++lIt)
     {
         CollectObjects(camera_pos, *lIt);
+    }
+}
+
+void ModuleRenderer::CollectMeshRenderers(const float3& camera_pos, GameObject* go)
+{
+    std::vector<Component*> components;
+    go->FindComponents(Component::MeshRenderer, components);
+
+    float distance = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
+
+    for(Component* comp : components)
+    {
+        TRenderInfo render;
+        render.name = go->name.c_str();
+        render.go   = go;
+        render.mesh = static_cast<ComponentMeshRenderer*>(comp);
+        render.distance = distance;
+
+        if(render.mesh->GetVisible())
+        {
+            if(render.mesh->RenderMode() == ComponentMeshRenderer::RENDER_OPAQUE)
+            {
+                NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render, TNearestMesh());
+
+                opaque_nodes.insert(it, render);
+            }
+            else
+            {
+                NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
+
+                transparent_nodes.insert(it, render);
+            }
+        }
+    }
+}
+
+void ModuleRenderer::CollectParticleSystems(const float3& camera_pos, GameObject* go)
+{
+    std::vector<Component*> components;
+    go->FindComponents(Component::ParticleSystem, components);
+
+    float distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
+
+    for(Component* comp : components)
+    {
+        TRenderInfo render;
+        render.name = go->name.c_str();
+        render.go   = go;
+
+        render.distance = distance;
+        render.particles= static_cast<ComponentParticleSystem*>(comp);
+        render.layer = render.particles->GetLayer();
+
+        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
+        transparent_nodes.insert(it, render);
+    }
+}
+
+void ModuleRenderer::CollectTrails(const float3& camera_pos, GameObject* go)
+{
+    std::vector<Component*> components;
+    go->FindComponents(Component::ParticleSystem, components);
+
+    float distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
+
+    for(Component* comp : components)
+    {
+        TRenderInfo render;
+        render.name = go->name.c_str();
+        render.go   = go;
+
+        render.distance = distance;
+        render.trail = static_cast<ComponentTrail*>(comp);
+
+        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
+        transparent_nodes.insert(it, render);
     }
 }
 
@@ -1054,9 +1089,8 @@ void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, AABB& aabb
     for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
     {
         const TRenderInfo& render_info = *it;
-        ComponentMaterial* material = render_info.go->FindFirstComponent<ComponentMaterial>();
 
-        if(material && material->CastShadows())
+        if(render_info.mesh->CastShadows())
         {
 			render_info.go->RecalculateBoundingBox();
             AABB bbox = render_info.go->GetLocalBBox();

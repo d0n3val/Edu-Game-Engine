@@ -15,7 +15,6 @@
 #include "ResourceMesh.h"
 
 #include "ComponentCamera.h"
-#include "ComponentMesh.h"
 #include "ComponentMeshRenderer.h"
 
 #include "Event.h"
@@ -401,7 +400,7 @@ void ModuleLevelManager::RecursiveTestRayBBox(const LineSegment & segment, float
 	{
 		// Look for meshes
 		GameObject* go = it->second;
-		if (go->HasComponent(Component::Types::Mesh) == true)
+		if (go->HasComponent(Component::Types::MeshRenderer) == true)
 		{
 			float closer = inf;
 			*best_candidate = (GameObject*) go;
@@ -432,12 +431,12 @@ void ModuleLevelManager::RecursiveTestRay(const LineSegment& segment, float& dis
 		// Look for meshes, nothing else can be "picked" from the screen
 		GameObject* go = it->second;
 		vector<Component*> meshes;
-		go->FindComponents(Component::Types::Mesh, meshes);
+		go->FindComponents(Component::Types::MeshRenderer, meshes);
 
 		if (meshes.size() > 0)
 		{
-			const ComponentMesh* cmesh = (const ComponentMesh*)meshes[0];
-			const ResourceMesh* mesh = (ResourceMesh*) cmesh->GetResource();
+			const ComponentMeshRenderer* cmesh = (const ComponentMeshRenderer*)meshes[0];
+			const ResourceMesh* mesh = cmesh->GetMeshRes();
 
 			// test all triangles
 			LineSegment segment_local_space(segment);

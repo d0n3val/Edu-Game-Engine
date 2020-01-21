@@ -11,12 +11,10 @@ class GameObject;
 class Component;
 class ComponentAudioSource;
 class ComponentAudioListener;
-class ComponentMaterial;
 class ComponentCamera;
 class ComponentRigidBody;
 class ComponentAnimation;
 class ComponentRootMotion;
-class ComponentMesh;
 class ComponentMeshRenderer;
 class ComponentParticleSystem;
 class ResourceMaterial;
@@ -61,10 +59,8 @@ private:
     void DrawPointLight(PointLight* light);
     void DrawSpotLight(SpotLight* light);
 	// TODO move editor code as a component method like component rigidbody
-	void DrawMeshComponent(ComponentMesh* component);
 	void DrawMeshRendererComponent(ComponentMeshRenderer* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
-	void DrawMaterialComponent(ComponentMaterial * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
     bool TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name);
 	void DrawAnimationComponent(ComponentAnimation * component);
