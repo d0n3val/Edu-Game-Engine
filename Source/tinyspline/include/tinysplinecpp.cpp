@@ -1,5 +1,6 @@
 #include "tinysplinecpp.h"
 #include <assert.h>
+#include <stdexcept>
 
 
 /********************************************************
