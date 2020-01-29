@@ -347,7 +347,7 @@ void main()
 {
     vec3 normal = get_normal(fragment, material);
     float len   = length(normal);
-    color	    = lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
+    color	= lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
 
 #if SHADOWS_ENABLED 
 
