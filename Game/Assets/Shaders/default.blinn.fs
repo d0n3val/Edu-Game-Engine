@@ -154,7 +154,7 @@ vec3 directional_blinn(const vec3 pos, const vec3 normal, const vec3 view_dir, c
     float specular = specular_blinn(-light.dir, view_dir, normal, shininess);
     vec3 fresnel   = get_fresnel(-light.dir, normal, specular_color);
 	
-    return light.color*(diffuse_color*(1-fresnel)+fresnel*specular*norm_factor)*lambert;
+    return light.color*(diffuse_color*(1-fresnel)/PI+fresnel*specular*norm_factor)*lambert;
 }
 
 float get_attenuation(const vec3 constants, float distance)
@@ -213,7 +213,7 @@ vec4 blinn(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos
     // make energy conserving blinn brdf
 
     float shininess	= specular_color.a;
-    float norm_factor   = (shininess+4.0)/(8.0);
+    float norm_factor   = (shininess+8.0)/(8.0*PI);
     vec3 view_dir       = normalize(view_pos-pos);
 	
     vec3 color = directional_blinn(pos, normal, view_dir, lights.directional, mat, diffuse_color.rgb, specular_color.rgb, norm_factor, shininess);

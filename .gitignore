@@ -256,3 +256,4 @@ Release/Engine.ipdb
 Release/Engine.iobj
 Release/Engine.exe
 Source/ModuleAudio.cpp
+*.swp
