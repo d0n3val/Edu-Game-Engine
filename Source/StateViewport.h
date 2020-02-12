@@ -1,7 +1,7 @@
 #ifndef _STATE_VIEWPORT_H_
 #define _STATE_VIEWPORT_H_
 
-#include "NodeEditor.h"
+#include "imgui_node_editor.h"
 
 namespace ed = ax::NodeEditor;
 

@@ -603,18 +603,6 @@
     <ClInclude Include="ComponentAnimation.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
-    <ClInclude Include="NodeEditor\Source\Interop.h">
-      <Filter>3rd Party\imgui-node-editor</Filter>
-    </ClInclude>
-    <ClInclude Include="NodeEditor\Include\NodeEditor.h">
-      <Filter>3rd Party\imgui-node-editor</Filter>
-    </ClInclude>
-    <ClInclude Include="NodeEditor\Include\ax\Math2D.h">
-      <Filter>3rd Party\imgui-node-editor</Filter>
-    </ClInclude>
-    <ClInclude Include="NodeEditor\Source\Editor.h">
-      <Filter>3rd Party\imgui-node-editor</Filter>
-    </ClInclude>
     <ClInclude Include="SceneViewport.h">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -647,6 +635,21 @@
     </ClInclude>
     <ClInclude Include="ComponentMeshRenderer.h">
       <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor\Source\crude_json.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor\Source\imgui_bezier_math.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor\Source\imgui_canvas.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor\Source\imgui_extra_math.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor\Source\imgui_node_editor_internal.h">
+      <Filter>3rd Party\imgui-node-editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -974,12 +977,6 @@
     <ClCompile Include="ComponentAnimation.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
-    <ClCompile Include="NodeEditor\Source\NodeEditor.cpp">
-      <Filter>3rd Party\imgui-node-editor</Filter>
-    </ClCompile>
-    <ClCompile Include="NodeEditor\Source\Editor.cpp">
-      <Filter>3rd Party\imgui-node-editor</Filter>
-    </ClCompile>
     <ClCompile Include="SceneViewport.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -1160,6 +1157,18 @@
     <ClCompile Include="ComponentMeshRenderer.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
+    <ClCompile Include="NodeEditor\Source\crude_json.cpp">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeEditor\Source\imgui_canvas.cpp">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeEditor\Source\imgui_node_editor.cpp">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeEditor\Source\imgui_node_editor_api.cpp">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\appveyor.yml">
@@ -1210,7 +1219,13 @@
     <None Include="MathGeoLib\include\Geometry\TriangleMesh_IntersectRay_SSE.inl">
       <Filter>3rd Party\mathgeo\src</Filter>
     </None>
-    <None Include="NodeEditor\Include\ax\Math2D.inl">
+    <None Include="NodeEditor\Source\imgui_bezier_math.inl">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </None>
+    <None Include="NodeEditor\Source\imgui_extra_math.inl">
+      <Filter>3rd Party\imgui-node-editor</Filter>
+    </None>
+    <None Include="NodeEditor\Source\imgui_node_editor_internal.inl">
       <Filter>3rd Party\imgui-node-editor</Filter>
     </None>
   </ItemGroup>

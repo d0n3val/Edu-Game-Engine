@@ -344,7 +344,7 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 
 void PanelGOTree::CheckHover(GameObject* go)
 {
-	if (ImGui::IsItemHoveredRect())
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
 	{
 		if (drag && drag != go)
 		{

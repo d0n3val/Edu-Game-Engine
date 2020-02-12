@@ -3,7 +3,7 @@
 
 #include "Component.h"
 #include "HashString.h"
-#include "NodeEditor.h"
+#include "imgui_node_editor.h"
 
 #include <vector>
 #include <list>

@@ -1,13 +1,18 @@
-(Click "Preview" to turn any http URL into a clickable link)
+(Click "Preview" above ^ to turn URL into clickable links)
 
-1. IF YOU ARE HAVING AN ISSUE COMPILING/LINKING/RUNNING/DISPLAYING/ADDING FONTS/WIRING INPUTS, please post on the "Getting Started" Discourse forum:
-https://discourse.dearimgui.org/c/getting-started
+1. PLEASE CAREFULLY READ: [FAQ](https://github.com/ocornut/imgui/blob/master/docs/FAQ.md)
 
-2. You may use this Issue Tracker to ask for help and submit bug reports, feature requests or suggestions that don't fit in any category of (1). PLEASE CAREFULLY READ THE CONTRIBUTING DOCUMENT before submitting any issue: https://github.com/ocornut/imgui/blob/master/.github/CONTRIBUTING.md
+2. PLEASE CAREFULLY READ: [Issue Submitting Guidelines](https://github.com/ocornut/imgui/issues/2261)
 
-3. PLEASE MAKE SURE that you have: read the FAQ in imgui.cpp; explored the contents of ShowDemoWindow() including the Examples menu; searched among Issues; used your IDE to search for keywords in all sources and text files; and read the CONTRIBUTING.md file linked above.
+3. FOR FIRST-TIME USERS ISSUES COMPILING/LINKING/RUNNING/LOADING FONTS,  please use the [Discord server](http://discord.dearimgui.org).
 
-4. Delete points 1-4 and PLEASE FILL THE TEMPLATE BELOW before submitting your issue. 
+4. PLEASE MAKE SURE that you have: read the FAQ; explored the contents of `ShowDemoWindow()` including the Examples menu; searched among Issues; used your IDE to search for keywords in all sources and text files; and read the link provided in (1) (2).
+
+5. Be mindful that messages are being sent to the e-mail box of "Watching" users. Try to proof-read your messages before sending them. Edits are not seen by those users.
+
+6. Delete points 1-6 and PLEASE FILL THE TEMPLATE BELOW before submitting your issue.
+
+Thank you!
 
 ----
 
@@ -18,22 +23,24 @@ _(you may also go to Demo>About Window, and click "Config/Build Information" to 
 Version: XXX
 Branch: XXX _(master/viewport/docking/etc.)_
 
-**Back-end/Renderer/Compiler/OS** 
+**Back-end/Renderer/Compiler/OS**
 
 Back-ends: imgui_impl_XXX.cpp + imgui_impl_XXX.cpp _(or specify if using a custom engine/back-end)_
-Compiler: XXX _(if the question is related to building)_
-Operating System: XXX 
+Compiler: XXX _(if the question is related to building or platform specific features)_
+Operating System: XXX
 
-**My Issue/Question:** _(please provide context)_
+**My Issue/Question:**
 
-XXX
+XXX _(please provide as much context as possible)_
 
-**Standalone, minimal, complete and verifiable example:** _(see CONTRIBUTING.md)_
+**Screenshots/Video**
+
+XXX _(you can drag files here)_
+
+**Standalone, minimal, complete and verifiable example:** _(see https://github.com/ocornut/imgui/issues/2261)_
 ```
-// Please do not forget this!
+// Here's some code anyone can copy and paste to reproduce your issue
 ImGui::Begin("Example Bug");
 MoreCodeToExplainMyIssue();
 ImGui::End();
 ```
-
-**Screenshots/Video** _(you can drag files here)_

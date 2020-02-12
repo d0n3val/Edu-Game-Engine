@@ -86,7 +86,7 @@ void PanelResources::Draw()
 		ImGui::EndMenu();
 	}
 
-	if (ImGui::IsItemHoveredRect() && ImGui::IsMouseClicked(1))
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) && ImGui::IsMouseClicked(1))
 	{
         ImGui::OpenPopup("File Manager");
         if (ImGui::BeginPopup("File Manager"))

@@ -493,7 +493,7 @@ void PanelProperties::RecursiveDrawTree(const GameObject * go, const GameObject*
 {
 	if (ImGui::TreeNodeEx(go, (go->childs.size() > 0) ? 0 : ImGuiTreeNodeFlags_Bullet, go->name.c_str())) 
 	{
-		if (ImGui::IsItemHoveredRect() && ImGui::IsMouseDoubleClicked(0))
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) && ImGui::IsMouseDoubleClicked(0))
 		{
 			*selected = go;
 			ImGui::CloseCurrentPopup();
@@ -506,7 +506,7 @@ void PanelProperties::RecursiveDrawTree(const GameObject * go, const GameObject*
 	}
 	else
 	{
-		if (ImGui::IsItemHoveredRect() && ImGui::IsMouseDoubleClicked(0))
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) && ImGui::IsMouseDoubleClicked(0))
 		{
 			*selected = go;
 			ImGui::CloseCurrentPopup();

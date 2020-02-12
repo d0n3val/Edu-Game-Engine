@@ -254,10 +254,11 @@
     <ClInclude Include="ModuleRenderer3D.h" />
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="ModuleTextures.h" />
-    <ClInclude Include="NodeEditor\Include\ax\Math2D.h" />
-    <ClInclude Include="NodeEditor\Include\NodeEditor.h" />
-    <ClInclude Include="NodeEditor\Source\Editor.h" />
-    <ClInclude Include="NodeEditor\Source\Interop.h" />
+    <ClInclude Include="NodeEditor\Source\crude_json.h" />
+    <ClInclude Include="NodeEditor\Source\imgui_bezier_math.h" />
+    <ClInclude Include="NodeEditor\Source\imgui_canvas.h" />
+    <ClInclude Include="NodeEditor\Source\imgui_extra_math.h" />
+    <ClInclude Include="NodeEditor\Source\imgui_node_editor_internal.h" />
     <ClInclude Include="OGL.h" />
     <ClInclude Include="OpenGL.h" />
     <ClInclude Include="Module.h" />
@@ -379,8 +380,10 @@
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="ModuleTextures.cpp" />
     <ClCompile Include="ModuleWindow.cpp" />
-    <ClCompile Include="NodeEditor\Source\Editor.cpp" />
-    <ClCompile Include="NodeEditor\Source\NodeEditor.cpp" />
+    <ClCompile Include="NodeEditor\Source\crude_json.cpp" />
+    <ClCompile Include="NodeEditor\Source\imgui_canvas.cpp" />
+    <ClCompile Include="NodeEditor\Source\imgui_node_editor.cpp" />
+    <ClCompile Include="NodeEditor\Source\imgui_node_editor_api.cpp" />
     <ClCompile Include="OGL.cpp" />
     <ClCompile Include="PanelAbout.cpp" />
     <ClCompile Include="PanelConfiguration.cpp" />
@@ -481,7 +484,9 @@
     <None Include="MathGeoLib\include\Geometry\TriangleMesh_IntersectRay_CPP.inl" />
     <None Include="MathGeoLib\include\Geometry\TriangleMesh_IntersectRay_SSE.inl" />
     <None Include="MathGeoLib\include\Math\Matrix.inl" />
-    <None Include="NodeEditor\Include\ax\Math2D.inl" />
+    <None Include="NodeEditor\Source\imgui_bezier_math.inl" />
+    <None Include="NodeEditor\Source\imgui_extra_math.inl" />
+    <None Include="NodeEditor\Source\imgui_node_editor_internal.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

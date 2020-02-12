@@ -20,7 +20,7 @@
 #include "PanelResources.h"
 #include "Event.h"
 
-#include "NodeEditor.h"
+#include "imgui_node_editor.h"
 
 #include <string.h>
 #include <algorithm>
@@ -163,8 +163,8 @@ update_status ModuleEditor::Update(float dt)
     for(uint i=0; i< TabPanelCount; ++i)
     {
         const TabPanel& tab = tab_panels[i];
-        ImGui::SetNextWindowPos(ImVec2((float)tab.posx, (float)tab.posy), ImGuiSetCond_Always);
-        ImGui::SetNextWindowSize(ImVec2((float)tab.width, (float)tab.height), ImGuiSetCond_Always);
+        ImGui::SetNextWindowPos(ImVec2((float)tab.posx, (float)tab.posy), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2((float)tab.width, (float)tab.height), ImGuiCond_Always);
         if(ImGui::Begin(tab.name, nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing))
         {
             if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
@@ -200,7 +200,7 @@ update_status ModuleEditor::Update(float dt)
     // Show showcase ? 
     if (showcase)
     {
-        ImGui::ShowTestWindow();
+        ImGui::ShowDemoWindow();
         ImGui::ShowMetricsWindow();
     }
 
@@ -393,7 +393,7 @@ void ModuleEditor::LoadFile(const char* filter_extension, const char* from_dir)
 	{
 		in_modal = true;
 
-        ImGui::PushStyleVar(ImGuiStyleVar_ChildWindowRounding, 5.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("File Browser", ImVec2(0,300), true);
 		DrawDirectoryRecursive(from_dir, filter_extension);
         ImGui::EndChild();
