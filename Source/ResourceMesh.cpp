@@ -29,19 +29,17 @@ namespace
 {
 
     template<class T>
-    void copy_new_vertices(T*& src, Atlas_Output_Vertex* vertices, uint count)
+    void copy_new_vertices(std::unique_ptr<T>& src, Atlas_Output_Vertex* vertices, uint count)
     {
         if(src != nullptr)
         {
-            T* new_src = new T[count];
+            std::unique_ptr<T> new_src = std::make_unique<T>(count);
             for(uint i=0; i < count ; ++i)
             {
                 new_src[i] = src[vertices[i].xref];
             }
 
-            delete [] src;
-
-            src = new_src;
+            src = std::move(new_src);
         }
     }
 
@@ -116,7 +114,7 @@ bool ResourceMesh::LoadInMemory()
 
             read_stream >> num_vertices;
 
-            src_vertices = new float3[num_vertices];
+            src_vertices = std::make_unique<float3[]>(num_vertices);
 
             for(uint i=0; i< num_vertices; ++i)
             {
@@ -125,7 +123,7 @@ bool ResourceMesh::LoadInMemory()
 
             if((attribs & ATTRIB_TEX_COORDS_0) != 0)
             {
-                src_texcoord0 = new float2[num_vertices];
+                src_texcoord0 = std::make_unique<float2[]>(num_vertices);
 
                 for(uint i=0; i< num_vertices; ++i)
                 {
@@ -135,7 +133,7 @@ bool ResourceMesh::LoadInMemory()
 
             if((attribs & ATTRIB_NORMALS) != 0)
             {
-                src_normals = new float3[num_vertices];
+                src_normals = std::make_unique<float3[]>(num_vertices);
 
                 for(uint i=0; i< num_vertices; ++i)
                 {
@@ -145,7 +143,7 @@ bool ResourceMesh::LoadInMemory()
 
             if((attribs & ATTRIB_TANGENTS) != 0)
             {
-                src_tangents = new float3[num_vertices];
+                src_tangents = std::make_unique<float3[]>(num_vertices);
 
                 for(uint i=0; i< num_vertices; ++i)
                 {
@@ -154,7 +152,7 @@ bool ResourceMesh::LoadInMemory()
             }
 
             read_stream >> num_indices;
-            src_indices = new unsigned[num_indices];
+            src_indices = std::make_unique<unsigned[]>(num_indices);
 
             for(uint i=0; i< num_indices; ++i)
             {
@@ -165,7 +163,7 @@ bool ResourceMesh::LoadInMemory()
             {
                 read_stream >> num_bones;
 
-                bones = new Bone[num_bones];
+                bones = std::make_unique<Bone[]>(num_bones);
 
                 for(uint i=0; i< num_bones; ++i)
                 {
@@ -177,8 +175,8 @@ bool ResourceMesh::LoadInMemory()
                     }
                 }
 
-                src_bone_indices = new unsigned[num_vertices*4];
-                src_bone_weights = new float4[num_vertices];
+                src_bone_indices = std::make_unique<unsigned[]>(num_vertices*4);
+                src_bone_weights = std::make_unique<float4[]>(num_vertices);
 
                 for(uint i=0; i< num_vertices; ++i)
                 {
@@ -207,29 +205,15 @@ void ResourceMesh::ReleaseFromMemory()
 {
     // \todo: check if merge with clear and check import and check module resources final release
 
-    delete [] src_vertices;
-    src_vertices = nullptr;
-
-    delete [] src_texcoord0;
-    src_texcoord0 = nullptr;
-
-    delete [] src_normals;
-    src_normals = nullptr;
-
-    delete [] src_tangents;
-    src_tangents = nullptr;
-
-    delete [] src_indices;
-    src_indices = nullptr;
-
-    delete [] bones;
-    bones = nullptr;
-
-    delete [] src_bone_indices;
-    src_bone_indices = nullptr;
-
-    delete [] src_bone_weights;
-    src_bone_weights = nullptr;
+    src_vertices.reset();
+    src_texcoord0.reset();
+    src_normals.reset();
+    src_tangents.reset();
+    src_indices.reset();
+    bones.reset();
+    src_bone_indices.reset();
+    src_bone_weights.reset();
+    morph_targets.reset();
 
     if(vbo != 0)
     {
@@ -464,7 +448,7 @@ void ResourceMesh::GenerateAttribInfo()
 void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
 {
     num_vertices = mesh->mNumVertices;
-    src_vertices = new float3[mesh->mNumVertices];
+    src_vertices = std::make_unique<float3[]>(mesh->mNumVertices);
 
     for(unsigned i=0; i< mesh->mNumVertices; ++i)
     {
@@ -473,7 +457,7 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
 
     if(mesh->HasTextureCoords(0))
     {
-        src_texcoord0 = new float2[mesh->mNumVertices];
+        src_texcoord0 = std::make_unique<float2[]>(mesh->mNumVertices);
 
         for(unsigned i=0; i < mesh->mNumVertices; ++i) 
         {
@@ -483,11 +467,11 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
 
     if(mesh->HasNormals())
     {
-        src_normals = new float3[mesh->mNumVertices];
-        memcpy(src_normals, mesh->mNormals, sizeof(float3)*mesh->mNumVertices);
+        src_normals = std::make_unique<float3[]>(mesh->mNumVertices);
+        memcpy(src_normals.get(), mesh->mNormals, sizeof(float3)*mesh->mNumVertices);
     }
 
-    src_indices = new unsigned[mesh->mNumFaces*3];
+    src_indices = std::make_unique<unsigned[]>(mesh->mNumFaces*3);
     num_indices = mesh->mNumFaces*3;
 
     for(unsigned j=0; j < mesh->mNumFaces; ++j)
@@ -504,13 +488,34 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
     if(mesh->HasTangentsAndBitangents())
     {
         // uncomment iif copy from assimp
-        src_tangents = new float3[mesh->mNumVertices];
-        memcpy(src_tangents, mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
+        src_tangents = std::make_unique<float3[]>(mesh->mNumVertices);
+        memcpy(src_tangents.get(), mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
         //GenerateTangentSpace();
     }
 
     bbox.SetNegativeInfinity();
-    bbox.Enclose(src_vertices, num_vertices);
+    bbox.Enclose(src_vertices.get(), num_vertices);
+
+    // loading morph targets
+
+    if(mesh->mNumAnimMeshes > 0)
+    {
+        num_morph_targets = mesh->mNumAnimMeshes;
+        morph_targets = std::make_unique<MorphData[]>(num_morph_targets);
+
+        for(uint i=0; i< mesh->mNumAnimMeshes; ++i)
+        {
+            MorphData& data = morph_targets[i];
+
+            data.src_vertices = std::make_unique<float3[]>(num_vertices);
+            data.src_normals  = std::make_unique<float3[]>(num_vertices);
+            data.src_tangents = std::make_unique<float3[]>(num_vertices);
+
+            memcpy(data.src_vertices.get(), mesh->mAnimMeshes[i]->mVertices, num_vertices);
+            memcpy(data.src_normals.get(), mesh->mAnimMeshes[i]->mNormals, num_vertices);
+            memcpy(data.src_tangents.get(), mesh->mAnimMeshes[i]->mTangents, num_vertices);
+        }
+    }
 }
 
 void ResourceMesh::GenerateTangentSpace()
@@ -523,7 +528,7 @@ void ResourceMesh::GenerateTangentSpace()
     // edif0 = udif0*t+vidf0*edif1/vdif1-vdif0*udif1/vdif1*t;
     // edif0 - vdif0*edif1/vdif1 = t*(udif0-vdif0*udif1/vdif1);
 
-    src_tangents = new math::float3[num_vertices];
+    src_tangents = std::make_unique<math::float3[]>(num_vertices);
 
     for(unsigned i=0; i <  num_vertices; ++i)
     {
@@ -569,6 +574,8 @@ void ResourceMesh::GenerateTangentSpace()
 
 void ResourceMesh::GenerateVBO()
 {
+    // \todo: make interleaved 
+
     if(vbo == 0)
     {
         glGenBuffers(1, &vbo);
@@ -577,32 +584,32 @@ void ResourceMesh::GenerateVBO()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glBufferData(GL_ARRAY_BUFFER, vertex_size*num_vertices, nullptr, static_mesh ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float3)*num_vertices, src_vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float3)*num_vertices, src_vertices.get());
 
     if((attribs & ATTRIB_TEX_COORDS_0) != 0)
     {
-        glBufferSubData(GL_ARRAY_BUFFER, texcoord0_offset, sizeof(float2)*num_vertices, src_texcoord0);
+        glBufferSubData(GL_ARRAY_BUFFER, texcoord0_offset, sizeof(float2)*num_vertices, src_texcoord0.get());
     }
 
     if((attribs & ATTRIB_TEX_COORDS_1) != 0)
     {
-        glBufferSubData(GL_ARRAY_BUFFER, texcoord1_offset, sizeof(float2)*num_vertices, src_texcoord1);
+        glBufferSubData(GL_ARRAY_BUFFER, texcoord1_offset, sizeof(float2)*num_vertices, src_texcoord1.get());
     }
 
     if((attribs & ATTRIB_NORMALS) != 0)
     {
-        glBufferSubData(GL_ARRAY_BUFFER, normal_offset, sizeof(float3)*num_vertices, src_normals);
+        glBufferSubData(GL_ARRAY_BUFFER, normal_offset, sizeof(float3)*num_vertices, src_normals.get());
     }
 
     if((attribs & ATTRIB_TANGENTS) != 0)
     {
-        glBufferSubData(GL_ARRAY_BUFFER, tangent_offset, sizeof(float3)*num_vertices, src_tangents);
+        glBufferSubData(GL_ARRAY_BUFFER, tangent_offset, sizeof(float3)*num_vertices, src_tangents.get());
     }
 
     if((attribs & ATTRIB_BONES) != 0)
     {
-        glBufferSubData(GL_ARRAY_BUFFER, bone_idx_offset, sizeof(unsigned)*num_vertices*4, src_bone_indices);
-        glBufferSubData(GL_ARRAY_BUFFER, bone_weight_offset, sizeof(float4)*num_vertices, src_bone_weights);
+        glBufferSubData(GL_ARRAY_BUFFER, bone_idx_offset, sizeof(unsigned)*num_vertices*4, src_bone_indices.get());
+        glBufferSubData(GL_ARRAY_BUFFER, bone_weight_offset, sizeof(float4)*num_vertices, src_bone_weights.get());
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -613,7 +620,7 @@ void ResourceMesh::GenerateVBO()
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, num_indices*sizeof(unsigned), src_indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, num_indices*sizeof(unsigned), src_indices.get(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
@@ -621,7 +628,7 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
 {
     assert(mesh->HasBones());
 
-    bones      = new Bone[mesh->mNumBones];
+    bones      = std::make_unique<Bone[]>(mesh->mNumBones);
     num_bones  = mesh->mNumBones;
 
     for(unsigned i=0; i< mesh->mNumBones; ++i)
@@ -636,8 +643,8 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
                                         float4(bone->mOffsetMatrix.a4, bone->mOffsetMatrix.b4, bone->mOffsetMatrix.c4, bone->mOffsetMatrix.d4));
     }
 
-    unsigned* bone_indices = new unsigned[4*mesh->mNumVertices];
-    float* bone_weights    = new float[4*mesh->mNumVertices];
+    std::unique_ptr<unsigned[]> bone_indices = std::make_unique<unsigned[]>(4*mesh->mNumVertices);
+    std::unique_ptr<float[]> bone_weights    = std::make_unique<float[]>(4*mesh->mNumVertices);
 
     for(unsigned i=0; i < num_vertices*4; ++i) 
     {
@@ -671,10 +678,10 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
         }
     }
 
-    src_bone_indices = bone_indices;
-    src_bone_weights = (float4*)bone_weights;
+    src_bone_indices = std::move(bone_indices);
+    src_bone_weights.reset((float4*)bone_weights.release());
 
-    math::float4* src_bone_weights = (math::float4*)(bone_weights);
+    
     for(unsigned i=0; i < num_vertices; ++i) 
     {
         float length = 0.0f;
@@ -887,22 +894,22 @@ UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape)
 
 void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
 {
-    src_vertices = new float3[shape->npoints];
-    memcpy(src_vertices, shape->points, shape->npoints*sizeof(float3));
+    src_vertices = std::make_unique<float3[]>(shape->npoints);
+    memcpy(src_vertices.get(), shape->points, shape->npoints*sizeof(float3));
 
     if(shape->normals)
     {
-        src_normals = new float3[shape->npoints];
-        memcpy(src_normals, shape->normals, shape->npoints*sizeof(float3));
+        src_normals = std::make_unique<float3[]>(shape->npoints);
+        memcpy(src_normals.get(), shape->normals, shape->npoints*sizeof(float3));
     }
     
     if(shape->tcoords)
     {
-        src_texcoord0 = new float2[shape->npoints];
-        memcpy(src_texcoord0, shape->tcoords, shape->npoints*sizeof(float2));
+        src_texcoord0 = std::make_unique<float2[]>(shape->npoints);
+        memcpy(src_texcoord0.get(), shape->tcoords, shape->npoints*sizeof(float2));
     }
 
-    src_indices = new unsigned[shape->ntriangles*3];
+    src_indices = std::make_unique<unsigned[]>(shape->ntriangles*3);
 	for (uint i = 0; i < uint(shape->ntriangles) * 3; ++i)
 	{
 		src_indices[i] = shape->triangles[i];
@@ -1019,15 +1026,10 @@ void ResourceMesh::GenerateTexCoord1()
 void ResourceMesh::GenerateCPUBuffers(const Atlas_Output_Mesh* atlas)
 {
     num_indices = atlas->index_count;
-    memcpy(src_indices, atlas->index_array, sizeof(int)*num_indices);
+    memcpy(src_indices.get(), atlas->index_array, sizeof(int)*num_indices);
 
     num_vertices  = atlas->vertex_count;
-    if(src_texcoord1)
-    {
-        delete [] src_texcoord1;
-    }
-
-	src_texcoord1 = new float2[num_vertices];
+    src_texcoord1 = std::make_unique<float2[]>(num_vertices);
 
 	for(uint i=0; i < num_vertices; ++i)
     {

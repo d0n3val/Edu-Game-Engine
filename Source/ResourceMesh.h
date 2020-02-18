@@ -7,6 +7,7 @@
 #include "utils/SimpleBinStream.h"
 
 #include <string>
+#include <memory>
 
 class Resource;
 struct aiMesh;
@@ -77,38 +78,51 @@ public:
 		float4x4	bind = float4x4::identity;
 	};
 
-    HashString  name;
+    struct MorphData
+    {
+        std::unique_ptr<float3[]> src_vertices;
+        std::unique_ptr<float3[]> src_normals;
+        std::unique_ptr<float3[]> src_tangents;
+        uint                      vbo = 0;
+    };
 
-    uint        vertex_size         = 0;
-    uint        attribs             = 0;
-    uint        texcoord0_offset    = 0;
-    uint        texcoord1_offset    = 0;
-    uint        normal_offset       = 0;
-    uint        tangent_offset      = 0;
-	uint        bone_idx_offset		= 0;
-    uint        bone_weight_offset  = 0;
+    HashString                   name;
 
-    uint        num_vertices        = 0;
-    float3*     src_vertices        = nullptr;
-    float2*     src_texcoord0       = nullptr;
-    float2*     src_texcoord1       = nullptr;
-    float3*     src_normals         = nullptr;
-    float3*     src_tangents        = nullptr;
-    unsigned*   src_bone_indices    = nullptr;
-    float4*     src_bone_weights    = nullptr;
+    uint                         vertex_size         = 0;
+    uint                         attribs             = 0;
+    uint                         texcoord0_offset    = 0;
+    uint                         texcoord1_offset    = 0;
+    uint                         normal_offset       = 0;
+    uint                         tangent_offset      = 0;
+	uint                         bone_idx_offset     = 0;
+    uint                         bone_weight_offset  = 0;
 
-    uint        num_indices 	    = 0;
-    uint*       src_indices 	    = nullptr;
+    uint                         num_vertices = 0;
 
-	uint        num_bones			= 0;
-	Bone*       bones 		        = nullptr;
-    bool        static_mesh         = false;
+    std::unique_ptr<float3[]>    src_vertices;
+    std::unique_ptr<float2[]>    src_texcoord0;
+    std::unique_ptr<float2[]>    src_texcoord1;
+    std::unique_ptr<float3[]>    src_normals;
+    std::unique_ptr<float3[]>    src_tangents;
 
-    uint        vao 	            = 0;
-    uint        vbo 	            = 0;
-    uint        ibo 	            = 0;
+    std::unique_ptr<unsigned[]>  src_bone_indices;
+    std::unique_ptr<float4[]>    src_bone_weights;
 
-	AABB        bbox;
+    uint                         num_indices = 0;
+    std::unique_ptr<uint[]>      src_indices;
+
+	uint                         num_bones	 = 0;
+    std::unique_ptr<Bone[]>      bones;
+    bool                         static_mesh = false;
+
+    uint                         vao 	= 0;
+    uint                         vbo 	= 0;
+    uint                         ibo 	= 0;
+
+    std::unique_ptr<MorphData[]> morph_targets;
+    uint                         num_morph_targets   = 0;
+
+	AABB                         bbox;
 };
 
 #endif // __RESOURCE_MESH_H__
