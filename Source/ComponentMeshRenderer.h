@@ -59,6 +59,8 @@ public:
     ERenderMode             RenderMode          () const { return render_mode; }
     void                    SetRenderMode       (ERenderMode mode) { render_mode = mode; }
 
+    void                    SetMorphTarget      (uint index) const;
+
 private:
 
     // mesh 

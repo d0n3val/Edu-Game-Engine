@@ -556,23 +556,23 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
 
         char attributes[256];
         strcpy_s(attributes, "\nAttributes: \n\n\tPositions");
-        if((res->attribs & ResourceMesh::ATTRIB_TEX_COORDS_0) != 0)
+        if(res->HasAttrib(ResourceMesh::ATTRIB_TEX_COORDS_0))
         {
             strcat_s(attributes, "\n\tTexCoords0");
         }
-        if((res->attribs & ResourceMesh::ATTRIB_TEX_COORDS_1) != 0)
+        if(res->HasAttrib(ResourceMesh::ATTRIB_TEX_COORDS_1))
         {
             strcat_s(attributes, "\n\tTexCoords1");
         }
-        if((res->attribs & ResourceMesh::ATTRIB_NORMALS) != 0)
+        if(res->HasAttrib(ResourceMesh::ATTRIB_NORMALS))
         {
             strcat_s(attributes, "\n\tNormals");
         }
-        if((res->attribs & ResourceMesh::ATTRIB_TANGENTS) != 0)
+        if(res->HasAttrib(ResourceMesh::ATTRIB_TANGENTS))
         {
             strcat_s(attributes, "\n\tTangents");
         }
-        if((res->attribs & ResourceMesh::ATTRIB_BONES) != 0)
+        if(res->HasAttrib(ResourceMesh::ATTRIB_BONES))
         {
             strcat_s(attributes, "\n\tBones");
         }

@@ -246,3 +246,23 @@ void ComponentMeshRenderer::DrawShadowPass() const
 	}
 }
 
+void ComponentMeshRenderer::SetMorphTarget(uint index) const
+{
+    const ResourceMesh* mesh = GetMeshRes();
+
+    assert(index < mesh->GetNumMorphTargets());
+
+    const ResourceMesh::MorphData& morph_target = mesh->GetMorphTarget(index);
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, mesh->GetNumVertices() * sizeof(float3), morph_target.src_vertices.get());
+
+    if (mesh->HasAttrib(ResourceMesh::ATTRIB_NORMALS))
+    {
+        glBufferSubData(GL_ARRAY_BUFFER, 0, mesh->GetNumVertices() * sizeof(float3), morph_target.src_normals.get());
+
+            if (mesh->HasAttrib(ResourceMesh::ATTRIB_TANGENTS))
+            {
+                glBufferSubData(GL_ARRAY_BUFFER, 0, mesh->GetNumVertices() * sizeof(float3) * 2, morph_target.src_tangents.get());
+            }
+    }
+}

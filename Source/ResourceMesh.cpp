@@ -104,13 +104,12 @@ bool ResourceMesh::LoadInMemory()
             name = HashString(tmp.c_str());
 
             read_stream >> vertex_size;
-            read_stream >> attribs;
-            read_stream >> texcoord0_offset;
-            read_stream >> texcoord1_offset;
-            read_stream >> normal_offset;
-            read_stream >> tangent_offset;
-            read_stream >> bone_idx_offset;
-            read_stream >> bone_weight_offset;
+            read_stream >> attrib_flags;
+
+            for(uint i=0; i< ATTRIB_COUNT; ++i)
+            {
+                read_stream >> offsets[i];
+            }
 
             read_stream >> num_vertices;
 
@@ -121,7 +120,7 @@ bool ResourceMesh::LoadInMemory()
                 read_stream >> src_vertices[i].x >> src_vertices[i].y >> src_vertices[i].z;
             }
 
-            if((attribs & ATTRIB_TEX_COORDS_0) != 0)
+            if(HasAttrib(ATTRIB_TEX_COORDS_0))
             {
                 src_texcoord0 = std::make_unique<float2[]>(num_vertices);
 
@@ -131,7 +130,7 @@ bool ResourceMesh::LoadInMemory()
                 }
             }
 
-            if((attribs & ATTRIB_NORMALS) != 0)
+            if(HasAttrib(ATTRIB_NORMALS))
             {
                 src_normals = std::make_unique<float3[]>(num_vertices);
 
@@ -141,7 +140,7 @@ bool ResourceMesh::LoadInMemory()
                 }
             }
 
-            if((attribs & ATTRIB_TANGENTS) != 0)
+            if(HasAttrib(ATTRIB_TANGENTS))
             {
                 src_tangents = std::make_unique<float3[]>(num_vertices);
 
@@ -159,7 +158,7 @@ bool ResourceMesh::LoadInMemory()
                 read_stream >> src_indices[i];
             }
 
-            if((attribs & ATTRIB_BONES) != 0)
+            if(HasAttrib(ATTRIB_BONES))
             {
                 read_stream >> num_bones;
 
@@ -239,13 +238,12 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
 {
     write_stream << name.C_str();
     write_stream << vertex_size;
-    write_stream << attribs;
-    write_stream << texcoord0_offset;
-    write_stream << texcoord1_offset;
-    write_stream << normal_offset;
-    write_stream << tangent_offset;
-	write_stream << bone_idx_offset;
-    write_stream << bone_weight_offset;
+    write_stream << attrib_flags;
+
+    for(uint i=0; i< ATTRIB_COUNT; ++i)
+    {
+        write_stream << offsets[i];
+    }
 
     write_stream << num_vertices;
 
@@ -254,7 +252,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         write_stream << src_vertices[i].x << src_vertices[i].y << src_vertices[i].z;
     }
 
-    if((attribs & ATTRIB_TEX_COORDS_0) != 0)
+    if(HasAttrib(ATTRIB_TEX_COORDS_0))
     {
         for(uint i=0; i< num_vertices; ++i)
         {
@@ -262,7 +260,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         }
     }
 
-    if((attribs & ATTRIB_TEX_COORDS_1) != 0)
+    if(HasAttrib(ATTRIB_TEX_COORDS_1))
     {
         for(uint i=0; i< num_vertices; ++i)
         {
@@ -270,7 +268,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         }
     }
 
-    if((attribs & ATTRIB_NORMALS) != 0)
+    if(HasAttrib(ATTRIB_NORMALS))
     {
         for(uint i=0; i< num_vertices; ++i)
         {
@@ -278,7 +276,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         }
     }
 
-    if((attribs & ATTRIB_TANGENTS) != 0)
+    if(HasAttrib(ATTRIB_TANGENTS))
     {
         for(uint i=0; i< num_vertices; ++i)
         {
@@ -293,7 +291,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         write_stream << src_indices[i];
     }
 
-    if((attribs & ATTRIB_BONES) != 0)
+    if(HasAttrib(ATTRIB_BONES))
     {
         write_stream << num_bones;
 
@@ -400,47 +398,50 @@ bool ResourceMesh::Save(const char* source, std::string& output)
 
 void ResourceMesh::GenerateAttribInfo()
 {
+    morph_vertex_size   = sizeof(float3);
     vertex_size         = sizeof(float3);
-    attribs             = 0;
-    texcoord0_offset    = 0;
-    normal_offset       = 0;
-    tangent_offset      = 0;
-    bone_weight_offset  = 0;
+    attrib_flags        = 0;
+
+    for(uint i=0; i< ATTRIB_COUNT; ++i) 
+    {
+        offsets[i] = 0;
+    }
 
     if(src_normals != nullptr)
     {
-        attribs |= ATTRIB_NORMALS;
-        normal_offset = vertex_size*num_vertices;
+        attrib_flags |= (1 << ATTRIB_NORMALS);
+        offsets[ATTRIB_NORMALS] = vertex_size*num_vertices;
         vertex_size += sizeof(float3);
+        morph_vertex_size += sizeof(float3);
     }
 
     if(src_texcoord0 != nullptr)
     {
-        attribs |= ATTRIB_TEX_COORDS_0;
-        texcoord0_offset = vertex_size*num_vertices;
+        attrib_flags |= (1 << ATTRIB_TEX_COORDS_0);
+        offsets[ATTRIB_TEX_COORDS_0] = vertex_size*num_vertices;
         vertex_size += sizeof(float2);
     }
 
     if(src_texcoord1 != nullptr)
     {
-        attribs |= ATTRIB_TEX_COORDS_1;
-        texcoord1_offset = vertex_size*num_vertices;
+        attrib_flags |= (1 << ATTRIB_TEX_COORDS_1);
+        offsets[ATTRIB_TEX_COORDS_1] = vertex_size*num_vertices;
         vertex_size += sizeof(float2);
     }
 
     if(src_tangents != nullptr)
     {
-        attribs |= ATTRIB_TANGENTS;
-        tangent_offset = vertex_size*num_vertices;
+        attrib_flags |= (1 << ATTRIB_TANGENTS);
+        offsets[ATTRIB_TANGENTS] = vertex_size*num_vertices;
         vertex_size += sizeof(float3);
+        morph_vertex_size += sizeof(float3);
     }
 
     if(src_bone_indices != nullptr && src_bone_weights != nullptr)
     {
-        attribs |= ATTRIB_BONES;
-        bone_idx_offset = vertex_size*num_vertices;
+        attrib_flags |= (1 << ATTRIB_BONES);
+        offsets[ATTRIB_BONES] = vertex_size*num_vertices;
         vertex_size += sizeof(unsigned)*4;
-        bone_weight_offset = vertex_size*num_vertices;
         vertex_size += sizeof(float)*4;
     }
 }
@@ -500,20 +501,30 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
 
     if(mesh->mNumAnimMeshes > 0)
     {
+        static_mesh = false;
         num_morph_targets = mesh->mNumAnimMeshes;
         morph_targets = std::make_unique<MorphData[]>(num_morph_targets);
 
         for(uint i=0; i< mesh->mNumAnimMeshes; ++i)
         {
             MorphData& data = morph_targets[i];
-
+            
             data.src_vertices = std::make_unique<float3[]>(num_vertices);
-            data.src_normals  = std::make_unique<float3[]>(num_vertices);
-            data.src_tangents = std::make_unique<float3[]>(num_vertices);
-
             memcpy(data.src_vertices.get(), mesh->mAnimMeshes[i]->mVertices, num_vertices);
-            memcpy(data.src_normals.get(), mesh->mAnimMeshes[i]->mNormals, num_vertices);
-            memcpy(data.src_tangents.get(), mesh->mAnimMeshes[i]->mTangents, num_vertices);
+
+            if (mesh->HasNormals())
+            {
+                assert(mesh->mAnimMeshes[i]->mNormals != nullptr);
+                data.src_normals = std::make_unique<float3[]>(num_vertices);
+                memcpy(data.src_normals.get(), mesh->mAnimMeshes[i]->mNormals, num_vertices);
+
+                if (mesh->HasTangentsAndBitangents())
+                {
+                    assert(mesh->mAnimMeshes[i]->mNormals != nullptr);
+                    data.src_tangents = std::make_unique<float3[]>(num_vertices);
+                    memcpy(data.src_tangents.get(), mesh->mAnimMeshes[i]->mTangents, num_vertices);
+                }
+            }
         }
     }
 }
@@ -586,30 +597,30 @@ void ResourceMesh::GenerateVBO()
     glBufferData(GL_ARRAY_BUFFER, vertex_size*num_vertices, nullptr, static_mesh ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float3)*num_vertices, src_vertices.get());
 
-    if((attribs & ATTRIB_TEX_COORDS_0) != 0)
+    if(HasAttrib(ATTRIB_TEX_COORDS_0))
     {
-        glBufferSubData(GL_ARRAY_BUFFER, texcoord0_offset, sizeof(float2)*num_vertices, src_texcoord0.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_TEX_COORDS_0], sizeof(float2)*num_vertices, src_texcoord0.get());
     }
 
-    if((attribs & ATTRIB_TEX_COORDS_1) != 0)
+    if(HasAttrib(ATTRIB_TEX_COORDS_1))
     {
-        glBufferSubData(GL_ARRAY_BUFFER, texcoord1_offset, sizeof(float2)*num_vertices, src_texcoord1.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_TEX_COORDS_1], sizeof(float2)*num_vertices, src_texcoord1.get());
     }
 
-    if((attribs & ATTRIB_NORMALS) != 0)
+    if(HasAttrib(ATTRIB_NORMALS))
     {
-        glBufferSubData(GL_ARRAY_BUFFER, normal_offset, sizeof(float3)*num_vertices, src_normals.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_NORMALS], sizeof(float3)*num_vertices, src_normals.get());
     }
 
-    if((attribs & ATTRIB_TANGENTS) != 0)
+    if(HasAttrib(ATTRIB_TANGENTS))
     {
-        glBufferSubData(GL_ARRAY_BUFFER, tangent_offset, sizeof(float3)*num_vertices, src_tangents.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_TANGENTS], sizeof(float3)*num_vertices, src_tangents.get());
     }
 
-    if((attribs & ATTRIB_BONES) != 0)
+    if(HasAttrib(ATTRIB_BONES))
     {
-        glBufferSubData(GL_ARRAY_BUFFER, bone_idx_offset, sizeof(unsigned)*num_vertices*4, src_bone_indices.get());
-        glBufferSubData(GL_ARRAY_BUFFER, bone_weight_offset, sizeof(float4)*num_vertices, src_bone_weights.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_BONES], sizeof(unsigned)*num_vertices*4, src_bone_indices.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_BONES]+GetBoneWeightOffset(), sizeof(float4)*num_vertices, src_bone_weights.get());
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -712,36 +723,36 @@ void ResourceMesh::GenerateVAO()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)0);
 
-	if ((attribs & ATTRIB_NORMALS) != 0)
+	if (HasAttrib(ATTRIB_NORMALS))
 	{
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(normal_offset));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(offsets[ATTRIB_NORMALS]));
 	}
 
-	if ((attribs & ATTRIB_TEX_COORDS_0) != 0)
+	if (HasAttrib(ATTRIB_TEX_COORDS_0))
 	{
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(texcoord0_offset));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(offsets[ATTRIB_TEX_COORDS_0]));
 	}
 
-	if((attribs & ATTRIB_BONES) != 0)
+	if(HasAttrib(ATTRIB_BONES))
 	{
 		glEnableVertexAttribArray(3);
-		glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT, sizeof(unsigned)*4, (void*)bone_idx_offset);
+		glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT, sizeof(unsigned)*4, (void*)offsets[ATTRIB_BONES]);
 		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)bone_weight_offset);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)(offsets[ATTRIB_BONES]+GetBoneWeightOffset()));
 	}
 
-    if((attribs & ATTRIB_TANGENTS) != 0)
+    if(HasAttrib(ATTRIB_TANGENTS))
     {
 		glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(tangent_offset));
+        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(offsets[ATTRIB_TANGENTS]));
     }
 
-	if ((attribs & ATTRIB_TEX_COORDS_1) != 0)
+	if (HasAttrib(ATTRIB_TEX_COORDS_1))
 	{
 		glEnableVertexAttribArray(6);
-		glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(texcoord1_offset));
+		glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(offsets[ATTRIB_TEX_COORDS_1]));
 	}
 
 
@@ -928,7 +939,7 @@ void ResourceMesh::UpdateUniforms(const float4x4* skin_palette) const
 {
     unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
 
-    if((attribs & ResourceMesh::ATTRIB_BONES) != 0)
+    if(HasAttrib(ATTRIB_BONES))
     {
         glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), num_bones, GL_TRUE, reinterpret_cast<const float*>(skin_palette));
         vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
@@ -1041,3 +1052,4 @@ void ResourceMesh::GenerateCPUBuffers(const Atlas_Output_Mesh* atlas)
     copy_new_vertices(src_normals, atlas->vertex_array, num_vertices);
     copy_new_vertices(src_tangents, atlas->vertex_array, num_vertices);
 }
+

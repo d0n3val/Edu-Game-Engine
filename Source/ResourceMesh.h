@@ -18,59 +18,80 @@ namespace Thekla { struct Atlas_Output_Mesh; }
 class ResourceMesh : public Resource
 {
 	friend class ModuleMeshes;
+public:
+    
+    struct MorphData
+    {
+        std::unique_ptr<float3[]> src_vertices;
+        std::unique_ptr<float3[]> src_normals;
+        std::unique_ptr<float3[]> src_tangents;
+    };
+
+	enum VertexAttribs
+	{
+		ATTRIB_TEX_COORDS_0 = 0, //1 << 0,
+		ATTRIB_NORMALS      = 1, //1 << 1,
+        ATTRIB_TANGENTS     = 2, //1 << 2,
+		ATTRIB_BONES        = 3, //1 << 3,
+		ATTRIB_TEX_COORDS_1 = 4, //1 << 4,
+        ATTRIB_COUNT
+	};
 
 public:
-	ALIGN_CLASS_TO_16
 
 	ResourceMesh(UID id);
 	virtual ~ResourceMesh();
 
 
-	void        Save                (Config& config) const override;
-	void        Load                (const Config& config) override;
+	void                Save                (Config& config) const override;
+	void                Load                (const Config& config) override;
 
-    void        UpdateUniforms      (const float4x4* skin_palette) const;
-    void        Draw                () const;
+    void                UpdateUniforms      (const float4x4* skin_palette) const;
+    void                Draw                () const;
 
-	bool        LoadInMemory        () override;
-    void        ReleaseFromMemory   () override;
-    bool        Save                ();
-    bool        Save                (std::string& output) const;
-    static UID  Import              (const aiMesh* mesh, const char* source_file);
+	bool                LoadInMemory        () override;
+    void                ReleaseFromMemory   () override;
+    bool                Save                ();
+    bool                Save                (std::string& output) const;
+    static UID          Import              (const aiMesh* mesh, const char* source_file);
 
-    static UID  LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks);
-    static UID  LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
-    static UID  LoadCube            (const char* cube_name, float size);
-    static UID  LoadCylinder        (const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks);
-    static UID  LoadPlane           (const char* plane_name, float width, float height, unsigned slices, unsigned stacks); 
+    static UID          LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks);
+    static UID          LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
+    static UID          LoadCube            (const char* cube_name, float size);
+    static UID          LoadCylinder        (const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks);
+    static UID          LoadPlane           (const char* plane_name, float width, float height, unsigned slices, unsigned stacks); 
 
-    void        GenerateTexCoord1   ();
+    void                GenerateTexCoord1   ();
+
+
+    uint                GetNumVertices      () const { return num_vertices; }
+
+    // morph targets
+    uint                GetNumMorphTargets  () const { return num_morph_targets; }
+    const MorphData&    GetMorphTarget      (uint index) const { return morph_targets[index]; }
+
+    // attribs
+    bool                HasAttrib           (VertexAttribs attrib) const { return (attrib_flags & (1 << uint(attrib))) != 0 ? true : false; }
+    uint                GetOffset           (VertexAttribs attrib) const { return offsets[attrib]; }
+
 
 private:
 
-    static UID  Generate            (const char* shape_name, par_shapes_mesh_s* shape);
-    void        GenerateAttribInfo  ();
-    void        GenerateCPUBuffers  (const Thekla::Atlas_Output_Mesh* atlas);
-    void        GenerateCPUBuffers  (const aiMesh* mesh);
-	void        GenerateCPUBuffers  (par_shapes_mesh_s* shape);
-    void        GenerateVBO         ();
-    void        GenerateBoneData    (const aiMesh* mesh);
-    void        GenerateVAO         ();
-    void        GenerateTangentSpace();
-    void        Clear               ();
-    bool        Save                (const char* source, std::string& output);
-	void        SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
+    uint                GetBoneWeightOffset () const { return sizeof(uint)*4*num_vertices; }
+    static UID          Generate            (const char* shape_name, par_shapes_mesh_s* shape);
+    void                GenerateAttribInfo  ();
+    void                GenerateCPUBuffers  (const Thekla::Atlas_Output_Mesh* atlas);
+    void                GenerateCPUBuffers  (const aiMesh* mesh);
+	void                GenerateCPUBuffers  (par_shapes_mesh_s* shape);
+    void                GenerateVBO         ();
+    void                GenerateBoneData    (const aiMesh* mesh);
+    void                GenerateVAO         ();
+    void                GenerateTangentSpace();
+    void                Clear               ();
+    bool                Save                (const char* source, std::string& output);
+	void                SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
 
 public:
-
-	enum VertexAttribs
-	{
-		ATTRIB_TEX_COORDS_0 = 1 << 0,
-		ATTRIB_NORMALS      = 1 << 1,
-        ATTRIB_TANGENTS     = 1 << 2,
-		ATTRIB_BONES        = 1 << 3,
-		ATTRIB_TEX_COORDS_1 = 1 << 4,
-	};
 
 	struct Bone
 	{
@@ -78,24 +99,11 @@ public:
 		float4x4	bind = float4x4::identity;
 	};
 
-    struct MorphData
-    {
-        std::unique_ptr<float3[]> src_vertices;
-        std::unique_ptr<float3[]> src_normals;
-        std::unique_ptr<float3[]> src_tangents;
-        uint                      vbo = 0;
-    };
-
     HashString                   name;
 
     uint                         vertex_size         = 0;
-    uint                         attribs             = 0;
-    uint                         texcoord0_offset    = 0;
-    uint                         texcoord1_offset    = 0;
-    uint                         normal_offset       = 0;
-    uint                         tangent_offset      = 0;
-	uint                         bone_idx_offset     = 0;
-    uint                         bone_weight_offset  = 0;
+    uint                         attrib_flags        = 0;
+    uint                         offsets[ATTRIB_COUNT] = { 0, 0, 0, 0, 0 };
 
     uint                         num_vertices = 0;
 
@@ -113,14 +121,15 @@ public:
 
 	uint                         num_bones	 = 0;
     std::unique_ptr<Bone[]>      bones;
-    bool                         static_mesh = false;
+    bool                         static_mesh = true;
 
     uint                         vao 	= 0;
     uint                         vbo 	= 0;
     uint                         ibo 	= 0;
 
     std::unique_ptr<MorphData[]> morph_targets;
-    uint                         num_morph_targets   = 0;
+    uint                         num_morph_targets = 0;
+    uint                         morph_vertex_size = 0;
 
 	AABB                         bbox;
 };
