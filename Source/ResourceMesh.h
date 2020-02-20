@@ -74,6 +74,15 @@ public:
     bool                HasAttrib           (VertexAttribs attrib) const { return (attrib_flags & (1 << uint(attrib))) != 0 ? true : false; }
     uint                GetOffset           (VertexAttribs attrib) const { return offsets[attrib]; }
 
+    uint                GetVBO              () const {return vbo; }
+    uint                GetVAO              () const {return vao; }
+    uint                GetIBO              () const {return ibo; }
+
+    const float3*       GetVertices         () const {return src_vertices.get(); }
+    const float2*       GetTexCoord0        () const {return src_texcoord0.get(); }
+    const float2*       GetTexCoord1        () const {return src_texcoord1.get(); }
+    const float3*       GetNormals          () const {return src_normals.get(); }
+    const float3*       GetTangents         () const {return src_tangents.get(); }
 
 private:
 

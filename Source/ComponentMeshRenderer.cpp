@@ -84,6 +84,8 @@ bool ComponentMeshRenderer::SetMeshRes(UID uid)
     delete [] node_cache;
     node_cache = nullptr;
 
+    morph_weights.release();
+
     Resource* res = App->resources->Get(mesh_resource);
 
     if(res != nullptr)
@@ -111,6 +113,15 @@ bool ComponentMeshRenderer::SetMeshRes(UID uid)
                 for(uint i=0; i< mesh->num_bones; ++i)
                 {
                     node_cache[i] = nullptr;
+                }
+            }
+
+            if(mesh->GetNumMorphTargets())
+            {
+                morph_weights = std::make_unique<float[]>(mesh->GetNumMorphTargets());
+                for(uint i=0; i< mesh->GetNumMorphTargets(); ++i)
+                {
+                    morph_weights[i] = 0.0f;
                 }
             }
 
@@ -217,6 +228,7 @@ void ComponentMeshRenderer::Draw() const
 
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
+        UpdateMorphTargets();
         mesh->UpdateUniforms(UpdateSkinPalette());
         material->UpdateUniforms();
         material->BindTextures();
@@ -241,28 +253,84 @@ void ComponentMeshRenderer::DrawShadowPass() const
 	{
 		glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
+        UpdateMorphTargets();
 		mesh->UpdateUniforms(UpdateSkinPalette());
 		mesh->Draw();
 	}
 }
 
-void ComponentMeshRenderer::SetMorphTarget(uint index) const
+void ComponentMeshRenderer::UpdateMorphTargets() const
 {
     const ResourceMesh* mesh = GetMeshRes();
 
-    assert(index < mesh->GetNumMorphTargets());
-
-    const ResourceMesh::MorphData& morph_target = mesh->GetMorphTarget(index);
-
-    glBufferSubData(GL_ARRAY_BUFFER, 0, mesh->GetNumVertices() * sizeof(float3), morph_target.src_vertices.get());
-
-    if (mesh->HasAttrib(ResourceMesh::ATTRIB_NORMALS))
+    if(dirty_morphs)
     {
-        glBufferSubData(GL_ARRAY_BUFFER, 0, mesh->GetNumVertices() * sizeof(float3), morph_target.src_normals.get());
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->GetVBO());
 
-            if (mesh->HasAttrib(ResourceMesh::ATTRIB_TANGENTS))
+        float3* vertices = reinterpret_cast<float3*>(glMapBufferRange(GL_ARRAY_BUFFER, 0, mesh->GetNumVertices() * sizeof(float3), GL_MAP_WRITE_BIT));       
+        memcpy(vertices, mesh->GetVertices(), sizeof(float3)*mesh->GetNumVertices());
+
+        for(uint i=0; i< mesh->GetNumMorphTargets(); ++i)
+        {
+            const ResourceMesh::MorphData& morph_target = mesh->GetMorphTarget(i);
+
+            if (morph_weights[i] > 0.0f)
             {
-                glBufferSubData(GL_ARRAY_BUFFER, 0, mesh->GetNumVertices() * sizeof(float3) * 2, morph_target.src_tangents.get());
+                for (uint j = 0; j < mesh->GetNumVertices(); ++j)
+                {
+                    vertices[j] += morph_target.src_vertices[j] * morph_weights[i];
+                }
             }
+        }
+
+        glUnmapBuffer(GL_ARRAY_BUFFER);
+
+        if(mesh->HasAttrib(ResourceMesh::ATTRIB_NORMALS))
+        {
+            float3* normals = reinterpret_cast<float3*>(glMapBufferRange(GL_ARRAY_BUFFER, mesh->GetOffset(ResourceMesh::ATTRIB_NORMALS), mesh->GetNumVertices() * sizeof(float3), GL_MAP_WRITE_BIT));
+            memcpy(normals, mesh->GetNormals(), sizeof(float3)*mesh->GetNumVertices());
+
+            for(uint i=0; i< mesh->GetNumMorphTargets(); ++i)
+            {
+                const ResourceMesh::MorphData& morph_target = mesh->GetMorphTarget(i);
+
+                if (morph_weights[i] > 0.0f)
+                {
+                    for (uint j = 0; j < mesh->GetNumVertices(); ++j)
+                    {
+                        normals[j] += morph_target.src_normals[j] * morph_weights[i];
+                        normals[j].Normalize();
+                    }
+                }
+            }
+
+            glUnmapBuffer(GL_ARRAY_BUFFER);
+
+            if(mesh->HasAttrib(ResourceMesh::ATTRIB_TANGENTS))
+            {
+                float3* tangents = reinterpret_cast<float3*>(glMapBufferRange(GL_ARRAY_BUFFER, mesh->GetOffset(ResourceMesh::ATTRIB_TANGENTS), mesh->GetNumVertices() * sizeof(float3), GL_MAP_WRITE_BIT)); 
+                memcpy(tangents, mesh->GetTangents(), sizeof(float3)*mesh->GetNumVertices());
+
+                for(uint i=0; i< mesh->GetNumMorphTargets(); ++i)
+                {
+                    const ResourceMesh::MorphData& morph_target = mesh->GetMorphTarget(i);
+
+                    if (morph_weights[i] > 0.0f)
+                    {
+                        for (uint j = 0; j < mesh->GetNumVertices(); ++j)
+                        {
+                            tangents[j] += morph_target.src_tangents[j] * morph_weights[i];
+                            tangents[j].Normalize();
+                        }
+                    }
+                }
+
+                glUnmapBuffer(GL_ARRAY_BUFFER);
+            }
+        }
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        dirty_morphs = false;
     }
 }

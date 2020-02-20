@@ -649,7 +649,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" }; 
     const unsigned num_default_macros  = sizeof(default_macros)/sizeof(const char*);
 
-    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.blinn.fs", default_macros, num_default_macros, nullptr, 0);
+    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", default_macros, num_default_macros, nullptr, 0);
 
     const char* macros[]		  = { "#define BLOOM 1 \n", "#define GAMMA 1\n" }; 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);

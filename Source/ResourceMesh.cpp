@@ -184,6 +184,44 @@ bool ResourceMesh::LoadInMemory()
                 }
             }
 
+            read_stream >> static_mesh;
+            read_stream >> num_morph_targets;
+
+            morph_targets = std::make_unique<MorphData[]>(num_morph_targets);
+
+            for(uint i=0; i< num_morph_targets; ++i)
+            {
+                MorphData& morph = morph_targets[i];
+
+                morph.src_vertices = std::make_unique<float3[]>(num_vertices);
+
+                for(uint j=0; j< num_vertices; ++j)
+                {
+                    read_stream >> morph.src_vertices[j].x >> morph.src_vertices[j].y >> morph.src_vertices[j].z;
+                }
+
+                if(HasAttrib(ATTRIB_NORMALS))
+                {
+                    morph.src_normals = std::make_unique<float3[]>(num_vertices);
+
+                    for(uint j=0; j< num_vertices; ++j)
+                    {
+                        read_stream >> morph.src_normals[j].x >> morph.src_normals[j].y >> morph.src_normals[j].z;
+                    }
+
+                    if(HasAttrib(ATTRIB_TANGENTS))
+                    {
+                        morph.src_tangents = std::make_unique<float3[]>(num_vertices);
+
+                        for(uint j=0; j< num_vertices; ++j)
+                        {
+                            read_stream >> morph.src_tangents[j].x >> morph.src_tangents[j].y >> morph.src_tangents[j].z;
+                        }
+                    }
+                }
+            }
+
+
             read_stream >> bbox.minPoint.x >> bbox.minPoint.y >> bbox.minPoint.z;
             read_stream >> bbox.maxPoint.x >> bbox.maxPoint.y >> bbox.maxPoint.z;
 
@@ -213,6 +251,7 @@ void ResourceMesh::ReleaseFromMemory()
     src_bone_indices.reset();
     src_bone_weights.reset();
     morph_targets.reset();
+    num_morph_targets = 0;
 
     if(vbo != 0)
     {
@@ -309,6 +348,34 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
     }
 
     write_stream << static_mesh;
+
+    write_stream << num_morph_targets;
+    for(uint i=0; i< num_morph_targets; ++i)
+    {
+        const MorphData& morph = morph_targets[i];
+
+        for(uint j=0; j< num_vertices; ++j)
+        {
+            write_stream << morph.src_vertices[j].x << morph.src_vertices[j].y << morph.src_vertices[j].z;
+        }
+
+        if(HasAttrib(ATTRIB_NORMALS))
+        { 
+            for(uint j=0; j< num_vertices; ++j)
+            {
+                write_stream << morph.src_normals[j].x << morph.src_normals[j].y << morph.src_normals[j].z;
+            }
+
+            if(HasAttrib(ATTRIB_TANGENTS))
+            {
+                for(uint j=0; j< num_vertices; ++j)
+                {
+                    write_stream << morph.src_tangents[j].x << morph.src_tangents[j].y << morph.src_tangents[j].z;
+                }
+            }
+        }
+    }
+
     write_stream << bbox.minPoint.x << bbox.minPoint.y << bbox.minPoint.z;
     write_stream << bbox.maxPoint.x << bbox.maxPoint.y << bbox.maxPoint.z;
 }
@@ -510,19 +577,31 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
             MorphData& data = morph_targets[i];
             
             data.src_vertices = std::make_unique<float3[]>(num_vertices);
-            memcpy(data.src_vertices.get(), mesh->mAnimMeshes[i]->mVertices, num_vertices);
+
+            for(uint j=0; j < num_vertices; ++j)
+            {
+                data.src_vertices[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mVertices[j])-src_vertices[j];
+            }
 
             if (mesh->HasNormals())
             {
                 assert(mesh->mAnimMeshes[i]->mNormals != nullptr);
+
                 data.src_normals = std::make_unique<float3[]>(num_vertices);
-                memcpy(data.src_normals.get(), mesh->mAnimMeshes[i]->mNormals, num_vertices);
+                for(uint j=0; j < num_vertices; ++j)
+                {
+                    data.src_normals[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mNormals[j])-src_normals[j];
+                }
 
                 if (mesh->HasTangentsAndBitangents())
                 {
                     assert(mesh->mAnimMeshes[i]->mNormals != nullptr);
                     data.src_tangents = std::make_unique<float3[]>(num_vertices);
-                    memcpy(data.src_tangents.get(), mesh->mAnimMeshes[i]->mTangents, num_vertices);
+
+                    for(uint j=0; j < num_vertices; ++j)
+                    {
+                        data.src_tangents[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mTangents[j])-src_tangents[j];
+                    }
                 }
             }
         }
