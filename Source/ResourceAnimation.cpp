@@ -32,38 +32,70 @@ bool ResourceAnimation::LoadInMemory()
         simple::mem_istream<std::true_type> read_stream(buffer, size);
 
         uint node_size = 0;
+        uint num_channels = 0;
 
         read_stream >> duration;
         read_stream >> num_channels;
 
-        channels = new Channel[num_channels];
+        channels.resize(num_channels);
 
-        for(uint i=0; i < num_channels; ++i)
+        for(Channel& channel : channels)
         {
-            Channel& channel = channels[i];
-
             std::string name;
             read_stream >> name;
-            read_stream >> channel.num_positions;
-            read_stream >> channel.num_rotations;
+
+            uint num_positions, num_rotations;
+            read_stream >> num_positions;
+            read_stream >> num_rotations;
 
             channel.name = HashString(name.c_str());
 
-            channel.positions = new float3[channel.num_positions];
-            channel.rotations = new Quat[channel.num_rotations];
+            channel.positions.resize(num_positions);
+            channel.rotations.resize(num_rotations);
 
-            for(uint j=0; j < channel.num_positions; ++j)
+            for(uint j=0; j < num_positions; ++j)
             {
                 read_stream >> channel.positions[j].x >> channel.positions[j].y >> channel.positions[j].z; 
             }
 
-            for(uint j=0; j < channel.num_rotations; ++j)
+            for(uint j=0; j < num_rotations; ++j)
             {
                 read_stream >> channel.rotations[j].x >> channel.rotations[j].y >> channel.rotations[j].z >> channel.rotations[j].w;  
             }
         }
 
-		return true;
+        uint num_morph_channels;
+        read_stream >> num_morph_channels;
+
+        morph_channels.resize(num_morph_channels);
+
+        for(MorphChannel& morph_channel : morph_channels)
+        {
+            std::string name;
+            read_stream >> name;
+
+            morph_channel.name = HashString(name.c_str());
+
+            uint num_keys = 0;
+            read_stream >> num_keys;
+
+            morph_channel.keys.resize(num_keys);
+
+            for(WeightList& key : morph_channel.keys)
+            {
+                uint num_weights = 0;
+                read_stream >> num_weights;
+
+                key.resize(num_weights);
+
+                for(float& weight : key)
+                {
+                    read_stream >> weight;
+                }
+            }
+        }
+
+        return true;
     }
 
 	return false;
@@ -72,17 +104,10 @@ bool ResourceAnimation::LoadInMemory()
 // ---------------------------------------------------------
 void ResourceAnimation::ReleaseFromMemory()
 {
-    for(uint i=0; i< num_channels; ++i)
-    {
-        delete [] channels[i].positions;
-        delete [] channels[i].rotations;
-    }
+    channels.clear();
+    morph_channels.clear();
 
-    delete [] channels;
-
-    num_channels = 0;
-    duration     = 0;
-    channels     = nullptr;
+    duration = 0;
 }
 
 // ---------------------------------------------------------
@@ -131,24 +156,41 @@ bool ResourceAnimation::Save(std::string& output) const
 void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
 {
     write_stream << duration;
-    write_stream << num_channels;
+    write_stream << channels.size();
 
-    for(uint i=0; i< num_channels; ++i)
+    for(const Channel& channel : channels)
     {
-        const Channel& channel = channels[i];
-
         write_stream << channel.name.C_str();
-        write_stream << channel.num_positions;
-        write_stream << channel.num_rotations;
+        write_stream << channel.positions.size();
+        write_stream << channel.rotations.size();
 
-        for(uint j=0; j < channel.num_positions; ++j)
+        for(const float3& position : channel.positions)
         {
-            write_stream << channel.positions[j].x << channel.positions[j].y << channel.positions[j].z; 
+            write_stream << position.x << position.y << position.z; 
         }
 
-        for(uint j=0; j < channel.num_rotations; ++j)
+        for(const Quat& rotation : channel.rotations)
         {
-            write_stream << channel.rotations[j].x << channel.rotations[j].y << channel.rotations[j].z << channel.rotations[j].w;  
+            write_stream << rotation.x << rotation.y << rotation.z << rotation.w;  
+        }
+    }
+
+    write_stream << morph_channels.size();
+
+    for(const MorphChannel& morph_channel : morph_channels)
+    {
+        write_stream << morph_channel.name.C_str();
+
+        write_stream << morph_channel.keys.size();
+
+        for(const WeightList& key : morph_channel.keys)
+        {
+            write_stream << key.size();
+
+            for(float weight : key)
+            {
+                write_stream << weight;
+            }
         }
     }
 }
@@ -170,8 +212,8 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
 
 		uint duration    = min(last - first, uint(animation->mDuration));
         res.duration     = unsigned(1000*duration/animation->mTicksPerSecond);
-        res.num_channels = animation->mNumChannels;
-        res.channels     = new Channel[res.num_channels];
+
+        res.channels.resize(animation->mNumChannels);
 
         for(unsigned i=0; i < animation->mNumChannels; ++i)
         {
@@ -198,11 +240,11 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
                 rot_last  = max(rot_first, min(last, node->mNumRotationKeys));
             }
 
-            channel.num_positions  = pos_last-pos_first;
-            channel.num_rotations  = rot_last-rot_first;
+            uint num_positions  = pos_last-pos_first;
+            uint num_rotations  = rot_last-rot_first;
 
-            channel.positions = new math::float3[channel.num_positions];
-            channel.rotations = new Quat[channel.num_rotations];
+            channel.positions.resize(num_positions);
+            channel.rotations.resize(num_rotations);
 
             for(unsigned j=0; j < (pos_last-pos_first); ++j)
             {
@@ -213,6 +255,50 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
             {
                 const aiQuaternion& quat = node->mRotationKeys[j+rot_first].mValue;
                 channel.rotations[j] = Quat(quat.x, quat.y, quat.z, quat.w);
+            }
+        }
+
+        res.morph_channels.resize(animation->mNumMorphMeshChannels);
+
+        for(unsigned i=0; i < animation->mNumMorphMeshChannels; ++i)
+        {
+            const aiMeshMorphAnim* morph_mesh = animation->mMorphMeshChannels[i];
+            MorphChannel& morph_channel       = res.morph_channels[i];
+
+            const char* find = strchr(morph_mesh->mName.C_Str(), '*');
+            if(find != nullptr)
+            {
+                morph_channel.name = HashString(morph_mesh->mName.C_Str(), find-morph_mesh->mName.C_Str());
+            }
+            else 
+            {
+                morph_channel.name = HashString(morph_mesh->mName.C_Str());
+            }
+
+            uint key_first = 0;
+            uint key_last = 1;
+
+            if(morph_mesh->mNumKeys > 1)
+            {
+                key_first = min(first, morph_mesh->mNumKeys);
+                key_last  = max(key_first, min(last, morph_mesh->mNumKeys));
+            }
+
+            uint num_keys  = key_last-key_first;
+            morph_channel.keys.resize(num_keys);
+
+            for(unsigned j=0; j < (key_last-key_first); ++j)
+            {
+                uint index = j+key_first;
+                WeightList& weights = morph_channel.keys[j];
+                weights.resize(morph_mesh->mKeys[index].mNumValuesAndWeights);
+                
+                for(unsigned k=0; k < morph_mesh->mKeys[index].mNumValuesAndWeights; ++k)
+                {
+                    assert(morph_mesh->mKeys[index].mValues[k] == k);
+
+                    weights[morph_mesh->mKeys[index].mValues[k]] = float(morph_mesh->mKeys[index].mWeights[k]);
+                }
             }
         }
 
@@ -229,7 +315,7 @@ uint ResourceAnimation::FindChannelIndex (const HashString& name) const
 {
     uint index = 0;
 
-    for(; index < num_channels; ++index)
+    for(; index < channels.size(); ++index)
     {
         if(channels[index].name == name)
         {

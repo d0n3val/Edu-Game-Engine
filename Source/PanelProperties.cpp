@@ -592,16 +592,19 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
         }
     }
 
-    for(uint i=0; i< res->GetNumMorphTargets(); ++i)
+    if (ImGui::CollapsingHeader("Morph Targets", 0))
     {
-        float weight = component->GetMorphTargetWeight(i);
-
-        char tmp[128];
-        sprintf_s(tmp, 127, "Morph %d", i);
-
-        if (ImGui::DragFloat(tmp, &weight, 0.01f, 0.0f, 1.0f))
+        for(uint i=0; i< res->GetNumMorphTargets(); ++i)
         {
-            component->SetMorphTargetWeight(i, weight);
+            float weight = component->GetMorphTargetWeight(i);
+
+            char tmp[128];
+            sprintf_s(tmp, 127, "Morph %d", i);
+
+            if (ImGui::DragFloat(tmp, &weight, 0.01f, 0.0f, 1.0f))
+            {
+                component->SetMorphTargetWeight(i, weight);
+            }
         }
     }
 

@@ -40,6 +40,15 @@ HashString::HashString(const char* str)
     value = strpool_cstr(GetPool(), handle);
 }
 
+HashString::HashString(const char* str, uint len)
+{ç
+    strpool_t* pool = GetPool();
+
+    handle = strpool_inject(pool, str, len);
+    strpool_incref(pool, handle);
+    value = strpool_cstr(GetPool(), handle);
+}
+
 HashString::HashString(const HashString& rhs) : handle(rhs.handle)
 {
     strpool_incref(GetPool(), handle);

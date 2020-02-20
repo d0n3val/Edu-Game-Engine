@@ -21,14 +21,14 @@ public:
 	static bool     Import           (const char* full_path, unsigned first, unsigned last, std::string& output);
 
 	uint            GetDuration      () const { return duration; }
-	uint            GetNumChannels   () const { return num_channels; }
+	uint            GetNumChannels   () const { return channels.size(); }
 
     uint            FindChannelIndex (const HashString& name) const;
 
-    uint            GetNumPositions  (uint channel_index) const { return channels[channel_index].num_positions; }
+    uint            GetNumPositions  (uint channel_index) const { return channels[channel_index].positions.size(); }
     const float3&   GetPosition      (uint channel_index, uint pos_index) const { return channels[channel_index].positions[pos_index]; }
 
-    uint            GetNumRotations  (uint channel_index) const { return channels[channel_index].num_rotations; }
+    uint            GetNumRotations  (uint channel_index) const { return channels[channel_index].rotations.size(); }
     const Quat&     GetRotation      (uint channel_index, uint pos_index) const { return channels[channel_index].rotations[pos_index]; }
 
 private:
@@ -39,16 +39,34 @@ private:
 
 	struct Channel
 	{
+        Channel() = default;
+		Channel(const Channel& o) = default;
+        Channel(Channel&& o) = default;
+		Channel& operator=(const Channel& o) = default;
+		Channel& operator=(Channel&& o) = default;
+
         HashString  name;
-        float3*     positions     = nullptr; 
-        Quat*       rotations     = nullptr;
-		uint        num_positions = 0;
-		uint        num_rotations = 0;
+        std::vector<float3> positions; 
+        std::vector<Quat>   rotations;
 	};
 
-    uint     duration     = 0;
-    uint     num_channels = 0;
-    Channel* channels     = nullptr;
+    typedef std::vector<float> WeightList;
+
+    struct MorphChannel
+    {
+        MorphChannel() = default;
+		MorphChannel(const MorphChannel& o) = default;
+        MorphChannel(MorphChannel&& o) = default;
+		MorphChannel& operator=(const MorphChannel& o) = default;
+		MorphChannel& operator=(MorphChannel&& o) = default;
+
+        HashString name;
+        std::vector<WeightList> keys;
+    };
+
+    uint                      duration = 0;
+    std::vector<Channel>      channels;
+    std::vector<MorphChannel> morph_channels;
 };
 
 #endif // __RESOURCE_ANIMATION_H__
