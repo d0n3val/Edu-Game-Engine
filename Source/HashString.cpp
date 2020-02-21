@@ -40,8 +40,8 @@ HashString::HashString(const char* str)
     value = strpool_cstr(GetPool(), handle);
 }
 
-HashString::HashString(const char* str, uint len)
-{ç
+HashString::HashString(const char* str, unsigned len)
+{
     strpool_t* pool = GetPool();
 
     handle = strpool_inject(pool, str, len);

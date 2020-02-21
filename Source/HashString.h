@@ -13,7 +13,7 @@ public:
 
     HashString();
     explicit HashString(const char* str);
-    HashString(const char* str, uint len);
+    HashString(const char* str, unsigned len);
     HashString(const HashString& rhs);
     ~HashString();
 

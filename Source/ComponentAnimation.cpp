@@ -89,6 +89,8 @@ void ComponentAnimation::UpdateGO(GameObject* go)
         go->SetLocalRotation(rotation);
     }
 
+    // if go has mesh renderer with morph targets --> GetWeights
+
     for(std::list<GameObject*>::iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
     {
         UpdateGO(*it);

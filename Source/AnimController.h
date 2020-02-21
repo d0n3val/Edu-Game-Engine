@@ -34,11 +34,14 @@ public:
     void            SetSpeed            (float speed) { if(current) current->speed = speed; }
 
 	bool            GetTransform        (const HashString& channel_name, math::float3& position, Quat& rotation) const;
+    uint            GetNumWeights       (const HashString& morph_name) const;
+    bool            GetWeights          (const HashString& morph_name, float*& weights, uint& num_weights) const;
 
 private:
     void            UpdateInstance      (Instance* instance, unsigned elapsed);
     void            ReleaseInstance     (Instance* instance);
     bool            GetTransformInstance(Instance* instance, const HashString& channel_name, float3& position, Quat& rotation) const;
+    bool            GetWeightsInstance  (Instance* instance, const HashString& morph_name, float*& weights, uint& num_weights, float lambda) const;
     float3          Interpolate         (const float3& first, const float3& second, float lambda) const;
 	Quat            Interpolate         (const Quat& first, const Quat& second, float lambda) const;
 };

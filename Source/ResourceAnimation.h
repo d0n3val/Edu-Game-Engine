@@ -13,27 +13,40 @@ public:
 	ResourceAnimation(UID id);
 	virtual ~ResourceAnimation();
 
-	bool            LoadInMemory     () override;
-    void            ReleaseFromMemory() override;
+	bool            LoadInMemory        () override;
+    void            ReleaseFromMemory   () override;
 
-	bool			Save			 () ;
-    bool            Save             (std::string& output) const;
-	static bool     Import           (const char* full_path, unsigned first, unsigned last, std::string& output);
+	bool			Save			    () ;
+    bool            Save                (std::string& output) const;
+	static bool     Import              (const char* full_path, unsigned first, unsigned last, std::string& output);
 
-	uint            GetDuration      () const { return duration; }
-	uint            GetNumChannels   () const { return channels.size(); }
+	uint            GetDuration         () const { return duration; }
 
-    uint            FindChannelIndex (const HashString& name) const;
+    // channels 
 
-    uint            GetNumPositions  (uint channel_index) const { return channels[channel_index].positions.size(); }
-    const float3&   GetPosition      (uint channel_index, uint pos_index) const { return channels[channel_index].positions[pos_index]; }
+	uint            GetNumChannels      () const { return channels.size(); }
 
-    uint            GetNumRotations  (uint channel_index) const { return channels[channel_index].rotations.size(); }
-    const Quat&     GetRotation      (uint channel_index, uint pos_index) const { return channels[channel_index].rotations[pos_index]; }
+    uint            FindChannelIndex    (const HashString& name) const;
+
+    uint            GetNumPositions     (uint channel_index) const { return channels[channel_index].positions.size(); }
+    const float3&   GetPosition         (uint channel_index, uint pos_index) const { return channels[channel_index].positions[pos_index]; }
+
+    uint            GetNumRotations     (uint channel_index) const { return channels[channel_index].rotations.size(); }
+    const Quat&     GetRotation         (uint channel_index, uint pos_index) const { return channels[channel_index].rotations[pos_index]; }
+
+    uint            FindMorphIndex      (const HashString& name) const;
+
+    // morph channels 
+
+    uint            GetNumMorphChannels () const { return morph_channels.size(); }
+
+    uint            GetNumKeys          (uint morph) const                       { return morph_channels[morph].keys.size(); }
+    uint            GetNumWeights       (uint morph, uint key) const             { return morph_channels[morph].keys[key].size(); } 
+    float           GetWeight           (uint morph, uint key, uint index) const { return morph_channels[morph].keys[key][index]; }
 
 private:
 
-    void             SaveToStream     (simple::mem_ostream<std::true_type>& write_stream) const;
+    void            SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
 
 private:
 

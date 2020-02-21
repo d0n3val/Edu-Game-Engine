@@ -101,6 +101,71 @@ void AnimController::ReleaseInstance(Instance* instance)
 	} while (instance != nullptr);
 }
 
+bool AnimController::GetWeights(const HashString& morph_name, float*& weights, uint& num_weights) const
+{ç
+    if(current != nullptr)
+    {
+        return GetWeightsInstance(current, morph_name, weights, num_weights);
+    }
+
+	return false;
+}ç
+
+uint AnimController::GetNumWeights(const HashString& morph_name) const
+{ç
+}
+
+bool AnimController::GetWeightsInstance(Instance* instance, const HashString& morph_name, float*& weights, uint& num_weights, float lambda) const
+{
+	const ResourceAnimation* animation = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
+
+    if(animation != nullptr)
+    {
+        unsigned channel_index  = animation->FindMorphIndex(morph_name);
+
+        if(channel_index < animation->GetNumMorphTargets())
+        {
+            assert(instance->time <= animation->GetDuration());
+
+            float key          = float(instance->time*(animation->GetNumKeys(channel_index)-1))/float(animation->GetDuration());
+            unsigned key_index = unsigned(key);
+            float key_lambda   = key-float(key_index);
+            // ir acumulando lambda
+
+            /*
+            if(lambda > 0.0f)
+            {
+                position = Interpolate(animation->GetWeights(channel_index, pos_index), animation->GetPosition(channel_index, pos_index+1), pos_lambda);
+            }
+            else
+            {
+                position = animation->GetPosition(channel_index, pos_index);
+            }
+
+            if(instance->next != nullptr)
+            {
+                assert(instance->fade_duration > 0.0f);
+
+                float3 next_position;
+                Quat next_rotation;
+
+                if(GetTransformInstance(instance->next, channel_name, next_position, next_rotation))
+                {
+                    float blend_lambda = float(instance->fade_time) / float(instance->fade_duration);
+
+                    position = Interpolate(next_position, position, blend_lambda);
+                    rotation = Interpolate(next_rotation, rotation, blend_lambda);
+                }
+            }
+            */
+
+            return true;
+        }
+    }
+
+	return false;
+}
+
 bool AnimController::GetTransform(const HashString& channel_name, float3& position, Quat& rotation) const
 {
     if(current != nullptr)

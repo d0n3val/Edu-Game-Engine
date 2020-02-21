@@ -313,16 +313,11 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
 // ---------------------------------------------------------
 uint ResourceAnimation::FindChannelIndex (const HashString& name) const
 {
-    uint index = 0;
-
-    for(; index < channels.size(); ++index)
-    {
-        if(channels[index].name == name)
-        {
-            break;
-        }
-    }
-
-    return index;
+    return std::find_if(channels.begin(), channels.end(), [name](const Channel& channel) { return channel.name == name; } ) - channels.begin();
 }
 
+// ---------------------------------------------------------
+uint ResourceAnimation::FindMorphIndex(const HashString& name) const
+{
+    return std::find_if(morph_channels.begin(), morph_channels.end(), [name](const MorphChannel& channel) { return channel.name == name; } ) - morph_channels.begin();
+}
