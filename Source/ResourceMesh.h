@@ -84,6 +84,8 @@ public:
     const float3*       GetNormals          () const {return src_normals.get(); }
     const float3*       GetTangents         () const {return src_tangents.get(); }
 
+    const HashString&   GetName             () const { return name; }
+
 private:
 
     uint                GetBoneWeightOffset () const { return sizeof(uint)*4*num_vertices; }

@@ -33,7 +33,7 @@ public:
 	UID                 GetUID() const;
 	const char*         GetFile() const;
 	const char*         GetExportedFile() const;
-    const char*         GetName() const { return user_name.c_str(); }
+    const char*         GetSourceName() const { return user_name.c_str(); }
 
 	bool                IsLoadedToMemory() const;
 	bool                LoadToMemory();

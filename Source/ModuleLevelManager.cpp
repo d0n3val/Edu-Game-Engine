@@ -580,7 +580,7 @@ GameObject* ModuleLevelManager::AddModel(UID id)
 
         if(!gos.empty())
         {
-            gos.front()->name = model->GetName();
+            gos.front()->name = model->GetSourceName();
         }
 
         model->Release();

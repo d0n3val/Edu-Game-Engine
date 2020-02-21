@@ -101,21 +101,17 @@ void AnimController::ReleaseInstance(Instance* instance)
 	} while (instance != nullptr);
 }
 
-bool AnimController::GetWeights(const HashString& morph_name, float*& weights, uint& num_weights) const
-{ç
-    if(current != nullptr)
+bool AnimController::GetWeights(const HashString& morph_name, float* weights, uint num_weights) const
+{
+    if (current != nullptr)
     {
-        return GetWeightsInstance(current, morph_name, weights, num_weights);
+        return GetWeightsInstance(current, morph_name, weights, num_weights, 1.0f);
     }
 
-	return false;
-}ç
-
-uint AnimController::GetNumWeights(const HashString& morph_name) const
-{ç
+    return false;
 }
 
-bool AnimController::GetWeightsInstance(Instance* instance, const HashString& morph_name, float*& weights, uint& num_weights, float lambda) const
+bool AnimController::GetWeightsInstance(Instance* instance, const HashString& morph_name, float*& weights, uint num_weights, float lambda) const
 {
 	const ResourceAnimation* animation = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
 
@@ -123,41 +119,40 @@ bool AnimController::GetWeightsInstance(Instance* instance, const HashString& mo
     {
         unsigned channel_index  = animation->FindMorphIndex(morph_name);
 
-        if(channel_index < animation->GetNumMorphTargets())
+        if(channel_index < animation->GetNumMorphChannels())
         {
             assert(instance->time <= animation->GetDuration());
 
             float key          = float(instance->time*(animation->GetNumKeys(channel_index)-1))/float(animation->GetDuration());
             unsigned key_index = unsigned(key);
             float key_lambda   = key-float(key_index);
-            // ir acumulando lambda
 
-            /*
+            assert(num_weights == animation->GetNumWeights(channel_index, key_index));
+
             if(lambda > 0.0f)
             {
-                position = Interpolate(animation->GetWeights(channel_index, pos_index), animation->GetPosition(channel_index, pos_index+1), pos_lambda);
+                for (uint i = 0; i < num_weights; ++i)
+                {
+                    weights[i] = Interpolate(weights[i], Interpolate(animation->GetWeight(channel_index, key_index, i),
+                                             animation->GetWeight(channel_index, key_index + 1, i), key_lambda), lambda);
+                }
             }
             else
             {
-                position = animation->GetPosition(channel_index, pos_index);
+                for(uint i=0; i< num_weights; ++i)
+                {
+                    weights[i] = Interpolate(weights[i], lambda+animation->GetWeight(channel_index, key_index, i), lambda);
+                }
             }
 
             if(instance->next != nullptr)
             {
                 assert(instance->fade_duration > 0.0f);
 
-                float3 next_position;
-                Quat next_rotation;
+               float blend_lambda = float(instance->fade_time) / float(instance->fade_duration);
 
-                if(GetTransformInstance(instance->next, channel_name, next_position, next_rotation))
-                {
-                    float blend_lambda = float(instance->fade_time) / float(instance->fade_duration);
-
-                    position = Interpolate(next_position, position, blend_lambda);
-                    rotation = Interpolate(next_rotation, rotation, blend_lambda);
-                }
+                GetWeightsInstance(instance->next, morph_name, weights, num_weights, blend_lambda*lambda);
             }
-            */
 
             return true;
         }
@@ -236,6 +231,11 @@ bool AnimController::GetTransformInstance(Instance* instance, const HashString& 
     }
 
 	return false;
+}
+
+float AnimController::Interpolate(float first, float second, float lambda) const
+{
+    return first * (1.0f - lambda) + second * lambda;
 }
 
 float3 AnimController::Interpolate(const float3& first, const float3& second, float lambda) const

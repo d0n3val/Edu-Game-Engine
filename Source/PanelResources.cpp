@@ -150,7 +150,7 @@ void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources:
 
 			bool selected = selection.find(info->GetUID()) != selection.end();
 
-            if (ImGui::TreeNodeEx(info->GetName(), selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
+            if (ImGui::TreeNodeEx(info->GetSourceName(), selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
             {
                 if (ImGui::IsItemClicked(0))
                 {

@@ -1,8 +1,10 @@
 #include "Globals.h"
 #include "ComponentAnimation.h"
+#include "ComponentMeshRenderer.h"
 #include "Application.h"
 #include "ModuleResources.h"
 #include "ResourceAnimation.h"
+#include "ResourceMesh.h"
 #include "ResourceStateMachine.h"
 #include "AnimController.h"
 #include "gameObject.h"
@@ -80,6 +82,8 @@ void ComponentAnimation::OnLoad(Config* config)
 // ---------------------------------------------------------
 void ComponentAnimation::UpdateGO(GameObject* go)
 {
+    // Rígid update
+
     float3 position;
     Quat rotation;
 
@@ -89,7 +93,30 @@ void ComponentAnimation::UpdateGO(GameObject* go)
         go->SetLocalRotation(rotation);
     }
 
-    // if go has mesh renderer with morph targets --> GetWeights
+    // Morph targets update
+    
+    tmp_components.clear();
+    go->FindComponents(Component::MeshRenderer, tmp_components);
+
+    for(Component* component : tmp_components)
+    {
+        ComponentMeshRenderer* mesh_renderer = static_cast<ComponentMeshRenderer*>(component);
+        const ResourceMesh* mesh             = mesh_renderer->GetMeshRes();
+        HashString morph_name                = HashString(mesh->GetName());
+        uint num_morphs                      = mesh->GetNumMorphTargets();
+
+        if(num_morphs > 0)
+        {
+            tmp_weights.resize(num_morphs);
+            if (controller->GetWeights(morph_name, &tmp_weights[0], num_morphs))
+            {
+                for (uint i=0; i< num_morphs; ++i)
+                {
+                    mesh_renderer->SetMorphTargetWeight(i, tmp_weights[i]);
+                }
+            }
+        }
+    }
 
     for(std::list<GameObject*>::iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
     {

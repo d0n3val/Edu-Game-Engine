@@ -991,7 +991,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
     {
         char name[128];
 
-        strcpy_s(name, state_res->GetName());
+        strcpy_s(name, state_res->GetSourceName());
 
         if(ImGui::InputText("Resource name", name, 128))
         {
@@ -1021,7 +1021,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
                 state_res->Save();
             }
 
-            ImGui::LabelText("Resource", resource ? resource->GetName() : "Unknown");
+            ImGui::LabelText("Resource", resource ? resource->GetSourceName() : "Unknown");
             ImGui::SameLine();
             if(ImGui::ArrowButton("resource", ImGuiDir_Right))
             {
@@ -1103,7 +1103,7 @@ void DrawTrailComponent(ComponentTrail* component)
         if (info)
         {
             char name[128];
-            strcpy_s(name, info->GetName());
+            strcpy_s(name, info->GetSourceName());
 
             if (ImGui::InputText("Resource name", name, 128))
             {
@@ -1221,7 +1221,7 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
         if (info)
         {
             char name[128];
-            strcpy_s(name, info->GetName());
+            strcpy_s(name, info->GetSourceName());
 
             if (ImGui::InputText("Resource name", name, 128))
             {
@@ -1459,7 +1459,7 @@ UID PanelProperties::DrawResourceType(Resource::Type type, bool opened)
 
             ImGui::PushID(info->GetExportedFile());
 
-            if (ImGui::TreeNodeEx(info->GetName(), info->GetUID() == selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
+            if (ImGui::TreeNodeEx(info->GetSourceName(), info->GetUID() == selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
             {
                 if (ImGui::IsItemClicked(0) )
                 {

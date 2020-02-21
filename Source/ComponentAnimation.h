@@ -50,11 +50,13 @@ private:
 
 private:
 
-    UID             resource   = 0;
-    AnimController* controller = nullptr;
-    unsigned        active_node = 0;
-    bool            debug_draw  = false;
-    EditorContext*  context = nullptr;
+    UID                      resource    = 0;
+    AnimController*          controller  = nullptr;
+    unsigned                 active_node = 0;
+    bool                     debug_draw  = false;
+    EditorContext*           context     = nullptr;
+    std::vector<float>       tmp_weights;
+    std::vector<Component*>  tmp_components;
 };
 
 #endif // __COMPONENT_AUDIOSOURCE_H__
