@@ -747,6 +747,48 @@ void ResourceMesh::GenerateVBO()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, num_indices*sizeof(unsigned), src_indices.get(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+    if(num_morph_targets > 0)
+    {
+        if(tbo == 0)
+        {
+            glGenBuffers(1, &tbo);
+        }
+
+        glBindBuffer(GL_TEXTURE_BUFFER, tbo);
+
+        uint morph_size = GetMorphNumAttribs()*sizeof(float3);
+
+        //glBufferData(GL_TEXTURE_BUFFER, num_vertices*sizeof(float3), 0, GL_STATIC_DRAW);
+        glBufferData(GL_TEXTURE_BUFFER, num_morph_targets*num_vertices*morph_size, 0, GL_STATIC_DRAW);
+
+        for(uint i=0; i< num_morph_targets; ++i)
+        {
+            glBufferSubData(GL_TEXTURE_BUFFER, num_vertices*morph_size*i, num_vertices*sizeof(float3), morph_targets[i].src_vertices.get());
+
+            if(HasAttrib(ATTRIB_NORMALS))
+            {
+                glBufferSubData(GL_TEXTURE_BUFFER, num_vertices*morph_size*i+num_vertices*sizeof(float3), num_vertices*sizeof(float3), morph_targets[i].src_normals.get());
+
+                if(HasAttrib(ATTRIB_TANGENTS))
+                {
+                    glBufferSubData(GL_TEXTURE_BUFFER, num_vertices*morph_size*i+num_vertices*sizeof(float3)*2, num_vertices*sizeof(float3), morph_targets[i].src_tangents.get());
+                }
+            }
+        }
+
+        glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+        if(morph_texture == 0)
+        {
+            glGenTextures(1, &morph_texture);
+        }
+
+        glBindTexture(GL_TEXTURE_BUFFER, morph_texture);
+        glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, tbo);
+        glBindTexture(GL_TEXTURE_BUFFER, 0);
+    }
 }
 
 void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
@@ -1049,7 +1091,7 @@ void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
     }
 }
 
-void ResourceMesh::UpdateUniforms(const float4x4* skin_palette) const
+void ResourceMesh::UpdateUniforms(const float4x4* skin_palette, const float* morph_weights) const
 {
     unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
 
@@ -1065,17 +1107,29 @@ void ResourceMesh::UpdateUniforms(const float4x4* skin_palette) const
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, sizeof(vertex_indices)/sizeof(unsigned), vertex_indices);
 
+
+    if(morph_weights != nullptr)
+    {
+        glUniform1fv(App->programs->GetUniformLocation("morph_weights"), num_morph_targets, morph_weights);
+        glUniform1i(App->programs->GetUniformLocation("morph_target_stride"), num_vertices*GetMorphNumAttribs());
+        glUniform1i(App->programs->GetUniformLocation("morph_normals_stride"), num_vertices);
+        glUniform1i(App->programs->GetUniformLocation("morph_tangents_stride"), num_vertices*2);
+        glUniform1i(App->programs->GetUniformLocation("num_morph_targets"), num_morph_targets);
+    }
 }
 
 void ResourceMesh::Draw() const
 {
     glBindVertexArray(vao);
 
+    glBindTexture(GL_TEXTURE_BUFFER, morph_texture);
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, nullptr);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
 }
 
 void ResourceMesh::GenerateTexCoord1()
@@ -1167,3 +1221,24 @@ void ResourceMesh::GenerateCPUBuffers(const Atlas_Output_Mesh* atlas)
     copy_new_vertices(src_tangents, atlas->vertex_array, num_vertices);
 }
 
+uint ResourceMesh::GetMorphNumAttribs() const
+{
+    if(num_morph_targets)
+    {
+        if(HasAttrib(ATTRIB_NORMALS))
+        {
+            if(HasAttrib(ATTRIB_TANGENTS))
+            {
+                return 3;
+            }
+            else
+            {
+                return 2;
+            }
+        }
+
+        return 1;
+    }
+
+    return 0;
+}

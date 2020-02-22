@@ -228,8 +228,8 @@ void ComponentMeshRenderer::Draw() const
 
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
-        UpdateMorphTargets();
-        mesh->UpdateUniforms(UpdateSkinPalette());
+        //UpdateCPUMorphTargets();
+        mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
         material->UpdateUniforms();
         material->BindTextures();
         mesh->Draw();
@@ -252,14 +252,14 @@ void ComponentMeshRenderer::DrawShadowPass() const
 	if (mesh != nullptr && cast_shadows)
 	{
 		glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
-
-        UpdateMorphTargets();
-		mesh->UpdateUniforms(UpdateSkinPalette());
+        
+        //UpdateCPUMorphTargets();
+        mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
 		mesh->Draw();
 	}
 }
 
-void ComponentMeshRenderer::UpdateMorphTargets() const
+void ComponentMeshRenderer::UpdateCPUMorphTargets() const
 {
     const ResourceMesh* mesh = GetMeshRes();
 

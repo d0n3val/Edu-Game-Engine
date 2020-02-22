@@ -45,7 +45,7 @@ public:
     void                    SetVisible              (bool v) { visible = v; }
 
     const float4x4*         UpdateSkinPalette       () const;
-    void                    UpdateMorphTargets      () const;
+    void                    UpdateCPUMorphTargets   () const;
     void                    SetRootUID              (UID r) { root_uid = r; }
 
     // material
@@ -62,6 +62,7 @@ public:
 
     void                    SetMorphTargetWeight    (uint index, float weight) { dirty_morphs = dirty_morphs || morph_weights[index] != weight; morph_weights[index] = weight;  }
     float                   GetMorphTargetWeight    (uint index) const { return morph_weights[index]; }
+    const float*            GetMorphTargetWeights   () const { return morph_weights.get(); }
 
 private:
 

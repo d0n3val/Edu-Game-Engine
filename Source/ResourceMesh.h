@@ -48,7 +48,7 @@ public:
 	void                Save                (Config& config) const override;
 	void                Load                (const Config& config) override;
 
-    void                UpdateUniforms      (const float4x4* skin_palette) const;
+    void                UpdateUniforms      (const float4x4* skin_palette, const float* morph_weights) const;
     void                Draw                () const;
 
 	bool                LoadInMemory        () override;
@@ -104,6 +104,7 @@ private:
     void                Clear               ();
     bool                Save                (const char* source, std::string& output);
 	void                SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
+    uint                GetMorphNumAttribs  () const;
 
 public:
 
@@ -140,6 +141,8 @@ public:
     uint                         vao 	= 0;
     uint                         vbo 	= 0;
     uint                         ibo 	= 0;
+    uint                         tbo    = 0; // texture buffer object for morphing
+    uint                         morph_texture = 0;
 
     std::unique_ptr<MorphData[]> morph_targets;
     uint                         num_morph_targets = 0;
