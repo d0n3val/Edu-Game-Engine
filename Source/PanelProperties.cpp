@@ -967,6 +967,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
     if(ImGui::Button("New State machine"))
     {
         ResourceStateMachine* state_machine = static_cast<ResourceStateMachine*>(App->resources->CreateNewResource(Resource::state_machine, 0));
+        App->resources->SaveResources();
 
         bool save_ok = state_machine->Save();
 

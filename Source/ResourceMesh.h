@@ -25,6 +25,8 @@ public:
         std::unique_ptr<float3[]> src_vertices;
         std::unique_ptr<float3[]> src_normals;
         std::unique_ptr<float3[]> src_tangents;
+        std::unique_ptr<uint[]>   src_indices;
+        uint                      num_indices;
     };
 
 	enum VertexAttribs
@@ -71,6 +73,7 @@ public:
     const MorphData&    GetMorphTarget      (uint index) const { return morph_targets[index]; }
 
     // attribs
+
     bool                HasAttrib           (VertexAttribs attrib) const { return (attrib_flags & (1 << uint(attrib))) != 0 ? true : false; }
     uint                GetOffset           (VertexAttribs attrib) const { return offsets[attrib]; }
 

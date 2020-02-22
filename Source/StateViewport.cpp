@@ -81,12 +81,15 @@ void StateViewport::DrawNodes(ResourceStateMachine* animation)
         ImVec2 size = ed::GetNodeSize(i*3+1);
         ImVec2 pos = ed::GetNodePosition(i*3+2);
 
+        /* todo:
 		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(i * 3 + 1);
 
 		drawList->AddLine(
 			ImGui::GetCursorScreenPos(),
 			ImGui::GetCursorScreenPos()+ImVec2(size.x-16.0f, 0.0),
 			IM_COL32(255, 255, 0, 255), 1.0f);
+
+            */
 
 
 		ImGui::PopStyleVar();
@@ -100,10 +103,12 @@ void StateViewport::DrawNodes(ResourceStateMachine* animation)
 
 		ImGui::Dummy(ImVec2(96.0, 8.0));
 
+        /* todo
 		drawList->AddLine(
 			ImGui::GetCursorScreenPos(),
 			ImGui::GetCursorScreenPos()+ImVec2(size.x-16.0f, 0.0),
 			IM_COL32(255, 255, 255, 255), 1.0f);
+            */
 
 		ImGui::Dummy(ImVec2(64.0, 8.0));
 

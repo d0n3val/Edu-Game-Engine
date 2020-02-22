@@ -276,9 +276,10 @@ void ComponentMeshRenderer::UpdateMorphTargets() const
 
             if (morph_weights[i] > 0.0f)
             {
-                for (uint j = 0; j < mesh->GetNumVertices(); ++j)
+                for(uint j=0; j< morph_target.num_indices; ++j)
                 {
-                    vertices[j] += morph_target.src_vertices[j] * morph_weights[i];
+                    uint index = morph_target.src_indices[j];
+                    vertices[index] += morph_target.src_vertices[index] * morph_weights[i];
                 }
             }
         }
@@ -296,10 +297,11 @@ void ComponentMeshRenderer::UpdateMorphTargets() const
 
                 if (morph_weights[i] > 0.0f)
                 {
-                    for (uint j = 0; j < mesh->GetNumVertices(); ++j)
+                    for(uint j=0; j< morph_target.num_indices; ++j)
                     {
-                        normals[j] += morph_target.src_normals[j] * morph_weights[i];
-                        normals[j].Normalize();
+                        uint index = morph_target.src_indices[j];
+                        normals[index] += morph_target.src_normals[index] * morph_weights[i];
+                        normals[index].Normalize();
                     }
                 }
             }
@@ -317,10 +319,11 @@ void ComponentMeshRenderer::UpdateMorphTargets() const
 
                     if (morph_weights[i] > 0.0f)
                     {
-                        for (uint j = 0; j < mesh->GetNumVertices(); ++j)
+                        for(uint j=0; j< morph_target.num_indices; ++j)
                         {
-                            tangents[j] += morph_target.src_tangents[j] * morph_weights[i];
-                            tangents[j].Normalize();
+                            uint index = morph_target.src_indices[j];
+                            tangents[index] += morph_target.src_tangents[index] * morph_weights[i];
+                            tangents[index].Normalize();
                         }
                     }
                 }

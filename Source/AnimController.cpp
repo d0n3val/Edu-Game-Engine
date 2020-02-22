@@ -7,6 +7,48 @@
 
 #include "mmgr/mmgr.h"
 
+namespace
+{
+
+    inline float Interpolate(float first, float second, float lambda) 
+    {
+        return first * (1.0f - lambda) + second * lambda;
+    }
+
+    inline float3 Interpolate(const float3& first, const float3& second, float lambda) 
+    {
+        return first*(1.0f-lambda)+second*lambda;
+    }
+
+    inline Quat Interpolate(const Quat& first, const Quat& second, float lambda) 
+    {
+        Quat result;
+
+        // note: ensure minimal angle interpolation
+        float dot = first.Dot(second); 
+
+        if(dot >= 0.0f)
+        {
+            result.x = first.x*(1.0f-lambda)+second.x*lambda;
+            result.y = first.y*(1.0f-lambda)+second.y*lambda;
+            result.z = first.z*(1.0f-lambda)+second.z*lambda;
+            result.w = first.w*(1.0f-lambda)+second.w*lambda;
+        }
+        else
+        {
+            result.x = first.x*(1.0f-lambda)-second.x*lambda;
+            result.y = first.y*(1.0f-lambda)-second.y*lambda;
+            result.z = first.z*(1.0f-lambda)-second.z*lambda;
+            result.w = first.w*(1.0f-lambda)-second.w*lambda;
+        }
+
+        result.Normalize();
+
+        return result;
+    }
+
+}
+
 AnimController::AnimController()
 {
 }
@@ -127,21 +169,22 @@ bool AnimController::GetWeightsInstance(Instance* instance, const HashString& mo
             unsigned key_index = unsigned(key);
             float key_lambda   = key-float(key_index);
 
-            assert(num_weights == animation->GetNumWeights(channel_index, key_index));
+            assert(num_weights == animation->GetNumWeights(channel_index));
 
-            if(lambda > 0.0f)
+            if(key_lambda > 0.0f)
             {
                 for (uint i = 0; i < num_weights; ++i)
                 {
-                    weights[i] = Interpolate(weights[i], Interpolate(animation->GetWeight(channel_index, key_index, i),
-                                             animation->GetWeight(channel_index, key_index + 1, i), key_lambda), lambda);
+                    float w0 = animation->GetWeight(channel_index, i, key_index);
+                    float w1 = animation->GetWeight(channel_index, i, key_index+1);
+                    weights[i] = Interpolate(weights[i], Interpolate(w0, w1, key_lambda), lambda);
                 }
             }
             else
             {
                 for(uint i=0; i< num_weights; ++i)
                 {
-                    weights[i] = Interpolate(weights[i], lambda+animation->GetWeight(channel_index, key_index, i), lambda);
+                    weights[i] = Interpolate(weights[i], animation->GetWeight(channel_index, i, key_index), lambda);
                 }
             }
 
@@ -233,39 +276,3 @@ bool AnimController::GetTransformInstance(Instance* instance, const HashString& 
 	return false;
 }
 
-float AnimController::Interpolate(float first, float second, float lambda) const
-{
-    return first * (1.0f - lambda) + second * lambda;
-}
-
-float3 AnimController::Interpolate(const float3& first, const float3& second, float lambda) const
-{
-    return first*(1.0f-lambda)+second*lambda;
-}
-
-Quat AnimController::Interpolate(const Quat& first, const Quat& second, float lambda) const
-{
-    Quat result;
-
-    // note: ensure minimal angle interpolation
-	float dot = first.Dot(second); 
-
-	if(dot >= 0.0f)
-	{
-		result.x = first.x*(1.0f-lambda)+second.x*lambda;
-		result.y = first.y*(1.0f-lambda)+second.y*lambda;
-		result.z = first.z*(1.0f-lambda)+second.z*lambda;
-		result.w = first.w*(1.0f-lambda)+second.w*lambda;
-	}
-	else
-	{
-		result.x = first.x*(1.0f-lambda)-second.x*lambda;
-		result.y = first.y*(1.0f-lambda)-second.y*lambda;
-		result.z = first.z*(1.0f-lambda)-second.z*lambda;
-		result.w = first.w*(1.0f-lambda)-second.w*lambda;
-	}
-
-	result.Normalize();
-
-	return result;
-}

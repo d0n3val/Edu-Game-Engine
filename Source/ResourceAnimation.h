@@ -28,10 +28,10 @@ public:
 
     uint            FindChannelIndex    (const HashString& name) const;
 
-    uint            GetNumPositions     (uint channel_index) const { return channels[channel_index].positions.size(); }
+    uint            GetNumPositions     (uint channel_index) const { return channels[channel_index].num_positions; }
     const float3&   GetPosition         (uint channel_index, uint pos_index) const { return channels[channel_index].positions[pos_index]; }
 
-    uint            GetNumRotations     (uint channel_index) const { return channels[channel_index].rotations.size(); }
+    uint            GetNumRotations     (uint channel_index) const { return channels[channel_index].num_rotations; }
     const Quat&     GetRotation         (uint channel_index, uint pos_index) const { return channels[channel_index].rotations[pos_index]; }
 
     uint            FindMorphIndex      (const HashString& name) const;
@@ -40,9 +40,9 @@ public:
 
     uint            GetNumMorphChannels () const { return morph_channels.size(); }
 
-    uint            GetNumKeys          (uint morph) const                       { return morph_channels[morph].keys.size(); }
-    uint            GetNumWeights       (uint morph, uint key) const             { return morph_channels[morph].keys[key].size(); } 
-    float           GetWeight           (uint morph, uint key, uint index) const { return morph_channels[morph].keys[key][index]; }
+    uint            GetNumWeights       (uint morph) const                        { return morph_channels[morph].num_weights; }
+    uint            GetNumKeys          (uint morph) const                        { return morph_channels[morph].num_keys; } 
+    float           GetWeight           (uint morph, uint weight, uint key) const { return morph_channels[morph].weights[weight*morph_channels[morph].num_keys+key]; }
 
 private:
 
@@ -58,12 +58,13 @@ private:
 		Channel& operator=(const Channel& o) = default;
 		Channel& operator=(Channel&& o) = default;
 
-        HashString  name;
-        std::vector<float3> positions; 
-        std::vector<Quat>   rotations;
+        HashString                name;
+        std::unique_ptr<float3[]> positions; 
+        std::unique_ptr<Quat[]>   rotations;
+        uint                      num_positions = 0;
+        uint                      num_rotations = 0;
 	};
 
-    typedef std::vector<float> WeightList;
 
     struct MorphChannel
     {
@@ -73,8 +74,10 @@ private:
 		MorphChannel& operator=(const MorphChannel& o) = default;
 		MorphChannel& operator=(MorphChannel&& o) = default;
 
-        HashString name;
-        std::vector<WeightList> keys;
+        HashString                  name;
+        uint                        num_weights = 0;
+        uint                        num_keys    = 0;
+        std::unique_ptr<float[]>    weights;
     };
 
     uint                      duration = 0;

@@ -23,6 +23,8 @@
 
 #include "mmgr/mmgr.h"
 
+#include <math.h>
+
 using namespace Thekla;
 
 namespace
@@ -219,6 +221,16 @@ bool ResourceMesh::LoadInMemory()
                         }
                     }
                 }
+
+                read_stream >> morph.num_indices;
+                morph.src_indices = std::make_unique<uint[]>(morph.num_indices);
+
+                for(uint i=0; i< morph.num_indices; ++i)
+                {
+                    read_stream >> morph.src_indices[i];
+
+                    assert(morph.src_indices[i] < num_vertices);
+                }
             }
 
 
@@ -373,6 +385,13 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
                     write_stream << morph.src_tangents[j].x << morph.src_tangents[j].y << morph.src_tangents[j].z;
                 }
             }
+        }
+
+        write_stream << morph.num_indices;
+        for(uint i=0; i< morph.num_indices; ++i)
+        {
+            assert(morph.src_indices[i] < num_vertices);
+            write_stream << morph.src_indices[i];
         }
     }
 
@@ -572,15 +591,24 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
         num_morph_targets = mesh->mNumAnimMeshes;
         morph_targets = std::make_unique<MorphData[]>(num_morph_targets);
 
+        std::vector<uint> tmp_indices;
+        tmp_indices.reserve(num_vertices);
+
         for(uint i=0; i< mesh->mNumAnimMeshes; ++i)
         {
             MorphData& data = morph_targets[i];
             
+            tmp_indices.clear();
+
             data.src_vertices = std::make_unique<float3[]>(num_vertices);
 
             for(uint j=0; j < num_vertices; ++j)
             {
                 data.src_vertices[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mVertices[j])-src_vertices[j];
+                if(fabs(data.src_vertices[j].LengthSq()) > 0.00001f)
+                {
+                    tmp_indices.push_back(j);
+                }
             }
 
             if (mesh->HasNormals())
@@ -603,6 +631,13 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
                         data.src_tangents[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mTangents[j])-src_tangents[j];
                     }
                 }
+            }
+
+            data.num_indices = tmp_indices.size();
+            if(data.num_indices)
+            {
+                data.src_indices = std::make_unique<uint[]>(tmp_indices.size());
+                memcpy(data.src_indices.get(), &tmp_indices[0], data.num_indices*sizeof(uint));
             }
         }
     }

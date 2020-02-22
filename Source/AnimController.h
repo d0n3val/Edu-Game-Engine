@@ -41,9 +41,6 @@ private:
     void            ReleaseInstance     (Instance* instance);
     bool            GetTransformInstance(Instance* instance, const HashString& channel_name, float3& position, Quat& rotation) const;
     bool            GetWeightsInstance  (Instance* instance, const HashString& morph_name, float*& weights, uint num_weights, float lambda) const;
-    float3          Interpolate         (const float3& first, const float3& second, float lambda) const;
-	Quat            Interpolate         (const Quat& first, const Quat& second, float lambda) const;
-	float           Interpolate         (float first, float second, float lambda) const;
 };
 
 

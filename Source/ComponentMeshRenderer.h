@@ -60,7 +60,7 @@ public:
     ERenderMode             RenderMode              () const { return render_mode; }
     void                    SetRenderMode           (ERenderMode mode) { render_mode = mode; }
 
-    void                    SetMorphTargetWeight    (uint index, float weight) { morph_weights[index] = weight; dirty_morphs = true; }
+    void                    SetMorphTargetWeight    (uint index, float weight) { dirty_morphs = dirty_morphs || morph_weights[index] != weight; morph_weights[index] = weight;  }
     float                   GetMorphTargetWeight    (uint index) const { return morph_weights[index]; }
 
 private:
