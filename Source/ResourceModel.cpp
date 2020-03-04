@@ -221,7 +221,7 @@ bool ResourceModel::Import(const char* full_path, std::string& output)
         std::vector<UID> materials, meshes;
         m.GenerateMaterials(scene, full_path, materials);
         m.GenerateMeshes(scene, full_path, meshes);
-        m.GenerateNodes(scene, scene->mRootNode, 0, float4x4::identity, meshes, materials);
+        m.GenerateNodes(scene, scene->mRootNode, 0, meshes, materials);
 
         aiReleaseImport(scene);
 
@@ -255,46 +255,32 @@ void ResourceModel::GenerateMeshes(const aiScene* scene, const char* file, std::
 	}
 }
 
-void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint parent, const float4x4& accum, 
-                                  const std::vector<UID>& meshes, const std::vector<UID>& materials)
+void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials)
 {
-    float4x4 transform = accum;
+    Node dst;
+    dst.transform = reinterpret_cast<const float4x4&>(node->mTransformation);
+    dst.name      = node->mName.C_Str();
+    dst.parent    = parent;
 
-    // avoid Fbx pivoting nodes
-
-    if(strstr(node->mName.C_Str(), "_$AssimpFbx$_") == nullptr)
+    for(uint i=0; i< node->mNumMeshes; ++i)
     {
-        Node dst;
-        dst.transform = accum*reinterpret_cast<const float4x4&>(node->mTransformation);
-        dst.name      = node->mName.C_Str();
-        dst.parent    = parent;
+        MeshRenderer renderer;
 
-        for(uint i=0; i< node->mNumMeshes; ++i)
-        {
-            MeshRenderer renderer;
+        uint mesh_index   = node->mMeshes[i];
 
-            uint mesh_index   = node->mMeshes[i];
+        renderer.mesh     = meshes[mesh_index];
+        renderer.material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
 
-            renderer.mesh     = meshes[mesh_index];
-            renderer.material = materials[model->mMeshes[mesh_index]->mMaterialIndex];
-
-            dst.renderers.push_back(renderer);
-        }
-
-        parent = nodes.size();
-
-        nodes.push_back(std::move(dst));
-
-        transform = float4x4::identity;
+        dst.renderers.push_back(renderer);
     }
-    else
-    {
-        transform = transform*reinterpret_cast<const float4x4&>(node->mTransformation);
-    }
+
+    parent = nodes.size();
+
+    nodes.push_back(std::move(dst));
 
     for(unsigned i=0; i < node->mNumChildren; ++i)
     {
-        GenerateNodes(model, node->mChildren[i], parent, transform, meshes, materials);
+        GenerateNodes(model, node->mChildren[i], parent, meshes, materials);
     }
 }
 

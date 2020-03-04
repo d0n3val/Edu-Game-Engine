@@ -52,8 +52,7 @@ public:
 
 private:
 
-    void        GenerateNodes      (const aiScene* model, const aiNode* node, uint parent, const float4x4& accum, 
-                                    const std::vector<UID>& meshes, const std::vector<UID>& materials);
+    void        GenerateNodes      (const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials);
     void        GenerateMaterials  (const aiScene* scene, const char* file, std::vector<UID>& materials);
 	void        GenerateMeshes     (const aiScene* scene, const char* file, std::vector<UID>& meshes);
 	void        SaveToStream       (simple::mem_ostream<std::true_type>& write_stream) const;

@@ -79,7 +79,6 @@ void StateViewport::DrawNodes(ResourceStateMachine* animation)
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f * ImGui::GetStyle().Alpha);
 
         ImVec2 size = ed::GetNodeSize(i*3+1);
-        ImVec2 pos = ed::GetNodePosition(i*3+2);
 
         /* todo:
 		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(i * 3 + 1);
@@ -402,7 +401,7 @@ void StateViewport::ShowLinkMenu(ResourceStateMachine* animation)
         uint blend = animation->GetTransitionBlend(context_link);
         if(ImGui::DragInt("Blend", (int*)&blend, 1.0f, 0, 1000))
         {
-            animation->SetTransitionBlend(context_node, blend);
+            animation->SetTransitionBlend(context_link, blend);
             animation->Save();
         }
 
