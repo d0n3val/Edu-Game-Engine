@@ -651,6 +651,9 @@
     <ClInclude Include="NodeEditor\Source\imgui_node_editor_internal.h">
       <Filter>3rd Party\imgui-node-editor</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentGrass.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1168,6 +1171,9 @@
     </ClCompile>
     <ClCompile Include="NodeEditor\Source\imgui_node_editor_api.cpp">
       <Filter>3rd Party\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentGrass.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

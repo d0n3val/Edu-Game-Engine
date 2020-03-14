@@ -35,7 +35,7 @@ out VertexOut fragment;
 
 void GetSheetUV(out vec2 uv, in vec2 src_uv, in float current, in float x_tiles, in float y_tiles)
 {
-    float v0_pos = y_tiles-1.0-trunc(current/x_tiles);
+    float v0_pos = (y_tiles-1.0)-trunc(current/x_tiles); // (y_tiles-1.0) --> flip v
     float u0_pos = trunc(mod(current, x_tiles));
     
     uv.x = mix(u0_pos, u0_pos+1, src_uv.x)/x_tiles;
