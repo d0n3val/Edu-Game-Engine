@@ -4,6 +4,8 @@
 #include "Component.h"
 #include "OGL.h"
 
+#include "ResHandle.h"
+
 class ResourceTexture;
 
 class ComponentGrass : public Component
@@ -16,10 +18,10 @@ public:
 	virtual void                OnLoad          (Config* config) override;
 
 	bool                        SetAlbedo       (UID uid);
-    const ResourceTexture*      GetAlbedo       () const;
+    const ResourceTexture*      GetAlbedo       () const {return albedo.GetPtr<ResourceTexture>(); }
    
 	bool                        SetNormal       (UID uid);
-    const ResourceTexture*      GetNormal       () const;
+    const ResourceTexture*      GetNormal       () const {return normal.GetPtr<ResourceTexture>(); }
 
     static Types                GetClassType    () { return Grass; }
 
@@ -29,12 +31,12 @@ private:
 
 private:
 
-    UID albedo = 0;
-    UID normal = 0;
+    ResHandle albedo;
+    ResHandle normal;
 
-    std::unique_ptr<Buffer> billboard_vbo;
-    std::unique_ptr<Buffer> billboard_ibo;
-    uint billboard_vao;
+    std::unique_ptr<Buffer>      billboard_vbo;
+    std::unique_ptr<Buffer>      billboard_ibo;
+    std::unique_ptr<VertexArray> billboard_vao;
 };
 
 #endif /* __COMPONENT_GRASS_H__ */

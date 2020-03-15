@@ -48,6 +48,8 @@ public:
     void             SetLinear    (bool l);
     void             EnableMips   (bool enable);
 
+    static Resource::Type GetClassType() { return Resource::texture; }
+
 private:
 
 	uint width      = 0;

@@ -73,5 +73,29 @@ public:
     static Buffer* CreateIBO(uint usage, uint size, void* data);
 };
 
+struct VertexAttrib
+{
+    uint index        = 0;
+    uint num_elements = 0;
+    uint type         = 0;
+    bool normalize    = false;
+    uint stride       = 0;
+    uint offset       = 0;
+};
+
+class VertexArray
+{
+
+    uint id = 0;
+
+public:
+
+    VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint count);
+    ~VertexArray();
+
+    void Bind();
+    void Unbind();
+
+};
 
 #endif // __OGL_H__

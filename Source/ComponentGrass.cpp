@@ -20,49 +20,21 @@ ComponentGrass::ComponentGrass(GameObject* object) : Component(object, Types::Gr
 
     static const unsigned indices[] = { 0, 1, 2, 0, 2, 3 };
 
+    static VertexAttrib attribs[] = { {0, 3, GL_FLOAT, false, sizeof(float)*3, 0 }, {2, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, 4*sizeof(float)*3} };
+
     billboard_vbo.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(vertices), (void*)vertices));
     billboard_ibo.reset(Buffer::CreateIBO(GL_STATIC_DRAW, sizeof(indices), (void*)indices));
-
-    glGenVertexArrays(1, &billboard_vao);
-    glBindVertexArray(billboard_vao);
-
-    billboard_vbo->Bind();
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, (void*)0);
-
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (void*)(4*sizeof(float)*3));
-
-    billboard_vbo->Unbind();
-
+    billboard_vao = std::make_unique<VertexArray>(billboard_vbo.get(), billboard_ibo.get(), attribs, 2);
 }
 
 ComponentGrass::~ComponentGrass()
 {
-	Resource* res = App->resources->Get(albedo);
-	if (res != nullptr)
-	{
-		res->Release();
-	}
-
-	res = App->resources->Get(normal);
-	if (res != nullptr)
-	{
-		res->Release();
-	}
-
-    if(billboard_vao != 0)
-    {
-        glDeleteVertexArrays(1, &billboard_vao);
-        billboard_vao = 0;
-    }
 }
 
 void ComponentGrass::OnSave(Config& config) const 
 {
-	config.AddUID("Albedo", albedo);
-	config.AddUID("Normal", normal);
+	config.AddUID("Albedo", albedo.GetUID());
+	config.AddUID("Normal", normal.GetUID());
 }
 
 void ComponentGrass::OnLoad(Config* config) 
@@ -73,60 +45,15 @@ void ComponentGrass::OnLoad(Config* config)
 
 bool ComponentGrass::SetAlbedo(UID uid)
 {
-    Resource* res = App->resources->Get(albedo);
-    if(res != nullptr)
-    {
-        assert(res->GetType() == Resource::texture);
+    albedo = uid;
 
-        res->Release();
-    }
-
-    res = App->resources->Get(uid);
-
-    if(res != nullptr && res->GetType() == Resource::texture)
-    {
-        if(res->LoadToMemory())
-        {
-            albedo = uid;
-
-            return true;
-        }
-    }
-
-    return false;
+    return albedo;
 }
 
-const ResourceTexture* ComponentGrass::GetAlbedo () const
-{
-    return static_cast<const ResourceTexture*>(App->resources->Get(albedo));
-}
-   
 bool ComponentGrass::SetNormal(UID uid)
 {
-    Resource* res = App->resources->Get(normal);
-    if(res != nullptr)
-    {
-        assert(res->GetType() == Resource::texture);
+    normal = uid;
 
-        res->Release();
-    }
-
-    res = App->resources->Get(uid);
-
-    if(res != nullptr && res->GetType() == Resource::texture)
-    {
-        if(res->LoadToMemory())
-        {
-            normal = uid;
-
-            return true;
-        }
-    }
-
-    return false;
+    return normal;
 }
 
-const ResourceTexture* ComponentGrass::GetNormal() const
-{
-    return static_cast<const ResourceTexture*>(App->resources->Get(albedo));
-}

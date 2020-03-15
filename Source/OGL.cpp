@@ -216,3 +216,48 @@ Buffer* Buffer::CreateIBO(uint usage, uint size, void* data)
 {
     return new Buffer(GL_ELEMENT_ARRAY_BUFFER, usage, size, data);
 }
+
+VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint count)
+{
+    glGenVertexArrays(1, &id);
+    glBindVertexArray(id);
+
+    vbo->Bind();
+
+    if (ibo)
+    {
+        ibo->Bind();
+    }
+
+    for (uint32_t i = 0; i < attrib_count; i++)
+    {
+        glEnableVertexAttribArray(i);
+
+        glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalized, attribs[i].strid, (void*)(attribs[i].offset));
+    }
+
+    glBindVertexArray(0);
+
+    vbo->Unbind();
+
+    if (ibo)
+    {
+        ibo->Unbind();
+    }
+}
+
+VertexArray::~VertexArray()
+{
+    glDeleteVertexArrays(1, &id);
+}
+
+void VertexArray::Bind()
+{
+    glBindVertexArray(id);
+}
+
+void VertexArray::Unbind()
+{
+    glBindVertexArray(0);
+}
+
