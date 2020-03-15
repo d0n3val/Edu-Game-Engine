@@ -2,6 +2,7 @@
 #define __COMPONENT_GRASS_H__
 
 #include "Component.h"
+#include "OGL.h"
 
 class ResourceTexture;
 
@@ -30,6 +31,10 @@ private:
 
     UID albedo = 0;
     UID normal = 0;
+
+    std::unique_ptr<Buffer> billboard_vbo;
+    std::unique_ptr<Buffer> billboard_ibo;
+    uint billboard_vao;
 };
 
 #endif /* __COMPONENT_GRASS_H__ */

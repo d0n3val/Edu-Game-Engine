@@ -37,10 +37,7 @@ ComponentParticleSystem::ComponentParticleSystem(GameObject* container) : Compon
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    if(render_buffers.vao == 0)
-    {
-        glGenVertexArrays(1, &render_buffers.vao);
-    }
+    glGenVertexArrays(1, &render_buffers.vao);
 
     glBindVertexArray(render_buffers.vao);
 

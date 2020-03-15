@@ -1130,14 +1130,11 @@ void DrawGrassComponent(ComponentGrass* component)
         }
     }
 
-    if(albedo != nullptr)
-    {
-        UID new_res = App->editor->props->OpenResourceModal(Resource::texture, "albedo");
+    UID new_res = App->editor->props->OpenResourceModal(Resource::texture, "albedo");
 
-        if(new_res != 0)
-        {
-            component->SetAlbedo(new_res);
-        }
+    if(new_res != 0)
+    {
+        component->SetAlbedo(new_res);
     }
 }
 

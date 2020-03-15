@@ -3,8 +3,8 @@
 
 class Texture2D
 {
-    uint texture = 0;
-    uint tex_target;
+    uint texture    = 0;
+    uint tex_target = 0;
 public:
     Texture2D(uint target, uint tex) : tex_target(target), texture(tex) {;}
     Texture2D(uint target, uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps);
@@ -47,6 +47,30 @@ public:
     uint Id() const { return fbo; }
 
     uint Check();
+};
+
+class Buffer
+{
+    uint   type = 0;
+    uint   id   = 0;
+    uint   size = 0;
+
+public:
+
+    Buffer(uint type, uint usage, uint size, void* data);
+    ~Buffer();
+
+    void  Bind();
+
+    void  Unbind();
+    void* Map(uint access);
+    void* MapRange(uint access, uint offset, uint size);
+    // todo: maps for 'special' buffers like uniform buffers or shader storage buffers
+    void  Unmap();
+    void  SetData(uint offset, uint size, void* data);
+
+    static Buffer* CreateVBO(uint usage, uint size, void* data);
+    static Buffer* CreateIBO(uint usage, uint size, void* data);
 };
 
 

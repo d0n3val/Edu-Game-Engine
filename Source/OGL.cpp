@@ -151,3 +151,68 @@ uint Framebuffer::Check()
 
 	return res;
 }
+
+Buffer::Buffer(uint type, uint usage, size_t size, void* data)
+{
+    glGenBuffers(1, &id);
+
+    glBindBuffer(type, id);
+    glBufferData(type, size, data, usage);
+    glBindBuffer(type, 0);
+}
+
+Buffer::~Buffer()
+{
+    glDeleteBuffers(1, &id);
+}
+
+void Buffer::Bind()
+{
+    glBindBuffer(type, id);
+}
+
+void Buffer::Unbind()
+{
+    glBindBuffer(type, 0);
+}
+
+void* Buffer::Map(uint access)
+{
+    glBindBuffer(type, id);
+    void* ptr = glMapBuffer(type, access);
+    glBindBuffer(type, 0);
+
+    return ptr;
+}
+
+void* Buffer::MapRange(uint access, uint offset, uint size)
+{
+    glBindBuffer(type, id);
+    void* ptr = glMapBufferRange(type, offset, size, access);
+    glBindBuffer(type, 0);
+
+    return ptr;}
+
+void Buffer::Unmap()
+{
+    glBindBuffer(type, id);
+    glUnmapBuffer(type);
+    glBindBuffer(type, 0);
+}
+
+void Buffer::SetData(uint offset, uint size, void* data)
+{
+    glBindBuffer(type, id);
+    glBufferSubData(type, offset, size, data);
+    glBindBuffer(type, 0);
+}
+
+Buffer* Buffer::CreateVBO(uint usage, uint size, void* data)
+{
+    return new Buffer(GL_ARRAY_BUFFER, usage, size, data);
+}
+
+Buffer* Buffer::CreateIBO(uint usage, uint size, void* data)
+{
+    return new Buffer(GL_ELEMENT_ARRAY_BUFFER, usage, size, data);
+}
