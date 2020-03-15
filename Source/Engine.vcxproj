@@ -278,6 +278,7 @@
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="QuadTree.h" />
+    <ClInclude Include="ResHandle.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceAudio.h" />
     <ClInclude Include="ResourceAnimation.h" />
@@ -399,6 +400,7 @@
     <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Primitive.cpp" />
     <ClCompile Include="QuadTree.cpp" />
+    <ClCompile Include="ResHandle.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceAnimation.cpp" />
     <ClCompile Include="ResourceAudio.cpp" />

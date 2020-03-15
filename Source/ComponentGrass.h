@@ -12,22 +12,26 @@ class ComponentGrass : public Component
 {
 public:
     ComponentGrass(GameObject* object);
-    ~ComponentGrass();
+    ~ComponentGrass() = default;
 
 	virtual void                OnSave          (Config& config) const override;
 	virtual void                OnLoad          (Config* config) override;
 
-	bool                        SetAlbedo       (UID uid);
+	void                        SetAlbedo       (UID uid){ albedo = uid; }
     const ResourceTexture*      GetAlbedo       () const {return albedo.GetPtr<ResourceTexture>(); }
    
-	bool                        SetNormal       (UID uid);
+	void                        SetNormal       (UID uid){ normal = uid; }
     const ResourceTexture*      GetNormal       () const {return normal.GetPtr<ResourceTexture>(); }
 
     static Types                GetClassType    () { return Grass; }
 
+    void                        Draw            ();
+
 private:
 
     friend void DrawGrassComponent(ComponentGrass* grass);
+
+    void BindMaterial();
 
 private:
 

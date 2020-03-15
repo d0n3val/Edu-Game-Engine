@@ -47,7 +47,7 @@ ResHandle::ResHandle(const ResHandle& rhs)
 }
 
 ResHandle::ResHandle(ResHandle&& rhs)
-{
+{
     id     = rhs.id;
     rhs.id = 0;
 }

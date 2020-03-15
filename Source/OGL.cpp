@@ -229,11 +229,11 @@ VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint 
         ibo->Bind();
     }
 
-    for (uint32_t i = 0; i < attrib_count; i++)
+    for (uint32_t i = 0; i < count; i++)
     {
-        glEnableVertexAttribArray(i);
+        glEnableVertexAttribArray(attribs[i].index);
 
-        glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalized, attribs[i].strid, (void*)(attribs[i].offset));
+        glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (void*)(attribs[i].offset));
     }
 
     glBindVertexArray(0);
