@@ -51,6 +51,7 @@ private:
     void    PickSelection   (ComponentCamera* camera, int mouse_x, int mouse_y);
     void    DrawSelection   (ComponentCamera* camera, Framebuffer* framebuffer);
     void    ShowTexture     ();
+    void    DrawGrid        (ComponentCamera* camera);
 
 private:
 
@@ -83,10 +84,14 @@ private:
 	bool        draw_axis   = true;
 	bool        debug_draw  = true;
 
-    ImGuizmo::OPERATION guizmo_op      = ImGuizmo::TRANSLATE;
-    ImGuizmo::MODE      guizmo_mode    = ImGuizmo::WORLD;
-    bool                guizmo_useSnap = false;
-    float3              guizmo_snap    = float3(1.0f);
+    ImGuizmo::OPERATION          guizmo_op      = ImGuizmo::TRANSLATE;
+    ImGuizmo::MODE               guizmo_mode    = ImGuizmo::WORLD;
+    bool                         guizmo_useSnap = false;
+    float3                       guizmo_snap    = float3(1.0f);
+
+    std::unique_ptr<Buffer>      grid_vbo;
+    std::unique_ptr<Buffer>      grid_ibo;
+    std::unique_ptr<VertexArray> grid_vao;
 
 };
 

@@ -152,8 +152,10 @@ uint Framebuffer::Check()
 	return res;
 }
 
-Buffer::Buffer(uint type, uint usage, size_t size, void* data)
+Buffer::Buffer(uint tp, uint usage, size_t size, void* data)
 {
+    type = tp;
+
     glGenBuffers(1, &id);
 
     glBindBuffer(type, id);

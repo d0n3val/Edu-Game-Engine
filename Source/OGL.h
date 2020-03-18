@@ -53,7 +53,6 @@ class Buffer
 {
     uint   type = 0;
     uint   id   = 0;
-    uint   size = 0;
 
 public:
 

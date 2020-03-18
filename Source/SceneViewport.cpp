@@ -29,7 +29,18 @@
 #include "GL/glew.h"
 
 SceneViewport::SceneViewport()
-{
+{        
+    // first row ==> positions, second row ==> uv´s
+    static const float vertices[] = { -50.0f,  0.0f, 50.0f , 50.0f,  0.0f, 50.0f , 50.0f, 0.0f, -50.0f , -50.0f, 0.0f, -50.0f };
+
+    static const unsigned indices[] = { 0, 1, 2, 0, 2, 3 };
+
+    static VertexAttrib attribs[] = { {0, 3, GL_FLOAT, false, sizeof(float) * 3, 0 } };
+
+    grid_vbo.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(vertices), (void*)vertices));
+    grid_ibo.reset(Buffer::CreateIBO(GL_STATIC_DRAW, sizeof(indices), (void*)indices));
+    grid_vao = std::make_unique<VertexArray>(grid_vbo.get(), grid_ibo.get(), attribs, 1);
+
 }
 
 SceneViewport::~SceneViewport()
@@ -53,7 +64,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
         float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
         if (draw_plane == true)
         {
-            dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray, 0, true);
+            //dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray, 0, true);
         }
 
         if(draw_axis == true)
@@ -97,6 +108,12 @@ void SceneViewport::Draw(ComponentCamera* camera)
 		App->renderer->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
         DrawSelection(camera, framebuffer);
+
+        if (draw_plane == true)
+        {
+            framebuffer->Bind();
+            DrawGrid(camera);
+        }
 
         App->renderer->Postprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
 
@@ -650,3 +667,24 @@ float SceneViewport::DistanceFromAtt(float constant, float linear, float quadric
     return distance;
 }
 
+void SceneViewport::DrawGrid(ComponentCamera* camera)
+{
+    // bind matGeo and matVP
+    App->programs->UseProgram("grid", 0);
+
+    float4x4 proj = camera->GetProjectionMatrix();
+    float4x4 view = camera->GetViewMatrix();
+
+    float4 no_color(0.0, 0.0, 0.0, 0.0);
+
+    float proportion   = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+    float4x4 transform = float4x4::Scale(proportion, proportion, proportion);
+
+    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+
+    grid_vao->Bind();
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    App->programs->UnuseProgram();
+}

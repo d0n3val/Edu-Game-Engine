@@ -16,7 +16,7 @@ ComponentGrass::ComponentGrass(GameObject* object) : Component(object, Types::Gr
 {
     // first row ==> positions, second row ==> uv´s
     static const float vertices[]   = { -0.5f,  0.0f, 0.0f , 0.5f,  0.0f, 0.0f , 0.5f, 1.0f, 0.0f , -0.5f, 1.0f, 0.0f, 
-                                         0.0f,  0.0f,        1.0f,  0.0f,        1.0f, 1.0f,        0.0f, 1.0f };
+                                         0.0f,  0.0f,        1.0f,  0.0f,        1.0f, 1.0f,         0.0f, 1.0f };
 
     static const unsigned indices[] = { 0, 1, 2, 0, 2, 3 };
 

@@ -676,6 +676,8 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros, nullptr, 0);
     App->programs->Load("selection", "Assets/Shaders/selection.vs", "Assets/Shaders/selection.fs", nullptr, 0, nullptr, 0);
     App->programs->Load("color", "Assets/Shaders/color.vs", "Assets/Shaders/color.fs", nullptr, 0, nullptr, 0);
+    App->programs->Load("grid", "Assets/Shaders/gridVS.glsl", "Assets/Shaders/gridPS.glsl", nullptr, 0, nullptr, 0);
+
 }
 
 void ModuleRenderer::UpdateLightUniform() const
