@@ -97,6 +97,9 @@ void Texture2D::GenerateMipmaps(uint base, uint max)
 Framebuffer::Framebuffer()
 {
     glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glDrawBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 Framebuffer::~Framebuffer()
@@ -114,14 +117,15 @@ void Framebuffer::Unbind()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Framebuffer::AttachColor(Texture2D* texture, uint attachment, uint mip_level, bool draw, bool read) 
+void Framebuffer::AttachColor(Texture2D* texture, uint attachment, uint mip_level) 
 {
     Bind();
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+attachment, texture->Target(), texture->Id(), mip_level);
+    attachments[attach_count++] = GL_COLOR_ATTACHMENT0+attachment;
 
-    glDrawBuffer(draw ? GL_COLOR_ATTACHMENT0+attachment : GL_NONE);
-    glReadBuffer(read ? GL_COLOR_ATTACHMENT0+attachment : GL_NONE);
+    glDrawBuffers(attach_count, attachments);
+    glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
 
     Unbind();
 }
@@ -131,6 +135,30 @@ void Framebuffer::AttachDepthStencil(Texture2D* texture, uint attachment)
     Bind();
 
 	glFramebufferTexture(GL_FRAMEBUFFER, attachment, texture->Id(), 0);
+    Unbind();
+}
+
+void Framebuffer::ReadColor(uint attachment, uint x, uint y, uint width, uint height, uint format, unsigned* data)
+{
+    Bind();
+    glReadBuffer(GL_COLOR_ATTACHMENT0+attachment);
+    glReadPixels(x, y, width, height, format, GL_UNSIGNED_BYTE, data);
+
+	/*	invert the image	*/
+	for( unsigned j = 0; j*2 < height; ++j )
+	{
+		int index1 = j * width ;
+		int index2 = (height - 1 - j) * width ;
+		for(unsigned i = width; i > 0; --i )
+		{
+			unsigned temp = data[index1];
+            data[index1] = data[index2];
+			data[index2] = temp;
+			++index1;
+			++index2;
+		}
+	}
+
     Unbind();
 }
 

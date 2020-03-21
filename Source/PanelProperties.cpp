@@ -44,6 +44,7 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 
+#include "SOIL2.h"
 #include "OpenGL.h"
 
 #include <list>
@@ -848,6 +849,61 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
     }
 
+    /* Code for Transform textures from metallic to specular workflow
+    if(ImGui::Button("Transform"))
+    {
+        const ResourceTexture* base = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
+        const ResourceTexture* metallic = material->GetTextureRes(ResourceMaterial::TextureSpecular);
+
+        if(!convert_fb)
+        {
+            convert_fb = std::make_unique<Framebuffer>();
+            diffuse    = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+            specular   = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+            occlusion  = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+            depth      = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+
+            convert_fb->AttachColor(diffuse.get(), 0);
+            convert_fb->AttachColor(specular.get(), 1);
+            convert_fb->AttachColor(occlusion.get(), 2);
+            convert_fb->AttachDepthStencil(depth.get(), GL_DEPTH_ATTACHMENT);
+        }
+
+        convert_fb->Bind();
+
+        glViewport(0, 0, base->GetWidth(), base->GetHeight());
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearDepth(1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        App->programs->UseProgram("convert_texture", 0);
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, base->GetID());
+        glUniform1i(0, 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, metallic->GetID());
+        glUniform1i(1, 1);        
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        convert_fb->Unbind();
+
+        unsigned* data = new unsigned[base->GetWidth()*base->GetHeight()];
+
+        convert_fb->ReadColor(0, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
+        SOIL_save_image_quality("diffuse.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
+
+        convert_fb->ReadColor(1, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
+        SOIL_save_image_quality("specular.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
+
+        convert_fb->ReadColor(2, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
+        SOIL_save_image_quality("occlusion.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
+
+        delete [] data;
+    }
+    */
 
     if(modified)
     {
@@ -1661,7 +1717,7 @@ void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* textur
 void PanelProperties::GeneratePreviewBlitFB(Texture2D* texture)
 {
     preview_blit_fb = std::make_unique<Framebuffer>();
-    preview_blit_fb->AttachColor(texture, 0, 0, false, true);
+    preview_blit_fb->AttachColor(texture, 0, 0);
 }
 
 void PanelProperties::GeneratePreviewFB(uint width, uint height)

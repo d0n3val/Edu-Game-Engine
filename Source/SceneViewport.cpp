@@ -31,7 +31,7 @@
 SceneViewport::SceneViewport()
 {        
     // first row ==> positions, second row ==> uv´s
-    static const float vertices[] = { -50.0f,  0.0f, 50.0f , 50.0f,  0.0f, 50.0f , 50.0f, 0.0f, -50.0f , -50.0f, 0.0f, -50.0f };
+    static const float vertices[] = { -20.0f,  0.0f, 20.0f , 20.0f,  0.0f, 20.0f , 20.0f, 0.0f, -20.0f , -20.0f, 0.0f, -20.0f };
 
     static const unsigned indices[] = { 0, 1, 2, 0, 2, 3 };
 
@@ -103,17 +103,17 @@ void SceneViewport::Draw(ComponentCamera* camera)
         glStencilMask(0x00);
 		glStencilFunc(GL_ALWAYS, 0, 0XFF);
 
- 		App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
-
-		App->renderer->Draw(camera, framebuffer->Id(), fb_width, fb_height);
-
-        DrawSelection(camera, framebuffer);
-
         if (draw_plane == true)
         {
             framebuffer->Bind();
             DrawGrid(camera);
         }
+
+        App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
+
+		App->renderer->Draw(camera, framebuffer->Id(), fb_width, fb_height);
+
+        DrawSelection(camera, framebuffer);
 
         App->renderer->Postprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
 
@@ -674,8 +674,6 @@ void SceneViewport::DrawGrid(ComponentCamera* camera)
 
     float4x4 proj = camera->GetProjectionMatrix();
     float4x4 view = camera->GetViewMatrix();
-
-    float4 no_color(0.0, 0.0, 0.0, 0.0);
 
     float proportion   = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
     float4x4 transform = float4x4::Scale(proportion, proportion, proportion);

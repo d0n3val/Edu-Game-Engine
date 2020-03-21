@@ -279,6 +279,17 @@ vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv
     vec3 occlusion_color = get_occlusion_color(material, uv);
     vec3 emissive_color  = get_emissive_color(material, uv);
 
+    /*
+    vec4 base_color      = get_diffuse_color(material, uv);
+    vec4 metallic_color  = get_specular_color(material, uv);
+
+    float metallic       = metallic_color.r;
+    vec4 diffuse_color   = vec4(base_color.rgb*(1-metallic), base_color.a);
+    vec4 specular_color  = vec4(mix(vec3(0.04), base_color.rgb, metallic), metallic_color.g*metallic_color.g);
+    vec3 occlusion_color = vec3(metallic_color.a);
+    vec3 emissive_color  = vec3(0.0);
+    */
+
     float smoothness     = specular_color.a;
     vec3 view_dir        = normalize(view_pos-pos);
 	

@@ -76,6 +76,12 @@ private:
 
 private:
 
+    std::unique_ptr<Framebuffer> convert_fb;
+    std::unique_ptr<Texture2D>   diffuse;
+    std::unique_ptr<Texture2D>   specular;
+    std::unique_ptr<Texture2D>   occlusion;
+    std::unique_ptr<Texture2D>   depth;
+
     std::unique_ptr<Framebuffer> preview_blit_fb;
     std::unique_ptr<Framebuffer> preview_fb;
     std::unique_ptr<Texture2D>   preview_texture;

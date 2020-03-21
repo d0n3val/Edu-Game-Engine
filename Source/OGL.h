@@ -30,6 +30,8 @@ private:
 class Framebuffer
 {
     uint fbo = 0;
+    uint attachments[16];
+    uint attach_count = 0;
 public:
     Framebuffer();
     ~Framebuffer();
@@ -37,9 +39,9 @@ public:
     void Unbind();
     void Bind();
 
-    // \todo: attach multiple color attachments (deferred)
-    void AttachColor(Texture2D* texture, uint attachment = 0, uint mip_level = 0, bool draw = true, bool read = true);
+    void AttachColor(Texture2D* texture, uint attachment = 0, uint mip_level = 0);
     void AttachDepthStencil(Texture2D* texture, uint attachment);
+    void ReadColor(uint attachment, uint x, uint y, uint widht, uint height, uint format, unsigned* data);
 
     void BlitTo(Framebuffer* target, uint src_x0, uint src_y0, uint src_x1, uint src_y1, uint dst_x0, uint dst_y0, 
                  uint dest_x1, uint dest_y1, uint flags, uint filter);
