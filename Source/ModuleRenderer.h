@@ -147,6 +147,7 @@ private:
     void                DrawClippingSpace           (const math::float4x4& proj, const math::float4x4& view) const;
     void                GetClippingPoints           (const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const;
 
+    void                DebugDrawTrails             ();
     void                DebugDrawParticles          ();
     void                DebugDrawTangentSpace       ();
     void                DebugDrawTangentSpace       (const ResourceMesh* mesh, const float4x4& transform);

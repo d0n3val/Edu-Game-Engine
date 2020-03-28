@@ -19,6 +19,7 @@ public:
 	void         OnPlay       () override;
 	void         OnStop       () override;
 	void         OnUpdate     (float dt) override;
+    void         OnDebugDraw  (bool selected) const;
 
     void         Draw         ();
 

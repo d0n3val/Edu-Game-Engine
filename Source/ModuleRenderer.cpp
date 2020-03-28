@@ -750,6 +750,7 @@ void ModuleRenderer::DrawDebug()
     DebugDrawTangentSpace();
     DebugDrawAnimation();
     DebugDrawParticles();
+    DebugDrawTrails();
 }
 
 void ModuleRenderer::DebugDrawAnimation()
@@ -798,6 +799,17 @@ void ModuleRenderer::DebugDrawParticles()
         if(it->particles)
         {
             it->particles->OnDebugDraw(false);
+        }
+    }
+}
+
+void ModuleRenderer::DebugDrawTrails()
+{
+    for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
+    {
+        if(it->trail)
+        {
+            it->trail->OnDebugDraw(false);
         }
     }
 }

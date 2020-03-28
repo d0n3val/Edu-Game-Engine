@@ -157,60 +157,12 @@ void ComponentTrail::UpdateBuffers()
         prev = it;
     }
 
-    float3 prev_pos = prev->transform.TranslatePart();
-    float4x4 trans  = GetGameObject()->GetGlobalTransformation();
-    float3 pos      = trans.TranslatePart();
-    float3 front    = (pos-prev_pos); front.Normalize();
-    float3 right    = trans.Col3(2); 
-    float prev_size = size_over_time.Interpolate(1.0f-max(0.0f, prev->life_time)/config_trail.duration);
-    float size      = size_over_time.Interpolate(0.0f);
-
-    Vertex& vertex0 = vertex_data[vertex_idx++];
-    Vertex& vertex1 = vertex_data[vertex_idx++];
-    Vertex& vertex2 = vertex_data[vertex_idx++];
-    Vertex& vertex3 = vertex_data[vertex_idx++];
-
-    if(prev != segments.begin())
-    {
-        vertex0.pos = prev0;
-        vertex1.pos = prev1;
-    }
-    else
-    {
-        vertex0.pos = prev_pos-right*config_trail.width*prev_size;
-        vertex1.pos = prev_pos+right*config_trail.width*prev_size;
-    }
-
-    prev0 = vertex2.pos = pos-right*config_trail.width*size;
-    prev1 = vertex3.pos = pos+right*config_trail.width*size;
-
-    color_over_time.gradient.getColorAt(1.0f-max(0.0f, prev->life_time)/config_trail.duration, (float*)&vertex0.color);
-    color_over_time.gradient.getColorAt(0.0f, (float*)&vertex2.color);
-
-    vertex1.color  = vertex0.color;
-    vertex3.color  = vertex2.color;
-
     if(texture_mode == Stretch)
     {
-        vertex0.uv  = float2(total_size, 1.0f);
-        vertex1.uv  = float2(total_size, 0.0f);
-
-        total_size += prev_pos.Distance(pos);
-
-        vertex2.uv  = float2(total_size, 1.0f);
-        vertex3.uv  = float2(total_size, 0.0f);
-
         for (uint i = 0; i < num_vertices; ++i)
         {
             vertex_data[i].uv.x /= total_size;
         }
-    }
-    else
-    {
-        vertex0.uv  = float2(0.0f, 1.0f);
-        vertex1.uv  = float2(0.0f, 0.0f);
-        vertex2.uv  = float2(1.0f, 1.0f);
-        vertex3.uv  = float2(1.0f, 0.0f);
     }
        
     glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -301,26 +253,6 @@ void ComponentTrail::Draw()
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-#if 0
-    std::deque<Segment>::iterator prev = segments.begin();
-    for(std::deque<Segment>::iterator it = segments.begin(); it != segments.end(); ++it)
-    {
-        if(it != prev)
-        {
-            float3 prev_pos = prev->transform.TranslatePart();
-            float3 pos = it->transform.TranslatePart();
-            float3 front = (pos-prev_pos); front.Normalize();
-            float3 up = it->transform.Col3(1);
-            float3 right = front.Cross(up); right.Normalize();
-
-            dd::line(prev_pos, pos, dd::colors::Blue, 0, false);
-
-            dd::line(pos-right*config_trail.width, pos+right*config_trail.width,dd::colors::Blue, 0, false);
-        }
-
-        prev = it;
-    }
-#endif
 }
 
 void ComponentTrail::OnSave(Config& config) const 
@@ -455,6 +387,26 @@ void ComponentTrail::OnUpdate(float dt)
         {
             segments.back().transform = transform;
         }
+    }
+}
+
+void ComponentTrail::OnDebugDraw(bool selected) const
+{
+    std::deque<Segment>::const_iterator prev = segments.begin();
+    for(std::deque<Segment>::const_iterator it = segments.begin(); it != segments.end(); ++it)
+    {
+        if(it != prev)
+        {
+            float3 prev_pos = prev->transform.TranslatePart();
+            float3 pos      = it->transform.TranslatePart();
+            float3 front    = (pos-prev_pos); front.Normalize();
+            float3 right = it->transform.Col3(2);
+
+            dd::line(prev_pos, pos, dd::colors::Blue, 0, false);
+            dd::line(pos-right*config_trail.width, pos+right*config_trail.width, dd::colors::Blue, 0, false);
+        }
+
+        prev = it;
     }
 }
 
