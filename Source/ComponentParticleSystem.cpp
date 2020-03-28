@@ -11,6 +11,7 @@
 #include "ResourceTexture.h"
 
 #include "OpenGL.h"
+#include "DebugDraw.h"
 
 #include <algorithm>
 
@@ -404,6 +405,32 @@ void ComponentParticleSystem::UpdateInstanceBuffer()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void ComponentParticleSystem::OnDebugDraw(bool selected) const
+{
+	float4x4 transform = GetGameObject()->GetGlobalTransformation();
+	switch (shape.type)
+	{
+        case ComponentParticleSystem::Circle:
+            dd::circle(transform.TranslatePart(), transform.Col3(1), dd::colors::Gray, shape.radius, 20);
+            break;
+        case ComponentParticleSystem::Cone:
+            {
+                float base_radius = tan(shape.angle) + shape.radius;
+                dd::cone(transform.TranslatePart(), transform.Col3(1), dd::colors::Gray, base_radius, shape.radius, 20);
+                break;
+            }
+    }
+
+    for (uint i = 0; i < sorted.size(); ++i)
+    {
+        const Particle& particle = particles[sorted[i]];
+        if (particle.life > 0.0f)
+        {
+            dd::axisTriad(particle.transform, 0.1f*particle.size, particle.size*2.0f);
+        }
+    }
+}
+
 void ComponentParticleSystem::Draw(bool show_billboard)
 {
     if(alive_particles > 0)
@@ -447,13 +474,17 @@ void ComponentParticleSystem::Draw(bool show_billboard)
 
         if(show_billboard)
         {
-            glDrawElementsInstanced(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
-        else
-        {
-            glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
-        }
+            
+        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, alive_particles); 
 
+        if (show_billboard)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            //glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, alive_particles);
+        }
+        
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 

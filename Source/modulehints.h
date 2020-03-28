@@ -24,6 +24,7 @@ public:
         ENABLE_MSAA,
         ENABLE_GAMMA,
         ENABLE_BLOOM,
+        SHOW_PARTICLE_BILLBOARDS,
 		COUNT
 	};
 

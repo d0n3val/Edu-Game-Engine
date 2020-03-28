@@ -548,7 +548,7 @@ void ModuleRenderer::CollectParticleSystems(const float3& camera_pos, GameObject
 void ModuleRenderer::CollectTrails(const float3& camera_pos, GameObject* go)
 {
     std::vector<Component*> components;
-    go->FindComponents(Component::ParticleSystem, components);
+    go->FindComponents(Component::Trail, components);
 
     float distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
 
@@ -615,7 +615,7 @@ void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
     else if(render_info.particles)
     {
         // update selection uniform
-        render_info.particles->Draw(false);
+        render_info.particles->Draw(App->hints->GetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS));
     }
     else if(render_info.trail && render_info.trail)
     {
@@ -635,7 +635,7 @@ void ModuleRenderer::DrawMeshColor(const ComponentMeshRenderer* mesh)
 void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)
 {
     App->programs->UseProgram("particles", 0);
-    particles->Draw(false);
+    particles->Draw(App->hints->GetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS));
 }
 
 void ModuleRenderer::DrawTrails(ComponentTrail* trail)
@@ -791,30 +791,13 @@ void ModuleRenderer::DebugDrawHierarchy(const GameObject* go)
     }
 }
 
-void DebugDrawParticles(ComponentParticleSystem* particles)
-{
-	float4x4 transform = particles->GetGameObject()->GetGlobalTransformation();
-	switch (particles->shape.type)
-	{
-        case ComponentParticleSystem::Circle:
-            dd::circle(transform.TranslatePart(), transform.Col3(1), dd::colors::Gray, particles->shape.radius, 20);
-            break;
-        case ComponentParticleSystem::Cone:
-            {
-                float base_radius = tan(particles->shape.angle) + particles->shape.radius;
-                dd::cone(transform.TranslatePart(), transform.Col3(1), dd::colors::Gray, base_radius, particles->shape.radius, 20);
-                break;
-            }
-    }
-}
-
 void ModuleRenderer::DebugDrawParticles()
 {
     for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
     {
         if(it->particles)
         {
-            ::DebugDrawParticles(it->particles);
+            it->particles->OnDebugDraw(false);
         }
     }
 }

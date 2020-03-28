@@ -421,7 +421,14 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
         {
             module->SetFloatValue(ModuleHints::SHADOW_BIAS, bias);
         }
+
     }
+
+	bool show = module->GetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS);
+	if (ImGui::Checkbox("Show billboards", &show))
+	{
+		module->SetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS, show);
+	}
 }
 
 void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)

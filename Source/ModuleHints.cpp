@@ -52,6 +52,9 @@ ModuleHints::ModuleHints() : Module("Render Hints")
 
     hints[ENABLE_BLOOM].type                      = TYPE_BOOL; 
     hints[ENABLE_BLOOM].value.bvalue              = true;
+
+    hints[SHOW_PARTICLE_BILLBOARDS].type          = TYPE_BOOL;
+    hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue  = false;
 }
 
 ModuleHints::~ModuleHints()
@@ -78,6 +81,8 @@ void ModuleHints::Save(Config* config) const
     config->AddBool("Enable msaa", hints[ENABLE_MSAA].value.bvalue);
     config->AddBool("Enable gamma", hints[ENABLE_GAMMA].value.bvalue);
     config->AddBool("Enable bloom", hints[ENABLE_BLOOM].value.bvalue);
+
+    config->AddBool("Show billboards", hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue);
 }
 
 bool ModuleHints::Init(Config* config) 
@@ -100,6 +105,8 @@ bool ModuleHints::Init(Config* config)
     hints[ENABLE_MSAA].value.bvalue = config->GetBool("Enable msaa", true);
     hints[ENABLE_GAMMA].value.bvalue = config->GetBool("Enable gamma", true);
     hints[ENABLE_BLOOM].value.bvalue = config->GetBool("Enable bloom", true);
+
+    hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue = config->GetBool("Show billboards", false);
 
     return true;
 }

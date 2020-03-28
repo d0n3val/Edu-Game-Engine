@@ -89,6 +89,8 @@ public:
 
     const HashString&   GetName             () const { return name; }
 
+    static Resource::Type GetClassType      () {return Resource::mesh;}
+
 private:
 
     uint                GetBoneWeightOffset () const { return sizeof(uint)*4*num_vertices; }

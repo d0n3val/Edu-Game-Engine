@@ -5,7 +5,7 @@ out vec4 outColor;
 void main() 
 {
    vec3 view_pos           = transpose(mat3(view))*-view[3].xyz;
-   float cell_size_lod0    = log(view_pos.y/10)/log(10.0);
+   float cell_size_lod0    = log(view_pos.y/20+1)/log(10.0);
 
    float lod_change_amount = fract(cell_size_lod0);
    cell_size_lod0          = floor(cell_size_lod0);

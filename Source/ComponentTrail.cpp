@@ -76,7 +76,7 @@ void ComponentTrail::UpdateBuffers()
 {
     assert(!segments.empty());
     uint num_vertices = segments.size()*4;
-    uint num_indices = segments.size()*6;
+    uint num_indices = (segments.size()-1)*6;
 
     glBindBuffer(GL_ARRAY_BUFFER, render_buffers.vbo);
     if(num_vertices > render_buffers.reserved_vertices)
@@ -99,8 +99,7 @@ void ComponentTrail::UpdateBuffers()
             float3 prev_pos = prev->transform.TranslatePart();
             float3 pos      = it->transform.TranslatePart();
             float3 front    = (pos-prev_pos); front.Normalize();
-            float3 up       = it->transform.Col3(1);
-            float3 right    = front.Cross(up); right.Normalize();
+            float3 right    = it->transform.Col3(2); 
             float prev_size = size_over_time.Interpolate(1.0f-max(0.0f, prev->life_time)/config_trail.duration);
             float size      = size_over_time.Interpolate(1.0f-max(0.0f, it->life_time)/config_trail.duration);
 
@@ -162,8 +161,7 @@ void ComponentTrail::UpdateBuffers()
     float4x4 trans  = GetGameObject()->GetGlobalTransformation();
     float3 pos      = trans.TranslatePart();
     float3 front    = (pos-prev_pos); front.Normalize();
-    float3 up       = trans.Col3(1);
-    float3 right    = front.Cross(up); right.Normalize();
+    float3 right    = trans.Col3(2); 
     float prev_size = size_over_time.Interpolate(1.0f-max(0.0f, prev->life_time)/config_trail.duration);
     float size      = size_over_time.Interpolate(0.0f);
 
@@ -287,9 +285,10 @@ void ComponentTrail::Draw()
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
+        glPointSize(0.6f);
         glBindVertexArray(render_buffers.vao);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_buffers.ibo);
-        glDrawElements(GL_TRIANGLES, segments.size()*6, GL_UNSIGNED_INT, nullptr); 
+        glDrawElements(GL_TRIANGLES, (segments.size()-1)*6, GL_UNSIGNED_INT, nullptr);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -440,9 +439,22 @@ void ComponentTrail::OnUpdate(float dt)
     float4x4 transform = GetGameObject()->GetGlobalTransformation();
     float3 pos         = transform.TranslatePart();
 
-    if(segments.empty() || segments.back().transform.TranslatePart().Distance(pos) > config_trail.min_vertex_distance)
+
+    if(segments.empty()) 
     {
         segments.push_back(Segment(transform, config_trail.duration));
+        segments.push_back(Segment(transform, config_trail.duration));
+    }
+    else 
+    {
+        if(segments.size() < 2 || segments[segments.size()-2].transform.TranslatePart().Distance(pos) > config_trail.min_vertex_distance)
+        {
+            segments.push_back(Segment(transform, config_trail.duration));
+        }
+        else
+        {
+            segments.back().transform = transform;
+        }
     }
 }
 

@@ -543,65 +543,19 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
 {
     // Mesh
 
-    UID new_res = 0;
-
 	const ResourceMesh* res = component->GetMeshRes();
 
-    if(res != nullptr)
+    DrawMesh(res);
+
+    bool visible = component->GetVisible();
+    if (ImGui::Checkbox("Visible", &visible))
     {
-        ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
-        if (ImGui::IsItemHovered())
-        {
-            ImGui::BeginTooltip();
-            ImGui::Text("Type: %s", res->GetTypeStr());
-            ImGui::Text("UID: %llu", res->GetUID());
-            ImGui::Text("Lib: %s", res->GetExportedFile());
-            ImGui::EndTooltip();
-        }
-
-        ImGui::TextColored(ImVec4(1,1,0,1), "%u Triangles (%u indices %u vertices)", res->num_indices / 3, res->num_indices, res->num_vertices); 
-
-        char attributes[256];
-        strcpy_s(attributes, "\nAttributes: \n\n\tPositions");
-        if(res->HasAttrib(ResourceMesh::ATTRIB_TEX_COORDS_0))
-        {
-            strcat_s(attributes, "\n\tTexCoords0");
-        }
-        if(res->HasAttrib(ResourceMesh::ATTRIB_TEX_COORDS_1))
-        {
-            strcat_s(attributes, "\n\tTexCoords1");
-        }
-        if(res->HasAttrib(ResourceMesh::ATTRIB_NORMALS))
-        {
-            strcat_s(attributes, "\n\tNormals");
-        }
-        if(res->HasAttrib(ResourceMesh::ATTRIB_TANGENTS))
-        {
-            strcat_s(attributes, "\n\tTangents");
-        }
-        if(res->HasAttrib(ResourceMesh::ATTRIB_BONES))
-        {
-            strcat_s(attributes, "\n\tBones");
-        }
-        strcat_s(attributes, "\n\n");
-
-        ImGui::TextColored(ImVec4(1,1,0,1), attributes);
-
-        if(ImGui::Button("Generate lightmap UVs"))
-        {
-            component->GetMeshRes()->GenerateTexCoord1();
-        }
-
-        bool visible = component->GetVisible();
-        if(ImGui::Checkbox("Visible", &visible))
-        {
-            component->SetVisible(visible);
-        }
+        component->SetVisible(visible);
     }
 
     if (ImGui::CollapsingHeader("Morph Targets", 0))
     {
-        for(uint i=0; i< res->GetNumMorphTargets(); ++i)
+        for (uint i = 0; i < res->GetNumMorphTargets(); ++i)
         {
             float weight = component->GetMorphTargetWeight(i);
 
@@ -615,8 +569,7 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
         }
     }
 
-
-    new_res = PickResourceModal(Resource::mesh);
+    UID new_res = PickResourceModal(Resource::mesh);
 
     if (new_res > 0)
     {
@@ -849,7 +802,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
     }
 
-    /* Code for Transform textures from metallic to specular workflow
+    /* Code for Transform textures from metallic to specular workflow */
     if(ImGui::Button("Transform"))
     {
         const ResourceTexture* base = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
@@ -860,12 +813,12 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
             convert_fb = std::make_unique<Framebuffer>();
             diffuse    = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
             specular   = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
-            occlusion  = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+            //occlusion  = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
             depth      = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
             convert_fb->AttachColor(diffuse.get(), 0);
             convert_fb->AttachColor(specular.get(), 1);
-            convert_fb->AttachColor(occlusion.get(), 2);
+            //convert_fb->AttachColor(occlusion.get(), 2);
             convert_fb->AttachDepthStencil(depth.get(), GL_DEPTH_ATTACHMENT);
         }
 
@@ -898,12 +851,12 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         convert_fb->ReadColor(1, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
         SOIL_save_image_quality("specular.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
 
-        convert_fb->ReadColor(2, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
-        SOIL_save_image_quality("occlusion.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
+        //convert_fb->ReadColor(2, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
+        //SOIL_save_image_quality("occlusion.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
 
         delete [] data;
     }
-    */
+    /**/
 
     if(modified)
     {
@@ -1156,41 +1109,92 @@ void PanelProperties::DrawRootMotionComponent(ComponentRootMotion * component)
 {
 }
 
-void DrawGrassComponent(ComponentGrass* component)
+void PanelProperties::DrawMesh(const ResourceMesh* res)
 {
-    // generalize
-
-    const ResourceTexture* albedo = component->GetAlbedo();
-
-    ImVec2 size(64.0f, 64.0f);
-
-    if (albedo != nullptr)
+    if (res != nullptr)
     {
-        if(ImGui::ImageButton((ImTextureID) albedo->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+        ImGui::TextColored(IMGUI_YELLOW, "%s", res->GetFile());
+        if (ImGui::IsItemHovered())
         {
-            ImGui::OpenPopup("albedo");
+            ImGui::BeginTooltip();
+            ImGui::Text("Type: %s", res->GetTypeStr());
+            ImGui::Text("UID: %llu", res->GetUID());
+            ImGui::Text("Lib: %s", res->GetExportedFile());
+            ImGui::EndTooltip();
         }
-        else 
+
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "%u Triangles (%u indices %u vertices)", res->num_indices / 3, res->num_indices, res->num_vertices);
+
+        char attributes[256];
+        strcpy_s(attributes, "\nAttributes: \n\n\tPositions");
+        if (res->HasAttrib(ResourceMesh::ATTRIB_TEX_COORDS_0))
         {
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::SetTooltip("%s", albedo->GetFile());
-            }
+            strcat_s(attributes, "\n\tTexCoords0");
+        }
+        if (res->HasAttrib(ResourceMesh::ATTRIB_TEX_COORDS_1))
+        {
+            strcat_s(attributes, "\n\tTexCoords1");
+        }
+        if (res->HasAttrib(ResourceMesh::ATTRIB_NORMALS))
+        {
+            strcat_s(attributes, "\n\tNormals");
+        }
+        if (res->HasAttrib(ResourceMesh::ATTRIB_TANGENTS))
+        {
+            strcat_s(attributes, "\n\tTangents");
+        }
+        if (res->HasAttrib(ResourceMesh::ATTRIB_BONES))
+        {
+            strcat_s(attributes, "\n\tBones");
+        }
+        strcat_s(attributes, "\n\n");
+
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), attributes);
+    }
+}
+
+
+
+void PanelProperties::DrawGrassComponent(ComponentGrass* component)
+{
+	ResourceMesh* mesh_res = component->GetMesh();
+
+    DrawMesh(mesh_res);
+
+    UID new_res = PickResourceModal(Resource::mesh);
+
+    if (new_res > 0)
+    {
+        component->SetMesh(new_res);
+    }
+
+    ResourceMaterial* mat_res = component->GetMaterial();
+
+    new_res = PickResourceModal(Resource::material);
+
+    ImGui::SameLine();
+    if(ImGui::Button("New material"))
+    {
+        ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material, 0));
+
+        bool save_ok = material->Save();
+
+        if(save_ok)
+        {
+            new_res = material->GetUID();
         }
     }
-    else
+
+    ImGui::Separator();
+
+
+    if(new_res > 0)
     {
-        if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
-        {
-            ImGui::OpenPopup("albedo");
-        }
+		component->SetMaterial(new_res);
     }
-
-    UID new_res = App->editor->props->OpenResourceModal(Resource::texture, "albedo");
-
-    if(new_res != 0)
-    {
-        component->SetAlbedo(new_res);
+    else if(mat_res)
+	{
+		DrawMaterialResource(mat_res, mesh_res);
     }
 }
 
@@ -1462,7 +1466,9 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
 
     if(ImGui::CollapsingHeader("Speed over time", ImGuiTreeNodeFlags_DefaultOpen))
     {
+        ImGui::PushID("SpeedOverTime");
         ImGui::Bezier("Speed", (float*)&component->speed_over_time.bezier);
+        ImGui::PopID();
 
         if(ImGui::Button("EaseIn", ImVec2(55, 20))) component->speed_over_time.bezier = float4(0.0f, 0.0f, 1.0f, 0.0f);
         ImGui::SameLine();

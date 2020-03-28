@@ -2,11 +2,12 @@
 #define __COMPONENT_GRASS_H__
 
 #include "Component.h"
-#include "OGL.h"
 
+#include "OGL.h"
 #include "ResHandle.h"
 
-class ResourceTexture;
+class ResourceMesh;
+class ResourceMaterial;
 
 class ComponentGrass : public Component
 {
@@ -14,29 +15,26 @@ public:
     ComponentGrass(GameObject* object);
     ~ComponentGrass() = default;
 
-	virtual void                OnSave          (Config& config) const override;
-	virtual void                OnLoad          (Config* config) override;
+	virtual void            OnSave          (Config& config) const override;
+	virtual void            OnLoad          (Config* config) override;
 
-	void                        SetAlbedo       (UID uid){ albedo = uid; }
-    const ResourceTexture*      GetAlbedo       () const {return albedo.GetPtr<ResourceTexture>(); }
+	void                    SetMesh         (UID uid){ mesh = uid; }
+    void                    SetMaterial     (UID uid) { material = uid; }
+
+    const ResourceMesh*     GetMesh() const;
+    ResourceMesh*           GetMesh();
+    const ResourceMaterial* GetMaterial() const;
+    ResourceMaterial*       GetMaterial();
+
    
-	void                        SetNormal       (UID uid){ normal = uid; }
-    const ResourceTexture*      GetNormal       () const {return normal.GetPtr<ResourceTexture>(); }
+    static Types  GetClassType    () { return Grass; }
 
-    static Types                GetClassType    () { return Grass; }
-
-    void                        Draw            ();
+    void          Draw            ();
 
 private:
 
-    friend void DrawGrassComponent(ComponentGrass* grass);
-
-    void BindMaterial();
-
-private:
-
-    ResHandle albedo;
-    ResHandle normal;
+    ResHandle mesh;
+    ResHandle material;
 
     std::unique_ptr<Buffer>      billboard_vbo;
     std::unique_ptr<Buffer>      billboard_ibo;

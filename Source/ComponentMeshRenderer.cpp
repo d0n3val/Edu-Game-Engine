@@ -234,12 +234,6 @@ void ComponentMeshRenderer::Draw() const
         material->BindTextures();
         mesh->Draw();
         material->UnbindTextures();
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
 }
 

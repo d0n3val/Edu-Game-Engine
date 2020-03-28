@@ -2,7 +2,7 @@ in vec2 uv;
 
 layout(location = 0) out vec4 diffuse;
 layout(location = 1) out vec4 specular;
-layout(location = 2) out vec4 occlusion;
+//layout(location = 2) out vec4 occlusion;
 
 
 layout(location = 0) uniform sampler2D base_texture;
@@ -19,16 +19,16 @@ void main()
     {
         diffuse   = vec4(0.0);
         specular  = vec4(0.0);
-        occlusion = vec4(0.0);
+        //occlusion = vec4(0.0);
     }
     else
     {
         diffuse    = vec4(base_color.rgb*(1-metallic), base_color.a);
-        specular   = vec4(mix(vec3(0.04), base_color.rgb, metallic), metallic_color.g*0.5);
-        occlusion  = vec4(vec3(metallic_color.a), 1.0);
+        specular   = vec4(mix(vec3(0.04), base_color.rgb, metallic), metallic_color.a);
+        //occlusion  = vec4(vec3(metallic_color.a), 1.0);
     }
 
     diffuse.rgb   = pow(diffuse.rgb, vec3(1.0/2.2));
     specular.rgb   = pow(specular.rgb, vec3(1.0/2.2));
-    occlusion.rgb   = pow(occlusion.rgb, vec3(1.0/2.2));
+    //occlusion.rgb   = pow(occlusion.rgb, vec3(1.0/2.2));
 }

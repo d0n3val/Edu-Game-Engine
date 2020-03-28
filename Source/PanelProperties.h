@@ -17,6 +17,7 @@ class ComponentAnimation;
 class ComponentRootMotion;
 class ComponentMeshRenderer;
 class ComponentParticleSystem;
+class ComponentGrass;
 class ResourceMaterial;
 class ResourceTexture;
 class ResourceMesh;
@@ -60,6 +61,7 @@ private:
     void DrawSpotLight(SpotLight* light);
 	// TODO move editor code as a component method like component rigidbody
 	void DrawMeshRendererComponent(ComponentMeshRenderer* component);
+    void DrawGrassComponent(ComponentGrass* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
     bool TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name);
@@ -73,6 +75,7 @@ private:
     void GeneratePreviewFB(uint width, uint height);
     void GeneratePreviewBlitFB(Texture2D* texture);
     void DrawPreviewUVs(const ResourceMesh* mesh, uint width, uint height);
+    void DrawMesh(const ResourceMesh* mesh);
 
 private:
 

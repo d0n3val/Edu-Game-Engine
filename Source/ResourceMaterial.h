@@ -63,6 +63,7 @@ public:
     float                   GetShininess        () const { return shininess; }
     void                    SetShininess        (float s) { shininess = s; }
 
+    static Resource::Type   GetClassType        () {return Resource::material;}
 private:
 	void                    SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const;
 };

@@ -449,7 +449,7 @@ namespace ImGui
 			}
 			else
 			{
-				if(ImGui::ColorEdit3("color", selectedMark->color))
+				if(ImGui::ColorEdit4("color", selectedMark->color))
 				{
 					modified = true;
 					gradient->refreshCache();

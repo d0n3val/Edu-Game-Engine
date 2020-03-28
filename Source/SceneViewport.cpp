@@ -31,7 +31,7 @@
 SceneViewport::SceneViewport()
 {        
     // first row ==> positions, second row ==> uv´s
-    static const float vertices[] = { -20.0f,  0.0f, 20.0f , 20.0f,  0.0f, 20.0f , 20.0f, 0.0f, -20.0f , -20.0f, 0.0f, -20.0f };
+    static const float vertices[] = { -40.0f,  0.0f, 40.0f , 40.0f,  0.0f, 40.0f , 40.0f, 0.0f, -40.0f , -40.0f, 0.0f, -40.0f };
 
     static const unsigned indices[] = { 0, 1, 2, 0, 2, 3 };
 
@@ -120,10 +120,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
         ShowTexture();
 
-        if(App->GetState() == Application::stop)
-        {
-            DrawGuizmo(camera);
-        }
+        DrawGuizmo(camera);
 
     }
     ImGui::EndChild();

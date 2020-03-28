@@ -2,9 +2,11 @@
 
 #include "ComponentGrass.h"
 
-#include "ResourceTexture.h"
-
+#include "ResourceMaterial.h"
+#include "ResourceMesh.h"
 #include "ModuleResources.h"
+#include "ModulePrograms.h"
+#include "GameObject.h"
 
 #include "Application.h"
 
@@ -29,38 +31,51 @@ ComponentGrass::ComponentGrass(GameObject* object) : Component(object, Types::Gr
 
 void ComponentGrass::OnSave(Config& config) const 
 {
-	config.AddUID("Albedo", albedo.GetUID());
-	config.AddUID("Normal", normal.GetUID());
+	config.AddUID("Mesh", mesh.GetUID());
+	config.AddUID("Material", material.GetUID());
 }
 
 void ComponentGrass::OnLoad(Config* config) 
 {
-	SetAlbedo(config->GetUID("Albedo", 0));
-	SetNormal(config->GetUID("Normal", 0));
-}
-
-void ComponentGrass::BindMaterial()
-{
-    ResourceTexture* albedo_res = albedo.GetPtr<ResourceTexture>();
-    ResourceTexture* normal_res = normal.GetPtr<ResourceTexture>(); 
-
-    if(albedo_res)
-    {
-        albedo_res->GetTexture()->Bind(0);
-        // todo: glUniform1i(ALBEDO_LOC, 0);
-    }
-
-    if(normal_res)
-    {
-        normal_res->GetTexture()->Bind(1);
-        // todo: glUniform1i(NORMAL_LOC, 0);
-    }
+	SetMesh(config->GetUID("Mesh", 0));
+	SetMaterial(config->GetUID("Material", 0));
 }
 
 void ComponentGrass::Draw()
 {
-    BindMaterial();
+    const GameObject* go             = GetGameObject();
+	const ResourceMesh* mesh         = GetMesh();
+	const ResourceMaterial* material = GetMaterial();
 
-    billboard_vao->Bind();
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); 
+    if(material != nullptr && mesh != nullptr)
+    {
+        float4x4 transform = go->GetGlobalTransformation();
+
+        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
+
+        material->UpdateUniforms();
+        material->BindTextures();
+        mesh->Draw();
+        material->UnbindTextures();
+    }
+}
+
+const ResourceMesh* ComponentGrass::GetMesh() const 
+{
+    return mesh.GetPtr<ResourceMesh>(); 
+}
+
+ResourceMesh* ComponentGrass::GetMesh()
+{
+    return mesh.GetPtr<ResourceMesh>(); 
+}
+
+const ResourceMaterial* ComponentGrass::GetMaterial() const
+{ 
+    return material.GetPtr<ResourceMaterial>(); 
+}
+
+ResourceMaterial* ComponentGrass::GetMaterial()
+{
+    return material.GetPtr<ResourceMaterial>(); 
 }

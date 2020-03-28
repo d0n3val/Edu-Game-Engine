@@ -20,6 +20,7 @@ public:
 	void                    OnStop              () override;
 	void                    OnUpdate            (float dt) override;
     void                    Draw                (bool show_billboard);
+    void                    OnDebugDraw         (bool selected) const;
 
 	void                    OnSave              (Config& config) const override;
 	void                    OnLoad              (Config* config) override;
