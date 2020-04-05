@@ -366,7 +366,6 @@
     <ClCompile Include="MathGeoLib\include\Math\SSEMath.cpp" />
     <ClCompile Include="MathGeoLib\include\Math\TransformOps.cpp" />
     <ClCompile Include="MathGeoLib\include\Time\Clock.cpp" />
-    <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="mmgr\mmgr.cpp" />
     <ClCompile Include="ModuleAI.cpp" />
     <ClCompile Include="ModuleAudio.cpp" />

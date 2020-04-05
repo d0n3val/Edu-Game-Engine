@@ -8,7 +8,6 @@
 
 #include "DebugDraw.h"
 #include "OpenGL.h"
-#include "MathUtils.h"
 
 #define MIN_VERTICES 64
 #define MIN_INDICES 256
@@ -183,15 +182,6 @@ void ComponentTrail::UpdateBuffers()
         ++quad_idx;
     }
 
-    /*
-    index_data[index_idx++] = 0+quad_idx*4;
-    index_data[index_idx++] = 1+quad_idx*4;
-    index_data[index_idx++] = 2+quad_idx*4;
-    index_data[index_idx++] = 2+quad_idx*4;
-    index_data[index_idx++] = 1+quad_idx*4;
-    index_data[index_idx++] = 3+quad_idx*4;
-    */
-
     glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
@@ -329,8 +319,6 @@ void ComponentTrail::OnPlay()
 {
     float4x4 transform = GetGameObject()->GetGlobalTransformation();
     segments.push_back(Segment(transform, config_trail.duration));
-    segments.back().temporal = false;
-
     segments.push_back(Segment(transform, config_trail.duration));
 }
 
@@ -375,73 +363,6 @@ void ComponentTrail::OnUpdate(float dt)
 
 }
 
-void ComponentTrail::CheckExtraVertices()
-{
-    assert(segments.size() >= 2);
-
-    float4x4 t0 = segments[segments.size()-2].transform;
-    float4x4 t1 = segments[segments.size()-1].transform;    
-
-    Quat q0(t0);
-    Quat q1(t1);
-
-    float3 p0 = t0.TranslatePart();
-    float3 p1 = t1.TranslatePart();
-    float3 p00 = p0;
-    float3 p11 = p1;
-
-    if (segments.size() > 2)
-    {
-        p00 = segments[segments.size() - 3].transform.TranslatePart();
-    }
-
-    CubicSegment curve;
-    CentCatmullRom(p00, p0, p1, p11, curve, 1.0f, 0.0f);
-
-    float l0 = segments[segments.size() - 2].life_time;
-    float l1 = segments[segments.size() - 1].life_time;
-
-    float angle = q0.AngleBetween(q1);
-
-    if (angle > config_trail.MinAngleToAddVertices)
-    {
-        segments.erase(segments.end() - 1);
-
-        for (uint i = 0; i < config_trail.NumAddVertices; ++i)
-        {
-            float lambda = float(i + 1) / (config_trail.NumAddVertices + 1);
-            float3 pi;
-
-            if(config_trail.linear)
-            {
-                pi = p0 * (1.0f - lambda) + p1 * lambda;
-            }
-            else
-            {
-                pi = ApplyCurveSegment(curve, lambda);
-            }
-
-            Quat qi;
-
-            if (q0.Dot(q1) < 0.0f)
-            {
-                qi = q0.Lerp(q1.Neg(), lambda).Normalized();  // linear interpolation
-            }
-            else
-            {
-                qi = q0.Lerp(q1, lambda).Normalized();  // linear interpolation
-            }
-
-            float li = l0 * (1.0f - lambda) + l1 * lambda;
-
-            segments.push_back(Segment(float4x4(qi, pi), li));
-            segments.back().generated = true;
-        }
-
-        segments.push_back(Segment(float4x4(q1, p1), l1));
-    }
-}
-
 void ComponentTrail::OnDebugDraw(bool selected) const
 {
     float prev_life = 0.0f;
@@ -461,7 +382,7 @@ void ComponentTrail::OnDebugDraw(bool selected) const
 
             dd::line(prev_pos, pos, dd::colors::Blue, 0, false);
             float size_multiplier = size_over_time.Interpolate(1.0f-max(0.0f, it->life_time)/config_trail.duration);
-            //dd::line(pos-right*config_trail.width*size_multiplier, pos+right*config_trail.width*size_multiplier, it->generated ? dd::colors::Red : dd::colors::Blue, 0, false);
+            dd::line(pos-right*config_trail.width*size_multiplier, pos+right*config_trail.width*size_multiplier, dd::colors::Blue, 0, false);
 
             assert(prev_size <= size_multiplier);;
 
@@ -470,7 +391,7 @@ void ComponentTrail::OnDebugDraw(bool selected) const
 
         }
 
-        CubicSegment curve;
+        CubicSegment3 curve;
         CatmullRomFrom(prev-segments.begin(), curve);
         for (uint i = 0; i <= 10; ++i)
         {
@@ -516,7 +437,7 @@ void ComponentTrail::GetSegmentInfo(uint index, std::vector<SegmentInstance>& in
         float size1 = size_over_time.Interpolate(1.0f-max(0.0f, segments[index+1].life_time)/config_trail.duration); 
 
         // CatmullRom
-        CubicSegment curve;
+        CubicSegment3 curve;
         CatmullRomFrom(index, curve);
 
         uint num_points = config_trail.NumAddVertices + 1;
@@ -533,7 +454,7 @@ void ComponentTrail::GetSegmentInfo(uint index, std::vector<SegmentInstance>& in
 
             instances[i].normal   = qi * float3::unitZ; 
             instances[i].life     = life0*(1.0f-lambda)+life1*lambda;
-            instances[i].size     = size0* (1.0f - lambda) + size1 * lambda; // todo: Catmull
+            instances[i].size     = size0 * (1.0f - lambda) + size1 * lambda;
         }
     }    
     else
@@ -547,8 +468,9 @@ void ComponentTrail::GetSegmentInfo(uint index, std::vector<SegmentInstance>& in
     }
 }
 
-void ComponentTrail::CatmullRomFrom(uint index, CubicSegment& curve) const
+void ComponentTrail::CatmullRomFrom(uint index, CubicSegment3& curve) const
 {
+    // positions
     float3 p0, p3;
     float3 p1 = segments[index].transform.TranslatePart();
     float3 p2 = segments[index+1].transform.TranslatePart(); 

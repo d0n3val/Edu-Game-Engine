@@ -5,11 +5,11 @@
 
 #include "imgui/imgui_color_gradient.h"
 #include "imgui/imgui_bezier.h"
+#include "MathUtils.h"
 
 #include <deque>
 
 class ResourceTexture;
-struct CubicSegment;
 
 class ComponentTrail : public Component
 {
@@ -48,9 +48,8 @@ private:
     friend void DrawTrailComponent(ComponentTrail* trail);
 
     void UpdateBuffers      ();
-    void CheckExtraVertices ();
     void GetSegmentInfo     (uint index, std::vector<SegmentInstance>& instances) const;
-    void CatmullRomFrom     (uint index, CubicSegment& curve) const;
+    void CatmullRomFrom     (uint index, CubicSegment3& curve) const;
 
 
 private:
@@ -66,8 +65,6 @@ private:
     {
         float4x4 transform = float4x4::identity;
         float life_time    = 0.0f;
-        bool  temporal     = true;
-        bool generated     = false;
 
         Segment() {;}
         Segment(const float4x4& t, float l) : transform(t), life_time(l) {;}
