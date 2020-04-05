@@ -172,8 +172,13 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
             glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
             glUniform4fv(App->programs->GetUniformLocation("color"), 1, (float*)&no_color);
 
-            mesh->GetMeshRes()->UpdateUniforms(mesh->UpdateSkinPalette(), mesh->GetMorphTargetWeights());
-            mesh->GetMeshRes()->Draw();
+            ResourceMesh* mesh_res = mesh->GetMeshRes();
+
+            if (mesh_res)
+            {
+                mesh_res->UpdateUniforms(mesh->UpdateSkinPalette(), mesh->GetMorphTargetWeights());
+                mesh_res->Draw();
+            }
 
             float4 selection_color(1.0, 1.0, 0.0, 1.0);
 
@@ -186,8 +191,11 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
             glLineWidth(5);
             glPolygonMode(GL_FRONT, GL_LINE);
 
-            mesh->GetMeshRes()->UpdateUniforms(mesh->UpdateSkinPalette(), mesh->GetMorphTargetWeights());
-            mesh->GetMeshRes()->Draw();
+            if (mesh_res)
+            {
+                mesh_res->UpdateUniforms(mesh->UpdateSkinPalette(), mesh->GetMorphTargetWeights());
+                mesh_res->Draw();
+            }
 
             glPolygonMode(GL_FRONT, GL_FILL);
             glEnable(GL_DEPTH_TEST);

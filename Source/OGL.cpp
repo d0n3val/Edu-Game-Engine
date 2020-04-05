@@ -221,7 +221,8 @@ void* Buffer::MapRange(uint access, uint offset, uint size)
     void* ptr = glMapBufferRange(type, offset, size, access);
     glBindBuffer(type, 0);
 
-    return ptr;}
+    return ptr;
+}
 
 void Buffer::Unmap()
 {

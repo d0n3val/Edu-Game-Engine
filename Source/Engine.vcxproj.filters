@@ -657,6 +657,9 @@
     <ClInclude Include="ResHandle.h">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="MathUtils.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1180,6 +1183,9 @@
     </ClCompile>
     <ClCompile Include="ResHandle.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="MathUtils.cpp">
+      <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

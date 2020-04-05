@@ -74,10 +74,13 @@ public:
 	const std::list<ImGradientMark*> & getMarks() const { return m_marks; }
 
     void computeColorAt(float position, float* color) const;
+    void setEditAlpha(bool edit) { edit_alpha = edit;  }
+    bool getEditAlpha() const { return edit_alpha;  }
 private:
 
     std::list<ImGradientMark*> m_marks;
     float m_cachedValues[256 * 4];
+    bool edit_alpha = true;
 };
 
 namespace ImGui

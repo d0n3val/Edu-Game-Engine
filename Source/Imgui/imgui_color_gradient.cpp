@@ -15,9 +15,9 @@ static const float GRADIENT_MARK_DELETE_DIFFY = 40;
 ImGradient::ImGradient()
 {
     addMark(0.0f, ImColor(1.0f,1.0f, 1.0f));
-    addMark(0.0f, 1.0f);
+    addAlphaMark(0.0f, 1.0f);
     addMark(1.0f, ImColor(1.0f,1.0f,1.0f));
-    addMark(1.0f, 1.0f);
+    addAlphaMark(1.0f, 1.0f);
 }
 
 ImGradient::~ImGradient()
@@ -80,7 +80,11 @@ void ImGradient::getColorAt(float position, float* color) const
     color[0] = m_cachedValues[cachePos+0];
     color[1] = m_cachedValues[cachePos+1];
     color[2] = m_cachedValues[cachePos+2];
-    color[3] = m_cachedValues[cachePos+3];
+
+    if (edit_alpha)
+    {
+        color[3] = m_cachedValues[cachePos + 3];
+    }
 }
 
 void ImGradient::computeColorAt(float position, float* color) const
@@ -319,7 +323,7 @@ namespace ImGui
                                                ImVec2(to + 3, barY + sign*9),
                                                colorU32, colorU32, colorU32, colorU32);
             
-            ImGui::SetCursorScreenPos(ImVec2(to - 6, barY+(sign < 0.0f ? -12.0 : 0)));
+            ImGui::SetCursorScreenPos(ImVec2(to - 6, barY+(sign < 0.0f ? -12.0f : 0.0f)));
 			ImGui::InvisibleButton("mark", ImVec2(12, 12));
             
             if(ImGui::IsItemHovered())
@@ -369,7 +373,7 @@ namespace ImGui
         ImGui::SetCursorScreenPos(ImVec2(bar_pos.x, bar_pos.y -10.0f));
         ImGui::InvisibleButton("gradient_editor_bar", ImVec2(maxWidth, 10.0f));
         
-        if(ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
+        if(gradient->getEditAlpha() && ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
         {
             float pos = (ImGui::GetIO().MousePos.x - bar_pos.x) / maxWidth;
             
@@ -449,7 +453,8 @@ namespace ImGui
 			}
 			else
 			{
-				if(ImGui::ColorEdit4("color", selectedMark->color))
+                
+				if((gradient->getEditAlpha() && ImGui::ColorEdit4("color", selectedMark->color)) || (!gradient->getEditAlpha() && ImGui::ColorEdit3("color", selectedMark->color)) )
 				{
 					modified = true;
 					gradient->refreshCache();

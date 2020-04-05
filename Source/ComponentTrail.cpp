@@ -8,10 +8,12 @@
 
 #include "DebugDraw.h"
 #include "OpenGL.h"
+#include "MathUtils.h"
 
 #define MIN_VERTICES 64
 #define MIN_INDICES 256
 #define TEXTURE_MAP_LOC 0
+
 
 ComponentTrail::ComponentTrail(GameObject* go) : Component(go, Types::Trail)
 {
@@ -75,135 +77,120 @@ ComponentTrail::~ComponentTrail()
 void ComponentTrail::UpdateBuffers()
 {
     assert(!segments.empty());
-    uint num_vertices = segments.size()*4;
-    uint num_indices = (segments.size()-1)*6;
 
+    uint max_num_billboards = (segments.size()-1)*(config_trail.NumAddVertices+1);
+    uint max_num_vertices   = max_num_billboards*4;
+    uint max_num_indices    = max_num_billboards*6;
+    
     glBindBuffer(GL_ARRAY_BUFFER, render_buffers.vbo);
-    if(num_vertices > render_buffers.reserved_vertices)
+    if(max_num_vertices > render_buffers.reserved_vertices)
     {
-        render_buffers.reserved_vertices = num_vertices;
+        render_buffers.reserved_vertices = max_num_vertices;
         glBufferData(GL_ARRAY_BUFFER, render_buffers.reserved_vertices*sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW);
     }
 
-    Vertex* vertex_data = (Vertex*)glMapBufferRange(GL_ARRAY_BUFFER, 0, num_vertices*sizeof(Vertex), GL_MAP_WRITE_BIT);
+    Vertex* vertex_data = (Vertex*)glMapBufferRange(GL_ARRAY_BUFFER, 0, max_num_vertices*sizeof(Vertex), GL_MAP_WRITE_BIT);
 
     uint vertex_idx = 0;
-    float3 prev0, prev1;
     float total_size = 0.0f;
 
-    std::deque<Segment>::iterator prev = segments.begin();
-    for(std::deque<Segment>::iterator it = segments.begin(); it != segments.end(); ++it)
+    std::vector<SegmentInstance> instances;
+
+    float3 prev_pos;
+
+    for(uint i=0; i < segments.size(); ++i)
     {
-        if(it != prev)
+        GetSegmentInfo(i, instances);
+
+        if (i == 0)
         {
-            float3 prev_pos = prev->transform.TranslatePart();
-            float3 pos      = it->transform.TranslatePart();
-            float3 front    = (pos-prev_pos); front.Normalize();
-            float3 right    = it->transform.Col3(2); 
-            float prev_size = size_over_time.Interpolate(1.0f-max(0.0f, prev->life_time)/config_trail.duration);
-            float size      = size_over_time.Interpolate(1.0f-max(0.0f, it->life_time)/config_trail.duration);
+            prev_pos = instances.front().position;
+        }
+
+        for(const SegmentInstance& inst : instances)
+        {
+            total_size += inst.position.Distance(prev_pos);
 
             Vertex& vertex0 = vertex_data[vertex_idx++];
             Vertex& vertex1 = vertex_data[vertex_idx++];
-            Vertex& vertex2 = vertex_data[vertex_idx++];
-            Vertex& vertex3 = vertex_data[vertex_idx++];
 
-            if(prev != segments.begin())
-            {
-                vertex0.pos = prev0;
-                vertex1.pos = prev1;
-            }
-            else
-            {
-                if(prev->life_time <=0)
-                {
-                    float dif_time = (it->life_time-prev->life_time);
-                    float3 dif_pos  = pos-prev_pos;
-                    prev_pos = prev_pos+(dif_pos)*(-prev->life_time)/dif_time;
-                }
+            vertex0.pos = inst.position-inst.normal*config_trail.width*inst.size;
+            vertex1.pos = inst.position+inst.normal*config_trail.width*inst.size;
 
-                vertex0.pos = prev_pos-right*config_trail.width*prev_size;
-                vertex1.pos = prev_pos+right*config_trail.width*prev_size;
-            }
+            // accumulated size
+            vertex0.color.x = vertex1.color.x = total_size;
 
-            prev0 = vertex2.pos = pos-right*config_trail.width*size;
-            prev1 = vertex3.pos = pos+right*config_trail.width*size;
+            // accumulated life
+            vertex0.color.w = vertex1.color.w = inst.life / config_trail.duration;
 
-            color_over_time.gradient.getColorAt(1.0f-max(0.0f, prev->life_time)/config_trail.duration, (float*)&vertex0.color);
-            color_over_time.gradient.getColorAt(1.0f-max(0.0f, it->life_time)/config_trail.duration, (float*)&vertex2.color);
+            vertex0.uv  = float2(total_size, 1.0f);
+            vertex1.uv  = float2(total_size, 0.0f);
 
-            vertex1.color  = vertex0.color;
-            vertex3.color  = vertex2.color;
-
-            if(texture_mode == Stretch)
-            {
-                vertex0.uv  = float2(total_size, 1.0f);
-                vertex1.uv  = float2(total_size, 0.0f);
-
-                total_size += prev_pos.Distance(pos);
-
-                vertex2.uv  = float2(total_size, 1.0f);
-                vertex3.uv  = float2(total_size, 0.0f);
-            }
-            else
-            {
-                vertex0.uv  = float2(0.0f, 1.0f);
-                vertex1.uv  = float2(0.0f, 0.0f);
-                vertex2.uv  = float2(1.0f, 1.0f);
-                vertex3.uv  = float2(1.0f, 0.0f);
-            }
+            prev_pos = inst.position;
         }
-
-        prev = it;
     }
 
-    if(texture_mode == Stretch)
+    for (uint i = 0; i < vertex_idx; ++i)
     {
-        for (uint i = 0; i < num_vertices; ++i)
+
+        float3 color;
+        color_over_time.gradient.getColorAt(vertex_data[i].color.w, (float*)&color);            
+
+        if (blend_mode == AdditiveBlend)
+        {
+            // Additive alpha lerp to black
+            color = color.Lerp(float3(0.0f, 0.0f, 0.0f), 1.0f-vertex_data[i].color.w);
+        }
+            
+        if (texture_mode == Stretch)
         {
             vertex_data[i].uv.x /= total_size;
         }
+
+        vertex_data[i].color.x = color.x;
+        vertex_data[i].color.y = color.y;
+        vertex_data[i].color.z = color.z;
     }
        
     glUnmapBuffer(GL_ARRAY_BUFFER);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_buffers.ibo);
-    if(num_indices > render_buffers.reserved_indices)
+    if(max_num_indices > render_buffers.reserved_indices)
     {
-        render_buffers.reserved_indices = num_indices;
+        render_buffers.reserved_indices = max_num_indices;
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned)*render_buffers.reserved_indices, nullptr, GL_DYNAMIC_DRAW);
     }
 
-    unsigned* index_data = (unsigned*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, num_indices*sizeof(unsigned), GL_MAP_WRITE_BIT);
+    unsigned* index_data = (unsigned*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, max_num_indices*sizeof(unsigned), GL_MAP_WRITE_BIT);
 
-    uint index_idx = 0;
-    uint quad_idx = 0;
+    uint index_idx   = 0;
+    uint quad_idx    = 0;
+    num_billboards   = (vertex_idx / 2 - 1);
+    uint num_indices = num_billboards*6;
 
-    prev = segments.begin();
-    for(std::deque<Segment>::iterator it = segments.begin(); it != segments.end(); ++it)
+    // todo: stripes
+
+    for(uint i=0; i< num_billboards; ++i)
     {
-        if(it != prev)
-        {
-            index_data[index_idx++] = 0+quad_idx*4;
-            index_data[index_idx++] = 1+quad_idx*4;
-            index_data[index_idx++] = 2+quad_idx*4;
-            index_data[index_idx++] = 2+quad_idx*4;
-            index_data[index_idx++] = 1+quad_idx*4;
-            index_data[index_idx++] = 3+quad_idx*4;
+        index_data[index_idx++] = 0+quad_idx*2;
+        index_data[index_idx++] = 1+quad_idx*2;
+        index_data[index_idx++] = 2+quad_idx*2;
+        index_data[index_idx++] = 2+quad_idx*2;
+        index_data[index_idx++] = 1+quad_idx*2;
+        index_data[index_idx++] = 3+quad_idx*2;
 
-            ++quad_idx;
-        }
-
-        prev = it;
+        ++quad_idx;
     }
 
+    /*
     index_data[index_idx++] = 0+quad_idx*4;
     index_data[index_idx++] = 1+quad_idx*4;
     index_data[index_idx++] = 2+quad_idx*4;
     index_data[index_idx++] = 2+quad_idx*4;
     index_data[index_idx++] = 1+quad_idx*4;
     index_data[index_idx++] = 3+quad_idx*4;
+    */
 
     glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -240,7 +227,7 @@ void ComponentTrail::Draw()
         glPointSize(0.6f);
         glBindVertexArray(render_buffers.vao);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_buffers.ibo);
-        glDrawElements(GL_TRIANGLES, (segments.size()-1)*6, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, num_billboards*6, GL_UNSIGNED_INT, nullptr);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -261,6 +248,9 @@ void ComponentTrail::OnSave(Config& config) const
 	config.AddFloat("Duration", config_trail.duration);
 	config.AddFloat("Min vertex distance", config_trail.min_vertex_distance);
 	config.AddFloat("width", config_trail.width);
+	config.AddFloat("Min Angle To Add Vertices", config_trail.MinAngleToAddVertices);
+	config.AddUInt("Num Add Vertices", config_trail.NumAddVertices);
+	config.AddBool("Linear", config_trail.linear);
 
     config.AddArray("Color over time");
 
@@ -297,6 +287,9 @@ void ComponentTrail::OnLoad(Config* config)
 	config_trail.duration = config->GetFloat("Duration", 0.5f);
 	config_trail.min_vertex_distance = config->GetFloat("Min vertex distance", 0.1f);
 	config_trail.width = config->GetFloat("width", 0.25f);
+    config_trail.MinAngleToAddVertices = config->GetFloat("Min Angle To Add Vertices", pi/24.0f);
+    config_trail.NumAddVertices = config->GetUInt("Num Add Vertices", 4);
+    config_trail.linear = config->GetBool("Linear", false);
 
     color_over_time.gradient.clearMarks();
 
@@ -334,10 +327,11 @@ void ComponentTrail::OnLoad(Config* config)
 
 void ComponentTrail::OnPlay()
 {
-    Segment segment;
-    segment.transform = GetGameObject()->GetGlobalTransformation();
-    segment.life_time = config_trail.duration;
-	segments.push_back(segment);
+    float4x4 transform = GetGameObject()->GetGlobalTransformation();
+    segments.push_back(Segment(transform, config_trail.duration));
+    segments.back().temporal = false;
+
+    segments.push_back(Segment(transform, config_trail.duration));
 }
 
 void ComponentTrail::OnStop() 
@@ -347,67 +341,241 @@ void ComponentTrail::OnStop()
 
 void ComponentTrail::OnUpdate(float dt) 
 {
-    std::deque<Segment>::iterator prev = segments.begin();
-    for(std::deque<Segment>::iterator it = segments.begin(); it != segments.end(); ++it)
-    {
-        it->life_time -= dt;
+    // update life time
 
-        if(it->life_time <= 0.0f)
+    for(Segment& segment : segments)
+    {
+        segment.life_time = max(segment.life_time-dt, 0.0f);
+    }
+
+    // erase segments not needed for Catmull-Rom
+    for(uint i=0; i+2 < segments.size();)
+    {
+        if (segments[i].life_time <= 0.0f && segments[i+1].life_time <= 0.0f && segments[i+2].life_time <= 0.0f)
         {
-            if(prev != it && prev->life_time <= 0)
-            {
-                segments.erase(prev);
-            }
-        }
-
-		prev = it;
-    }
-
-    if(prev != segments.end() && prev->life_time <= 0)
-    {
-        segments.erase(prev);
-    }
-
-    float4x4 transform = GetGameObject()->GetGlobalTransformation();
-    float3 pos         = transform.TranslatePart();
-
-
-    if(segments.empty()) 
-    {
-        segments.push_back(Segment(transform, config_trail.duration));
-        segments.push_back(Segment(transform, config_trail.duration));
-    }
-    else 
-    {
-        if(segments.size() < 2 || segments[segments.size()-2].transform.TranslatePart().Distance(pos) > config_trail.min_vertex_distance)
-        {
-            segments.push_back(Segment(transform, config_trail.duration));
+            segments.erase(segments.begin()+i);
         }
         else
         {
-            segments.back().transform = transform;
+            ++i;
         }
+    }
+
+    // put current head
+    segments.back().transform = GetGameObject()->GetGlobalTransformation();
+
+    float vertex_distance = segments[segments.size()-2].transform.TranslatePart().Distance(segments.back().transform.TranslatePart());
+
+    if(vertex_distance > config_trail.min_vertex_distance)
+    {
+        // add another head
+        segments.push_back(Segment(segments.back().transform, config_trail.duration));
+    }
+
+
+}
+
+void ComponentTrail::CheckExtraVertices()
+{
+    assert(segments.size() >= 2);
+
+    float4x4 t0 = segments[segments.size()-2].transform;
+    float4x4 t1 = segments[segments.size()-1].transform;    
+
+    Quat q0(t0);
+    Quat q1(t1);
+
+    float3 p0 = t0.TranslatePart();
+    float3 p1 = t1.TranslatePart();
+    float3 p00 = p0;
+    float3 p11 = p1;
+
+    if (segments.size() > 2)
+    {
+        p00 = segments[segments.size() - 3].transform.TranslatePart();
+    }
+
+    CubicSegment curve;
+    CentCatmullRom(p00, p0, p1, p11, curve, 1.0f, 0.0f);
+
+    float l0 = segments[segments.size() - 2].life_time;
+    float l1 = segments[segments.size() - 1].life_time;
+
+    float angle = q0.AngleBetween(q1);
+
+    if (angle > config_trail.MinAngleToAddVertices)
+    {
+        segments.erase(segments.end() - 1);
+
+        for (uint i = 0; i < config_trail.NumAddVertices; ++i)
+        {
+            float lambda = float(i + 1) / (config_trail.NumAddVertices + 1);
+            float3 pi;
+
+            if(config_trail.linear)
+            {
+                pi = p0 * (1.0f - lambda) + p1 * lambda;
+            }
+            else
+            {
+                pi = ApplyCurveSegment(curve, lambda);
+            }
+
+            Quat qi;
+
+            if (q0.Dot(q1) < 0.0f)
+            {
+                qi = q0.Lerp(q1.Neg(), lambda).Normalized();  // linear interpolation
+            }
+            else
+            {
+                qi = q0.Lerp(q1, lambda).Normalized();  // linear interpolation
+            }
+
+            float li = l0 * (1.0f - lambda) + l1 * lambda;
+
+            segments.push_back(Segment(float4x4(qi, pi), li));
+            segments.back().generated = true;
+        }
+
+        segments.push_back(Segment(float4x4(q1, p1), l1));
     }
 }
 
 void ComponentTrail::OnDebugDraw(bool selected) const
 {
-    std::deque<Segment>::const_iterator prev = segments.begin();
+    float prev_life = 0.0f;
+    float prev_size = 0.0f;
+    
+    auto preprev = segments.begin();
+    auto prev = segments.begin();
     for(std::deque<Segment>::const_iterator it = segments.begin(); it != segments.end(); ++it)
     {
         if(it != prev)
         {
             float3 prev_pos = prev->transform.TranslatePart();
             float3 pos      = it->transform.TranslatePart();
-            float3 front    = (pos-prev_pos); front.Normalize();
             float3 right = it->transform.Col3(2);
 
+            assert(prev_life <= it->life_time);
+
             dd::line(prev_pos, pos, dd::colors::Blue, 0, false);
-            dd::line(pos-right*config_trail.width, pos+right*config_trail.width, dd::colors::Blue, 0, false);
+            float size_multiplier = size_over_time.Interpolate(1.0f-max(0.0f, it->life_time)/config_trail.duration);
+            //dd::line(pos-right*config_trail.width*size_multiplier, pos+right*config_trail.width*size_multiplier, it->generated ? dd::colors::Red : dd::colors::Blue, 0, false);
+
+            assert(prev_size <= size_multiplier);;
+
+            prev_life = it->life_time;
+            prev_size = size_multiplier;
+
         }
 
+        CubicSegment curve;
+        CatmullRomFrom(prev-segments.begin(), curve);
+        for (uint i = 0; i <= 10; ++i)
+        {
+            float lambda = float(i) / 10.0f;
+            dd::point(ApplyCurveSegment(curve, lambda), dd::colors::Red, 5.0f);
+        }
+
+        preprev = prev;
         prev = it;
     }
+}
+
+void ComponentTrail::GetSegmentInfo(uint index, std::vector<SegmentInstance>& instances) const
+{
+
+    Quat q0(segments[index].transform);
+    Quat q1;
+
+    bool add_vertices = segments.size() >= 2 && index +1 < segments.size();
+
+    if(add_vertices)
+    {
+        q1 = Quat(segments[index+1].transform);
+
+        if(q0.Dot(q1) < 0.0f)
+        {
+            q1 = q1.Neg();
+        }
+
+        float angle = q0.AngleBetween(q1);
+
+        add_vertices = abs(angle) > config_trail.MinAngleToAddVertices;
+    }
+
+    float life0 = segments[index].life_time;
+    float size0 = size_over_time.Interpolate(1.0f-max(0.0f, segments[index].life_time)/config_trail.duration);
+
+    instances.clear();
+
+    if(add_vertices)
+    {
+        float life1 = segments[index+1].life_time;
+        float size1 = size_over_time.Interpolate(1.0f-max(0.0f, segments[index+1].life_time)/config_trail.duration); 
+
+        // CatmullRom
+        CubicSegment curve;
+        CatmullRomFrom(index, curve);
+
+        uint num_points = config_trail.NumAddVertices + 1;
+        instances.resize(num_points);
+
+        for(uint i=0; i<num_points; ++i)
+        {
+            float lambda          = float(i) / float(num_points-1);
+            float3 point          = ApplyCurveSegment(curve, lambda);
+
+            instances[i].position = point;
+
+            Quat qi               = q0.Lerp(q1, lambda).Normalized();
+
+            instances[i].normal   = qi * float3::unitZ; 
+            instances[i].life     = life0*(1.0f-lambda)+life1*lambda;
+            instances[i].size     = size0* (1.0f - lambda) + size1 * lambda; // todo: Catmull
+        }
+    }    
+    else
+    {
+        instances.resize(1);
+
+        instances[0].position = segments[index].transform.TranslatePart();
+        instances[0].normal   = segments[index].transform.Col3(2);
+        instances[0].life     = life0;
+        instances[0].size     = size0;
+    }
+}
+
+void ComponentTrail::CatmullRomFrom(uint index, CubicSegment& curve) const
+{
+    float3 p0, p3;
+    float3 p1 = segments[index].transform.TranslatePart();
+    float3 p2 = segments[index+1].transform.TranslatePart(); 
+
+    Quat q1(segments[index].transform);
+    Quat q2(segments[index].transform);
+    Quat qdiff = q1.Inverted() * q2;
+
+    if (index > 0)
+    {
+        p0 = segments[index-1].transform.TranslatePart();
+    }
+    else
+    {
+        p0 = p1 -  qdiff.Inverted()*(p2 - p1);
+    }
+
+    if (index+2 < segments.size())
+    {
+        p3 = segments[index+2].transform.TranslatePart();
+    }
+    else
+    {
+        p3 = p2 + qdiff*(p2 - p1);
+    }
+
+    CentCatmullRom(p0, p1, p2, p3, curve, 1.0f, 0.0f);
 }
 
 void ComponentTrail::SetTexture(UID uid)

@@ -1281,9 +1281,12 @@ void DrawTrailComponent(ComponentTrail* component)
         }
     }
 
-    ImGui::InputFloat("duration", &component->config_trail.duration, 0.1f);
-    ImGui::InputFloat("min vertex distance", &component->config_trail.min_vertex_distance, 0.1f);
-    ImGui::InputFloat("width", &component->config_trail.width, 0.1f);
+    ImGui::InputFloat("Duration", &component->config_trail.duration, 0.1f);
+    ImGui::InputFloat("Min vertex distance", &component->config_trail.min_vertex_distance, 0.1f);
+    ImGui::InputFloat("Width", &component->config_trail.width, 0.1f);
+    ImGui::SliderAngle("Min Angle to add vretices", &component->config_trail.MinAngleToAddVertices, 0.0f);
+    ImGui::InputInt("Num add vertices", (int*)&component->config_trail.NumAddVertices);
+    ImGui::Checkbox("Linear", &component->config_trail.linear);
 
     if(ImGui::GradientButton(&component->color_over_time.gradient))
     {
