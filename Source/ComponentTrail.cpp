@@ -359,8 +359,6 @@ void ComponentTrail::OnUpdate(float dt)
         // add another head
         segments.push_back(Segment(segments.back().transform, config_trail.duration));
     }
-
-
 }
 
 void ComponentTrail::OnDebugDraw(bool selected) const
@@ -368,40 +366,30 @@ void ComponentTrail::OnDebugDraw(bool selected) const
     float prev_life = 0.0f;
     float prev_size = 0.0f;
     
-    auto preprev = segments.begin();
-    auto prev = segments.begin();
-    for(std::deque<Segment>::const_iterator it = segments.begin(); it != segments.end(); ++it)
+    std::vector<SegmentInstance> instances;
+
+    float3 prev_pos;
+
+    for(uint i=0; i < segments.size(); ++i)
     {
-        if(it != prev)
+        GetSegmentInfo(i, instances);
+
+        if (!instances.empty())
         {
-            float3 prev_pos = prev->transform.TranslatePart();
-            float3 pos      = it->transform.TranslatePart();
-            float3 right = it->transform.Col3(2);
-
-            assert(prev_life <= it->life_time);
-
-            dd::line(prev_pos, pos, dd::colors::Blue, 0, false);
-            float size_multiplier = size_over_time.Interpolate(1.0f-max(0.0f, it->life_time)/config_trail.duration);
-            dd::line(pos-right*config_trail.width*size_multiplier, pos+right*config_trail.width*size_multiplier, dd::colors::Blue, 0, false);
-
-            assert(prev_size <= size_multiplier);;
-
-            prev_life = it->life_time;
-            prev_size = size_multiplier;
-
+            prev_pos = instances.front().position;
         }
 
-        CubicSegment3 curve;
-        CatmullRomFrom(prev-segments.begin(), curve);
-        for (uint i = 0; i <= 10; ++i)
-        {
-            float lambda = float(i) / 10.0f;
-            dd::point(ApplyCurveSegment(curve, lambda), dd::colors::Red, 5.0f);
-        }
+        float3 color = dd::colors::Blue;
 
-        preprev = prev;
-        prev = it;
+        for(const SegmentInstance& inst : instances)
+        {
+            dd::line(prev_pos, inst.position, dd::colors::Blue, 0, false);
+            float size_multiplier = size_over_time.Interpolate(1.0f-max(0.0f, inst.life)/config_trail.duration);
+            dd::line(inst.position-inst.normal*config_trail.width*size_multiplier, inst.position+inst.normal*config_trail.width*size_multiplier, color, 0, false);
+            color = dd::colors::Red;
+        }
     }
+
 }
 
 void ComponentTrail::GetSegmentInfo(uint index, std::vector<SegmentInstance>& instances) const
