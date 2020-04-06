@@ -376,17 +376,24 @@ void ComponentTrail::OnDebugDraw(bool selected) const
 
         if (!instances.empty())
         {
-            prev_pos = instances.front().position;
+            if (i == 0)
+            {
+                prev_pos = instances.front().position;
+            }
+
+            const float3& position = instances.front().position;
+            const float3& normal = instances.front().normal;
+            dd::line(prev_pos, position, dd::colors::Blue, 0, false);
+            float size_multiplier = size_over_time.Interpolate(1.0f - max(0.0f, instances.front().life) / config_trail.duration);
+            dd::line(position - normal * config_trail.width * size_multiplier, position + normal * config_trail.width * size_multiplier, dd::colors::Blue, 0, false);
+            prev_pos = position;
         }
 
         float3 color = dd::colors::Blue;
 
-        for(const SegmentInstance& inst : instances)
+        for(uint i=1; i< instances.size(); ++i)
         {
-            dd::line(prev_pos, inst.position, dd::colors::Blue, 0, false);
-            float size_multiplier = size_over_time.Interpolate(1.0f-max(0.0f, inst.life)/config_trail.duration);
-            dd::line(inst.position-inst.normal*config_trail.width*size_multiplier, inst.position+inst.normal*config_trail.width*size_multiplier, color, 0, false);
-            color = dd::colors::Red;
+            dd::point(instances[i].position, dd::colors::Red, 5.0f);
         }
     }
 
