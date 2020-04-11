@@ -660,6 +660,9 @@
     <ClInclude Include="MathUtils.h">
       <Filter>Tools</Filter>
     </ClInclude>
+    <ClInclude Include="PerlinProperties.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1183,6 +1186,9 @@
     </ClCompile>
     <ClCompile Include="ResHandle.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="PerlinProperties.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

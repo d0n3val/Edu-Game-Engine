@@ -426,7 +426,7 @@ void ComponentParticleSystem::OnDebugDraw(bool selected) const
         const Particle& particle = particles[sorted[i]];
         if (particle.life > 0.0f)
         {
-            dd::axisTriad(particle.transform, 0.1f*particle.size, particle.size*2.0f);
+            //dd::axisTriad(particle.transform, 0.1f*particle.size, particle.size*2.0f);
         }
     }
 }

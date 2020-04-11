@@ -94,6 +94,11 @@ void Texture2D::GenerateMipmaps(uint base, uint max)
     glBindTexture(tex_target, 0);
 }
 
+Texture2D* Texture2D::CreateDefaultRGBA(uint width, uint height, void* data, bool mipmaps)
+{
+    return new Texture2D(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
+}
+
 Framebuffer::Framebuffer()
 {
     glGenFramebuffers(1, &fbo);
@@ -105,6 +110,16 @@ Framebuffer::Framebuffer()
 Framebuffer::~Framebuffer()
 {
     glDeleteFramebuffers(1, &fbo);
+}
+
+void Framebuffer::Clear(uint width, uint height)
+{
+    Bind();
+
+    glViewport(0, 0, width, height);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearDepth(1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Framebuffer::Bind() 
@@ -290,5 +305,265 @@ void VertexArray::Bind()
 void VertexArray::Unbind()
 {
     glBindVertexArray(0);
+}
+
+Shader::Shader(unsigned type, const char** source, unsigned count)
+{
+    std::string error;
+    Init(type, source, count, error);
+
+    if(!compiled)
+    {
+        LOG("Error compiling shader: %s", error.c_str());
+    }
+}
+
+Shader::Shader(unsigned type, const char* path, const char** defines, unsigned count)
+{
+    // Read whole file
+    char* data = nullptr;
+
+	FILE* file = 0;
+	fopen_s(&file, path, "rb");
+
+    std::string error;
+
+	if(file)
+	{
+		fseek(file, 0, SEEK_END);
+		int size = ftell(file);
+		rewind(file);
+		data = (char*)malloc(size + 1);
+
+		fread(data, 1, size, file);
+		data[size] = 0;
+
+		fclose(file);
+
+        // inject defines
+        if (count > 0)
+        {
+            // assume first line is #version and must remain being first line
+
+            const char** final_data = (const char**)malloc(sizeof(char*) * ((count+1)*2 + 1));
+            char* save_ptr = nullptr;
+            char* version = strtok_s(data, "\n", &save_ptr);
+            final_data[0] = version;
+            final_data[1] = "\n";
+            for (unsigned i = 0; i < count; ++i)
+            {
+                final_data[i*2 + 2] = defines[i];
+                final_data[i*2 + 3] = "\n";
+            }
+
+            if (version != nullptr)
+            {
+                final_data[(count+1)*2 ] = strtok_s(nullptr, "", &save_ptr);
+
+                Init(type, final_data, (count+1)*2 + 1, error);
+            }
+            else
+            {
+                Init(type, final_data, count*2 + 1, error);
+            }
+
+
+            free(data);
+            free(final_data);
+        }
+        else
+        {
+            Init(type, (const char**)&data, 1, error);
+        }
+	}
+
+    if(!compiled)
+    {
+        LOG("Error compiling shader %s: %s", path, error.c_str());
+    }
+}
+
+void Shader::Init(unsigned type, const char** source, unsigned count, std::string& output)
+{
+    id = glCreateShader(type);
+
+    GLint  success;
+    GLchar log[512];
+
+    glShaderSource(id, count, source, nullptr);
+    glCompileShader(id);
+    glGetShaderiv(id, GL_COMPILE_STATUS, &success);
+
+    compiled = success == GL_TRUE;
+
+    if (!compiled)
+    {
+        glGetShaderInfoLog(id, 512, NULL, log);
+        output = log;
+    }
+}
+
+Shader* Shader::CreateVSFromFile(const char* path, const char** defines, unsigned count) 
+{ 
+    return new Shader(GL_VERTEX_SHADER, path, defines, count); 
+}
+
+Shader* Shader::CreateFSFromFile(const char* path, const char** defines, unsigned count) 
+{ 
+    return new Shader(GL_FRAGMENT_SHADER, path, defines, count); 
+}
+
+Shader* Shader::CreateCompouteFromFile(const char* path, const char** defines, unsigned count) 
+{ 
+    return new Shader(GL_COMPUTE_SHADER, path, defines, count); 
+}
+
+
+Shader::~Shader()
+{
+    glDeleteShader(id);
+}
+
+Program::Program(const Shader* vs, const Shader* fs, unsigned count, const char* log_name)
+{
+    const Shader* shader_list[] = { vs, fs };
+    Init(shader_list, 2, log_name);
+}
+
+Program::Program(const Shader** shaders, unsigned count, const char* log_name)
+{
+    Init(shaders, count, log_name);
+}
+
+void Program::Init(const Shader** shaders, unsigned count, const char* log_name)
+{
+    id = glCreateProgram();
+
+    for (unsigned i = 0; i < count; ++i)
+    {
+        glAttachShader(id, shaders[i]->Id());
+    }
+
+    glLinkProgram(id);
+
+    int success;
+    char  log[512];
+
+    glGetProgramiv(id, GL_LINK_STATUS, &success);
+
+    linked = success == GL_TRUE;
+
+    if (!linked)
+    {
+        glGetProgramInfoLog(id, 512, NULL, log);
+        LOG("Error linking program '%s' : %s",  log_name != nullptr ? log_name : "", log);
+    }
+}
+
+Program::~Program()
+{
+    glDeleteProgram(id);
+}
+
+void Program::Use()
+{
+    glUseProgram(id);
+}
+
+void Program::Unuse()
+{
+    glUseProgram(0); 
+}
+
+void Program::BindTexture(uint location, uint unit, const Texture2D* texture)
+{
+    glActiveTexture(GL_TEXTURE0+unit);
+    glBindTexture(GL_TEXTURE_2D, texture->Id());
+    glUniform1i(location, unit);        
+}
+
+void Program::BindUniform(uint location, int value)
+{
+    glUniform1i(location, value);        
+}
+
+void Program::BindUniform(uint location, float value)
+{
+    glUniform1f(location, value);        
+}
+
+void Program::BindUniform(uint location, const float2& value)
+{
+    glUniform2f(location, value.x, value.y);
+}
+
+void Program::BindUniform(uint location, const float3& value)
+{
+    glUniform3f(location, value.x, value.y, value.z);
+}
+
+void Program::BindUniform(uint location, const float4& value)
+{
+    glUniform4f(location, value.x, value.y, value.z, value.w);
+}
+
+void Program::BindUniform(uint location, const float2x2& value)
+{
+    glUniformMatrix2fv(location, 1, GL_TRUE, reinterpret_cast<const float*>(&value));
+}
+
+void Program::BindUniform(uint location, const float3x3& value)
+{
+    glUniformMatrix3fv(location, 1, GL_TRUE, reinterpret_cast<const float*>(&value));
+}
+
+void Program::BindUniform(uint location, const float4x4& value)
+{
+    glUniformMatrix4fv(location, 1, GL_TRUE, reinterpret_cast<const float*>(&value));
+}
+
+void Program::BindUniform(uint location, int count, int* value)
+{
+    glUniform1iv(location, count, value);
+}
+
+void Program::BindUniform(uint location, int count, float* value)
+{
+    glUniform1fv(location, count, value);
+}
+
+void Program::BindUniform(uint location, int count, const float2* value)
+{
+    glUniform2fv(location, count, reinterpret_cast<const float*>(value));
+}
+
+void Program::BindUniform(uint location, int count, const float3* value)
+{
+    glUniform3fv(location, count, reinterpret_cast<const float*>(value));
+}
+
+void Program::BindUniform(uint location, int count, const float4* value)
+{
+    glUniform4fv(location, count, reinterpret_cast<const float*>(value));
+}
+
+void Program::BindUniform(uint location, int count, const float2x2* value)
+{
+    glUniformMatrix2fv(location, count, GL_TRUE, reinterpret_cast<const float*>(&value));
+}
+
+void Program::BindUniform(uint location, int count, const float3x3* value)
+{
+    glUniformMatrix3fv(location, count, GL_TRUE, reinterpret_cast<const float*>(&value));
+}
+
+void Program::BindUniform(uint location, int count, const float4x4* value)
+{
+    glUniformMatrix4fv(location, count, GL_TRUE, reinterpret_cast<const float*>(&value));
+}
+
+void Program::BindSSBO(unsigned binding, const Buffer* buffer)
+{
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, buffer->Id());
 }
 

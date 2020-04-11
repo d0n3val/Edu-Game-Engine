@@ -36,6 +36,7 @@
 #include "ResourceAnimation.h"
 #include "PanelResources.h"
 #include "PanelGOTree.h"
+#include "PerlinProperties.h"
 #include "Viewport.h"
 #include "SceneViewport.h"
 
@@ -64,6 +65,7 @@ PanelProperties::PanelProperties() : Panel("Properties")
 	height = default_height;
 	posx = default_posx;
 	posy = default_posy;
+    perlin = std::make_unique<PerlinProperties>();
 }
 
 // ---------------------------------------------------------
@@ -1196,6 +1198,23 @@ void PanelProperties::DrawGrassComponent(ComponentGrass* component)
 	{
 		DrawMaterialResource(mat_res, mesh_res);
     }
+
+    static const int noise_count = 256;
+
+    float (*random_getter)(void* data, int idx) = [](void* data, int idx) -> float 
+    { 
+        float scale = 25.0f;
+        return ((ComponentGrass*)data)->RandomNoise(idx);
+    };
+
+    float (*values_getter)(void* data, int idx) = [](void* data, int idx) -> float 
+    { 
+        float scale = 25.0f;
+        return ((ComponentGrass*)data)->ValueNoise(scale*float(idx)/float(noise_count)); 
+    };
+
+    ImGui::PlotLines("Random Noise", random_getter, component, noise_count, 0, nullptr, 0.0f, 1.0f, ImVec2((float)noise_count, 200.0f));
+    ImGui::PlotLines("Value Noise", values_getter, component, noise_count, 0, nullptr, 0.0f, 1.0f, ImVec2((float)noise_count, 200.0f));
 }
 
 void DrawTrailComponent(ComponentTrail* component)
@@ -1319,7 +1338,7 @@ void DrawTrailComponent(ComponentTrail* component)
     ImGui::Combo("Texture mode", (int*)&component->texture_mode, texture_names, int(ComponentTrail::TextureCount));
 }
 
-void DrawParticleSystemComponent(ComponentParticleSystem* component)
+void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* component)
 {
     bool modified = false;
     ResourceTexture* info = component->GetTextureRes();
@@ -1500,6 +1519,8 @@ void DrawParticleSystemComponent(ComponentParticleSystem* component)
         ImGui::DragFloat("end", &component->size_over_time.end);
     }
     ImGui::PopID();
+
+    perlin->Draw(component->noise_params);
 
     ImGui::PushID("Frame");
     if(ImGui::CollapsingHeader("Frame over time", ImGuiTreeNodeFlags_DefaultOpen))

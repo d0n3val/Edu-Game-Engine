@@ -26,8 +26,11 @@ public:
     const ResourceMaterial* GetMaterial() const;
     ResourceMaterial*       GetMaterial();
 
-   
-    static Types  GetClassType    () { return Grass; }
+    float                   Hash(float value) const;
+    float                   ValueNoise(float v) const;
+    float                   RandomNoise(int index) const { return random_values[index]; }
+
+    static Types            GetClassType() { return Grass; }
 
     void          Draw            ();
 
@@ -39,6 +42,8 @@ private:
     std::unique_ptr<Buffer>      billboard_vbo;
     std::unique_ptr<Buffer>      billboard_ibo;
     std::unique_ptr<VertexArray> billboard_vao;
+
+    std::vector<float>           random_values;
 };
 
 #endif /* __COMPONENT_GRASS_H__ */

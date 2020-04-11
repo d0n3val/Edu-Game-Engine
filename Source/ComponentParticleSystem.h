@@ -4,10 +4,13 @@
 #include "Component.h"
 #include <vector>
 
+#include "Perlin.h"
+
 #include "imgui/imgui_color_gradient.h"
 #include "imgui/imgui_bezier.h"
 
 class ResourceTexture;
+class PanelProperties;
 
 class ComponentParticleSystem : public Component
 {
@@ -44,7 +47,7 @@ private:
 
 private:
 
-    friend void DrawParticleSystemComponent(ComponentParticleSystem* component);
+    friend class PanelProperties;
     friend void DebugDrawParticles(ComponentParticleSystem* particles);
 
     struct Particle
@@ -200,6 +203,7 @@ private:
     RenderBlendMode        blend_mode         = AdditiveBlend;
     bool                   visible            = true;
     float                  layer              = 0;
+    FractalPerlin3D        noise_params;
 };
 
 #endif /* __COMPONENT_PARTICLE_SYSTEM_H__ */

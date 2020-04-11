@@ -25,6 +25,7 @@ class AmbientLight;
 class DirLight;
 class PointLight;
 class SpotLight;
+class PerlinProperties;
 
 class Texture2D;
 class Framebuffer;
@@ -60,6 +61,7 @@ private:
     void DrawPointLight(PointLight* light);
     void DrawSpotLight(SpotLight* light);
 	// TODO move editor code as a component method like component rigidbody
+    void DrawParticleSystemComponent(ComponentParticleSystem* component);
 	void DrawMeshRendererComponent(ComponentMeshRenderer* component);
     void DrawGrassComponent(ComponentGrass* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
@@ -78,23 +80,29 @@ private:
     void DrawMesh(const ResourceMesh* mesh);
 
 private:
+    typedef std::unique_ptr<PerlinProperties> PerlinPtr;
+    typedef std::unique_ptr<Framebuffer> FramebufferPtr;
+    typedef std::unique_ptr<Texture2D> TexturePtr;
 
-    std::unique_ptr<Framebuffer> convert_fb;
-    std::unique_ptr<Texture2D>   diffuse;
-    std::unique_ptr<Texture2D>   specular;
-    std::unique_ptr<Texture2D>   occlusion;
-    std::unique_ptr<Texture2D>   depth;
+    FramebufferPtr  convert_fb;
+    TexturePtr      diffuse;
+    TexturePtr      specular;
+    TexturePtr      occlusion;
+    TexturePtr      depth;
 
-    std::unique_ptr<Framebuffer> preview_blit_fb;
-    std::unique_ptr<Framebuffer> preview_fb;
-    std::unique_ptr<Texture2D>   preview_texture;
-    uint                         preview_width   = 0;
-    uint                         preview_height  = 0;
-    bool                         preview_uvs     = false;
-    bool                         preview_text    = true;
-    math::float4                 uv_color        = math::float4(1.0f, 1.0f, 1.0f, 1.0f);
-    uint                         preview_set     = 0;
-    float                        preview_zoom    = 100.0;
+    FramebufferPtr  preview_blit_fb;
+    FramebufferPtr  preview_fb;
+    TexturePtr      preview_texture;
+
+    PerlinPtr       perlin;
+
+    uint            preview_width   = 0;
+    uint            preview_height  = 0;
+    bool            preview_uvs     = false;
+    bool            preview_text    = true;
+    math::float4    uv_color        = math::float4(1.0f, 1.0f, 1.0f, 1.0f);
+    uint            preview_set     = 0;
+    float           preview_zoom    = 100.0;
 };
 
 #endif// __PANELPROPERTIES_H__
