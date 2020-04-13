@@ -1423,6 +1423,7 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
         ImGui::InputInt("sheet x tiles", (int*)&component->texture_info.x_tiles); 
         ImGui::InputInt("sheet y tiles", (int*)&component->texture_info.y_tiles);
 
+        ImGui::Checkbox("Visible" , &component->visible);
     }
 
     if(ImGui::CollapsingHeader("Initialization", ImGuiTreeNodeFlags_DefaultOpen))

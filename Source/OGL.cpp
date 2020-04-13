@@ -68,6 +68,11 @@ void Texture2D::SetData(uint width, uint height, uint mip_level, uint internal_f
     glBindTexture(tex_target, 0);
 }
 
+void Texture2D::SetDefaultRGBAData(uint width, uint height, void* data)
+{
+    SetData(width, height, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data);
+}
+
 void Texture2D::SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r)
 {
     glBindTexture(tex_target, texture);

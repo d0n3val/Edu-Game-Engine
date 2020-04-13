@@ -4,7 +4,7 @@
 #include "Component.h"
 #include <vector>
 
-#include "Perlin.h"
+#include "Noise.h"
 
 #include "imgui/imgui_color_gradient.h"
 #include "imgui/imgui_bezier.h"
@@ -203,7 +203,7 @@ private:
     RenderBlendMode        blend_mode         = AdditiveBlend;
     bool                   visible            = true;
     float                  layer              = 0;
-    FractalPerlin3D        noise_params;
+    FractalNoiseCfg        noise_params;
 };
 
 #endif /* __COMPONENT_PARTICLE_SYSTEM_H__ */

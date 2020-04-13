@@ -3,14 +3,16 @@
 in vec2 uv;
 out vec4 color;
 
-layout(location = 0) uniform float strength;
-layout(location = 1) uniform float frequency;
-layout(location = 2) uniform int octaves;
-layout(location = 3) uniform float freq_mult;
-layout(location = 4) uniform float ampl_scale;
-layout(location = 5) uniform float frame;
+layout(location = 0) uniform float duration;
+layout(location = 1) uniform float strength;
+layout(location = 2) uniform float frequency;
+layout(location = 3) uniform int octaves;
+layout(location = 4) uniform float freq_mult;
+layout(location = 5) uniform float ampl_scale;
+layout(location = 6) uniform float frame;
+layout(location = 7) uniform sampler2D tex;
 
-vec3 random( vec3 p ) 
+vec3 gradient_random( vec3 p ) 
 {
 	p = vec3( dot(p,vec3(127.1,311.7, 74.7)),
 			  dot(p,vec3(269.5,183.3,246.1)),
@@ -19,38 +21,47 @@ vec3 random( vec3 p )
 	return -1.0 + 2.0*fract(sin(p)*43758.5453123);
 }
 
-float noise( in vec3 x )
+
+float value_random(vec3 p)  // replace this by something better
 {
-    // grid
-    vec3 i = floor(x);
-    vec3 w = fract(x);
-    
-    // quintic interpolant
-    vec3 u = w*w*w*(w*(w*6.0-15.0)+10.0);
-    vec3 du = 30.0*w*w*(w*(w-2.0)+1.0);
-    
-    // gradients
-    vec3 ga = random( i+vec3(0.0,0.0,0.0) );
-    vec3 gb = random( i+vec3(1.0,0.0,0.0) );
-    vec3 gc = random( i+vec3(0.0,1.0,0.0) );
-    vec3 gd = random( i+vec3(1.0,1.0,0.0) );
-    vec3 ge = random( i+vec3(0.0,0.0,1.0) );
-	vec3 gf = random( i+vec3(1.0,0.0,1.0) );
-    vec3 gg = random( i+vec3(0.0,1.0,1.0) );
-    vec3 gh = random( i+vec3(1.0,1.0,1.0) );
-    
-    // projections
-    float va = dot( ga, w-vec3(0.0,0.0,0.0) );
-    float vb = dot( gb, w-vec3(1.0,0.0,0.0) );
-    float vc = dot( gc, w-vec3(0.0,1.0,0.0) );
-    float vd = dot( gd, w-vec3(1.0,1.0,0.0) );
-    float ve = dot( ge, w-vec3(0.0,0.0,1.0) );
-    float vf = dot( gf, w-vec3(1.0,0.0,1.0) );
-    float vg = dot( gg, w-vec3(0.0,1.0,1.0) );
-    float vh = dot( gh, w-vec3(1.0,1.0,1.0) );
+    p  = 50.0*fract( p*0.3183099 + vec3(0.71,0.113,0.419));
+    return -1.0+2.0*fract( p.x*p.y*p.z*(p.x+p.y+p.z) );
+}
+
+float gradient_noise( in vec3 x )
+{
+    vec3 i = floor( x);
+    vec3 f = fract( x );
 	
-    // interpolations
-    return va + u.x*(vb-va) + u.y*(vc-va) + u.z*(ve-va) + u.x*u.y*(va-vb-vc+vd) + u.y*u.z*(va-vc-ve+vg) + u.z*u.x*(va-vb-ve+vf) + (-va+vb+vc-vd+ve-vf-vg+vh)*u.x*u.y*u.z;
+    // quintic interpolation
+    vec3 u = f*f*f*(f*(f*6.0-15.0)+10.0);
+
+    return mix( mix( mix( dot( gradient_random( i + vec3(0.0,0.0,0.0) ), f - vec3(0.0,0.0,0.0) ), 
+                          dot( gradient_random( i + vec3(1.0,0.0,0.0) ), f - vec3(1.0,0.0,0.0) ), u.x),
+                     mix( dot( gradient_random( i + vec3(0.0,1.0,0.0) ), f - vec3(0.0,1.0,0.0) ), 
+                          dot( gradient_random( i + vec3(1.0,1.0,0.0) ), f - vec3(1.0,1.0,0.0) ), u.x), u.y),
+                mix( mix( dot( gradient_random( i + vec3(0.0,0.0,1.0) ), f - vec3(0.0,0.0,1.0) ), 
+                          dot( gradient_random( i + vec3(1.0,0.0,1.0) ), f - vec3(1.0,0.0,1.0) ), u.x),
+                     mix( dot( gradient_random( i + vec3(0.0,1.0,1.0) ), f - vec3(0.0,1.0,1.0) ), 
+                          dot( gradient_random( i + vec3(1.0,1.0,1.0) ), f - vec3(1.0,1.0,1.0) ), u.x), u.y), u.z );
+}
+
+float value_noise( in vec3 x )
+{
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+
+    // quintic interpolation
+    vec3 u = f*f*f*(f*(f*6.0-15.0)+10.0);
+	
+    return mix(mix(mix( value_random(i+vec3(0,0,0)), 
+                        value_random(i+vec3(1,0,0)),u.x),
+                   mix( value_random(i+vec3(0,1,0)), 
+                        value_random(i+vec3(1,1,0)),u.x),u.y),
+               mix(mix( value_random(i+vec3(0,0,1)), 
+                        value_random(i+vec3(1,0,1)),u.x),
+                   mix( value_random(i+vec3(0,1,1)), 
+                        value_random(i+vec3(1,1,1)),u.x),u.y),u.z);
 }
 
 float fbm( in vec3 x)
@@ -61,7 +72,7 @@ float fbm( in vec3 x)
 
     for(uint i=0; i< octaves; ++i)
     {
-        f += amp*noise(x*freq);
+        f += amp*gradient_noise(x*freq);
         amp *= ampl_scale;
         freq  *= freq_mult;
     }
@@ -75,7 +86,7 @@ void main()
     v.xy = uv.xy*frequency;
     v.z  = frame;
 
-    float f = fbm(v);
+    float f = clamp(fbm(v)*0.5+0.5, 0.0, 1.0);
 
     color = vec4(f, f, f, 1.0);
 }

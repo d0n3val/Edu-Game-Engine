@@ -22,6 +22,7 @@ public:
 
 
     void SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data);
+    void SetDefaultRGBAData(uint width, uint height, void* data);
     void SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r);
     void SetMinMaxFiler(uint min_filter, uint max_filter);
     void GenerateMipmaps(uint base = 0, uint max = 1000);

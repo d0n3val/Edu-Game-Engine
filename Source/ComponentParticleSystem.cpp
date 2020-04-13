@@ -176,6 +176,9 @@ void ComponentParticleSystem::OnSave(Config& config) const
 
     config.AddInt("Blend mode", (int)blend_mode);
     config.AddFloat("Layer", layer);
+
+    Config perlin = config.AddSection("Perlin");
+    SaveNoiseCfg(noise_params, perlin);
 }
 
 void ComponentParticleSystem::OnLoad(Config* config) 
@@ -251,6 +254,9 @@ void ComponentParticleSystem::OnLoad(Config* config)
     texture_info.frame_over_time.bezier = config->GetFloat4("Sheet bezier", float4(0.0f, 1.0f, 0.0f, 1.0f));
     blend_mode = (RenderBlendMode)config->GetInt("Blend mode", (int)AdditiveBlend);
     layer = config->GetFloat("Layer", 0.0f);
+
+    Config perlin = config->GetSection("Perlin");
+    LoadNoiseCfg(noise_params, perlin);
 }
 
 void ComponentParticleSystem::OnPlay() 
@@ -290,8 +296,16 @@ void ComponentParticleSystem::OnUpdate(float dt)
 
 			// TODO: Calcular bien gravedad. Hacer que se pueda seleccionar un tile aleatorio y no animar siempre el sheet
             float3 speed = particle.init_speed+speed_over_time.Interpolate(lambda)+float3(0.0f, -particle.gravity*(particle.init_life-particle.life), 0.0f);
-            particle.transform.SetTranslatePart(particle.transform.TranslatePart()+speed*dt);
+            if(noise_params.strength > 0.0f)
+            {
+                float3 pos     = particle.transform.TranslatePart();
+                float angle    = Clamp(FractalNoise(noise_params, pos)*0.5f+0.5f, 0.0f, 1.0f)*2.0f*pi;
+                float velocity = noise_params.strength*FractalNoise(noise_params, pos+float3(4324.7987f, 3213.32f, 21.1f));
 
+                speed += float3(cos(angle)*velocity, 0.0f, sin(angle)*velocity);
+            }
+
+            particle.transform.SetTranslatePart(particle.transform.TranslatePart()+speed*dt);
             particle.size = particle.init_size*size_over_time.Interpolate(lambda);
 
             color_over_time.gradient.getColorAt(lambda, (float*)&particle.color);
@@ -421,19 +435,31 @@ void ComponentParticleSystem::OnDebugDraw(bool selected) const
             }
     }
 
-    for (uint i = 0; i < sorted.size(); ++i)
+    if(noise_params.strength > 0.0f)
     {
-        const Particle& particle = particles[sorted[i]];
-        if (particle.life > 0.0f)
+        float3 go_pos = transform.TranslatePart();
+
+        for(uint i = 0; i < 5; ++i)
         {
-            //dd::axisTriad(particle.transform, 0.1f*particle.size, particle.size*2.0f);
+            for(uint j=0; j < 5; ++j)
+            {
+                for(uint k=0; k < 5; ++k)
+                {
+                    float3 pos(go_pos.x+i*0.5-1.25f, go_pos.y+j*0.5f, go_pos.z+k*0.5f-1.25f);
+                    float angle    = Clamp(FractalNoise(noise_params, pos)*0.5f+0.5f, 0.0f, 1.0f)*2.0f*pi;
+                    float velocity = noise_params.strength*FractalNoise(noise_params, pos+float3(4324.7987f, 3213.32f, 21.1f));
+                    
+                    dd::arrow(pos, pos+float3(cos(angle)*velocity, 0.0f, sin(angle)*velocity), dd::colors::Blue, 0.1f);
+                }
+            }
         }
+
     }
 }
 
 void ComponentParticleSystem::Draw(bool show_billboard)
 {
-    if(alive_particles > 0)
+    if(alive_particles > 0 && visible)
     {
         UpdateInstanceBuffer();
 

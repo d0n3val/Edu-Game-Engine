@@ -261,6 +261,7 @@
     <ClInclude Include="NodeEditor\Source\imgui_canvas.h" />
     <ClInclude Include="NodeEditor\Source\imgui_extra_math.h" />
     <ClInclude Include="NodeEditor\Source\imgui_node_editor_internal.h" />
+    <ClInclude Include="Noise.h" />
     <ClInclude Include="OGL.h" />
     <ClInclude Include="OpenGL.h" />
     <ClInclude Include="Module.h" />
@@ -389,6 +390,7 @@
     <ClCompile Include="NodeEditor\Source\imgui_canvas.cpp" />
     <ClCompile Include="NodeEditor\Source\imgui_node_editor.cpp" />
     <ClCompile Include="NodeEditor\Source\imgui_node_editor_api.cpp" />
+    <ClCompile Include="Noise.cpp" />
     <ClCompile Include="OGL.cpp" />
     <ClCompile Include="PanelAbout.cpp" />
     <ClCompile Include="PanelConfiguration.cpp" />
