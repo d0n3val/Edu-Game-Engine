@@ -92,12 +92,20 @@ bool ResourceModel::LoadInMemory()
             {
                 if(nodes[i].renderers[j].mesh != 0)
                 {
-                    App->resources->Get(nodes[i].renderers[j].mesh)->LoadToMemory();
+                    Resource* res = App->resources->Get(nodes[i].renderers[j].mesh);
+                    if (res)
+                    {
+                        res->LoadToMemory();
+                    }
                 }
 
                 if(nodes[i].renderers[j].material != 0)
                 {
-                    App->resources->Get(nodes[i].renderers[j].material)->LoadToMemory();
+                    Resource* res = App->resources->Get(nodes[i].renderers[j].material);
+                    if (res)
+                    {
+                        res->LoadToMemory();
+                    }
                 }
             }
         }

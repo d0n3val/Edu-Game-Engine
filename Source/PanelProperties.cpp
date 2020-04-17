@@ -780,6 +780,13 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
     if(ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
     {
         modified = TextureButton(material, mesh, ResourceMaterial::TextureNormal, "Normal") || modified;
+
+        float strength = Clamp(material->GetNormalStrength(), 0.0f, 100.0f);
+        if(ImGui::SliderFloat("Strength", &strength, 0.0f, 10.0f))
+        {
+            material->SetNormalStrength(strength);
+            modified = true;
+        }
     }
 
     if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
@@ -802,6 +809,20 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
             modified  = true;
         }
 
+    }
+
+    bool dsided = material->GetDoubleSided();
+
+    if(ImGui::Checkbox("Double side", &dsided))
+    {
+        material->SetDoubleSided(dsided);
+    }
+
+    float atest = material->GetAlphaTest();
+
+    if(ImGui::SliderFloat("Alpha test", &atest, 0.0f, 1.0f))
+    {
+        material->SetAlphaTest(atest);
     }
 
     /* Code for Transform textures from metallic to specular workflow */

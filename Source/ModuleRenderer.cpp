@@ -436,6 +436,9 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
 
 
     DrawNodes(opaque_nodes, &ModuleRenderer::DrawColor);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     DrawNodes(transparent_nodes, &ModuleRenderer::DrawColor);
 
     //DrawSkybox(proj, view);

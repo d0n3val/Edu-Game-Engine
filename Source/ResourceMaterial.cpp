@@ -62,6 +62,9 @@ bool ResourceMaterial::LoadInMemory()
 		read_stream >> k_ambient >> k_diffuse >> k_specular;
 
         read_stream >> shininess;
+        read_stream >> normal_strength;
+        read_stream >> double_sided;
+        read_stream >> alpha_test;
 
         for(uint i=0; i< TextureCount; ++i)
         {
@@ -160,7 +163,9 @@ void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_s
     write_stream << 0.0f << 0.0f << 0.0f;
 
     write_stream << shininess;
-
+    write_stream << normal_strength;
+    write_stream << double_sided;
+    write_stream << alpha_test;
 }
 
 // ---------------------------------------------------------
@@ -353,6 +358,8 @@ void ResourceMaterial::UpdateUniforms() const
 
     glUniform1f(SHININESS_LOC, shininess);
     glUniform1i(NORMAL_MAP_LOC, 4);
+    glUniform1f(STRENGTH_LOC, normal_strength);
+    glUniform1f(ALPHA_TEST_LOC, alpha_test);
     glUniform1i(EMISSIVE_MAP_LOC, 3);
     glUniform1i(OCCLUSION_MAP_LOC, 2);
     glUniform1i(SPECULAR_MAP_LOC, 1);
@@ -417,6 +424,15 @@ void ResourceMaterial::BindTextures() const
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuse_id);
+
+    if(double_sided)
+    {
+        glDisable(GL_CULL_FACE);
+    }
+    else
+    {
+        glEnable(GL_CULL_FACE);
+    }
 }
 
 void ResourceMaterial::UnbindTextures() const

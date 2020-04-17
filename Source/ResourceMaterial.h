@@ -28,6 +28,9 @@ private:
     float3      emissive_color         = float4::zero;
     UID         textures[TextureCount] = { 0, 0, 0, 0, 0 };
     float       shininess              = 0.5f;
+    float       normal_strength        = 1.0f;
+    bool        double_sided           = false;
+    float       alpha_test             = 0.0f;
 
 public:
 
@@ -62,6 +65,15 @@ public:
 
     float                   GetShininess        () const { return shininess; }
     void                    SetShininess        (float s) { shininess = s; }
+
+    float                   GetNormalStrength   () const { return normal_strength; }
+    void                    SetNormalStrength   (float s) { normal_strength = s; }
+
+    bool                    GetDoubleSided      () const { return double_sided; }
+    void                    SetDoubleSided      (bool dside)  { double_sided = dside; }
+
+    float                   GetAlphaTest        () const { return alpha_test; }
+    void                    SetAlphaTest        (float atest)  { alpha_test = atest; }
 
     static Resource::Type   GetClassType        () {return Resource::material;}
 private:

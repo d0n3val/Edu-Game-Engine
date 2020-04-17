@@ -21,6 +21,8 @@ struct Material
     vec3      emissive_color;
 
     sampler2D normal_map;
+    float     normal_strength;
+    float     alpha_test;
 };
 
 struct AmbientLight
@@ -350,15 +352,25 @@ layout(index=0) subroutine(GetNormal) vec3 get_normal_from_interpolator(const Ve
 
 layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexOut vertex, const Material mat)
 {
+    vec3 normal = texture(mat.normal_map, vertex.uv0).xyz*2.0-1.0;
+    normal.xy *= mat.normal_strength;
+    normal = normalize(normal);
+
     mat3 tbn = create_tbn(normalize(vertex.normal), normalize(vertex.tangent));
-    return tbn*(texture(mat.normal_map, vertex.uv0).xyz*2.0-1.0);
+    return tbn*normal;
 }
 
 void main()
 {
     vec3 normal = get_normal(fragment, material);
-    float len   = length(normal);
-    color	= lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
+
+    float len = length(normal);
+    color	  = lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
+
+    if(color.a < material.alpha_test)
+    {
+        discard;
+    }
 
 #if SHADOWS_ENABLED 
 
