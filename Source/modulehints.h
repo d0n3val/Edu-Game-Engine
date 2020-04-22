@@ -3,6 +3,8 @@
 
 #include "Module.h"
 
+#include "Math.h"
+
 class ModuleHints : public Module
 {
 public:
@@ -15,7 +17,22 @@ public:
 		SHOW_SHADOW_CLIPPING,
 		ENABLE_SHADOW_FRONT_CULLING,
 		SHADOW_BIAS,
-		SHADOW_RESOLUTION,
+
+		SHADOW_CASCADE_0_DEPTH,
+		SHADOW_CASCADE_0_RES,
+        SHADOW_CASCADE_0_UPDATE,
+
+		SHADOW_CASCADE_1_DEPTH,
+		SHADOW_CASCADE_1_RES,
+        SHADOW_CASCADE_1_UPDATE,
+
+		SHADOW_CASCADE_2_DEPTH,
+		SHADOW_CASCADE_2_RES,
+        SHADOW_CASCADE_2_UPDATE,
+
+        SHADOW_SHOW_CASCADES,
+        
+
 		UPDATE_SHADOW_VOLUME,
         SHOW_SHADOW_MAP,
 		METRIC_PROPORTION,
@@ -34,7 +51,8 @@ private:
     {
         TYPE_FLOAT = 0,
         TYPE_BOOL  = 1,
-        TYPE_INT
+        TYPE_INT   = 2,
+        TYPE_FLOAT2 = 3
     };
 
     struct
@@ -42,9 +60,10 @@ private:
 
         union
         {
-            int   ivalue;
-            float fvalue;
-            bool  bvalue;
+            int    ivalue;
+            float  fvalue;
+            bool   bvalue;
+            float  f2value[2];
         }     value;
         EType type;
 
@@ -63,6 +82,9 @@ public:
 
     float   GetFloatValue   (Hint hint) const;
     void    SetFloatValue   (Hint hint, float value);
+
+    float2  GetFloat2Value  (Hint hint) const;
+    void    SetFloat2Value  (Hint hint, const float2& value);
 
 	bool    Init            (Config* config) override;
 	void    Save            (Config* config) const override;
@@ -106,5 +128,20 @@ inline void ModuleHints::SetIntValue(Hint hint, int value)
         hints[hint].value.ivalue = value;
     }
 }
+
+inline float2 ModuleHints::GetFloat2Value  (Hint hint) const
+{
+    return hints[hint].type == TYPE_FLOAT2 ? float2(hints[hint].value.f2value[0], hints[hint].value.f2value[1]): float2(.0f, .0f);
+}
+
+inline void ModuleHints::SetFloat2Value  (Hint hint, const float2& value)
+{
+    if(hints[hint].type == TYPE_FLOAT2) 
+    {
+        hints[hint].value.f2value[0] = value[0];
+        hints[hint].value.f2value[1] = value[1];
+    }
+}
+
 
 #endif /* _HINTS_h_ */

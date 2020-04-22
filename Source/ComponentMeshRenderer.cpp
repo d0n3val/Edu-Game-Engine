@@ -11,6 +11,8 @@
 #include "ModuleResources.h"
 #include "ModulePrograms.h"
 
+#include "ResourceTexture.h"
+
 #include "mmgr/mmgr.h"
 
 
@@ -241,15 +243,26 @@ void ComponentMeshRenderer::DrawShadowPass() const
 {
     const GameObject* go              = GetGameObject();
     const ResourceMesh* mesh          = GetMeshRes();
+    const ResourceMaterial* material  = GetMaterialRes();
     float4x4 transform                = go->GetGlobalTransformation();
 
 	if (mesh != nullptr && cast_shadows)
 	{
 		glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
         
-        //UpdateCPUMorphTargets();
+
         mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
-		mesh->Draw();
+
+        glUniform1i(0, 0);
+        glUniform1f(1, material->GetAlphaTest());
+
+        const ResourceTexture* diffuse  = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
+        unsigned diffuse_id             = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuse_id);
+
+        mesh->Draw();
 	}
 }
 

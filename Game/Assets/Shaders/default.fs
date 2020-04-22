@@ -384,11 +384,13 @@ void main()
            shadow_coord.z >= 0.0 && shadow_coord.z < 1.0)
         {
 
-            //color[i] *= 5.0;
+#if SHOW_CASCADES
+            color[i] *= 20.0;
+#endif
 
             vec2 moments = texture(shadow_map[i], shadow_coord.xy).rg;
 
-            if(shadow_coord.z + shadow_bias > moments.r)
+            if(shadow_coord.z > moments.r+shadow_bias)
             {
                 float variance = moments.g - (moments.r*moments.r);
                 //variance = max(variance,0.00002);

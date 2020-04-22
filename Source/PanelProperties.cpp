@@ -816,6 +816,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
     if(ImGui::Checkbox("Double side", &dsided))
     {
         material->SetDoubleSided(dsided);
+        modified = true;
     }
 
     float atest = material->GetAlphaTest();
@@ -823,6 +824,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
     if(ImGui::SliderFloat("Alpha test", &atest, 0.0f, 1.0f))
     {
         material->SetAlphaTest(atest);
+        modified = true;
     }
 
     /* Code for Transform textures from metallic to specular workflow */

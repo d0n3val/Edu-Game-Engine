@@ -384,6 +384,7 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 		tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
     }
 
+	ImGui::Separator();
     enable = module->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING);
     if(ImGui::Checkbox("Enable shadows", &enable))
     {
@@ -392,6 +393,12 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 
     if(enable)
     {
+        bool show_cascades = module->GetBoolValue(ModuleHints::SHADOW_SHOW_CASCADES);
+        if(ImGui::Checkbox("Show cascades", &show_cascades))
+        {
+            module->SetBoolValue(ModuleHints::SHADOW_SHOW_CASCADES, show_cascades);
+        }
+
         enable = module->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME);
         if(ImGui::Checkbox("Update shadow volume", &enable))
         {
@@ -422,7 +429,64 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
             module->SetFloatValue(ModuleHints::SHADOW_BIAS, bias);
         }
 
-    }
+		ImGui::Separator();
+
+        float2 cascade0_depth = module->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH);
+        if(ImGui::SliderFloat2("Casc 0 depth", &cascade0_depth.x, 0.0f, 100.0f, "%.5f"))
+        {
+            module->SetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH, cascade0_depth);
+        }
+
+		float cascade1_depth = module->GetFloatValue(ModuleHints::SHADOW_CASCADE_1_DEPTH);
+		if (ImGui::SliderFloat("Casc 1 depth", &cascade1_depth, 0.0f, 100.0f, "%.5f"))
+		{
+			module->SetFloatValue(ModuleHints::SHADOW_CASCADE_1_DEPTH, cascade1_depth);
+		}
+
+		float cascade2_depth = module->GetFloatValue(ModuleHints::SHADOW_CASCADE_2_DEPTH);
+		if (ImGui::SliderFloat("Casc 2 depth", &cascade2_depth, 0.0f, 100.0f, "%.5f"))
+		{
+			module->SetFloatValue(ModuleHints::SHADOW_CASCADE_2_DEPTH, cascade2_depth);
+		}
+
+		float2 cascade0_res = module->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_RES);
+		if (ImGui::InputFloat2("Casc 0 res", &cascade0_res.x, "%.5f"))
+		{
+			module->SetFloat2Value(ModuleHints::SHADOW_CASCADE_0_RES, cascade0_res);
+		}
+
+		float2 cascade1_res = module->GetFloat2Value(ModuleHints::SHADOW_CASCADE_1_RES);
+		if (ImGui::InputFloat2("Casc 1 res", &cascade1_res.x, "%.5f"))
+		{
+			module->SetFloat2Value(ModuleHints::SHADOW_CASCADE_1_RES, cascade1_res);
+		}
+
+		float2 cascade2_res = module->GetFloat2Value(ModuleHints::SHADOW_CASCADE_2_RES);
+		if (ImGui::InputFloat2("Casc 2 res", &cascade2_res.x, "%.5f"))
+		{
+			module->SetFloat2Value(ModuleHints::SHADOW_CASCADE_2_RES, cascade2_res);
+		}
+
+		int cascade0_update = module->GetIntValue(ModuleHints::SHADOW_CASCADE_0_UPDATE);
+		if (ImGui::InputInt("Casc 0 update", &cascade0_update))
+		{
+			module->SetIntValue(ModuleHints::SHADOW_CASCADE_0_UPDATE, cascade0_update);
+		}
+
+		int cascade1_update = module->GetIntValue(ModuleHints::SHADOW_CASCADE_1_UPDATE);
+		if (ImGui::InputInt("Casc 1 update", &cascade1_update))
+		{
+			module->SetIntValue(ModuleHints::SHADOW_CASCADE_1_UPDATE, cascade1_update);
+		}
+
+		int cascade2_update = module->GetIntValue(ModuleHints::SHADOW_CASCADE_2_UPDATE);
+		if (ImGui::InputInt("Casc 2 update", &cascade2_update))
+		{
+			module->SetIntValue(ModuleHints::SHADOW_CASCADE_2_UPDATE, cascade2_update);
+		}
+
+	}
+	ImGui::Separator();
 
 	bool show = module->GetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS);
 	if (ImGui::Checkbox("Show billboards", &show))

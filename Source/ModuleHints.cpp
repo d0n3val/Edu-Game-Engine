@@ -32,8 +32,35 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[SHADOW_BIAS].type                       = TYPE_FLOAT;
     hints[SHADOW_BIAS].value.fvalue               = 0.05f;
 
-    hints[SHADOW_RESOLUTION].type                 = TYPE_FLOAT;
-    hints[SHADOW_RESOLUTION].value.fvalue         = 1.0f;
+    hints[SHADOW_CASCADE_0_DEPTH].type            = TYPE_FLOAT2;
+    SetFloat2Value(SHADOW_CASCADE_0_DEPTH, float2(0.01f, 15.0f));
+
+    hints[SHADOW_CASCADE_0_RES].type              = TYPE_FLOAT2;
+    SetFloat2Value(SHADOW_CASCADE_0_RES, float2(640.0f, 640.0f));
+
+    hints[SHADOW_CASCADE_0_UPDATE].type           = TYPE_INT;
+    SetIntValue(SHADOW_CASCADE_0_UPDATE, 1);
+
+    hints[SHADOW_CASCADE_1_DEPTH].type            = TYPE_FLOAT;
+    hints[SHADOW_CASCADE_1_DEPTH].value.fvalue    = 10.0f;
+
+    hints[SHADOW_CASCADE_1_RES].type              = TYPE_FLOAT2;
+    SetFloat2Value(SHADOW_CASCADE_1_RES, float2(640.0f, 640.0f));
+
+    hints[SHADOW_CASCADE_1_UPDATE].type           = TYPE_INT;
+    SetIntValue(SHADOW_CASCADE_1_UPDATE, 1);
+
+    hints[SHADOW_CASCADE_2_DEPTH].type            = TYPE_FLOAT;
+    hints[SHADOW_CASCADE_2_DEPTH].value.fvalue    = 50.0f;
+
+    hints[SHADOW_CASCADE_2_RES].type              = TYPE_FLOAT2;
+    SetFloat2Value(SHADOW_CASCADE_2_RES, float2(640.0f, 642.0f)); 
+
+    hints[SHADOW_CASCADE_2_UPDATE].type           = TYPE_INT;
+    SetIntValue(SHADOW_CASCADE_2_UPDATE, 1);
+
+    hints[SHADOW_SHOW_CASCADES].type              = TYPE_BOOL;
+    SetBoolValue(SHADOW_SHOW_CASCADES, false);
 
 	hints[METRIC_PROPORTION].type				  = TYPE_FLOAT;
 	hints[METRIC_PROPORTION].value.fvalue	      = 1.0f;
@@ -72,8 +99,20 @@ void ModuleHints::Save(Config* config) const
     config->AddBool("Update shadow volume", hints[UPDATE_SHADOW_VOLUME].value.bvalue);
     config->AddBool("Show shadow map", hints[SHOW_SHADOW_MAP].value.bvalue);
 
+    config->AddFloat2("Shadow cascade 0 depth", GetFloat2Value(SHADOW_CASCADE_0_DEPTH));
+    config->AddFloat2("Shadow cascade 0 res", GetFloat2Value(SHADOW_CASCADE_0_RES));
+    config->AddInt("Shadow cascade 0 update", GetIntValue(SHADOW_CASCADE_0_UPDATE));
+
+    config->AddFloat("Shadow cascade 1 depth", hints[SHADOW_CASCADE_1_DEPTH].value.fvalue);
+    config->AddFloat2("Shadow cascade 1 res", GetFloat2Value(SHADOW_CASCADE_1_RES));
+    config->AddInt("Shadow cascade 1 update", GetIntValue(SHADOW_CASCADE_1_UPDATE));
+
+    config->AddFloat("Shadow cascade 2 depth", hints[SHADOW_CASCADE_2_DEPTH].value.fvalue);
+    config->AddFloat2("Shadow cascade 2 res", GetFloat2Value(SHADOW_CASCADE_2_RES));
+    config->AddInt("Shadow cascade 2 update", GetIntValue(SHADOW_CASCADE_2_UPDATE));
+    config->AddBool("Shadow show cascades", GetBoolValue(SHADOW_SHOW_CASCADES));
+
     config->AddFloat("Shadow bias", hints[SHADOW_BIAS].value.fvalue);
-    config->AddFloat("Shadow resolution", hints[SHADOW_RESOLUTION].value.fvalue);
     config->AddFloat("Metric proprotion", hints[METRIC_PROPORTION].value.fvalue);
     config->AddFloat("Fresnel", hints[ENABLE_FRESNEL].value.bvalue);
 
@@ -97,9 +136,22 @@ bool ModuleHints::Init(Config* config)
     hints[SHOW_SHADOW_MAP].value.bvalue = config->GetBool("Show shadow map", true);
 
     hints[SHADOW_BIAS].value.fvalue = config->GetFloat("Shadow bias", 0.05f);
-    hints[SHADOW_RESOLUTION].value.fvalue = config->GetFloat("Shadow resolution", 1.0f);
     hints[METRIC_PROPORTION].value.fvalue = config->GetFloat("Metric proprotion", 1.0f);
     hints[ENABLE_FRESNEL].value.bvalue = config->GetBool("Fresnel", true);
+
+    SetFloat2Value(SHADOW_CASCADE_0_DEPTH, config->GetFloat2("Shadow cascade 0 depth", float2(0.01f, 15.0f)));
+    SetFloat2Value(SHADOW_CASCADE_0_RES, config->GetFloat2("Shadow cascade 0 res", float2(640.0f, 640.0f)));
+    SetIntValue(SHADOW_CASCADE_0_UPDATE, config->GetInt("Shadow cascade 0 update", 1));
+
+    hints[SHADOW_CASCADE_1_DEPTH].value.fvalue = config->GetFloat("Shadow cascade 1 depth", 25.0f);
+    SetFloat2Value(SHADOW_CASCADE_1_RES, config->GetFloat2("Shadow cascade 1 res", float2(640.0f, 640.0f)));
+    SetIntValue(SHADOW_CASCADE_1_UPDATE, config->GetInt("Shadow cascade 1 update", 1));
+
+    hints[SHADOW_CASCADE_2_DEPTH].value.fvalue = config->GetFloat("Shadow cascade 2 depth", 100.0f);
+    SetFloat2Value(SHADOW_CASCADE_2_RES, config->GetFloat2("Shadow cascade 2 res", float2(640.0f, 640.0f)));
+    SetIntValue(SHADOW_CASCADE_2_UPDATE, config->GetInt("Shadow cascade 2 update", 1));
+
+    SetBoolValue(SHADOW_SHOW_CASCADES, config->GetBool("Shadow show cascades", false));
 
     hints[TONEMAPPING].value.ivalue = config->GetInt("Tonemapping", 0);
     hints[ENABLE_MSAA].value.bvalue = config->GetBool("Enable msaa", true);

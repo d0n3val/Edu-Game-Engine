@@ -315,57 +315,33 @@ void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
 
 void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigned height)
 {
-    uint shadow_width[3] = { 384, 384, 256};
-    uint shadow_height[3] = { 384, 384, 256};
+    static const uint cascasdes_res_cte[] = {ModuleHints::SHADOW_CASCADE_0_RES, ModuleHints::SHADOW_CASCADE_1_RES, ModuleHints::SHADOW_CASCADE_2_RES };
 
-    cascades[0].near_distance = 100;
-    cascades[1].near_distance = 1000;
-    cascades[2].near_distance = 2000;
+    uint shadow_width[3] =  { 648, 648, 648 };
+    uint shadow_height[3] = { 648, 648, 648 };
 
-    cascades[0].far_distance = 1000;
-    cascades[1].far_distance = 2000;
-    cascades[2].far_distance = 10000;
-
-    cascades[0].period = 6;
-    cascades[1].period = 8;
-    cascades[2].period = 12;
+    int periods[] = { App->hints->GetIntValue(ModuleHints::SHADOW_CASCADE_0_UPDATE),  
+                      App->hints->GetIntValue(ModuleHints::SHADOW_CASCADE_1_UPDATE), 
+                      App->hints->GetIntValue(ModuleHints::SHADOW_CASCADE_2_UPDATE) };
 
     for(uint i=0; i<  CASCADE_COUNT; ++i)
     {
-        cascades[i].tick = ((cascades[i].tick+1)%cascades[i].period);
+        cascades[i].tick = ((cascades[i].tick+1)%periods[i]);
 
         if(cascades[i].tick == 0)
         {
-            if(App->hints->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME))
+            if (App->hints->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME))
             {
                 ComputeDirLightShadowVolume(camera, i);
             }
 
-            if(App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
-            {
-                math::float3 p[8];
-                cascades[i].world_bb.GetCornerPoints(p);
-                std::swap(p[2], p[5]);
-                std::swap(p[3], p[4]);
-                std::swap(p[4], p[5]);
-                std::swap(p[6], p[7]);
-                dd::box(p, i== 0 ? dd::colors::Red : (i == 1 ? dd::colors::Green : dd::colors::Blue));
-
-                cascades[i].frustum.GetCornerPoints(p);
-                std::swap(p[2], p[5]);
-                std::swap(p[3], p[4]);
-                std::swap(p[4], p[5]);
-                std::swap(p[6], p[7]);
-                dd::box(p, dd::colors::White);
-            }
-
             GenerateShadowFBO(cascades[i], shadow_width[i], shadow_height[i]);
 
-            glViewport(0, 0, shadow_width[i], shadow_height[i]);
             glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
 
+            glViewport(0, 0, shadow_width[i], shadow_height[i]);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            //glClear(GL_DEPTH_BUFFER_BIT);
+
 
             App->programs->UseProgram("shadow", 0);
 
@@ -386,14 +362,46 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
 
             BlurShadow(i);
         }
+
+        if (App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
+        {
+            math::float3 p[8];
+            cascades[i].world_bb.GetCornerPoints(p);
+            std::swap(p[2], p[5]);
+            std::swap(p[3], p[4]);
+            std::swap(p[4], p[5]);
+            std::swap(p[6], p[7]);
+            dd::box(p, i == 0 ? dd::colors::Red : (i == 1 ? dd::colors::Green : dd::colors::Blue));
+
+            cascades[i].frustum.GetCornerPoints(p);
+            std::swap(p[2], p[5]);
+            std::swap(p[3], p[4]);
+            std::swap(p[4], p[5]);
+            std::swap(p[6], p[7]);
+            dd::box(p, dd::colors::White);
+        }
     }
 }
 
 void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const float3& view_pos, unsigned fbo, unsigned width, unsigned height)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, width, height);
+
+    uint flags = 0;
+
+    if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
+    {
+        flags |= (1 << 0);
+
+        if (App->hints->GetBoolValue(ModuleHints::SHADOW_SHOW_CASCADES))
+        {
+            flags |= (1 << 1);
+        }
+    }
+
     // Set camera uniforms shared for all
-    App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
+    App->programs->UseProgram("default", flags);
 
     glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
@@ -629,7 +637,19 @@ void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
 
 void ModuleRenderer::DrawMeshColor(const ComponentMeshRenderer* mesh)
 {
-    App->programs->UseProgram("default", App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) ? 1 : 0);
+    uint flags = 0;
+
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
+    {
+        flags |= (1<< 0);
+
+        if(App->hints->GetBoolValue(ModuleHints::SHADOW_SHOW_CASCADES))
+        {
+            flags |= (1<< 1);
+        }
+    }
+
+    App->programs->UseProgram("default",  flags);
 
     UpdateLightUniform();
     mesh->Draw();
@@ -649,7 +669,7 @@ void ModuleRenderer::DrawTrails(ComponentTrail* trail)
 
 void ModuleRenderer::LoadDefaultShaders()
 {
-    const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" }; 
+    const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" , "#define SHOW_CASCADES 1 \n"}; 
     const unsigned num_default_macros  = sizeof(default_macros)/sizeof(const char*);
 
     App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", default_macros, num_default_macros, nullptr, 0);
@@ -991,6 +1011,24 @@ void ModuleRenderer::BlurShadow(uint index)
 
 void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint index)
 {
+    float2 depth(0, 0);
+
+    switch(index)
+    {
+        case 2:
+            depth.x = App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH).y+
+                      App->hints->GetFloatValue(ModuleHints::SHADOW_CASCADE_1_DEPTH);
+            depth.y = depth.x+App->hints->GetFloatValue(ModuleHints::SHADOW_CASCADE_2_DEPTH);
+            break;
+        case 1:
+            depth.x = App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH).y;
+            depth.y += depth.x+App->hints->GetFloatValue(ModuleHints::SHADOW_CASCADE_1_DEPTH);
+            break;
+        case 0:
+            depth = App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH);
+            break;
+    }
+
     const DirLight* light = App->level->GetDirLight();
 
 	if (light == nullptr)
@@ -1006,10 +1044,10 @@ void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint i
 
         cascades[index].casters.clear();
         cascades[index].frustum = camera->frustum;
-        cascades[index].frustum.nearPlaneDistance = cascades[index].near_distance;
-        cascades[index].frustum.farPlaneDistance = cascades[index].far_distance;
+        cascades[index].frustum.nearPlaneDistance = depth[0];
+        cascades[index].frustum.farPlaneDistance = depth[1];
 
-        CalcLightCameraBBox(light_rotation, camera, cascades[index].near_distance, cascades[index].far_distance, cascades[index].aabb);
+        CalcLightCameraBBox(light_rotation, camera, depth[0], depth[1], cascades[index].aabb);
         CalcLightObjectsBBox(light_rotation, cascades[index].aabb, cascades[index].casters);
 
         cascades[index].world_bb = cascades[index].aabb.Transform(light_rotation);
@@ -1140,7 +1178,8 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            // \todo: NOT filtering? 
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -1155,8 +1194,8 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             
@@ -1170,8 +1209,8 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             
@@ -1185,8 +1224,8 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             

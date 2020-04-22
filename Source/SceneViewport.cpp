@@ -91,17 +91,20 @@ void SceneViewport::Draw(ComponentCamera* camera)
         Framebuffer* framebuffer = msaa ? framebuffers[FRAMEBUFFER_MSAA].framebuffer.get() : framebuffers[FRAMEBUFFER_NO_MSAA].framebuffer.get();
         Texture2D* texture_color = msaa ? framebuffers[FRAMEBUFFER_MSAA].texture_color.get() : framebuffers[FRAMEBUFFER_NO_MSAA].texture_color.get();
 
+        
         framebuffer->Bind();
 
         glEnable(GL_STENCIL_TEST);
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
 
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         glStencilMask(0x00);
 		glStencilFunc(GL_ALWAYS, 0, 0XFF);
+        
 
         if (draw_plane == true)
         {
@@ -109,11 +112,11 @@ void SceneViewport::Draw(ComponentCamera* camera)
             DrawGrid(camera);
         }
 
-        App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
-
 		App->renderer->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
-        DrawSelection(camera, framebuffer);
+        App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
+
+        //DrawSelection(camera, framebuffer);
 
         App->renderer->Postprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
 

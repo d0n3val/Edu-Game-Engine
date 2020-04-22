@@ -1,6 +1,7 @@
 #define MAX_BONES 64
 
 layout(location = 0) in vec3 vertex_position;
+layout(location = 2) in vec2 vertex_uv0;
 layout(location = 3) in ivec4 bone_indices;
 layout(location = 4) in vec4 bone_weights;
 
@@ -15,6 +16,8 @@ uniform mat4 model;
 uniform mat4 palette[MAX_BONES];
 
 vec3 position;
+
+out vec2 uv0;
 
 layout(index=0) subroutine(TransformOutput) void transform_output_rigid()
 {
@@ -34,4 +37,5 @@ void main()
     transform_output();
 
     gl_Position = proj*view*vec4(position, 1.0);
+    uv0 = vertex_uv0;
 }

@@ -73,14 +73,11 @@ class ModuleRenderer : public Module
         uint        sq_tex          = 0;
         uint        blur_tex_0      = 0;
         uint        blur_tex_1      = 0;
-        float       near_distance   = 0.0f;
-        float       far_distance    = 0.0f;
         AABB        aabb;
         OBB         world_bb;
         Frustum     frustum;
         NodeList    casters;
         uint        tick            = 0;
-        uint        period          = 1;
     };
 
     uint bloom_fbo        = 0;
