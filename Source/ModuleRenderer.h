@@ -106,7 +106,7 @@ public:
 
 	void                DrawDebug                   () override;
 
-    unsigned            GetShadowMap                (uint index) const { return bloom_blur_tex_1; } //cascades[index].blur_tex_1; }
+    unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
     unsigned            GetShadowMapWidth           (uint index) const { return cascades[index].width; }
     unsigned            GetShadowMapHeight          (uint index) const { return cascades[index].height; }
 
