@@ -31,7 +31,8 @@ public:
         SHADOW_CASCADE_2_UPDATE,
 
         SHADOW_SHOW_CASCADES,
-        
+
+        SHADOW_ENABLE_SOFT,
 
 		UPDATE_SHADOW_VOLUME,
         SHOW_SHADOW_MAP,
@@ -49,9 +50,9 @@ private:
 
     enum EType
     {
-        TYPE_FLOAT = 0,
-        TYPE_BOOL  = 1,
-        TYPE_INT   = 2,
+        TYPE_FLOAT  = 0,
+        TYPE_BOOL   = 1,
+        TYPE_INT    = 2,
         TYPE_FLOAT2 = 3
     };
 
@@ -64,6 +65,7 @@ private:
             float  fvalue;
             bool   bvalue;
             float  f2value[2];
+            int    i2value[2];
         }     value;
         EType type;
 
@@ -142,6 +144,7 @@ inline void ModuleHints::SetFloat2Value  (Hint hint, const float2& value)
         hints[hint].value.f2value[1] = value[1];
     }
 }
+
 
 
 #endif /* _HINTS_h_ */

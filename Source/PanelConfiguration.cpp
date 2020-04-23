@@ -485,6 +485,12 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 			module->SetIntValue(ModuleHints::SHADOW_CASCADE_2_UPDATE, cascade2_update);
 		}
 
+        bool enable_soft = module->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT);
+        if(ImGui::Checkbox("Enable soft shadows", &enable_soft))
+        {
+            module->SetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT, enable_soft);
+        }
+
 	}
 	ImGui::Separator();
 

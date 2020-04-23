@@ -317,8 +317,9 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
 {
     static const uint cascasdes_res_cte[] = {ModuleHints::SHADOW_CASCADE_0_RES, ModuleHints::SHADOW_CASCADE_1_RES, ModuleHints::SHADOW_CASCADE_2_RES };
 
-    uint shadow_width[3] =  { 648, 648, 648 };
-    uint shadow_height[3] = { 648, 648, 648 };
+    float2 shadow_res[3] =  { App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_RES), 
+                              App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_1_RES), 
+                              App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_2_RES)};
 
     int periods[] = { App->hints->GetIntValue(ModuleHints::SHADOW_CASCADE_0_UPDATE),  
                       App->hints->GetIntValue(ModuleHints::SHADOW_CASCADE_1_UPDATE), 
@@ -335,11 +336,11 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
                 ComputeDirLightShadowVolume(camera, i);
             }
 
-            GenerateShadowFBO(cascades[i], shadow_width[i], shadow_height[i]);
+            GenerateShadowFBO(cascades[i], int(shadow_res[i].x), int(shadow_res[i].y));
 
             glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
 
-            glViewport(0, 0, shadow_width[i], shadow_height[i]);
+            glViewport(0, 0, int(shadow_res[i].x), int(shadow_res[i].y));
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -360,7 +361,10 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
                 glCullFace(GL_BACK);
             }
 
-            BlurShadow(i);
+            if (App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
+            {
+                BlurShadow(i);
+            }
         }
 
         if (App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
@@ -398,6 +402,11 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
         {
             flags |= (1 << 1);
         }
+
+        if(App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
+        {
+            flags |= (1 << 2);
+        }
     }
 
     // Set camera uniforms shared for all
@@ -417,17 +426,36 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[2]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[2].view));
 
         glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
-        glActiveTexture(GL_TEXTURE8);
-        glBindTexture(GL_TEXTURE_2D, cascades[0].blur_tex_1);
-        glUniform1i(App->programs->GetUniformLocation("shadow_map[0]"), 8);
+        if(App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
+        {
+            glActiveTexture(GL_TEXTURE8);
+            glBindTexture(GL_TEXTURE_2D, cascades[0].blur_tex_1);
+            glUniform1i(App->programs->GetUniformLocation("shadow_map[0]"), 8);
 
-        glActiveTexture(GL_TEXTURE9);
-        glBindTexture(GL_TEXTURE_2D, cascades[1].blur_tex_1);
-        glUniform1i(App->programs->GetUniformLocation("shadow_map[1]"), 9);
+            glActiveTexture(GL_TEXTURE9);
+            glBindTexture(GL_TEXTURE_2D, cascades[1].blur_tex_1);
+            glUniform1i(App->programs->GetUniformLocation("shadow_map[1]"), 9);
 
-        glActiveTexture(GL_TEXTURE9+1);
-        glBindTexture(GL_TEXTURE_2D, cascades[2].blur_tex_1);
-        glUniform1i(App->programs->GetUniformLocation("shadow_map[2]"), 10);
+            glActiveTexture(GL_TEXTURE9+1);
+            glBindTexture(GL_TEXTURE_2D, cascades[2].blur_tex_1);
+            glUniform1i(App->programs->GetUniformLocation("shadow_map[2]"), 10);
+        }
+        else
+        {
+            glActiveTexture(GL_TEXTURE8);
+            glBindTexture(GL_TEXTURE_2D, cascades[0].tex);
+            glUniform1i(App->programs->GetUniformLocation("shadow_map[0]"), 8);
+
+            glActiveTexture(GL_TEXTURE9);
+            glBindTexture(GL_TEXTURE_2D, cascades[1].tex);
+            glUniform1i(App->programs->GetUniformLocation("shadow_map[1]"), 9);
+
+            glActiveTexture(GL_TEXTURE9+1);
+            glBindTexture(GL_TEXTURE_2D, cascades[2].tex);
+            glUniform1i(App->programs->GetUniformLocation("shadow_map[2]"), 10);
+        
+        }
+
     }
 
     App->programs->UnuseProgram();
@@ -647,6 +675,11 @@ void ModuleRenderer::DrawMeshColor(const ComponentMeshRenderer* mesh)
         {
             flags |= (1<< 1);
         }
+
+        if(App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
+        {
+            flags |= (1 << 2);
+        }
     }
 
     App->programs->UseProgram("default",  flags);
@@ -669,7 +702,7 @@ void ModuleRenderer::DrawTrails(ComponentTrail* trail)
 
 void ModuleRenderer::LoadDefaultShaders()
 {
-    const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" , "#define SHOW_CASCADES 1 \n"}; 
+    const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" , "#define SHOW_CASCADES 1 \n", "#define ENABLE_SOFT 1 \n"}; 
     const unsigned num_default_macros  = sizeof(default_macros)/sizeof(const char*);
 
     App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", default_macros, num_default_macros, nullptr, 0);
@@ -1178,9 +1211,8 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
-            // \todo: NOT filtering? 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             

@@ -388,19 +388,28 @@ void main()
             color[i] *= 20.0;
 #endif
 
+
+#if ENABLE_SOFT
             vec2 moments = texture(shadow_map[i], shadow_coord.xy).rg;
 
             if(shadow_coord.z > moments.r+shadow_bias)
             {
                 float variance = moments.g - (moments.r*moments.r);
-                //variance = max(variance,0.00002);
 
                 float d = moments.x - shadow_coord.z;
                 float p_max = variance / (variance + d*d);
 
                 color.rgb = color.rgb*(p_max/2+0.5);
             }
+#else
 
+            float depth_value = texture(shadow_map[i], shadow_coord.xy).r;
+
+            if(shadow_coord.z > depth_value+shadow_bias)
+            {
+                color.rgb *= 0.5;
+            }
+#endif
             break;
         }
     }
