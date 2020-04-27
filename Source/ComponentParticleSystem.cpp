@@ -445,7 +445,7 @@ void ComponentParticleSystem::OnDebugDraw(bool selected) const
             {
                 for(uint k=0; k < 5; ++k)
                 {
-                    float3 pos(go_pos.x+i*0.5-1.25f, go_pos.y+j*0.5f, go_pos.z+k*0.5f-1.25f);
+                    float3 pos(go_pos.x+i*0.5f-1.25f, go_pos.y+j*0.5f, go_pos.z+k*0.5f-1.25f);
                     float angle    = Clamp(FractalNoise(noise_params, pos)*0.5f+0.5f, 0.0f, 1.0f)*2.0f*pi;
                     float velocity = noise_params.strength*FractalNoise(noise_params, pos+float3(4324.7987f, 3213.32f, 21.1f));
                     

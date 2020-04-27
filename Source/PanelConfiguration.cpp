@@ -491,6 +491,11 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
             module->SetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT, enable_soft);
         }
 
+        int pcf_kernel_size = module->GetIntValue(ModuleHints::SHADOW_PCF_SIZE);
+        if(ImGui::InputInt("PCF Kernel Size", &pcf_kernel_size))
+        {
+            module->SetIntValue(ModuleHints::SHADOW_PCF_SIZE, pcf_kernel_size > 0 ? pcf_kernel_size : 0);
+        }
 	}
 	ImGui::Separator();
 

@@ -65,6 +65,10 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[SHADOW_ENABLE_SOFT].type = TYPE_BOOL;
     SetBoolValue(SHADOW_ENABLE_SOFT, true);
 
+    hints[SHADOW_PCF_SIZE].type = TYPE_INT;
+    SetIntValue(SHADOW_PCF_SIZE, 1);
+
+
 	hints[METRIC_PROPORTION].type				  = TYPE_FLOAT;
 	hints[METRIC_PROPORTION].value.fvalue	      = 1.0f;
 
@@ -116,6 +120,7 @@ void ModuleHints::Save(Config* config) const
     config->AddBool("Shadow show cascades", GetBoolValue(SHADOW_SHOW_CASCADES));
 
     config->AddBool("Shadow enable soft", GetBoolValue(SHADOW_ENABLE_SOFT));
+    config->AddInt("Shadow pcf size", GetIntValue(SHADOW_PCF_SIZE));
 
     config->AddFloat("Shadow bias", hints[SHADOW_BIAS].value.fvalue);
     config->AddFloat("Metric proprotion", hints[METRIC_PROPORTION].value.fvalue);
@@ -158,7 +163,8 @@ bool ModuleHints::Init(Config* config)
 
     SetBoolValue(SHADOW_SHOW_CASCADES, config->GetBool("Shadow show cascades", false));
 
-    SetBoolValue(SHADOW_ENABLE_SOFT, config->GetBool("Shadow enable soft", true));
+    SetBoolValue(SHADOW_ENABLE_SOFT, config->GetBool("Shadow enable soft", false));
+    SetIntValue(SHADOW_PCF_SIZE, config->GetInt("Shadow pcf size", 1));
 
     hints[TONEMAPPING].value.ivalue = config->GetInt("Tonemapping", 0);
     hints[ENABLE_MSAA].value.bvalue = config->GetBool("Enable msaa", true);

@@ -83,14 +83,13 @@ layout(location=100) uniform vec3 view_pos;
 
 #if SHADOWS_ENABLED
 
-#if ENABLE_SOFT
+//#if ENABLE_PCF
+//layout(location=110) uniform sampler2DShadow shadow_map[3];
+//#else
 layout(location=110) uniform sampler2D shadow_map[3];
-#else
-layout(location=110) uniform sampler2DShadow shadow_map[3];
-#endif
+//#endif
 
 layout(location=113) uniform float shadow_bias;
-layout(location=114) uniform int kernel_half_size;
 #endif
 
 //layout(location=200) uniform samplerCube irradiance_map;
@@ -394,7 +393,7 @@ void main()
 #endif
 
 
-#if ENABLE_SOFT
+// #if ENABLE_VARIANCE
 
             vec2 moments = texture(shadow_map[i], shadow_coord[i].xy).rg;
 
@@ -409,7 +408,9 @@ void main()
             }
 
 
-#else 
+            /*
+//#else 
+//#if ENABLE_PCF
 
             // Compute PCF
 
@@ -419,11 +420,10 @@ void main()
             float yOffset = 1.0/map_size[i].y;
 
             float shadow_factor = 0.0;
-            int total_samples = (kernel_half_size*2+1)*(kernel_half_size*2+1);
 
-            for (int y = -kernel_half_size ; y <= kernel_half_size ; y++) 
+            for (int y = -1 ; y <= 1 ; y++) 
             {
-                for (int x = -kernel_half_size ; x <= kernel_half_size ; x++) 
+                for (int x = -1 ; x <= 1 ; x++) 
                 {
                     vec2 Offsets = vec2(x * xOffset, y * yOffset);
                     coord.xy = shadow_coord[i].xy + Offsets;
@@ -431,12 +431,23 @@ void main()
                 }
             }
 
-            shadow_factor /= float(total_samples);
+            shadow_factor /= 9.0;
 
             color.rgb = mix(vec3(0.0), color.rgb, 0.5+shadow_factor*0.5);
-#endif
 
 
+//#else
+
+            float depth_value = texture(shadow_map[i], shadow_coord[i].xy).r;
+
+            if(shadow_coord[i].z > depth_value+shadow_bias)
+            {
+                color.rgb *= 0.5;
+            }
+
+//#endif
+//#endif
+*/
             break;
         }
     }

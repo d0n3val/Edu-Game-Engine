@@ -38,6 +38,8 @@ public:
 
 	float4x4 GetViewMatrix() const;
 	float4x4 GetProjectionMatrix() const;
+    float3   GetFront() const { return frustum.front; }
+	float3   GetPos() const { return frustum.pos; }
 
 public:
 	Frustum frustum;

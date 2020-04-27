@@ -26,6 +26,9 @@ uniform int morph_tangents_stride;
 uniform float morph_weights[MAX_MORPH_TARGETS];
 uniform int num_morph_targets;
 
+uniform mat4 light_proj[CASCADE_COUNT];
+uniform mat4 light_view[CASCADE_COUNT];
+
 struct VertexOut
 {
     vec2 uv0;
@@ -35,6 +38,8 @@ struct VertexOut
 };
 
 out VertexOut fragment;
+
+out vec4 shadow_coord[3];
 
 vec3 morph_targets_position(vec3 position)
 {
@@ -94,4 +99,11 @@ void main()
     transform_output();
 
     gl_Position = proj*view*vec4(fragment.position, 1.0);
+
+    for(uint i=0; i<3; ++i)
+    {
+        shadow_coord[i] = light_proj[i]*light_view[i]*vec4(fragment.position, 1.0);
+        shadow_coord[i] /= shadow_coord[i].w;
+        shadow_coord[i].xy = shadow_coord[i].xy*0.5+0.5;
+    }
 }

@@ -346,8 +346,13 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
 
             App->programs->UseProgram("shadow", 0);
 
+            //float4x4 camera_proj   = camera->GetProjectionMatrix();	
+            //float4x4 camera_view   = camera->GetViewMatrix();
+
             glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].proj));
             glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].view));
+            //glUniformMatrix4fv(App->programs->GetUniformLocation("camera_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&camera_proj));
+            //glUniformMatrix4fv(App->programs->GetUniformLocation("camera_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&camera_view));
 
             if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
             {
@@ -418,6 +423,11 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
+        float2 shadow_res[3] = { App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_RES),
+                          App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_1_RES),
+                          App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_2_RES) };
+
+
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[0]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].proj));
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[1]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[1].proj));
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[2]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[2].proj));
@@ -425,8 +435,13 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[1]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[1].view));
         glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[2]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[2].view));
 
+        glUniform2fv(App->programs->GetUniformLocation("map_size[0]"), 1, &shadow_res[0].x);
+        glUniform2fv(App->programs->GetUniformLocation("map_size[1]"), 1, &shadow_res[1].x);
+        glUniform2fv(App->programs->GetUniformLocation("map_size[2]"), 1, &shadow_res[2].x);
+
         glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
-        if(App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
+        glUniform1i(App->programs->GetUniformLocation("kernel_half_size"), App->hints->GetIntValue(ModuleHints::SHADOW_PCF_SIZE));
+        if(App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT) )
         {
             glActiveTexture(GL_TEXTURE8);
             glBindTexture(GL_TEXTURE_2D, cascades[0].blur_tex_1);
@@ -1097,13 +1112,60 @@ void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint i
         frustum.orthographicWidth  = (cascades[index].aabb.maxPoint.x - cascades[index].aabb.minPoint.x);
         frustum.orthographicHeight = (cascades[index].aabb.maxPoint.y - cascades[index].aabb.minPoint.y);
 
+        //float4x4 persp_mtx = ComputePerspShadowMtx(camera->GetPos(), camera->GetFront(), front, frustum.ViewMatrix().RotatePart());
 
+        /*
         cascades[index].proj = SetOrtho(-frustum.orthographicWidth/2, frustum.orthographicWidth/2,
-                -frustum.orthographicHeight/2, frustum.orthographicHeight/2, 
-                frustum.nearPlaneDistance, frustum.farPlaneDistance);
-		cascades[index].proj = frustum.ProjectionMatrix();
-		cascades[index].view = frustum.ViewMatrix();
+                                        -frustum.orthographicHeight/2, frustum.orthographicHeight/2, 
+                                        frustum.nearPlaneDistance, frustum.farPlaneDistance);*/
+
+        cascades[index].proj = frustum.ProjectionMatrix();
+        cascades[index].view = frustum.ViewMatrix();
     }
+}
+
+float4x4 ModuleRenderer::ComputePerspShadowMtx(const float3& view_pos, const float3& view_dir, const float3& light_dir, const float3x3& light_view)
+{
+    // Apply gl frustum
+    
+    float3 left_dir = light_dir.Cross(view_dir);
+    float3 up_dir = left_dir.Cross(light_dir).Normalized();
+    
+    float4x4 view_transform = float4x4::LookAt(-float3::unitZ, light_dir, float3::unitY, up_dir);
+    float4x4 warp = float4x4::identity;
+    float _far = 20.0f;
+    float _near = 2.0f;
+
+    warp.At(1, 1) = (_far + _near) / (_far - _near);
+    warp.At(1, 3) = -2.0f * _far * _near / (_far - _near);
+    warp.At(3, 1) = 1.0f;
+    warp.At(3, 3) = 0.0f;
+
+    float3 f = view_pos; // -(2.0f * up_dir);
+
+    view_transform.SetTranslatePart(float3(f.Dot(view_transform.Row3(0)), f.Dot(view_transform.Row3(1)), -f.Dot(view_transform.Row3(2))));
+
+    return warp*view_transform;
+
+    //return SetFrustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 20.0f)*float4x4::LookAt(-float3::unitZ, light_dir, float3::unitY, up_dir);
+    //persp_mtx = float4x4::LookAt(-float3::unitZ, view_dir, float3::unitY, light_dir);
+    
+    //persp_mtx.SetTranslatePart(-view_dir*8.0f);
+}
+
+float4x4 ModuleRenderer::SetFrustum(float left, float right, float bottom, float top, float _near, float _far)
+{
+    float rl = right-left;
+    float tb = top-bottom;
+    float fn = _far-_near;
+
+    float4x4 frustum;
+    frustum.SetCol(0, 2.0f*_near/rl,             0.0f,                 0.0f,  0.0f);
+    frustum.SetCol(1, 0.0f,              2.0f*_near/tb,                0.0f,  0.0f);
+    frustum.SetCol(2, (right+left)/rl, (top+bottom)/tb,    -(_far+_near)/fn, -1.0f);
+    frustum.SetCol(3, 0.0f,                       0.0f, -2.0f*_far*_near/fn, 0.0f);
+
+    return frustum;
 }
 
 float4x4 ModuleRenderer::SetOrtho(float left, float right, float bottom, float top, float _near, float _far)
@@ -1117,10 +1179,10 @@ float4x4 ModuleRenderer::SetOrtho(float left, float right, float bottom, float t
 	float tz = - (_far + _near)/(_far - _near);
 
     float4x4 projection;
-    projection.SetCol(0, math::float4(a, 0.0f, 0.0f, 0.0f));
-    projection.SetCol(1, math::float4(0.0f , b, 0.0f, 0.0f));
-    projection.SetCol(2, math::float4(0.0f , 0.0f, c, 0.0f));
-    projection.SetCol(3, math::float4(tx, ty, tz, 1.0f));
+    projection.SetRow(0, math::float4(a, 0.0f, 0.0f, 0.0f));
+    projection.SetRow(1, math::float4(0.0f , b, 0.0f, 0.0f));
+    projection.SetRow(2, math::float4(0.0f , 0.0f, c, 0.0f));
+    projection.SetRow(3, math::float4(tx, ty, tz, 1.0f));
 
     return projection;
 }
@@ -1173,7 +1235,7 @@ void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, AABB& aabb
 
                 bbox.TransformAsAABB(transform);
 
-                bbox.Scale(bbox.CenterPoint(), 1.25f);
+                bbox.Scale(bbox.CenterPoint(), 1.5f);
 
                 if(camera_aabb.Intersects(bbox))
                 {
@@ -1211,11 +1273,13 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, map.tex, 0);
 
             glDrawBuffer(GL_NONE);

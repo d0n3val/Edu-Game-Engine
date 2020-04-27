@@ -155,6 +155,8 @@ private:
     void                GenerateShadowFBO           (ShadowMap& map, unsigned width, unsigned height);
     void                GenerateBloomFBO            (unsigned width, unsigned height);
     float4x4            SetOrtho                    (float left, float right, float bottom, float top, float _near, float _far);
+    float4x4            SetFrustum                  (float left, float right, float bottom, float top, float _near, float _far);
+    float4x4            ComputePerspShadowMtx       (const float3& view_pos, const float3& view_dir, const float3& light_dir, const float3x3& light_view);
 };
 
 
