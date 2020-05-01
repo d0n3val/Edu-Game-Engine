@@ -1096,7 +1096,7 @@ void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint i
         cascades[index].frustum.farPlaneDistance = depth[1];
 
         CalcLightCameraBBox(light_rotation, camera, depth[0], depth[1], cascades[index].aabb);
-        CalcLightObjectsBBox(light_rotation, cascades[index].aabb, cascades[index].casters);
+        CalcLightObjectsBBox(light_rotation, front, cascades[index].aabb, cascades[index].casters);
 
         cascades[index].world_bb = cascades[index].aabb.Transform(light_rotation);
         float3 center = cascades[index].aabb.CenterPoint();
@@ -1213,17 +1213,10 @@ void ModuleRenderer::CalcLightCameraBBox(const Quat& light_rotation, const Compo
     aabb.Enclose(light_points, 8);
 }
 
-void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, AABB& aabb, NodeList& casters)
+void ModuleRenderer::CalcLightObjectsBBox(const float4x4& light_mat, const AABB& camera_aabb, AABB& aabb, NodeList& casters, const NodeList& objects)
 {
-    float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
-    AABB camera_aabb = aabb;
-	camera_aabb.maxPoint.z = FLOAT_INF;
-    aabb.SetNegativeInfinity();
-
-    for(NodeList::iterator it = opaque_nodes.begin(), end = opaque_nodes.end(); it != end; ++it)
+    for(const TRenderInfo& render_info : objects)
     {
-        const TRenderInfo& render_info = *it;
-
         if(render_info.mesh->CastShadows())
         {
 			render_info.go->RecalculateBoundingBox();
@@ -1245,6 +1238,31 @@ void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, AABB& aabb
             }
         }
     }
+}
+
+void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, const float3& light_dir, AABB& aabb, NodeList& casters)
+{
+    float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
+    AABB camera_aabb = aabb;
+    AABB big_camera_aabb = aabb;
+	//camera_aabb.maxPoint.z = FLOAT_INF;
+    aabb.SetNegativeInfinity();
+
+
+    // Make camera frustum bigger in light direction
+
+    static const float expand_amount = 10.0f;
+
+    for (uint i = 0; i < 3; ++i)
+    {
+        if (light_dir[i] > 0.0f)
+            big_camera_aabb.minPoint[i] -= expand_amount;
+        else if (light_dir[i] < 0.0f)
+            big_camera_aabb.maxPoint[i] += expand_amount;
+    }
+
+    CalcLightObjectsBBox(light_mat, big_camera_aabb, aabb, casters, opaque_nodes);
+    CalcLightObjectsBBox(light_mat, big_camera_aabb, aabb, casters, transparent_nodes);
 
 	aabb = aabb.Intersection(camera_aabb);
 

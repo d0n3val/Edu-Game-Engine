@@ -1,5 +1,5 @@
-layout(location=0) uniform sampler2D diffuse;
 layout(location=1) uniform float     alpha_test;
+layout(location=2) uniform sampler2D diffuse;
 
 in vec2 uv0;
 

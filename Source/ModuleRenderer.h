@@ -140,7 +140,8 @@ private:
     void                BlurShadow                  (uint index);
     void                ComputeDirLightShadowVolume (ComponentCamera* camera, uint index);
     void                CalcLightCameraBBox         (const Quat& light_rotation, const ComponentCamera* camera, float near_distance, float far_distance, AABB& aabb);
-    void                CalcLightObjectsBBox        (const Quat& light_rotation, AABB& aabb, NodeList& casters);
+    void                CalcLightObjectsBBox        (const Quat& light_rotation, const float3& light_dir, AABB& aabb, NodeList& casters);
+    void                CalcLightObjectsBBox        (const float4x4& light_mat, const AABB& camera_aabb, AABB& aabb, NodeList& casters, const NodeList& objects);
     void                DrawClippingSpace           (const math::float4x4& proj, const math::float4x4& view) const;
     void                GetClippingPoints           (const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const;
 

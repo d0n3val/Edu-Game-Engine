@@ -116,7 +116,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
 
         App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
-        //DrawSelection(camera, framebuffer);
+        DrawSelection(camera, framebuffer);
 
         App->renderer->Postprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
 

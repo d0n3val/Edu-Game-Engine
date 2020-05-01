@@ -573,7 +573,7 @@ GameObject* ModuleLevelManager::AddModel(UID id)
                     ok = mesh->SetMaterialRes(node.renderers[j].material);
                 }
 
-                mesh->SetRootUID(gos[0]->GetUID());
+                mesh->SetRootUID(parent == nullptr ? gos[0]->GetUID() : parent->GetUID());
                 go->components.push_back(mesh);
             }
         }

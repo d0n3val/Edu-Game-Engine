@@ -204,6 +204,7 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
 				bone_node = node_cache[i] = root ? root->FindChild(bone.name.C_str(), true) : nullptr;
             }
 
+            
 			if(bone_node)
 			{
                 skin_palette[i] = bone_node->GetGlobalTransformation()*bone.bind;
@@ -253,16 +254,18 @@ void ComponentMeshRenderer::DrawShadowPass() const
 
         mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
 
-        glUniform1i(0, 0);
-        glUniform1f(1, material->GetAlphaTest());
-
-        const ResourceTexture* diffuse  = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
-        unsigned diffuse_id             = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
+        const ResourceTexture* diffuse = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
+        unsigned diffuse_id = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuse_id);
 
+        glUniform1i(2, 0);
+        glUniform1f(1, material->GetAlphaTest());
+
         mesh->Draw();
+
+        glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
