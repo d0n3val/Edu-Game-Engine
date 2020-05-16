@@ -62,6 +62,7 @@ private:
     void DrawSpotLight(SpotLight* light);
 	// TODO move editor code as a component method like component rigidbody
     void DrawParticleSystemComponent(ComponentParticleSystem* component);
+	void DrawBatchProperties(ComponentMeshRenderer* component);
 	void DrawMeshRendererComponent(ComponentMeshRenderer* component);
     void DrawGrassComponent(ComponentGrass* component);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);

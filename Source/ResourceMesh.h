@@ -15,6 +15,16 @@ struct par_shapes_mesh_s;
 
 namespace Thekla { struct Atlas_Output_Mesh; }
 
+enum VertexAttribs
+{
+    ATTRIB_TEX_COORDS_0 = 0, //1 << 0,
+    ATTRIB_NORMALS      = 1, //1 << 1,
+    ATTRIB_TANGENTS     = 2, //1 << 2,
+    ATTRIB_BONES        = 3, //1 << 3,
+    ATTRIB_TEX_COORDS_1 = 4, //1 << 4,
+    ATTRIB_COUNT
+};
+
 class ResourceMesh : public Resource
 {
 	friend class ModuleMeshes;
@@ -29,65 +39,57 @@ public:
         uint                      num_indices;
     };
 
-	enum VertexAttribs
-	{
-		ATTRIB_TEX_COORDS_0 = 0, //1 << 0,
-		ATTRIB_NORMALS      = 1, //1 << 1,
-        ATTRIB_TANGENTS     = 2, //1 << 2,
-		ATTRIB_BONES        = 3, //1 << 3,
-		ATTRIB_TEX_COORDS_1 = 4, //1 << 4,
-        ATTRIB_COUNT
-	};
-
 public:
 
 	ResourceMesh(UID id);
 	virtual ~ResourceMesh();
 
 
-	void                Save                (Config& config) const override;
-	void                Load                (const Config& config) override;
+	void                  Save                (Config& config) const override;
+	void                  Load                (const Config& config) override;
 
-    void                UpdateUniforms      (const float4x4* skin_palette, const float* morph_weights) const;
-    void                Draw                () const;
+    void                  UpdateUniforms      (const float4x4* skin_palette, const float* morph_weights) const;
+    void                  Draw                () const;
 
-	bool                LoadInMemory        () override;
-    void                ReleaseFromMemory   () override;
-    bool                Save                ();
-    bool                Save                (std::string& output) const;
-    static UID          Import              (const aiMesh* mesh, const char* source_file);
+	bool                  LoadInMemory        () override;
+    void                  ReleaseFromMemory   () override;
+    bool                  Save                ();
+    bool                  Save                (std::string& output) const;
+    static UID            Import              (const aiMesh* mesh, const char* source_file);
 
-    static UID          LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks);
-    static UID          LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
-    static UID          LoadCube            (const char* cube_name, float size);
-    static UID          LoadCylinder        (const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks);
-    static UID          LoadPlane           (const char* plane_name, float width, float height, unsigned slices, unsigned stacks); 
+    static UID            LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks);
+    static UID            LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
+    static UID            LoadCube            (const char* cube_name, float size);
+    static UID            LoadCylinder        (const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks);
+    static UID            LoadPlane           (const char* plane_name, float width, float height, unsigned slices, unsigned stacks); 
 
-    void                GenerateTexCoord1   ();
+    void                  GenerateTexCoord1   ();
 
 
-    uint                GetNumVertices      () const { return num_vertices; }
+    uint                  GetNumVertices      () const { return num_vertices; }
+    uint                  GetNumIndices       () const { return num_indices; }
 
     // morph targets
-    uint                GetNumMorphTargets  () const { return num_morph_targets; }
-    const MorphData&    GetMorphTarget      (uint index) const { return morph_targets[index]; }
+    uint                  GetNumMorphTargets  () const { return num_morph_targets; }
+    const MorphData&      GetMorphTarget      (uint index) const { return morph_targets[index]; }
 
     // attribs
 
-    bool                HasAttrib           (VertexAttribs attrib) const { return (attrib_flags & (1 << uint(attrib))) != 0 ? true : false; }
-    uint                GetOffset           (VertexAttribs attrib) const { return offsets[attrib]; }
+    bool                  HasAttrib           (VertexAttribs attrib) const { return (attrib_flags & (1 << uint(attrib))) != 0 ? true : false; }
+    uint                  GetOffset           (VertexAttribs attrib) const { return offsets[attrib]; }
+    uint                  GetAttribs          () const { return attrib_flags; }
 
-    uint                GetVBO              () const {return vbo; }
-    uint                GetVAO              () const {return vao; }
-    uint                GetIBO              () const {return ibo; }
+    uint                  GetVBO              () const {return vbo; }
+    uint                  GetVAO              () const {return vao; }
+    uint                  GetIBO              () const {return ibo; }
 
-    const float3*       GetVertices         () const {return src_vertices.get(); }
-    const float2*       GetTexCoord0        () const {return src_texcoord0.get(); }
-    const float2*       GetTexCoord1        () const {return src_texcoord1.get(); }
-    const float3*       GetNormals          () const {return src_normals.get(); }
-    const float3*       GetTangents         () const {return src_tangents.get(); }
+    const float3*         GetVertices         () const {return src_vertices.get(); }
+    const float2*         GetTexCoord0        () const {return src_texcoord0.get(); }
+    const float2*         GetTexCoord1        () const {return src_texcoord1.get(); }
+    const float3*         GetNormals          () const {return src_normals.get(); }
+    const float3*         GetTangents         () const {return src_tangents.get(); }
 
-    const HashString&   GetName             () const { return name; }
+    const HashString&     GetName             () const { return name; }
 
     static Resource::Type GetClassType      () {return Resource::mesh;}
 

@@ -33,11 +33,14 @@ HashString::HashString() : handle(0)
 
 HashString::HashString(const char* str)
 {
-    strpool_t* pool = GetPool();
+    if (str != nullptr)
+    {
+        strpool_t* pool = GetPool();
 
-    handle = strpool_inject(pool, str, (int)strlen(str));
-    strpool_incref(pool, handle);
-    value = strpool_cstr(GetPool(), handle);
+        handle = strpool_inject(pool, str, (int)strlen(str));
+        strpool_incref(pool, handle);
+        value = strpool_cstr(GetPool(), handle);
+    }
 }
 
 HashString::HashString(const char* str, unsigned len)

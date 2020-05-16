@@ -8,19 +8,19 @@
 struct aiMaterial;
 class ResourceTexture;
 
+enum MaterialTexture
+{
+    TextureDiffuse = 0,
+    TextureSpecular,
+    TextureNormal,
+    TextureOcclusion,
+    TextureEmissive,
+    TextureCount
+};
+
+
 class ResourceMaterial : public Resource
 {
-public:
-    enum Texture
-    {
-        TextureDiffuse = 0,
-        TextureSpecular,
-        TextureNormal,
-        TextureOcclusion,
-        TextureEmissive,
-        TextureCount
-    };
-
 private:
 
     float4      diffuse_color          = float4::one;
@@ -58,10 +58,10 @@ public:
     const float3&           GetEmissiveColor    () const { return emissive_color;}
     void                    SetEmissiveColor    (const float3& value) { emissive_color = value; }
 
-    UID                     GetTexture          (Texture texture) const { return textures[texture]; }
-    const ResourceTexture*  GetTextureRes       (Texture texture) const;
-    ResourceTexture*        GetTextureRes       (Texture texture) ;
-    void                    SetTexture          (Texture texture, UID uid);
+    UID                     GetTexture          (MaterialTexture texture) const { return textures[texture]; }
+    const ResourceTexture*  GetTextureRes       (MaterialTexture texture) const;
+    ResourceTexture*        GetTextureRes       (MaterialTexture texture) ;
+    void                    SetTexture          (MaterialTexture texture, UID uid);
 
     float                   GetShininess        () const { return shininess; }
     void                    SetShininess        (float s) { shininess = s; }

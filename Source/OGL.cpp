@@ -2,6 +2,25 @@
 #include "OGL.h"
 #include "OpenGL.h"
 
+void DefaultInitializeTexture(uint tex_target, bool mipmaps)
+{
+    if(mipmaps)
+    {
+        glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 1000);
+        glGenerateMipmap(tex_target);
+    }
+    else
+    {
+        glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
+    }
+}
+
 Texture2D::Texture2D(uint target, uint samples, uint width, uint height, uint internal_format, bool fixed_samples) : tex_target(target)
 {
 	glGenTextures(1, &texture);
@@ -9,7 +28,7 @@ Texture2D::Texture2D(uint target, uint samples, uint width, uint height, uint in
 
     glTexImage2DMultisample(tex_target, samples, internal_format, width, height, fixed_samples ? GL_TRUE : GL_FALSE);
 
-    DefaultInitialize(false);
+    DefaultInitializeTexture(tex_target, false);
 
     glBindTexture(tex_target, 0);
 }
@@ -20,7 +39,7 @@ Texture2D::Texture2D(uint target, uint width, uint height, uint internal_format,
     glBindTexture(tex_target, texture);
 
     glTexImage2D(tex_target, 0, internal_format, width, height, 0, format, type, data);
-    DefaultInitialize(mipmaps);
+    DefaultInitializeTexture(tex_target, mipmaps);
 
     glBindTexture(tex_target, 0);
 }
@@ -40,25 +59,6 @@ void Texture2D::Unbind(uint unit)
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, 0);
-}
-
-void Texture2D::DefaultInitialize(bool mipmaps)
-{
-    if(mipmaps)
-    {
-        glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 1000);
-        glGenerateMipmap(tex_target);
-    }
-    else
-    {
-        glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
-    }
 }
 
 void Texture2D::SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data)
@@ -102,6 +102,63 @@ void Texture2D::GenerateMipmaps(uint base, uint max)
 Texture2D* Texture2D::CreateDefaultRGBA(uint width, uint height, void* data, bool mipmaps)
 {
     return new Texture2D(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
+}
+
+Texture2DArray::Texture2DArray(uint mip_levels, uint _width, uint _height, uint _depth, uint internal_format)
+{
+    width  = _width;
+    height = _height;
+    depth  = _depth;
+
+	glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, mip_levels, internal_format, width, height, depth);
+
+    DefaultInitializeTexture(GL_TEXTURE_2D_ARRAY, mip_levels > 1);
+
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+}
+
+Texture2DArray::~Texture2DArray()
+{
+    glDeleteTextures(1, &texture);
+}
+
+void Texture2DArray::Bind(uint unit /*= 0*/)
+{
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+}
+
+void Texture2DArray::Unbind(uint unit /*= 0*/)
+{
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+}
+
+void Texture2DArray::SetSubData(uint mip_level, uint depth_index, uint format, uint type, void* data)
+{
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, mip_level, 0, 0, depth_index, width, height, depth, format, type, data);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+}
+
+void Texture2DArray::SetDefaultRGBASubData(uint mip_level, uint depth_index, void* data)
+{
+    SetSubData(mip_level, depth_index, GL_RGBA, GL_UNSIGNED_BYTE, data);
+}
+
+void Texture2DArray::GenerateMipmaps(uint base /*= 0*/, uint max /*= 1000*/)
+{
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BASE_LEVEL, base);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, max);
+	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+}
+
+Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth)
+{
+    return new Texture2DArray(mip_levels, width, height, depth, GL_RGBA);
 }
 
 Framebuffer::Framebuffer()

@@ -27,6 +27,7 @@
 #include "ModuleHints.h"
 #include "ModulePrograms.h"
 #include "ModuleInput.h"
+#include "ModuleRenderer.h"
 #include "DebugDraw.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
@@ -39,6 +40,7 @@
 #include "PerlinProperties.h"
 #include "Viewport.h"
 #include "SceneViewport.h"
+#include "BatchManager.h"
 
 #include "DirLight.h"
 #include "AmbientLight.h"
@@ -541,6 +543,96 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 	return ret;
 }
 
+void PanelProperties::DrawBatchProperties(ComponentMeshRenderer* component)
+{
+    BatchManager* batch_manager = App->renderer->GetBatchMananger();
+
+    std::vector<HashString> tag_names;
+
+    batch_manager->FillBatchNames(tag_names);
+    const HashString& batch_name = component->GetBatchName();
+
+    std::vector<HashString>::iterator it = std::find(tag_names.begin(), tag_names.end(), batch_name);
+
+    int selected_index = it == tag_names.end() ? tag_names.size() : it - tag_names.begin();
+
+    tag_names.push_back(HashString("empty"));
+
+    bool (*items_getter)(void* data, int idx, const char** out_text) = [](void* data, int idx, const char** out_text) -> bool 
+    { 
+        std::vector<HashString>& v = (*reinterpret_cast<std::vector<HashString>*>(data));
+        if(idx < int(v.size()))
+        {
+            *out_text = v[idx].C_str();
+            return true;
+        }
+
+        return false;
+    };
+
+    if (ImGui::Combo("Batch", &selected_index, items_getter, &tag_names, int(tag_names.size())))
+    {
+        if (selected_index + 1 == tag_names.size())
+        {
+            component->SetBatchName(HashString());
+        }
+        else
+        {
+            component->SetBatchName(tag_names[selected_index]);
+        }
+    }
+
+    if(ImGui::Button("New batch"))
+    {
+        ImGui::OpenPopup("Batch name");
+    }
+
+    if (ImGui::BeginPopupModal("Batch name", nullptr, ImGuiWindowFlags_NoResize))
+    {
+        static char tmp[256];
+        static bool init = true;
+
+        if(ImGui::BeginChild("Canvas", ImVec2(250, 90), true, ImGuiWindowFlags_NoMove))
+        {
+            if(init)
+            {
+                const char* name = component->GetBatchName().C_str();
+                if (name == nullptr)
+                {
+                    tmp[0] = 0;
+                }
+                else
+                {
+                    strcpy_s(&tmp[0], 255, name);
+                }
+
+                init = false;
+            }
+
+            ImGui::InputText("Batch name", tmp, 256);
+        }
+        ImGui::EndChild();
+
+        ImGui::Indent(122);
+        if(ImGui::Button("Ok", ImVec2(60, 0)))
+        {
+            component->SetBatchName(HashString(&tmp[0]));
+            init = true;
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+        if(ImGui::Button("Cancel", ImVec2(60, 0)))
+        {
+            init = true;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component)
 {
     // Mesh
@@ -548,6 +640,8 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
 	const ResourceMesh* res = component->GetMeshRes();
 
     DrawMesh(res);
+
+    DrawBatchProperties(component);
 
     bool visible = component->GetVisible();
     if (ImGui::Checkbox("Visible", &visible))
@@ -741,12 +835,12 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
     if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, mesh, ResourceMaterial::TextureOcclusion, "Occlusion");
+        modified = TextureButton(material, mesh, TextureOcclusion, "Occlusion");
     }
 
     if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, mesh, ResourceMaterial::TextureDiffuse, "Diffuse") || modified;
+        modified = TextureButton(material, mesh, TextureDiffuse, "Diffuse") || modified;
         float4 color = material->GetDiffuseColor();
         ImGui::PushID("diffuse");
         if(ImGui::ColorEdit4("color", (float*)&color))
@@ -759,7 +853,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
     if(ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, mesh, ResourceMaterial::TextureSpecular, "Specular") || modified;
+        modified = TextureButton(material, mesh, TextureSpecular, "Specular") || modified;
         float3 color = material->GetSpecularColor();
         ImGui::PushID("specular");
         if(ImGui::ColorEdit3("color", (float*)&color))
@@ -779,7 +873,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
     if(ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, mesh, ResourceMaterial::TextureNormal, "Normal") || modified;
+        modified = TextureButton(material, mesh, TextureNormal, "Normal") || modified;
 
         float strength = Clamp(material->GetNormalStrength(), 0.0f, 100.0f);
         if(ImGui::SliderFloat("Strength", &strength, 0.0f, 10.0f))
@@ -791,7 +885,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
     if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, mesh, ResourceMaterial::TextureEmissive, "Emissive") || modified;
+        modified = TextureButton(material, mesh, TextureEmissive, "Emissive") || modified;
         float3 color = material->GetEmissiveColor();
         float intensity = max(color.Length(), 1.0f);
         color = color/intensity;
@@ -830,8 +924,8 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
     /* Code for Transform textures from metallic to specular workflow */
     if(ImGui::Button("Transform"))
     {
-        const ResourceTexture* base = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
-        const ResourceTexture* metallic = material->GetTextureRes(ResourceMaterial::TextureSpecular);
+        const ResourceTexture* base = material->GetTextureRes(TextureDiffuse);
+        const ResourceTexture* metallic = material->GetTextureRes(TextureSpecular);
 
         if(!convert_fb)
         {
@@ -893,7 +987,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name)
 {
     bool modified = false;
-    ResourceTexture* info = material->GetTextureRes(ResourceMaterial::Texture(texture));
+    ResourceTexture* info = material->GetTextureRes(MaterialTexture(texture));
 
     ImVec2 size(64.0f, 64.0f);
 
@@ -952,7 +1046,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         ImGui::PushID(name);
         if(ImGui::SmallButton("Delete"))
         {
-            material->SetTexture(ResourceMaterial::Texture(texture), 0);
+            material->SetTexture(MaterialTexture(texture), 0);
             modified = true;
         }
         ImGui::PopID();
@@ -990,7 +1084,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
 
     if(new_res != 0)
     {
-        material->SetTexture(ResourceMaterial::Texture(texture), new_res);
+        material->SetTexture(MaterialTexture(texture), new_res);
         modified = true;
     }
 
@@ -1152,23 +1246,23 @@ void PanelProperties::DrawMesh(const ResourceMesh* res)
 
         char attributes[256];
         strcpy_s(attributes, "\nAttributes: \n\n\tPositions");
-        if (res->HasAttrib(ResourceMesh::ATTRIB_TEX_COORDS_0))
+        if (res->HasAttrib(ATTRIB_TEX_COORDS_0))
         {
             strcat_s(attributes, "\n\tTexCoords0");
         }
-        if (res->HasAttrib(ResourceMesh::ATTRIB_TEX_COORDS_1))
+        if (res->HasAttrib(ATTRIB_TEX_COORDS_1))
         {
             strcat_s(attributes, "\n\tTexCoords1");
         }
-        if (res->HasAttrib(ResourceMesh::ATTRIB_NORMALS))
+        if (res->HasAttrib(ATTRIB_NORMALS))
         {
             strcat_s(attributes, "\n\tNormals");
         }
-        if (res->HasAttrib(ResourceMesh::ATTRIB_TANGENTS))
+        if (res->HasAttrib(ATTRIB_TANGENTS))
         {
             strcat_s(attributes, "\n\tTangents");
         }
-        if (res->HasAttrib(ResourceMesh::ATTRIB_BONES))
+        if (res->HasAttrib(ATTRIB_BONES))
         {
             strcat_s(attributes, "\n\tBones");
         }

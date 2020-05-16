@@ -17,6 +17,7 @@
 #include "ComponentAnimation.h"
 #include "ComponentParticleSystem.h"
 #include "ComponentTrail.h"
+#include "BatchManager.h"
 
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
@@ -44,6 +45,7 @@
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
+    batch_manager = std::make_unique<BatchManager>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -485,12 +487,13 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
     App->programs->UnuseProgram();
 
-
+    batch_manager->BeginRender();
     DrawNodes(opaque_nodes, &ModuleRenderer::DrawColor);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     DrawNodes(transparent_nodes, &ModuleRenderer::DrawColor);
+    batch_manager->EndRender();
 
     //DrawSkybox(proj, view);
 
@@ -506,8 +509,12 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
 
 
+    batch_manager->BeginRender();
+
     DrawNodes(opaque_nodes, &ModuleRenderer::DrawSelection);
     DrawNodes(transparent_nodes, &ModuleRenderer::DrawSelection);
+
+    batch_manager->EndRender();
 }
 
 void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
@@ -664,7 +671,7 @@ void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
     if(render_info.mesh)
     {
         // update selection uniform
-        render_info.mesh->Draw();
+        render_info.mesh->Draw(batch_manager.get());
     }
     else if(render_info.particles)
     {
@@ -700,7 +707,7 @@ void ModuleRenderer::DrawMeshColor(const ComponentMeshRenderer* mesh)
     App->programs->UseProgram("default",  flags);
 
     UpdateLightUniform();
-    mesh->Draw();
+    mesh->Draw(batch_manager.get());
 }
 
 void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)
@@ -1251,7 +1258,7 @@ void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, const floa
 
     // Make camera frustum bigger in light direction
 
-    static const float expand_amount = 10.0f;
+    static const float expand_amount = 30.0f;
 
     for (uint i = 0; i < 3; ++i)
     {

@@ -20,9 +20,10 @@ public:
     void Bind(uint unit = 0);
     void Unbind(uint unit = 0);
 
-
     void SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data);
     void SetDefaultRGBAData(uint width, uint height, void* data);
+    // \todo: SetDefaultRGBData
+
     void SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r);
     void SetMinMaxFiler(uint min_filter, uint max_filter);
     void GenerateMipmaps(uint base = 0, uint max = 1000);
@@ -31,9 +32,37 @@ public:
     uint Target() const { return tex_target; }
 
     static Texture2D* CreateDefaultRGBA(uint width, uint height, void* data = nullptr, bool mipmaps = false);
+    // \todo: CreateDefaultRGB
 
-private:
-    void DefaultInitialize(bool mipmaps);
+};
+
+class Texture2DArray
+{
+    uint texture = 0;
+    uint width   = 0;
+    uint height  = 0;
+    uint depth   = 0;
+
+public:
+
+    Texture2DArray(const Texture2DArray& rhs) = delete;
+    Texture2DArray& operator=(const Texture2DArray& rhs) = delete;
+
+    Texture2DArray(uint mip_levels, uint width, uint height, uint depth, uint internal_format);
+    ~Texture2DArray();
+
+    void Bind(uint unit = 0);
+    void Unbind(uint unit = 0);
+
+    void SetSubData(uint mip_level, uint depth_index, uint format, uint type, void* data);
+    void SetDefaultRGBASubData(uint mip_level, uint depth_index, void* data);
+    // \todo: SetDefaultRGBSubData
+
+    void GenerateMipmaps(uint base = 0, uint max = 1000);
+
+    static Texture2DArray* CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth);
+    // \todo: CreateDefaultRGB
+
 };
 
 class Framebuffer

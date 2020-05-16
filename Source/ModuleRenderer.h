@@ -13,6 +13,7 @@ class ComponentParticleSystem;
 class ComponentTrail;
 class ResourceMaterial;
 class ResourceMesh;
+class BatchManager;
 
 class ModuleRenderer : public Module
 {
@@ -94,6 +95,8 @@ class ModuleRenderer : public Module
 
     ShadowMap cascades[CASCADE_COUNT];
 
+    std::unique_ptr<BatchManager> batch_manager;
+
 public:
 
     explicit ModuleRenderer();
@@ -109,6 +112,8 @@ public:
     unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
     unsigned            GetShadowMapWidth           (uint index) const { return cascades[index].width; }
     unsigned            GetShadowMapHeight          (uint index) const { return cascades[index].height; }
+
+    BatchManager*       GetBatchMananger            () const { return batch_manager.get(); }
 
 private:
 

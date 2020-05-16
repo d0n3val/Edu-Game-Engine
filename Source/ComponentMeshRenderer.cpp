@@ -3,6 +3,8 @@
 #include "ComponentMeshRenderer.h"
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
+#include "ModuleRenderer.h"
+#include "BatchManager.h"
 
 #include "OpenGL.h"
 #include "Application.h"
@@ -52,20 +54,26 @@ void ComponentMeshRenderer::OnSave(Config& config) const
 	config.AddBool("CastShadows", cast_shadows);
 	config.AddBool("RecvShadows", recv_shadows);
     config.AddUInt("RenderMode", render_mode);
+    config.AddString("BatchName", batch_name.C_str());
 }
 
 void ComponentMeshRenderer::OnLoad(Config* config) 
 {
-	SetMeshRes(config->GetUID("MeshResource", 0));
-    visible = config->GetBool("Visible", true);
-    root_uid = config->GetUID("Root", root_uid);
-
-	SetMaterialRes(config->GetUID("MaterialResource", 0));
+    visible            = config->GetBool("Visible", true);
+    root_uid           = config->GetUID("Root", root_uid);
 
     debug_draw_tangent = config->GetBool("DebugDrawTangent", false);
-    cast_shadows = config->GetBool("CastShadows", true);
-    recv_shadows = config->GetBool("RecvShadows", true);
-    render_mode  = config->GetUInt("RenderMode", RENDER_OPAQUE) == uint(RENDER_OPAQUE) ? RENDER_OPAQUE : RENDER_TRANSPARENT;
+    cast_shadows       = config->GetBool("CastShadows", true);
+    recv_shadows       = config->GetBool("RecvShadows", true);
+    render_mode        = config->GetUInt("RenderMode", RENDER_OPAQUE) == uint(RENDER_OPAQUE) ? RENDER_OPAQUE : RENDER_TRANSPARENT;
+
+	SetMaterialRes(config->GetUID("MaterialResource", 0));
+	SetMeshRes(config->GetUID("MeshResource", 0));
+
+    SetBatchName(HashString(config->GetString("BatchName")));
+
+    // \todo: LoadToMemory doesn´t load GPU data when batching
+
 }
 
 void ComponentMeshRenderer::GetBoundingBox (AABB& box) const 
@@ -75,6 +83,23 @@ void ComponentMeshRenderer::GetBoundingBox (AABB& box) const
     if(res != nullptr)
     {
         box.Enclose(res->bbox);
+    }
+}
+
+void ComponentMeshRenderer::SetBatchName(const HashString& name)
+{
+    if(batch_index != UINT_MAX && batch_object_index != UINT_MAX)
+    {
+        App->renderer->GetBatchMananger()->RemoveFromBatch(batch_index, batch_object_index);
+        batch_index        = UINT_MAX;
+        batch_object_index = UINT_MAX;
+    }
+
+    batch_name = name;
+
+    if(batch_name)
+    {
+        App->renderer->GetBatchMananger()->AddToBatch(this, batch_name, batch_index, batch_object_index);
     }
 }
 
@@ -219,11 +244,11 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
     return skin_palette;
 }
 
-void ComponentMeshRenderer::Draw() const
+void ComponentMeshRenderer::Draw(BatchManager* batch_manager) const
 {
     const GameObject* go             = GetGameObject();
-	const ResourceMesh* mesh         = GetMeshRes();
-	const ResourceMaterial* material = GetMaterialRes();
+    const ResourceMesh* mesh         = GetMeshRes();
+    const ResourceMaterial* material = GetMaterialRes();
 
     if(material != nullptr && mesh != nullptr)
     {
@@ -254,7 +279,7 @@ void ComponentMeshRenderer::DrawShadowPass() const
 
         mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
 
-        const ResourceTexture* diffuse = material->GetTextureRes(ResourceMaterial::TextureDiffuse);
+        const ResourceTexture* diffuse = material->GetTextureRes(TextureDiffuse);
         unsigned diffuse_id = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
 
         glActiveTexture(GL_TEXTURE0);
@@ -296,9 +321,9 @@ void ComponentMeshRenderer::UpdateCPUMorphTargets() const
 
         glUnmapBuffer(GL_ARRAY_BUFFER);
 
-        if(mesh->HasAttrib(ResourceMesh::ATTRIB_NORMALS))
+        if(mesh->HasAttrib(ATTRIB_NORMALS))
         {
-            float3* normals = reinterpret_cast<float3*>(glMapBufferRange(GL_ARRAY_BUFFER, mesh->GetOffset(ResourceMesh::ATTRIB_NORMALS), mesh->GetNumVertices() * sizeof(float3), GL_MAP_WRITE_BIT));
+            float3* normals = reinterpret_cast<float3*>(glMapBufferRange(GL_ARRAY_BUFFER, mesh->GetOffset(ATTRIB_NORMALS), mesh->GetNumVertices() * sizeof(float3), GL_MAP_WRITE_BIT));
             memcpy(normals, mesh->GetNormals(), sizeof(float3)*mesh->GetNumVertices());
 
             for(uint i=0; i< mesh->GetNumMorphTargets(); ++i)
@@ -318,9 +343,9 @@ void ComponentMeshRenderer::UpdateCPUMorphTargets() const
 
             glUnmapBuffer(GL_ARRAY_BUFFER);
 
-            if(mesh->HasAttrib(ResourceMesh::ATTRIB_TANGENTS))
+            if(mesh->HasAttrib(ATTRIB_TANGENTS))
             {
-                float3* tangents = reinterpret_cast<float3*>(glMapBufferRange(GL_ARRAY_BUFFER, mesh->GetOffset(ResourceMesh::ATTRIB_TANGENTS), mesh->GetNumVertices() * sizeof(float3), GL_MAP_WRITE_BIT)); 
+                float3* tangents = reinterpret_cast<float3*>(glMapBufferRange(GL_ARRAY_BUFFER, mesh->GetOffset(ATTRIB_TANGENTS), mesh->GetNumVertices() * sizeof(float3), GL_MAP_WRITE_BIT)); 
                 memcpy(tangents, mesh->GetTangents(), sizeof(float3)*mesh->GetNumVertices());
 
                 for(uint i=0; i< mesh->GetNumMorphTargets(); ++i)

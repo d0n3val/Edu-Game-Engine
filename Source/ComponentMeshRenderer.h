@@ -3,8 +3,11 @@
 
 #include "Component.h"
 
+#include "HashString.h"
+
 class ResourceMesh;
 class ResourceMaterial;
+class BatchManager;
 
 class ComponentMeshRenderer : public Component
 {
@@ -34,7 +37,7 @@ public:
 
     // mesh
 
-    void                    Draw                    () const;
+    void                    Draw                    (BatchManager* batch_manager) const;
     void                    DrawShadowPass          () const;
 
 	void                    GetBoundingBox          (AABB& box) const override;
@@ -64,6 +67,12 @@ public:
     float                   GetMorphTargetWeight    (uint index) const { return morph_weights[index]; }
     const float*            GetMorphTargetWeights   () const { return morph_weights.get(); }
 
+    const HashString&       GetBatchName            () const {return batch_name; }
+    void                    SetBatchName            (const HashString& name);
+
+    uint                    GetBatchIndex           () const {return batch_index;}
+    uint                    GetBatchObjectIndex     () const {return batch_object_index;}
+
 private:
 
     // mesh 
@@ -81,6 +90,10 @@ private:
     ERenderMode              render_mode        = RENDER_OPAQUE;
     std::unique_ptr<float[]> morph_weights;
     mutable bool             dirty_morphs       = false;
+
+    HashString               batch_name;
+    uint                     batch_index        = UINT_MAX;
+    uint                     batch_object_index = UINT_MAX;
 };
 
 #endif /* __COMPONENT_MESHRENDERER_H__ */

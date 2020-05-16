@@ -299,7 +299,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
     return 0;
 }
 
-void ResourceMaterial::SetTexture(Texture texture, UID uid)
+void ResourceMaterial::SetTexture(MaterialTexture texture, UID uid)
 {
     if(textures[texture] != 0)
     {
@@ -320,12 +320,12 @@ void ResourceMaterial::SetTexture(Texture texture, UID uid)
     }
 }
 
-const ResourceTexture* ResourceMaterial::GetTextureRes(Texture t) const
+const ResourceTexture* ResourceMaterial::GetTextureRes(MaterialTexture t) const
 {
     return static_cast<const ResourceTexture*>(App->resources->Get(textures[t]));
 }
 
-ResourceTexture* ResourceMaterial::GetTextureRes(Texture t) 
+ResourceTexture* ResourceMaterial::GetTextureRes(MaterialTexture t) 
 {
     return static_cast<ResourceTexture*>(App->resources->Get(textures[t]));
 }
@@ -334,8 +334,8 @@ void ResourceMaterial::UpdateUniforms() const
 {
     static const unsigned MATERIAL_LOCATION = 0;
 
-    const ResourceTexture* specular = GetTextureRes(ResourceMaterial::TextureSpecular);
-    const ResourceTexture* normal   = GetTextureRes(ResourceMaterial::TextureNormal);
+    const ResourceTexture* specular = GetTextureRes(TextureSpecular);
+    const ResourceTexture* normal   = GetTextureRes(TextureNormal);
 
     float4 diffuse_color  = GetDiffuseColor();
     float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : GetSpecularColor();
@@ -395,11 +395,11 @@ void ResourceMaterial::UpdateUniforms() const
 
 void ResourceMaterial::BindTextures() const
 {
-    const ResourceTexture* specular  = GetTextureRes(ResourceMaterial::TextureSpecular);
-    const ResourceTexture* diffuse   = GetTextureRes(ResourceMaterial::TextureDiffuse);
-    const ResourceTexture* occlusion = GetTextureRes(ResourceMaterial::TextureOcclusion);
-    const ResourceTexture* emissive  = GetTextureRes(ResourceMaterial::TextureEmissive);
-    const ResourceTexture* normal    = GetTextureRes(ResourceMaterial::TextureNormal);
+    const ResourceTexture* specular  = GetTextureRes(TextureSpecular);
+    const ResourceTexture* diffuse   = GetTextureRes(TextureDiffuse);
+    const ResourceTexture* occlusion = GetTextureRes(TextureOcclusion);
+    const ResourceTexture* emissive  = GetTextureRes(TextureEmissive);
+    const ResourceTexture* normal    = GetTextureRes(TextureNormal);
 
     unsigned diffuse_id   = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
 
