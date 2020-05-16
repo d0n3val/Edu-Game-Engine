@@ -37,7 +37,7 @@ public:
 
     // mesh
 
-    void                    Draw                    (BatchManager* batch_manager) const;
+    void                    Draw                    () const;
     void                    DrawShadowPass          () const;
 
 	void                    GetBoundingBox          (AABB& box) const override;

@@ -487,13 +487,21 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
     App->programs->UnuseProgram();
 
-    batch_manager->BeginRender();
+	App->programs->UseProgram("default_batch", flags);
+	glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+	glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+	App->programs->UnuseProgram();
+
+
+    // Render Batches
+    DrawBatches(opaque_nodes, flags);
     DrawNodes(opaque_nodes, &ModuleRenderer::DrawColor);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    DrawBatches(transparent_nodes, flags);
     DrawNodes(transparent_nodes, &ModuleRenderer::DrawColor);
-    batch_manager->EndRender();
 
     //DrawSkybox(proj, view);
 
@@ -508,13 +516,8 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
     glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
 
-
-    batch_manager->BeginRender();
-
     DrawNodes(opaque_nodes, &ModuleRenderer::DrawSelection);
     DrawNodes(transparent_nodes, &ModuleRenderer::DrawSelection);
-
-    batch_manager->EndRender();
 }
 
 void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
@@ -627,6 +630,28 @@ void ModuleRenderer::CollectTrails(const float3& camera_pos, GameObject* go)
     }
 }
 
+void ModuleRenderer::DrawBatches(NodeList& nodes, uint render_flags)
+{
+	for(auto it = nodes.begin(); it != nodes.end(); )
+	{
+        const TRenderInfo& render_info = *it;
+        if(render_info.mesh != nullptr && render_info.mesh->GetBatchIndex() != UINT_MAX && render_info.mesh->GetBatchObjectIndex() != UINT_MAX)
+        {
+            batch_manager->AddToRender(render_info.mesh->GetBatchIndex(), render_info.mesh->GetBatchObjectIndex());
+            it = nodes.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    App->programs->UseProgram("default_batch", render_flags); // enable batch
+    batch_manager->DoRender();
+    App->programs->UnuseProgram();
+
+}
+
 void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo&))
 {
 	for(NodeList::const_iterator it = nodes.begin(), end = nodes.end(); it != end; ++it)
@@ -671,7 +696,7 @@ void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
     if(render_info.mesh)
     {
         // update selection uniform
-        render_info.mesh->Draw(batch_manager.get());
+        render_info.mesh->Draw();
     }
     else if(render_info.particles)
     {
@@ -707,7 +732,7 @@ void ModuleRenderer::DrawMeshColor(const ComponentMeshRenderer* mesh)
     App->programs->UseProgram("default",  flags);
 
     UpdateLightUniform();
-    mesh->Draw(batch_manager.get());
+    mesh->Draw();
 }
 
 void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)
@@ -728,6 +753,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const unsigned num_default_macros  = sizeof(default_macros)/sizeof(const char*);
 
     App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.fs", default_macros, num_default_macros, nullptr, 0);
+    App->programs->Load("default_batch", "Assets/Shaders/default_batch.vs", "Assets/Shaders/default_batch.fs", default_macros, num_default_macros, nullptr, 0);
 
     const char* macros[]		  = { "#define BLOOM 1 \n", "#define GAMMA 1\n" }; 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);

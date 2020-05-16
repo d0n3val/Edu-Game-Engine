@@ -46,17 +46,6 @@ void BatchManager::RemoveFromBatch(uint batch_index, uint object_index)
     }
 }
 
-void BatchManager::BeginRender()
-{
-    for(std::unique_ptr<Batch>& batch : batches)
-    {
-        if (!batch->IsEmpty())
-        {
-            batch->BeginRender();
-        }
-    }
-}
-
 void BatchManager::AddToRender(uint batch_index, uint object_index)
 {
     assert(batch_index < batches.size() && !batches[batch_index]->IsEmpty());
@@ -64,14 +53,14 @@ void BatchManager::AddToRender(uint batch_index, uint object_index)
     batches[batch_index]->AddToRender(object_index);
 }
 
-void BatchManager::EndRender()
+void BatchManager::DoRender()
 {
     // \todo: Sort from front to back ?
     for(std::unique_ptr<Batch>& batch : batches)
     {
         if (!batch->IsEmpty())
         {
-            batch->EndRender();
+            batch->DoRender();
         }
     }
 }

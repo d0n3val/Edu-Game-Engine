@@ -370,6 +370,10 @@ layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexO
 
 void main()
 {
+#if BATCH
+    color = vec4(1.0);
+#else
+
     vec3 normal = get_normal(fragment, material);
 
     float len = length(normal);
@@ -446,4 +450,5 @@ void main()
 
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
+#endif
 }

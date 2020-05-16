@@ -702,6 +702,7 @@ void SceneViewport::DrawGrid(ComponentCamera* camera)
     glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
     grid_vao->Bind();
+
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     App->programs->UnuseProgram();
 }

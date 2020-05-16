@@ -244,7 +244,7 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
     return skin_palette;
 }
 
-void ComponentMeshRenderer::Draw(BatchManager* batch_manager) const
+void ComponentMeshRenderer::Draw() const
 {
     const GameObject* go             = GetGameObject();
     const ResourceMesh* mesh         = GetMeshRes();

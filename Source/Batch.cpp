@@ -108,21 +108,21 @@ void Batch::Init(ComponentMeshRenderer* object)
     attrib_count            = 0;
     attribs[attrib_count++] = {0, 3, GL_FLOAT, GL_FALSE, 0, 0};
 
-    if((attrib_flags & ATTRIB_TEX_COORDS_0))
+    if((attrib_flags & (1 << ATTRIB_TEX_COORDS_0)))
     {
         attribs[attrib_count++] = {2, 3, GL_FLOAT, GL_FALSE, 0, vertex_size} ;
 
         vertex_size += sizeof(float3);
     }
 
-    if((attrib_flags & ATTRIB_NORMALS))
+    if((attrib_flags & (1 << ATTRIB_NORMALS)))
     {
         attribs[attrib_count++] = {1, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
 
         vertex_size += sizeof(float3);
     }
 
-    if((attrib_flags & ATTRIB_TANGENTS))
+    if((attrib_flags & (1 << ATTRIB_TANGENTS)))
     {
         attribs[attrib_count++] = {5, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
 
@@ -250,16 +250,13 @@ void Batch::CreateTextureArray()
     }
 }
 
-void Batch::BeginRender()
-{
-    CreateRenderData();
-
-    num_render_indices = 0;
-    num_render_objects = 0;
-}
-
 void Batch::AddToRender(uint index)
 {
+    if(num_render_objects == 0)
+    {
+        CreateRenderData();
+    }
+
     assert(index < objects.size());
     assert(objects[index] != nullptr);
 
@@ -273,7 +270,7 @@ void Batch::AddToRender(uint index)
 
         render_objects.push_back(index);
 
-        memcpy(ibo->MapRange(GL_WRITE_ONLY, num_render_indices*sizeof(unsigned), num_indices*sizeof(unsigned)), mesh->src_indices.get(), num_indices*sizeof(unsigned));
+        memcpy(ibo->MapRange(GL_MAP_WRITE_BIT, num_render_indices*sizeof(unsigned), num_indices*sizeof(unsigned)), mesh->src_indices.get(), num_indices*sizeof(unsigned));
         ibo->Unmap();
     }
 
@@ -281,7 +278,7 @@ void Batch::AddToRender(uint index)
     num_render_indices += num_indices;
 }
 
-void Batch::EndRender()
+void Batch::DoRender()
 {
     if(num_render_objects > 0)
     {
@@ -290,10 +287,13 @@ void Batch::EndRender()
         // uniform buffer objects for material binding + texture arrays
         // \todo: material binding
         // test with color
+        
+		glDrawElements(GL_TRIANGLES, num_render_indices, GL_UNSIGNED_INT, nullptr);
 
-        glDrawElements(GL_TRIANGLES, num_render_indices, GL_UNSIGNED_INT, nullptr);
+		vao->Unbind();
 
-        vao->Unbind();
+        num_render_indices = 0;
+        num_render_objects = 0;
     }
 }
 

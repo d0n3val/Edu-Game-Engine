@@ -77,10 +77,17 @@ vec3 morph_targets_tangent(vec3 tangent)
 
 layout(index=0) subroutine(TransformOutput) void transform_output_rigid()
 {
+#if BATCH
     fragment.position = (model*vec4(morph_targets_position(vertex_position), 1.0)).xyz;
     fragment.normal   = (model*vec4(morph_targets_normal(vertex_normal), 0.0)).xyz;
     fragment.tangent  = (model*vec4(morph_targets_tangent(vertex_tangent), 0.0)).xyz;
     fragment.uv0      = vertex_uv0;
+#else 
+    fragment.position = (model*vec4(morph_targets_position(vertex_position), 1.0)).xyz;
+    fragment.normal   = (model*vec4(morph_targets_normal(vertex_normal), 0.0)).xyz;
+    fragment.tangent  = (model*vec4(morph_targets_tangent(vertex_tangent), 0.0)).xyz;
+    fragment.uv0      = vertex_uv0;
+#endif
 }
 
 layout(index=1) subroutine(TransformOutput) void transform_output_skinning()

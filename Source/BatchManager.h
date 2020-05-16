@@ -22,9 +22,8 @@ public:
     void AddToBatch(ComponentMeshRenderer* object, const HashString& tag, uint& batch_index, uint& object_index);
     void RemoveFromBatch(uint batch_index, uint object_index);
 
-    void BeginRender();
     void AddToRender(uint batch_index, uint object_index);
-    void EndRender();
+    void DoRender();
 
     void FillBatchNames(std::vector<HashString>& names) const;
 };

@@ -50,9 +50,8 @@ public:
     uint               Add          (ComponentMeshRenderer* object);
     void               Remove       (uint index);
 
-    void               BeginRender  ();
     void               AddToRender  (uint index);
-    void               EndRender    ();
+    void               DoRender     ();
 
     bool               IsEmpty      () const { return objects.empty(); }
     const HashString&  GetTagName   () const { return tag_name; }

@@ -1124,7 +1124,7 @@ void ResourceMesh::Draw() const
 
     glBindTexture(GL_TEXTURE_BUFFER, morph_texture);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, nullptr);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
