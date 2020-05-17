@@ -17,6 +17,7 @@ public:
     Texture2D(uint target, uint samples, uint width, uint height, uint internal_format, bool fixed_samples);
     ~Texture2D();
 
+    void Bind(uint unit, uint uniform_location);
     void Bind(uint unit = 0);
     void Unbind(uint unit = 0);
 
@@ -51,6 +52,7 @@ public:
     Texture2DArray(uint mip_levels, uint width, uint height, uint depth, uint internal_format);
     ~Texture2DArray();
 
+    void Bind(uint unit, uint uniform_location);
     void Bind(uint unit = 0);
     void Unbind(uint unit = 0);
 
@@ -60,7 +62,7 @@ public:
 
     void GenerateMipmaps(uint base = 0, uint max = 1000);
 
-    static Texture2DArray* CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth);
+    static Texture2DArray* CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth, bool convert_linear);
     // \todo: CreateDefaultRGB
 
 };

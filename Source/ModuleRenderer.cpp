@@ -652,8 +652,7 @@ void ModuleRenderer::DrawBatches(NodeList& nodes, uint render_flags)
 
 }
 
-void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo&))
-{
+void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo&)) {
 	for(NodeList::const_iterator it = nodes.begin(), end = nodes.end(); it != end; ++it)
 	{
         (this->*drawer)(*it);

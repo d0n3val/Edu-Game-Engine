@@ -6,6 +6,7 @@
 #include "Math.h"
 
 class ResourceTexture;
+class Texture2DArray;
 
 class ModuleTextures : public Module
 {
@@ -17,6 +18,7 @@ public:
 	bool CleanUp() override;
 
 	bool Load(ResourceTexture* resource);
+    bool LoadToArray(const ResourceTexture* resource, Texture2DArray* texture, uint index);
 	// TODO: Unload Texture
 	bool Import(const char* file, const char* path, std::string& output_file, bool compressed);
 	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);

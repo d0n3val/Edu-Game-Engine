@@ -114,7 +114,7 @@ enum
 	SOIL_FLAG_ETC1_LOAD_DIRECT = 2048,
 	SOIL_FLAG_GL_MIPMAPS = 4096,
 	SOIL_FLAG_SRGB_COLOR_SPACE = 8192,
-	SOIL_FLAG_NEAREST = 16384,
+	SOIL_FLAG_NEAREST = 16384
 };
 
 /**
@@ -480,7 +480,7 @@ unsigned int SOIL_direct_load_DDS(
 		const char *filename,
 		unsigned int reuse_texture_ID,
 		int flags,
-		int loading_as_cubemap );
+		int loading_as_cubemap);
 
 /** Loads the DDS texture directly to the GPU memory ( if supported ) */
 unsigned int SOIL_direct_load_DDS_from_memory(

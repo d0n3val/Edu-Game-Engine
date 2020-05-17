@@ -13,7 +13,13 @@ class ComponentMeshRenderer;
 
 class Batch
 {
-    typedef std::vector<ComponentMeshRenderer*>  ObjectList;
+    struct ObjectData
+    {
+        ComponentMeshRenderer* renderer         = nullptr;
+        uint                   vertex_offset    = 0;
+    };
+
+    typedef std::vector<ObjectData>              ObjectList;
     typedef std::vector<const ResourceMaterial*> MaterialList;
     typedef std::vector<uint>                    RenderList;
 
@@ -31,7 +37,7 @@ class Batch
     uint                            attrib_count = 0;
     VertexAttrib                    attribs[ATTRIB_COUNT];
 
-    std::unique_ptr<Texture2DArray> textures[TextureCount];
+    std::unique_ptr<Texture2DArray>	textures[TextureCount];
     std::unique_ptr<VertexArray>    vao;
     std::unique_ptr<Buffer>         ibo;
     std::unique_ptr<Buffer>         vbo;

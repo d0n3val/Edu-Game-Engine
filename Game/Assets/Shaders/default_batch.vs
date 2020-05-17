@@ -2,7 +2,7 @@
 
 layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_normal;
-layout(location = 2) in vec2 vertex_uv0;
+layout(location = 2) in vec3 vertex_uv0;
 layout(location = 5) in vec3 vertex_tangent;
 
 uniform mat4 proj;
@@ -13,7 +13,7 @@ uniform mat4 light_view[CASCADE_COUNT];
 
 struct VertexOut
 {
-    vec2 uv0;
+    vec3 uv0;
     vec3 normal;
     vec3 tangent;
     vec3 position;

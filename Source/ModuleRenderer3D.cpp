@@ -20,6 +20,54 @@
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "glew32.lib") /* link Microsoft OpenGL lib   */
 
+void __stdcall DebugMessageGL(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	if (id == 131185 || id == 131204) return;
+
+	char tmp_string[4096];
+
+	const char* tmp_source = "";
+
+	switch (source)
+	{
+	case GL_DEBUG_SOURCE_API:             tmp_source = "API"; break;
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   tmp_source = "Window System"; break;
+	case GL_DEBUG_SOURCE_SHADER_COMPILER: tmp_source = "Shader Compiler"; break;
+	case GL_DEBUG_SOURCE_THIRD_PARTY:     tmp_source = "Third Party"; break;
+	case GL_DEBUG_SOURCE_APPLICATION:     tmp_source = "Application"; break;
+	case GL_DEBUG_SOURCE_OTHER:           tmp_source = "Other"; break;
+	};
+
+	const char* tmp_type = "";
+
+	switch (type)
+	{
+	case GL_DEBUG_TYPE_ERROR:               tmp_type = "Error"; break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: tmp_type = "Deprecated Behaviour"; break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  tmp_type = "Undefined Behaviour"; break;
+	case GL_DEBUG_TYPE_PORTABILITY:         tmp_type = "Portability"; break;
+	case GL_DEBUG_TYPE_PERFORMANCE:         tmp_type = "Performance"; break;
+	case GL_DEBUG_TYPE_MARKER:              tmp_type = "Marker"; break;
+	case GL_DEBUG_TYPE_PUSH_GROUP:          tmp_type = "Push Group"; break;
+	case GL_DEBUG_TYPE_POP_GROUP:           tmp_type = "Pop Group"; break;
+	case GL_DEBUG_TYPE_OTHER:               tmp_type = "Other"; break;
+	};
+
+
+	const char* tmp_severity = "";
+	switch (severity)
+	{
+	case GL_DEBUG_SEVERITY_HIGH:         tmp_severity = "high"; break;
+	case GL_DEBUG_SEVERITY_MEDIUM:       tmp_severity = "medium"; break;
+	case GL_DEBUG_SEVERITY_LOW:          tmp_severity = "low"; break;
+	case GL_DEBUG_SEVERITY_NOTIFICATION: tmp_severity = "notification"; break;
+	};
+
+	sprintf_s(tmp_string, 4095, "<Source:%s> <Type:%s> <Severity:%s> <ID:%d> <Message:%s>\n", tmp_source, tmp_type, tmp_severity, id, message);
+	OutputDebugString(tmp_string);
+}
+
+
 ModuleRenderer3D::ModuleRenderer3D(bool start_enabled) : Module("Renderer", start_enabled), viewport(0)
 {
 }
@@ -126,6 +174,15 @@ bool ModuleRenderer3D::Init(Config* config)
         glEnable(GL_MULTISAMPLE);  
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);  
     }
+
+#if _DEBUG
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
+
+	glDebugMessageCallback(&DebugMessageGL, nullptr);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+
 
     viewport = new Viewport;
 

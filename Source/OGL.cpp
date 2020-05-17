@@ -28,8 +28,6 @@ Texture2D::Texture2D(uint target, uint samples, uint width, uint height, uint in
 
     glTexImage2DMultisample(tex_target, samples, internal_format, width, height, fixed_samples ? GL_TRUE : GL_FALSE);
 
-    DefaultInitializeTexture(tex_target, false);
-
     glBindTexture(tex_target, 0);
 }
 
@@ -47,6 +45,13 @@ Texture2D::Texture2D(uint target, uint width, uint height, uint internal_format,
 Texture2D::~Texture2D()
 {
     glDeleteTextures(1, &texture);
+}
+
+void Texture2D::Bind(uint unit, uint uniform_location)
+{
+    glActiveTexture(GL_TEXTURE0+unit);
+    glBindTexture(tex_target, texture);
+    glUniform1i(uniform_location, unit);
 }
 
 void Texture2D::Bind(uint unit) 
@@ -125,20 +130,30 @@ Texture2DArray::~Texture2DArray()
     glDeleteTextures(1, &texture);
 }
 
+void Texture2DArray::Bind(uint unit, uint uniform_location)
+{
+	glActiveTexture(GL_TEXTURE0+unit);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    glUniform1i(uniform_location, unit);
+}
+
 void Texture2DArray::Bind(uint unit /*= 0*/)
 {
+    glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 }
 
 void Texture2DArray::Unbind(uint unit /*= 0*/)
 {
+    glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
 void Texture2DArray::SetSubData(uint mip_level, uint depth_index, uint format, uint type, void* data)
 {
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, mip_level, 0, 0, depth_index, width, height, depth, format, type, data);
+    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, mip_level, 0, 0, depth_index, width, height, 1, format, type, data);
+	
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
@@ -156,9 +171,9 @@ void Texture2DArray::GenerateMipmaps(uint base /*= 0*/, uint max /*= 1000*/)
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
-Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth)
+Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth, bool convert_linear)
 {
-    return new Texture2DArray(mip_levels, width, height, depth, GL_RGBA);
+    return new Texture2DArray(mip_levels, width, height, depth, convert_linear ? GL_SRGB8_ALPHA8 : GL_SRGB8_ALPHA8);
 }
 
 Framebuffer::Framebuffer()

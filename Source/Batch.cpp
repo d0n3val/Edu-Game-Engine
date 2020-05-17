@@ -2,7 +2,10 @@
 
 #include "Batch.h"
 
+#include "Application.h"
 #include "ComponentMeshRenderer.h"
+#include "ModuleTextures.h"
+#include "GameObject.h"
 
 #include "ResourceTexture.h"
 
@@ -28,8 +31,6 @@ bool Batch::CanAdd(ComponentMeshRenderer* object) const
 
     const ResourceMesh* mesh         = object->GetMeshRes();
     const ResourceMaterial* material = object->GetMaterialRes();
-
-    assert(!mesh->HasAttrib(ATTRIB_BONES));
 
     bool ok = objects.size()+1 < max_objects && mesh->GetAttribs() == attrib_flags && 
              num_vertices+mesh->GetNumVertices() < max_vertices;
@@ -57,7 +58,8 @@ uint Batch::Add(ComponentMeshRenderer* object)
 
     uint index = objects.size();
 
-    objects.push_back(object);
+    ObjectData data = { object, index == 0 ? 0 : objects[index-1].vertex_offset+objects[index-1].renderer->GetMeshRes()->GetNumVertices() };
+    objects.push_back(data);
 
     const ResourceMaterial* material = object->GetMaterialRes();
     auto it = std::find(unique_materials.begin(), unique_materials.end(), material);
@@ -144,7 +146,11 @@ void Batch::CreateRenderData()
             CreateBuffers();
         }
 
-        if(!textures)
+		bool generate = true;
+		for (uint i = 0; generate && i < TextureCount; ++i)
+			generate = textures[TextureDiffuse].get() == nullptr;
+
+        if(generate)
         {
             CreateTextureArray();
         }
@@ -161,19 +167,20 @@ void Batch::CreateBuffers()
 
     // \todo: Convert to world coordinates
 
-    for(ComponentMeshRenderer* object : objects)
+    for(const ObjectData& object_data : objects)
     {
-        const ResourceMesh* mesh         = object->GetMeshRes();
-        const ResourceMaterial* material = object->GetMaterialRes();
+        const ResourceMesh* mesh         = object_data.renderer->GetMeshRes();
+        const ResourceMaterial* material = object_data.renderer->GetMaterialRes();
+        float4x4 model                   = object_data.renderer->GetGameObject()->GetGlobalTransformation();;
 
         for(uint i=0; i < mesh->GetNumVertices(); ++i)
         {
-            (float3&)(data[i*vertex_size]) = mesh->src_vertices[i];
+            (float3&)(data[i*vertex_size]) = model.TransformPos(mesh->src_vertices[i]);
         }
 
         uint attrib_index = 0;
 
-        if((attrib_flags & ATTRIB_TEX_COORDS_0))
+        if((attrib_flags & (1 << ATTRIB_TEX_COORDS_0)))
         {
             uint offset = attribs[++attrib_index].offset;
 
@@ -186,23 +193,23 @@ void Batch::CreateBuffers()
             }
         }
 
-        if((attrib_flags & ATTRIB_NORMALS))
+        if((attrib_flags & (1 << ATTRIB_NORMALS)))
         {
             uint offset = attribs[++attrib_index].offset;
 
             for(uint i=0; i < mesh->GetNumVertices(); ++i)
             {
-                (float3&)(data[i*vertex_size+offset]) = mesh->src_normals[i];
+                (float3&)(data[i*vertex_size+offset]) = model.TransformDir(mesh->src_normals[i]);
             }
         }
 
-        if((attrib_flags & ATTRIB_TANGENTS))
+        if((attrib_flags & (1 << ATTRIB_TANGENTS)))
         {
             uint offset = attribs[++attrib_index].offset;
 
             for(uint i=0; i < mesh->GetNumVertices(); ++i)
             {
-                (float3&)(data[i*vertex_size+offset]) = mesh->src_tangents[i];
+                (float3&)(data[i*vertex_size+offset]) = model.TransformDir(mesh->src_tangents[i]);
             }
         }
 
@@ -219,34 +226,36 @@ void Batch::CreateBuffers()
 
 void Batch::CreateTextureArray()
 {
-    const ResourceMaterial* front_material = objects.front()->GetMaterialRes();
+    const ResourceMaterial* front_material = objects.front().renderer->GetMaterialRes();
 
     for(uint i=0; i< TextureCount; ++i)
     {
-        const ResourceTexture* front_texture = front_material->GetTextureRes(MaterialTexture(i));
+		if (texture_size[i][0] > 0)
+		{
+			const ResourceTexture* front_texture = front_material->GetTextureRes(MaterialTexture(i));
 
-        textures[i].reset(Texture2DArray::CreateDefaultRGBA(1, front_texture->GetWidth(), front_texture->GetHeight(), objects.size()));
+			textures[i].reset(Texture2DArray::CreateDefaultRGBA(1, front_texture->GetWidth(), front_texture->GetHeight(), objects.size(), true));
 
-        uint buffer_size = front_texture->GetWidth()*front_texture->GetHeight()*sizeof(unsigned);
-        uint8_t* buffer  = (uint8_t*)malloc(buffer_size);
+			uint buffer_size = front_texture->GetWidth()*front_texture->GetHeight() * sizeof(unsigned);
+			uint8_t* buffer = (uint8_t*)malloc(buffer_size);
 
-        for(uint j=0; j< unique_materials.size(); ++j)
-        {
-            const ResourceMaterial* material = unique_materials[j];
+			for (uint j = 0; j < unique_materials.size(); ++j)
+			{
+				const ResourceTexture* texture = unique_materials[j]->GetTextureRes(MaterialTexture(i));
 
-            Texture2D* texture = material->GetTextureRes(MaterialTexture(i))->GetTexture();
+				// \todo: should not be loaded. If loaded(in another batch) glGetCompressedTexImage
+				// \todo: compression!!!! glGetCompressedTexImage
+				// \todo: load directly as a texture array
+				// \todo: load vb, ib directly as a batch
+				// \todo: all maps in the same texture array if they have the same size
+				// \todo: doesn´t loads compressed ==> refactor soil to do it internally
+				// \todo: doesn´t takes into account different channels/formats
 
-            // \todo: should not be loaded. If loaded(in another batch) glGetCompressedTexImage
-            // \todo: compression!!!! glGetCompressedTexImage
-            // \todo: load directly as a texture array
-            // \todo: load vb, ib directly as a batch
-            // \todo: all maps in the same texture array if they have the same size
-            glGetTextureImage(texture->Id(), 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer_size, buffer);
+				App->tex->LoadToArray(texture, textures[i].get(), j);
+			}
 
-            textures[i]->SetDefaultRGBASubData(0, j, buffer);
-        }
-
-        free(buffer);
+			free(buffer);
+		}
     }
 }
 
@@ -258,19 +267,25 @@ void Batch::AddToRender(uint index)
     }
 
     assert(index < objects.size());
-    assert(objects[index] != nullptr);
+    assert(objects[index].renderer != nullptr);
 
-    ComponentMeshRenderer* object = objects[index];
+    ComponentMeshRenderer* object = objects[index].renderer;
     const ResourceMesh* mesh      = object->GetMeshRes();
     uint num_indices              = mesh->GetNumIndices();
 
     if(num_render_objects == render_objects.size() || render_objects[num_render_objects] != index)
     {
         render_objects.erase(render_objects.begin()+num_render_objects, render_objects.end());
+		render_objects.push_back(index);
 
-        render_objects.push_back(index);
+		unsigned* indexes = (unsigned*)ibo->MapRange(GL_MAP_WRITE_BIT, num_render_indices * sizeof(unsigned), num_indices * sizeof(unsigned));
 
-        memcpy(ibo->MapRange(GL_MAP_WRITE_BIT, num_render_indices*sizeof(unsigned), num_indices*sizeof(unsigned)), mesh->src_indices.get(), num_indices*sizeof(unsigned));
+		for (uint i = 0; i < num_indices; ++i)
+		{
+			indexes[i] = mesh->src_indices[i] + objects[index].vertex_offset;
+		}
+
+        
         ibo->Unmap();
     }
 
@@ -282,6 +297,11 @@ void Batch::DoRender()
 {
     if(num_render_objects > 0)
     {
+        if(textures[TextureDiffuse])
+        {
+            textures[TextureDiffuse]->Bind(0, 0);
+        }
+
         vao->Bind();
 
         // uniform buffer objects for material binding + texture arrays
@@ -299,9 +319,10 @@ void Batch::DoRender()
 
 void Batch::Remove(uint index)
 {
-    objects[index] = nullptr;
+    objects[index].renderer = nullptr;
+    objects[index].vertex_offset = 0;
 
-    while(!objects.empty() && objects.back() == nullptr) 
+    while(!objects.empty() && objects.back().renderer == nullptr) 
     {
         objects.pop_back();
     }

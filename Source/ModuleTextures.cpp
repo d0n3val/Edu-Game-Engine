@@ -110,6 +110,59 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file,
 	return ret;
 }
 
+bool ModuleTextures::LoadToArray(const ResourceTexture* resource, Texture2DArray* texture, uint index)
+{
+	bool ret = false;
+
+	char* buffer = nullptr;
+	uint size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, resource->GetExportedFile(), &buffer);
+
+	if (buffer != nullptr && size > 0)
+	{
+        ILuint ImageName;
+        ilGenImages(1, &ImageName);
+        ilBindImage(ImageName);
+
+        if (ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size))
+        {
+            GLuint textureId = 0;
+
+            ILinfo ImageInfo;
+            iluGetImageInfo(&ImageInfo);
+            if (ImageInfo.Origin == IL_ORIGIN_UPPER_LEFT)
+            {
+                iluFlipImage();
+            }
+
+            int channels = ilGetInteger(IL_IMAGE_CHANNELS);
+            if (channels == 3)
+            {
+                ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
+            }
+            else if (channels == 4)
+            {
+                ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+            }
+
+            ILubyte* data = ilGetData();
+            int width	  = ilGetInteger(IL_IMAGE_WIDTH);
+            int height	  = ilGetInteger(IL_IMAGE_HEIGHT);
+
+            texture->SetDefaultRGBASubData(0, index, data);
+
+            ilDeleteImages(1, &ImageName);
+
+            ret = true;
+        }
+        else
+            LOG("Cannot load texture resource %s", resource->GetFile());
+    }
+
+	RELEASE_ARRAY(buffer);
+
+	return ret;
+}
+
 // Load new texture from file path
 bool ModuleTextures::Load(ResourceTexture* resource)
 {
