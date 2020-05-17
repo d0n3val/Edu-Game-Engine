@@ -98,7 +98,8 @@ void SceneViewport::Draw(ComponentCamera* camera)
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
 
-        
+		glStencilMask(0x01);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);

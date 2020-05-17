@@ -545,91 +545,98 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 
 void PanelProperties::DrawBatchProperties(ComponentMeshRenderer* component)
 {
-    BatchManager* batch_manager = App->renderer->GetBatchMananger();
-
-    std::vector<HashString> tag_names;
-
-    batch_manager->FillBatchNames(tag_names);
-    const HashString& batch_name = component->GetBatchName();
-
-    std::vector<HashString>::iterator it = std::find(tag_names.begin(), tag_names.end(), batch_name);
-
-    int selected_index = it == tag_names.end() ? tag_names.size() : it - tag_names.begin();
-
-    tag_names.push_back(HashString("empty"));
-
-    bool (*items_getter)(void* data, int idx, const char** out_text) = [](void* data, int idx, const char** out_text) -> bool 
-    { 
-        std::vector<HashString>& v = (*reinterpret_cast<std::vector<HashString>*>(data));
-        if(idx < int(v.size()))
-        {
-            *out_text = v[idx].C_str();
-            return true;
-        }
-
-        return false;
-    };
-
-    if (ImGui::Combo("Batch", &selected_index, items_getter, &tag_names, int(tag_names.size())))
+    if(component->GetMeshRes()->HasAttrib(ATTRIB_BONES))
     {
-        if (selected_index + 1 == tag_names.size())
-        {
-            component->SetBatchName(HashString());
-        }
-        else
-        {
-            component->SetBatchName(tag_names[selected_index]);
-        }
+        ImGui::Text("No batch supported on meshes with bones");
     }
-
-    if(ImGui::Button("New batch"))
+    else
     {
-        ImGui::OpenPopup("Batch name");
-    }
+        BatchManager* batch_manager = App->renderer->GetBatchMananger();
 
-    if (ImGui::BeginPopupModal("Batch name", nullptr, ImGuiWindowFlags_NoResize))
-    {
-        static char tmp[256];
-        static bool init = true;
+        std::vector<HashString> tag_names;
 
-        if(ImGui::BeginChild("Canvas", ImVec2(250, 90), true, ImGuiWindowFlags_NoMove))
-        {
-            if(init)
+        batch_manager->FillBatchNames(tag_names);
+        const HashString& batch_name = component->GetBatchName();
+
+        std::vector<HashString>::iterator it = std::find(tag_names.begin(), tag_names.end(), batch_name);
+
+        int selected_index = it == tag_names.end() ? tag_names.size() : it - tag_names.begin();
+
+        tag_names.push_back(HashString("empty"));
+
+        bool (*items_getter)(void* data, int idx, const char** out_text) = [](void* data, int idx, const char** out_text) -> bool 
+        { 
+            std::vector<HashString>& v = (*reinterpret_cast<std::vector<HashString>*>(data));
+            if(idx < int(v.size()))
             {
-                const char* name = component->GetBatchName().C_str();
-                if (name == nullptr)
-                {
-                    tmp[0] = 0;
-                }
-                else
-                {
-                    strcpy_s(&tmp[0], 255, name);
-                }
-
-                init = false;
+                *out_text = v[idx].C_str();
+                return true;
             }
 
-            ImGui::InputText("Batch name", tmp, 256);
-        }
-        ImGui::EndChild();
+            return false;
+        };
 
-        ImGui::Indent(122);
-        if(ImGui::Button("Ok", ImVec2(60, 0)))
+        if (ImGui::Combo("Batch", &selected_index, items_getter, &tag_names, int(tag_names.size())))
         {
-            component->SetBatchName(HashString(&tmp[0]));
-            init = true;
-
-            ImGui::CloseCurrentPopup();
+            if (selected_index + 1 == tag_names.size())
+            {
+                component->SetBatchName(HashString());
+            }
+            else
+            {
+                component->SetBatchName(tag_names[selected_index]);
+            }
         }
 
-        ImGui::SameLine();
-        if(ImGui::Button("Cancel", ImVec2(60, 0)))
+        if(ImGui::Button("New batch"))
         {
-            init = true;
-            ImGui::CloseCurrentPopup();
+            ImGui::OpenPopup("Batch name");
         }
 
-        ImGui::EndPopup();
+        if (ImGui::BeginPopupModal("Batch name", nullptr, ImGuiWindowFlags_NoResize))
+        {
+            static char tmp[256];
+            static bool init = true;
+
+            if(ImGui::BeginChild("Canvas", ImVec2(250, 90), true, ImGuiWindowFlags_NoMove))
+            {
+                if(init)
+                {
+                    const char* name = component->GetBatchName().C_str();
+                    if (name == nullptr)
+                    {
+                        tmp[0] = 0;
+                    }
+                    else
+                    {
+                        strcpy_s(&tmp[0], 255, name);
+                    }
+
+                    init = false;
+                }
+
+                ImGui::InputText("Batch name", tmp, 256);
+            }
+            ImGui::EndChild();
+
+            ImGui::Indent(122);
+            if(ImGui::Button("Ok", ImVec2(60, 0)))
+            {
+                component->SetBatchName(HashString(&tmp[0]));
+                init = true;
+
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::SameLine();
+            if(ImGui::Button("Cancel", ImVec2(60, 0)))
+            {
+                init = true;
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
     }
 }
 

@@ -19,9 +19,15 @@ class Batch
         uint                   vertex_offset    = 0;
     };
 
-    typedef std::vector<ObjectData>              ObjectList;
-    typedef std::vector<const ResourceMaterial*> MaterialList;
-    typedef std::vector<uint>                    RenderList;
+	struct MaterialData
+	{
+		const ResourceMaterial* material = nullptr;
+		uint ref_count = 0;
+	};
+
+    typedef std::vector<ObjectData>   ObjectList;
+    typedef std::vector<MaterialData> MaterialList;
+    typedef std::vector<uint>         RenderList;
 
     uint                            max_objects  = 0;
     uint                            max_vertices = 0;
@@ -64,6 +70,7 @@ public:
 
 private:
 
+    void ClearRenderData    ();
     void CreateRenderData   ();
     void Init               (ComponentMeshRenderer* object);
 

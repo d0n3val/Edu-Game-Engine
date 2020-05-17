@@ -11,6 +11,8 @@
 
 #include "OpenGL.h"
 
+#include <algorithm>
+
 Batch::Batch(const HashString& tag, uint _max_vertices, uint _max_objects) 
 {
     assert(_max_objects > 0);
@@ -32,8 +34,7 @@ bool Batch::CanAdd(ComponentMeshRenderer* object) const
     const ResourceMesh* mesh         = object->GetMeshRes();
     const ResourceMaterial* material = object->GetMaterialRes();
 
-    bool ok = objects.size()+1 < max_objects && mesh->GetAttribs() == attrib_flags && 
-             num_vertices+mesh->GetNumVertices() < max_vertices;
+	bool ok = objects.size()+1 < max_objects && mesh->GetAttribs() == attrib_flags && num_vertices+mesh->GetNumVertices() < max_vertices;
 
     for(uint i=0; ok && i< TextureCount; ++i)
     {
@@ -62,21 +63,21 @@ uint Batch::Add(ComponentMeshRenderer* object)
     objects.push_back(data);
 
     const ResourceMaterial* material = object->GetMaterialRes();
-    auto it = std::find(unique_materials.begin(), unique_materials.end(), material);
 
-    if(it == unique_materials.end())
-    {
-        unique_materials.push_back(material);
+    auto it = std::find_if(unique_materials.begin(), unique_materials.end(), [material](const MaterialData& data) -> bool { return data.material == material; });
 
-        for(uint i=0; i<TextureCount; ++i)
-            textures[i].reset();
-    }
-
-    vao.reset();
-    vbo.reset();
-    ibo.reset();
+	if (it == unique_materials.end())
+	{
+		unique_materials.push_back({ material, 1 });
+	}
+	else
+	{
+		++it->ref_count;
+	}
 
     num_vertices += object->GetMeshRes()->GetNumVertices();
+
+    ClearRenderData();
 
     return index;
 }
@@ -110,21 +111,21 @@ void Batch::Init(ComponentMeshRenderer* object)
     attrib_count            = 0;
     attribs[attrib_count++] = {0, 3, GL_FLOAT, GL_FALSE, 0, 0};
 
-    if((attrib_flags & (1 << ATTRIB_TEX_COORDS_0)))
+    if(mesh->HasAttrib(ATTRIB_TEX_COORDS_0))
     {
         attribs[attrib_count++] = {2, 3, GL_FLOAT, GL_FALSE, 0, vertex_size} ;
 
         vertex_size += sizeof(float3);
     }
 
-    if((attrib_flags & (1 << ATTRIB_NORMALS)))
+    if(mesh->HasAttrib(ATTRIB_NORMALS))
     {
         attribs[attrib_count++] = {1, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
 
         vertex_size += sizeof(float3);
     }
 
-    if((attrib_flags & (1 << ATTRIB_TANGENTS)))
+    if(mesh->HasAttrib(ATTRIB_TANGENTS))
     {
         attribs[attrib_count++] = {5, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
 
@@ -157,6 +158,21 @@ void Batch::CreateRenderData()
    }
 }
 
+void Batch::ClearRenderData()
+{
+	// \todo: only if materials changed ???
+	for (uint i = 0; i < TextureCount; ++i)
+	{
+		textures[i].reset();
+	}
+
+    vao.reset();
+    vbo.reset();
+    ibo.reset();
+
+    render_objects.clear();
+}
+
 void Batch::CreateBuffers()
 {
     vbo.reset(Buffer::CreateVBO(GL_STATIC_DRAW, vertex_size*num_vertices, nullptr));
@@ -169,6 +185,9 @@ void Batch::CreateBuffers()
 
     for(const ObjectData& object_data : objects)
     {
+		if (object_data.renderer == nullptr)
+			continue;
+
         const ResourceMesh* mesh         = object_data.renderer->GetMeshRes();
         const ResourceMaterial* material = object_data.renderer->GetMaterialRes();
         float4x4 model                   = object_data.renderer->GetGameObject()->GetGlobalTransformation();;
@@ -180,11 +199,12 @@ void Batch::CreateBuffers()
 
         uint attrib_index = 0;
 
-        if((attrib_flags & (1 << ATTRIB_TEX_COORDS_0)))
+        if(mesh->HasAttrib(ATTRIB_TEX_COORDS_0))
         {
             uint offset = attribs[++attrib_index].offset;
 
-            uint material_index = std::find(unique_materials.begin(), unique_materials.end(), material)-unique_materials.begin();
+			uint material_index = std::find_if(unique_materials.begin(), unique_materials.end(), [material](const MaterialData& data) -> bool { return data.material == material; }) - unique_materials.begin();
+
             assert(material_index < unique_materials.size());
 
             for(uint i=0; i < mesh->GetNumVertices(); ++i)
@@ -193,7 +213,7 @@ void Batch::CreateBuffers()
             }
         }
 
-        if((attrib_flags & (1 << ATTRIB_NORMALS)))
+        if(mesh->HasAttrib(ATTRIB_NORMALS))
         {
             uint offset = attribs[++attrib_index].offset;
 
@@ -203,7 +223,7 @@ void Batch::CreateBuffers()
             }
         }
 
-        if((attrib_flags & (1 << ATTRIB_TANGENTS)))
+        if(mesh->HasAttrib(ATTRIB_TANGENTS))
         {
             uint offset = attribs[++attrib_index].offset;
 
@@ -226,7 +246,7 @@ void Batch::CreateBuffers()
 
 void Batch::CreateTextureArray()
 {
-    const ResourceMaterial* front_material = objects.front().renderer->GetMaterialRes();
+	const ResourceMaterial* front_material = unique_materials.front().material;
 
     for(uint i=0; i< TextureCount; ++i)
     {
@@ -237,11 +257,10 @@ void Batch::CreateTextureArray()
 			textures[i].reset(Texture2DArray::CreateDefaultRGBA(1, front_texture->GetWidth(), front_texture->GetHeight(), objects.size(), true));
 
 			uint buffer_size = front_texture->GetWidth()*front_texture->GetHeight() * sizeof(unsigned);
-			uint8_t* buffer = (uint8_t*)malloc(buffer_size);
 
 			for (uint j = 0; j < unique_materials.size(); ++j)
 			{
-				const ResourceTexture* texture = unique_materials[j]->GetTextureRes(MaterialTexture(i));
+				const ResourceTexture* texture = unique_materials[j].material->GetTextureRes(MaterialTexture(i));
 
 				// \todo: should not be loaded. If loaded(in another batch) glGetCompressedTexImage
 				// \todo: compression!!!! glGetCompressedTexImage
@@ -253,8 +272,6 @@ void Batch::CreateTextureArray()
 
 				App->tex->LoadToArray(texture, textures[i].get(), j);
 			}
-
-			free(buffer);
 		}
     }
 }
@@ -319,12 +336,30 @@ void Batch::DoRender()
 
 void Batch::Remove(uint index)
 {
-    objects[index].renderer = nullptr;
+	const ResourceMaterial* material = objects[index].renderer->GetMaterialRes();
+	const ResourceMesh* mesh = objects[index].renderer->GetMeshRes();
+
+	auto it = std::find_if(unique_materials.begin(), unique_materials.end(), [material](const MaterialData& data) -> bool { return data.material == material; });
+	assert(it != unique_materials.end());
+
+	if ((--it->ref_count) == 0)
+	{
+		unique_materials.erase(it);
+	}
+
+	for (uint i = index + 1; i < objects.size(); ++i)
+	{
+		objects[i].vertex_offset -= mesh->GetNumVertices();
+	}
+
+	objects[index].renderer = nullptr;
     objects[index].vertex_offset = 0;
 
     while(!objects.empty() && objects.back().renderer == nullptr) 
     {
         objects.pop_back();
     }
+
+	ClearRenderData();
 }
 
