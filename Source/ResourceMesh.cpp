@@ -132,6 +132,16 @@ bool ResourceMesh::LoadInMemory()
                 }
             }
 
+            if (HasAttrib(ATTRIB_TEX_COORDS_1))
+            {
+                src_texcoord1 = std::make_unique<float2[]>(num_vertices);
+
+                for (uint i = 0; i < num_vertices; ++i)
+                {
+                    read_stream >> src_texcoord1[i].x >> src_texcoord1[i].y;
+                }
+            }
+
             if(HasAttrib(ATTRIB_NORMALS))
             {
                 src_normals = std::make_unique<float3[]>(num_vertices);
@@ -256,6 +266,7 @@ void ResourceMesh::ReleaseFromMemory()
 
     src_vertices.reset();
     src_texcoord0.reset();
+    src_texcoord1.reset();
     src_normals.reset();
     src_tangents.reset();
     src_indices.reset();
@@ -311,9 +322,9 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         }
     }
 
-    if(HasAttrib(ATTRIB_TEX_COORDS_1))
+    if (HasAttrib(ATTRIB_TEX_COORDS_1))
     {
-        for(uint i=0; i< num_vertices; ++i)
+        for (uint i = 0; i < num_vertices; ++i)
         {
             write_stream << src_texcoord1[i].x << src_texcoord1[i].y;
         }
@@ -417,9 +428,10 @@ UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file)
 {
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
-    m->name   = HashString(mesh->mName.C_Str());
+    m->name = HashString(mesh->mName.C_Str());
 
     m->GenerateCPUBuffers(mesh);
+
     if(mesh->HasBones())
     {
         m->GenerateBoneData(mesh);
@@ -549,6 +561,16 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
         for(unsigned i=0; i < mesh->mNumVertices; ++i) 
         {
             src_texcoord0[i] = float2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+        }
+    }
+
+    if (mesh->HasTextureCoords(1))
+    {
+        src_texcoord1 = std::make_unique<float2[]>(mesh->mNumVertices);
+
+        for (unsigned i = 0; i < mesh->mNumVertices; ++i)
+        {
+            src_texcoord1[i] = float2(mesh->mTextureCoords[1][i].x, mesh->mTextureCoords[1][i].y);
         }
     }
 
@@ -891,7 +913,7 @@ void ResourceMesh::GenerateVAO()
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(offsets[ATTRIB_TEX_COORDS_0]));
 	}
 
-	if(HasAttrib(ATTRIB_BONES))
+    if(HasAttrib(ATTRIB_BONES))
 	{
 		glEnableVertexAttribArray(3);
 		glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT, sizeof(unsigned)*4, (void*)offsets[ATTRIB_BONES]);

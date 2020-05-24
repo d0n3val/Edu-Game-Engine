@@ -15,6 +15,7 @@ enum MaterialTexture
     TextureNormal,
     TextureOcclusion,
     TextureEmissive,
+    TextureLightmap,
     TextureCount
 };
 
@@ -26,7 +27,7 @@ private:
     float4      diffuse_color          = float4::one;
     float3      specular_color         = float4::zero;
     float3      emissive_color         = float4::zero;
-    UID         textures[TextureCount] = { 0, 0, 0, 0, 0 };
+    UID         textures[TextureCount] = { 0, 0, 0, 0, 0, 0 };
     float       shininess              = 0.5f;
     float       normal_strength        = 1.0f;
     bool        double_sided           = false;
@@ -41,7 +42,7 @@ public:
     void                    ReleaseFromMemory   () override;
 
     bool                    Save                (std::string& output) const;
-    bool                    Save                () ;
+    bool                    Save                ();
 
     static UID              Import              (const aiMaterial* material, const char* source_file);
 

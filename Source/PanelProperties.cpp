@@ -545,7 +545,8 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 
 void PanelProperties::DrawBatchProperties(ComponentMeshRenderer* component)
 {
-    if(component->GetMeshRes()->HasAttrib(ATTRIB_BONES))
+    const ResourceMesh* mesh = component->GetMeshRes();
+    if(mesh && mesh->HasAttrib(ATTRIB_BONES))
     {
         ImGui::Text("No batch supported on meshes with bones");
     }
@@ -839,6 +840,11 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh)
 {
     bool modified = false;
+
+    if (ImGui::CollapsingHeader("Ligthmap", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, mesh, TextureLightmap, "Lightmap");
+    }
 
     if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
     {

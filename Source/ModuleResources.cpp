@@ -82,7 +82,7 @@ bool ModuleResources::Start(Config * config)
 	checkers->loaded = 1;
 
 	white_fallback = new ResourceTexture(0); 
-    black_fallback = new ResourceTexture(0);
+    black_fallback = new ResourceTexture(1);
 
     App->tex->LoadFallback(white_fallback, float3(1.0f));
     App->tex->LoadFallback(black_fallback, float3(0.0f));

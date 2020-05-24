@@ -21,6 +21,7 @@ enum DefaultShaderLocations
     NORMAL_MAP_LOC,
     STRENGTH_LOC,
     ALPHA_TEST_LOC,
+    LIGHT_MAP_LOC,
 
     AMBIENT_COLOR_LOC = 20,
 

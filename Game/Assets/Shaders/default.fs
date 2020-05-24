@@ -23,6 +23,8 @@ struct Material
     sampler2D normal_map;
     float     normal_strength;
     float     alpha_test;
+
+    sampler2D light_map;
 };
 
 struct AmbientLight
@@ -66,6 +68,7 @@ struct Lights
 struct VertexOut
 {
     vec2 uv0;
+    vec2 uv1;
     vec3 normal;
     vec3 tangent;
     vec3 position;
@@ -373,8 +376,10 @@ void main()
 
     vec3 normal = get_normal(fragment, material);
 
-    float len = length(normal);
-    color	  = lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
+    float len  = length(normal);
+    vec4 baked = texture(material.light_map, fragment.uv1);
+    color      = lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
+    color.rgb += baked.rgb;
 
     if(color.a < material.alpha_test)
     {

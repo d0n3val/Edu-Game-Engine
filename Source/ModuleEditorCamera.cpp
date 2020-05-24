@@ -120,9 +120,9 @@ update_status ModuleEditorCamera::Update(float dt)
 		// Mouse Picking
 		if (App->input->GetMouseButton(SDL_BUTTON_RIGHT) == KEY_DOWN)
 		{
-			GameObject* pick = Pick();
-			if (pick != nullptr)
-				App->editor->SetSelected(pick, (App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go == pick));
+			//GameObject* pick = Pick();
+			//if (pick != nullptr)
+				//App->editor->SetSelected(pick, (App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go == pick));
 		}
 	}
 

@@ -19,7 +19,7 @@ void BatchManager::AddToBatch(ComponentMeshRenderer* object, const HashString& t
 {
     if(object->GetMeshRes()->HasAttrib(ATTRIB_BONES))
 	{
-		batch_index = UINT_MAX;
+		batch_index  = UINT_MAX;
 		object_index = UINT_MAX;
     }
     else

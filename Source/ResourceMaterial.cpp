@@ -357,6 +357,7 @@ void ResourceMaterial::UpdateUniforms() const
 	*/
 
     glUniform1f(SHININESS_LOC, shininess);
+    glUniform1i(LIGHT_MAP_LOC, 5);
     glUniform1i(NORMAL_MAP_LOC, 4);
     glUniform1f(STRENGTH_LOC, normal_strength);
     glUniform1f(ALPHA_TEST_LOC, alpha_test);
@@ -400,6 +401,7 @@ void ResourceMaterial::BindTextures() const
     const ResourceTexture* occlusion = GetTextureRes(TextureOcclusion);
     const ResourceTexture* emissive  = GetTextureRes(TextureEmissive);
     const ResourceTexture* normal    = GetTextureRes(TextureNormal);
+    const ResourceTexture* lightmap  = GetTextureRes(TextureLightmap);
 
     unsigned diffuse_id   = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
 
@@ -409,6 +411,10 @@ void ResourceMaterial::BindTextures() const
     unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
     unsigned emissive_id  = emissive ? emissive->GetID() : App->resources->GetWhiteFallback()->GetID();
     unsigned normal_id    = normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) ? normal->GetID() : 0;
+    unsigned lightmap_id  = lightmap ? lightmap->GetID() : App->resources->GetBlackFallback()->GetID();
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, lightmap_id);
 
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, normal_id);
@@ -437,6 +443,9 @@ void ResourceMaterial::BindTextures() const
 
 void ResourceMaterial::UnbindTextures() const
 {
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, 0);
 
