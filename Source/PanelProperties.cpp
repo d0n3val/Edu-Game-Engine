@@ -848,7 +848,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
     if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, mesh, TextureOcclusion, "Occlusion");
+        modified = TextureButton(material, mesh, TextureOcclusion, "Occlusion") || modified;
     }
 
     if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
