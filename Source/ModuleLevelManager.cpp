@@ -24,7 +24,7 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 using namespace std;
 

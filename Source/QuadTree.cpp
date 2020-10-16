@@ -2,7 +2,7 @@
 #include "GameObject.h"
 #include "QuadTree.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 #define NE 0
 #define SE 1

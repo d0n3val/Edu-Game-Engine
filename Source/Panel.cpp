@@ -1,5 +1,7 @@
 #include "Panel.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 Panel::Panel(const char* name, SDL_Scancode shortcut) : name(name), shortcut(shortcut)
 {}

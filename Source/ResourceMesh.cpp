@@ -21,9 +21,9 @@
 #include "utils/par_shapes.h"
 #pragma warning(pop)
 
-#include "mmgr/mmgr.h"
-
 #include <math.h>
+
+#include "Leaks.h"
 
 using namespace Thekla;
 

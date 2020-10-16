@@ -6,7 +6,7 @@
 #include "Application.h"
 #include "ModuleHints.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 #define MAX_ANGULAR_SPEED PI/4.0f
 #define MAX_LINEAR_SPEED 2.0f

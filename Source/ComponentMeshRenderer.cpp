@@ -15,8 +15,7 @@
 
 #include "ResourceTexture.h"
 
-#include "mmgr/mmgr.h"
-
+#include "Leaks.h"
 
 ComponentMeshRenderer::ComponentMeshRenderer(GameObject* go) : Component(go, Types::MeshRenderer)
 {

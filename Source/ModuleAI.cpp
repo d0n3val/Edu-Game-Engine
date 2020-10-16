@@ -3,6 +3,9 @@
 #include "ModuleAI.h"
 #include "Config.h"
 
+#include "Leaks.h"
+
+
 using namespace std;
 
 ModuleAI::ModuleAI( bool start_enabled) : Module("AI", start_enabled)

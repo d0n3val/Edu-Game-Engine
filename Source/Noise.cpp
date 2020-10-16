@@ -4,6 +4,8 @@
 
 #include "Math.h"
 
+#include "Leaks.h"
+
 float Mix(const float& a, const float& b, float lambda)
 {
     return a * (1.0f - lambda) + b * lambda;

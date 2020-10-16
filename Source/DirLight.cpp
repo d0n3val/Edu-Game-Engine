@@ -4,6 +4,8 @@
 
 #include "Config.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 DirLight::DirLight() 
 {

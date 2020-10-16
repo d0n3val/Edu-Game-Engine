@@ -3,6 +3,8 @@
 #include "ModuleAudio.h"
 #include "Config.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 ResourceAudio::ResourceAudio(UID uid) : Resource(uid, Resource::Type::audio)
 {}

@@ -3,6 +3,8 @@
 #include "gpudetect/DeviceId.h"
 #include "SDL/include/SDL.h"
 
+#include "Leaks.h"
+
 ModuleHardware::ModuleHardware( bool start_enabled) : Module("Hardware", start_enabled)
 {
 	SDL_version version;

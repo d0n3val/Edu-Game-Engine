@@ -16,6 +16,8 @@
 #include "DebugDraw.h"
 #include "Viewport.h"
 
+#include "Leaks.h"
+
 #pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
 #pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
 #pragma comment (lib, "glew32.lib") /* link Microsoft OpenGL lib   */

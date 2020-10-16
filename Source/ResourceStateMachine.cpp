@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "ModuleFileSystem.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 // ---------------------------------------------------------
 ResourceStateMachine::ResourceStateMachine(UID id) : Resource(id, Resource::state_machine)

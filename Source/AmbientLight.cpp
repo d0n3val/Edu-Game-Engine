@@ -4,7 +4,7 @@
 
 #include "Config.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 // ---------------------------------------------------------
 AmbientLight::AmbientLight()

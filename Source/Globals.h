@@ -33,11 +33,6 @@ enum update_status
 #define MIN(a,b) ((a)<(b)) ? (a) : (b)
 #define MAX(a,b) ((a)>(b)) ? (a) : (b)
 
-// Align 16, use if you have math elemtns in your class like float4x4 or AABB
-#define ALIGN_CLASS_TO_16 \
-	void* operator new(size_t i) { return _aligned_malloc(i,16); }\
-    void operator delete(void* p) { _aligned_free(p); }
-
 // Deletes a buffer
 #define RELEASE( x )\
     {\

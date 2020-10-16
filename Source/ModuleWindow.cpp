@@ -5,6 +5,8 @@
 #include "Event.h"
 #include "Config.h"
 
+#include "Leaks.h"
+
 ModuleWindow::ModuleWindow(bool start_enabled) : Module("Window", start_enabled)
 {
 }

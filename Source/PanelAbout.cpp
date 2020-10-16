@@ -1,6 +1,8 @@
 #include "PanelAbout.h"
 #include "Imgui/imgui.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 PanelAbout::PanelAbout() : Panel("About")
 {

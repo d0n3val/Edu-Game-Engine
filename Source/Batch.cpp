@@ -13,6 +13,8 @@
 
 #include <algorithm>
 
+#include "Leaks.h"
+
 Batch::Batch(const HashString& tag, uint _max_vertices, uint _max_objects) 
 {
     assert(_max_objects > 0);

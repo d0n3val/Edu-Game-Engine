@@ -2,6 +2,9 @@
 
 #include "ComponentLight.h"
 
+
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 ComponentLight::ComponentLight(GameObject* container) : Component(container, Types::Light)
 {

@@ -1,6 +1,8 @@
 #include "Component.h"
 #include "Globals.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 Component::Component(GameObject* container, Component::Types type) : game_object(container), type(type)
 {

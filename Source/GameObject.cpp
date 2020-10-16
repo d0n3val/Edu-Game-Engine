@@ -23,7 +23,7 @@
 #include "OpenGL.h"
 #include "DebugDraw.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 using namespace std;
 

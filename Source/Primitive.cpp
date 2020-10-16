@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "ModuleHints.h"
 
+#include "Leaks.h"
+
 // ------------------------------------------------------------
 Primitive::Primitive() : transform(IdentityMatrix), color(White), wire(false), axis(false), type(PrimitiveTypes::Primitive_Point)
 {}

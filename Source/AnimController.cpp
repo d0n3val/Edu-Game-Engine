@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "ModuleResources.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 namespace
 {

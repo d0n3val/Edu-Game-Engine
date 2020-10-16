@@ -10,6 +10,8 @@
 #include "SOIL2/incs/image_DXT.h"
 #include "SOIL2/incs/stb_image_write.h"
 
+#include "Leaks.h"
+
 
 namespace
 {

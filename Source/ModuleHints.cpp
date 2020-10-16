@@ -3,6 +3,8 @@
 
 #include "Config.h"
 
+#include "Leaks.h"
+
 ModuleHints::ModuleHints() : Module("Render Hints")
 {
     hints[ENABLE_NORMAL_MAPPING].type             = TYPE_BOOL; 

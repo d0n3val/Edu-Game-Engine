@@ -41,7 +41,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {

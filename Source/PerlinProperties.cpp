@@ -6,6 +6,8 @@
 
 #include "imgui/imgui.h"
 
+#include "Leaks.h"
+
 #define TEXTURE_SIZE 512
 
 PerlinProperties::PerlinProperties()

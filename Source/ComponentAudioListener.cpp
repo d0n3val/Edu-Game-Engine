@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "ComponentAudioListener.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 ComponentAudioListener::ComponentAudioListener(GameObject* container) : Component(container, Types::AudioListener)
 {}

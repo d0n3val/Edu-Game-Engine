@@ -12,6 +12,8 @@
 #include "Imgui/imgui.h"
 #include <vector>
 
+#include "Leaks.h"
+
 using namespace std;
 
 // ---------------------------------------------------------

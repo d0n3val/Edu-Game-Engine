@@ -5,8 +5,18 @@
 // Old school memory leak detector and other random awesomeness
 #ifdef _DEBUG
 	//#define TEST_MEMORY_MANAGER
-	#include "mmgr/mmgr.h"
 #endif
+
+#ifdef _DEBUG
+#define MYDEBUG_NEW new( _NORMAL_BLOCK, __FILE__, __LINE__)
+// Replace _NORMAL_BLOCK with _CLIENT_BLOCK if you want the
+//allocations to be of _CLIENT_BLOCK type
+#else
+#define MYDEBUG_NEW
+#endif // _DEBUG
+
+#include "Leaks.h"
+
 
 // We need to include this here because SDL overwrites main()
 #include "SDL/include/SDL.h"
@@ -24,9 +34,19 @@ enum main_states
 
 Application* App = nullptr;
 
+void DumpLeaks(void)
+{
+	_CrtDumpMemoryLeaks();
+}
+
+
 int main(int argc, char ** argv)
 {
 	LOG("Starting EDU Engine from [%s]", argv[0]);
+
+#ifdef _DEBUG
+	atexit(DumpLeaks);
+#endif
 
 	int main_return = EXIT_FAILURE;
 	main_states state = MAIN_CREATION;
@@ -92,9 +112,7 @@ int main(int argc, char ** argv)
 	RELEASE(App);
 
 	LOG("Exiting engine ...");
-#ifdef _DEBUG
-	int leaks =  MAX(0, m_getMemoryStatistics().totalAllocUnitCount - 23);
-	LOG("With %d memory leaks!\n", (leaks>0) ? leaks : 0);
-#endif
+
+
 	return main_return;
 }

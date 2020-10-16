@@ -28,6 +28,8 @@
 #include "ImGui.h"
 #include "GL/glew.h"
 
+#include "Leaks.h"
+
 SceneViewport::SceneViewport()
 {        
     // first row ==> positions, second row ==> uv´s

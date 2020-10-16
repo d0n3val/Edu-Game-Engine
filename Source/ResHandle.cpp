@@ -6,6 +6,8 @@
 
 #include "Application.h"
 
+#include "Leaks.h"
+
 ResHandle::ResHandle() 
 {
 }

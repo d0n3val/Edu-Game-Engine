@@ -462,12 +462,6 @@
     <ClInclude Include="ModuleTextures.h">
       <Filter>Resources\Loaders</Filter>
     </ClInclude>
-    <ClInclude Include="mmgr\mmgr.h">
-      <Filter>3rd Party\mmgr</Filter>
-    </ClInclude>
-    <ClInclude Include="mmgr\nommgr.h">
-      <Filter>3rd Party\mmgr</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceAnimation.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -859,9 +853,6 @@
     </ClCompile>
     <ClCompile Include="ModuleTextures.cpp">
       <Filter>Resources\Loaders</Filter>
-    </ClCompile>
-    <ClCompile Include="mmgr\mmgr.cpp">
-      <Filter>3rd Party\mmgr</Filter>
     </ClCompile>
     <ClCompile Include="ResourceAnimation.cpp">
       <Filter>Resources</Filter>

@@ -32,7 +32,7 @@ using namespace std;
 #include "examples/imgui_impl_sdl.h"
 #include "examples/imgui_impl_opengl3.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 namespace ed = ax::NodeEditor;
 

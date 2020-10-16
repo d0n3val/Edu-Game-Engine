@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include "Application.h"
 
+#include "Leaks.h"
+
 void _log(const char file[], int line, const char* format, ...)
 {
 	static char tmp_string[4096];

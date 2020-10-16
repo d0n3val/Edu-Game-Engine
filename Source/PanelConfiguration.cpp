@@ -21,7 +21,7 @@
 #include "ComponentCamera.h"
 #include "GameObject.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 using namespace std;
 
@@ -138,6 +138,7 @@ void PanelConfiguration::DrawApplication()
 		ImGui::PlotHistogram("##milliseconds", &ms_log[0], ms_log.size(), 0, title, 0.0f, 40.0f, ImVec2(310, 100));
 
 		// Memory --------------------
+		/*
 		sMStats stats = m_getMemoryStatistics();
 		static int speed = 0;
 		static vector<float> memory(100);
@@ -166,6 +167,7 @@ void PanelConfiguration::DrawApplication()
 		ImGui::Text("Accumulated Alloc Unit Count: %u", stats.accumulatedAllocUnitCount);
 		ImGui::Text("Total Alloc Unit Count: %u", stats.totalAllocUnitCount);
 		ImGui::Text("Peak Alloc Unit Count: %u", stats.peakAllocUnitCount);
+		*/
 	}
 }
 

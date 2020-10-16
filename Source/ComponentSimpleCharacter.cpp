@@ -11,7 +11,7 @@
 #include "Application.h"
 #include "ModuleInput.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 ComponentSimpleCharacter::ComponentSimpleCharacter(GameObject* go) : Component(go, Types::CharacterController)
 {

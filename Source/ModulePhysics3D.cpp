@@ -11,8 +11,6 @@
 #include "Bullet/include/btBulletDynamicsCommon.h"
 #include "Bullet/include/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 
-#include "mmgr/mmgr.h"
-
 using namespace std;
 
 #ifdef _DEBUG
@@ -345,7 +343,7 @@ update_status ModulePhysics3D::PreUpdate(float dt)
 		return UPDATE_CONTINUE;
 
 	// Step the physics world
-	world->stepSimulation(dt, 15);
+	//world->stepSimulation(dt, 15);
 
 	// Update transformations
 

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 ModulePrograms::ModulePrograms(bool start_active) : Module("Program", start_active)
 {
@@ -57,7 +57,7 @@ void ModulePrograms::Clear()
     {
         for(unsigned i=0; i< it->second.num_macros; ++i)
         {
-            //free(it->second.macros[i]);
+            free(it->second.macros[i]);
         }
 
         free(it->second.macros);

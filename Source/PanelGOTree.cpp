@@ -14,6 +14,8 @@
 
 #include <stdio.h>
 
+#include "Leaks.h"
+
 using namespace std;
 
 // ---------------------------------------------------------

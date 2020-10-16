@@ -11,7 +11,7 @@
 #include "PanelProperties.h"
 #include "Imgui/imgui.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 using namespace std;
 

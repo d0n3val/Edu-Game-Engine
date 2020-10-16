@@ -12,7 +12,7 @@
 
 #include "OpenGL.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 ComponentGrass::ComponentGrass(GameObject* object) : Component(object, Types::Grass)
 {

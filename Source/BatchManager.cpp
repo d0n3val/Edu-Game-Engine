@@ -4,6 +4,8 @@
 #include "Batch.h"
 #include "ComponentMeshRenderer.h"
 
+#include "Leaks.h"
+
 #define DEFAULT_MAX_VERTICES 64000
 #define DEFAULT_MAX_OBJECTS 32
 

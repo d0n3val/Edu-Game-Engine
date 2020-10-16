@@ -3,6 +3,8 @@
 #include "Primitive.h"
 #include "Bullet/include/btBulletDynamicsCommon.h"
 
+#include "Leaks.h"
+
 // ----------------------------------------------------------------------------
 VehicleInfo::~VehicleInfo()
 {

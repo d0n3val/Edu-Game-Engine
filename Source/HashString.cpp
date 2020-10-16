@@ -4,6 +4,8 @@
 
 #include "utils/strpool.h"
 
+#include "Leaks.h"
+
 namespace
 {
 

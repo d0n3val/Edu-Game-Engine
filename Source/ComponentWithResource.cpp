@@ -3,6 +3,8 @@
 #include "ModuleResources.h"
 #include "Config.h"
 
+#include "Leaks.h"
+
 ComponentWithResource::~ComponentWithResource()
 {
     App->resources->Get(resource)->Release();

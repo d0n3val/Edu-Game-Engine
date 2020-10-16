@@ -6,6 +6,8 @@
 #include "ResourceAudio.h"
 #include "GameObject.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 ComponentAudioSource::ComponentAudioSource(GameObject* container) : Component(container, Types::AudioSource)
 {}

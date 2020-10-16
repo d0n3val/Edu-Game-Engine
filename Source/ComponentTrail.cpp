@@ -9,6 +9,8 @@
 #include "DebugDraw.h"
 #include "OpenGL.h"
 
+#include "Leaks.h"
+
 #define MIN_VERTICES 64
 #define MIN_INDICES 256
 #define TEXTURE_MAP_LOC 0

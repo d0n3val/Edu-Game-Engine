@@ -14,7 +14,7 @@
 
 #include "OpenGL.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 // ---------------------------------------------------------
 ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::material)

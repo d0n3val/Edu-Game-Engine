@@ -9,9 +9,7 @@
 #include "GL/glew.h"
 #include <assert.h>
 
-#include "mmgr/mmgr.h"
-
-
+#include "Leaks.h"
 
 class DDRenderInterfaceCoreGL final
     : public dd::RenderInterface

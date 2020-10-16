@@ -3,6 +3,8 @@
 #include "glmath.h"
 #include "Bullet/include/btBulletDynamicsCommon.h"
 
+#include "Leaks.h"
+
 using namespace std;
 
 // ---------------------------------------------------------

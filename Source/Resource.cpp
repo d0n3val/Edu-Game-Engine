@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "ModuleFileSystem.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 Resource::Resource(UID uid, Resource::Type type) : uid(uid), type(type)
 {}

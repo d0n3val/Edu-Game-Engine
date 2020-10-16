@@ -10,7 +10,8 @@
 
 #include "SOIL2.h"
 #include "stb_image.h"
-#include "mmgr/mmgr.h"
+
+#include "Leaks.h"
 
 #pragma comment( lib, "Devil/libx86/DevIL.lib" )
 #pragma comment( lib, "Devil/libx86/ILU.lib" )

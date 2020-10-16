@@ -3,6 +3,8 @@
 
 #include "Config.h"
 
+#include "Leaks.h"
+
 SpotLight::SpotLight()
 {
 }

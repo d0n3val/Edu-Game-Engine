@@ -1,6 +1,8 @@
 #include "PanelConsole.h"
 #include "ModuleInput.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 PanelConsole::PanelConsole() : Panel("Console")
 {

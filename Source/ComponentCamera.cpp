@@ -5,6 +5,8 @@
 #include "ModuleLevelManager.h"
 #include "DebugDraw.h"
 
+#include "Leaks.h"
+
 // ---------------------------------------------------------
 ComponentCamera::ComponentCamera(GameObject* container) : Component(container, Types::Camera)
 {

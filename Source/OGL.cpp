@@ -2,6 +2,8 @@
 #include "OGL.h"
 #include "OpenGL.h"
 
+#include "Leaks.h"
+
 void DefaultInitializeTexture(uint tex_target, bool mipmaps)
 {
     if(mipmaps)
@@ -401,6 +403,7 @@ Shader::Shader(unsigned type, const char* path, const char** defines, unsigned c
     char* data = nullptr;
 
 	FILE* file = 0;
+
 	fopen_s(&file, path, "rb");
 
     std::string error;
@@ -451,6 +454,7 @@ Shader::Shader(unsigned type, const char* path, const char** defines, unsigned c
         else
         {
             Init(type, (const char**)&data, 1, error);
+            free(data);
         }
 	}
 

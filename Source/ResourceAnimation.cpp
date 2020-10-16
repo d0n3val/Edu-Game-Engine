@@ -10,7 +10,7 @@
 
 #include "utils/SimpleBinStream.h"
 
-#include "mmgr/mmgr.h"
+#include "Leaks.h"
 
 // ---------------------------------------------------------
 ResourceAnimation::ResourceAnimation(UID uid) : Resource(uid, Resource::Type::animation)
