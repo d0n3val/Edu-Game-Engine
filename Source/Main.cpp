@@ -7,16 +7,10 @@
 	//#define TEST_MEMORY_MANAGER
 #endif
 
-#ifdef _DEBUG
-#define MYDEBUG_NEW new( _NORMAL_BLOCK, __FILE__, __LINE__)
-// Replace _NORMAL_BLOCK with _CLIENT_BLOCK if you want the
-//allocations to be of _CLIENT_BLOCK type
-#else
-#define MYDEBUG_NEW
-#endif // _DEBUG
-
 #include "Leaks.h"
-
+#include <assert.h>
+#include <vector>
+#include <string>
 
 // We need to include this here because SDL overwrites main()
 #include "SDL/include/SDL.h"
@@ -39,9 +33,14 @@ void DumpLeaks(void)
 	_CrtDumpMemoryLeaks();
 }
 
+int __cdecl CrtDbgHook(int nReportType, char* szMsg, int* pnRet)
+{
+	return 0;//Return false - Abort,Retry,Ignore dialog *will be displayed*
+}
 
 int main(int argc, char ** argv)
 {
+	_CrtSetReportHook2(_CRT_RPTHOOK_INSTALL, CrtDbgHook);
 	LOG("Starting EDU Engine from [%s]", argv[0]);
 
 #ifdef _DEBUG

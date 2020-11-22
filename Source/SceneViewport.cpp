@@ -227,7 +227,7 @@ void SceneViewport::ShowTexture()
         ImGui::GetWindowDrawList()->AddImage(
             (ImTextureID)App->renderer->GetShadowMap(0),
             ImVec2(screenPos),
-            ImVec2(screenPos.x + fb_width*0.2, screenPos.y + fb_height*0.2f),
+            ImVec2(screenPos.x + fb_width*0.2f, screenPos.y + fb_height*0.2f),
             ImVec2(0, 1), ImVec2(1, 0));
 
         ImGui::GetWindowDrawList()->AddImage(

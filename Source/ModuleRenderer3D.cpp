@@ -28,7 +28,7 @@ void __stdcall DebugMessageGL(GLenum source, GLenum type, GLuint id, GLenum seve
 
 	char tmp_string[4096];
 
-	const char* tmp_source = "";
+	const char* tmp_source = "", *tmp_type = "";
 
 	switch (source)
 	{
@@ -39,8 +39,6 @@ void __stdcall DebugMessageGL(GLenum source, GLenum type, GLuint id, GLenum seve
 	case GL_DEBUG_SOURCE_APPLICATION:     tmp_source = "Application"; break;
 	case GL_DEBUG_SOURCE_OTHER:           tmp_source = "Other"; break;
 	};
-
-	const char* tmp_type = "";
 
 	switch (type)
 	{

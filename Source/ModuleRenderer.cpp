@@ -284,14 +284,11 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height)
 {
-	opaque_nodes.clear();
-    transparent_nodes.clear();
-
 	float4x4 proj   = camera->GetProjectionMatrix();	
 	float4x4 view   = camera->GetViewMatrix();
     float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
 
-    CollectObjects(view_pos, App->level->GetRoot());
+    render_list.UpdateFrom(camera, App->level->quadtree.root);
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
@@ -303,14 +300,10 @@ void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width,
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
 {
-	opaque_nodes.clear();
-    transparent_nodes.clear();
-
 	float4x4 proj   = camera->GetProjectionMatrix();	
 	float4x4 view   = camera->GetViewMatrix();
-    float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
 
-    CollectObjects(view_pos, App->level->GetRoot());
+    render_list.UpdateFrom(camera, App->level->GetRoot());
 
     SelectionPass(proj, view);
 }
@@ -470,9 +463,7 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
             glActiveTexture(GL_TEXTURE9+1);
             glBindTexture(GL_TEXTURE_2D, cascades[2].tex);
             glUniform1i(App->programs->GetUniformLocation("shadow_map[2]"), 10);
-        
         }
-
     }
 
     App->programs->UnuseProgram();
@@ -494,14 +485,14 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
 
 
     // Render Batches
-    DrawBatches(opaque_nodes, flags);
-    DrawNodes(opaque_nodes, &ModuleRenderer::DrawColor);
+    //DrawBatches(opaque_nodes, flags);
+    DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawColor);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    DrawBatches(transparent_nodes, flags);
-    DrawNodes(transparent_nodes, &ModuleRenderer::DrawColor);
+    //DrawBatches(transparent_nodes, flags);
+    DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawColor);
 
     //DrawSkybox(proj, view);
 
@@ -516,8 +507,8 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
     glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
 
-    DrawNodes(opaque_nodes, &ModuleRenderer::DrawSelection);
-    DrawNodes(transparent_nodes, &ModuleRenderer::DrawSelection);
+    DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawSelection);
+    DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawSelection);
 }
 
 void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
@@ -538,95 +529,6 @@ void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
         glBindVertexArray(0);
 
         App->programs->UnuseProgram();
-    }
-}
-
-
-void ModuleRenderer::CollectObjects(const float3& camera_pos, GameObject* go)
-{
-    CollectMeshRenderers(camera_pos, go);
-    CollectParticleSystems(camera_pos, go);
-    CollectTrails(camera_pos, go);
-
-    for(std::list<GameObject*>::iterator lIt = go->childs.begin(), lEnd = go->childs.end(); lIt != lEnd; ++lIt)
-    {
-        CollectObjects(camera_pos, *lIt);
-    }
-}
-
-void ModuleRenderer::CollectMeshRenderers(const float3& camera_pos, GameObject* go)
-{
-    std::vector<Component*> components;
-    go->FindComponents(Component::MeshRenderer, components);
-
-    float distance = (go->global_bbox.CenterPoint()-camera_pos).LengthSq();
-
-    for(Component* comp : components)
-    {
-        TRenderInfo render;
-        render.name = go->name.c_str();
-        render.go   = go;
-        render.mesh = static_cast<ComponentMeshRenderer*>(comp);
-        render.distance = distance;
-
-        if(render.mesh->GetVisible())
-        {
-            if(render.mesh->RenderMode() == ComponentMeshRenderer::RENDER_OPAQUE)
-            {
-                NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render, TNearestMesh());
-
-                opaque_nodes.insert(it, render);
-            }
-            else
-            {
-                NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
-
-                transparent_nodes.insert(it, render);
-            }
-        }
-    }
-}
-
-void ModuleRenderer::CollectParticleSystems(const float3& camera_pos, GameObject* go)
-{
-    std::vector<Component*> components;
-    go->FindComponents(Component::ParticleSystem, components);
-
-    float distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
-
-    for(Component* comp : components)
-    {
-        TRenderInfo render;
-        render.name = go->name.c_str();
-        render.go   = go;
-
-        render.distance = distance;
-        render.particles= static_cast<ComponentParticleSystem*>(comp);
-        render.layer = render.particles->GetLayer();
-
-        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
-        transparent_nodes.insert(it, render);
-    }
-}
-
-void ModuleRenderer::CollectTrails(const float3& camera_pos, GameObject* go)
-{
-    std::vector<Component*> components;
-    go->FindComponents(Component::Trail, components);
-
-    float distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
-
-    for(Component* comp : components)
-    {
-        TRenderInfo render;
-        render.name = go->name.c_str();
-        render.go   = go;
-
-        render.distance = distance;
-        render.trail = static_cast<ComponentTrail*>(comp);
-
-        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, TFarthestMesh());
-        transparent_nodes.insert(it, render);
     }
 }
 
@@ -652,7 +554,8 @@ void ModuleRenderer::DrawBatches(NodeList& nodes, uint render_flags)
 
 }
 
-void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo&)) {
+void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo&)) 
+{
 	for(NodeList::const_iterator it = nodes.begin(), end = nodes.end(); it != end; ++it)
 	{
         (this->*drawer)(*it);
@@ -661,7 +564,6 @@ void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*dra
 
 void ModuleRenderer::DrawColor(const TRenderInfo& render_info)
 {    
-
     if(render_info.mesh)
     {
         DrawMeshColor(render_info.mesh);
@@ -850,10 +752,41 @@ void ModuleRenderer::UpdateLightUniform() const
 
 void ModuleRenderer::DrawDebug()
 {
+    DebugDrawOBB();
     DebugDrawTangentSpace();
     DebugDrawAnimation();
-    DebugDrawParticles();
-    DebugDrawTrails();
+}
+
+void ModuleRenderer::DebugDrawOBB(const NodeList& objects)
+{
+    for(const TRenderInfo& render_info : objects)
+    {
+        AABB local_bounding = render_info.go->GetLocalBBox();
+
+        if(local_bounding.IsFinite())
+        {
+            float4x4 transform = render_info.go->GetGlobalTransformation();
+
+            OBB global_bounding = local_bounding.Transform(transform);
+
+            math::float3 corners[8];
+            global_bounding.GetCornerPoints(corners);
+            std::swap(corners[2], corners[5]);
+            std::swap(corners[3], corners[4]);
+            std::swap(corners[4], corners[5]);
+            std::swap(corners[6], corners[7]);
+
+            dd::box(corners, dd::colors::White); 
+
+        }
+    }
+
+}
+
+void ModuleRenderer::DebugDrawOBB()
+{
+    DebugDrawOBB(render_list.GetOpaques());
+    DebugDrawOBB(render_list.GetTransparents());
 }
 
 void ModuleRenderer::DebugDrawAnimation()
@@ -892,28 +825,6 @@ void ModuleRenderer::DebugDrawHierarchy(const GameObject* go)
     for(std::list<GameObject*>::const_iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
     {
         DebugDrawHierarchy((*it));
-    }
-}
-
-void ModuleRenderer::DebugDrawParticles()
-{
-    for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
-    {
-        if(it->particles)
-        {
-            it->particles->OnDebugDraw(false);
-        }
-    }
-}
-
-void ModuleRenderer::DebugDrawTrails()
-{
-    for(NodeList::iterator it = transparent_nodes.begin(), end = transparent_nodes.end(); it != end; ++it)
-    {
-        if(it->trail)
-        {
-            it->trail->OnDebugDraw(false);
-        }
     }
 }
 
@@ -1293,8 +1204,8 @@ void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, const floa
             big_camera_aabb.maxPoint[i] += expand_amount;
     }
 
-    CalcLightObjectsBBox(light_mat, big_camera_aabb, aabb, casters, opaque_nodes);
-    CalcLightObjectsBBox(light_mat, big_camera_aabb, aabb, casters, transparent_nodes);
+    CalcLightObjectsBBox(light_mat, big_camera_aabb, aabb, casters, render_list.GetOpaques());
+    CalcLightObjectsBBox(light_mat, big_camera_aabb, aabb, casters, render_list.GetTransparents());
 
 	aabb = aabb.Intersection(camera_aabb);
 

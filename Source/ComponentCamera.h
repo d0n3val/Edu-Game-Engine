@@ -36,6 +36,7 @@ public:
 	float4x4 GetOpenGLViewMatrix() const;
 	float4x4 GetOpenGLProjectionMatrix() const;
 
+    float4x4 GetCameraMatrix() const;
 	float4x4 GetViewMatrix() const;
 	float4x4 GetProjectionMatrix() const;
     float3   GetFront() const { return frustum.front; }

@@ -3,6 +3,7 @@
 
 #include "Module.h"
 #include "Math.h"
+#include "RenderList.h"
 
 #include<vector>
 
@@ -14,41 +15,11 @@ class ComponentTrail;
 class ResourceMaterial;
 class ResourceMesh;
 class BatchManager;
+class QuadtreeNode;
 
 class ModuleRenderer : public Module
 {
-    struct TRenderInfo
-    {
-        const char*              name         = nullptr;
-        GameObject*              go           = nullptr;
-        ComponentMeshRenderer*   mesh         = nullptr;
-        ComponentParticleSystem* particles    = nullptr;
-        ComponentTrail*          trail        = nullptr;
-        float                    distance     = 0.0f;
-        float                    layer        = 0.0f;
-    };
-
-    struct TNearestMesh
-    {
-        bool operator()(const TRenderInfo& info, const TRenderInfo& new_info)
-        {
-            return info.distance < new_info.distance;
-        }
-    };
-
-    struct TFarthestMesh
-    {
-        bool operator()(const TRenderInfo& info, const TRenderInfo& new_info)
-        {
-            return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
-        }
-    };
-
-	typedef std::vector<TRenderInfo> NodeList;
-	typedef std::pair<uint, uint> Size;
-
-    NodeList opaque_nodes;
-    NodeList transparent_nodes;
+    RenderList render_list;
 
     uint post_vbo       = 0;
     uint post_vao       = 0;
@@ -137,10 +108,6 @@ private:
     void                DrawTrails                  (ComponentTrail* trail);
     void                DrawSelection               (const TRenderInfo& render_info);
 
-    void                CollectObjects              (const float3& camera_pos, GameObject* go);
-    void                CollectMeshRenderers        (const float3& camera_pos, GameObject* go);
-    void                CollectParticleSystems      (const float3& camera_pos, GameObject* go);
-    void                CollectTrails               (const float3& camera_pos, GameObject* go);
     void                UpdateLightUniform          () const;
 
     void                BlurShadow                  (uint index);
@@ -151,8 +118,8 @@ private:
     void                DrawClippingSpace           (const math::float4x4& proj, const math::float4x4& view) const;
     void                GetClippingPoints           (const math::float4x4& proj, const math::float4x4& view, math::float3 points[8]) const;
 
-    void                DebugDrawTrails             ();
-    void                DebugDrawParticles          ();
+    void                DebugDrawOBB                ();
+    void                DebugDrawOBB                (const NodeList& objects);
     void                DebugDrawTangentSpace       ();
     void                DebugDrawTangentSpace       (const ResourceMesh* mesh, const float4x4& transform);
     void                DebugDrawAnimation          ();
