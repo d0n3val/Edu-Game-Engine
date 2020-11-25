@@ -220,7 +220,7 @@ update_status ModuleRenderer3D::Update(float dt)
 // PostUpdate present buffer to screen
 update_status ModuleRenderer3D::PostUpdate(float dt)
 {
-    viewport->Draw(active_camera);
+    viewport->Draw(active_camera, culling_camera);
     App->editor->Draw();
 
     SDL_GL_SwapWindow(App->window->GetWindow());

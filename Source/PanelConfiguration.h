@@ -60,6 +60,9 @@ private:
     bool need_scroll = false;
 	std::vector<float> fps_log;
 	std::vector<float> ms_log;
+
+    //Frustum debug_frustum;
+    //RenderList debug_render_objs;
 };
 
 #endif// __PANELCONFIGURATION_H__

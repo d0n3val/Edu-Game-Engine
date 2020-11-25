@@ -282,13 +282,13 @@ ModuleRenderer::~ModuleRenderer()
     }
 }
 
-void ModuleRenderer::Draw(ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height)
+void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height)
 {
 	float4x4 proj   = camera->GetProjectionMatrix();	
 	float4x4 view   = camera->GetViewMatrix();
     float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
 
-    render_list.UpdateFrom(camera, App->level->quadtree.root);
+    render_list.UpdateFrom(culling, App->level->quadtree.root);
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
@@ -752,9 +752,6 @@ void ModuleRenderer::UpdateLightUniform() const
 
 void ModuleRenderer::DrawDebug()
 {
-    DebugDrawOBB();
-    DebugDrawTangentSpace();
-    DebugDrawAnimation();
 }
 
 void ModuleRenderer::DebugDrawOBB(const NodeList& objects)

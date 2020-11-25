@@ -68,7 +68,7 @@ update_status ModuleLevelManager::PreUpdate(float dt)
 {
 	DestroyFlaggedGameObjects();
 	// Update transformations tree for this frame
-	root->RecursiveCalcGlobalTransform(root->GetLocalTransform(), false);
+	root->RecursiveCalcGlobalTransform(float4x4::identity, false);
 	root->RecursiveCalcBoundingBoxes();
 
 	return UPDATE_CONTINUE;

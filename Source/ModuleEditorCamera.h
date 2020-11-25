@@ -24,7 +24,6 @@ public:
 
 	void DrawDebug() override;
 
-	float3 GetPosition() const;
 	void Look(const float3& position);
 	void CenterOn(const float3& position, float distance);
 

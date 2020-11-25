@@ -787,15 +787,18 @@ namespace ImGuizmo
       gContext.mViewMat = *(matrix_t*)view;
       gContext.mProjectionMat = *(matrix_t*)projection;
 
-      if (mode == LOCAL)
+      //if (mode == LOCAL)
       {
          gContext.mModel = *(matrix_t*)matrix;
          gContext.mModel.OrthoNormalize();
       }
+      /*
       else
       {
          gContext.mModel.Translation(((matrix_t*)matrix)->v.position);
       }
+      */
+
       gContext.mModelSource = *(matrix_t*)matrix;
       gContext.mModelScaleOrigin.Set(gContext.mModelSource.v.right.Length(), gContext.mModelSource.v.up.Length(), gContext.mModelSource.v.dir.Length());
 

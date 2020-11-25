@@ -49,7 +49,7 @@ SceneViewport::~SceneViewport()
 {
 }
 
-void SceneViewport::Draw(ComponentCamera* camera)
+void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 {
     if(ImGui::BeginChild("SceneCanvas", ImVec2(0, 0), true, ImGuiWindowFlags_NoMove))
     {
@@ -115,7 +115,7 @@ void SceneViewport::Draw(ComponentCamera* camera)
             DrawGrid(camera);
         }
 
-		App->renderer->Draw(camera, framebuffer->Id(), fb_width, fb_height);
+		App->renderer->Draw(camera, culling, framebuffer->Id(), fb_width, fb_height);
 
         App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
@@ -521,6 +521,8 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera)
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
 {
+    ComponentCamera* go_camera = static_cast<ComponentCamera*>(go->FindFirstComponent(Component::Camera));
+
     float4x4 view = camera->GetOpenGLViewMatrix();
     float4x4 proj = camera->GetOpenGLProjectionMatrix();
 
@@ -540,7 +542,7 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
     if (ImGuizmo::IsUsing() && !delta.IsIdentity())
     {
         model.Transpose();
-        if(go->GetParent() == nullptr)
+        if(guizmo_mode == ImGuizmo::LOCAL || go->GetParent() == nullptr)
         {
             go->SetLocalTransform(model);
         }
@@ -550,7 +552,15 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
             parent.InverseOrthonormal();
             go->SetLocalTransform(parent*model);
         }
+
+        App->level->GetRoot()->RecursiveCalcGlobalTransform(float4x4::identity, false);
+
+        if(go_camera)
+        {
+            go_camera->OnUpdateTransform();
+        }
     }
+
 
 	float3 points[8];
 	go->global_bbox.GetCornerPoints(points);
@@ -559,6 +569,17 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
 	std::swap(points[4], points[5]);
 	std::swap(points[6], points[7]);
 	dd::box(points, dd::colors::Yellow);
+
+    if(go_camera)
+    {
+        float4x4 go_view = go_camera->GetViewMatrix();
+        float4x4 go_proj = go_camera->GetProjectionMatrix();
+
+        float4x4 inv_clip = go_proj*go_view;
+        inv_clip.Inverse();
+
+        dd::frustum(inv_clip, dd::colors::Gray);
+    }
 }
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)

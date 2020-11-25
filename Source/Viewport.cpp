@@ -48,7 +48,7 @@ Viewport::~Viewport()
     delete state;
 }
 
-void Viewport::Draw(ComponentCamera* camera)
+void Viewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 {
 	int posx = App->editor->GetPosX(ModuleEditor::TabPanelLeft) + App->editor->GetWidth(ModuleEditor::TabPanelLeft);
 	int posy = 21;
@@ -65,7 +65,7 @@ void Viewport::Draw(ComponentCamera* camera)
         {
             if (ImGui::BeginTabItem("Scene"))
             {
-                scene->Draw(camera);
+                scene->Draw(camera, culling);
                 ImGui::EndTabItem();
             }
 

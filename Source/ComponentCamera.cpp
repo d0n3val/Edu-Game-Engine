@@ -99,8 +99,16 @@ void ComponentCamera::OnUpdateTransform()
 	float4x4 trans = game_object->GetGlobalTransformation();
 
 	frustum.pos = trans.TranslatePart();
-	frustum.front = trans.WorldZ();
+	frustum.front = -trans.WorldZ();
 	frustum.up = trans.WorldY();
+}
+
+void ComponentCamera::OnUpdateFrustum()
+{
+	if(game_object)
+	{
+		game_object->SetLocalTransform(GetCameraMatrix());
+	}
 }
 
 // ---------------------------------------------------------
@@ -213,7 +221,7 @@ float4x4 ComponentCamera::GetViewMatrix() const
 // -----------------------------------------------------------------
 float4x4 ComponentCamera::GetProjectionMatrix() const
 {
-    //return frustum.ProjectionMatrix();
-	return float4x4::D3DPerspProjRH(frustum.nearPlaneDistance, frustum.farPlaneDistance, frustum.NearPlaneWidth(), frustum.NearPlaneHeight());
+    return frustum.ProjectionMatrix();
+	//return float4x4::D3DPerspProjRH(frustum.nearPlaneDistance, frustum.farPlaneDistance, frustum.NearPlaneWidth(), frustum.NearPlaneHeight());
 }
 

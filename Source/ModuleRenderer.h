@@ -74,7 +74,7 @@ public:
     ~ModuleRenderer();
 
 	bool                Init                        (Config* config = nullptr) override;
-    void                Draw                        (ComponentCamera* camera, unsigned fbo, unsigned width, unsigned height);
+    void                Draw                        (ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height);
     void                DrawForSelection            (ComponentCamera* camera);
     void                Postprocess                 (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
 

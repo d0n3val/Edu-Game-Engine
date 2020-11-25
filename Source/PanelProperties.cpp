@@ -803,8 +803,6 @@ void PanelProperties::DrawAudioListenerComponent(ComponentAudioListener * compon
 
 void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 {
-	ImGui::Checkbox("Frustum Culling", &component->frustum_culling);
-
 	float near_plane = component->GetNearPlaneDist();
 	if (ImGui::DragFloat("Near Plane", &near_plane, 0.1f, 0.1f, 1000.0f))
 		component->SetNearPlaneDist(near_plane);
@@ -835,6 +833,15 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 		else
 			App->renderer3D->active_camera = App->camera->GetDummy();
 	}
+
+    bool is_culling = App->renderer3D->culling_camera == component;
+    if (ImGui::Checkbox("Is Culling Camera", &is_culling))
+    {
+        if (is_culling == true)
+            App->renderer3D->culling_camera = component;
+        else
+            App->renderer3D->culling_camera = App->camera->GetDummy();
+    }
 }
 
 void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh)

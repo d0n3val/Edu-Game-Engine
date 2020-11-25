@@ -15,7 +15,7 @@ public:
     Viewport();
     ~Viewport();
 
-    void                    Draw        (ComponentCamera* camera);
+    void                    Draw        (ComponentCamera* camera, ComponentCamera* culling);
 
 	void                    Save        (Config* config) const;
 	void                    Load        (Config* config);

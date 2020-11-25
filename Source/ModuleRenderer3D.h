@@ -38,6 +38,7 @@ public:
 
     Viewport* viewport = nullptr;
 	ComponentCamera* active_camera = nullptr;
+	ComponentCamera* culling_camera = nullptr;
 	SDL_GLContext context;
 	DDRenderInterfaceLegacyGL* debug_draw_interface = nullptr;
 	bool vsync = false;

@@ -17,7 +17,7 @@ public:
     SceneViewport();
     ~SceneViewport();
 
-    void                Draw                (ComponentCamera* camera);
+    void                Draw                (ComponentCamera* camera, ComponentCamera* culling);
 
 	void                Save                (Config* config) const;
 	void                Load                (Config* config);
@@ -85,7 +85,7 @@ private:
 	bool        debug_draw  = true;
 
     ImGuizmo::OPERATION          guizmo_op      = ImGuizmo::TRANSLATE;
-    ImGuizmo::MODE               guizmo_mode    = ImGuizmo::WORLD;
+    ImGuizmo::MODE               guizmo_mode    = ImGuizmo::LOCAL;
     bool                         guizmo_useSnap = false;
     float3                       guizmo_snap    = float3(1.0f);
 
