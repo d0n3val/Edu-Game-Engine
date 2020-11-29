@@ -13,7 +13,12 @@ void RenderList::UpdateFrom(ComponentCamera* camera, QuadtreeNode* quadtree)
     opaque_nodes.clear();
     transparent_nodes.clear();
 
-    CollectObjects(camera, quadtree);
+    Plane planes[6];
+    camera->frustum.GetPlanes(planes);
+
+    float3 pos = camera->GetCameraMatrix().TranslatePart();
+
+    CollectObjects(planes, pos, quadtree);
 }
 
 void RenderList::UpdateFrom(ComponentCamera* camera, GameObject* go)
@@ -24,11 +29,11 @@ void RenderList::UpdateFrom(ComponentCamera* camera, GameObject* go)
     CollectObjects(camera, go);
 }
 
-void RenderList::CollectObjects(ComponentCamera* camera, QuadtreeNode* quadtree)
+void RenderList::CollectObjects(Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree)
 {
-    if(quadtree->box.IsFinite() && camera->frustum.Intersects(quadtree->box))
+    if (quadtree->box.IsFinite() && Intersects(camera_planes, quadtree->box))
     {
-        for(GameObject* go : quadtree->objects)
+        for (GameObject* go : quadtree->objects)
         {
             AABB local_bounding = go->GetLocalBBox();
 
@@ -38,26 +43,57 @@ void RenderList::CollectObjects(ComponentCamera* camera, QuadtreeNode* quadtree)
                 float4x4 transform = go->GetGlobalTransformation();
 
                 OBB global_bounding = local_bounding.Transform(transform);
-                inside = camera->frustum.Intersects(global_bounding);
+                inside = Intersects(camera_planes, global_bounding);
             }
 
-            if(inside)
+            if (inside)
             {
-                float3 camera_pos = camera->GetCameraMatrix().TranslatePart();
                 CollectMeshRenderers(camera_pos, go);
                 CollectParticleSystems(camera_pos, go);
                 CollectTrails(camera_pos, go);
             }
         }
 
-        for(QuadtreeNode* child : quadtree->childs)
+        for (QuadtreeNode* child : quadtree->childs)
         {
-            if(child)
+            if (child)
             {
-                CollectObjects(camera, child);
+                CollectObjects(camera_planes, camera_pos, child);
             }
         }
     }
+}
+
+bool RenderList::Intersects(Plane * camera_planes, const AABB & aabb)
+{
+    float3 points[8];
+    aabb.GetCornerPoints(points);
+
+    return Intersects(camera_planes, points);
+}
+
+bool RenderList::Intersects(Plane* camera_planes, const OBB& obb)
+{
+    float3 points[8];
+    obb.GetCornerPoints(points);
+
+    return Intersects(camera_planes, points);
+}
+
+bool RenderList::Intersects(Plane* camera_planes, const float3* points)
+{
+    int out;
+    for (int i = 0; i < 6; ++i)
+    {
+        out = 0;
+        for (int k = 0; k < 8; ++k)
+            out += camera_planes[i].IsOnPositiveSide(points[k]);
+
+        if (out == 8)
+            return false;
+    }
+
+    return true;
 }
 
 void RenderList::CollectObjects(ComponentCamera* camera, GameObject* go)

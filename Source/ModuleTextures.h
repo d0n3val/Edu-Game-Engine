@@ -19,13 +19,17 @@ public:
 
 	bool Load(ResourceTexture* resource);
     bool LoadToArray(const ResourceTexture* resource, Texture2DArray* texture, uint index);
+
 	// TODO: Unload Texture
+
+    bool ImportCube(const char* files [], const char* path, std::string& output_file, bool compressed);
 	bool Import(const char* file, const char* path, std::string& output_file, bool compressed);
 	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);
 	bool LoadCheckers(ResourceTexture* resource);
     bool LoadFallback(ResourceTexture* resource, const float3& color);
 
 private:
+	bool Import(const void* buffer, uint size, bool compressed, uint header_size, void*& output_buffer, uint& output_size);
 };
 
 #endif // __MODULETEXTURES_H__

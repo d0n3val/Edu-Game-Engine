@@ -255,7 +255,7 @@ bool GameObject::RecursiveRemoveFlagged()
 
 	for (list<Component*>::iterator it = components.begin(); it != components.end();)
 	{
-		if ((*it)->flag_for_removal == true)
+		if (flag_for_removal || (*it)->flag_for_removal == true)
 		{
 			(*it)->OnFinish();
 			RELEASE(*it);
@@ -267,6 +267,11 @@ bool GameObject::RecursiveRemoveFlagged()
 
 	for (list<GameObject*>::iterator it = childs.begin(); it != childs.end();)
 	{
+		(*it)->flag_for_removal = flag_for_removal || (*it)->flag_for_removal ;
+
+		// Keep looking, hay millones de premios
+		ret |= (*it)->RecursiveRemoveFlagged();
+
 		if ((*it)->flag_for_removal == true)
 		{
 			(*it)->OnFinish();
@@ -277,8 +282,6 @@ bool GameObject::RecursiveRemoveFlagged()
 		}
 		else
 		{
-			// Keep looking, hay millones de premios
-			ret |= (*it)->RecursiveRemoveFlagged();
 			++it;
 		}
 	}
@@ -490,9 +493,6 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force
 		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 			(*it)->OnUpdateTransform();
 
-		// mmmm ... too brute ?
-		App->level->quadtree.Erase(this);
-		App->level->quadtree.Insert(this);
 	}
 	else
 		was_dirty = false;
@@ -504,7 +504,6 @@ void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force
 // ---------------------------------------------------------
 void GameObject::RecursiveCalcBoundingBoxes()
 {
-	was_dirty = true;
 	if (was_dirty == true)
 	{
 		RecalculateBoundingBox();
@@ -514,6 +513,9 @@ void GameObject::RecursiveCalcBoundingBoxes()
 
 		if (global_bbox.IsFinite() == true)
 			global_bbox.Transform(GetGlobalTransformation());
+
+		App->level->quadtree.Erase(this);
+		App->level->quadtree.Insert(this);
 	}
 
 	for (list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)

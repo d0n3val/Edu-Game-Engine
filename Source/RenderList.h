@@ -42,9 +42,12 @@ public:
 
 private:
 
-    void CollectObjects(ComponentCamera* camera, QuadtreeNode* quadtree);
+    void CollectObjects(Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree);
     void CollectObjects(ComponentCamera* camera, GameObject* go);
 
+    bool Intersects(Plane* camera_planes, const AABB& aabb);
+    bool Intersects(Plane* camera_planes, const OBB& obb);
+    bool Intersects(Plane* camera_planes, const float3* points);
     void CollectMeshRenderers        (const float3& camera_pos, GameObject* go);
     void CollectParticleSystems      (const float3& camera_pos, GameObject* go);
     void CollectTrails               (const float3& camera_pos, GameObject* go);

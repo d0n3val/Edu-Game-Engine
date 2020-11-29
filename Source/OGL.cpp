@@ -4,7 +4,21 @@
 
 #include "Leaks.h"
 
-void DefaultInitializeTexture(uint tex_target, bool mipmaps)
+Texture::Texture(uint target) : tex_target(target)
+{
+    glGenTextures(1, &texture);
+}
+
+Texture::Texture(uint target, uint text) : tex_target(target), texture(text)
+{
+}
+
+Texture::~Texture()
+{
+    glDeleteTextures(1, &texture);
+}
+
+void Texture::DefaultInitializeTexture(bool mipmaps)
 {
     if(mipmaps)
     {
@@ -23,48 +37,72 @@ void DefaultInitializeTexture(uint tex_target, bool mipmaps)
     }
 }
 
-Texture2D::Texture2D(uint target, uint samples, uint width, uint height, uint internal_format, bool fixed_samples) : tex_target(target)
+void Texture::SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r)
 {
-	glGenTextures(1, &texture);
     glBindTexture(tex_target, texture);
-
-    glTexImage2DMultisample(tex_target, samples, internal_format, width, height, fixed_samples ? GL_TRUE : GL_FALSE);
-
+    glTexParameteri(tex_target, GL_TEXTURE_WRAP_S, wrap_s);
+    glTexParameteri(tex_target, GL_TEXTURE_WRAP_T, wrap_t);
+    glTexParameteri(tex_target, GL_TEXTURE_WRAP_R, wrap_r);
     glBindTexture(tex_target, 0);
 }
 
-Texture2D::Texture2D(uint target, uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps) : tex_target(target)
+void Texture::SetMinMaxFiler(uint min_filter, uint max_filter)
 {
-	glGenTextures(1, &texture);
     glBindTexture(tex_target, texture);
-
-    glTexImage2D(tex_target, 0, internal_format, width, height, 0, format, type, data);
-    DefaultInitializeTexture(tex_target, mipmaps);
-
+    glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, max_filter);
     glBindTexture(tex_target, 0);
 }
 
-Texture2D::~Texture2D()
+void Texture::GenerateMipmaps(uint base, uint max)
 {
-    glDeleteTextures(1, &texture);
+    glBindTexture(tex_target, texture);
+    glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, base);
+    glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, max);
+    glGenerateMipmap(tex_target);
+    glBindTexture(tex_target, 0);
 }
 
-void Texture2D::Bind(uint unit, uint uniform_location)
+void Texture::Bind(uint unit, uint uniform_location)
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, texture);
     glUniform1i(uniform_location, unit);
 }
 
-void Texture2D::Bind(uint unit) 
+void Texture::Bind(uint unit) 
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, texture);
 }
 
-void Texture2D::Unbind(uint unit) 
+void Texture::Unbind(uint unit) 
 {
     glActiveTexture(GL_TEXTURE0+unit);
+    glBindTexture(tex_target, 0);
+}
+
+
+Texture2D::Texture2D(uint target, uint tex) : Texture(target, tex)
+{
+}
+
+Texture2D::Texture2D(uint target, uint samples, uint width, uint height, uint internal_format, bool fixed_samples) : Texture(target)
+{
+    glBindTexture(tex_target, texture);
+    glTexImage2DMultisample(tex_target, samples, internal_format, width, height, fixed_samples ? GL_TRUE : GL_FALSE);
+    DefaultInitializeTexture(false);
+    glBindTexture(tex_target, 0);
+}
+
+Texture2D::Texture2D(uint target, uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps) : Texture(target)
+{
+    glBindTexture(tex_target, texture);
+
+    glTexImage2D(tex_target, 0, internal_format, width, height, 0, format, type, data);
+
+    DefaultInitializeTexture(mipmaps);
+
     glBindTexture(tex_target, 0);
 }
 
@@ -80,74 +118,22 @@ void Texture2D::SetDefaultRGBAData(uint width, uint height, void* data)
     SetData(width, height, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
-void Texture2D::SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r)
-{
-    glBindTexture(tex_target, texture);
-    glTexParameteri(tex_target, GL_TEXTURE_WRAP_S, wrap_s);
-    glTexParameteri(tex_target, GL_TEXTURE_WRAP_T, wrap_t);
-    glTexParameteri(tex_target, GL_TEXTURE_WRAP_R, wrap_r);
-    glBindTexture(tex_target, 0);
-}
-
-void Texture2D::SetMinMaxFiler(uint min_filter, uint max_filter)
-{
-    glBindTexture(tex_target, texture);
-    glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, min_filter);
-	glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, max_filter);
-    glBindTexture(tex_target, 0);
-}
-
-void Texture2D::GenerateMipmaps(uint base, uint max)
-{
-    glBindTexture(tex_target, texture);
-	glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, base);
-	glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, max);
-	glGenerateMipmap(tex_target);
-    glBindTexture(tex_target, 0);
-}
-
 Texture2D* Texture2D::CreateDefaultRGBA(uint width, uint height, void* data, bool mipmaps)
 {
     return new Texture2D(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
 }
 
-Texture2DArray::Texture2DArray(uint mip_levels, uint _width, uint _height, uint _depth, uint internal_format)
+Texture2DArray::Texture2DArray(uint mip_levels, uint _width, uint _height, uint _depth, uint internal_format): Texture(GL_TEXTURE_2D_ARRAY)
 {
     width  = _width;
     height = _height;
     depth  = _depth;
 
-	glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 
     glTexStorage3D(GL_TEXTURE_2D_ARRAY, mip_levels, internal_format, width, height, depth);
+    DefaultInitializeTexture(mip_levels > 1);
 
-    DefaultInitializeTexture(GL_TEXTURE_2D_ARRAY, mip_levels > 1);
-
-    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-}
-
-Texture2DArray::~Texture2DArray()
-{
-    glDeleteTextures(1, &texture);
-}
-
-void Texture2DArray::Bind(uint unit, uint uniform_location)
-{
-	glActiveTexture(GL_TEXTURE0+unit);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-    glUniform1i(uniform_location, unit);
-}
-
-void Texture2DArray::Bind(uint unit /*= 0*/)
-{
-    glActiveTexture(GL_TEXTURE0+unit);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-}
-
-void Texture2DArray::Unbind(uint unit /*= 0*/)
-{
-    glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
@@ -164,18 +150,28 @@ void Texture2DArray::SetDefaultRGBASubData(uint mip_level, uint depth_index, voi
     SetSubData(mip_level, depth_index, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
-void Texture2DArray::GenerateMipmaps(uint base /*= 0*/, uint max /*= 1000*/)
-{
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BASE_LEVEL, base);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, max);
-	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-}
-
 Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth, bool convert_linear)
 {
     return new Texture2DArray(mip_levels, width, height, depth, convert_linear ? GL_SRGB8_ALPHA8 : GL_SRGB8_ALPHA8);
+}
+
+TextureCube::TextureCube() : Texture(GL_TEXTURE_CUBE_MAP)
+{
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    DefaultInitializeTexture(false);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void TextureCube::SetData(uint face_index, uint mip_level, uint width, uint height, uint internal_format, uint format, uint type, void* data)
+{
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face_index, mip_level, internal_format, width, height, 0, format, type, data);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void TextureCube::SetDefaultRGBAData(uint face_index, uint mip_level, uint width, uint height, void* data)
+{
+    SetData(face_index, mip_level, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
 Framebuffer::Framebuffer()

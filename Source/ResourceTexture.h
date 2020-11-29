@@ -20,6 +20,13 @@ public:
 		unknown
 	};
 
+	enum Type
+	{
+		Texture2D = 0,
+		TextureCube = 1,
+		TextureArray = 2
+	};
+
 public:
 
 	ResourceTexture(UID id);
@@ -34,7 +41,7 @@ public:
 	void             Save         (Config& config) const override;
 	void             Load         (const Config& config) override;
 
-    Texture2D*		 GetTexture   () const { return texture.get(); }
+    Texture*		 GetTexture   () const { return texture.get(); }
     uint             GetID        () const { return texture ? texture->Id() : 0; }
     uint             GetWidth     () const { return width; }
     uint             GetHeight    () const { return height; }
@@ -44,6 +51,7 @@ public:
     uint             GetBytes     () const { return bytes; }
     bool             GetLinear    () const { return linear; }
     bool             GetCompressed() const { return compressed; }
+	Type			 GetType	  () const { return type;  }
 
     void             SetLinear    (bool l);
     void             EnableMips   (bool enable);
@@ -61,8 +69,9 @@ private:
     bool compressed = true;
 	uint bytes      = 0;
 	Format format   = unknown;
+	Type type		= Texture2D;
 
-    std::unique_ptr<Texture2D> texture;
+    std::unique_ptr<Texture> texture;
 
 };
 

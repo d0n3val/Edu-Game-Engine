@@ -1014,11 +1014,12 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
     if(info != nullptr)
     {
 		ImGui::PushID(texture);
-        if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+        if(info->GetType() == ResourceTexture::Texture2D && ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
             ImGui::OpenPopup("show texture");
-            GeneratePreview(info->GetWidth(), info->GetHeight(), info->GetTexture(), mesh);
+            
+            GeneratePreview(info->GetWidth(), info->GetHeight(), static_cast<Texture2D*>(info->GetTexture()), mesh);
 
         }
         else 
@@ -1766,7 +1767,7 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
     ImVec2 out_size = ImVec2(out_width, out_height);
 
     ImGui::SetNextWindowSize(ImVec2(tex_size.x+20, tex_size.y+80));
-    if (ImGui::BeginPopupModal("show texture", nullptr, ImGuiWindowFlags_NoResize))
+    if (texture->GetType() == ResourceTexture::Texture2D && ImGui::BeginPopupModal("show texture", nullptr, ImGuiWindowFlags_NoResize))
     {
 
         if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar))
@@ -1780,14 +1781,14 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
 		if (App->input->GetMouseWheel() != 0)
 		{
 			preview_zoom = std::max(preview_zoom + App->input->GetMouseWheel()*1.0f, 0.0f);
-            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), static_cast<Texture2D*>(texture->GetTexture()), mesh);
 		}
 
         ImGui::PushItemWidth(96);
         if(ImGui::DragFloat("Zoom", &preview_zoom))
         {
 			preview_zoom = std::max(preview_zoom, 0.0f);
-            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), static_cast<Texture2D*>(texture->GetTexture()), mesh);
         }
         ImGui::PushItemWidth(0);
 
@@ -1795,14 +1796,14 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
 
         if(ImGui::Checkbox("show texture", &preview_text) )
         {
-            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), static_cast<Texture2D*>(texture->GetTexture()), mesh);
         }
 
         ImGui::SameLine();
 
         if(ImGui::Checkbox("show uvs", &preview_uvs) )
         {
-            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), static_cast<Texture2D*>(texture->GetTexture()), mesh);
         }
 
         ImGui::SameLine();
@@ -1810,7 +1811,7 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
 
         if(ImGui::Combo("Set",(int*)&preview_set, "UV set 0\0UV set 1"))
         {
-            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), static_cast<Texture2D*>(texture->GetTexture()), mesh);
         }
 
         ImGui::PushItemWidth(0.0);
@@ -1819,7 +1820,7 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
 
         if(ImGui::ColorEdit4("uv color", (float*)&uv_color, ImGuiColorEditFlags_NoInputs) && preview_uvs)
         {
-            GeneratePreview(texture->GetWidth(), texture->GetHeight(), texture->GetTexture(), mesh);
+            GeneratePreview(texture->GetWidth(), texture->GetHeight(), static_cast<Texture2D*>(texture->GetTexture()), mesh);
         }
 
         ImGui::SameLine();

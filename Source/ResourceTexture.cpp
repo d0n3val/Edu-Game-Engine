@@ -13,20 +13,10 @@
 #include "Leaks.h"
 
 
-namespace
-{
-
-    void my_stbi_write_func(void *context, void *data, int size)
-    {
-        simple::mem_ostream<std::true_type>& write_stream = *reinterpret_cast<simple::mem_ostream<std::true_type>*>(context);
-        write_stream.write((const char*)data, size);
-    }
-
-}
-
 // ---------------------------------------------------------
 ResourceTexture::ResourceTexture(UID uid) : Resource(uid, Resource::Type::texture)
-{}
+{
+}
 
 // ---------------------------------------------------------
 ResourceTexture::~ResourceTexture()
@@ -35,8 +25,7 @@ ResourceTexture::~ResourceTexture()
 // ---------------------------------------------------------
 const char * ResourceTexture::GetFormatStr() const
 {
-	static const char* formats[] = { 
-		"color index", "rgb", "rgba", "bgr", "bgra", "luminance", "unknown" };
+	static const char* formats[] = { "color index", "rgb", "rgba", "bgr", "bgra", "luminance", "unknown" };
 
 	return formats[format];
 }
@@ -107,7 +96,7 @@ void ResourceTexture::Load(const Config & config)
 // ---------------------------------------------------------
 void ResourceTexture::EnableMips(bool enable)
 {
-    if(has_mips != enable)
+   if(has_mips != enable)
     {
         has_mips = enable;
 

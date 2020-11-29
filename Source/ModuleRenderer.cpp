@@ -392,6 +392,10 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, width, height);
 
+    // Draw skybox
+    App->level->GetSkyBoxVAO()->Bind();
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
     uint flags = 0;
 
     if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
@@ -752,6 +756,7 @@ void ModuleRenderer::UpdateLightUniform() const
 
 void ModuleRenderer::DrawDebug()
 {
+    DebugDrawOBB();
 }
 
 void ModuleRenderer::DebugDrawOBB(const NodeList& objects)
@@ -773,7 +778,7 @@ void ModuleRenderer::DebugDrawOBB(const NodeList& objects)
             std::swap(corners[4], corners[5]);
             std::swap(corners[6], corners[7]);
 
-            dd::box(corners, dd::colors::White); 
+            dd::box(corners, dd::colors::Sienna); 
 
         }
     }

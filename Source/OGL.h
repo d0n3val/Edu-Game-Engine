@@ -4,42 +4,53 @@
 #include "Math.h"
 #include <string>
 
-class Texture2D
+class Texture
 {
-    uint texture    = 0;
+protected:
+
     uint tex_target = 0;
+    uint texture = 0;
+
 public:
-    Texture2D(const Texture2D& rhs) = delete;
-    Texture2D& operator=(const Texture2D& rhs) = delete;
 
-    Texture2D(uint target, uint tex) : tex_target(target), texture(tex) {;}
-    Texture2D(uint target, uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps);
-    Texture2D(uint target, uint samples, uint width, uint height, uint internal_format, bool fixed_samples);
-    ~Texture2D();
+    explicit Texture(uint target);
+    Texture(uint target, uint text);
+    ~Texture();
 
-    void Bind(uint unit, uint uniform_location);
-    void Bind(uint unit = 0);
-    void Unbind(uint unit = 0);
-
-    void SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data);
-    void SetDefaultRGBAData(uint width, uint height, void* data);
-    // \todo: SetDefaultRGBData
+    void DefaultInitializeTexture(bool mipmaps);
 
     void SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r);
     void SetMinMaxFiler(uint min_filter, uint max_filter);
-    void GenerateMipmaps(uint base = 0, uint max = 1000);
+    void GenerateMipmaps(uint base, uint max);
+
+    void Bind(uint unit, uint uniform_location);
+    void Bind(uint unit);
+    void Unbind(uint unit);
 
     uint Id() const { return texture; }
     uint Target() const { return tex_target; }
-
-    static Texture2D* CreateDefaultRGBA(uint width, uint height, void* data = nullptr, bool mipmaps = false);
-    // \todo: CreateDefaultRGB
-
 };
 
-class Texture2DArray
+
+class Texture2D : public Texture
 {
-    uint texture = 0;
+public:
+
+    Texture2D(const Texture2D& rhs) = delete;
+    Texture2D& operator=(const Texture2D& rhs) = delete;
+
+    Texture2D(uint target, uint tex);
+    Texture2D(uint target, uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps);
+    Texture2D(uint target, uint samples, uint width, uint height, uint internal_format, bool fixed_samples);
+
+    void SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data);
+    void SetDefaultRGBAData(uint width, uint height, void* data);
+
+    static Texture2D* CreateDefaultRGBA(uint width, uint height, void* data = nullptr, bool mipmaps = false);
+};
+
+class Texture2DArray : public Texture
+{
     uint width   = 0;
     uint height  = 0;
     uint depth   = 0;
@@ -50,21 +61,28 @@ public:
     Texture2DArray& operator=(const Texture2DArray& rhs) = delete;
 
     Texture2DArray(uint mip_levels, uint width, uint height, uint depth, uint internal_format);
-    ~Texture2DArray();
+
+    void SetSubData(uint mip_level, uint depth_index, uint format, uint type, void* data);
+    void SetDefaultRGBASubData(uint mip_level, uint depth_index, void* data);
+
+    static Texture2DArray* CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth, bool convert_linear);
+};
+
+class TextureCube : public Texture
+{
+public:
+
+    TextureCube(const TextureCube&) = delete;
+    TextureCube& operator=(const TextureCube&) = delete;
+
+    TextureCube();
 
     void Bind(uint unit, uint uniform_location);
     void Bind(uint unit = 0);
     void Unbind(uint unit = 0);
 
-    void SetSubData(uint mip_level, uint depth_index, uint format, uint type, void* data);
-    void SetDefaultRGBASubData(uint mip_level, uint depth_index, void* data);
-    // \todo: SetDefaultRGBSubData
-
-    void GenerateMipmaps(uint base = 0, uint max = 1000);
-
-    static Texture2DArray* CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth, bool convert_linear);
-    // \todo: CreateDefaultRGB
-
+    void SetData(uint face_index, uint mip_level, uint width, uint height, uint internal_format, uint format, uint type, void* data);
+    void SetDefaultRGBAData(uint face_index, uint mip_level, uint width, uint height, void* data);
 };
 
 class Framebuffer
@@ -137,6 +155,7 @@ class VertexArray
     uint id = 0;
 
 public:
+
     VertexArray(const VertexArray& rhs) = delete;
     VertexArray& operator=(const VertexArray& rhs) = delete;
 
@@ -145,7 +164,6 @@ public:
 
     void Bind();
     void Unbind();
-
 };
 
 class Shader
