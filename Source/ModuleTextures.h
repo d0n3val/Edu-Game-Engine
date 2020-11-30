@@ -25,8 +25,10 @@ public:
     bool ImportCube(const char* files [], const char* path, std::string& output_file, bool compressed);
 	bool Import(const char* file, const char* path, std::string& output_file, bool compressed);
 	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);
+
 	bool LoadCheckers(ResourceTexture* resource);
     bool LoadFallback(ResourceTexture* resource, const float3& color);
+    bool LoadCube(ResourceTexture* resource, const char* files [], const char* path);
 
 private:
 	bool Import(const void* buffer, uint size, bool compressed, uint header_size, void*& output_buffer, uint& output_size);

@@ -60,6 +60,7 @@ private:
 	void LoadUID();
 	void SaveUID() const;
     UID ImportSuccess(Resource::Type type, const char* file_name, const char* user_name, const std::string& output);
+    bool LoadDefaultSkybox();
 
 private:
 	std::string asset_folder;
@@ -74,6 +75,7 @@ private:
 	ResourceMesh* pyramid = nullptr;
 	ResourceMesh* cylinder = nullptr;
 	ResourceTexture* checkers = nullptr;
+	ResourceTexture* skybox = nullptr;
     ResourceTexture* white_fallback = nullptr;
     ResourceTexture* black_fallback = nullptr;
 };

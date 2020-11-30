@@ -44,38 +44,6 @@ bool ModuleResources::Init(Config* config)
 
 bool ModuleResources::Start(Config * config)
 {
-/* \todo: 
-	// Load preset geom shapes in fixed UIDs
-	cube = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 1);
-	App->meshes->LoadCube(cube);
-	cube->loaded = 1;
-
-	// Load preset geom shapes in fixed UIDs
-	sphere = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 3);
-	App->meshes->LoadSphere(sphere);
-	sphere->loaded = 1;
-
-	// Load preset geom shapes in fixed UIDs
-	cone = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 4);
-	App->meshes->LoadCone(cone);
-	cone->loaded = 1;
-
-	// Load preset geom shapes in fixed UIDs
-	cylinder = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 5);
-	App->meshes->LoadCylinder(cylinder);
-	cylinder->loaded = 1;
-
-	// Load preset geom shapes in fixed UIDs
-	pyramid = (ResourceMesh*) CreateNewResource(Resource::Type::mesh, 6);
-	App->meshes->LoadPyramid(pyramid);
-	pyramid->loaded = 1;
-
-	// Load preset for checkers texture
-	checkers = (ResourceTexture*) CreateNewResource(Resource::Type::texture, 2);
-	App->tex->LoadCheckers(checkers);
-	checkers->loaded = 1;
-*/
-
 	// Load preset for checkers texture
 	checkers = (ResourceTexture*) CreateNewResource(Resource::Type::texture, 2);
 	App->tex->LoadCheckers(checkers);
@@ -86,6 +54,7 @@ bool ModuleResources::Start(Config * config)
 
     App->tex->LoadFallback(white_fallback, float3(1.0f));
     App->tex->LoadFallback(black_fallback, float3(0.0f));
+	LoadDefaultSkybox();
 
 	return true;
 }
@@ -448,8 +417,12 @@ UID ModuleResources::ImportAnimation(const char* file_name, uint first, uint las
 UID ModuleResources::ImportSuccess(Resource::Type type, const char* file_name, const char* user_name, const std::string& output)
 {
     Resource* res = CreateNewResource(type);
-    res->file = file_name;
-    App->fs->NormalizePath(res->file);
+	if (file_name != nullptr)
+	{
+		res->file = file_name;
+		App->fs->NormalizePath(res->file);
+	}
+
     string file;
     App->fs->SplitFilePath(output.c_str(), nullptr, &file);
     res->exported_file = file.c_str();
@@ -640,3 +613,21 @@ void ModuleResources::RemoveResource(UID uid)
     }
 }
 
+bool ModuleResources::LoadDefaultSkybox()
+{
+    const char* files[] = { "right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "back.jpg", "front.jpg" };
+
+    std::string output_file;
+
+    Resource* res = CreateNewResource(Resource::texture);
+    if (App->tex->LoadCube(static_cast<ResourceTexture*>(res), files, "Assets/Textures/Cubemaps/"))
+    {
+		res->file = "*Default Skybox*";
+		res->exported_file = "*Default Skybox*";
+		res->user_name = "Default skybox";
+
+		return true;
+    }
+
+	return false;
+}

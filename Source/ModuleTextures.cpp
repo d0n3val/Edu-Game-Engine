@@ -7,6 +7,7 @@
 #include "Devil/include/il.h"
 #include "Devil/include/ilut.h"
 #include "ResourceTexture.h"
+#include "ModuleResources.h"
 
 #include "SOIL2.h"
 #include "stb_image.h"
@@ -384,4 +385,42 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
     resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, 1, 1, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage, false);
 
 	return true;
+}
+
+
+bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], const char* path)
+{
+    std::string sPath(path);
+
+    TextureCube* cube = new TextureCube();
+    resource->texture = std::unique_ptr<TextureCube>(cube);
+
+    bool ret = true;
+
+    for (uint i = 0; ret && i < 6; ++i)
+    {
+        std::string sFile(files[i]);
+
+        char* buffer = nullptr;
+        uint size = App->fs->Load((char*) (sPath + sFile).c_str(), &buffer);
+
+        ret = buffer != nullptr;
+
+        ILuint image;
+
+        ret = ret && LoadImage(buffer, size, image);
+
+        if(ret)
+        {
+            cube->SetData(i, 0, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT),
+                    !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA,
+                    ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE, ilGetData());
+        }
+
+        ilDeleteImages(1, &image);
+
+        RELEASE_ARRAY(buffer);
+    }
+
+    return ret;
 }
