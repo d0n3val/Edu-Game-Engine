@@ -392,9 +392,7 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, width, height);
 
-    // Draw skybox
-    App->level->GetSkyBoxVAO()->Bind();
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    DrawSkybox(proj, view);
 
     uint flags = 0;
 
@@ -498,8 +496,6 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
     //DrawBatches(transparent_nodes, flags);
     DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawColor);
 
-    //DrawSkybox(proj, view);
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -517,20 +513,21 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
 
 void ModuleRenderer::DrawSkybox(const float4x4& proj, const float4x4& view)
 {
-    if(sky_vao != 0)
+    if(App->level->GetSkyBoxVAO() != nullptr)
     {
         App->programs->UseProgram("skybox", 0);
 
         glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
         glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, sky_cubemap);
-        glUniform1i(App->programs->GetUniformLocation("skybox"), 0);
+        App->resources->GetDefaultSkybox()->GetTexture()->Bind(0, App->programs->GetUniformLocation("skybox"));
 
-        glBindVertexArray(sky_vao);
+        glDisable(GL_DEPTH_TEST);
+
+        App->level->GetSkyBoxVAO()->Bind();
         glDrawArrays(GL_TRIANGLES, 0, 6*6);
-        glBindVertexArray(0);
+
+        glEnable(GL_DEPTH_TEST);
 
         App->programs->UnuseProgram();
     }

@@ -356,15 +356,6 @@ VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint 
 
         glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (void*)(attribs[i].offset));
     }
-
-    glBindVertexArray(0);
-
-    vbo->Unbind();
-
-    if (ibo)
-    {
-        ibo->Unbind();
-    }
 }
 
 VertexArray::~VertexArray()

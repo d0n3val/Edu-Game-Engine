@@ -52,6 +52,7 @@ public:
 	
     const ResourceTexture* GetWhiteFallback() const { return white_fallback; }
     const ResourceTexture* GetBlackFallback() const { return black_fallback; }
+    const ResourceTexture* GetDefaultSkybox() const { return skybox; }
 
     const char* GetDirByType(Resource::Type type) const;
 

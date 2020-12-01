@@ -619,12 +619,13 @@ bool ModuleResources::LoadDefaultSkybox()
 
     std::string output_file;
 
-    Resource* res = CreateNewResource(Resource::texture);
-    if (App->tex->LoadCube(static_cast<ResourceTexture*>(res), files, "Assets/Textures/Cubemaps/"))
+	skybox = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture));
+	skybox->SetLinear(false);
+    if (App->tex->LoadCube(skybox, files, "Assets/Textures/Cubemaps/"))
     {
-		res->file = "*Default Skybox*";
-		res->exported_file = "*Default Skybox*";
-		res->user_name = "Default skybox";
+		skybox->file = "*Default Skybox*";
+		skybox->exported_file = "*Default Skybox*";
+		skybox->user_name = "Default skybox";
 
 		return true;
     }

@@ -64,14 +64,14 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         GenerateFBOs(unsigned(width), unsigned(height));
 
         float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-        if (draw_plane == true)
-        {
-            //dd::xzSquareGrid(-50.0f*metric_proportion, 50.0f*metric_proportion, 0.0f, metric_proportion, dd::colors::LightGray, 0, true);
-        }
 
         if(draw_axis == true)
         {
             dd::axisTriad(math::float4x4::identity, metric_proportion*0.1f, metric_proportion, 0, false);
+        }
+        if (draw_plane == true)
+        {
+            dd::xzSquareGrid(-100.0f, 100.0f, 0.0f, 1.0f, dd::colors::Gray);
         }
 
         if (debug_draw == true)
@@ -108,12 +108,6 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         glStencilMask(0x00);
 		glStencilFunc(GL_ALWAYS, 0, 0XFF);
         
-
-        if (draw_plane == true)
-        {
-            framebuffer->Bind();
-            DrawGrid(camera);
-        }
 
 		App->renderer->Draw(camera, culling, framebuffer->Id(), fb_width, fb_height);
 

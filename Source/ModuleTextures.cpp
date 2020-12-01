@@ -22,7 +22,7 @@ using namespace std;
 
 namespace
 {
-    bool LoadImage(const void* buffer, uint size, ILuint& image)
+    bool LoadImage(const void* buffer, uint size, ILuint& image, uint flip_origin = IL_ORIGIN_UPPER_LEFT)
     {
         ILuint ImageName;
         ilGenImages(1, &ImageName);
@@ -34,7 +34,7 @@ namespace
 
             ILinfo ImageInfo;
             iluGetImageInfo(&ImageInfo);
-            if (ImageInfo.Origin == IL_ORIGIN_UPPER_LEFT)
+            if (ImageInfo.Origin == flip_origin)
             {
                 iluFlipImage();
             }
@@ -408,7 +408,7 @@ bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], c
 
         ILuint image;
 
-        ret = ret && LoadImage(buffer, size, image);
+        ret = ret && LoadImage(buffer, size, image, IL_ORIGIN_LOWER_LEFT);
 
         if(ret)
         {

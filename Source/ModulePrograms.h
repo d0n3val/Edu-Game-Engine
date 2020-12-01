@@ -59,7 +59,7 @@ public:
 	int  GetUniformLocation             (const char* uniform);
     int  GetSubroutineUniformLocation   (bool vertex_shader, const char* name);
     int  GetSubroutineIndex             (bool vertex_shader, const char* name);
-    void UseProgram                     (const char* name, unsigned variation);
+    void UseProgram                     (const char* name, unsigned variation = 0);
 	void UnuseProgram                   ();
 
 private:
