@@ -55,11 +55,11 @@ void Viewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 	int width = App->editor->GetPosX(ModuleEditor::TabPanelRight) - posx;
 	int height = App->editor->GetPosY(ModuleEditor::TabPanelBottom) - 21;
 
-    ImGui::SetNextWindowPos(ImVec2(float(posx), float(posy)));
-    ImGui::SetNextWindowSize(ImVec2(float(width), float(height)));
+    ImGui::SetNextWindowPos(ImVec2(float(posx), float(posy)), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(float(width), float(height)), ImGuiCond_FirstUseEver);
 
     bool active = true;
-	if (ImGui::Begin("Viewport", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+	if (ImGui::Begin("Viewport", &active, ImGuiWindowFlags_NoFocusOnAppearing))
 	{
         if (ImGui::BeginTabBar("##viewport_tabs", ImGuiTabBarFlags_None))
         {

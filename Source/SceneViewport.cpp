@@ -288,7 +288,7 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
 
 void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
 {
-    if(w != fb_width || h != fb_height)
+    if(w != fb_width || h != fb_height )
     {
         GenerateFBO(framebuffers[FRAMEBUFFER_NO_MSAA], w, h, true, false, true);
         GenerateFBO(framebuffers[FRAMEBUFFER_MSAA], w, h, true, true, true);

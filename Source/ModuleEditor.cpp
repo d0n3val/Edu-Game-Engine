@@ -29,8 +29,8 @@ using namespace std;
 
 #define IMGUI_IMPL_OPENGL_LOADER_GLEW
 #include "imgui.h"
-#include "examples/imgui_impl_sdl.h"
-#include "examples/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_sdl.h"			      
+#include "backends/imgui_impl_opengl3.h"
 
 #include "Leaks.h"
 
@@ -55,8 +55,8 @@ bool ModuleEditor::Init(Config* config)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.IniFilename = SETTINGS_FOLDER "imgui.ini";
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableSetMousePos;  // Enable Keyboard Controls
+	io.IniFilename = "imgui.ini";
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableSetMousePos | ImGuiConfigFlags_DockingEnable;  // Enable Keyboard Controls
 	io.WantSetMousePos = true;
     ImGui_ImplSDL2_InitForOpenGL(App->window->GetWindow(), App->renderer3D->context);
     ImGui_ImplOpenGL3_Init("#version 130");
@@ -93,8 +93,6 @@ bool ModuleEditor::Start(Config * config)
 
 void ModuleEditor::Save(Config* config) const 
 {
-    //config->AddBool("ConfActive", conf->active);
-    //config->AddBool("PropsActive", props->active);
 }
 
 update_status ModuleEditor::PreUpdate(float dt)
@@ -120,6 +118,31 @@ update_status ModuleEditor::Update(float dt)
 	update_status ret = UPDATE_CONTINUE;
 
 	static bool showcase = false;
+
+    ImGuiWindowFlags window_flags =  ImGuiWindowFlags_NoDocking;
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->GetWorkPos());
+    ImGui::SetNextWindowSize(viewport->GetWorkSize());
+    ImGui::SetNextWindowViewport(viewport->ID);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+	window_flags |= ImGuiWindowFlags_NoBackground;
+
+	if (ImGui::Begin("DockSpace Demo", nullptr, window_flags))
+	{
+		// DockSpace
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
+			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), 0);
+		}
+	}
+	ImGui::End();
+
+	ImGui::PopStyleVar(2);
 	
 	// Main menu GUI
 	if (draw_menu == true)
@@ -163,9 +186,9 @@ update_status ModuleEditor::Update(float dt)
     for(uint i=0; i< TabPanelCount; ++i)
     {
         const TabPanel& tab = tab_panels[i];
-        ImGui::SetNextWindowPos(ImVec2((float)tab.posx, (float)tab.posy), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2((float)tab.width, (float)tab.height), ImGuiCond_Always);
-        if(ImGui::Begin(tab.name, nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+        ImGui::SetNextWindowPos(ImVec2((float)tab.posx, (float)tab.posy), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2((float)tab.width, (float)tab.height), ImGuiCond_FirstUseEver);
+        if(ImGui::Begin(tab.name, nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
         {
             if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
             {
@@ -186,11 +209,10 @@ update_status ModuleEditor::Update(float dt)
                 }
 
                 ImGui::EndTabBar();
-            }
-            
-            ImGui::End();
+            }           
         }
-    }
+		ImGui::End();
+	}
 
     if (file_dialog == opened)
         LoadFile((file_dialog_filter.length() > 0) ? file_dialog_filter.c_str() : nullptr);

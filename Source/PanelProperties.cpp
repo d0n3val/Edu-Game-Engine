@@ -77,41 +77,30 @@ PanelProperties::~PanelProperties()
 // ---------------------------------------------------------
 void PanelProperties::Draw()
 {
-    //ImGui::Begin("Properties", &active, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoFocusOnAppearing);
-    //if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+    switch(App->editor->selection_type )
     {
-        //if (ImGui::BeginTabItem("Selection"))
-        {
-
-            switch(App->editor->selection_type )
-            {
-                case ModuleEditor::SelectionGameObject:
-                    if(App->editor->selected.go)
-                        DrawGameObject(App->editor->selected.go);
-                    break;
-                case ModuleEditor::SelectionAmbientLight:
-                    if(App->editor->selected.ambient)
-                        DrawAmbientLight(App->editor->selected.ambient);
-                    break;
-                case ModuleEditor::SelectionDirLight:
-                    if(App->editor->selected.directional)
-                        DrawDirLight(App->editor->selected.directional);
-                    break;
-                case ModuleEditor::SelectionPointLight:
-                    if(App->editor->selected.point)
-                        DrawPointLight(App->editor->selected.point);
-                    break;
-                case ModuleEditor::SelectionSpotLight:
-                    if(App->editor->selected.spot)
-                        DrawSpotLight(App->editor->selected.spot);
-                    break;
-            }
-
-            //ImGui::EndTabItem();
-        }
-        //ImGui::EndTabBar();
+        case ModuleEditor::SelectionGameObject:
+            if(App->editor->selected.go)
+                DrawGameObject(App->editor->selected.go);
+            break;
+        case ModuleEditor::SelectionAmbientLight:
+            if(App->editor->selected.ambient)
+                DrawAmbientLight(App->editor->selected.ambient);
+            break;
+        case ModuleEditor::SelectionDirLight:
+            if(App->editor->selected.directional)
+                DrawDirLight(App->editor->selected.directional);
+            break;
+        case ModuleEditor::SelectionPointLight:
+            if(App->editor->selected.point)
+                DrawPointLight(App->editor->selected.point);
+            break;
+        case ModuleEditor::SelectionSpotLight:
+            if(App->editor->selected.spot)
+                DrawSpotLight(App->editor->selected.spot);
+            break;
     }
-    //ImGui::End();
+
 }
 
 // ---------------------------------------------------------
@@ -1576,7 +1565,7 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
 
             if(value->random)
             {
-                ImGui::InputFloat2(name, value->range, 3);
+                ImGui::InputFloat2(name, value->range);
             }
             else
             {

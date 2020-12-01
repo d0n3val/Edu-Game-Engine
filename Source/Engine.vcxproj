@@ -167,8 +167,8 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="gpudetect\DeviceId.h" />
     <ClInclude Include="HashString.h" />
-    <ClInclude Include="imgui\examples\imgui_impl_opengl3.h" />
-    <ClInclude Include="imgui\examples\imgui_impl_sdl.h" />
+    <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="imgui\backends\imgui_impl_sdl.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="Imgui\ImGuizmo.h" />
@@ -326,8 +326,8 @@
     <ClCompile Include="glmath.cpp" />
     <ClCompile Include="gpudetect\DeviceId.cpp" />
     <ClCompile Include="HashString.cpp" />
-    <ClCompile Include="imgui\examples\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="imgui\examples\imgui_impl_sdl.cpp" />
+    <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="imgui\backends\imgui_impl_sdl.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="Imgui\ImGuizmo.cpp" />
     <ClCompile Include="Imgui\imgui_bezier.cpp" />

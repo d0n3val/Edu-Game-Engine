@@ -217,7 +217,7 @@ namespace ImGui
         ImGradientMark* prevMark = nullptr;
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         
-        RenderColorRectWithAlphaCheckerboard(ImVec2(bar_pos.x, bar_pos.y),
+        RenderColorRectWithAlphaCheckerboard(draw_list, ImVec2(bar_pos.x, bar_pos.y),
                                  ImVec2(bar_pos.x + maxWidth, barBottom),
                                  IM_COL32(0, 0, 0, 0), 10.0f, ImVec2(0.0f, 0.0f));
         
