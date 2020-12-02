@@ -3,6 +3,10 @@
 
 #include "Panel.h"
 #include "Resource.h"
+#include "Imgui/imgui.h"
+#include "imgui-filebrowser/imfilebrowser.h"
+#include "ImportAnimationDlg.h"
+#include "ImportTextureDlg.h"
 
 #include <vector>
 #include <set>
@@ -17,7 +21,7 @@ public:
 
 
 private:
-	void  DrawResourceType(Resource::Type type, void (PanelResources::*popup)(Resource::Type));
+	void DrawResourceType(Resource::Type type, void (PanelResources::*popup)(Resource::Type));
 
     void DrawMeshPopup(Resource::Type type);
     void DrawResourcePopup(Resource::Type type);
@@ -25,74 +29,21 @@ private:
     void DrawCylinderProperties();
     void DrawSphereProperties();
 
-    void DrawTextureProperties();
     void DrawAnimationProperties();
     void ManageSelection(const std::vector<const Resource*>& resources, uint current, bool append, bool multiple, uint pivot, bool popup);
+    void ImportResource(const std::string& file);
 
 private:
 
-    struct TextureParams
-    {
-        std::string file;
-        bool        compressed = true;
-        bool        mipmaps    = true;
-        bool        srgb       = true;
-
-        void Reset() 
-        {
-            file.clear();
-            compressed = true;
-            mipmaps    = true;
-            srgb       = true;
-        }
-    };
-    
-    struct AnimationClip
-    {
-        char        name[128];
-        uint        first = 0;
-        uint        last  = uint(INT_MAX);
-
-        AnimationClip()
-        {
-            name[0] = 0;
-        }
-
-        void Reset() 
-        {
-            name[0] = 0;
-            first   = 0;
-            last    = uint(INT_MAX);
-        }
-    };
-
-    struct AnimationParams
-    {
-        std::string file;
-        char        clip_names[128];
-        std::vector<AnimationClip> clips;
-
-        AnimationParams()
-        {
-            clips.resize(1);
-        }
-
-        void Reset() 
-        {
-            file.clear();
-            clips.clear();
-            clips.resize(1);
-        }
-    };
-
-    TextureParams texture_params;
-    AnimationParams animation_params;
+    ImportTexturesDlg   textures_dlg;
+    ImportAnimationDlg  animation_dlg;
 
 	bool waiting_to_load_file      = false;
     Resource::Type waiting_to_load = Resource::unknown;
     std::set<UID> selection;
     Resource::Type multiple_select_type = Resource::unknown;
     uint multiple_select_pivot          = 0;
+    ImGui::FileBrowser fileDialog;
 
 };
 

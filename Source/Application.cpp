@@ -47,8 +47,8 @@ Application::Application()
 	modules.push_back(physics3D = new ModulePhysics3D());
 	modules.push_back(camera = new ModuleEditorCamera());
 	modules.push_back(renderer3D = new ModuleRenderer3D());
-	modules.push_back(editor = new ModuleEditor());
 	modules.push_back(input = new ModuleInput());
+	modules.push_back(editor = new ModuleEditor());
 	modules.push_back(audio = new ModuleAudio(true));
 	modules.push_back(ai = new ModuleAI());
 	modules.push_back(level = new ModuleLevelManager());

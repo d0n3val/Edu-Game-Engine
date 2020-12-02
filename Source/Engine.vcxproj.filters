@@ -669,6 +669,12 @@
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h">
       <Filter>3rd Party\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="ImportAnimationDlg.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportTextureDlg.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1204,6 +1210,12 @@
     </ClCompile>
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp">
       <Filter>3rd Party\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportAnimationDlg.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportTextureDlg.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
