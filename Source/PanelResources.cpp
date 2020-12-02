@@ -58,6 +58,12 @@ void PanelResources::Draw()
         animation_dlg.ClearSelection();
     }
 
+    cubemap_dlg.Display();
+    if(cubemap_dlg.HasSelection())
+    {
+        cubemap_dlg.ClearSelection();
+    }
+
 	if (ImGui::BeginMenu("Options"))
 	{
 			// TODO we should safely remove those options
@@ -103,7 +109,8 @@ void PanelResources::ImportResource(const std::string& file)
         {
             case Resource::texture:
                 {
-                    textures_dlg.Open(file);
+                    cubemap_dlg.Open();
+                    //textures_dlg.Open(file);
                     break;
                 }
             case Resource::animation:
@@ -300,7 +307,14 @@ void PanelResources::DrawResourcePopup(Resource::Type type)
             fileDialog.SetPwd(std::filesystem::path("Assets"));
             fileDialog.Open();
         }
-        if((type == Resource::texture || type == Resource::model) && ImGui::MenuItem("Force save"))
+
+        if(type == Resource::texture && ImGui::MenuItem("Import Cubemap.."))
+        {
+            waiting_to_load = type;
+            cubemap_dlg.Open();
+        }
+
+        if(type == Resource::model && ImGui::MenuItem("Force save"))
         {
             App->resources->SaveTypedResources(type);
         }

@@ -79,4 +79,5 @@ void ImportAnimationDlg::ClearSelection()
     file.clear();
     clips.clear();
     clips_name.clear();
+    selection = false;
 }

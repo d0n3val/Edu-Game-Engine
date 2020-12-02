@@ -675,6 +675,9 @@
     <ClInclude Include="ImportTextureDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="ImportCubemapDlg.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1215,6 +1218,9 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="ImportTextureDlg.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportCubemapDlg.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
