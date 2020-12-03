@@ -26,8 +26,8 @@ public:
     void Display        ();
     void ClearSelection ();
 
-    bool               HasSelection() const { return selection; }
-    const std::string& GetFile(Side aSide) const { return files[aSide]; }
+    bool               HasSelection () const { return selection; }
+    const std::string* GetFiles     () const { return files; }
     bool               GetCompressed() const { return textureDlg.GetCompressed(); }
     bool               GetMipmaps   () const { return textureDlg.GetMipmaps(); }
     bool               GetSRGB      () const { return textureDlg.GetSRGB(); }

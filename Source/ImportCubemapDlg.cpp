@@ -23,18 +23,18 @@ void ImportCubemapDlg::Display()
         open_flag = false;
     }
 
-    ImGui::SetNextWindowSize(ImVec2(800, 210));
+    ImGui::SetNextWindowSize(ImVec2(600, 210));
     if (ImGui::BeginPopupModal("Cubemap", nullptr, ImGuiWindowFlags_NoResize))
     {
         fileDialog.Display();
         if (fileDialog.HasSelected())
         {
-            files[open_index] = fileDialog.GetSelected().generic_string();
+            files[open_index] = std::filesystem::relative(fileDialog.GetSelected(), std::filesystem::current_path()).generic_string();
             fileDialog.ClearSelected();
             open_flag = true;
         }
 
-        if(ImGui::BeginChild("Canvas", ImVec2(780, 150), true, ImGuiWindowFlags_NoMove))
+        if(ImGui::BeginChild("Canvas", ImVec2(580, 150), true, ImGuiWindowFlags_NoMove))
         {
             for(uint i=0; i<SideCount; ++i)
             {
@@ -53,7 +53,7 @@ void ImportCubemapDlg::Display()
         }
         ImGui::EndChild();
 
-        ImGui::Indent(652);
+        ImGui::Indent(452);
         if(ImGui::Button("Ok", ImVec2(60, 0)))
         {
             bool ok = true;

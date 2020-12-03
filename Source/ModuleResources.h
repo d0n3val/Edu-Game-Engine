@@ -39,6 +39,7 @@ public:
 	UID ImportFile(const char* new_file_in_assets, Resource::Type type, bool force = false);
 	UID ImportBuffer(const void* buffer, uint size, Resource::Type type, const char* source_file = nullptr);
 	UID ImportTexture(const char* file_name, bool compressed, bool mipmaps, bool srgb);
+	UID ImportCubemap(const std::string file_names[], const std::string& user_name, bool compressed, bool mipmaps, bool srgb);
 	UID ImportAnimation(const char* file_name, uint first, uint last, const char* user_name);
 
 	UID GenerateNewUID();

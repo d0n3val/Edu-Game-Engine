@@ -37,7 +37,7 @@ void PanelResources::Draw()
     fileDialog.Display();
 	if(fileDialog.HasSelected())
     {
-        ImportResource(fileDialog.GetSelected().generic_string());
+        ImportResource(std::filesystem::relative(fileDialog.GetSelected(), std::filesystem::current_path()).generic_string());
         fileDialog.ClearSelected();
     }
 
@@ -61,7 +61,7 @@ void PanelResources::Draw()
     cubemap_dlg.Display();
     if(cubemap_dlg.HasSelection())
     {
-        //App->resources->ImportCubemap(textures_dlg.GetFile().c_str());
+        App->resources->ImportCubemap(cubemap_dlg.GetFiles(), std::string(), cubemap_dlg.GetCompressed(), cubemap_dlg.GetMipmaps(), cubemap_dlg.GetSRGB());
         cubemap_dlg.ClearSelection();
     }
 

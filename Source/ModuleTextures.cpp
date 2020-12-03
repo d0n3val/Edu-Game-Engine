@@ -87,21 +87,17 @@ bool ModuleTextures::CleanUp()
 	return true;
 }
 
-bool ModuleTextures::ImportCube(const char* files [], const char* path, std::string& output_file, bool compressed)
+bool ModuleTextures::ImportCube(const std::string files [], std::string& output_file, bool compressed)
 {
     bool ret = true;
     void* output_buffers[6];
     uint  output_sizes[6];
     uint total_size  = 0;
 
-    std::string sPath(path);
-
     for (uint i = 0; ret && i < 6; ++i)
     {
-        std::string sFile(files[i]);
-
         char* buffer = nullptr;
-        uint size = App->fs->Load((char*) (sPath + sFile).c_str(), &buffer);
+        uint size = App->fs->Load((char*) files[i].c_str(), &buffer);
 
         ret = buffer != nullptr;
         ret = ret && Import(buffer, size, compressed, 0, output_buffers[i], output_sizes[i]);
@@ -111,27 +107,31 @@ bool ModuleTextures::ImportCube(const char* files [], const char* path, std::str
         RELEASE_ARRAY(buffer);
     }
 
-    char* total_buffer = (char*)malloc(total_size+sizeof(uint32_t)+sizeof(uint32_t)*6);
-    *(uint32_t*)total_buffer = uint32_t(ResourceTexture::TextureCube);
+    char* total_buffer = nullptr;
 
-    uint buffer_pos = sizeof(uint32_t);
-
-    for(uint i=0; ret && i< 6; ++i)
+    if (ret)
     {
-        *(uint32_t*)total_buffer[buffer_pos] = output_sizes[i];
-        buffer_pos += sizeof(uint32_t);
-        memcpy(&total_buffer[buffer_pos], output_buffers[i], output_sizes[i]);
-        buffer_pos += output_sizes[i];
+        total_buffer = (char*)malloc(total_size + sizeof(uint32_t) + sizeof(uint32_t) * 6);
+        *(uint32_t*)total_buffer = uint32_t(ResourceTexture::TextureCube);
 
-        RELEASE_ARRAY(output_buffers[i]);
+        uint buffer_pos = sizeof(uint32_t);
+
+        for (uint i = 0; i < 6; ++i)
+        {
+            *reinterpret_cast<uint32_t*>(&total_buffer[buffer_pos]) = output_sizes[i];
+            buffer_pos += sizeof(uint32_t);
+            memcpy(&total_buffer[buffer_pos], output_buffers[i], output_sizes[i]);
+            buffer_pos += output_sizes[i];
+
+            RELEASE_ARRAY(output_buffers[i]);
+        }
     }
 
     if(ret)
     {
         ret = App->fs->SaveUnique(output_file, total_buffer, total_size, LIBRARY_TEXTURES_FOLDER, "texture", "tex");
+        free(total_buffer);
     }
-
-    free(total_buffer);
 
     return ret;
 }

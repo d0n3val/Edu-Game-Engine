@@ -22,7 +22,7 @@ public:
 
 	// TODO: Unload Texture
 
-    bool ImportCube(const char* files [], const char* path, std::string& output_file, bool compressed);
+    bool ImportCube(const std::string files [], std::string& output_file, bool compressed);
 	bool Import(const char* file, const char* path, std::string& output_file, bool compressed);
 	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);
 

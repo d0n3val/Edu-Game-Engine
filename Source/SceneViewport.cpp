@@ -294,7 +294,7 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
         GenerateFBO(framebuffers[FRAMEBUFFER_MSAA], w, h, true, true, true);
         GenerateFBO(framebuffers[FRAMEBUFFER_POSTPROCESS], w, h, false, false, false);
 
-        selection_buffer.framebuffer = std::make_unique<Framebuffer>(); 
+        selection_buffer.framebuffer   = std::make_unique<Framebuffer>(); 
         selection_buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_R32F, GL_RED, GL_FLOAT, nullptr, false);
         selection_buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 

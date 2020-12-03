@@ -393,6 +393,30 @@ UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool 
 	return ret;
 }
 
+UID ModuleResources::ImportCubemap(const std::string file_names[], const std::string& user_name, bool compressed, bool mipmaps, bool srgb)
+{
+	UID ret = 0;
+	bool import_ok = false;
+	string written_file;
+
+	import_ok = App->tex->ImportCube(file_names, written_file, compressed);
+
+	// If export was successfull, create a new resource
+	if (import_ok == true)
+	{
+		ret = ImportSuccess(Resource::texture, nullptr, user_name.c_str(), written_file);
+		ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
+		texture->EnableMips(mipmaps);
+		texture->SetLinear(!srgb);
+	}
+	else
+	{
+		LOG("Importing of cubemap [%s %s %s %s %s %s] FAILED", file_names[0], file_names[1], file_names[2], file_names[3], file_names[4], file_names[5]);
+	}
+
+	return ret;
+}
+
 UID ModuleResources::ImportAnimation(const char* file_name, uint first, uint last, const char* user_name)
 {
 	UID ret = 0;
@@ -428,8 +452,11 @@ UID ModuleResources::ImportSuccess(Resource::Type type, const char* file_name, c
     res->exported_file = file.c_str();
     LOG("Imported successful from [%s] to [%s]", res->GetFile(), res->GetExportedFile());
 
-    App->fs->SplitFilePath(res->file.c_str(), nullptr, &res->user_name, nullptr);
-
+	if (!res->file.empty())
+	{
+		App->fs->SplitFilePath(res->file.c_str(), nullptr, &res->user_name, nullptr);
+	}
+    
     res->user_name = user_name;
 
     if (res->user_name.empty())
