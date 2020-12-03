@@ -6,12 +6,16 @@
 class ImportTexturesDlg
 {
     std::string file;
+    std::string open_name;
     bool        compressed = true;
     bool        mipmaps    = true;
     bool        srgb       = true;
     bool        selection  = false;
+    bool        open_flag  = false;
     
 public:
+
+    ImportTexturesDlg();
 
     void Open           (const std::string& _file);
     void Display        ();

@@ -61,6 +61,7 @@ void PanelResources::Draw()
     cubemap_dlg.Display();
     if(cubemap_dlg.HasSelection())
     {
+        //App->resources->ImportCubemap(textures_dlg.GetFile().c_str());
         cubemap_dlg.ClearSelection();
     }
 
@@ -109,8 +110,7 @@ void PanelResources::ImportResource(const std::string& file)
         {
             case Resource::texture:
                 {
-                    cubemap_dlg.Open();
-                    //textures_dlg.Open(file);
+                    textures_dlg.Open(file);
                     break;
                 }
             case Resource::animation:

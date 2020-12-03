@@ -3,6 +3,7 @@
 
 #include "imgui/imgui.h"
 #include "imgui-filebrowser/imfilebrowser.h"
+#include "ImportTextureDlg.h"
 #include <string>
 
 class ImportCubemapDlg
@@ -16,8 +17,8 @@ private:
     bool                selection = false;
     uint                open_index = 0;
     ImGui::FileBrowser  fileDialog;
+    ImportTexturesDlg   textureDlg;
     bool                open_flag    = false;
-    bool                in_file_flag = false;
 
 public:
 
@@ -25,8 +26,11 @@ public:
     void Display        ();
     void ClearSelection ();
 
-    bool HasSelection() const { return selection; }
+    bool               HasSelection() const { return selection; }
     const std::string& GetFile(Side aSide) const { return files[aSide]; }
+    bool               GetCompressed() const { return textureDlg.GetCompressed(); }
+    bool               GetMipmaps   () const { return textureDlg.GetMipmaps(); }
+    bool               GetSRGB      () const { return textureDlg.GetSRGB(); }
 
 };
 

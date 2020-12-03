@@ -4,16 +4,27 @@
 
 #include "imgui/imgui.h"
 
+ImportTexturesDlg::ImportTexturesDlg()
+{
+    open_name = std::string("Texture properties") + std::string("##textures") + std::to_string((size_t)this);
+}
+
 void ImportTexturesDlg::Open(const std::string& _file)
 {
-    ImGui::OpenPopup("Texture properties");
+    open_flag = true;
     file = _file;
 }
 
 void ImportTexturesDlg::Display()
 {
+    if(open_flag)
+    {
+        ImGui::OpenPopup(open_name.c_str());
+        open_flag = false;
+    }
+
     ImGui::SetNextWindowSize(ImVec2(200, 150));
-    if (ImGui::BeginPopupModal("Texture properties", nullptr, ImGuiWindowFlags_NoResize))
+    if (ImGui::BeginPopupModal(open_name.c_str(), nullptr, ImGuiWindowFlags_NoResize))
     {
         if(ImGui::BeginChild("Canvas", ImVec2(180, 90), true, ImGuiWindowFlags_NoMove))
         {
@@ -23,18 +34,10 @@ void ImportTexturesDlg::Display()
         }
         ImGui::EndChild();
 
-        ImGui::Indent(52);
+        ImGui::Indent(120);
         if(ImGui::Button("Ok", ImVec2(60, 0)))
         {
             selection = true;
-
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::SameLine();
-        if(ImGui::Button("Cancel", ImVec2(60, 0)))
-        {
-            ClearSelection();
 
             ImGui::CloseCurrentPopup();
         }
