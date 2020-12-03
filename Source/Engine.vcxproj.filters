@@ -678,6 +678,9 @@
     <ClInclude Include="ImportCubemapDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1222,6 +1225,9 @@
     </ClCompile>
     <ClCompile Include="ImportCubemapDlg.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

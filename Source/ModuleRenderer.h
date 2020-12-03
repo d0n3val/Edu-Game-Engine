@@ -97,7 +97,6 @@ private:
     void                CreatePostprocessData       ();
     void                CreateSkybox                ();
 
-    void                DrawSkybox                  (const float4x4& proj, const float4x4& view);
     void                DrawBatches                 (NodeList& nodes, uint render_flags);
     void                DrawNodes                   (const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo& ));
 

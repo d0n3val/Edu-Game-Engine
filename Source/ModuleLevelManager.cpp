@@ -23,9 +23,10 @@
 #include "DirLight.h"
 #include "PointLight.h"
 #include "SpotLight.h"
+#include "Skybox.h"
 
-#include "Leaks.h"
 #include "OpenGL.h"
+#include "Leaks.h"
 
 using namespace std;
 
@@ -34,59 +35,6 @@ ModuleLevelManager::ModuleLevelManager( bool start_enabled) : Module("LevelManag
     ambient = new AmbientLight();
     directional = new DirLight();
 
-}
-
-void ModuleLevelManager::CreateSkybox()
-{
-    float skybox_vertices[] = {
-        // front
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f
-    };
-
-    VertexAttrib attribs[] = { { 0, 3, GL_FLOAT, false, 0, 0 } };
-
-    skybox_vbo = std::unique_ptr<Buffer>(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(skybox_vertices), skybox_vertices));
-    skybox_vao = std::make_unique<VertexArray>(skybox_vbo.get(), nullptr, attribs, sizeof(attribs) / sizeof(VertexAttrib));
 }
 
 // Destructor
@@ -108,8 +56,7 @@ bool ModuleLevelManager::Init(Config* config)
 	root = new GameObject(nullptr, "root");
 	quadtree.SetBoundaries(AABB(float3(-500,0,-500), float3(500,30,500)));
 
-	CreateSkybox();
-
+    skybox = std::make_unique<Skybox>();
 
 	return ret;
 }

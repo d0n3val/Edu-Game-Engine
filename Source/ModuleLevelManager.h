@@ -5,13 +5,13 @@
 #include "Module.h"
 #include "Math.h"
 #include "QuadTree.h"
-#include "OGL.h"
 
 class GameObject;
 class PointLight;
 class SpotLight;
 class DirLight;
 class AmbientLight;
+class Skybox;
 
 class ModuleLevelManager : public Module
 {
@@ -71,7 +71,7 @@ public:
     uint                GetNumSpotLights        () const { return spots.size(); }
     const SpotLight*    GetSpotLight            (uint index) const { return spots[index]; }
     SpotLight*          GetSpotLight            (uint index) { return spots[index]; }
-	VertexArray*		GetSkyBoxVAO()			{ return skybox_vao.get(); }
+	Skybox*		        GetSkyBox()			    { return skybox.get(); }
 
 
     
@@ -91,8 +91,6 @@ private:
     void SaveLights(Config& config) const;
     void RemoveLights();
 
-    void CreateSkybox();
-
 public:
 	Quadtree quadtree;
 	bool draw_quadtree = false;
@@ -106,8 +104,7 @@ private:
 
 	std::string name;
 
-    std::unique_ptr<Buffer> skybox_vbo;
-    std::unique_ptr<VertexArray> skybox_vao;
+    std::unique_ptr<Skybox> skybox;
 };
 
 #endif // __MODULE_LEVELMANAGER_H__

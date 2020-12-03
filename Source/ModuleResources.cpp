@@ -54,6 +54,7 @@ bool ModuleResources::Start(Config * config)
 
     App->tex->LoadFallback(white_fallback, float3(1.0f));
     App->tex->LoadFallback(black_fallback, float3(0.0f));
+
 	LoadDefaultSkybox();
 
 	return true;
@@ -646,13 +647,13 @@ bool ModuleResources::LoadDefaultSkybox()
 
     std::string output_file;
 
-	skybox = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture));
+	skybox = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture, 3));
 	skybox->SetLinear(false);
     if (App->tex->LoadCube(skybox, files, "Assets/Textures/Cubemaps/"))
     {
 		skybox->file = "*Default Skybox*";
 		skybox->exported_file = "*Default Skybox*";
-		skybox->user_name = "Default skybox";
+		skybox->user_name = "*Default skybox*";
 
 		return true;
     }

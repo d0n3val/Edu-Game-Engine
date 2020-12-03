@@ -44,10 +44,13 @@ public:
 
 	UID GenerateNewUID();
 	const Resource* Get(UID uid) const;
-	Resource * Get(UID uid);
-	Resource* CreateNewResource(Resource::Type type, UID force_uid = 0);
-	//TODO: const Resource* Attach(GameObject* gameobject, UID uid));
-	void GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
+	Resource *      Get(UID uid);
+
+	ResourceTexture* GetTexture(UID uid) { Resource* res = Get(uid); return res && res->GetType() == Resource::texture ? reinterpret_cast<ResourceTexture*>(res) : nullptr; }
+	const ResourceTexture* GetTexture(UID uid) const { const Resource* res = Get(uid); return res && res->GetType() == Resource::texture ? reinterpret_cast<const ResourceTexture*>(res) : nullptr; }
+
+	Resource*   CreateNewResource (Resource::Type type, UID force_uid = 0);
+	void        GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
 
     void RemoveResource(UID uid);
 	
