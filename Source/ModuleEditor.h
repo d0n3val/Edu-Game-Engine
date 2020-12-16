@@ -3,7 +3,8 @@
 
 #include "Module.h"
 #include <vector>
-#include <any>
+#include <variant>
+#include <memory>
 
 #define FILE_MAX 250
 
@@ -26,6 +27,49 @@ class SpotLight;
 class ModuleEditor : public Module
 {
 public:
+
+	PanelConsole* console = nullptr;
+	PanelGOTree* tree = nullptr;
+	PanelProperties* props = nullptr;
+	PanelAbout* about = nullptr;
+	PanelConfiguration* conf = nullptr;
+	PanelResources* res= nullptr;
+    /*
+
+    enum SelectionType
+    {
+        SelectionGameObject = 0,
+        SelectionDirLight,
+        SelectionAmbientLight,
+        SelectionPointLight,
+        SelectionSpotLight,
+    };
+
+    union
+    {
+	    GameObject* go = nullptr;
+        DirLight* directional;
+        AmbientLight* ambient;
+        PointLight* point;
+        SpotLight* spot;
+
+
+    } selected;
+
+    SelectionType selection_type = SelectionGameObject;
+    */
+
+    enum SelectionType
+    {
+        SelGameObject = 0,
+        SelDirLight,
+        SelAmbientLight,
+        SelPointLight,
+        SelSpotLight,
+    };
+
+    typedef std::variant<GameObject*, DirLight*, AmbientLight*, PointLight*, SpotLight*> SelectionVariant;
+
 
     enum TabPanelEnum
     {
@@ -63,42 +107,18 @@ public:
 	void Log(const char* entry);
 	void LogInputEvent(uint key, uint state);
 	void LogFPS(float fps, float ms);
-	void SetSelected(GameObject* selected, bool focus = false);
+	//void SetSelected(GameObject* selected, bool focus = false);
 
     int GetWidth(TabPanelEnum panel) const { return tab_panels[panel].width; }
     int GetHeight(TabPanelEnum panel) const { return tab_panels[panel].height; }
     int GetPosX(TabPanelEnum panel) const { return tab_panels[panel].posx; }
     int GetPosY(TabPanelEnum panel) const { return tab_panels[panel].posy; }
 
-public:
+    const SelectionVariant& GetSelection() const { return selected; }
 
-	PanelConsole* console = nullptr;
-	PanelGOTree* tree = nullptr;
-	PanelProperties* props = nullptr;
-	PanelAbout* about = nullptr;
-	PanelConfiguration* conf = nullptr;
-	PanelResources* res= nullptr;
-
-    enum SelectionType
-    {
-        SelectionGameObject = 0,
-        SelectionDirLight,
-        SelectionAmbientLight,
-        SelectionPointLight,
-        SelectionSpotLight,
-    };
-
-    union
-    {
-	    GameObject* go = nullptr;
-        DirLight* directional;
-        AmbientLight* ambient;
-        PointLight* point;
-        SpotLight* spot;
-
-    } selected;
-
-    SelectionType selection_type = SelectionGameObject;
+    template<typename Arg>
+    void SetSelected(Arg && arg) { selected = std::forward<Arg>(arg); }
+    void ClearSelected() { selected = {}; }
 
 private:
 
@@ -134,6 +154,9 @@ private:
 	bool in_modal = false;
 	char selected_file[FILE_MAX];
 	bool draw_menu = true;
+
+    SelectionVariant selected;
+
 };
 
 #endif // __MODULEEDITOR_H__

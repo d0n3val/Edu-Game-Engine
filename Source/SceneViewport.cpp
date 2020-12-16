@@ -28,6 +28,8 @@
 #include "ImGui.h"
 #include "GL/glew.h"
 
+#include <variant>
+
 #include "Leaks.h"
 
 SceneViewport::SceneViewport()
@@ -102,7 +104,7 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 
 		glStencilMask(0x01);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        //glClear(/*GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT*/);
 
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         glStencilMask(0x00);
@@ -139,17 +141,17 @@ void SceneViewport::PickSelection(ComponentCamera* camera, int mouse_x, int mous
     glReadPixels(mouse_x, fb_height-mouse_y, 1, 1, GL_RED, GL_FLOAT, &selection_value);
     unsigned uid = *((unsigned*)&selection_value);
 
-    App->editor->SetSelected(App->level->Find(uid), false);
+    App->editor->SetSelected(App->level->Find(uid));
 }
 
 void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuffer)
 {
-    GameObject* selection = App->editor->selection_type == ModuleEditor::SelectionGameObject ? App->editor->selected.go : nullptr;
+    GameObject* const * selection = std::get_if<GameObject*>(&App->editor->GetSelection()); // App->editor->selection_type == ModuleEditor::SelectionGameObject ? App->editor->selected.go : nullptr;
 
-    if(selection)
+    if(*selection)
     {
         std::vector<Component*> components;
-        selection->FindComponents(Component::MeshRenderer, components);
+        (*selection)->FindComponents(Component::MeshRenderer, components);
         for(Component* comp : components)
         {
             ComponentMeshRenderer* mesh = static_cast<ComponentMeshRenderer*>(comp);
@@ -166,7 +168,7 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 
             float4 no_color(0.0, 0.0, 0.0, 0.0);
 
-            float4x4 transform = App->editor->selected.go->GetGlobalTransformation();
+            float4x4 transform = std::get<GameObject*>(App->editor->GetSelection())->GetGlobalTransformation();
             glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
             glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
             glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
@@ -499,80 +501,83 @@ void SceneViewport::DrawGuizmoProperties(SpotLight* spot)
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera)
 {
-	if (App->editor->selection_type == ModuleEditor::SelectionGameObject && App->editor->selected.go != nullptr)
-	{
-        DrawGuizmo(camera, App->editor->selected.go);
-	}
-	else if (App->editor->selection_type == ModuleEditor::SelectionPointLight && App->editor->selected.point != nullptr)
-    {
-        DrawGuizmo(camera, App->editor->selected.point);
-    }
-	else if (App->editor->selection_type == ModuleEditor::SelectionSpotLight && App->editor->selected.spot != nullptr)
-    {
-        DrawGuizmo(camera, App->editor->selected.spot);
-    }
+    std::visit([this, camera](auto ptr) {DrawGuizmo(camera, ptr); }, App->editor->GetSelection());
+}
+
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, AmbientLight* light)
+{
+    // Intentionally blank
+}
+
+
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, DirLight* dir_light)
+{
+    // Intentionally blank
 }
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
 {
-    ComponentCamera* go_camera = static_cast<ComponentCamera*>(go->FindFirstComponent(Component::Camera));
-
-    float4x4 view = camera->GetOpenGLViewMatrix();
-    float4x4 proj = camera->GetOpenGLProjectionMatrix();
-
-    ImGuizmo::BeginFrame();
-    ImGuizmo::Enable(true);
-
-    float4x4 model = go->GetGlobalTransformation();
-    model.Transpose();
-
-    float4x4 delta;
-
-    ImGuiIO& io = ImGui::GetIO();
-    ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
-    ImGuizmo::SetDrawlist();
-    ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
-
-    if (ImGuizmo::IsUsing() && !delta.IsIdentity())
+    if (go)
     {
+        ComponentCamera* go_camera = static_cast<ComponentCamera*>(go->FindFirstComponent(Component::Camera));
+
+        float4x4 view = camera->GetOpenGLViewMatrix();
+        float4x4 proj = camera->GetOpenGLProjectionMatrix();
+
+        ImGuizmo::BeginFrame();
+        ImGuizmo::Enable(true);
+
+        float4x4 model = go->GetGlobalTransformation();
         model.Transpose();
-        if(guizmo_mode == ImGuizmo::LOCAL || go->GetParent() == nullptr)
+
+        float4x4 delta;
+
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
+        ImGuizmo::SetDrawlist();
+        ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
+
+        if (ImGuizmo::IsUsing() && !delta.IsIdentity())
         {
-            go->SetLocalTransform(model);
+            model.Transpose();
+            if (guizmo_mode == ImGuizmo::LOCAL || go->GetParent() == nullptr)
+            {
+                go->SetLocalTransform(model);
+            }
+            else
+            {
+                float4x4 parent = go->GetParent()->GetGlobalTransformation();
+                parent.InverseOrthonormal();
+                go->SetLocalTransform(parent * model);
+            }
+
+            App->level->GetRoot()->RecursiveCalcGlobalTransform(float4x4::identity, false);
+
+            if (go_camera)
+            {
+                go_camera->OnUpdateTransform();
+            }
         }
-        else
+
+
+        float3 points[8];
+        go->global_bbox.GetCornerPoints(points);
+        std::swap(points[2], points[5]);
+        std::swap(points[3], points[4]);
+        std::swap(points[4], points[5]);
+        std::swap(points[6], points[7]);
+        dd::box(points, dd::colors::Yellow);
+
+        if (go_camera)
         {
-            float4x4 parent = go->GetParent()->GetGlobalTransformation();
-            parent.InverseOrthonormal();
-            go->SetLocalTransform(parent*model);
+            float4x4 go_view = go_camera->GetViewMatrix();
+            float4x4 go_proj = go_camera->GetProjectionMatrix();
+
+            float4x4 inv_clip = go_proj * go_view;
+            inv_clip.Inverse();
+
+            dd::frustum(inv_clip, dd::colors::Gray);
         }
-
-        App->level->GetRoot()->RecursiveCalcGlobalTransform(float4x4::identity, false);
-
-        if(go_camera)
-        {
-            go_camera->OnUpdateTransform();
-        }
-    }
-
-
-	float3 points[8];
-	go->global_bbox.GetCornerPoints(points);
-    std::swap(points[2], points[5]);
-    std::swap(points[3], points[4]);
-	std::swap(points[4], points[5]);
-	std::swap(points[6], points[7]);
-	dd::box(points, dd::colors::Yellow);
-
-    if(go_camera)
-    {
-        float4x4 go_view = go_camera->GetViewMatrix();
-        float4x4 go_proj = go_camera->GetProjectionMatrix();
-
-        float4x4 inv_clip = go_proj*go_view;
-        inv_clip.Inverse();
-
-        dd::frustum(inv_clip, dd::colors::Gray);
     }
 }
 

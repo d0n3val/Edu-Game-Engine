@@ -279,9 +279,14 @@ void ModuleEditor::ReceiveEvent(const Event& event)
 		break;
 #endif
 		case Event::gameobject_destroyed:
-			if(selection_type == SelectionGameObject)
-				selected.go = App->level->Validate(selected.go);
+		{
+			GameObject** go = std::get_if<GameObject*>(&selected);
+			if (go)
+			{
+				selected = App->level->Validate(*go);
+			}
 			tree->drag = App->level->Validate(tree->drag);
+		}
 		break;
 		case Event::window_resize:
 			OnResize(event.point2d.x, event.point2d.y);
@@ -396,10 +401,11 @@ void ModuleEditor::LogFPS(float fps, float ms)
 		conf->AddFPS(fps, ms);
 }
 
+/*
 void ModuleEditor::SetSelected(GameObject * selected, bool focus)
 {
-	selection_type = SelectionGameObject;
-	this->selected.go = selected;
+	
+	selected.go = selected;
 	if (selected != nullptr && focus == true)
 	{
 		float radius = selected->global_bbox.MinimalEnclosingSphere().r;
@@ -407,6 +413,7 @@ void ModuleEditor::SetSelected(GameObject * selected, bool focus)
 		tree->open_selected = true;
 	}
 }
+*/
 
 void ModuleEditor::LoadFile(const char* filter_extension, const char* from_dir)
 {

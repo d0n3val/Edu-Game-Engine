@@ -92,11 +92,10 @@ void Skybox::Draw(const float4x4& proj, const float4x4& view)
         texture->Bind(0, App->programs->GetUniformLocation("skybox"));
     }
 
-    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
     vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 6*6);
-
-    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 }
 
 void Skybox::SetCubemap(UID uid)

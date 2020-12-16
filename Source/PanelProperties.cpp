@@ -52,6 +52,7 @@
 
 #include <list>
 #include <algorithm>
+#include <variant>
 
 #include "Leaks.h"
 
@@ -59,6 +60,10 @@ using namespace std;
 
 #undef min
 #undef max
+
+// from  https://www.bfilipek.com/2018/09/visit-variants.html
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> overload(Ts...)->overload<Ts...>;
 
 // ---------------------------------------------------------
 PanelProperties::PanelProperties() : Panel("Properties")
@@ -77,29 +82,13 @@ PanelProperties::~PanelProperties()
 // ---------------------------------------------------------
 void PanelProperties::Draw()
 {
-    switch(App->editor->selection_type )
-    {
-        case ModuleEditor::SelectionGameObject:
-            if(App->editor->selected.go)
-                DrawGameObject(App->editor->selected.go);
-            break;
-        case ModuleEditor::SelectionAmbientLight:
-            if(App->editor->selected.ambient)
-                DrawAmbientLight(App->editor->selected.ambient);
-            break;
-        case ModuleEditor::SelectionDirLight:
-            if(App->editor->selected.directional)
-                DrawDirLight(App->editor->selected.directional);
-            break;
-        case ModuleEditor::SelectionPointLight:
-            if(App->editor->selected.point)
-                DrawPointLight(App->editor->selected.point);
-            break;
-        case ModuleEditor::SelectionSpotLight:
-            if(App->editor->selected.spot)
-                DrawSpotLight(App->editor->selected.spot);
-            break;
-    }
+    std::visit(overload{
+        [this](GameObject* go)      { DrawGameObject(go);      },
+        [this](AmbientLight* light) { DrawAmbientLight(light); },
+        [this](DirLight* light)     { DrawDirLight(light);     },
+        [this](PointLight* light)   { DrawPointLight(light);   },
+        [this](SpotLight* light)    { DrawSpotLight(light);    }
+        }, App->editor->GetSelection());
 
 }
 

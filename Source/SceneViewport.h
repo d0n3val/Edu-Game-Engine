@@ -9,6 +9,8 @@ class ComponentCamera;
 class GameObject;
 class PointLight;
 class SpotLight;
+class DirLight;
+class AmbientLight;
 class Config;
 
 class SceneViewport
@@ -47,6 +49,9 @@ private:
     void    DrawGuizmo      (ComponentCamera* camera, GameObject* go);
     void    DrawGuizmo      (ComponentCamera* camera, PointLight* point);
     void    DrawGuizmo      (ComponentCamera* camera, SpotLight* spot);
+    void    DrawGuizmo      (ComponentCamera* camera, DirLight* light);
+    void    DrawGuizmo      (ComponentCamera* camera, AmbientLight* light);
+
     float   DistanceFromAtt (float constant, float linear, float quadric, float epsilon);
     void    PickSelection   (ComponentCamera* camera, int mouse_x, int mouse_y);
     void    DrawSelection   (ComponentCamera* camera, Framebuffer* framebuffer);

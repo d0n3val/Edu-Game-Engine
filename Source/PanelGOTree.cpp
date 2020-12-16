@@ -11,6 +11,7 @@
 #include "GameObject.h"
 
 #include <list>
+#include <variant>
 
 #include <stdio.h>
 
@@ -141,7 +142,9 @@ void PanelGOTree::DrawLights()
         ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_GREY);
         uint flags = ImGuiTreeNodeFlags_Leaf;
 
-        if(App->editor->selection_type == ModuleEditor::SelectionAmbientLight && App->editor->selected.ambient == App->level->GetAmbientLight())
+        AmbientLight* const* ambient = std::get_if<AmbientLight*>(&App->editor->GetSelection());
+
+        if(ambient != nullptr && *ambient == App->level->GetAmbientLight())
         {
             flags |= ImGuiTreeNodeFlags_Selected;
         }
@@ -150,15 +153,16 @@ void PanelGOTree::DrawLights()
         {
             if (ImGui::IsItemClicked(0)) 
             {
-                App->editor->selected.ambient = App->level->GetAmbientLight();
-                App->editor->selection_type = ModuleEditor::SelectionAmbientLight;
+                App->editor->SetSelected(App->level->GetAmbientLight());                
             }
             ImGui::TreePop();
         }
 
         flags = ImGuiTreeNodeFlags_Leaf;
 
-        if(App->editor->selection_type == ModuleEditor::SelectionDirLight && App->editor->selected.directional == App->level->GetDirLight())
+        DirLight* const* dir_light = std::get_if<DirLight*>(&App->editor->GetSelection());
+
+        if(dir_light && *dir_light == App->level->GetDirLight())
         {
             flags |= ImGuiTreeNodeFlags_Selected;
         }
@@ -167,8 +171,7 @@ void PanelGOTree::DrawLights()
         {
             if (ImGui::IsItemClicked(0)) 
             {
-                App->editor->selected.directional = App->level->GetDirLight();
-                App->editor->selection_type = ModuleEditor::SelectionDirLight;
+                App->editor->SetSelected(App->level->GetDirLight());
             }
             ImGui::TreePop();
         }
@@ -183,7 +186,9 @@ void PanelGOTree::DrawLights()
 
                 flags = ImGuiTreeNodeFlags_Leaf;
 
-                if(App->editor->selection_type == ModuleEditor::SelectionPointLight && App->editor->selected.point == App->level->GetPointLight(i))
+                PointLight* const* point_light = std::get_if<PointLight*>(&App->editor->GetSelection());
+                bool is_selected = point_light && *point_light == App->level->GetPointLight(i);
+                if(is_selected)
                 {
                     flags |= ImGuiTreeNodeFlags_Selected;
                 }
@@ -192,8 +197,7 @@ void PanelGOTree::DrawLights()
                 {
                     if (ImGui::IsItemClicked(0)) 
                     {
-                        App->editor->selected.point = App->level->GetPointLight(i);
-                        App->editor->selection_type = ModuleEditor::SelectionPointLight;
+                        App->editor->SetSelected(App->level->GetPointLight(i));
                     }
 
                     if (ImGui::IsItemClicked(1))
@@ -203,10 +207,9 @@ void PanelGOTree::DrawLights()
                     {
                         if (true == (remove = ImGui::MenuItem("Remove")))
                         {
-                            if(App->editor->selection_type == ModuleEditor::SelectionPointLight && 
-                               App->editor->selected.point == App->level->GetPointLight(i))
+                            if(is_selected)
                             {
-                                App->editor->selected.point = nullptr;
+                                App->editor->ClearSelected();                                
                             }
 
                             App->level->RemovePointLight(i);
@@ -226,13 +229,16 @@ void PanelGOTree::DrawLights()
         {
             bool remove = false;
             char number[16];
+
+            SpotLight* const* spot = std::get_if<SpotLight*>(&App->editor->GetSelection());
+
             for(uint i=0, count = App->level->GetNumSpotLights(); !remove && i < count; ++i)
             {
                 sprintf_s(number, 15, "[%d]", i);
 
                 flags = ImGuiTreeNodeFlags_Leaf;
 
-                if(App->editor->selection_type == ModuleEditor::SelectionSpotLight && App->editor->selected.spot == App->level->GetSpotLight(i))
+                if(spot && *spot == App->level->GetSpotLight(i))
                 {
                     flags |= ImGuiTreeNodeFlags_Selected;
                 }
@@ -241,8 +247,7 @@ void PanelGOTree::DrawLights()
                 {
                     if (ImGui::IsItemClicked(0)) 
                     {
-                        App->editor->selected.spot = App->level->GetSpotLight(i);
-                        App->editor->selection_type = ModuleEditor::SelectionSpotLight;
+                        App->editor->SetSelected(App->level->GetSpotLight(i));                
                     }
 
                     if (ImGui::IsItemClicked(1))
@@ -252,10 +257,9 @@ void PanelGOTree::DrawLights()
                     {
                         if (true == (remove = ImGui::MenuItem("Remove")))
                         {
-                            if(App->editor->selection_type == ModuleEditor::SelectionSpotLight && 
-                               App->editor->selected.spot == App->level->GetSpotLight(i))
+                            if(spot && *spot == App->level->GetSpotLight(i))
                             {
-                                App->editor->selected.spot = nullptr;
+                                App->editor->ClearSelected();
                             }
 
                             App->level->RemoveSpotLight(i);
@@ -286,8 +290,10 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 	if (go->childs.size() == 0)
 		flags |= ImGuiTreeNodeFlags_Leaf;
 
-	bool go_selection = App->editor->selection_type == ModuleEditor::SelectionGameObject;
-	if (go_selection && go == App->editor->selected.go) 
+
+    GameObject* const* selected_go  = std::get_if<GameObject*>(&App->editor->GetSelection());
+
+	if (selected_go && go == *selected_go) 
 	{
 		flags |= ImGuiTreeNodeFlags_Selected;
 		open_selected = false;
@@ -309,7 +315,7 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 
 	ImGui::PushStyleColor(ImGuiCol_Text, color);
 
-	if (open_selected == true && go_selection == true && App->editor->selected.go->IsUnder(go) == true)
+	if (open_selected == true && selected_go && (*selected_go)->IsUnder(go) == true)
 		ImGui::SetNextTreeNodeOpen(true);
 
 	if (ImGui::TreeNodeEx(name, flags))
@@ -317,8 +323,7 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 		CheckHover(go);
 
 		if (ImGui::IsItemClicked(0)) {
-			App->editor->selected.go = go;
-			App->editor->selection_type = ModuleEditor::SelectionGameObject;
+            App->editor->SetSelected(go);
 			drag = go;
 		}
 
@@ -356,8 +361,7 @@ void PanelGOTree::CheckHover(GameObject* go)
 		}
 
 		if (ImGui::IsMouseClicked(0)) {
-			App->editor->selection_type = ModuleEditor::SelectionGameObject;
-			App->editor->selected.go = go;
+            App->editor->SetSelected(go);
 			drag = go;
 		}
 
