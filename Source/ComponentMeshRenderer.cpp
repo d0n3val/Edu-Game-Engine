@@ -231,7 +231,7 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
             
 			if(bone_node)
 			{
-                skin_palette[i] = bone_node->GetGlobalTransformation()*bone.bind;
+                skin_palette[i] = bone_node->GetGlobalTransformation() *bone.bind;
 			}
 			else
 			{

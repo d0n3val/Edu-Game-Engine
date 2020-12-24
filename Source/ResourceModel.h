@@ -45,16 +45,16 @@ public:
 
     bool        Save                ();
     bool        Save                (std::string& output) const;
-	static bool Import              (const char* full_path, std::string& output);
+	static bool Import              (const char* full_path, float scale, std::string& output);
 
     unsigned    GetNumNodes         () const { return nodes.size(); }
     const Node& GetNode             (uint index) const { return nodes[index]; }
 
 private:
 
-    void        GenerateNodes      (const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials);
+    void        GenerateNodes      (const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials, float scale);
     void        GenerateMaterials  (const aiScene* scene, const char* file, std::vector<UID>& materials);
-	void        GenerateMeshes     (const aiScene* scene, const char* file, std::vector<UID>& meshes);
+	void        GenerateMeshes     (const aiScene* scene, const char* file, std::vector<UID>& meshes, float scale);
 	void        SaveToStream       (simple::mem_ostream<std::true_type>& write_stream) const;
 
 private:

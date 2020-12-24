@@ -350,7 +350,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
 		break;
 		case Resource::model:
-			import_ok = ResourceModel::Import(new_file_in_assets, written_file);
+			import_ok = ResourceModel::Import(new_file_in_assets, 1.0, written_file);
 		break;
 		case Resource::animation:
 			import_ok = ResourceAnimation::Import(new_file_in_assets, 0, UINT_MAX, written_file);
@@ -431,6 +431,26 @@ UID ModuleResources::ImportAnimation(const char* file_name, uint first, uint las
 	{
         ret = ImportSuccess(Resource::animation, file_name, user_name, written_file);
 	}
+	else
+    {
+		LOG("Importing of [%s] FAILED", file_name);
+    }
+
+	return ret;
+}
+
+UID ModuleResources::ImportModel(const char* file_name, float scale, const char* user_name)
+{
+	UID ret = 0;
+    bool import_ok = false;
+    string written_file;
+
+    import_ok = ResourceModel::Import(file_name, scale, written_file);
+
+	if (import_ok == true)
+	{
+        ret = ImportSuccess(Resource::model, file_name, user_name, written_file);
+    }
 	else
     {
 		LOG("Importing of [%s] FAILED", file_name);

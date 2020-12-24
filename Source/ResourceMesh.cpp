@@ -424,17 +424,17 @@ bool ResourceMesh::Save(std::string& output) const
 }
 
 // ---------------------------------------------------------
-UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file)
+UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file, float scale)
 {
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
     m->name = HashString(mesh->mName.C_Str());
 
-    m->GenerateCPUBuffers(mesh);
+    m->GenerateCPUBuffers(mesh, scale);
 
     if(mesh->HasBones())
     {
-        m->GenerateBoneData(mesh);
+        m->GenerateBoneData(mesh, scale);
     }
 
     m->GenerateAttribInfo();
@@ -544,14 +544,14 @@ void ResourceMesh::GenerateAttribInfo()
     }
 }
 
-void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
+void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh, float scale)
 {
     num_vertices = mesh->mNumVertices;
     src_vertices = std::make_unique<float3[]>(mesh->mNumVertices);
 
     for(unsigned i=0; i< mesh->mNumVertices; ++i)
     {
-        src_vertices[i] = *((float3*)&mesh->mVertices[i]);
+        src_vertices[i] = (*((float3*)&mesh->mVertices[i]))*scale;
 	}
 
     if(mesh->HasTextureCoords(0))
@@ -626,7 +626,7 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh)
 
             for(uint j=0; j < num_vertices; ++j)
             {
-                data.src_vertices[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mVertices[j])-src_vertices[j];
+                data.src_vertices[j] = (*reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mVertices[j]))*scale-src_vertices[j];
                 if(fabs(data.src_vertices[j].LengthSq()) > 0.00001f)
                 {
                     tmp_indices.push_back(j);
@@ -813,7 +813,7 @@ void ResourceMesh::GenerateVBO()
     }
 }
 
-void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
+void ResourceMesh::GenerateBoneData(const aiMesh* mesh, float scale)
 {
     assert(mesh->HasBones());
 
@@ -830,6 +830,8 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh)
 								        float4(bone->mOffsetMatrix.a2, bone->mOffsetMatrix.b2, bone->mOffsetMatrix.c2, bone->mOffsetMatrix.d2),
                                         float4(bone->mOffsetMatrix.a3, bone->mOffsetMatrix.b3, bone->mOffsetMatrix.c3, bone->mOffsetMatrix.d3),
                                         float4(bone->mOffsetMatrix.a4, bone->mOffsetMatrix.b4, bone->mOffsetMatrix.c4, bone->mOffsetMatrix.d4));
+
+        dst_bone.bind.SetTranslatePart(dst_bone.bind.TranslatePart() * scale);
     }
 
     std::unique_ptr<unsigned[]> bone_indices = std::make_unique<unsigned[]>(4*mesh->mNumVertices);

@@ -8,6 +8,7 @@
 #include "ImportAnimationDlg.h"
 #include "ImportTextureDlg.h"
 #include "ImportCubemapDlg.h"
+#include "ImportModelDlg.h"
 
 #include <vector>
 #include <set>
@@ -39,6 +40,7 @@ private:
     ImportTexturesDlg   textures_dlg;
     ImportAnimationDlg  animation_dlg;
     ImportCubemapDlg    cubemap_dlg;
+    ImportModelDlg      model_dlg;
 
 	bool waiting_to_load_file      = false;
     Resource::Type waiting_to_load = Resource::unknown;

@@ -65,6 +65,13 @@ void PanelResources::Draw()
         cubemap_dlg.ClearSelection();
     }
 
+    model_dlg.Display();
+    if(model_dlg.HasSelection())
+    {
+        App->resources->ImportModel(model_dlg.GetFile().c_str(), model_dlg.GetScale(), model_dlg.GetUserName().c_str());
+        model_dlg.ClearSelection();
+    }
+
 	if (ImGui::BeginMenu("Options"))
 	{
 			// TODO we should safely remove those options
@@ -108,6 +115,11 @@ void PanelResources::ImportResource(const std::string& file)
     {
         switch(waiting_to_load)
         {
+            case Resource::model:
+                {
+                    model_dlg.Open(file);
+                    break;
+                }
             case Resource::texture:
                 {
                     textures_dlg.Open(file);

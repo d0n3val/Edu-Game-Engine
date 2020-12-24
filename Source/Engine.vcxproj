@@ -183,6 +183,7 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="ImportAnimationDlg.h" />
     <ClInclude Include="ImportCubemapDlg.h" />
+    <ClInclude Include="ImportModelDlg.h" />
     <ClInclude Include="ImportTextureDlg.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="MathGeoLib\include\Algorithm\Random\LCG.h" />
@@ -345,6 +346,7 @@
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="ImportAnimationDlg.cpp" />
     <ClCompile Include="ImportCubemapDlg.cpp" />
+    <ClCompile Include="ImportModelDlg.cpp" />
     <ClCompile Include="ImportTextureDlg.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathGeoLib\include\Algorithm\Random\LCG.cpp" />

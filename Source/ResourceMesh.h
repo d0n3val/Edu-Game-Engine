@@ -55,7 +55,7 @@ public:
     void                  ReleaseFromMemory   () override;
     bool                  Save                ();
     bool                  Save                (std::string& output) const;
-    static UID            Import              (const aiMesh* mesh, const char* source_file);
+    static UID            Import              (const aiMesh* mesh, const char* source_file, float scale);
 
     static UID            LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks);
     static UID            LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
@@ -99,10 +99,10 @@ private:
     static UID          Generate            (const char* shape_name, par_shapes_mesh_s* shape);
     void                GenerateAttribInfo  ();
     void                GenerateCPUBuffers  (const Thekla::Atlas_Output_Mesh* atlas);
-    void                GenerateCPUBuffers  (const aiMesh* mesh);
+    void                GenerateCPUBuffers  (const aiMesh* mesh, float scale);
 	void                GenerateCPUBuffers  (par_shapes_mesh_s* shape);
     void                GenerateVBO         ();
-    void                GenerateBoneData    (const aiMesh* mesh);
+    void                GenerateBoneData    (const aiMesh* mesh, float scale);
     void                GenerateVAO         ();
     void                GenerateTangentSpace();
     void                Clear               ();

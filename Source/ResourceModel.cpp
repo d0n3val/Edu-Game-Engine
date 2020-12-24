@@ -202,7 +202,7 @@ void ResourceModel::SaveToStream(simple::mem_ostream<std::true_type>& write_stre
 }
 
 
-bool ResourceModel::Import(const char* full_path, std::string& output)
+bool ResourceModel::Import(const char* full_path, float scale, std::string& output)
 {
 	unsigned flags = aiProcess_CalcTangentSpace | \
 		aiProcess_GenSmoothNormals | \
@@ -217,7 +217,7 @@ bool ResourceModel::Import(const char* full_path, std::string& output)
 		aiProcess_FindInvalidData | 
 		0;
 	
-	aiString assimp_path(".");
+	aiString assimp_path;
 	assimp_path.Append(full_path);
 
 	const aiScene* scene = aiImportFile(assimp_path.data, flags);
@@ -228,8 +228,8 @@ bool ResourceModel::Import(const char* full_path, std::string& output)
 
         std::vector<UID> materials, meshes;
         m.GenerateMaterials(scene, full_path, materials);
-        m.GenerateMeshes(scene, full_path, meshes);
-        m.GenerateNodes(scene, scene->mRootNode, 0, meshes, materials);
+        m.GenerateMeshes(scene, full_path, meshes, scale);
+        m.GenerateNodes(scene, scene->mRootNode, 0, meshes, materials, scale);
 
         aiReleaseImport(scene);
 
@@ -251,22 +251,23 @@ void ResourceModel::GenerateMaterials(const aiScene* scene, const char* file, st
 	}
 }
 
-void ResourceModel::GenerateMeshes(const aiScene* scene, const char* file, std::vector<UID>& meshes)
+void ResourceModel::GenerateMeshes(const aiScene* scene, const char* file, std::vector<UID>& meshes, float scale)
 {
 	meshes.reserve(scene->mNumMeshes);
 
 	for(unsigned i=0; i < scene->mNumMeshes; ++i)
 	{
-        meshes.push_back(ResourceMesh::Import(scene->mMeshes[i], file)); 
+        meshes.push_back(ResourceMesh::Import(scene->mMeshes[i], file, scale)); 
 
 		assert(meshes.back() != 0);
 	}
 }
 
-void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials)
+void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials, float scale)
 {
     Node dst;
     dst.transform = reinterpret_cast<const float4x4&>(node->mTransformation);
+    dst.transform.SetTranslatePart(dst.transform.TranslatePart() * scale);
     dst.name      = node->mName.C_Str();
     dst.parent    = parent;
 
@@ -288,7 +289,7 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
 
     for(unsigned i=0; i < node->mNumChildren; ++i)
     {
-        GenerateNodes(model, node->mChildren[i], parent, meshes, materials);
+        GenerateNodes(model, node->mChildren[i], parent, meshes, materials, scale);
     }
 }
 
