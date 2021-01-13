@@ -684,6 +684,9 @@
     <ClInclude Include="ImportModelDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="ShowTextureDlg.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1233,6 +1236,9 @@
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="ImportModelDlg.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ShowTextureDlg.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>

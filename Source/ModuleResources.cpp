@@ -391,6 +391,8 @@ UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool 
 		LOG("Importing of [%s] FAILED", file_name);
     }
 
+	SaveResources();
+
 	return ret;
 }
 
@@ -473,13 +475,15 @@ UID ModuleResources::ImportSuccess(Resource::Type type, const char* file_name, c
     res->exported_file = file.c_str();
     LOG("Imported successful from [%s] to [%s]", res->GetFile(), res->GetExportedFile());
 
-	if (!res->file.empty())
+	if (strlen(user_name) != 0 || res->file.empty())
+	{
+		res->user_name = user_name;
+	}
+	else
 	{
 		App->fs->SplitFilePath(res->file.c_str(), nullptr, &res->user_name, nullptr);
 	}
     
-    res->user_name = user_name;
-
     if (res->user_name.empty())
     {
         res->user_name = res->exported_file;

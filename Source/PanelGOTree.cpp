@@ -82,7 +82,7 @@ void PanelGOTree::Draw()
 				{
 					const Resource* model = (*it);
                     ImGui::PushID(model->GetExportedFile());
-					if (ImGui::MenuItem(model->GetSourceName()))
+					if (ImGui::MenuItem(model->GetUserResName()))
 					{
                         App->level->AddModel(model->GetUID());
 					}

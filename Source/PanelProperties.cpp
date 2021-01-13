@@ -417,10 +417,10 @@ UID PanelProperties::PickResourceModal(int type)
 
     if (ImGui::Button(tmp))
     {
-        ImGui::OpenPopup("Select");
+        ImGui::OpenPopup(tmp);
     }
 
-    return OpenResourceModal(type, "Select");
+    return OpenResourceModal(type, tmp);
 }
 
 UID PanelProperties::OpenResourceModal(int type, const char* popup_name)
@@ -658,27 +658,6 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
         component->SetMeshRes(new_res);
     }
 
-    ImGui::SameLine();
-
-    // Material
-
-    ResourceMaterial* mat_res = component->GetMaterialRes();
-
-    new_res = PickResourceModal(Resource::material);
-
-    ImGui::SameLine();
-    if(ImGui::Button("New material"))
-    {
-        ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material, 0));
-
-        bool save_ok = material->Save();
-
-        if(save_ok)
-        {
-            new_res = material->GetUID();
-        }
-    }
-
     ImGui::Separator();
 
     const char* names[ComponentMeshRenderer::RENDER_COUNT] = { "Opaque", "Transparent" };
@@ -704,6 +683,25 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
     }
 
     ImGui::Separator();
+
+    // Material
+
+    ResourceMaterial* mat_res = component->GetMaterialRes();
+
+    new_res = PickResourceModal(Resource::material);
+
+    ImGui::SameLine();
+    if (ImGui::Button("New material"))
+    {
+        ResourceMaterial* material = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material, 0));
+
+        bool save_ok = material->Save();
+
+        if (save_ok)
+        {
+            new_res = material->GetUID();
+        }
+    }
 
     if(new_res > 0)
     {
@@ -826,14 +824,22 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 {
     bool modified = false;
 
+    char tmp[256];
+    strcpy_s(tmp, 255, material->GetUserResName());
+    if(ImGui::InputText("Material name", tmp, 256))
+    {
+        material->SetUserResName(tmp);
+        modified = true;
+    }
+
     if (ImGui::CollapsingHeader("Ligthmap", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, mesh, TextureLightmap, "Lightmap");
+        modified = modified || TextureButton(material, mesh, TextureLightmap, "Lightmap");
     }
 
     if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        modified = TextureButton(material, mesh, TextureOcclusion, "Occlusion") || modified;
+        modified = modified || TextureButton(material, mesh, TextureOcclusion, "Occlusion") || modified;
     }
 
     if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1125,7 +1131,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
     {
         char name[128];
 
-        strcpy_s(name, state_res->GetSourceName());
+        strcpy_s(name, state_res->GetUserResName());
 
         if(ImGui::InputText("Resource name", name, 128))
         {
@@ -1155,7 +1161,7 @@ void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
                 state_res->Save();
             }
 
-            ImGui::LabelText("Resource", resource ? resource->GetSourceName() : "Unknown");
+            ImGui::LabelText("Resource", resource ? resource->GetUserResName() : "Unknown");
             ImGui::SameLine();
             if(ImGui::ArrowButton("resource", ImGuiDir_Right))
             {
@@ -1343,7 +1349,7 @@ void DrawTrailComponent(ComponentTrail* component)
         if (info)
         {
             char name[128];
-            strcpy_s(name, info->GetSourceName());
+            strcpy_s(name, info->GetUserResName());
 
             if (ImGui::InputText("Resource name", name, 128))
             {
@@ -1464,7 +1470,7 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
         if (info)
         {
             char name[128];
-            strcpy_s(name, info->GetSourceName());
+            strcpy_s(name, info->GetUserResName());
 
             if (ImGui::InputText("Resource name", name, 128))
             {
@@ -1707,7 +1713,7 @@ UID PanelProperties::DrawResourceType(Resource::Type type, bool opened)
 
             ImGui::PushID(info->GetExportedFile());
 
-            if (ImGui::TreeNodeEx(info->GetSourceName(), info->GetUID() == selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
+            if (ImGui::TreeNodeEx(info->GetUserResName(), info->GetUID() == selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
             {
                 if (ImGui::IsItemClicked(0) )
                 {
@@ -1739,18 +1745,18 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
 {
     ImVec2 tex_size = ImVec2(float(preview_width), float(preview_height));
 
-    float out_width = texture->GetWidth()*float(preview_zoom/100.0f);
-    float out_height = texture->GetHeight()*(preview_zoom/100.0f);
+    float out_width = 256; // texture->GetWidth()* float(preview_zoom / 100.0f);
+    float out_height = 256; // texture->GetHeight()* (preview_zoom / 100.0f);
 
     ImVec2 out_size = ImVec2(out_width, out_height);
 
-    ImGui::SetNextWindowSize(ImVec2(tex_size.x+20, tex_size.y+80));
+    ImGui::SetNextWindowSize(ImVec2(tex_size.x+20, tex_size.y+100));
     if (texture->GetType() == ResourceTexture::Texture2D && ImGui::BeginPopupModal("show texture", nullptr, ImGuiWindowFlags_NoResize))
     {
 
-        if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar))
+        if(ImGui::BeginChild("Canvas", ImVec2(tex_size.x+10, tex_size.y+18), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar))
         {
-            ImGui::Image((ImTextureID)preview_texture->Id(), out_size, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((ImTextureID)preview_hack->Id(), out_size, ImVec2(0, 1), ImVec2(1, 0));
         }
         ImGui::EndChild();
 
@@ -1815,6 +1821,11 @@ void PanelProperties::ShowTextureModal(const ResourceTexture* texture, const Res
 
 void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* texture, const ResourceMesh* mesh)
 {
+    preview_hack = texture;
+    preview_width = width;
+    preview_height = height;
+
+    /*
 	int window_width  = App->window->GetWidth();
 	int window_height = App->window->GetHeight();
 
@@ -1839,6 +1850,7 @@ void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* textur
             GeneratePreviewBlitFB(texture);
         }
 
+        
         GeneratePreviewFB(out_width, out_height);
 
         if(preview_text)
@@ -1859,6 +1871,7 @@ void PanelProperties::GeneratePreview(uint width, uint height, Texture2D* textur
         preview_width = 0;
         preview_height = 0;
     }
+    */
 }
 
 void PanelProperties::GeneratePreviewBlitFB(Texture2D* texture)

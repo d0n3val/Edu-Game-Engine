@@ -296,6 +296,7 @@
     <ClInclude Include="ResourceStateMachine.h" />
     <ClInclude Include="ResourceTexture.h" />
     <ClInclude Include="SceneViewport.h" />
+    <ClInclude Include="ShowTextureDlg.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="spotlight.h" />
     <ClInclude Include="StateViewport.h" />
@@ -428,6 +429,7 @@
     <ClCompile Include="ResourceStateMachine.cpp" />
     <ClCompile Include="ResourceTexture.cpp" />
     <ClCompile Include="SceneViewport.cpp" />
+    <ClCompile Include="ShowTextureDlg.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="SOIL2\srcs\etc1_utils.c" />
     <ClCompile Include="SOIL2\srcs\image_DXT.c" />

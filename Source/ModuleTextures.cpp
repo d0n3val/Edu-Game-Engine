@@ -204,6 +204,11 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
             }
             ilDeleteImages(1, &ImageName);
         }
+        else
+        {
+            ILenum error = ilGetError();
+            LOG("%d, %s", error, iluErrorString(error));
+        }
     }
 
 	if (ret == false)
@@ -215,15 +220,15 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
 // Load new texture from file path
 bool ModuleTextures::Load(ResourceTexture* resource)
 {
-	bool ret = false;
+	bool ret = true;
 
-	char* buffer = nullptr;
-	uint total_size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, resource->GetExportedFile(), &buffer);
+	char* head_buffer = nullptr;
+	uint total_size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, resource->GetExportedFile(), &head_buffer);
 
-	if (buffer != nullptr && total_size > 0)
+	if (head_buffer != nullptr && total_size > 0)
 	{
-        ResourceTexture::Type type = ResourceTexture::Type(*reinterpret_cast<uint32_t*>(buffer));
-        buffer += sizeof(uint32_t);
+        ResourceTexture::Type type = ResourceTexture::Type(*reinterpret_cast<uint32_t*>(head_buffer));
+        char* buffer = head_buffer+sizeof(uint32_t);
 
         if(type == ResourceTexture::Texture2D)
         {
@@ -231,7 +236,9 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 
             if(LoadImage(buffer, total_size, image))
             {
-                resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 
+                resource->width = ilGetInteger(IL_IMAGE_WIDTH);
+                resource->height = ilGetInteger(IL_IMAGE_HEIGHT);
+                resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, resource->width, resource->height, 
                                                                 !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT), 
                                                                 GL_UNSIGNED_BYTE, ilGetData(), resource->has_mips);
             }
@@ -264,7 +271,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
             
     }
 
-	RELEASE_ARRAY(buffer);
+	RELEASE_ARRAY(head_buffer);
 
 	return ret;
 }

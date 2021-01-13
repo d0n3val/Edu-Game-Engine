@@ -47,41 +47,44 @@ bool ResourceMaterial::LoadInMemory()
 
         uint size = App->fs->Load(LIBRARY_MATERIAL_FOLDER, GetExportedFile(), &buffer);
 
-        simple::mem_istream<std::true_type> read_stream(buffer, size);
-
-		read_stream >> diffuse_color.x >> diffuse_color.y >> diffuse_color.z >> diffuse_color.w;
-		read_stream >> specular_color.x >> specular_color.y >> specular_color.z;
-		read_stream >> emissive_color.x >> emissive_color.y >> emissive_color.z;
-
-        for(uint i=0; i< TextureCount; ++i)
+        if (buffer)
         {
-            read_stream >> textures[i];
+            simple::mem_istream<std::true_type> read_stream(buffer, size);
+
+            read_stream >> diffuse_color.x >> diffuse_color.y >> diffuse_color.z >> diffuse_color.w;
+            read_stream >> specular_color.x >> specular_color.y >> specular_color.z;
+            read_stream >> emissive_color.x >> emissive_color.y >> emissive_color.z;
+
+            for (uint i = 0; i < TextureCount; ++i)
+            {
+                read_stream >> textures[i];
+            }
+
+            float k_ambient, k_diffuse, k_specular;
+            read_stream >> k_ambient >> k_diffuse >> k_specular;
+
+            read_stream >> shininess;
+            read_stream >> normal_strength;
+            read_stream >> double_sided;
+            read_stream >> alpha_test;
+
+            for (uint i = 0; i < TextureCount; ++i)
+            {
+                if (textures[i] != 0)
+                {
+                    ResourceTexture* tex_res = static_cast<ResourceTexture*>(App->resources->Get(textures[i]));
+
+                    if (tex_res)
+                    {
+                        tex_res->LoadToMemory();
+                    }
+                }
+            }
+
+            delete[] buffer;
+
+            return true;
         }
-
-        float k_ambient, k_diffuse, k_specular;
-		read_stream >> k_ambient >> k_diffuse >> k_specular;
-
-        read_stream >> shininess;
-        read_stream >> normal_strength;
-        read_stream >> double_sided;
-        read_stream >> alpha_test;
-
-        for(uint i=0; i< TextureCount; ++i)
-        {
-			if (textures[i] != 0)
-			{
-				ResourceTexture* tex_res = static_cast<ResourceTexture*>(App->resources->Get(textures[i]));
-
-				if (tex_res)
-				{
-                    tex_res->LoadToMemory();
-				}
-			}
-        }
-
-		delete[] buffer;
-
-        return true;
     }
 
     return false;

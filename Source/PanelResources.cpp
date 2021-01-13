@@ -181,11 +181,16 @@ void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources:
         {
             const Resource* info = (*it);
 
-            ImGui::PushID(info->GetExportedFile());
-
 			bool selected = selection.find(info->GetUID()) != selection.end();
 
-            if (ImGui::TreeNodeEx(info->GetSourceName(), selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
+            const char* lName = info->GetUserResName();
+            if (strlen(lName) == 0)
+            {
+                lName = "*NoName*";
+            }
+
+            ImGui::PushID(info->GetExportedFile());
+            if (ImGui::TreeNodeEx(lName, selected ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Leaf))
             {
                 if (ImGui::IsItemClicked(0))
                 {

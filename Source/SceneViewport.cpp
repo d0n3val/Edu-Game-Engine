@@ -148,7 +148,7 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 {
     GameObject* const * selection = std::get_if<GameObject*>(&App->editor->GetSelection()); // App->editor->selection_type == ModuleEditor::SelectionGameObject ? App->editor->selected.go : nullptr;
 
-    if(*selection)
+    if(selection && *selection)
     {
         std::vector<Component*> components;
         (*selection)->FindComponents(Component::MeshRenderer, components);
