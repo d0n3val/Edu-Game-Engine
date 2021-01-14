@@ -3,6 +3,7 @@
 
 // Editor Panel to show the properties of a single GameObject and its components
 #include "Globals.h"
+#include "ShowTextureDlg.h"
 #include "Panel.h"
 #include "Resource.h"
 #include "Math.h"
@@ -72,12 +73,6 @@ private:
 	void DrawRootMotionComponent(ComponentRootMotion * component);
     void DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh);
     UID DrawResourceType(Resource::Type type, bool opened);
-    void ShowTextureModal(const ResourceTexture* texture, const ResourceMesh* mesh);
-
-    void GeneratePreview(uint width, uint height, Texture2D* texture, const ResourceMesh* mesh);
-    void GeneratePreviewFB(uint width, uint height);
-    void GeneratePreviewBlitFB(Texture2D* texture);
-    void DrawPreviewUVs(const ResourceMesh* mesh, uint width, uint height);
     void DrawMesh(const ResourceMesh* mesh);
 
 private:
@@ -91,20 +86,10 @@ private:
     TexturePtr      occlusion;
     TexturePtr      depth;
 
-    FramebufferPtr  preview_blit_fb;
-    FramebufferPtr  preview_fb;
-    TexturePtr      preview_texture;
-
     PerlinPtr       perlin;
 
-    uint            preview_width   = 0;
-    uint            preview_height  = 0;
-    bool            preview_uvs     = false;
-    bool            preview_text    = true;
-    math::float4    uv_color        = math::float4(1.0f, 1.0f, 1.0f, 1.0f);
-    uint            preview_set     = 0;
-    float           preview_zoom    = 100.0;
-    Texture2D* preview_hack = 0;
+    ShowTextureDlg  show_texture;
+
 };
 
 #endif// __PANELPROPERTIES_H__
