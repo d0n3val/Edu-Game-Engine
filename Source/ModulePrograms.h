@@ -33,6 +33,7 @@ private:
         UniformBinding* bindings      = nullptr;
         unsigned        num_bindings  = 0;
         mutable char**  data          = nullptr;
+        bool            add_version   = true;
     };
 
 	typedef std::map<KeyProg, unsigned, LessKeyProg> ProgramList;
@@ -50,7 +51,7 @@ public:
 
 	void Load                           (const char* name, const char* vertex_shader, const char* fragment_shader, 
                                         const char** macros, unsigned num_macros, const UniformBinding* uniforms, 
-                                        unsigned num_uniforms);
+                                        unsigned num_uniforms, bool version = true);
 
     void GenerateVariation              (const char* name, unsigned variations);
 
@@ -64,7 +65,7 @@ public:
 
 private:
 
-	void  Compile           (char** data, char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros) const;
+	void  Compile           (char** data, char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros, bool version) const;
     char* LoadFile          (const char* file_name);
 };
 

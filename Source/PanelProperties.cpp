@@ -41,6 +41,7 @@
 #include "Viewport.h"
 #include "SceneViewport.h"
 #include "BatchManager.h"
+#include "SkyboxRollout.h"
 
 #include "DirLight.h"
 #include "AmbientLight.h"
@@ -73,6 +74,7 @@ PanelProperties::PanelProperties() : Panel("Properties")
 	posx = default_posx;
 	posy = default_posy;
     perlin = std::make_unique<PerlinProperties>();
+    skybox = std::make_unique<SkyboxRollout>();
 }
 
 // ---------------------------------------------------------
@@ -82,12 +84,13 @@ PanelProperties::~PanelProperties()
 // ---------------------------------------------------------
 void PanelProperties::Draw()
 {
-    std::visit(overload{
+    std::visit(overload {
         [this](GameObject* go)      { DrawGameObject(go);      },
         [this](AmbientLight* light) { DrawAmbientLight(light); },
         [this](DirLight* light)     { DrawDirLight(light);     },
         [this](PointLight* light)   { DrawPointLight(light);   },
-        [this](SpotLight* light)    { DrawSpotLight(light);    }
+        [this](SpotLight* light)    { DrawSpotLight(light);    },
+        [this](Skybox* sky)         { skybox->DrawProperties(sky);    }
         }, App->editor->GetSelection());
 
     show_texture.Display();
@@ -1004,10 +1007,6 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
 			ImGui::PopID();
 
             show_texture.Open(mesh, static_cast<Texture2D*>(info->GetTexture()), info->GetWidth(), info->GetHeight());
-
-            //ImGui::OpenPopup("show texture");
-            
-            //GeneratePreview(info->GetWidth(), info->GetHeight(), static_cast<Texture2D*>(info->GetTexture()), mesh);
         }
         else 
         {

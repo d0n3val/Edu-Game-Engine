@@ -16,13 +16,14 @@ class ResourceMaterial;
 class ResourceMesh;
 class BatchManager;
 class QuadtreeNode;
+class Postprocess;
+class Texture2D;
+class Framebuffer;
 
 class ModuleRenderer : public Module
 {
     RenderList render_list;
 
-    uint post_vbo       = 0;
-    uint post_vao       = 0;
     uint sky_vbo        = 0;
     uint sky_vao        = 0;
     uint sky_cubemap    = 0;
@@ -52,21 +53,12 @@ class ModuleRenderer : public Module
         uint        tick            = 0;
     };
 
-    uint bloom_fbo        = 0;
-    uint bloom_tex        = 0;
-    uint color_tex        = 0;
-    uint bloom_blur_fbo_0 = 0;
-    uint bloom_blur_tex_0 = 0;
-    uint bloom_blur_fbo_1 = 0;
-    uint bloom_blur_tex_1 = 0;
-    uint bloom_width    = 0;
-    uint bloom_height   = 0;
-
     enum EShadows { CASCADE_COUNT = 3 };
 
     ShadowMap cascades[CASCADE_COUNT];
 
     std::unique_ptr<BatchManager> batch_manager;
+    std::unique_ptr<Postprocess> postProcess;
 
 public:
 
@@ -76,7 +68,8 @@ public:
 	bool                Init                        (Config* config = nullptr) override;
     void                Draw                        (ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height);
     void                DrawForSelection            (ComponentCamera* camera);
-    void                Postprocess                 (unsigned screen_texture, unsigned fbo, unsigned width, unsigned height);
+
+    void                DoPostprocess               (Texture2D* screen, Framebuffer* fb, unsigned width, unsigned height);
 
 	void                DrawDebug                   () override;
 
@@ -126,7 +119,6 @@ private:
     void                DebugDrawHierarchy          (const GameObject* go);
 
     void                GenerateShadowFBO           (ShadowMap& map, unsigned width, unsigned height);
-    void                GenerateBloomFBO            (unsigned width, unsigned height);
     float4x4            SetOrtho                    (float left, float right, float bottom, float top, float _near, float _far);
     float4x4            SetFrustum                  (float left, float right, float bottom, float top, float _near, float _far);
     float4x4            ComputePerspShadowMtx       (const float3& view_pos, const float3& view_dir, const float3& light_dir, const float3x3& light_view);

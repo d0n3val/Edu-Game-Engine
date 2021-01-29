@@ -19,6 +19,7 @@ public:
 private:
 
     void DrawLights();
+    void DrawSkybox();
 	void RecursiveDraw(GameObject* go);
 	void CheckHover(GameObject* go);
 

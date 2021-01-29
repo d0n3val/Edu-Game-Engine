@@ -11,6 +11,7 @@ class PointLight;
 class SpotLight;
 class DirLight;
 class AmbientLight;
+class Skybox;
 class Config;
 
 class SceneViewport
@@ -51,6 +52,7 @@ private:
     void    DrawGuizmo      (ComponentCamera* camera, SpotLight* spot);
     void    DrawGuizmo      (ComponentCamera* camera, DirLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, AmbientLight* light);
+    void    DrawGuizmo      (ComponentCamera* camera, Skybox* skybox);
 
     float   DistanceFromAtt (float constant, float linear, float quadric, float epsilon);
     void    PickSelection   (ComponentCamera* camera, int mouse_x, int mouse_y);

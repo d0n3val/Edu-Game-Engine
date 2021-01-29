@@ -1,4 +1,4 @@
-#version 450 
+#version 440 
 
 out vec2 uv;
 

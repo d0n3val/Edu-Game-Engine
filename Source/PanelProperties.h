@@ -27,6 +27,8 @@ class DirLight;
 class PointLight;
 class SpotLight;
 class PerlinProperties;
+class Skybox;
+class SkyboxRollout;
 
 class Texture2D;
 class Framebuffer;
@@ -79,6 +81,7 @@ private:
     typedef std::unique_ptr<PerlinProperties> PerlinPtr;
     typedef std::unique_ptr<Framebuffer> FramebufferPtr;
     typedef std::unique_ptr<Texture2D> TexturePtr;
+    typedef std::unique_ptr<SkyboxRollout> SkyboxPtr;
 
     FramebufferPtr  convert_fb;
     TexturePtr      diffuse;
@@ -86,6 +89,7 @@ private:
     TexturePtr      occlusion;
     TexturePtr      depth;
 
+    SkyboxPtr       skybox;
     PerlinPtr       perlin;
 
     ShowTextureDlg  show_texture;

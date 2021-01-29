@@ -23,6 +23,7 @@ class DirLight;
 class AmbientLight;
 class PointLight;
 class SpotLight;
+class Skybox;
 
 class ModuleEditor : public Module
 {
@@ -34,30 +35,6 @@ public:
 	PanelAbout* about = nullptr;
 	PanelConfiguration* conf = nullptr;
 	PanelResources* res= nullptr;
-    /*
-
-    enum SelectionType
-    {
-        SelectionGameObject = 0,
-        SelectionDirLight,
-        SelectionAmbientLight,
-        SelectionPointLight,
-        SelectionSpotLight,
-    };
-
-    union
-    {
-	    GameObject* go = nullptr;
-        DirLight* directional;
-        AmbientLight* ambient;
-        PointLight* point;
-        SpotLight* spot;
-
-
-    } selected;
-
-    SelectionType selection_type = SelectionGameObject;
-    */
 
     enum SelectionType
     {
@@ -66,9 +43,10 @@ public:
         SelAmbientLight,
         SelPointLight,
         SelSpotLight,
+        SelSkybox
     };
 
-    typedef std::variant<GameObject*, DirLight*, AmbientLight*, PointLight*, SpotLight*> SelectionVariant;
+    typedef std::variant<GameObject*, DirLight*, AmbientLight*, PointLight*, SpotLight*, Skybox*> SelectionVariant;
 
 
     enum TabPanelEnum
@@ -107,7 +85,6 @@ public:
 	void Log(const char* entry);
 	void LogInputEvent(uint key, uint state);
 	void LogFPS(float fps, float ms);
-	//void SetSelected(GameObject* selected, bool focus = false);
 
     int GetWidth(TabPanelEnum panel) const { return tab_panels[panel].width; }
     int GetHeight(TabPanelEnum panel) const { return tab_panels[panel].height; }

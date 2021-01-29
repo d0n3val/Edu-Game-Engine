@@ -117,8 +117,8 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 
         DrawSelection(camera, framebuffer);
 
-        App->renderer->Postprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
-
+        App->renderer->DoPostprocess(texture_color, framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
+        //App->renderer->DoPostprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
 
         ShowTexture();
 
@@ -513,6 +513,11 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, AmbientLight* light)
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, DirLight* dir_light)
 {
     // Intentionally blank
+}
+
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, Skybox* skybox)
+{
+
 }
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)

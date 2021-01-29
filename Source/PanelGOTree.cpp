@@ -125,11 +125,35 @@ void PanelGOTree::Draw()
     ImGui::PopStyleColor();
 
     DrawLights();
+    DrawSkybox();
 
 	if (drag && ImGui::IsMouseReleased(0))
 		drag = nullptr;
 
     //ImGui::End();
+}
+
+// ---------------------------------------------------------
+void PanelGOTree::DrawSkybox()
+{
+    Skybox* const* skybox = std::get_if<Skybox*>(&App->editor->GetSelection());
+
+    uint flags = ImGuiTreeNodeFlags_Leaf;
+    if(skybox != nullptr && *skybox == App->level->GetSkyBox())
+    {
+        flags |= ImGuiTreeNodeFlags_Selected;
+    }
+
+    if(ImGui::TreeNodeEx("Skybox", flags))
+    {
+        if (ImGui::IsItemClicked(0)) 
+        {
+            App->editor->SetSelected(App->level->GetSkyBox());
+        }
+
+        ImGui::TreePop();
+    }
+
 }
 
 // ---------------------------------------------------------

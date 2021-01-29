@@ -687,6 +687,12 @@
     <ClInclude Include="ShowTextureDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="SkyboxRollout.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Postprocess.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1240,6 +1246,12 @@
     </ClCompile>
     <ClCompile Include="ShowTextureDlg.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyboxRollout.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Postprocess.cpp">
+      <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

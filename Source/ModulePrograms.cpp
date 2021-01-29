@@ -20,7 +20,7 @@ ModulePrograms::~ModulePrograms()
 
 void ModulePrograms::Load(const char* name, const char* vertex_shader, const char* fragment_shader, 
 						  const char** macros, unsigned num_macros, const UniformBinding* uniforms,
-						  unsigned num_uniforms)
+						  unsigned num_uniforms, bool version)
 {
     HashString hash(name);
 
@@ -31,6 +31,7 @@ void ModulePrograms::Load(const char* name, const char* vertex_shader, const cha
     def.fragment    = LoadFile(fragment_shader);
 
     def.macros      = (char**)malloc(sizeof(char*)*num_macros);
+    def.add_version = version;
 
     for(unsigned i=0; i < num_macros; ++i)
     {
@@ -47,7 +48,7 @@ void ModulePrograms::Load(const char* name, const char* vertex_shader, const cha
     }
 
     def.num_bindings = num_uniforms;
-    def.data = (char**)malloc(sizeof(char*)*(def.num_macros + 2));
+    def.data = (char**)malloc(sizeof(char*)*(def.num_macros + (version ? 2 : 1)));
 
 }
 
@@ -119,8 +120,8 @@ void ModulePrograms::GenerateVariation(const char* name, unsigned variations)
         unsigned vertex_id    = glCreateShader(GL_VERTEX_SHADER);
         unsigned fragment_id  = glCreateShader(GL_FRAGMENT_SHADER);
 
-        Compile(def.data, def.vertex, vertex_id, variations, def.macros, def.num_macros);
-        Compile(def.data, def.fragment, fragment_id, variations, def.macros, def.num_macros);
+        Compile(def.data, def.vertex, vertex_id, variations, def.macros, def.num_macros, def.add_version);
+        Compile(def.data, def.fragment, fragment_id, variations, def.macros, def.num_macros, def.add_version);
 
         program_id = glCreateProgram();
 
@@ -154,9 +155,12 @@ void ModulePrograms::GenerateVariation(const char* name, unsigned variations)
     }
 }
 
-void ModulePrograms::Compile(char** data,  char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros) const
+void ModulePrograms::Compile(char** data,  char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros, bool version) const
 {
-	data[0] = "#version 430\n";
+    if(version)
+    {
+        data[0] = "#version 430\n";
+    }
 
 	for(unsigned i=0; i< num_macros; ++i)
 	{
