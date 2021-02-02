@@ -37,17 +37,17 @@ bool ResourceAnimation::LoadInMemory()
         read_stream >> duration;
         read_stream >> num_channels;
 
-        channels.resize(num_channels);
+        channels.reserve(num_channels);
 
-        for(Channel& channel : channels)
+        for(uint i=0; i< num_channels; ++i)
         {
             std::string name;
             read_stream >> name;
 
+            Channel& channel = channels[name];
+
             read_stream >> channel.num_positions;
             read_stream >> channel.num_rotations;
-
-            channel.name = HashString(name.c_str());
 
             channel.positions = std::make_unique<float3[]>(channel.num_positions);
             channel.rotations = std::make_unique<Quat[]>(channel.num_rotations);
@@ -149,20 +149,20 @@ void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_
     write_stream << duration;
     write_stream << channels.size();
 
-    for(const Channel& channel : channels)
+    for(const std::pair<const std::string, Channel>& channel : channels)
     {
-        write_stream << channel.name.C_str();
-        write_stream << channel.num_positions;
-        write_stream << channel.num_rotations;
+        write_stream << channel.first;
+        write_stream << channel.second.num_positions;
+        write_stream << channel.second.num_rotations;
 
-        for(uint i=0; i< channel.num_positions; ++i)
+        for(uint i=0; i< channel.second.num_positions; ++i)
         {
-            write_stream << channel.positions[i].x << channel.positions[i].y << channel.positions[i].z; 
+            write_stream << channel.second.positions[i].x << channel.second.positions[i].y << channel.second.positions[i].z; 
         }
 
-        for(uint i=0; i< channel.num_rotations; ++i)
+        for(uint i=0; i< channel.second.num_rotations; ++i)
         {
-            write_stream << channel.rotations[i].x << channel.rotations[i].y << channel.rotations[i].z << channel.rotations[i].w;  
+            write_stream << channel.second.rotations[i].x << channel.second.rotations[i].y << channel.second.rotations[i].z << channel.second.rotations[i].w;  
         }
     }
 
@@ -184,7 +184,7 @@ void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_
 // ---------------------------------------------------------
 bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned last, std::string& output)
 {
-	aiString assimp_path(".");
+	aiString assimp_path("./");
 	assimp_path.Append(full_path);
 
 	const aiScene* scene = aiImportFile(assimp_path.data, 0);
@@ -196,17 +196,15 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
         const aiAnimation* animation = scene->mAnimations[0];
         ResourceAnimation res(0);
 
-		uint duration    = min(last - first, uint(animation->mDuration));
-        res.duration     = unsigned(1000*duration/animation->mTicksPerSecond);
+		uint duration = min(last - first, uint(animation->mDuration));
+        res.duration  = unsigned(1000*duration/animation->mTicksPerSecond);
 
-        res.channels.resize(animation->mNumChannels);
+        res.channels.reserve(animation->mNumChannels);
 
         for(unsigned i=0; i < animation->mNumChannels; ++i)
         {
             const aiNodeAnim* node = animation->mChannels[i];
-            Channel& channel       = res.channels[i];
-
-            channel.name           = HashString(node->mNodeName.C_Str());
+            Channel& channel       = res.channels[std::string(node->mNodeName.C_Str())];
 
             uint pos_first = 0;
             uint pos_last  = 1;
@@ -303,9 +301,10 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
 }
 
 // ---------------------------------------------------------
-uint ResourceAnimation::FindChannelIndex (const HashString& name) const
+const ResourceAnimation::Channel* ResourceAnimation::GetChannel(const std::string& name) const
 {
-    return std::find_if(channels.begin(), channels.end(), [name](const Channel& channel) { return channel.name == name; } ) - channels.begin();
+    auto it = channels.find(name);
+    return it != channels.end() ? &it->second : nullptr;
 }
 
 // ---------------------------------------------------------

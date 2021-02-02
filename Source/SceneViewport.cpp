@@ -12,6 +12,7 @@
 #include "ModuleHints.h"
 #include "ModulePrograms.h"
 #include "ModuleLevelManager.h"
+#include "Postprocess.h"
 
 #include "GameObject.h"
 
@@ -102,23 +103,20 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
 
-		glStencilMask(0x01);
+        glStencilMask(0x01);
 
         //glClear(/*GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT*/);
 
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         glStencilMask(0x00);
-		glStencilFunc(GL_ALWAYS, 0, 0XFF);
-        
+        glStencilFunc(GL_ALWAYS, 0, 0XFF);
 
-		App->renderer->Draw(camera, culling, framebuffer->Id(), fb_width, fb_height);
-
+        App->renderer->Draw(camera, culling, framebuffer->Id(), fb_width, fb_height);
         App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
         DrawSelection(camera, framebuffer);
 
-        App->renderer->DoPostprocess(texture_color, framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
-        //App->renderer->DoPostprocess(texture_color->Id(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer->Id(), fb_width, fb_height);
+        App->renderer->GetPostprocess()->Execute(texture_color, framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
 
         ShowTexture();
 

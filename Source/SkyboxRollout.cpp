@@ -82,13 +82,13 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox)
 
     // Postprocess
 
+    /*
     uint flags = (App->hints->GetBoolValue(ModuleHints::ENABLE_GAMMA) ? 1 << 1 : 0);
 
     App->programs->UseProgram("postprocess", flags);
 
     postprocess_fb->Bind();
 
-    /*
     unsigned indices[NUM_POSPROCESS_SUBROUTINES] = { App->hints->GetIntValue(ModuleHints::TONEMAPPING) };
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(indices)/sizeof(unsigned), indices);
 

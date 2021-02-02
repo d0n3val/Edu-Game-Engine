@@ -69,8 +69,6 @@ public:
     void                Draw                        (ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height);
     void                DrawForSelection            (ComponentCamera* camera);
 
-    void                DoPostprocess               (Texture2D* screen, Framebuffer* fb, unsigned width, unsigned height);
-
 	void                DrawDebug                   () override;
 
     unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
@@ -78,6 +76,7 @@ public:
     unsigned            GetShadowMapHeight          (uint index) const { return cascades[index].height; }
 
     BatchManager*       GetBatchMananger            () const { return batch_manager.get(); }
+    Postprocess*        GetPostprocess              () const { return postProcess.get(); }
 
 private:
 

@@ -17,34 +17,17 @@ namespace
 
     inline float3 Interpolate(const float3& first, const float3& second, float lambda) 
     {
-        return first*(1.0f-lambda)+second*lambda;
+        return float3::Lerp(first, second, lambda);
     }
 
     inline Quat Interpolate(const Quat& first, const Quat& second, float lambda) 
     {
-        Quat result;
-
         // note: ensure minimal angle interpolation
-        float dot = first.Dot(second); 
-
-        if(dot >= 0.0f)
+        if(first.Dot(second) >= 0.0f)
         {
-            result.x = first.x*(1.0f-lambda)+second.x*lambda;
-            result.y = first.y*(1.0f-lambda)+second.y*lambda;
-            result.z = first.z*(1.0f-lambda)+second.z*lambda;
-            result.w = first.w*(1.0f-lambda)+second.w*lambda;
+            return Quat::Lerp(first, second, lambda).Normalized();
         }
-        else
-        {
-            result.x = first.x*(1.0f-lambda)-second.x*lambda;
-            result.y = first.y*(1.0f-lambda)-second.y*lambda;
-            result.z = first.z*(1.0f-lambda)-second.z*lambda;
-            result.w = first.w*(1.0f-lambda)-second.w*lambda;
-        }
-
-        result.Normalize();
-
-        return result;
+        return Quat::Lerp(first, second.Neg(), lambda).Normalized();
     }
 
 }
@@ -204,7 +187,7 @@ bool AnimController::GetWeightsInstance(Instance* instance, const HashString& mo
 	return false;
 }
 
-bool AnimController::GetTransform(const HashString& channel_name, float3& position, Quat& rotation) const
+bool AnimController::GetTransform(const std::string& channel_name, float3& position, Quat& rotation) const
 {
     if(current != nullptr)
     {
@@ -214,20 +197,21 @@ bool AnimController::GetTransform(const HashString& channel_name, float3& positi
 	return false;
 }
 
-bool AnimController::GetTransformInstance(Instance* instance, const HashString& channel_name, float3& position, Quat& rotation) const
+bool AnimController::GetTransformInstance(Instance* instance, const std::string& channel_name, float3& position, Quat& rotation) const
 {
 	const ResourceAnimation* animation = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
 
     if(animation != nullptr)
     {
-        unsigned channel_index  = animation->FindChannelIndex(channel_name);
+        const ResourceAnimation::Channel* channel = animation->GetChannel(channel_name);
 
-        if(channel_index < animation->GetNumChannels())
+        if(channel != nullptr)
         {
             assert(instance->time <= animation->GetDuration());
 
-            float pos_key = float(instance->time*(animation->GetNumPositions(channel_index)-1))/float(animation->GetDuration());
-            float rot_key = float(instance->time*(animation->GetNumRotations(channel_index)-1))/float(animation->GetDuration());
+
+            float pos_key = float(instance->time*(channel->num_positions-1))/float(animation->GetDuration());
+            float rot_key = float(instance->time*(channel->num_rotations-1))/float(animation->GetDuration());
 
             unsigned pos_index = unsigned(pos_key);
             unsigned rot_index = unsigned(rot_key);
@@ -237,20 +221,20 @@ bool AnimController::GetTransformInstance(Instance* instance, const HashString& 
 
             if(pos_lambda > 0.0f)
             {
-                position = Interpolate(animation->GetPosition(channel_index, pos_index), animation->GetPosition(channel_index, pos_index+1), pos_lambda);
+                position = Interpolate(channel->positions[pos_index], channel->positions[pos_index+1], pos_lambda);
             }
             else
             {
-                position = animation->GetPosition(channel_index, pos_index);
+                position = channel->positions[pos_index];
             }
 
             if(rot_lambda > 0.0f)
             {
-                rotation = Interpolate(animation->GetRotation(channel_index, rot_index), animation->GetRotation(channel_index, rot_index+1), rot_lambda);
+                rotation = Interpolate(channel->rotations[rot_index], channel->rotations[rot_index+1], rot_lambda);
             }
             else
             {
-                rotation = animation->GetRotation(channel_index, rot_index);
+                rotation = channel->rotations[rot_index];
             }
 
             if(instance->next != nullptr)

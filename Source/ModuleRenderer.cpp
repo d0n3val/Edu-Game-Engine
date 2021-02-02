@@ -794,11 +794,6 @@ void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float
     }
 }
 
-void ModuleRenderer::DoPostprocess(Texture2D* screen, Framebuffer* fb, unsigned width, unsigned height)
-{
-    postProcess->Execute(screen, fb, width, height);
-}
-
 void ModuleRenderer::BlurShadow(uint index)
 {
     glBindVertexArray(0);

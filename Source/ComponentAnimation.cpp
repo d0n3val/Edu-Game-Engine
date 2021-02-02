@@ -87,7 +87,7 @@ void ComponentAnimation::UpdateGO(GameObject* go)
     float3 position;
     Quat rotation;
 
-    if(controller->GetTransform(HashString(go->name.c_str()), position, rotation))
+    if(controller->GetTransform(go->name.c_str(), position, rotation))
     {
         go->SetLocalPosition(position);
         go->SetLocalRotation(rotation);
