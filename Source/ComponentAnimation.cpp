@@ -102,13 +102,12 @@ void ComponentAnimation::UpdateGO(GameObject* go)
     {
         ComponentMeshRenderer* mesh_renderer = static_cast<ComponentMeshRenderer*>(component);
         const ResourceMesh* mesh             = mesh_renderer->GetMeshRes();
-        HashString morph_name                = HashString(mesh->GetName());
         uint num_morphs                      = mesh->GetNumMorphTargets();
 
         if(num_morphs > 0)
         {
             tmp_weights.resize(num_morphs, 0.0f);
-            if (controller->GetWeights(morph_name, &tmp_weights[0], num_morphs))
+            if (controller->GetWeights(mesh->GetName(), &tmp_weights[0], num_morphs))
             {
                 for (uint i=0; i< num_morphs; ++i)
                 {

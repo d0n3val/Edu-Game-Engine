@@ -126,7 +126,7 @@ void AnimController::ReleaseInstance(Instance* instance)
 	} while (instance != nullptr);
 }
 
-bool AnimController::GetWeights(const HashString& morph_name, float* weights, uint num_weights) const
+bool AnimController::GetWeights(const std::string& morph_name, float* weights, uint num_weights) const
 {
     if (current != nullptr)
     {
@@ -136,30 +136,30 @@ bool AnimController::GetWeights(const HashString& morph_name, float* weights, ui
     return false;
 }
 
-bool AnimController::GetWeightsInstance(Instance* instance, const HashString& morph_name, float*& weights, uint num_weights, float lambda) const
+bool AnimController::GetWeightsInstance(Instance* instance, const std::string& morph_name, float*& weights, uint num_weights, float lambda) const
 {
 	const ResourceAnimation* animation = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
 
     if(animation != nullptr)
     {
-        unsigned channel_index  = animation->FindMorphIndex(morph_name);
+        const ResourceAnimation::MorphChannel* morph_channel = animation->GetMorphChannel(morph_name);
 
-        if(channel_index < animation->GetNumMorphChannels())
+        if(morph_channel != nullptr)
         {
             assert(instance->time <= animation->GetDuration());
 
-            float key          = float(instance->time*(animation->GetNumKeys(channel_index)-1))/float(animation->GetDuration());
+            float key          = float(instance->time*(morph_channel->num_keys-1))/float(animation->GetDuration());
             unsigned key_index = unsigned(key);
             float key_lambda   = key-float(key_index);
 
-            assert(num_weights == animation->GetNumWeights(channel_index));
+            assert(num_weights == morph_channel->num_weights);
 
             if(key_lambda > 0.0f)
             {
                 for (uint i = 0; i < num_weights; ++i)
                 {
-                    float w0 = animation->GetWeight(channel_index, i, key_index);
-                    float w1 = animation->GetWeight(channel_index, i, key_index+1);
+                    float w0 = morph_channel->weights[i * morph_channel->num_keys + key_index];
+                    float w1 = morph_channel->weights[i * morph_channel->num_keys + key_index+1]; 
                     weights[i] = Interpolate(weights[i], Interpolate(w0, w1, key_lambda), lambda);
                 }
             }
@@ -167,7 +167,7 @@ bool AnimController::GetWeightsInstance(Instance* instance, const HashString& mo
             {
                 for(uint i=0; i< num_weights; ++i)
                 {
-                    weights[i] = Interpolate(weights[i], animation->GetWeight(channel_index, i, key_index), lambda);
+                    weights[i] = Interpolate(weights[i], morph_channel->weights[i* morph_channel->num_keys+key_index], lambda);
                 }
             }
 

@@ -66,14 +66,14 @@ bool ResourceAnimation::LoadInMemory()
         uint num_morph_channels;
         read_stream >> num_morph_channels;
 
-        morph_channels.resize(num_morph_channels);
+        morph_channels.reserve(num_morph_channels);
 
-        for(MorphChannel& morph_channel : morph_channels)
+        for(uint i = 0; i < num_morph_channels; ++i)
         {
             std::string name;
             read_stream >> name;
 
-            morph_channel.name = HashString(name.c_str());
+            MorphChannel& morph_channel = morph_channels[name];
 
             read_stream >> morph_channel.num_weights;
             read_stream >> morph_channel.num_keys;
@@ -168,15 +168,15 @@ void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_
 
     write_stream << morph_channels.size();
 
-    for(const MorphChannel& morph_channel : morph_channels)
+    for(const std::pair<const std::string, MorphChannel>& morph_channel : morph_channels)
     {
-        write_stream << morph_channel.name.C_str();
-        write_stream << morph_channel.num_weights;
-        write_stream << morph_channel.num_keys;
+        write_stream << morph_channel.first; 
+        write_stream << morph_channel.second.num_weights;
+        write_stream << morph_channel.second.num_keys;
 
-        for(uint i=0; i< morph_channel.num_weights*morph_channel.num_keys; ++i)
+        for(uint i=0; i< morph_channel.second.num_weights*morph_channel.second.num_keys; ++i)
         {
-            write_stream << morph_channel.weights[i];
+            write_stream << morph_channel.second.weights[i];
         }
     }
 }
@@ -242,22 +242,25 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
             }
         }
 
-        res.morph_channels.resize(animation->mNumMorphMeshChannels);
+        res.morph_channels.reserve(animation->mNumMorphMeshChannels);
 
         for(unsigned i=0; i < animation->mNumMorphMeshChannels; ++i)
         {
             const aiMeshMorphAnim* morph_mesh = animation->mMorphMeshChannels[i];
-            MorphChannel& morph_channel       = res.morph_channels[i];
+
+            std::string name;
 
             const char* find = strchr(morph_mesh->mName.C_Str(), '*');
             if(find != nullptr)
             {
-                morph_channel.name = HashString(morph_mesh->mName.C_Str(), find-morph_mesh->mName.C_Str());
+                name = std::string(morph_mesh->mName.C_Str(), find-morph_mesh->mName.C_Str());
             }
             else 
             {
-                morph_channel.name = HashString(morph_mesh->mName.C_Str());
+                name = std::string(morph_mesh->mName.C_Str());
             }
+
+            MorphChannel& morph_channel = res.morph_channels[name];
 
             uint key_first = 0;
             uint key_last = 1;
@@ -307,8 +310,9 @@ const ResourceAnimation::Channel* ResourceAnimation::GetChannel(const std::strin
     return it != channels.end() ? &it->second : nullptr;
 }
 
-// ---------------------------------------------------------
-uint ResourceAnimation::FindMorphIndex(const HashString& name) const
+const ResourceAnimation::MorphChannel* ResourceAnimation::GetMorphChannel(const std::string& name) const
 {
-    return std::find_if(morph_channels.begin(), morph_channels.end(), [name](const MorphChannel& channel) { return channel.name == name; } ) - morph_channels.begin();
+    auto it = morph_channels.find(name);
+    return it != morph_channels.end() ? &it->second : nullptr;
 }
+

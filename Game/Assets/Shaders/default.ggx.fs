@@ -218,7 +218,7 @@ vec3 spot_lighting(const vec3 pos, const vec3 normal, const vec3 view_dir, const
     return directional_lighting(normal, view_dir, light_dir, light.color, mat, diffuse_color, specular_color, smoothness, att*cone);
 }
 
-vec4 lighting(const vec3 pos, const vec3 normal, float normal_len, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
+vec4 lighting(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_pos, const Lights lights, const Material mat)
 {
     /*
     vec4 base_color      = get_diffuse_color(material, uv);
@@ -305,8 +305,7 @@ layout(index=1) subroutine(GetNormal) vec3 get_normal_from_texture(const VertexO
 void main()
 {
     vec3 normal = get_normal(fragment, material);
-    float len   = length(normal);
-    color	    = lighting(fragment.position, normalize(normal), len, fragment.uv0, view_pos, lights, material);
+    color	    = lighting(fragment.position, normalize(normal), fragment.uv0, view_pos, lights, material);
 
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));

@@ -27,6 +27,19 @@ public:
         uint                      num_rotations = 0;
     };
 
+    struct MorphChannel
+    {
+        MorphChannel() = default;
+        MorphChannel(const MorphChannel& o) = default;
+        MorphChannel(MorphChannel&& o) = default;
+        MorphChannel& operator=(const MorphChannel& o) = default;
+        MorphChannel& operator=(MorphChannel&& o) = default;
+
+        uint                        num_weights = 0;
+        uint                        num_keys = 0;
+        std::unique_ptr<float[]>    weights;
+    };
+
 
 public:
 
@@ -44,48 +57,21 @@ public:
 
     // channels 
 
-	uint            GetNumChannels      () const { return channels.size(); }
+	uint                GetNumChannels      () const { return channels.size(); }
+    const Channel*      GetChannel          (const std::string& name) const;
+    uint                GetNumMorphChannels () const { return morph_channels.size(); }
+    const MorphChannel* GetMorphChannel     (const std::string& name) const; 
 
-    const Channel*  GetChannel(const std::string& name) const;
-
-    //uint            FindChannelIndex    (const HashString& name) const;
-
-   // uint            GetNumPositions     (uint channel_index) const { return channels[channel_index].num_positions; }
-    //const float3&   GetPosition         (uint channel_index, uint pos_index) const { return channels[channel_index].positions[pos_index]; }
-
-    //uint            GetNumRotations     (uint channel_index) const { return channels[channel_index].num_rotations; }
-    //const Quat&     GetRotation         (uint channel_index, uint pos_index) const { return channels[channel_index].rotations[pos_index]; }
-
-    uint            FindMorphIndex      (const HashString& name) const;
-
-    // morph channels 
-
-    uint            GetNumMorphChannels () const { return morph_channels.size(); }
-
-    uint            GetNumWeights       (uint morph) const                        { return morph_channels[morph].num_weights; }
-    uint            GetNumKeys          (uint morph) const                        { return morph_channels[morph].num_keys; } 
-    float           GetWeight           (uint morph, uint weight, uint key) const { return morph_channels[morph].weights[weight*morph_channels[morph].num_keys+key]; }
+    //uint            GetNumWeights       (uint morph) const                        { return morph_channels[morph].num_weights; }
+    //uint            GetNumKeys          (uint morph) const                        { return morph_channels[morph].num_keys; } 
+    //float           GetWeight           (uint morph, uint weight, uint key) const { return morph_channels[morph].weights[weight*morph_channels[morph].num_keys+key]; }
 
 private:
 
     void            SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
 
-    struct MorphChannel
-    {
-        MorphChannel() = default;
-		MorphChannel(const MorphChannel& o) = default;
-        MorphChannel(MorphChannel&& o) = default;
-		MorphChannel& operator=(const MorphChannel& o) = default;
-		MorphChannel& operator=(MorphChannel&& o) = default;
-
-        HashString                  name;
-        uint                        num_weights = 0;
-        uint                        num_keys    = 0;
-        std::unique_ptr<float[]>    weights;
-    };
-
     typedef std::unordered_map<std::string, Channel> ChannelList;
-    typedef std::vector<MorphChannel> MorphChannelList;
+    typedef std::unordered_map<std::string, MorphChannel> MorphChannelList;
 
     uint             duration = 0;
     ChannelList      channels;

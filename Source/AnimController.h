@@ -34,13 +34,13 @@ public:
     void            SetSpeed            (float speed) { if(current) current->speed = speed; }
 
 	bool            GetTransform        (const std::string& channel_name, math::float3& position, Quat& rotation) const;
-    bool            GetWeights          (const HashString& morph_name, float* weights, uint num_weights) const;
+    bool            GetWeights          (const std::string& morph_name, float* weights, uint num_weights) const;
 
 private:
     void            UpdateInstance      (Instance* instance, unsigned elapsed);
     void            ReleaseInstance     (Instance* instance);
     bool            GetTransformInstance(Instance* instance, const std::string& channel_name, float3& position, Quat& rotation) const;
-    bool            GetWeightsInstance  (Instance* instance, const HashString& morph_name, float*& weights, uint num_weights, float lambda) const;
+    bool            GetWeightsInstance  (Instance* instance, const std::string& morph_name, float*& weights, uint num_weights, float lambda) const;
 };
 
 

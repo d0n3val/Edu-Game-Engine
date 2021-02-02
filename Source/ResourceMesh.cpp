@@ -298,7 +298,7 @@ void ResourceMesh::ReleaseFromMemory()
 // ---------------------------------------------------------
 void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
 {
-    write_stream << name.C_str();
+    write_stream << name;
     write_stream << vertex_size;
     write_stream << attrib_flags;
 
@@ -428,7 +428,7 @@ UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file, float scal
 {
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
-    m->name = HashString(mesh->mName.C_Str());
+    m->name = mesh->mName.C_Str();
 
     m->GenerateCPUBuffers(mesh, scale);
 
@@ -484,10 +484,10 @@ bool ResourceMesh::Save(const char* source, std::string& output)
             user_name.erase(user_name.begin()+pos_dot, user_name.end());
         }
 
-        if(name && name.Length() > 0)
+        if(name.length() > 0)
         {
             user_name += "_";
-            user_name += name.C_str();
+            user_name += name;
         }
     }
 

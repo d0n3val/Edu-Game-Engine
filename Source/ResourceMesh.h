@@ -89,7 +89,7 @@ public:
     const float3*         GetNormals          () const {return src_normals.get(); }
     const float3*         GetTangents         () const {return src_tangents.get(); }
 
-    const HashString&     GetName             () const { return name; }
+    const std::string&    GetName             () const { return name; }
 
     static Resource::Type GetClassType      () {return Resource::mesh;}
 
@@ -118,7 +118,7 @@ public:
 		float4x4	bind = float4x4::identity;
 	};
 
-    HashString                   name;
+    std::string                  name;
 
     uint                         vertex_size         = 0;
     uint                         attrib_flags        = 0;
