@@ -54,117 +54,9 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
 {
     LoadDefaultShaders();
-    CreatePostprocessData();
     postProcess->Init();
-	CreateSkybox();
 
-	return true;
-}
-
-void ModuleRenderer::CreatePostprocessData()
-{
-	float vertex_buffer_data[] =
-	{
-        // positions
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f,
-
-		-1.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-		1.0f,  1.0f, 0.0f,
-
-        // uvs
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f
-	};
-}
-
-void ModuleRenderer::CreateSkybox()
-{
-    const char face_order[9] = { 'N', 'S', 'W', 'E', 'U', 'D' };
-
-	//int width, height, channels;
-	//unsigned char* data = SOIL_load_image("Assets/Textures/PBR/BarnaEnvHDR.dds", &width, &height, &channels, SOIL_LOAD_AUTO);
-    sky_cubemap = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaEnvHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
-    sky_irradiance = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaDiffuseHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
-    sky_prefilter = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/BarnaSpecularHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
-    sky_brdf = SOIL_load_OGL_texture("Assets/Textures/PBR/BarnaBRDF.dds", 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
-	
-	/*
-	sky_cubemap = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywayEnvHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
-    sky_irradiance = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywayDiffuseHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
-    sky_prefilter = SOIL_load_OGL_single_cubemap("Assets/Textures/PBR/MilkywaySpecularHDR.dds", face_order, 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
-    sky_brdf = SOIL_load_OGL_texture("Assets/Textures/PBR/MilkywayBRDF.dds", 3, 0, SOIL_FLAG_DDS_LOAD_DIRECT);
-    */
-    
-
-    glGenBuffers(1, &sky_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, sky_vbo);
-
-    float sky_vertices[] = {
-        // positions          
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-        -1.0f,  1.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,
-        1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-        1.0f, -1.0f,  1.0f
-    };
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float3)*6*6, sky_vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glGenVertexArrays(1, &sky_vao);
-    glBindVertexArray(sky_vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, sky_vbo);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)0);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    cameraUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(cameraData), nullptr));
 
     for(uint i=0; i< CASCADE_COUNT; ++i)
     {
@@ -173,6 +65,8 @@ void ModuleRenderer::CreateSkybox()
         glGenFramebuffers(1, &cascades[i].blur_fbo_0);
         glGenFramebuffers(1, &cascades[i].blur_fbo_1);
     }
+
+	return true;
 }
 
 ModuleRenderer::~ModuleRenderer()
@@ -224,18 +118,22 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height)
 {
-	float4x4 proj   = camera->GetProjectionMatrix();	
-	float4x4 view   = camera->GetViewMatrix();
-    float3 view_pos = view.RotatePart().Transposed().Transform(-view.TranslatePart());
+	cameraData.proj   = camera->GetProjectionMatrix();	
+	cameraData.view   = camera->GetViewMatrix();
 
-    render_list.UpdateFrom(culling, App->level->quadtree.root);
+    cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
+    cameraUBO->BindToTargetIdx(0);
+
+    float3 view_pos = cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart());
+
+    render_list.UpdateFrom(culling, App->level->GetRoot()); // App->level->quadtree.root);
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
         ShadowPass(camera, width, height);
     }
 
-    ColorPass(proj, view, view_pos, fbo, width, height);
+    ColorPass(cameraData.proj, cameraData.view, view_pos, fbo, width, height);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
@@ -354,8 +252,8 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
     // Set camera uniforms shared for all
     App->programs->UseProgram("default", flags);
 
-    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+    App->programs->BindUniformBlock("default", flags, "camera", 0);
+
     glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
@@ -572,38 +470,38 @@ void ModuleRenderer::LoadDefaultShaders()
     const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" , "#define SHOW_CASCADES 1 \n", "#define ENABLE_SOFT 1 \n"}; 
     const unsigned num_default_macros  = sizeof(default_macros)/sizeof(const char*);
 
-    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.ggx.fs", default_macros, num_default_macros, nullptr, 0);
-    App->programs->Load("default_batch", "Assets/Shaders/default_batch.vs", "Assets/Shaders/default_batch.fs", default_macros, num_default_macros, nullptr, 0);
+    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.ggx.fs", default_macros, num_default_macros);
+    App->programs->Load("default_batch", "Assets/Shaders/default_batch.vs", "Assets/Shaders/default_batch.fs", default_macros, num_default_macros);
 
     const char* macros[]		  = { "#define BLOOM 1 \n", "#define GAMMA 1\n" }; 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
 
-    App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros, nullptr, 0);
-    App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0, nullptr, 0);
-    App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0, nullptr, 0);
-    App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0, nullptr, 0);
-    App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0, nullptr, 0);
+    App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros);
+    App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0);
+    App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0);
+    App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0);
+    App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0);
 
     const char* gaussian_macros[]       = { "#define HORIZONTAL 1 \n" }; 
     const unsigned num_gaussian_macros  = sizeof(gaussian_macros)/sizeof(const char*);
 
-    App->programs->Load("gaussian", "Assets/Shaders/postprocess.vs", "Assets/Shaders/gaussian.fs", gaussian_macros, num_gaussian_macros, nullptr, 0);
-    App->programs->Load("chebyshev", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/chebyshev.fs", nullptr, 0, nullptr, 0, false);
+    App->programs->Load("gaussian", "Assets/Shaders/postprocess.vs", "Assets/Shaders/gaussian.fs", gaussian_macros, num_gaussian_macros);
+    App->programs->Load("chebyshev", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/chebyshev.fs", nullptr, 0, nullptr);
 
     const char* bloom_macros[]       = { "#define MSAA 1 \n" }; 
     const unsigned num_bloom_macros  = sizeof(bloom_macros)/sizeof(const char*);
 
-    App->programs->Load("bloom", "Assets/Shaders/postprocess.vs", "Assets/Shaders/bloom.fs", bloom_macros, num_bloom_macros, nullptr, 0);
+    App->programs->Load("bloom", "Assets/Shaders/postprocess.vs", "Assets/Shaders/bloom.fs", bloom_macros, num_bloom_macros);
 
     const char* show_uv_macros[]       = { "#define TEXCOORD1 1 \n" }; 
     const unsigned num_uv_macros  = sizeof(show_uv_macros)/sizeof(const char*);
-    App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros, nullptr, 0);
-    App->programs->Load("selection", "Assets/Shaders/selection.vs", "Assets/Shaders/selection.fs", nullptr, 0, nullptr, 0);
-    App->programs->Load("color", "Assets/Shaders/color.vs", "Assets/Shaders/color.fs", nullptr, 0, nullptr, 0);
-    App->programs->Load("grid", "Assets/Shaders/gridVS.glsl", "Assets/Shaders/gridPS.glsl", nullptr, 0, nullptr, 0);
-    App->programs->Load("showtexture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/fullscreenTextureFS.glsl", nullptr, 0, nullptr, 0);
-    App->programs->Load("convert_texture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/convertMetallicTextureFS.glsl", nullptr, 0, nullptr, 0);
-    //App->programs->Load("postprocess", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/postprocess.glsl", nullptr, 0, nullptr, 0);
+    App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros);
+    App->programs->Load("selection", "Assets/Shaders/selection.vs", "Assets/Shaders/selection.fs", nullptr, 0);
+    App->programs->Load("color", "Assets/Shaders/color.vs", "Assets/Shaders/color.fs", nullptr, 0);
+    App->programs->Load("grid", "Assets/Shaders/gridVS.glsl", "Assets/Shaders/gridPS.glsl", nullptr, 0);
+    App->programs->Load("showtexture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/fullscreenTextureFS.glsl", nullptr, 0);
+    App->programs->Load("convert_texture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/convertMetallicTextureFS.glsl", nullptr, 0);
+    //App->programs->Load("postprocess", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/postprocess.glsl", nullptr, 0);
 }
 
 void ModuleRenderer::UpdateLightUniform() const

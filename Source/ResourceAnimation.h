@@ -62,10 +62,6 @@ public:
     uint                GetNumMorphChannels () const { return morph_channels.size(); }
     const MorphChannel* GetMorphChannel     (const std::string& name) const; 
 
-    //uint            GetNumWeights       (uint morph) const                        { return morph_channels[morph].num_weights; }
-    //uint            GetNumKeys          (uint morph) const                        { return morph_channels[morph].num_keys; } 
-    //float           GetWeight           (uint morph, uint weight, uint key) const { return morph_channels[morph].weights[weight*morph_channels[morph].num_keys+key]; }
-
 private:
 
     void            SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;

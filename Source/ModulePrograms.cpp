@@ -19,8 +19,7 @@ ModulePrograms::~ModulePrograms()
 }
 
 void ModulePrograms::Load(const char* name, const char* vertex_shader, const char* fragment_shader, 
-						  const char** macros, unsigned num_macros, const UniformBinding* uniforms,
-						  unsigned num_uniforms, bool version)
+						  const char** macros, unsigned num_macros, bool version)
 {
     HashString hash(name);
 
@@ -39,15 +38,7 @@ void ModulePrograms::Load(const char* name, const char* vertex_shader, const cha
     }
 
     def.num_macros   = num_macros;
-    def.bindings     = (UniformBinding*)malloc(sizeof(UniformBinding)*num_uniforms);
 
-    for(unsigned i=0; i< num_uniforms; ++i)
-    {
-        def.bindings[i].first = _strdup(uniforms[i].first);
-		def.bindings[i].second = uniforms[i].second;
-    }
-
-    def.num_bindings = num_uniforms;
     def.data = (char**)malloc(sizeof(char*)*(def.num_macros + (version ? 2 : 1)));
 
 }
@@ -63,12 +54,6 @@ void ModulePrograms::Clear()
 
         free(it->second.macros);
 
-        for(unsigned i=0; i< it->second.num_bindings; ++i)
-        {
-            free(it->second.bindings[i].first);
-        }
-
-        free(it->second.bindings);
         free(it->second.data);
         free(it->second.vertex);
         free(it->second.fragment);
@@ -142,12 +127,6 @@ void ModulePrograms::GenerateVariation(const char* name, unsigned variations)
             LOG("Program Log Info: %s", info);
 
             free(info);
-        }
-
-        for(unsigned i=0; i< def.num_bindings; ++i)
-        {
-            unsigned index = glGetUniformBlockIndex(program_id, def.bindings[i].first);
-            glUniformBlockBinding(program_id, index, def.bindings[i].second);
         }
 
         glDeleteShader(vertex_id);
@@ -260,4 +239,24 @@ int ModulePrograms::GetSubroutineIndex(bool vertex_shader, const char* name)
 	}
 
 	return -1;
+}
+
+void ModulePrograms::BindUniformBlock(const char* program, unsigned variations, const char* block_name, uint block_index)
+{
+	KeyProg key;
+	key.first = HashString(program);
+	key.second = variations;
+
+	ProgramList::iterator it = programs.find(key);
+
+	if(it == programs.end())
+    {
+        GenerateVariation(program, variations);
+		it = programs.find(key);
+    }
+
+    if(it != programs.end())
+	{
+        glUniformBlockBinding(it->second, glGetUniformBlockIndex(it->second, block_name), block_index);
+	}
 }

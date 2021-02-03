@@ -14,8 +14,11 @@ subroutine void TransformOutput();
 
 layout(location=0) subroutine uniform TransformOutput transform_output;
 
-uniform mat4 proj;
-uniform mat4 view;
+layout(std140, row_major) uniform Camera {
+    mat4 proj;
+    mat4 view;
+} camera;
+
 uniform mat4 model;
 
 uniform mat4 palette[MAX_BONES];
@@ -110,7 +113,7 @@ void main()
 {
     transform_output();
 
-    gl_Position = proj*view*vec4(fragment.position, 1.0);
+    gl_Position = camera.proj*camera.view*vec4(fragment.position, 1.0);
 
     for(uint i=0; i<3; ++i)
     {

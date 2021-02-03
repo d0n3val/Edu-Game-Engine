@@ -7,10 +7,6 @@
 
 class ModulePrograms : public Module
 {
-public:
-
-    typedef std::pair<char*, unsigned> UniformBinding;
-
 private:
 
 	typedef std::pair<HashString, unsigned> KeyProg;
@@ -30,7 +26,6 @@ private:
         char*           fragment      = nullptr;
         char**          macros        = nullptr;
         unsigned        num_macros    = 0;
-        UniformBinding* bindings      = nullptr;
         unsigned        num_bindings  = 0;
         mutable char**  data          = nullptr;
         bool            add_version   = true;
@@ -50,12 +45,13 @@ public:
 public:
 
 	void Load                           (const char* name, const char* vertex_shader, const char* fragment_shader, 
-                                        const char** macros, unsigned num_macros, const UniformBinding* uniforms, 
-                                        unsigned num_uniforms, bool version = true);
+                                        const char** macros, unsigned num_macros, bool version = true);
 
     void GenerateVariation              (const char* name, unsigned variations);
 
 	void Clear                          ();
+
+    void BindUniformBlock               (const char* program, unsigned variations, const char* block_name, uint block_index);
 
 	int  GetUniformLocation             (const char* uniform);
     int  GetSubroutineUniformLocation   (bool vertex_shader, const char* name);

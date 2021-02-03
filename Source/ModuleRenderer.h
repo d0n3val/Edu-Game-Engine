@@ -4,6 +4,7 @@
 #include "Module.h"
 #include "Math.h"
 #include "RenderList.h"
+#include "OGL.h"
 
 #include<vector>
 
@@ -23,14 +24,6 @@ class Framebuffer;
 class ModuleRenderer : public Module
 {
     RenderList render_list;
-
-    uint sky_vbo        = 0;
-    uint sky_vao        = 0;
-    uint sky_cubemap    = 0;
-    uint sky_irradiance = 0;
-    uint sky_prefilter  = 0;
-    uint sky_brdf       = 0;
-    uint camera_buffer  = 0;
 
     struct ShadowMap
     {
@@ -57,8 +50,16 @@ class ModuleRenderer : public Module
 
     ShadowMap cascades[CASCADE_COUNT];
 
+    struct CameraData
+    {
+        float4x4 proj = float4x4::identity;
+        float4x4 view = float4x4::identity;
+    };
+
     std::unique_ptr<BatchManager> batch_manager;
-    std::unique_ptr<Postprocess> postProcess;
+    std::unique_ptr<Postprocess>  postProcess;
+    std::unique_ptr<Buffer>       cameraUBO;
+    CameraData                    cameraData;
 
 public:
 
@@ -86,8 +87,6 @@ private:
     void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();
-    void                CreatePostprocessData       ();
-    void                CreateSkybox                ();
 
     void                DrawBatches                 (NodeList& nodes, uint render_flags);
     void                DrawNodes                   (const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo& ));

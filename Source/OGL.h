@@ -126,12 +126,12 @@ public:
     ~Buffer();
 
     void  Bind();
+    void  BindToTargetIdx(uint index);
 
     uint  Id() const { return id;  }
     void  Unbind();
     void* Map(uint access);
     void* MapRange(uint access, uint offset, uint size);
-    // todo: maps for 'special' buffers like uniform buffers or shader storage buffers
     void  Unmap();
     void  SetData(uint offset, uint size, void* data);
 

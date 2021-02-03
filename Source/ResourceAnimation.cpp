@@ -315,4 +315,3 @@ const ResourceAnimation::MorphChannel* ResourceAnimation::GetMorphChannel(const 
     auto it = morph_channels.find(name);
     return it != morph_channels.end() ? &it->second : nullptr;
 }
-

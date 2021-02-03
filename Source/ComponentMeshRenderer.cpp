@@ -256,6 +256,8 @@ void ComponentMeshRenderer::Draw() const
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
         //UpdateCPUMorphTargets();
+
+        
         mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
         material->UpdateUniforms();
         material->BindTextures();

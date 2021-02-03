@@ -291,6 +291,14 @@ void Buffer::Bind()
     glBindBuffer(type, id);
 }
 
+void Buffer::BindToTargetIdx(uint index)
+{
+    assert(type == GL_ATOMIC_COUNTER_BUFFER || type == GL_TRANSFORM_FEEDBACK_BUFFER ||
+           type == GL_UNIFORM_BUFFER || type ==  GL_SHADER_STORAGE_BUFFER);
+
+    glBindBufferBase(type, index, id);
+}
+
 void Buffer::Unbind()
 {
     glBindBuffer(type, 0);
