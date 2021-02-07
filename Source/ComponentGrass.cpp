@@ -75,9 +75,9 @@ void ComponentGrass::OnLoad(Config* config)
 
 void ComponentGrass::Draw()
 {
-    const GameObject* go             = GetGameObject();
-	const ResourceMesh* mesh         = GetMesh();
-	const ResourceMaterial* material = GetMaterial();
+    const GameObject* go       = GetGameObject();
+	const ResourceMesh* mesh   = GetMesh();
+	ResourceMaterial* material = GetMaterial();
 
     if(material != nullptr && mesh != nullptr)
     {

@@ -249,10 +249,12 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
         }
     }
 
+        
     // Set camera uniforms shared for all
     App->programs->UseProgram("default", flags);
 
-    App->programs->BindUniformBlock("default", flags, "camera", 0);
+    App->programs->BindUniformBlock("default", flags, "Camera", 0);
+    App->programs->BindUniformBlock("default", flags, "Material", 1);
 
     glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
 
@@ -428,7 +430,7 @@ void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
     }
 }
 
-void ModuleRenderer::DrawMeshColor(const ComponentMeshRenderer* mesh)
+void ModuleRenderer::DrawMeshColor(ComponentMeshRenderer* mesh)
 {
     uint flags = 0;
 
@@ -470,7 +472,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" , "#define SHOW_CASCADES 1 \n", "#define ENABLE_SOFT 1 \n"}; 
     const unsigned num_default_macros  = sizeof(default_macros)/sizeof(const char*);
 
-    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/default.ggx.fs", default_macros, num_default_macros);
+    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/defaultFS.glsl", default_macros, num_default_macros);
     App->programs->Load("default_batch", "Assets/Shaders/default_batch.vs", "Assets/Shaders/default_batch.fs", default_macros, num_default_macros);
 
     const char* macros[]		  = { "#define BLOOM 1 \n", "#define GAMMA 1\n" }; 

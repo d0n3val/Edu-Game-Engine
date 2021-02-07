@@ -6,6 +6,7 @@
 
 #include "Application.h"
 #include "ModuleHints.h"
+#include "ModulePrograms.h"
 
 #include "DefaultShaderLocations.h"
 
@@ -63,7 +64,7 @@ bool ResourceMaterial::LoadInMemory()
             float k_ambient, k_diffuse, k_specular;
             read_stream >> k_ambient >> k_diffuse >> k_specular;
 
-            read_stream >> shininess;
+            read_stream >> smoothness;
             read_stream >> normal_strength;
             read_stream >> double_sided;
             read_stream >> alpha_test;
@@ -165,7 +166,7 @@ void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_s
 
     write_stream << 0.0f << 0.0f << 0.0f;
 
-    write_stream << shininess;
+    write_stream << smoothness;
     write_stream << normal_strength;
     write_stream << double_sided;
     write_stream << alpha_test;
@@ -211,7 +212,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         copy_color3(m->emissive_color, color);
     }
 
-    material->Get(AI_MATKEY_SHININESS, m->shininess);
+    material->Get(AI_MATKEY_SHININESS, m->smoothness);
 
     aiString file;
     aiTextureMapping mapping;
@@ -333,68 +334,19 @@ ResourceTexture* ResourceMaterial::GetTextureRes(MaterialTexture t)
     return static_cast<ResourceTexture*>(App->resources->Get(textures[t]));
 }
 
-void ResourceMaterial::UpdateUniforms() const
+void ResourceMaterial::UpdateUniforms()
 {
-    static const unsigned MATERIAL_LOCATION = 0;
-
-    const ResourceTexture* specular = GetTextureRes(TextureSpecular);
-    const ResourceTexture* normal   = GetTextureRes(TextureNormal);
-
-    float4 diffuse_color  = GetDiffuseColor();
-    float3 specular_color = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? float3(1.0f) : GetSpecularColor();
-    float3 emissive_color = GetEmissiveColor();
-    float shininess	      = specular ? 1.0f :  GetShininess();
-
-	/*
-    glActiveTexture(GL_TEXTURE7);
-    glBindTexture(GL_TEXTURE_2D, sky_brdf);
-    glUniform1i(202, 7);
-
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, sky_prefilter);
-    glUniform1i(201, 6);
-
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, sky_irradiance);
-    glUniform1i(200, 5);
-	*/
-
-    glUniform1f(SHININESS_LOC, shininess);
-    glUniform1i(LIGHT_MAP_LOC, 5);
-    glUniform1i(NORMAL_MAP_LOC, 4);
-    glUniform1f(STRENGTH_LOC, normal_strength);
-    glUniform1f(ALPHA_TEST_LOC, alpha_test);
-    glUniform1i(EMISSIVE_MAP_LOC, 3);
-    glUniform1i(OCCLUSION_MAP_LOC, 2);
-    glUniform1i(SPECULAR_MAP_LOC, 1);
-    glUniform1i(DIFFUSE_MAP_LOC, 0);
-
-    glUniform4fv(DIFFUSE_COLOR_LOC, 1, (const float*)&diffuse_color);
-    glUniform3fv(SPECULAR_COLOR_LOC, 1, (const float*)&specular_color);
-    glUniform3fv(EMISSIVE_COLOR_LOC, 1, (const float*)&emissive_color);
-
-    unsigned fragment_indices[NUM_FRAGMENT_SUBROUTINE_UNIFORMS];
-
-
-    if(normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING))
+    if(dirty_ubo)
     {
-        fragment_indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_TEXTURE;
-    }
-    else
-    {
-        fragment_indices[GET_NORMAL_LOCATION] = GET_NORMAL_FROM_VERTEX;
+        UpdateUBO();
+
+        dirty_ubo = false;
     }
 
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_FRESNEL))
-    {
-        fragment_indices[GET_FRESNEL_LOCATION] = GET_FRESNEL_SCHLICK;
-    }
-    else
-    {
-        fragment_indices[GET_FRESNEL_LOCATION] = GET_NO_FRESNEL;
-    }
+    materialUBO->BindToTargetIdx(1);
 
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, sizeof(fragment_indices)/sizeof(unsigned), fragment_indices);
+    static int maps[] = {0, 1, 2, 3, 4, 5};
+    glUniform1iv(App->programs->GetUniformLocation("materialMaps"), sizeof(maps)/sizeof(int), &maps[0]);
 }
 
 void ResourceMaterial::BindTextures() const
@@ -406,47 +358,35 @@ void ResourceMaterial::BindTextures() const
     const ResourceTexture* normal    = GetTextureRes(TextureNormal);
     const ResourceTexture* lightmap  = GetTextureRes(TextureLightmap);
 
-    unsigned diffuse_id   = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
-
-    unsigned specular_id  = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? 
-        specular->GetID() : App->resources->GetWhiteFallback()->GetID();
-
-    unsigned occlusion_id = occlusion ? occlusion->GetID() : App->resources->GetWhiteFallback()->GetID();
-    unsigned emissive_id  = emissive ? emissive->GetID() : App->resources->GetWhiteFallback()->GetID();
+    unsigned diffuse_id   = diffuse ? diffuse->GetID() : 0;
+    unsigned specular_id  = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? specular->GetID() : 0;
+    unsigned occlusion_id = occlusion ? occlusion->GetID() : 0;
+    unsigned emissive_id  = emissive ? emissive->GetID() : 0;
     unsigned normal_id    = normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) ? normal->GetID() : 0;
-    unsigned lightmap_id  = lightmap ? lightmap->GetID() : App->resources->GetBlackFallback()->GetID();
-
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, lightmap_id);
-
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, normal_id);
-
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, emissive_id);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, occlusion_id);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specular_id);
+    unsigned lightmap_id  = lightmap ? lightmap->GetID() : 0;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuse_id);
 
-    if(double_sided)
-    {
-        glDisable(GL_CULL_FACE);
-    }
-    else
-    {
-        glEnable(GL_CULL_FACE);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specular_id);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, normal_id);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, occlusion_id);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, emissive_id);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, lightmap_id);
 }
 
 void ResourceMaterial::UnbindTextures() const
 {
-    glActiveTexture(GL_TEXTURE6);
+    glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glActiveTexture(GL_TEXTURE4);
@@ -463,4 +403,41 @@ void ResourceMaterial::UnbindTextures() const
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void ResourceMaterial::UpdateUBO()
+{
+    MaterialBuffer materialData = { diffuse_color, specular_color, emissive_color, smoothness, normal_strength, alpha_test, GetMapMask()};
+
+    if (!materialUBO)
+    {
+        materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialBuffer), nullptr));
+    }
+
+    materialUBO->SetData(0, sizeof(MaterialBuffer), &materialData);
+}
+
+uint ResourceMaterial::GetMapMask() const
+{
+    uint mapMask = 0;
+
+    if(GetTextureRes(TextureLightmap))
+    {
+        mapMask = 1 << TextureLightmap;
+    }
+    else
+    {
+        for(uint i=0; i< TextureCount; ++i)
+        {
+            if(i != TextureLightmap)
+            {
+                if(GetTextureRes(MaterialTexture(i)))
+                {
+                    mapMask |= 1 << i;
+                }
+            }
+        }
+    }
+
+    return mapMask;
 }

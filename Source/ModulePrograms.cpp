@@ -257,6 +257,10 @@ void ModulePrograms::BindUniformBlock(const char* program, unsigned variations, 
 
     if(it != programs.end())
 	{
-        glUniformBlockBinding(it->second, glGetUniformBlockIndex(it->second, block_name), block_index);
+        int index = glGetUniformBlockIndex(it->second, block_name);
+        if (index != GL_INVALID_INDEX)
+        {
+            glUniformBlockBinding(it->second, index, block_index);
+        }
 	}
 }

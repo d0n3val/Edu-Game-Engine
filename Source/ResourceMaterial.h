@@ -7,6 +7,7 @@
 
 struct aiMaterial;
 class ResourceTexture;
+class Buffer;
 
 enum MaterialTexture
 {
@@ -19,16 +20,32 @@ enum MaterialTexture
     TextureCount
 };
 
-
 class ResourceMaterial : public Resource
 {
 private:
+
+    struct MaterialBuffer
+    {
+        float4    diffuse_color;
+        float4    specular_color;
+        float4    emissive_color;
+        float     smoothness;
+        float     normal_strength;
+        float     alpha_test;
+        uint      mapMask;
+    };
+
+    typedef std::unique_ptr<Buffer> BufferPtr;
+
+    BufferPtr   materialUBO;
+    bool        dirty_ubo = true;
+
 
     float4      diffuse_color          = float4::one;
     float3      specular_color         = float4::zero;
     float3      emissive_color         = float4::zero;
     UID         textures[TextureCount] = { 0, 0, 0, 0, 0, 0 };
-    float       shininess              = 0.5f;
+    float       smoothness             = 0.5f;
     float       normal_strength        = 1.0f;
     bool        double_sided           = false;
     float       alpha_test             = 0.0f;
@@ -46,39 +63,42 @@ public:
 
     static UID              Import              (const aiMaterial* material, const char* source_file);
 
-    void                    UpdateUniforms      () const;
+    void                    UpdateUniforms      ();
     void                    BindTextures        () const;
     void                    UnbindTextures      () const;
 
     const float4&           GetDiffuseColor     () const { return diffuse_color;}
-    void                    SetDiffuseColor     (const float4& value) { diffuse_color = value; }
+    void                    SetDiffuseColor     (const float4& value) { diffuse_color = value; dirty_ubo = true; }
 
     const float3&           GetSpecularColor    () const { return specular_color;}
-    void                    SetSpecularColor    (const float3& value) { specular_color = value; }
+    void                    SetSpecularColor    (const float3& value) { specular_color = value; dirty_ubo = true; }
 
     const float3&           GetEmissiveColor    () const { return emissive_color;}
-    void                    SetEmissiveColor    (const float3& value) { emissive_color = value; }
+    void                    SetEmissiveColor    (const float3& value) { emissive_color = value; dirty_ubo = true; }
 
     UID                     GetTexture          (MaterialTexture texture) const { return textures[texture]; }
     const ResourceTexture*  GetTextureRes       (MaterialTexture texture) const;
     ResourceTexture*        GetTextureRes       (MaterialTexture texture) ;
     void                    SetTexture          (MaterialTexture texture, UID uid);
 
-    float                   GetShininess        () const { return shininess; }
-    void                    SetShininess        (float s) { shininess = s; }
+    float                   GetSmoothness       () const { return smoothness; }
+    void                    SetSmoothness       (float s) { smoothness = s; dirty_ubo = true; }
 
     float                   GetNormalStrength   () const { return normal_strength; }
-    void                    SetNormalStrength   (float s) { normal_strength = s; }
+    void                    SetNormalStrength   (float s) { normal_strength = s; dirty_ubo = true; }
 
     bool                    GetDoubleSided      () const { return double_sided; }
     void                    SetDoubleSided      (bool dside)  { double_sided = dside; }
 
     float                   GetAlphaTest        () const { return alpha_test; }
-    void                    SetAlphaTest        (float atest)  { alpha_test = atest; }
+    void                    SetAlphaTest        (float atest)  { alpha_test = atest; dirty_ubo = true; }
 
     static Resource::Type   GetClassType        () {return Resource::material;}
+
 private:
 	void                    SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const;
+    void                    UpdateUBO           ();
+    uint                    GetMapMask          () const;
 };
 
 

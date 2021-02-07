@@ -93,7 +93,7 @@ private:
 
     void                DrawColor                   (const TRenderInfo& render_info);
     void                DrawShadow                  (const TRenderInfo& render_info);
-    void                DrawMeshColor               (const ComponentMeshRenderer* mesh);
+    void                DrawMeshColor               (ComponentMeshRenderer* mesh);
     void                DrawParticles               (ComponentParticleSystem* particles);
     void                DrawTrails                  (ComponentTrail* trail);
     void                DrawSelection               (const TRenderInfo& render_info);

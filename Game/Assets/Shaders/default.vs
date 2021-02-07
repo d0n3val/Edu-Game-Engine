@@ -14,7 +14,8 @@ subroutine void TransformOutput();
 
 layout(location=0) subroutine uniform TransformOutput transform_output;
 
-layout(std140, row_major) uniform Camera {
+layout(std140, row_major) uniform Camera 
+{
     mat4 proj;
     mat4 view;
 } camera;

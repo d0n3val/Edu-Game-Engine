@@ -1,7 +1,6 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 4
 #define PI 3.141597
-//#define SCHLICK_GGX_GSF
 
 //////////////////// STRUCTS ////////////////////////
 
@@ -20,10 +19,6 @@ struct Material
     vec3      emissive_color;
 
     sampler2D normal_map;
-
-    float     k_ambient;
-    float     k_diffuse;
-    float     k_specular;
 };
 
 struct AmbientLight
@@ -257,7 +252,7 @@ vec4 lighting(const vec3 pos, const vec3 normal, const vec2 uv, const vec3 view_
     color += spot_lighting(pos, normal, view_dir, lights.spots[2], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
     color += spot_lighting(pos, normal, view_dir, lights.spots[3], mat, diffuse_color.rgb, specular_color.rgb, smoothness);
 
-    color += diffuse_color.rgb*(lights.ambient.color*occlusion_color*material.k_ambient);
+    color += diffuse_color.rgb*(lights.ambient.color*occlusion_color);
 
     const float MAX_REFLECTION_LOD = 9.0;
 

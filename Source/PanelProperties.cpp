@@ -871,10 +871,10 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         }
         ImGui::PopID();
 
-        float shininess = min(max(material->GetShininess(), 0.0f), 1.0f);
-        if(ImGui::SliderFloat("Shininess", &shininess, 0.0f, 1.0f))
+        float smoothness = min(max(material->GetSmoothness(), 0.0f), 1.0f);
+        if(ImGui::SliderFloat("Smoothness", &smoothness, 0.0f, 1.0f))
         {
-            material->SetShininess(shininess);
+            material->SetSmoothness(smoothness);
             modified = true;
         }
     }

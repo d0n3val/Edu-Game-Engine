@@ -243,11 +243,11 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
     return skin_palette;
 }
 
-void ComponentMeshRenderer::Draw() const
+void ComponentMeshRenderer::Draw() 
 {
-    const GameObject* go             = GetGameObject();
-    const ResourceMesh* mesh         = GetMeshRes();
-    const ResourceMaterial* material = GetMaterialRes();
+    const GameObject* go       = GetGameObject();
+    const ResourceMesh* mesh   = GetMeshRes();
+    ResourceMaterial* material = GetMaterialRes();
 
     if(material != nullptr && mesh != nullptr)
     {
@@ -256,7 +256,6 @@ void ComponentMeshRenderer::Draw() const
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
         //UpdateCPUMorphTargets();
-
         
         mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
         material->UpdateUniforms();

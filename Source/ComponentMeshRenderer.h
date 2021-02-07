@@ -37,7 +37,7 @@ public:
 
     // mesh
 
-    void                    Draw                    () const;
+    void                    Draw                    ();
     void                    DrawShadowPass          () const;
 
 	void                    GetBoundingBox          (AABB& box) const override;
