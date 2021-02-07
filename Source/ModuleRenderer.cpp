@@ -255,6 +255,7 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
 
     App->programs->BindUniformBlock("default", flags, "Camera", 0);
     App->programs->BindUniformBlock("default", flags, "Material", 1);
+    App->programs->BindUniformBlock("default", flags, "Lights", 2);
 
     glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
 
@@ -472,7 +473,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const char* default_macros[]	= { "#define SHADOWS_ENABLED 1 \n" , "#define SHOW_CASCADES 1 \n", "#define ENABLE_SOFT 1 \n"}; 
     const unsigned num_default_macros  = sizeof(default_macros)/sizeof(const char*);
 
-    App->programs->Load("default", "Assets/Shaders/default.vs", "Assets/Shaders/defaultFS.glsl", default_macros, num_default_macros);
+    App->programs->Load("default", "Assets/Shaders/defaultVS.glsl", "Assets/Shaders/defaultFS.glsl", default_macros, num_default_macros);
     App->programs->Load("default_batch", "Assets/Shaders/default_batch.vs", "Assets/Shaders/default_batch.fs", default_macros, num_default_macros);
 
     const char* macros[]		  = { "#define BLOOM 1 \n", "#define GAMMA 1\n" }; 
@@ -506,68 +507,97 @@ void ModuleRenderer::LoadDefaultShaders()
     //App->programs->Load("postprocess", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/postprocess.glsl", nullptr, 0);
 }
 
-void ModuleRenderer::UpdateLightUniform() const
+void ModuleRenderer::UpdateLightUniform() 
 {
-    const AmbientLight* ambient = App->level->GetAmbientLight();
+    struct AmbientLightData
+    {
+        float4 color;
+    };
+
+    struct DirLightData
+    {
+        float4 dir;
+        float4 color;
+    };
+
+    struct PointLightData
+    {
+        float4 position;
+        float4 color;
+        float4 attenuation;
+    };
+
+    struct SpotLightData
+    {
+        float4 position;
+        float4 direction;
+        float4 color;
+        float4 attenuation;
+        float inner;
+        float outer;
+    };
+
+    struct LightsData
+    {
+        AmbientLightData ambient;
+        DirLightData     directional;
+        PointLightData   points[MAX_NUM_POINT_LIGHTS];
+        uint             num_point;
+        SpotLightData    spots[MAX_NUM_SPOT_LIGHTS];
+        uint             num_spot;
+    };
+
+    if(!lightsUBO)
+    {
+        lightsUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(LightsData), nullptr));
+    }
+
+    LightsData data;
+
     const DirLight* directional = App->level->GetDirLight();
+    const AmbientLight* ambient = App->level->GetAmbientLight();
 
-    float3 dir = directional->GetDir();
+    data.ambient.color     =  float4(ambient->GetColor(), 1.0);
+    data.directional.dir   =  float4(directional->GetDir(), 0.0);
+    data.directional.color =  float4(directional->GetColor(), 1.0);
 
-    glUniform3fv(AMBIENT_COLOR_LOC, 1, (const float*)&ambient->GetColor());
-    glUniform3fv(DIRECTIONAL_DIR_LOC, 1, (const float*)&dir);
-    glUniform3fv(DIRECTIONAL_COLOR_LOC, 1, (const float*)&directional->GetColor());
+    data.num_point = 0;
 
-    uint num_point = min(App->level->GetNumPointLights(), MAX_NUM_POINT_LIGHTS);
-    uint count = 0;
-
-    for(uint i=0; i< num_point; ++i)
+    for(uint i=0, count = min(App->level->GetNumPointLights(), MAX_NUM_POINT_LIGHTS); i < count; ++i)
     {
         const PointLight* light = App->level->GetPointLight(i);
 
         if(light->GetEnabled())
         {
-            glUniform3fv(POINT0_POSITION_LOC+count*3, 1, (const float*)&light->GetPosition());
-            glUniform3fv(POINT0_COLOR_LOC+count*3, 1, (const float*)&light->GetColor());
-            glUniform3f(POINT0_ATTENUATION_LOC+count*3, light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt());
+            uint index = data.num_point++;
 
-            ++count;
+            data.points[index].position    = float4(light->GetPosition(), 0.0);
+            data.points[index].color       = float4(light->GetColor(), 0.0);
+            data.points[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0);
         }
     }
 
-    for(uint i=count; i < MAX_NUM_POINT_LIGHTS; ++i)
-    {
-        glUniform3f(POINT0_COLOR_LOC+i*3, 0.0f, 0.0f, 0.0f);
-        glUniform3f(POINT0_ATTENUATION_LOC+i*3, 1.0f, 0.0f, 0.0f);
-    }
+    data.num_spot = 0;
 
-    glUniform1ui(NUM_POINT_LIGHT_LOC, count);
-
-    uint num_spot = min(App->level->GetNumSpotLights(), MAX_NUM_SPOT_LIGHTS);
-    count = 0;
-
-    for(uint i=0; i< num_spot; ++i)
+    for(uint i=0, count = min(App->level->GetNumSpotLights(), MAX_NUM_SPOT_LIGHTS); i< count; ++i)
     {
         const SpotLight* light = App->level->GetSpotLight(i);
 
         if(light->GetEnabled())
         {
-            glUniform3fv(SPOT0_POSITION_LOC+count*6, 1, (const float*)&light->GetPosition());
-            glUniform3fv(SPOT0_DIRECTION_LOC+count*6, 1, (const float*)&light->GetDirection());
-            glUniform3fv(SPOT0_COLOR_LOC+count*6, 1, (const float*)&light->GetColor());
-            glUniform3f(SPOT0_ATTENUATION_LOC+count*6, light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt());
-            glUniform1f(SPOT0_INNER_LOC+count*6, cos(light->GetInnerCutoff()));
-            glUniform1f(SPOT0_OUTTER_LOC+count*6, cos(light->GetOutterCutoff()));
-            ++count;
+            uint index = data.num_spot++;
+
+            data.spots[index].position    = float4(light->GetPosition(), 0.0f);
+            data.spots[index].direction   = float4(light->GetDirection(), 0.0f);
+            data.spots[index].color       = float4(light->GetColor(), 1.0);
+            data.spots[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0f);
+            data.spots[index].inner       = light->GetInnerCutoff();
+            data.spots[index].outer       = light->GetOutterCutoff();
         }
     }
 
-    for(uint i=count; i < MAX_NUM_SPOT_LIGHTS; ++i)
-    {
-        glUniform3f(SPOT0_COLOR_LOC+i*6, 0.0f, 0.0f, 0.0f);
-        glUniform3f(SPOT0_ATTENUATION_LOC+i*6, 1.0f, 0.0f, 0.0f);
-    }
-
-    glUniform1ui(NUM_SPOT_LIGHT_LOC, count);
+    lightsUBO->SetData(0, sizeof(LightsData), &data);
+    lightsUBO->BindToTargetIdx(2);
 }
 
 void ModuleRenderer::DrawDebug()

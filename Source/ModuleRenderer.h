@@ -59,6 +59,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<BatchManager> batch_manager;
     std::unique_ptr<Postprocess>  postProcess;
     std::unique_ptr<Buffer>       cameraUBO;
+    std::unique_ptr<Buffer>       lightsUBO;
     CameraData                    cameraData;
 
 public:
@@ -74,7 +75,6 @@ public:
 
     unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
     unsigned            GetShadowMapWidth           (uint index) const { return cascades[index].width; }
-    unsigned            GetShadowMapHeight          (uint index) const { return cascades[index].height; }
 
     BatchManager*       GetBatchMananger            () const { return batch_manager.get(); }
     Postprocess*        GetPostprocess              () const { return postProcess.get(); }
@@ -98,7 +98,7 @@ private:
     void                DrawTrails                  (ComponentTrail* trail);
     void                DrawSelection               (const TRenderInfo& render_info);
 
-    void                UpdateLightUniform          () const;
+    void                UpdateLightUniform          () ;
 
     void                BlurShadow                  (uint index);
     void                ComputeDirLightShadowVolume (ComponentCamera* camera, uint index);

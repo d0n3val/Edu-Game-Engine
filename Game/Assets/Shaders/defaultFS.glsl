@@ -35,33 +35,33 @@ uniform sampler2D materialMaps[MAP_COUNT];
 
 struct AmbientLight
 {
-    vec3 color;
+    vec4 color;
 };
 
 struct DirLight
 {
-    vec3 dir;
-    vec3 color;
+    vec4 dir;
+    vec4 color;
 };
 
 struct PointLight
 {
-    vec3 position;
-    vec3 color;
-    vec3 attenuation;
+    vec4 position;
+    vec4 color;
+    vec4 attenuation;
 };
 
 struct SpotLight
 {
-    vec3 position;
-    vec3 direction;
-    vec3 color;
-    vec3 attenuation;
+    vec4 position;
+    vec4 direction;
+    vec4 color;
+    vec4 attenuation;
     float inner;
     float outer;
 };
 
-struct Lights
+layout(std140) uniform Lights
 {
     AmbientLight ambient;
     DirLight     directional;
@@ -69,7 +69,7 @@ struct Lights
     uint         num_point;
     SpotLight    spots[MAX_SPOT_LIGHTS];
     uint         num_spot;
-};
+} lights;
 
 struct VertexOut
 {
@@ -82,7 +82,6 @@ struct VertexOut
 
 //////////////////// UNIFORMS ////////////////////////
 
-layout(location=20) uniform Lights lights;
 layout(location=100) uniform vec3 view_pos;
 
 #if SHADOWS_ENABLED
@@ -170,7 +169,7 @@ float SMITHVSF(float NdotL, float NdotV, float roughness)
 }
 
 vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, const vec3 light_color, 
-                          const vec3 diffuseColor, const vec3 specularColor, float smoothness, float att)
+                const vec3 diffuseColor, const vec3 specularColor, float smoothness, float att)
 {
     float roughness  = Sq(1.0-smoothness); 
 
@@ -185,26 +184,9 @@ vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, co
     return (diffuseColor*(1-specularColor)+(fresnel*ndf*vsf))*light_color*dotNL*att;
 }
 
-vec3 Directional(const vec3 normal, const vec3 view_dir, const DirLight light, const vec3 diffuseColor, const vec3 specularColor, float smoothness)
-{
-    return GGXShading(normal, view_dir, -light.dir, light.color, diffuseColor, specularColor, smoothness, 1.0);
-}
-
 float GetAttenuation(const vec3 constants, float distance)
 {
     return 1.0/(constants[0]+constants[1]*distance+constants[2]*(distance*distance));
-}
-
-vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLight light, 
-           const vec3 diffuseColor, const vec3 specularColor, float smoothness)
-{
-    vec3 light_dir    = light.position-pos;
-    float distance    = length(light_dir);
-    light_dir         = light_dir/distance;
-
-    float att         = GetAttenuation(light.attenuation, distance);
-
-    return GGXShading(normal, view_dir, light_dir, light.color, diffuseColor, specularColor, smoothness, att);
 }
 
 float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
@@ -215,20 +197,37 @@ float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float oute
     return min(1.0, max(0.0, (cos_a-outer)/len));
 }
 
-vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLight light, 
-                   const vec3 diffuseColor, const vec3 specularColor, float smoothness)
+vec3 Directional(const vec3 normal, const vec3 view_dir, const DirLight light, const vec3 diffuseColor, const vec3 specularColor, float smoothness)
 {
-    vec3 light_dir    = light.position-pos;
+    return GGXShading(normal, view_dir, -light.dir.xyz, light.color.rgb, diffuseColor, specularColor, smoothness, 1.0);
+}
+
+vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLight light, 
+           const vec3 diffuseColor, const vec3 specularColor, float smoothness)
+{
+    vec3 light_dir    = light.position.xyz-pos;
     float distance    = length(light_dir);
     light_dir         = light_dir/distance;
 
-    float cone        = GetCone(-light_dir, light.direction, light.inner, light.outer);
-    float att         = GetAttenuation(light.attenuation, distance);
+    float att         = GetAttenuation(light.attenuation.xyz, distance);
 
-    return GGXShading(normal, view_dir, light_dir, light.color, diffuseColor, specularColor, smoothness, att*cone);
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, smoothness, att);
 }
 
-vec4 Shading(const vec3 pos, const vec3 normal, const Lights lights)
+vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLight light, 
+                   const vec3 diffuseColor, const vec3 specularColor, float smoothness)
+{
+    vec3 light_dir    = light.position.xyz-pos;
+    float distance    = length(light_dir);
+    light_dir         = light_dir/distance;
+
+    float cone        = GetCone(-light_dir, light.direction.xyz, light.inner, light.outer);
+    float att         = GetAttenuation(light.attenuation.xyz, distance);
+
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, smoothness, att*cone);
+}
+
+vec4 Shading(const in vec3 pos, const in vec3 normal)
 {
     vec4 diffuseColor;
     vec3 specularColor;
@@ -238,22 +237,21 @@ vec4 Shading(const vec3 pos, const vec3 normal, const Lights lights)
 
     GetMaterial(diffuseColor, specularColor, smoothness, occlusion_color, emissiveColor);
 
-    vec3 view_dir        = normalize(view_pos-pos);
+    vec3 view_dir = normalize(view_pos-pos);
 	
     vec3 color = Directional(normal, view_dir, lights.directional, diffuseColor.rgb, specularColor.rgb, smoothness);
 
-    color += Point(pos, normal, view_dir, lights.points[0], diffuseColor.rgb, specularColor, smoothness);
-    color += Point(pos, normal, view_dir, lights.points[1], diffuseColor.rgb, specularColor, smoothness);
-    color += Point(pos, normal, view_dir, lights.points[2], diffuseColor.rgb, specularColor, smoothness);
-    color += Point(pos, normal, view_dir, lights.points[3], diffuseColor.rgb, specularColor, smoothness);
+    for(uint i=0; i< lights.num_point; ++i)
+    {
+        color += Point(pos, normal, view_dir, lights.points[i], diffuseColor.rgb, specularColor, smoothness);
+    }
 
-    color += Spot(pos, normal, view_dir, lights.spots[0], diffuseColor.rgb, specularColor, smoothness);
-    color += Spot(pos, normal, view_dir, lights.spots[1], diffuseColor.rgb, specularColor, smoothness);
-    color += Spot(pos, normal, view_dir, lights.spots[2], diffuseColor.rgb, specularColor, smoothness);
-    color += Spot(pos, normal, view_dir, lights.spots[3], diffuseColor.rgb, specularColor, smoothness);
+    for(uint i=0; i< lights.num_spot; ++i)
+    {
+        color += Spot(pos, normal, view_dir, lights.spots[i], diffuseColor.rgb, specularColor, smoothness);
+    }
 
-    color += diffuseColor.rgb*(lights.ambient.color*occlusion_color);
-
+    color += diffuseColor.rgb*(lights.ambient.color.rgb*occlusion_color);
     color += emissiveColor;
 
     return vec4(color, diffuseColor.a); 
@@ -286,7 +284,7 @@ void main()
 {
 
     vec4 baked = texture(materialMaps[LIGHT_MAP_INDEX], fragment.uv1);
-    color      = Shading(fragment.position, GetNormal(), lights);
+    color      = Shading(fragment.position, GetNormal());
     color.rgb += baked.rgb;
 
     if(color.a < material.alphaTest)
