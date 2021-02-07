@@ -5,7 +5,6 @@
 #include "ModulePrograms.h"
 
 #include "OpenGL.h"
-#include "DefaultShaderLocations.h"
 
 #include "Assimp/mesh.h"
 #include "utils/SimpleBinStream.h"
@@ -1117,16 +1116,16 @@ void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)
 
 void ResourceMesh::UpdateUniforms(const float4x4* skin_palette, const float* morph_weights) const
 {
-    unsigned vertex_indices[NUM_VERTEX_SUBROUTINE_UNIFORMS];
+    unsigned vertex_indices[1];
 
     if(HasAttrib(ATTRIB_BONES))
     {
         glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), num_bones, GL_TRUE, reinterpret_cast<const float*>(skin_palette));
-        vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_SKINNING;
+        vertex_indices[0] = 1;
     }
     else
     {
-        vertex_indices[TRANSFORM_OUTPUT] = TRANSFORM_OUTPUT_RIGID;
+        vertex_indices[0] = 0;
     }
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, sizeof(vertex_indices)/sizeof(unsigned), vertex_indices);

@@ -8,8 +8,6 @@
 #include "ModuleHints.h"
 #include "ModulePrograms.h"
 
-#include "DefaultShaderLocations.h"
-
 #include "Assimp/types.h"
 #include "Assimp/material.h"
 

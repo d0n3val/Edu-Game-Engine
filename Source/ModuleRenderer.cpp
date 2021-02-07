@@ -6,7 +6,6 @@
 #include "ModuleHints.h"
 #include "ModuleEditor.h"
 
-#include "DefaultShaderLocations.h"
 #include "PostprocessShaderLocations.h"
 
 #include "GameObject.h"
@@ -44,6 +43,9 @@
 #include <algorithm>
 
 #include "Leaks.h"
+
+#define MAX_NUM_POINT_LIGHTS 4
+#define MAX_NUM_SPOT_LIGHTS 4
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
@@ -118,6 +120,8 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height)
 {
+    UpdateLightUniform();
+
 	cameraData.proj   = camera->GetProjectionMatrix();	
 	cameraData.view   = camera->GetViewMatrix();
 
@@ -452,7 +456,6 @@ void ModuleRenderer::DrawMeshColor(ComponentMeshRenderer* mesh)
 
     App->programs->UseProgram("default",  flags);
 
-    UpdateLightUniform();
     mesh->Draw();
 }
 
