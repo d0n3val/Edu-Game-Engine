@@ -50,17 +50,10 @@ class ModuleRenderer : public Module
 
     ShadowMap cascades[CASCADE_COUNT];
 
-    struct CameraData
-    {
-        float4x4 proj = float4x4::identity;
-        float4x4 view = float4x4::identity;
-    };
-
     std::unique_ptr<BatchManager> batch_manager;
     std::unique_ptr<Postprocess>  postProcess;
     std::unique_ptr<Buffer>       cameraUBO;
     std::unique_ptr<Buffer>       lightsUBO;
-    CameraData                    cameraData;
 
 public:
 
@@ -82,8 +75,7 @@ public:
 private:
 
     void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);
-    void                ColorPass                   (const float4x4& proj, const float4x4& view, const float3& view_pos, 
-                                                     unsigned fbo, unsigned width, unsigned height);
+    void                ColorPass                   (const float4x4& proj, const float4x4& view, unsigned fbo, unsigned width, unsigned height);
     void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();
@@ -98,7 +90,8 @@ private:
     void                DrawTrails                  (ComponentTrail* trail);
     void                DrawSelection               (const TRenderInfo& render_info);
 
-    void                UpdateLightUniform          () ;
+    void                UpdateLightUBO              ();
+    void                UpdateCameraUBO             (ComponentCamera* camera); 
 
     void                BlurShadow                  (uint index);
     void                ComputeDirLightShadowVolume (ComponentCamera* camera, uint index);

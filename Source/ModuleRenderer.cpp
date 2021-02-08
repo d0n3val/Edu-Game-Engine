@@ -58,8 +58,6 @@ bool ModuleRenderer::Init(Config* config /*= nullptr*/)
     LoadDefaultShaders();
     postProcess->Init();
 
-    cameraUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(cameraData), nullptr));
-
     for(uint i=0; i< CASCADE_COUNT; ++i)
     {
         glGenFramebuffers(1, &cascades[i].fbo);
@@ -120,15 +118,8 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height)
 {
-    UpdateLightUniform();
-
-	cameraData.proj   = camera->GetProjectionMatrix();	
-	cameraData.view   = camera->GetViewMatrix();
-
-    cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
-    cameraUBO->BindToTargetIdx(0);
-
-    float3 view_pos = cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart());
+    UpdateLightUBO();
+    UpdateCameraUBO(camera);
 
     render_list.UpdateFrom(culling, App->level->GetRoot()); // App->level->quadtree.root);
 
@@ -137,7 +128,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, uns
         ShadowPass(camera, width, height);
     }
 
-    ColorPass(cameraData.proj, cameraData.view, view_pos, fbo, width, height);
+    ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), fbo, width, height);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
@@ -229,7 +220,7 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
     }
 }
 
-void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const float3& view_pos, unsigned fbo, unsigned width, unsigned height)
+void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, unsigned fbo, unsigned width, unsigned height)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, width, height);
@@ -253,15 +244,12 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, const
         }
     }
 
-        
-    // Set camera uniforms shared for all
-    App->programs->UseProgram("default", flags);
-
     App->programs->BindUniformBlock("default", flags, "Camera", 0);
     App->programs->BindUniformBlock("default", flags, "Material", 1);
     App->programs->BindUniformBlock("default", flags, "Lights", 2);
 
-    glUniform3f(App->programs->GetUniformLocation("view_pos"), view_pos.x, view_pos.y, view_pos.z);
+    // Set camera uniforms shared for all
+    App->programs->UseProgram("default", flags);
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
@@ -510,7 +498,7 @@ void ModuleRenderer::LoadDefaultShaders()
     //App->programs->Load("postprocess", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/postprocess.glsl", nullptr, 0);
 }
 
-void ModuleRenderer::UpdateLightUniform() 
+void ModuleRenderer::UpdateLightUBO() 
 {
     struct AmbientLightData
     {
@@ -601,6 +589,28 @@ void ModuleRenderer::UpdateLightUniform()
 
     lightsUBO->SetData(0, sizeof(LightsData), &data);
     lightsUBO->BindToTargetIdx(2);
+}
+
+void ModuleRenderer::UpdateCameraUBO(ComponentCamera* camera)
+{
+    struct CameraData
+    {
+        float4x4 proj     = float4x4::identity;
+        float4x4 view     = float4x4::identity;
+        float3   view_pos = float3::zero;
+    } cameraData;
+
+    if(!cameraUBO)
+    {
+        cameraUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(cameraData), nullptr));
+    }
+
+    cameraData.proj     = camera->GetProjectionMatrix();  
+    cameraData.view     = camera->GetViewMatrix();
+    cameraData.view_pos = cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart());
+
+    cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
+    cameraUBO->BindToTargetIdx(0);
 }
 
 void ModuleRenderer::DrawDebug()

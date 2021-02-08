@@ -20,6 +20,13 @@
 
 //////////////////// STRUCTS ////////////////////////
 
+layout(std140, row_major) uniform Camera 
+{
+    mat4 proj;
+    mat4 view;
+    vec3 view_pos;
+} camera;
+
 layout(std140) uniform Material
 {
     vec4      diffuseColor;
@@ -237,7 +244,7 @@ vec4 Shading(const in vec3 pos, const in vec3 normal)
 
     GetMaterial(diffuseColor, specularColor, smoothness, occlusion_color, emissiveColor);
 
-    vec3 view_dir = normalize(view_pos-pos);
+    vec3 view_dir = normalize(camera.view_pos-pos);
 	
     vec3 color = Directional(normal, view_dir, lights.directional, diffuseColor.rgb, specularColor.rgb, smoothness);
 
