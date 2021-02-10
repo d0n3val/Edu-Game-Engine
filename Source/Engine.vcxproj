@@ -62,6 +62,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <AdditionalIncludeDirectories>./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
@@ -89,6 +90,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <AdditionalIncludeDirectories>./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -160,6 +162,7 @@
     <ClInclude Include="ComponentWithResource.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="DebugDraw.h" />
+    <ClInclude Include="DefaultShader.h" />
     <ClInclude Include="default_icon.h" />
     <ClInclude Include="DirLight.h" />
     <ClInclude Include="dxgi1_4.h" />
@@ -331,6 +334,7 @@
     <ClCompile Include="ComponentTrail.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="DefaultShader.cpp" />
     <ClCompile Include="DirLight.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="glmath.cpp" />

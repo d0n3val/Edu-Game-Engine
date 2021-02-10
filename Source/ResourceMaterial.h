@@ -93,12 +93,13 @@ public:
     float                   GetAlphaTest        () const { return alpha_test; }
     void                    SetAlphaTest        (float atest)  { alpha_test = atest; dirty_ubo = true; }
 
+    uint                    GetMapMask          () const;
+    
     static Resource::Type   GetClassType        () {return Resource::material;}
 
 private:
 	void                    SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const;
     void                    UpdateUBO           ();
-    uint                    GetMapMask          () const;
 };
 
 

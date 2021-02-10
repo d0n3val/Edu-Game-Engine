@@ -5,6 +5,7 @@
 #include "ModuleResources.h"
 #include "ModuleHints.h"
 #include "ModuleEditor.h"
+#include "DefaultShader.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -51,6 +52,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
     batch_manager = std::make_unique<BatchManager>();
     postProcess = std::make_unique<Postprocess>();
+    defaultShader = std::make_unique<DefaultShader>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -244,12 +246,15 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, unsig
         }
     }
 
+    defaultShader->Use(0);
+    
+    // Set camera uniforms shared for all
+    App->programs->UseProgram("default", flags);
+
+
     App->programs->BindUniformBlock("default", flags, "Camera", 0);
     App->programs->BindUniformBlock("default", flags, "Material", 1);
     App->programs->BindUniformBlock("default", flags, "Lights", 2);
-
-    // Set camera uniforms shared for all
-    App->programs->UseProgram("default", flags);
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {

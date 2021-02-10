@@ -20,6 +20,7 @@ class QuadtreeNode;
 class Postprocess;
 class Texture2D;
 class Framebuffer;
+class DefaultShader;
 
 class ModuleRenderer : public Module
 {
@@ -50,10 +51,11 @@ class ModuleRenderer : public Module
 
     ShadowMap cascades[CASCADE_COUNT];
 
-    std::unique_ptr<BatchManager> batch_manager;
-    std::unique_ptr<Postprocess>  postProcess;
-    std::unique_ptr<Buffer>       cameraUBO;
-    std::unique_ptr<Buffer>       lightsUBO;
+    std::unique_ptr<BatchManager>   batch_manager;
+    std::unique_ptr<Postprocess>    postProcess;
+    std::unique_ptr<Buffer>         cameraUBO;
+    std::unique_ptr<Buffer>         lightsUBO;
+    std::unique_ptr<DefaultShader>  defaultShader;
 
 public:
 

@@ -693,6 +693,9 @@
     <ClInclude Include="Postprocess.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="DefaultShader.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1251,6 +1254,9 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="Postprocess.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="DefaultShader.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>

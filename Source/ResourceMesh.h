@@ -68,6 +68,7 @@ public:
 
     uint                  GetNumVertices      () const { return num_vertices; }
     uint                  GetNumIndices       () const { return num_indices; }
+    uint                  GEtNumBones         () const { return num_bones; }
 
     // morph targets
     uint                  GetNumMorphTargets  () const { return num_morph_targets; }
@@ -78,6 +79,7 @@ public:
     bool                  HasAttrib           (VertexAttribs attrib) const { return (attrib_flags & (1 << uint(attrib))) != 0 ? true : false; }
     uint                  GetOffset           (VertexAttribs attrib) const { return offsets[attrib]; }
     uint                  GetAttribs          () const { return attrib_flags; }
+    uint                  GetMorphNumAttribs  () const;
 
     uint                  GetVBO              () const {return vbo; }
     uint                  GetVAO              () const {return vao; }
@@ -108,7 +110,6 @@ private:
     void                Clear               ();
     bool                Save                (const char* source, std::string& output);
 	void                SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
-    uint                GetMorphNumAttribs  () const;
 
 public:
 

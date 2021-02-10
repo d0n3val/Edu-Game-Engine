@@ -9,8 +9,8 @@
 
 void _log(const char file[], int line, const char* format, ...)
 {
-	static char tmp_string[4096];
-	static char tmp_string2[4096];
+	static char tmp_string[8192];
+	static char tmp_string2[8192];
 	static va_list  ap;
 
 	// Construct the string from variable arguments
