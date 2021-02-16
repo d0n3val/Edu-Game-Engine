@@ -99,10 +99,8 @@ bool ResourceMesh::LoadInMemory()
         if(size > 0)
         {
             simple::mem_istream<std::true_type> read_stream(buffer, size);
-            std::string tmp;
 
-            read_stream >> tmp;
-            name = HashString(tmp.c_str());
+            read_stream >> name;
 
             read_stream >> vertex_size;
             read_stream >> attrib_flags;
@@ -174,6 +172,8 @@ bool ResourceMesh::LoadInMemory()
                 read_stream >> num_bones;
 
                 bones = std::make_unique<Bone[]>(num_bones);
+
+                std::string tmp;
 
                 for(uint i=0; i< num_bones; ++i)
                 {
@@ -626,7 +626,7 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh, float scale)
             for(uint j=0; j < num_vertices; ++j)
             {
                 data.src_vertices[j] = (*reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mVertices[j]))*scale-src_vertices[j];
-                if(fabs(data.src_vertices[j].LengthSq()) > 0.00001f)
+                if(fabs(data.src_vertices[j].LengthSq()) > 0.0001f)
                 {
                     tmp_indices.push_back(j);
                 }
@@ -637,9 +637,20 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh, float scale)
                 assert(mesh->mAnimMeshes[i]->mNormals != nullptr);
 
                 data.src_normals = std::make_unique<float3[]>(num_vertices);
-                for(uint j=0; j < num_vertices; ++j)
+
+                if (mesh->mAnimMeshes[i]->mNormals)
                 {
-                    data.src_normals[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mNormals[j])-src_normals[j];
+                    for(uint j=0; j < num_vertices; ++j)
+                    {
+                        data.src_normals[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mNormals[j])-src_normals[j];
+                    }
+                }
+                else
+                {
+                    for(uint j=0; j < num_vertices; ++j)
+                    {
+                        data.src_normals[j] = float3(0.0f);
+                    }
                 }
 
                 if (mesh->HasTangentsAndBitangents())
@@ -647,9 +658,19 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh, float scale)
                     assert(mesh->mAnimMeshes[i]->mNormals != nullptr);
                     data.src_tangents = std::make_unique<float3[]>(num_vertices);
 
-                    for(uint j=0; j < num_vertices; ++j)
+                    if (mesh->mAnimMeshes[i]->mTangents)
                     {
-                        data.src_tangents[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mTangents[j])-src_tangents[j];
+                        for (uint j = 0; j < num_vertices; ++j)
+                        {
+                            data.src_tangents[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mTangents[j]) - src_tangents[j];
+                        }
+                    }
+                    else
+                    {
+                        for (uint j = 0; j < num_vertices; ++j)
+                        {
+                            data.src_tangents[j] = float3(0.0f);
+                        }
                     }
                 }
             }
@@ -1145,7 +1166,12 @@ void ResourceMesh::Draw() const
 {
     glBindVertexArray(vao);
 
-    glBindTexture(GL_TEXTURE_BUFFER, morph_texture);
+    if (morph_texture != 0)
+    {
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_BUFFER, morph_texture);
+        glUniform1i(App->programs->GetUniformLocation("morph"), 6);
+    }
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, nullptr);

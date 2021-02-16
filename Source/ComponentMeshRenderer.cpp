@@ -330,6 +330,7 @@ void ComponentMeshRenderer::UpdateCPUMorphTargets() const
             {
                 const ResourceMesh::MorphData& morph_target = mesh->GetMorphTarget(i);
 
+                // Loas indices????
                 if (morph_weights[i] > 0.0f)
                 {
                     for(uint j=0; j< morph_target.num_indices; ++j)

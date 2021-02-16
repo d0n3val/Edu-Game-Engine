@@ -182,7 +182,7 @@ void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_
 }
 
 // ---------------------------------------------------------
-bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned last, std::string& output)
+bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned last, float scale, std::string& output)
 {
 	aiString assimp_path("./");
 	assimp_path.Append(full_path);
@@ -232,7 +232,7 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
 
             for(unsigned j=0; j < (pos_last-pos_first); ++j)
             {
-                channel.positions[j] = *reinterpret_cast<math::float3*>(&node->mPositionKeys[j+pos_first].mValue);
+                channel.positions[j] = (*reinterpret_cast<math::float3*>(&node->mPositionKeys[j+pos_first].mValue))*scale;
             }
 
             for(unsigned j=0; j < (rot_last-rot_first); ++j)

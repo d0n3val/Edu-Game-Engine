@@ -53,7 +53,7 @@ void PanelResources::Draw()
     {
         for(const ImportAnimationDlg::Clip& clip : animation_dlg.GetClips())
         {
-            App->resources->ImportAnimation(animation_dlg.GetFile().c_str(), clip.first, clip.last, clip.name); 
+            App->resources->ImportAnimation(animation_dlg.GetFile().c_str(), clip.first, clip.last, clip.name, animation_dlg.GetScale()); 
         }
         animation_dlg.ClearSelection();
     }

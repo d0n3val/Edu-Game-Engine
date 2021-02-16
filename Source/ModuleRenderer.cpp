@@ -326,6 +326,9 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, unsig
 
     // Render Batches
     //DrawBatches(opaque_nodes, flags);
+
+    App->programs->UseProgram("default", flags);
+
     DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawColor);
 
     glEnable(GL_BLEND);

@@ -24,6 +24,7 @@ public:
     std::string         clips_name;
     std::vector<Clip>   clips;
     bool                selection = false;
+    float               scale     = 1.0f;
 
 public:
 
@@ -34,6 +35,7 @@ public:
     bool                     HasSelection   () const { return selection; }
     const std::string&       GetFile        () const { return file; }
     const std::vector<Clip>& GetClips       () const { return clips; }
+    float                    GetScale       () const { return scale; }
 
 };
 

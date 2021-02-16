@@ -51,7 +51,7 @@ public:
 
 	bool			Save			    () ;
     bool            Save                (std::string& output) const;
-	static bool     Import              (const char* full_path, unsigned first, unsigned last, std::string& output);
+	static bool     Import              (const char* full_path, unsigned first, unsigned last, float scale, std::string& output);
 
 	uint            GetDuration         () const { return duration; }
 

@@ -353,7 +353,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 			import_ok = ResourceModel::Import(new_file_in_assets, 1.0, written_file);
 		break;
 		case Resource::animation:
-			import_ok = ResourceAnimation::Import(new_file_in_assets, 0, UINT_MAX, written_file);
+			import_ok = ResourceAnimation::Import(new_file_in_assets, 0, UINT_MAX, 1.0, written_file);
         break;
 	}
 
@@ -420,13 +420,13 @@ UID ModuleResources::ImportCubemap(const std::string file_names[], const std::st
 	return ret;
 }
 
-UID ModuleResources::ImportAnimation(const char* file_name, uint first, uint last, const char* user_name)
+UID ModuleResources::ImportAnimation(const char* file_name, uint first, uint last, const char* user_name, float scale)
 {
 	UID ret = 0;
     bool import_ok = false;
     string written_file;
 
-    import_ok = ResourceAnimation::Import(file_name, first, last, written_file);
+    import_ok = ResourceAnimation::Import(file_name, first, last, scale, written_file);
 
 	// If export was successfull, create a new resource
 	if (import_ok == true)

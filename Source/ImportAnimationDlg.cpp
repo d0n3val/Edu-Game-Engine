@@ -25,6 +25,8 @@ void ImportAnimationDlg::Display()
         {
             ImGui::LabelText("File", file.c_str());
 
+            ImGui::InputFloat("Scale", &scale);
+
             int num_clips = clips.size();
 
             if(ImGui::InputInt("# Clips", &num_clips))
