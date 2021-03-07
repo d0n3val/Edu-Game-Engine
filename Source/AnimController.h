@@ -4,6 +4,8 @@
 #include "Math.h"
 #include "HashString.h"
 
+#include <vector>
+
 class AnimController
 {
 	struct Instance
@@ -20,6 +22,7 @@ class AnimController
 
     Instance* current = nullptr;
 
+    mutable std::vector<float> tmpWeights;
 public:
 
     AnimController();

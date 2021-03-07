@@ -913,6 +913,20 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
     }
 
+    float2 tiling = material->GetUVTiling();
+    if(ImGui::DragFloat2("Tiling", &tiling.x, 0.1f, 0.1f, 1000.0f))
+    {
+        material->SetUVTiling(tiling);
+        modified = true;
+    }
+
+    float2 offset = material->GetUVOffset();
+    if(ImGui::DragFloat2("Offset", &offset.x, 0.01f, 0.0f, 1.0f))
+    {
+        material->SetUVOffset(offset);
+        modified = true;
+    }
+
     bool dsided = material->GetDoubleSided();
 
     if(ImGui::Checkbox("Double side", &dsided))

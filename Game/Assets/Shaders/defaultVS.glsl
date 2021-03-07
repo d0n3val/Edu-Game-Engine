@@ -62,10 +62,10 @@ vec3 morph_targets_position(vec3 position)
 vec3 morph_targets_normal(vec3 normal)
 {
     vec3 res = normal;
-    //for(int i=0; i< num_morph_targets; ++i)
-    //{
-        //res = res+texelFetch(morph, morph_target_stride*i+morph_normals_stride+gl_VertexID).xyz*morph_weights[i];
-    //}
+    for(int i=0; i< num_morph_targets; ++i)
+    {
+        res = res+texelFetch(morph, morph_target_stride*i+morph_normals_stride+gl_VertexID).xyz*morph_weights[i];
+    }
 
     return normalize(res);
 }
@@ -73,10 +73,10 @@ vec3 morph_targets_normal(vec3 normal)
 vec3 morph_targets_tangent(vec3 tangent)
 {
     vec3 res = tangent;
-    //for(int i=0; i< num_morph_targets; ++i)
-    //{
-        //res = res+texelFetch(morph, morph_target_stride*i+morph_tangents_stride+gl_VertexID).xyz*morph_weights[i];
-    //}
+    for(int i=0; i< num_morph_targets; ++i)
+    {
+        res = res+texelFetch(morph, morph_target_stride*i+morph_tangents_stride+gl_VertexID).xyz*morph_weights[i];
+    }
 
     return normalize(res);
 }

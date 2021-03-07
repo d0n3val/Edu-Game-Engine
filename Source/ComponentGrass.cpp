@@ -85,10 +85,12 @@ void ComponentGrass::Draw()
 
         glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
 
+        /* TODO: 
         material->UpdateUniforms();
         material->BindTextures();
         mesh->Draw();
         material->UnbindTextures();
+        */
     }
 }
 

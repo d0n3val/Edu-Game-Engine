@@ -11,8 +11,8 @@
 #define MAX_ANGULAR_SPEED PI/4.0f
 #define MAX_LINEAR_SPEED 2.0f
 
-const float3 ComponentRootMotion::local_dir[Count] = { float3(0.0f, 0.0f, 1.0f), float3(0.0f, 0.0f, -1.0f), 
-                                                       float3(1.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f) };
+const float3 ComponentRootMotion::local_dir[Count] = { float3(0.0f, 0.0f, 1.0f), float3(0.0f, 0.0f, -1.0f)//, 
+                                                       /*float3(1.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f)*/ };
 
 ComponentRootMotion::ComponentRootMotion(GameObject* go) : Component(go, Types::RootMotion)
 {

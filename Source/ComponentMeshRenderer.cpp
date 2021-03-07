@@ -243,6 +243,7 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
     return skin_palette;
 }
 
+#if 0
 void ComponentMeshRenderer::Draw() 
 {
     const GameObject* go       = GetGameObject();
@@ -293,6 +294,8 @@ void ComponentMeshRenderer::DrawShadowPass() const
         glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
+#endif
+
 
 void ComponentMeshRenderer::UpdateCPUMorphTargets() const
 {

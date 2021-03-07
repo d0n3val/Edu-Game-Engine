@@ -120,6 +120,9 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height)
 {
+    defaultShader->UpdateCameraUBO(camera);
+    defaultShader->UpdateLightUBO(App->level);
+
     UpdateLightUBO();
     UpdateCameraUBO(camera);
 
@@ -246,11 +249,8 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, unsig
         }
     }
 
-    defaultShader->Use(0);
-    
     // Set camera uniforms shared for all
     App->programs->UseProgram("default", flags);
-
 
     App->programs->BindUniformBlock("default", flags, "Camera", 0);
     App->programs->BindUniformBlock("default", flags, "Material", 1);
@@ -329,6 +329,7 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, unsig
 
     App->programs->UseProgram("default", flags);
 
+    
     DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawColor);
 
     glEnable(GL_BLEND);
@@ -402,12 +403,16 @@ void ModuleRenderer::DrawShadow(const TRenderInfo& render_info)
 {
     if(render_info.mesh /*&& render_info.mesh->cast_shadows*/)
     {
+        /* TODO:
         render_info.mesh->DrawShadowPass();
+        */
     }
 }
 
 void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
 {
+#if 0 
+    // TODO
     App->programs->UseProgram("selection", 0);
 
     uint uid = render_info.go->GetUID();
@@ -429,6 +434,7 @@ void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
         // update selection uniform
         render_info.trail->Draw();
     }
+#endif 
 }
 
 void ModuleRenderer::DrawMeshColor(ComponentMeshRenderer* mesh)
@@ -450,9 +456,13 @@ void ModuleRenderer::DrawMeshColor(ComponentMeshRenderer* mesh)
         }
     }
 
-    App->programs->UseProgram("default",  flags);
 
-    mesh->Draw();
+    defaultShader->Draw(mesh);
+
+    //App->programs->UseProgram("default",  flags);
+
+
+    //mesh->Draw();
 }
 
 void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)

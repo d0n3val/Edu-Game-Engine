@@ -15,6 +15,8 @@
 
 #include "Leaks.h"
 
+#define MATERIAL_VERSION 0.2f
+
 // ---------------------------------------------------------
 ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::material)
 {
@@ -50,6 +52,15 @@ bool ResourceMaterial::LoadInMemory()
         {
             simple::mem_istream<std::true_type> read_stream(buffer, size);
 
+            uint mark = 0;
+            float version = 0.0;
+
+            read_stream >> mark;
+
+            assert(mark == MAKEFOURCC('E', 'D', 'U', 'E'));
+
+            read_stream >> version;
+
             read_stream >> diffuse_color.x >> diffuse_color.y >> diffuse_color.z >> diffuse_color.w;
             read_stream >> specular_color.x >> specular_color.y >> specular_color.z;
             read_stream >> emissive_color.x >> emissive_color.y >> emissive_color.z;
@@ -78,6 +89,14 @@ bool ResourceMaterial::LoadInMemory()
                         tex_res->LoadToMemory();
                     }
                 }
+            }
+
+            if(version >= 0.2f)
+            {
+                read_stream >> uv_tiling;
+                read_stream >> uv_offset;
+                read_stream >> scnd_uv_tiling;
+                read_stream >> scnd_uv_offset;
             }
 
             delete[] buffer;
@@ -153,6 +172,8 @@ bool ResourceMaterial::Save()
 // ---------------------------------------------------------
 void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
 {
+    write_stream << MAKEFOURCC('E', 'D', 'U','E');
+    write_stream << MATERIAL_VERSION;
     write_stream << diffuse_color.x << diffuse_color.y << diffuse_color.z << diffuse_color.w;
     write_stream << specular_color.x << specular_color.y << specular_color.z;
     write_stream << emissive_color.x << emissive_color.y << emissive_color.z;
@@ -168,6 +189,10 @@ void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_s
     write_stream << normal_strength;
     write_stream << double_sided;
     write_stream << alpha_test;
+    write_stream << uv_tiling;
+    write_stream << uv_offset;
+    write_stream << scnd_uv_tiling;
+    write_stream << scnd_uv_offset;
 }
 
 // ---------------------------------------------------------
@@ -330,89 +355,6 @@ const ResourceTexture* ResourceMaterial::GetTextureRes(MaterialTexture t) const
 ResourceTexture* ResourceMaterial::GetTextureRes(MaterialTexture t) 
 {
     return static_cast<ResourceTexture*>(App->resources->Get(textures[t]));
-}
-
-void ResourceMaterial::UpdateUniforms()
-{
-    if(dirty_ubo)
-    {
-        UpdateUBO();
-
-        dirty_ubo = false;
-    }
-
-    materialUBO->BindToTargetIdx(1);
-
-    static int maps[] = {0, 1, 2, 3, 4, 5};
-    glUniform1iv(App->programs->GetUniformLocation("materialMaps"), sizeof(maps)/sizeof(int), &maps[0]);
-}
-
-void ResourceMaterial::BindTextures() const
-{
-    const ResourceTexture* specular  = GetTextureRes(TextureSpecular);
-    const ResourceTexture* diffuse   = GetTextureRes(TextureDiffuse);
-    const ResourceTexture* occlusion = GetTextureRes(TextureOcclusion);
-    const ResourceTexture* emissive  = GetTextureRes(TextureEmissive);
-    const ResourceTexture* normal    = GetTextureRes(TextureNormal);
-    const ResourceTexture* lightmap  = GetTextureRes(TextureLightmap);
-
-    unsigned diffuse_id   = diffuse ? diffuse->GetID() : 0;
-    unsigned specular_id  = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? specular->GetID() : 0;
-    unsigned occlusion_id = occlusion ? occlusion->GetID() : 0;
-    unsigned emissive_id  = emissive ? emissive->GetID() : 0;
-    unsigned normal_id    = normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) ? normal->GetID() : 0;
-    unsigned lightmap_id  = lightmap ? lightmap->GetID() : 0;
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuse_id);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specular_id);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, normal_id);
-
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, occlusion_id);
-
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, emissive_id);
-
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, lightmap_id);
-}
-
-void ResourceMaterial::UnbindTextures() const
-{
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void ResourceMaterial::UpdateUBO()
-{
-    MaterialBuffer materialData = { diffuse_color, specular_color, emissive_color, smoothness, normal_strength, alpha_test, GetMapMask()};
-
-    if (!materialUBO)
-    {
-        materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialBuffer), nullptr));
-    }
-
-    materialUBO->SetData(0, sizeof(MaterialBuffer), &materialData);
 }
 
 uint ResourceMaterial::GetMapMask() const

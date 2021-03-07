@@ -29,64 +29,74 @@ bool ResourceAnimation::LoadInMemory()
         char* buffer = nullptr;
         uint size = App->fs->Load(LIBRARY_ANIMATION_FOLDER, GetExportedFile(), &buffer);
 
-        simple::mem_istream<std::true_type> read_stream(buffer, size);
-
-        uint node_size = 0;
-        uint num_channels = 0;
-
-        read_stream >> duration;
-        read_stream >> num_channels;
-
-        channels.reserve(num_channels);
-
-        for(uint i=0; i< num_channels; ++i)
+        if (buffer != nullptr)
         {
-            std::string name;
-            read_stream >> name;
+            simple::mem_istream<std::true_type> read_stream(buffer, size);
 
-            Channel& channel = channels[name];
+            uint node_size = 0;
+            uint num_channels = 0;
 
-            read_stream >> channel.num_positions;
-            read_stream >> channel.num_rotations;
+            read_stream >> duration;
+            read_stream >> num_channels;
 
-            channel.positions = std::make_unique<float3[]>(channel.num_positions);
-            channel.rotations = std::make_unique<Quat[]>(channel.num_rotations);
+            channels.reserve(num_channels);
 
-            for(uint j=0; j < channel.num_positions; ++j)
+            for (uint i = 0; i < num_channels; ++i)
             {
-                read_stream >> channel.positions[j].x >> channel.positions[j].y >> channel.positions[j].z; 
+                std::string name;
+                read_stream >> name;
+
+                Channel& channel = channels[name];
+
+                read_stream >> channel.num_positions;
+                read_stream >> channel.num_rotations;
+
+                channel.positions = std::make_unique<float3[]>(channel.num_positions);
+                channel.rotations = std::make_unique<Quat[]>(channel.num_rotations);
+
+                for (uint j = 0; j < channel.num_positions; ++j)
+                {
+                    read_stream >> channel.positions[j].x >> channel.positions[j].y >> channel.positions[j].z;
+                }
+
+                for (uint j = 0; j < channel.num_rotations; ++j)
+                {
+                    read_stream >> channel.rotations[j].x >> channel.rotations[j].y >> channel.rotations[j].z >> channel.rotations[j].w;
+                }
             }
 
-            for(uint j=0; j < channel.num_rotations; ++j)
+            uint num_morph_channels;
+            read_stream >> num_morph_channels;
+
+            morph_channels.reserve(num_morph_channels);
+
+            for (uint i = 0; i < num_morph_channels; ++i)
             {
-                read_stream >> channel.rotations[j].x >> channel.rotations[j].y >> channel.rotations[j].z >> channel.rotations[j].w;  
+                std::string name;
+                read_stream >> name;
+
+                MorphChannel& morph_channel = morph_channels[name];
+
+                read_stream >> morph_channel.numKeys;
+
+                morph_channel.weights = std::make_unique<ValueWeights[]>(morph_channel.numKeys);
+
+                for (uint i = 0; i < morph_channel.numKeys; ++i)
+                {
+                    ValueWeights& valueWeights = morph_channel.weights[i];
+                    read_stream >> valueWeights.count;
+                    valueWeights.valueWeights = std::make_unique<std::pair<uint, float>[]>(valueWeights.count);
+
+                    for (uint j = 0; j < valueWeights.count; ++j)
+                    {
+                        read_stream >> valueWeights.valueWeights[j].first;
+                        read_stream >> valueWeights.valueWeights[j].second;
+                    }
+                }
             }
+
+            return true;
         }
-
-        uint num_morph_channels;
-        read_stream >> num_morph_channels;
-
-        morph_channels.reserve(num_morph_channels);
-
-        for(uint i = 0; i < num_morph_channels; ++i)
-        {
-            std::string name;
-            read_stream >> name;
-
-            MorphChannel& morph_channel = morph_channels[name];
-
-            read_stream >> morph_channel.num_weights;
-            read_stream >> morph_channel.num_keys;
-
-            morph_channel.weights = std::make_unique<float[]>(morph_channel.num_weights*morph_channel.num_keys);
-
-            for(uint i=0; i < morph_channel.num_weights*morph_channel.num_keys; ++i)
-            {
-                read_stream >> morph_channel.weights[i];
-            }
-        }
-
-        return true;
     }
 
 	return false;
@@ -171,12 +181,20 @@ void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_
     for(const std::pair<const std::string, MorphChannel>& morph_channel : morph_channels)
     {
         write_stream << morph_channel.first; 
-        write_stream << morph_channel.second.num_weights;
-        write_stream << morph_channel.second.num_keys;
+        write_stream << morph_channel.second.numKeys;
 
-        for(uint i=0; i< morph_channel.second.num_weights*morph_channel.second.num_keys; ++i)
+        for(uint i=0; i< morph_channel.second.numKeys; ++i)
         {
-            write_stream << morph_channel.second.weights[i];
+            ValueWeights& valueWeights = morph_channel.second.weights[i];
+
+            write_stream << valueWeights.count;
+
+            for (uint j = 0; j < valueWeights.count; ++j)
+            {
+                write_stream << valueWeights.valueWeights[j].first;
+                write_stream << valueWeights.valueWeights[j].second;
+            }
+            
         }
     }
 }
@@ -271,25 +289,27 @@ bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned l
                 key_last  = max(key_first, min(last, morph_mesh->mNumKeys));
             }
 
-            morph_channel.num_keys    = key_last-key_first;
-            morph_channel.num_weights = 0;
+            morph_channel.numKeys = key_last-key_first;
+            //morph_channel.num_weights = 0;
 
-            if(morph_channel.num_keys > 0)
+            if(morph_channel.numKeys > 0)
             {
-                morph_channel.num_weights = morph_mesh->mKeys[key_first].mNumValuesAndWeights;
-                morph_channel.weights     = std::make_unique<float[]>(morph_channel.num_keys*morph_channel.num_weights);
+                // \todo: num_weights should come from max num_weights
+
+                morph_channel.weights = std::make_unique<ValueWeights[]>(morph_channel.numKeys);
 
                 for(unsigned j=0; j < (key_last-key_first); ++j)
                 {
                     uint key_index = j+key_first;
 
-                    assert(morph_mesh->mKeys[key_index].mNumValuesAndWeights == morph_channel.num_weights);
+                    ValueWeights& valueWeights = morph_channel.weights[j];
+                    valueWeights.count = morph_mesh->mKeys[key_index].mNumValuesAndWeights;
+                    valueWeights.valueWeights = std::make_unique<std::pair<uint, float>[]>(morph_mesh->mKeys[key_index].mNumValuesAndWeights);
 
                     for(unsigned k=0; k < morph_mesh->mKeys[key_index].mNumValuesAndWeights; ++k)
                     {
-                        assert(morph_mesh->mKeys[key_index].mValues[k] == k);
-
-                        morph_channel.weights[k*morph_channel.num_keys+j] = float(morph_mesh->mKeys[key_index].mWeights[k]);
+                        valueWeights.valueWeights[k].first = morph_mesh->mKeys[key_index].mValues[k];
+                        valueWeights.valueWeights[k].second = float(morph_mesh->mKeys[key_index].mWeights[k]);
                     }
                 }
             }

@@ -148,27 +148,72 @@ bool AnimController::GetWeightsInstance(Instance* instance, const std::string& m
         {
             assert(instance->time <= animation->GetDuration());
 
-            float key          = float(instance->time*(morph_channel->num_keys-1))/float(animation->GetDuration());
+            float key          = float(instance->time*(morph_channel->numKeys-1))/float(animation->GetDuration());
             unsigned key_index = unsigned(key);
             float key_lambda   = key-float(key_index);
 
-            assert(num_weights == morph_channel->num_weights);
-
             if(key_lambda > 0.0f)
             {
-                for (uint i = 0; i < num_weights; ++i)
+                tmpWeights.clear();
+                tmpWeights.resize(num_weights, 0.0f);
+
+                ResourceAnimation::ValueWeights& first  = morph_channel->weights[key_index];
+                ResourceAnimation::ValueWeights& second = morph_channel->weights[key_index+1];
+
+                for (uint i = 0; i < first.count; ++i)
                 {
+                    std::pair<uint, float>& valueWeight = first.valueWeights[i];
+                    assert(valueWeight.first < num_weights);
+                    tmpWeights[valueWeight.first] = valueWeight.second;
+                }
+
+                for (uint i = 0; i < second.count; ++i)
+                {
+                    std::pair<uint, float>& valueWeight = second.valueWeights[i];
+                    assert(valueWeight.first < num_weights);
+                    tmpWeights[valueWeight.first] = Interpolate(tmpWeights[valueWeight.first], valueWeight.second, key_lambda);
+                }
+
+                for(uint i=0; i< num_weights; ++i)
+                {
+                    weights[i] = Interpolate(weights[i], tmpWeights[i], lambda);
+                }
+
+                /*
+                ResourceAnimation::ValueWeights& valueWeights = morph_channel->weights[key_index];
+                for (uint i = 0; i < valueWeights.count; ++i)
+                {                    
                     float w0 = morph_channel->weights[i * morph_channel->num_keys + key_index];
                     float w1 = morph_channel->weights[i * morph_channel->num_keys + key_index+1]; 
                     weights[i] = Interpolate(weights[i], Interpolate(w0, w1, key_lambda), lambda);
                 }
+                */
             }
             else
             {
+                tmpWeights.clear();
+                tmpWeights.resize(num_weights, 0.0f);
+
+                ResourceAnimation::ValueWeights& first  = morph_channel->weights[key_index];
+
+                for (uint i = 0; i < first.count; ++i)
+                {
+                    std::pair<uint, float>& valueWeight = first.valueWeights[i];
+                    assert(valueWeight.first < num_weights);
+                    tmpWeights[valueWeight.first] = valueWeight.second;
+                }
+
+                for(uint i=0; i< num_weights; ++i)
+                {
+                    weights[i] = Interpolate(weights[i], tmpWeights[i], lambda);
+                }
+
+                /*
                 for(uint i=0; i< num_weights; ++i)
                 {
                     weights[i] = Interpolate(weights[i], morph_channel->weights[i* morph_channel->num_keys+key_index], lambda);
                 }
+                */
             }
 
             if(instance->next != nullptr)

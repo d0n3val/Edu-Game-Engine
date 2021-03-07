@@ -11,8 +11,8 @@ public:
 	{
 		Forward = 0,
 		Backward,
-		Left,
-		Right,
+		//Left,
+		//Right,
         Count
 	};
 

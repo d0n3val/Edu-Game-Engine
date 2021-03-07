@@ -35,6 +35,9 @@ void Texture::DefaultInitializeTexture(bool mipmaps)
         glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
     }
+
+    glTexParameteri(tex_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(tex_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 void Texture::SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r)
@@ -329,7 +332,7 @@ void Buffer::Unmap()
     glBindBuffer(type, 0);
 }
 
-void Buffer::SetData(uint offset, uint size, void* data)
+void Buffer::SetData(uint offset, uint size, const void* data)
 {
     glBindBuffer(type, id);
     glBufferSubData(type, offset, size, data);

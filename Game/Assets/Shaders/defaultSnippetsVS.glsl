@@ -45,6 +45,9 @@ void main()
     ShadowCoords();
 
     gl_Position = camera.proj*camera.view*vec4(fragment.position, 1.0);
+
+    fragment.uv0      = vertex_uv0;
+    fragment.uv1      = vertex_uv1;
 }
 
 --- MORPH
@@ -76,7 +79,7 @@ vec3 MorphPosition(vec3 position)
 vec3 MorphNormal(vec3 normal)
 {
     vec3 res = normal;
-    for(int i=0; i< morpht.num_targets; ++i)
+    for(int i=0; i< morph.num_targets; ++i)
     {
         res = normalize(res+texelFetch(morphBuffer, morph.target_stride*i+morph.normals_stride+gl_VertexID).xyz*morph.weights[i]);
     }
@@ -129,9 +132,6 @@ void TransformOutput()
     fragment.position = (skin_transform*vec4(MorphPosition(vertex_position), 1.0)).xyz;
     fragment.normal   = (skin_transform*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
     fragment.tangent  = (skin_transform*vec4(MorphTangent(vertex_tangent), 0.0)).xyz;
-
-    fragment.uv0      = vertex_uv0;
-    fragment.uv1      = vertex_uv1;
 }
 
 --- NO_SKINING
@@ -147,9 +147,6 @@ void TransformOutput()
     fragment.normal   = (model*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
     fragment.tangent  = (model*vec4(MorphTangent(vertex_tangent), 0.0)).xyz;
 #endif
-
-    fragment.uv0      = vertex_uv0;
-    fragment.uv1      = vertex_uv1;
 }
 
 --- SHADOW 

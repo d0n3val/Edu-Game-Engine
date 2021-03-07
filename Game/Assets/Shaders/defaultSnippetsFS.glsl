@@ -15,7 +15,10 @@
 #define OCCLUSION_MAP_INDEX 3
 #define EMISSIVE_MAP_INDEX 4
 #define LIGHT_MAP_INDEX 5
-#define MAP_COUNT 6
+#define DETAIL_MASK_MAP_INDEX 6
+#define SECOND_DIFFUSE_MAP_INDEX 7
+#define SECOND_NORMAL_MAP_INDEX 8
+#define MAP_COUNT 9
 
 #define DIFFUSE_MAP_FLAG   0x00000001u
 #define SPECULAR_MAP_FLAG  0x00000002u
@@ -36,6 +39,10 @@ layout(std140) uniform Material
     vec4      diffuseColor;
     vec4      specularColor;
     vec4      emissiveColor;
+    vec2      uv_tiling;
+    vec2      uv_offset;
+    vec2      uv_secondary_tiling;
+    vec2      uv_secondary_offset;
     float     smoothness;
     float     normalStrength;
     float     alphaTest;
@@ -141,26 +148,28 @@ void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out 
     occlusion  = vec3(1.0);
     emissive   = material.emissiveColor.rgb;
 
+    vec2 uv0   = fragment.uv0*material.uv_tiling+material.uv_offset;
+
     if((material.mapMask & DIFFUSE_MAP_FLAG) != 0)
     {
-        diffuse *= texture(materialMaps[DIFFUSE_MAP_INDEX], fragment.uv0);
+        diffuse *= texture(materialMaps[DIFFUSE_MAP_INDEX], uv0);
     }
 
     if((material.mapMask & SPECULAR_MAP_FLAG) != 0)
     {
-        vec4 tmp = texture(materialMaps[SPECULAR_MAP_INDEX], fragment.uv0);
+        vec4 tmp = texture(materialMaps[SPECULAR_MAP_INDEX], uv0);
         specular   *= tmp.rgb;
         smoothness *= tmp.a;
     }
 
     if((material.mapMask & OCCLUSION_MAP_FLAG) != 0)
     {
-        occlusion *= texture(materialMaps[OCCLUSION_MAP_INDEX], fragment.uv0).rgb;
+        occlusion *= texture(materialMaps[OCCLUSION_MAP_INDEX], uv0).rgb;
     }
 
     if((material.mapMask & EMISSIVE_MAP_FLAG) != 0)
     {
-        emissive *= texture(materialMaps[EMISSIVE_MAP_INDEX], fragment.uv0).rgb;
+        emissive *= texture(materialMaps[EMISSIVE_MAP_INDEX], uv0).rgb;
     }
 }
 

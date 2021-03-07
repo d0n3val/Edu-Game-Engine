@@ -27,6 +27,12 @@ public:
         uint                      num_rotations = 0;
     };
 
+    struct ValueWeights
+    {
+        uint                                      count = 0;
+        std::unique_ptr<std::pair<uint, float>[]> valueWeights;
+    };
+
     struct MorphChannel
     {
         MorphChannel() = default;
@@ -35,9 +41,11 @@ public:
         MorphChannel& operator=(const MorphChannel& o) = default;
         MorphChannel& operator=(MorphChannel&& o) = default;
 
-        uint                        num_weights = 0;
-        uint                        num_keys = 0;
-        std::unique_ptr<float[]>    weights;
+        typedef std::unique_ptr<float[]> WeightList;
+
+        
+        uint                            numKeys = 0;
+        std::unique_ptr<ValueWeights[]> weights;
     };
 
 

@@ -6,9 +6,13 @@
 
 #include "Application.h"
 #include "ModuleLevelManager.h"
+#include "ModuleHints.h"
+#include "GameObject.h"
+#include "ComponentMeshRenderer.h"
 #include "ComponentCamera.h"
 #include "ResourceMaterial.h"
 #include "ResourceMesh.h"
+#include "ResourceTexture.h"
 #include "DirLight.h"
 #include "AmbientLight.h"
 #include "PointLight.h"
@@ -28,8 +32,8 @@
 #define MAX_BONES 64
 #define MAX_MORPH_TARGETS 128
 
-static const char* variationsOn[]  = {"MORPH", "SKINING", "NO_SHADOW", "PHONG"}; 
-static const char* variationsOff[] = {"NO_MORPH", "NO_SKINING", "SHADOW", "NO_PHONG"};
+static const char* variationsOn[]  = { "SKINING", "MORPH", "NO_SHADOW", "PHONG"};
+static const char* variationsOff[] = { "NO_SKINING", "NO_MORPH", "SHADOW", "NO_PHONG"};
 
 DefaultShader::DefaultShader()
 {
@@ -74,21 +78,22 @@ void DefaultShader::Use(uint flags)
 			program.reset(new Program(vertex.get(), fragment.get(), 2, "Default program"));
 		}
 
-        if(program->Linked())
+        if(program && program->Linked())
         {
-            BindUniformBlock(program->Id(), "Camera", 0);
-            BindUniformBlock(program->Id(), "Material", 1);
-            BindUniformBlock(program->Id(), "Lights", 2);
-            BindUniformBlock(program->Id(), "Skining", 3);
-            BindUniformBlock(program->Id(), "Morph", 4);
-
-            int location = glGetUniformLocation(program->Id(), "materialMaps");
-            if (location >= 0)
-            {
-                static int maps[] = { 0, 1, 2, 3, 4, 5 };
-                glUniform1iv(location, sizeof(maps) / sizeof(int), &maps[0]);
-            }
+            BindUniformBlock(program->Id(), "Camera",   CAMERA_UBO_TARGET);
+            BindUniformBlock(program->Id(), "Material", MATERIAL_UBO_TARGET);
+            BindUniformBlock(program->Id(), "Lights",   LIGHTS_UBO_TARGET);
+            BindUniformBlock(program->Id(), "Skining",  SKINING_UBO_TARGET);
+            BindUniformBlock(program->Id(), "Morph",    MORPH_UBO_TARGET);
         }
+    }
+
+    int location = glGetUniformLocation(program->Id(), "materialMaps");
+
+    if (location >= 0)
+    {
+        static int maps[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+        glUniform1iv(location, sizeof(maps) / sizeof(int), &maps[0]);
     }
 
 	program->Use();
@@ -113,7 +118,7 @@ void DefaultShader::UpdateCameraUBO(ComponentCamera* camera)
     cameraData.view_pos = cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart());
 
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
-    cameraUBO->BindToTargetIdx(0);
+    cameraUBO->BindToTargetIdx(CAMERA_UBO_TARGET);
 }
 
 void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
@@ -206,36 +211,44 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
     }
 
     lightsUBO->SetData(0, sizeof(LightsData), &data);
-    lightsUBO->BindToTargetIdx(2);
+    lightsUBO->BindToTargetIdx(LIGHTS_UBO_TARGET);
 }
 
 void DefaultShader::UpdateMaterialUBO (ResourceMaterial* material)
 {
     struct MaterialData
     {
-        float4    diffuse_color;
-        float4    specular_color;
-        float4    emissive_color;
-        float     smoothness;
-        float     normal_strength;
-        float     alpha_test;
-        uint      mapMask;
+        float4 diffuse_color;
+        float4 specular_color;
+        float4 emissive_color;
+        float2 tiling;
+        float2 offset;
+        float2 secondary_tiling;
+        float2 secondary_offset;
+        float  smoothness;
+        float  normal_strength;
+        float  alpha_test;
+        uint   mapMask;
     };
 
-    MaterialData materialData = { material->GetDiffuseColor(), material->GetSpecularColor(), material->GetEmissiveColor(), 
-                                  material->GetSmoothness(), material->GetNormalStrength(), material->GetAlphaTest(), 
-                                  material->GetMapMask()};
-
-    if (!materialUBO)
+    if (material)
     {
-        materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialData), nullptr));
-    }
+        MaterialData materialData = { material->GetDiffuseColor(), material->GetSpecularColor(), material->GetEmissiveColor(),
+                                      material->GetUVTiling(), material->GetUVOffset(), material->GetSecondUVTiling(),
+                                      material->GetSecondUVOffset(), material->GetSmoothness(), material->GetNormalStrength(), 
+                                      material->GetAlphaTest(), material->GetMapMask() };
 
-    materialUBO->SetData(0, sizeof(MaterialData), &materialData);
-    materialUBO->BindToTargetIdx(1);
+        if (!materialUBO)
+        {
+            materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialData), nullptr));
+        }
+
+        materialUBO->SetData(0, sizeof(MaterialData), &materialData);
+        materialUBO->BindToTargetIdx(MATERIAL_UBO_TARGET);
+    }
 }
 
-void DefaultShader::UpdateMeshUBO(const float4x4& model, float4x4* skinPalette, float* morphWeights, ResourceMesh* mesh)
+void DefaultShader::UpdateMeshUBOs(const float4x4* skinPalette, const float* morphWeights, const ResourceMesh* mesh)
 {
     if(mesh->HasAttrib(ATTRIB_BONES))
     {
@@ -244,7 +257,7 @@ void DefaultShader::UpdateMeshUBO(const float4x4& model, float4x4* skinPalette, 
             float4x4 palette[MAX_BONES];
         };
 
-        SkiningData* data = reinterpret_cast<SkiningData*>(skinPalette);
+        const SkiningData* data = reinterpret_cast<const SkiningData*>(skinPalette);
 
         if (!skiningUBO)
         {
@@ -252,25 +265,25 @@ void DefaultShader::UpdateMeshUBO(const float4x4& model, float4x4* skinPalette, 
         }
 
         skiningUBO->SetData(0, sizeof(SkiningData), data);
-        skiningUBO->BindToTargetIdx(3);
+        skiningUBO->BindToTargetIdx(SKINING_UBO_TARGET);
     }
 
     if(morphWeights != nullptr)
     {
         struct MorphData
         {
-            int target_stride;
-            int normals_stride;
-            int tangents_stride;
+            int   target_stride;
+            int   normals_stride;
+            int   tangents_stride;
             float weights[MAX_MORPH_TARGETS];
-            int num_targets;
+            int   num_targets;
         };
 
         MorphData data;
         data.target_stride   = mesh->GetNumVertices()*mesh->GetMorphNumAttribs();
         data.normals_stride  = mesh->GetNumVertices();
         data.tangents_stride = mesh->GetNumVertices()*2;
-        data.num_targets   = mesh->GetNumMorphTargets();
+        data.num_targets     = mesh->GetNumMorphTargets();
 
         for (int i = 0; i < data.num_targets; ++i)
         {
@@ -283,7 +296,7 @@ void DefaultShader::UpdateMeshUBO(const float4x4& model, float4x4* skinPalette, 
         }
 
         morphUBO->SetData(0, sizeof(MorphData), &data);
-        morphUBO->BindToTargetIdx(4);
+        morphUBO->BindToTargetIdx(MORPH_UBO_TARGET);
     }
 }
 
@@ -366,10 +379,77 @@ void DefaultShader::AddBlocksFromFile(parsb_context* blocks, const char* fileNam
 
 void DefaultShader::BindUniformBlock (uint program, const char* name, uint block_index) const
 {
-    int index = glGetUniformBlockIndex(program, "Camera");
+    int index = glGetUniformBlockIndex(program, name);
     if (index != GL_INVALID_INDEX)
     {
         glUniformBlockBinding(program, index, block_index);
     }
 }
 
+void DefaultShader::BindTextures(const ResourceMaterial* material) const
+{
+    if (material)
+    {
+        const ResourceTexture* specular = material->GetTextureRes(TextureSpecular);
+        const ResourceTexture* diffuse = material->GetTextureRes(TextureDiffuse);
+        const ResourceTexture* occlusion = material->GetTextureRes(TextureOcclusion);
+        const ResourceTexture* emissive = material->GetTextureRes(TextureEmissive);
+        const ResourceTexture* normal = material->GetTextureRes(TextureNormal);
+        const ResourceTexture* lightmap = material->GetTextureRes(TextureLightmap);
+
+        unsigned diffuse_id = diffuse ? diffuse->GetID() : 0;
+        unsigned specular_id = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? specular->GetID() : 0;
+        unsigned occlusion_id = occlusion ? occlusion->GetID() : 0;
+        unsigned emissive_id = emissive ? emissive->GetID() : 0;
+        unsigned normal_id = normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) ? normal->GetID() : 0;
+        unsigned lightmap_id = lightmap ? lightmap->GetID() : 0;
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuse_id);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specular_id);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, normal_id);
+
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, occlusion_id);
+
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, emissive_id);
+
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, lightmap_id);
+    }
+}
+
+uint DefaultShader::GetDrawingFlags(const ResourceMesh* mesh) const
+{
+    uint flags = 0;
+
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING)) flags |= (1<< SHADOWS_ON);
+    if(mesh->HasAttrib(ATTRIB_BONES)) flags |=(1<< SKINING_ON);
+    if(mesh->GetNumMorphTargets() > 0) flags |=(1<< MORPH_TARGETS_ON);
+
+    return flags;
+}
+
+void DefaultShader::Draw(ComponentMeshRenderer* meshRenderer)
+{
+    const ResourceMesh* mesh   = meshRenderer->GetMeshRes();
+    ResourceMaterial* material = meshRenderer->GetMaterialRes();
+    GameObject* go             = meshRenderer->GetGameObject();
+
+    uint flags = GetDrawingFlags(mesh);
+
+    UpdateMaterialUBO(material);
+    UpdateMeshUBOs(meshRenderer->UpdateSkinPalette(), meshRenderer->GetMorphTargetWeights(), mesh);
+
+    Use(flags);
+
+    glUniformMatrix4fv(glGetUniformLocation(programs[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
+    BindTextures(material);
+
+    mesh->Draw();
+}

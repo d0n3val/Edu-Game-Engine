@@ -107,7 +107,7 @@ void ComponentAnimation::UpdateGO(GameObject* go)
         if(num_morphs > 0)
         {
             tmp_weights.resize(num_morphs, 0.0f);
-            if (controller->GetWeights(mesh->GetName(), &tmp_weights[0], num_morphs))
+            if (controller->GetWeights(go->name, &tmp_weights[0], num_morphs))
             {
                 for (uint i=0; i< num_morphs; ++i)
                 {

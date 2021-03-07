@@ -133,7 +133,7 @@ public:
     void* Map(uint access);
     void* MapRange(uint access, uint offset, uint size);
     void  Unmap();
-    void  SetData(uint offset, uint size, void* data);
+    void  SetData(uint offset, uint size, const void* data);
 
     static Buffer* CreateVBO(uint usage, uint size, void* data);
     static Buffer* CreateIBO(uint usage, uint size, void* data);
