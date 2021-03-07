@@ -903,6 +903,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
             material->SetEmissiveColor(color*intensity);
             modified = true;
         }
+
         ImGui::PopID();
 
         if(ImGui::SliderFloat("Intensity", &intensity, 1.0f, 50.0f))
@@ -910,7 +911,11 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
             material->SetEmissiveColor(color*intensity);
             modified  = true;
         }
+    }
 
+    if(ImGui::CollapsingHeader("Detail Mask", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, mesh, TextureDetailMask, "Detail Mask") || modified;
     }
 
     float2 tiling = material->GetUVTiling();
@@ -924,6 +929,35 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
     if(ImGui::DragFloat2("Offset", &offset.x, 0.01f, 0.0f, 1.0f))
     {
         material->SetUVOffset(offset);
+        modified = true;
+    }
+
+    if(ImGui::CollapsingHeader("Secondary Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, mesh, TextureScndDiffuse, "Secondary Diffuse") || modified;
+    }
+
+    if(ImGui::CollapsingHeader("Secondary Specular", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, mesh, TextureScndSpecular, "Secondary Specular") || modified;
+    }
+
+    if(ImGui::CollapsingHeader("Secondary Normal", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modified = TextureButton(material, mesh, TextureScndNormal, "Secondary Normal") || modified;
+    }
+
+    tiling = material->GetSecondUVTiling();
+    if(ImGui::DragFloat2("Secondary Tiling", &tiling.x, 0.1f, 0.1f, 1000.0f))
+    {
+        material->SetSecondUVTiling(tiling);
+        modified = true;
+    }
+
+    offset = material->GetSecondUVOffset();
+    if(ImGui::DragFloat2("Secondary Offset", &offset.x, 0.01f, 0.0f, 1.0f))
+    {
+        material->SetSecondUVOffset(offset);
         modified = true;
     }
 

@@ -92,7 +92,7 @@ void DefaultShader::Use(uint flags)
 
     if (location >= 0)
     {
-        static int maps[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+        static int maps[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         glUniform1iv(location, sizeof(maps) / sizeof(int), &maps[0]);
     }
 
@@ -390,37 +390,17 @@ void DefaultShader::BindTextures(const ResourceMaterial* material) const
 {
     if (material)
     {
-        const ResourceTexture* specular = material->GetTextureRes(TextureSpecular);
-        const ResourceTexture* diffuse = material->GetTextureRes(TextureDiffuse);
-        const ResourceTexture* occlusion = material->GetTextureRes(TextureOcclusion);
-        const ResourceTexture* emissive = material->GetTextureRes(TextureEmissive);
-        const ResourceTexture* normal = material->GetTextureRes(TextureNormal);
-        const ResourceTexture* lightmap = material->GetTextureRes(TextureLightmap);
+        for (uint i = 0; i < TextureCount; ++i)
+        {
+            const ResourceTexture* texture = material->GetTextureRes(MaterialTexture(i));
 
-        unsigned diffuse_id = diffuse ? diffuse->GetID() : 0;
-        unsigned specular_id = specular && App->hints->GetBoolValue(ModuleHints::ENABLE_SPECULAR_MAPPING) ? specular->GetID() : 0;
-        unsigned occlusion_id = occlusion ? occlusion->GetID() : 0;
-        unsigned emissive_id = emissive ? emissive->GetID() : 0;
-        unsigned normal_id = normal && App->hints->GetBoolValue(ModuleHints::ENABLE_NORMAL_MAPPING) ? normal->GetID() : 0;
-        unsigned lightmap_id = lightmap ? lightmap->GetID() : 0;
+            unsigned id = 0;
+            
+            if (texture) id = texture->GetID();
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuse_id);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specular_id);
-
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, normal_id);
-
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, occlusion_id);
-
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, emissive_id);
-
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, lightmap_id);
+            glActiveTexture(GL_TEXTURE0+i);
+            glBindTexture(GL_TEXTURE_2D, id);
+        }
     }
 }
 

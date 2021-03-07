@@ -17,15 +17,20 @@
 #define LIGHT_MAP_INDEX 5
 #define DETAIL_MASK_MAP_INDEX 6
 #define SECOND_DIFFUSE_MAP_INDEX 7
-#define SECOND_NORMAL_MAP_INDEX 8
-#define MAP_COUNT 9
+#define SECOND_SPECULAR_MAP_INDEX 8
+#define SECOND_NORMAL_MAP_INDEX 9
+#define MAP_COUNT 10
 
-#define DIFFUSE_MAP_FLAG   0x00000001u
-#define SPECULAR_MAP_FLAG  0x00000002u
-#define NORMAL_MAP_FLAG    0x00000004u
-#define OCCLUSION_MAP_FLAG 0x00000008u
-#define EMISSIVE_MAP_FLAG  0x00000010u
-#define LIGHT_MAP_FLAG     0x00000020u
+#define DIFFUSE_MAP_FLAG        0x00000001u
+#define SPECULAR_MAP_FLAG       0x00000002u
+#define NORMAL_MAP_FLAG         0x00000004u
+#define OCCLUSION_MAP_FLAG      0x00000008u
+#define EMISSIVE_MAP_FLAG       0x00000010u
+#define LIGHT_MAP_FLAG          0x00000020u
+#define DETAIL_MASK_FLAG        0x00000040u
+#define SECOND_DIFFUSE_FLAG     0x00000080u
+#define SECOND_SPECULAR_FLAG    0x00000100u
+#define SECOND_NORMAL_FLAG      0x00000200u
 
 layout(std140, row_major) uniform Camera 
 {
@@ -107,9 +112,9 @@ float Sq(float a)
     return a*a;
 }
 
-void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive);
+mat3 CreateTBN(const vec3 normal, const vec3 tangent);
+void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive, out vec3 normal);
 vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specular, float smoothness, vec3 occlusion, vec3 emissive);
-vec3 GetNormal();
 vec3 ComputeShadow(in vec3 color);
 
 --- MAIN
@@ -123,10 +128,11 @@ void main()
     float smoothness;
     vec3 occlusion;
     vec3 emissive;
+    vec3 normal;
 
-    GetMaterial(diffuse, specular, smoothness, occlusion, emissive);
+    GetMaterial(diffuse, specular, smoothness, occlusion, emissive, normal);
 
-    color      = Shading(fragment.position, GetNormal(), diffuse, specular, smoothness, occlusion, emissive);
+    color      = Shading(fragment.position, normal, diffuse, specular, smoothness, occlusion, emissive);
     color.rgb += baked.rgb;
 
     if(color.a < material.alphaTest)
@@ -140,7 +146,7 @@ void main()
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
 }
 
-void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive)
+void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive, out vec3 normal)
 {
     diffuse    = material.diffuseColor;
     specular   = material.specularColor.rgb;
@@ -149,6 +155,7 @@ void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out 
     emissive   = material.emissiveColor.rgb;
 
     vec2 uv0   = fragment.uv0*material.uv_tiling+material.uv_offset;
+    vec2 uv1   = fragment.uv0*material.uv_secondary_tiling+material.uv_secondary_offset;
 
     if((material.mapMask & DIFFUSE_MAP_FLAG) != 0)
     {
@@ -170,6 +177,63 @@ void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out 
     if((material.mapMask & EMISSIVE_MAP_FLAG) != 0)
     {
         emissive *= texture(materialMaps[EMISSIVE_MAP_INDEX], uv0).rgb;
+    }
+
+    vec3 tex_normal = vec3(0.0);
+    bool has_tex_normal = false;
+
+    if((material.mapMask & NORMAL_MAP_FLAG) != 0)
+    {
+        tex_normal = texture(materialMaps[NORMAL_MAP_INDEX], uv0).xyz*2.0-1.0;
+        tex_normal.xy *= material.normalStrength;
+        tex_normal = normalize(tex_normal);
+
+        has_tex_normal = true;
+    }
+
+    if((material.mapMask & DETAIL_MASK_FLAG) != 0)
+    {
+        float blend = texture(materialMaps[DETAIL_MASK_MAP_INDEX], fragment.uv0).a;
+
+        if((material.mapMask & SECOND_DIFFUSE_FLAG) != 0)
+        {
+            diffuse = mix(diffuse, texture(materialMaps[SECOND_DIFFUSE_MAP_INDEX], uv1), blend);
+        }
+
+        if((material.mapMask & SECOND_SPECULAR_FLAG) != 0)
+        {
+            vec4 spec  = texture(materialMaps[SECOND_SPECULAR_MAP_INDEX], uv1);
+            specular   = mix(specular, spec.rgb, blend);
+            smoothness = mix(smoothness, spec.a, blend);
+        }
+
+        if((material.mapMask & SECOND_NORMAL_FLAG) != 0)
+        {
+            vec3 second_tex_normal = texture(materialMaps[SECOND_NORMAL_MAP_INDEX], uv1).xyz*2.0-1.0;
+            // \todo: second_tex_normal.xy *= material.normalStrength;
+            second_tex_normal = normalize(second_tex_normal);
+
+            if(has_tex_normal)
+            {
+                tex_normal = normalize(mix(tex_normal, second_tex_normal, blend));
+            }
+            else
+            {
+                tex_normal = second_tex_normal;
+            }
+
+            has_tex_normal = true;
+        }
+    }
+
+    if(has_tex_normal)
+    {
+        mat3 tbn = CreateTBN(normalize(fragment.normal), normalize(fragment.tangent));
+        normal = normalize(tbn*tex_normal);
+    }
+    else
+    {
+        normal = normalize(fragment.normal);
     }
 }
 
@@ -282,21 +346,6 @@ mat3 CreateTBN(const vec3 normal, const vec3 tangent)
     vec3 bitangent     = cross(normal, ortho_tangent);
 
     return mat3(tangent, bitangent, normal);
-}
-
-vec3 GetNormal()
-{
-    if((material.mapMask & NORMAL_MAP_FLAG) != 0)
-    {
-        vec3 normal = texture(materialMaps[NORMAL_MAP_INDEX], fragment.uv0).xyz*2.0-1.0;
-        normal.xy *= material.normalStrength;
-        normal = normalize(normal);
-
-        mat3 tbn = CreateTBN(normalize(fragment.normal), normalize(fragment.tangent));
-        return normalize(tbn*normal);
-    }
-
-    return normalize(fragment.normal);
 }
 
 --- SHADOW

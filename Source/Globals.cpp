@@ -9,18 +9,18 @@
 
 void _log(const char file[], int line, const char* format, ...)
 {
-	static char tmp_string[8192];
-	static char tmp_string2[8192];
+	static char tmp_string[64000];
+	static char tmp_string2[64000];
 	static va_list  ap;
 
 	// Construct the string from variable arguments
 	va_start(ap, format);
-	vsprintf_s(tmp_string, 8191, format, ap);
+	vsprintf_s(tmp_string, 64000, format, ap);
 	va_end(ap);
-	sprintf_s(tmp_string2, 8191, "\n%s(%d) : %s", file, line, tmp_string);
+	sprintf_s(tmp_string2, 64000, "\n%s(%d) : %s", file, line, tmp_string);
 	OutputDebugString(tmp_string2);
 	if (App) {
-		sprintf_s(tmp_string2, 8191, "\n%s", tmp_string);
+		sprintf_s(tmp_string2, 64000, "\n%s", tmp_string);
 		App->Log(tmp_string2);
 	}
 }

@@ -40,6 +40,7 @@ private:
     float2      uv_offset              = float2(0, 0);
     float2      scnd_uv_tiling         = float2(1, 1);
     float2      scnd_uv_offset         = float2(0, 0);
+    // \todo: secondary uv set
 
 public:
 
