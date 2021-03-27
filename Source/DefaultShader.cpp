@@ -111,6 +111,7 @@ void DefaultShader::UpdateCameraUBO(ComponentCamera* camera)
     if(!cameraUBO)
     {
         cameraUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(cameraData), nullptr));
+        cameraUBO->BindToTargetIdx(CAMERA_UBO_TARGET);
     }
 
     cameraData.proj     = camera->GetProjectionMatrix();  
@@ -118,7 +119,6 @@ void DefaultShader::UpdateCameraUBO(ComponentCamera* camera)
     cameraData.view_pos = cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart());
 
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
-    cameraUBO->BindToTargetIdx(CAMERA_UBO_TARGET);
 }
 
 void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
@@ -164,6 +164,8 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
     if(!lightsUBO)
     {
         lightsUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(LightsData), nullptr));
+        lightsUBO->BindToTargetIdx(LIGHTS_UBO_TARGET);
+
     }
 
     LightsData data;
@@ -211,7 +213,6 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
     }
 
     lightsUBO->SetData(0, sizeof(LightsData), &data);
-    lightsUBO->BindToTargetIdx(LIGHTS_UBO_TARGET);
 }
 
 void DefaultShader::UpdateMaterialUBO (ResourceMaterial* material)
@@ -241,10 +242,10 @@ void DefaultShader::UpdateMaterialUBO (ResourceMaterial* material)
         if (!materialUBO)
         {
             materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialData), nullptr));
+            materialUBO->BindToTargetIdx(MATERIAL_UBO_TARGET);
         }
 
         materialUBO->SetData(0, sizeof(MaterialData), &materialData);
-        materialUBO->BindToTargetIdx(MATERIAL_UBO_TARGET);
     }
 }
 

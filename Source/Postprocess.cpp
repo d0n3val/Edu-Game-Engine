@@ -116,18 +116,17 @@ void Postprocess::Execute(Texture2D* screen, Framebuffer* fbo, unsigned width, u
 {
     bool msaa  = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
 
-    GenerateBloomFBO(width, height);
-
-    // bloom
     glBindVertexArray(post_vao);
+
+    GenerateBloomFBO(width, height);
+    
+    // bloom
     glBindFramebuffer(GL_FRAMEBUFFER, bloom_fbo);
     {
         glClear(GL_COLOR_BUFFER_BIT);
         App->programs->UseProgram("bloom", msaa ? 1 : 0);
         glActiveTexture(GL_TEXTURE0);
         screen->Bind(0, App->programs->GetUniformLocation("image"));
-        //glBindTexture(msaa ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, screen_texture);
-        //glUniform1i(App->programs->GetUniformLocation("image"), 0); 
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
 
@@ -181,8 +180,6 @@ void Postprocess::Execute(Texture2D* screen, Framebuffer* fbo, unsigned width, u
     glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
 
     glDrawArrays(GL_TRIANGLES, 0, 6); 
-
-    App->programs->UnuseProgram();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

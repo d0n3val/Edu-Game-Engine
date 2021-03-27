@@ -19,6 +19,7 @@ layout(std140, row_major) uniform Camera
     vec3 view_pos;
 } camera;
 
+
 uniform mat4 model;
 
 out struct VertexOut
