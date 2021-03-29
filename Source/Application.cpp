@@ -60,7 +60,7 @@ Application::Application()
 // ---------------------------------------------
 Application::~Application()
 {
-	for(list<Module*>::iterator it = modules.begin(); it != modules.end(); ++it)
+	for(list<Module*>::reverse_iterator it = modules.rbegin(); it != modules.rend(); ++it)
 		RELEASE(*it);
 
 	RELEASE(random);

@@ -8,6 +8,7 @@
 #include "ModuleRenderer.h"
 #include "ModuleHints.h"
 #include "Postprocess.h"
+#include "Resource.h"
 
 #include "imgui/imgui.h"
 
@@ -53,6 +54,18 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
         ImGui::SliderFloat("Azimuthal", &azimuthal, 0.0f , 2.0f*math::pi);
         ImGui::SliderFloat("Polar", &polar, -0.5f*math::pi, 0.5f*math::pi);
         ImGui::PushItemWidth(0.0f);
+        if(ImGui::SmallButton("Select Texture"))
+        {
+            selectTexture.Open(Resource::texture, "Skybox texture");
+        }
+    }
+
+    selectTexture.Display();
+
+    if(selectTexture.HasSelection())
+    {
+        skybox->SetCubemap(selectTexture.GetResource());
+        selectTexture.ClearSelection();
     }
 }
 

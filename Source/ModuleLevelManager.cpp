@@ -272,7 +272,7 @@ bool ModuleLevelManager::Load(const char * file)
 
             LoadLights(config.GetSection("Lights"));
 			LoadGameObjects(config);
-
+			skybox->Load(config.GetSection("Skybox"));
 		}
 
 		RELEASE_ARRAY(buffer); 
@@ -300,6 +300,8 @@ bool ModuleLevelManager::Save(const char * file)
 
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
 		(*it)->Save(save);
+
+	skybox->Save(save.AddSection("Skybox"));
 
 	// Finally save to file
 	char* buf = nullptr;

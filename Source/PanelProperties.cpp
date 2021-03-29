@@ -94,6 +94,11 @@ void PanelProperties::Draw()
         }, App->editor->GetSelection());
 
     show_texture.Display();
+
+    for (uint i = 0; i < TextureCount; ++i)
+    {
+        selectTexture[i].Display();
+    }
 }
 
 // ---------------------------------------------------------
@@ -1111,14 +1116,15 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         if(ImGui::SmallButton("Select texture"))
         {
             ImGui::PopID();
-            ImGui::OpenPopup(name);
+            selectTexture[texture].Open(Resource::texture, name);
         }
         else
         {
             ImGui::PopID();
         }
 
-        //ShowTextureModal(info, mesh);
+        
+
         ImGui::EndGroup();
     }
     else
@@ -1127,7 +1133,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         if(ImGui::SmallButton("Select texture"))
         {
             ImGui::PopID();
-            ImGui::OpenPopup(name);
+            selectTexture[texture].Open(Resource::texture, name);
         }
         else
         {
@@ -1135,12 +1141,11 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         }
     }
 
-    UID new_res = OpenResourceModal(Resource::texture, name);
-
-    if(new_res != 0)
+    if(selectTexture[texture].HasSelection())
     {
-        material->SetTexture(MaterialTexture(texture), new_res);
+        material->SetTexture(MaterialTexture(texture), selectTexture[texture].GetResource());
         modified = true;
+        selectTexture[texture].ClearSelection();
     }
 
     return modified;

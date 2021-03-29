@@ -30,8 +30,8 @@ void Texture::DefaultInitializeTexture(bool mipmaps)
     }
     else
     {
-        glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
     }

@@ -490,6 +490,7 @@ void ModuleRenderer::LoadDefaultShaders()
 
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros);
     App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0);
+    App->programs->Load("equirectangular", "Assets/Shaders/skybox.vs", "Assets/Shaders/equirectangular.fs", nullptr, 0);
     App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0);
     App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0);
     App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0);

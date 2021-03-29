@@ -4,6 +4,7 @@
 #include "OGL.h"
 
 class ResourceTexture;
+class Config;
 
 class Skybox
 {
@@ -18,6 +19,8 @@ public:
     ~Skybox();
 
     void    Draw        (const float4x4& proj, const float4x4& view);
+    void    Load        (const Config& config);
+    void    Save        (Config& config) const;
 
     UID     GetCubemap  () const  { return cubemap; } 
     void    SetCubemap  (UID uid);

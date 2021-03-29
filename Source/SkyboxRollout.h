@@ -1,6 +1,7 @@
 #ifndef __SKYBOXROLLOUT_H__
 #define __SKYBOXROLLOUT_H__
 
+#include "SelectResourceDlg.h"
 #include <memory>
 
 class Texture2D;
@@ -32,7 +33,9 @@ private:
 
     float                        azimuthal = 0.0f;
     float                        polar     = 0.0f;
+    SelectResourceDlg            selectTexture;
 };
+
 
 #endif /* __SKYBOXROLLOUT_H__ */
 

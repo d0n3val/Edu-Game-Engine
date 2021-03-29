@@ -3,10 +3,13 @@
 
 // Editor Panel to show the properties of a single GameObject and its components
 #include "Globals.h"
-#include "ShowTextureDlg.h"
 #include "Panel.h"
 #include "Resource.h"
+#include "ResourceMaterial.h"
 #include "Math.h"
+
+#include "ShowTextureDlg.h"
+#include "SelectResourceDlg.h"
 
 class GameObject;
 class Component;
@@ -83,16 +86,17 @@ private:
     typedef std::unique_ptr<Texture2D> TexturePtr;
     typedef std::unique_ptr<SkyboxRollout> SkyboxPtr;
 
-    FramebufferPtr  convert_fb;
-    TexturePtr      diffuse;
-    TexturePtr      specular;
-    TexturePtr      occlusion;
-    TexturePtr      depth;
+    FramebufferPtr      convert_fb;
+    TexturePtr          diffuse;
+    TexturePtr          specular;
+    TexturePtr          occlusion;
+    TexturePtr          depth;
 
-    SkyboxPtr       skybox;
-    PerlinPtr       perlin;
+    SkyboxPtr           skybox;
+    PerlinPtr           perlin;
 
-    ShowTextureDlg  show_texture;
+    ShowTextureDlg      show_texture;
+    SelectResourceDlg   selectTexture[TextureCount];
 
 };
 

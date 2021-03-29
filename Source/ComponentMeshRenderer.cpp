@@ -174,7 +174,7 @@ bool ComponentMeshRenderer::SetMaterialRes(UID uid)
 
     if(material_resource != 0 && res != nullptr)
     {
-        assert(res->GetType() == Resource::mesh);
+        assert(res->GetType() == Resource::material);
 
         res->Release();
     }

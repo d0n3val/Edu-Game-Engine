@@ -696,6 +696,9 @@
     <ClInclude Include="DefaultShader.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="SelectResourceDlg.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1258,6 +1261,9 @@
     </ClCompile>
     <ClCompile Include="DefaultShader.cpp">
       <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectResourceDlg.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

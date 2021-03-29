@@ -300,6 +300,7 @@
     <ClInclude Include="ResourceStateMachine.h" />
     <ClInclude Include="ResourceTexture.h" />
     <ClInclude Include="SceneViewport.h" />
+    <ClInclude Include="SelectResourceDlg.h" />
     <ClInclude Include="ShowTextureDlg.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="SkyboxRollout.h" />
@@ -436,6 +437,7 @@
     <ClCompile Include="ResourceStateMachine.cpp" />
     <ClCompile Include="ResourceTexture.cpp" />
     <ClCompile Include="SceneViewport.cpp" />
+    <ClCompile Include="SelectResourceDlg.cpp" />
     <ClCompile Include="ShowTextureDlg.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="SkyboxRollout.cpp" />

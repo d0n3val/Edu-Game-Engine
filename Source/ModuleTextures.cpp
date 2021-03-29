@@ -144,7 +144,7 @@ bool ModuleTextures::Import(const char* file, string& output_file, bool compress
 	char* buffer = nullptr;
 	uint size = App->fs->Load(file, &buffer);
 
-    bool ret = toCubemap ? Import(buffer, size, output_file, compressed) : ImportHDR(buffer, size, output_file, compressed);
+    bool ret = Import(buffer, size, output_file, compressed);
 
     if (ret == false)
     {
@@ -154,6 +154,7 @@ bool ModuleTextures::Import(const char* file, string& output_file, bool compress
     return ret;
 }
 
+/*
 bool ModuleTextures::ImportHDR(const void * buffer, uint size, std::string& output_file, bool compressed)
 {
 	bool ret = buffer != nullptr;
@@ -193,6 +194,7 @@ bool ModuleTextures::ImportHDR(const void * buffer, uint size, std::string& outp
 
     return ret;
 }
+*/
 
 bool ModuleTextures::Import(const void * buffer, uint size, string& output_file, bool compressed)
 {

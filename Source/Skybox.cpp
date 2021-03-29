@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "ModuleResources.h"
 #include "ModulePrograms.h"
+#include "Config.h"
 
 #include "ResourceTexture.h"
 
@@ -66,31 +67,61 @@ Skybox::~Skybox()
 {
     if(cubemap)
     {
-        App->resources->Get(cubemap)->Release();
+        Resource* res = App->resources->Get(cubemap);
+        
+        if (res)
+        {
+            res->Release();
+        }
     }
+}
+
+void Skybox::Load(const Config& config)
+{
+    UID texture = config.GetUInt("Texture", 0);
+    if (texture)
+    {
+        SetCubemap(texture);
+    }
+}
+
+void Skybox::Save(Config& config) const
+{
+    config.AddUInt("Texture", uint(cubemap));
 }
 
 void Skybox::Draw(const float4x4& proj, const float4x4& view)
 {
-    App->programs->UseProgram("skybox", 0);
-
-    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+    bool isCubemap;
 
     Texture* texture = nullptr;
     if(cubemap != 0)
     {
-        texture = App->resources->GetTexture(cubemap)->GetTexture();
+        ResourceTexture* textureRes = App->resources->GetTexture(cubemap);
+        if (textureRes)
+        {
+            isCubemap = textureRes->GetType() == ResourceTexture::TextureCube;
+            texture = textureRes->GetTexture();
+        }
     }
-    else
+
+
+    if(!texture)
     {
+        isCubemap = true;
         texture = App->resources->GetDefaultSkybox()->GetTexture();
     }
 
-    if(texture)
+    App->programs->UseProgram(isCubemap ? "skybox" : "equirectangular", 0);
+
+    if (texture)
     {
+        texture->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         texture->Bind(0, App->programs->GetUniformLocation("skybox"));
     }
+
+    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
+    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
 
     glDepthFunc(GL_ALWAYS);
     vao->Bind();
@@ -100,9 +131,10 @@ void Skybox::Draw(const float4x4& proj, const float4x4& view)
 
 void Skybox::SetCubemap(UID uid)
 {
-    if(cubemap != 0)
+    Resource* old = App->resources->Get(cubemap);
+    if(old)
     {
-        App->resources->Get(cubemap)->Release();
+        old->Release();
     }
 
     ResourceTexture* res = App->resources->GetTexture(uid);
