@@ -2,6 +2,7 @@
 
 #include "ShowTextureDlg.h"
 #include "ResourceMesh.h"
+#include "ResourceTexture.h"
 
 #include "Application.h"
 #include "ModulePrograms.h"
@@ -22,13 +23,19 @@ ShowTextureDlg::ShowTextureDlg()
     open_name = std::string("Show texture") + std::string("##textures") + std::to_string((size_t)this);
 }
 
-void ShowTextureDlg::Open(const ResourceMesh* _mesh, Texture2D* _texture, uint _width, uint _height)
+void ShowTextureDlg::Open(const ResourceMesh* _mesh, ResourceTexture* _texture)
 {
     open_flag = true;
     mesh      = _mesh;
     source    = _texture;
-    width     = _width;
-    height    = _height;
+
+    if(source)
+    {
+        source->LoadToMemory();
+    }
+
+    width     = source->GetWidth();
+    height    = source->GetHeight();
 
     zoom = float(uint(min(CANVAS_SIZE / float(width), CANVAS_SIZE / float(height))*100.0f));
 }
@@ -39,7 +46,11 @@ void ShowTextureDlg::Display()
     {
         ImGui::OpenPopup(open_name.c_str());
         open_flag = false;
-        GeneratePreview();
+
+        if(source->GetType() == ResourceTexture::Texture2D)
+        {
+            GeneratePreview();
+        }
     }
 
     bool generate = false;
@@ -67,18 +78,21 @@ void ShowTextureDlg::Display()
 
         ImGui::SameLine();
 
-        generate = ImGui::Checkbox("show uvs", &show_uvs) ||  generate;
+        if(mesh)
+        {
+            generate = ImGui::Checkbox("show uvs", &show_uvs) ||  generate;
 
-        ImGui::SameLine();
-        ImGui::PushItemWidth(96);
+            ImGui::SameLine();
+            ImGui::PushItemWidth(96);
 
-        generate = ImGui::Combo("Set",(int*)&uv_set, "UV set 0\0UV set 1") || generate;
+            generate = ImGui::Combo("Set",(int*)&uv_set, "UV set 0\0UV set 1") || generate;
 
-        ImGui::PushItemWidth(0.0);
+            ImGui::PushItemWidth(0.0);
 
-        ImGui::SameLine();
+            ImGui::SameLine();
 
-        generate = (ImGui::ColorEdit4("uv color", (float*)&uv_color, ImGuiColorEditFlags_NoInputs) && show_uvs) || generate;
+            generate = (ImGui::ColorEdit4("uv color", (float*)&uv_color, ImGuiColorEditFlags_NoInputs) && show_uvs) || generate;
+        }
 
         ImGui::SameLine();
 
@@ -95,6 +109,7 @@ void ShowTextureDlg::Display()
         ImGui::EndPopup();
     }
 
+    generate = generate && source->GetType() == ResourceTexture::Texture2D;
 
     if(generate)
     {
@@ -105,6 +120,12 @@ void ShowTextureDlg::Display()
 void ShowTextureDlg::Clear()
 {
     mesh    = nullptr;
+
+    if(source)
+    {
+        source->Release();
+    }
+
     source  = nullptr;
     width   = 0;
     height  = 0;
@@ -129,7 +150,8 @@ void ShowTextureDlg::GeneratePreview()
 void ShowTextureDlg::GenerateSourceFB()
 {
     source_fb = std::make_unique<Framebuffer>();
-    source_fb->AttachColor(source, 0, 0);
+    assert(source->GetType() == ResourceTexture::Texture2D);
+    source_fb->AttachColor(static_cast<Texture2D*>(source->GetTexture()), 0, 0);
 }
 
 void ShowTextureDlg::GenerateTargetFB()

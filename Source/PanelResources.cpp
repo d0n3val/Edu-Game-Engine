@@ -72,6 +72,8 @@ void PanelResources::Draw()
         model_dlg.ClearSelection();
     }
 
+    show_texture.Display();
+
 	if (ImGui::BeginMenu("Options"))
 	{
 			// TODO we should safely remove those options
@@ -218,6 +220,11 @@ void PanelResources::DrawResourceType(Resource::Type type, void (PanelResources:
 						multiple_select_pivot = 0;
 						selection.clear();
 					}
+                    else if(type == Resource::texture && !selection.empty() && ImGui::MenuItem("Show"))
+                    {
+                        ResourceTexture* texture = static_cast<ResourceTexture*>(App->resources->Get(*selection.rbegin()));
+                        show_texture.Open(nullptr, texture);
+                    }
 
 					ImGui::EndPopup();
 				}

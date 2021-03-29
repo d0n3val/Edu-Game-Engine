@@ -23,10 +23,10 @@ void ImportTexturesDlg::Display()
         open_flag = false;
     }
 
-    ImGui::SetNextWindowSize(ImVec2(200, 150));
+    ImGui::SetNextWindowSize(ImVec2(300, 250));
     if (ImGui::BeginPopupModal(open_name.c_str(), nullptr, ImGuiWindowFlags_NoResize))
     {
-        if(ImGui::BeginChild("Canvas", ImVec2(180, 90), true, ImGuiWindowFlags_NoMove))
+        if(ImGui::BeginChild("Canvas", ImVec2(280, 190), true, ImGuiWindowFlags_NoMove))
         {
             ImGui::Checkbox("Compressed", &compressed);
             ImGui::Checkbox("Mipmaps", &mipmaps);
@@ -35,7 +35,7 @@ void ImportTexturesDlg::Display()
         }
         ImGui::EndChild();
 
-        ImGui::Indent(120);
+        ImGui::Indent(220);
         if(ImGui::Button("Ok", ImVec2(60, 0)))
         {
             selection = true;

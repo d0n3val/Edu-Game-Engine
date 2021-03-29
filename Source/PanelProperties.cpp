@@ -1054,7 +1054,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         {
 			ImGui::PopID();
 
-            show_texture.Open(mesh, static_cast<Texture2D*>(info->GetTexture()), info->GetWidth(), info->GetHeight());
+            show_texture.Open(mesh, info);
         }
         else 
         {
