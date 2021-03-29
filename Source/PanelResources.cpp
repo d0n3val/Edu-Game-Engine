@@ -44,7 +44,7 @@ void PanelResources::Draw()
     textures_dlg.Display();
     if(textures_dlg.HasSelection())
     {
-        App->resources->ImportTexture(textures_dlg.GetFile().c_str(), textures_dlg.GetCompressed(), textures_dlg.GetMipmaps(), textures_dlg.GetSRGB()); 
+        App->resources->ImportTexture(textures_dlg.GetFile().c_str(), textures_dlg.GetCompressed(), textures_dlg.GetMipmaps(), textures_dlg.GetSRGB(), textures_dlg.GetToCubemap()); 
         textures_dlg.ClearSelection();
     }
 

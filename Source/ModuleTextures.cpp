@@ -137,23 +137,61 @@ bool ModuleTextures::ImportCube(const std::string files [], std::string& output_
 }
 
 // Import new texture from file path
-bool ModuleTextures::Import(const char* file, const char* path, string& output_file, bool compressed)
+bool ModuleTextures::Import(const char* file, string& output_file, bool compressed, bool toCubemap)
 {
-	std::string sPath(path);
 	std::string sFile(file);
 
 	char* buffer = nullptr;
-	uint size = App->fs->Load((char*) (sPath + sFile).c_str(), &buffer);
+	uint size = App->fs->Load(file, &buffer);
 
-    bool ret = Import(buffer, size, output_file, compressed);
+    bool ret = toCubemap ? Import(buffer, size, output_file, compressed) : ImportHDR(buffer, size, output_file, compressed);
 
     if (ret == false)
     {
-        LOG("Cannot load texture %s from path %s", file, path);
+        LOG("Cannot load texture %s", file);
     }
 
     return ret;
+}
 
+bool ModuleTextures::ImportHDR(const void * buffer, uint size, std::string& output_file, bool compressed)
+{
+	bool ret = buffer != nullptr;
+
+    std::vector<uint8_t> data;
+
+    if(ret)
+    {
+        int width, height, channels;
+        unsigned char* image = SOIL_load_image_from_memory(reinterpret_cast<const unsigned char * const>(buffer), size, &width, &height, &channels, 0);
+
+        data.reserve(size);
+
+        if(ret = (image != nullptr))
+        {
+            data.resize(sizeof(uint32_t), 0);
+            *reinterpret_cast<uint32_t*>(&data[0]) = uint32_t(ResourceTexture::Texture2D);
+
+            auto save = [](void* context, void* data, int size) 
+            {
+                std::vector<uint8_t>& output = *reinterpret_cast<std::vector<uint8_t>*>(context);
+
+                output.insert(output.end(), reinterpret_cast<uint8_t*>(data), reinterpret_cast<uint8_t*>(data)+size);
+            };
+
+            SOIL_save_image_to_func(save, &data, compressed ? SOIL_SAVE_TYPE_DDS : SOIL_SAVE_TYPE_TGA, width, height, channels, reinterpret_cast<const unsigned char* const>(buffer));
+            SOIL_free_image_data(image);
+        }
+    }
+
+    if(ret)
+    {
+        ret = App->fs->SaveUnique(output_file, &data[0], data.size(), LIBRARY_TEXTURES_FOLDER, "texture", "tex");
+    }
+
+    RELEASE_ARRAY(buffer);
+
+    return ret;
 }
 
 bool ModuleTextures::Import(const void * buffer, uint size, string& output_file, bool compressed)

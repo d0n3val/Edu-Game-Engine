@@ -344,7 +344,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = App->tex->Import(new_file_in_assets, "", written_file, true);
+			import_ok = App->tex->Import(new_file_in_assets, written_file, true, false);
 		break;
 		case Resource::audio:
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
@@ -370,13 +370,13 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	return ret;
 }
 
-UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool mipmaps, bool srgb)
+UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool mipmaps, bool srgb, bool toCubemap)
 {
 	UID ret = 0;
     bool import_ok = false;
     string written_file;
 
-    import_ok = App->tex->Import(file_name, "", written_file, compressed);
+    import_ok = App->tex->Import(file_name, written_file, compressed, toCubemap);
 
 	// If export was successfull, create a new resource
 	if (import_ok == true)
