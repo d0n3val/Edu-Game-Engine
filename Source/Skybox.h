@@ -5,6 +5,7 @@
 
 class ResourceTexture;
 class Config;
+class TextureCube;
 
 class Skybox
 {
@@ -12,6 +13,7 @@ class Skybox
     std::unique_ptr<Buffer>      vbo;
     std::unique_ptr<VertexArray> vao;
 	UID                          cubemap = 0;
+    Texture*                     test = nullptr;
 
 public:
 
@@ -24,6 +26,9 @@ public:
 
     UID     GetCubemap  () const  { return cubemap; } 
     void    SetCubemap  (UID uid);
+
+    TextureCube* ConvertToCubemap(UID uid, uint width, uint height) const;
+
 };
 
 

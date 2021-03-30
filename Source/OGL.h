@@ -102,6 +102,7 @@ public:
     void Bind();
 
     void AttachColor(Texture2D* texture, uint attachment = 0, uint mip_level = 0);
+    void AttachColor(TextureCube* texture, uint face, uint attachment = 0, uint mip_level = 0);
     void AttachDepthStencil(Texture2D* texture, uint attachment);
     void ReadColor(uint attachment, uint x, uint y, uint widht, uint height, uint format, unsigned* data);
 

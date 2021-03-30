@@ -21,7 +21,8 @@ vec2 SphericalToEquirectangular(in vec3 dir)
 
 void main()
 {
-    vec2 uv = SphericalToEquirectangular(normalize(coords));
-    color = texture(skybox, uv);
+    vec3 dir = normalize(coords);
+    vec2 uv  = SphericalToEquirectangular(dir);
+    color    = texture(skybox, uv);
 }
 

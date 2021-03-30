@@ -30,8 +30,8 @@ void Texture::DefaultInitializeTexture(bool mipmaps)
     }
     else
     {
-        glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
     }
@@ -161,7 +161,12 @@ Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint mip_levels, uint width, u
 TextureCube::TextureCube() : Texture(GL_TEXTURE_CUBE_MAP)
 {
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
-    DefaultInitializeTexture(false);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
@@ -215,6 +220,19 @@ void Framebuffer::AttachColor(Texture2D* texture, uint attachment, uint mip_leve
     Bind();
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+attachment, texture->Target(), texture->Id(), mip_level);
+    attachments[attach_count++] = GL_COLOR_ATTACHMENT0+attachment;
+
+    glDrawBuffers(attach_count, attachments);
+    glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
+
+    Unbind();
+}
+
+void Framebuffer::AttachColor(TextureCube* texture, uint face, uint attachment, uint mip_level)
+{
+    Bind();
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+attachment, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texture->Id(), mip_level);
     attachments[attach_count++] = GL_COLOR_ATTACHMENT0+attachment;
 
     glDrawBuffers(attach_count, attachments);

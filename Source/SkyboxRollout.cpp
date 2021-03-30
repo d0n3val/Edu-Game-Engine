@@ -93,7 +93,7 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox)
     view.InverseOrthonormal();
 
     screenshot_fb->Bind();
-    glViewport(0, 0, SCREENSHOT_SIZE, SCREENSHOT_SIZE);
+    screenshot_fb->Clear(SCREENSHOT_SIZE, SCREENSHOT_SIZE);
 
     skybox->Draw(proj, view);
     postProcess->Execute(screenshotTex.get(), postprocess_fb.get(), SCREENSHOT_SIZE, SCREENSHOT_SIZE);
