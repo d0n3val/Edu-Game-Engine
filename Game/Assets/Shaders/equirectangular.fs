@@ -1,3 +1,5 @@
+#version 440
+
 #define PI 3.141597
 
 out vec4 color;

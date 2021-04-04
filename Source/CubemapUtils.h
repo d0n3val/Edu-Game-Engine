@@ -8,6 +8,8 @@ class CubemapUtils
 {
     std::unique_ptr<Buffer>      vbo;
     std::unique_ptr<VertexArray> vao;
+    std::unique_ptr<Program>     skybox;
+    std::unique_ptr<Program>     equirectangular;
 
     static const float  skybox_vertices[6*6*3];
     static const float3 front[6];
@@ -22,7 +24,7 @@ public:
     TextureCube* ConvertToCubemap   (Texture2D* texture, uint width, uint height);
 
 private:
-    void InitBuffers();
+    void Init();
 
 };
 

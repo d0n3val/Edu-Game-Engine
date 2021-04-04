@@ -75,7 +75,7 @@ void DefaultShader::Use(uint flags)
 
 		if(vertex->Compiled() && fragment->Compiled())
 		{
-			program.reset(new Program(vertex.get(), fragment.get(), 2, "Default program"));
+			program.reset(new Program(vertex.get(), fragment.get(), "Default program"));
 		}
 
         if(program && program->Linked())

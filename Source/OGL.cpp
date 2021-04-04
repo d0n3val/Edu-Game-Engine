@@ -533,7 +533,7 @@ Shader::~Shader()
     glDeleteShader(id);
 }
 
-Program::Program(const Shader* vs, const Shader* fs, unsigned count, const char* log_name)
+Program::Program(const Shader* vs, const Shader* fs, const char* log_name)
 {
     const Shader* shader_list[] = { vs, fs };
     Init(shader_list, 2, log_name);
@@ -584,11 +584,16 @@ void Program::Unuse()
     glUseProgram(0); 
 }
 
-void Program::BindTexture(uint location, uint unit, const Texture2D* texture)
+void Program::BindTexture(uint location, uint unit, const Texture* texture)
 {
     glActiveTexture(GL_TEXTURE0+unit);
-    glBindTexture(GL_TEXTURE_2D, texture->Id());
+    glBindTexture(texture->Target(), texture->Id());
     glUniform1i(location, unit);        
+}
+
+void Program::BindTextureFromName(const char* name, uint unit, const Texture* texture)
+{
+    BindTexture(glGetUniformLocation(id, name), unit, texture);
 }
 
 void Program::BindUniform(uint location, int value)
@@ -669,6 +674,86 @@ void Program::BindUniform(uint location, int count, const float3x3* value)
 void Program::BindUniform(uint location, int count, const float4x4* value)
 {
     glUniformMatrix4fv(location, count, GL_TRUE, reinterpret_cast<const float*>(&value));
+}
+
+void Program::BindUniformFromName(const char* name, int value)
+{
+    BindUniform(glGetUniformLocation(id, name), value);
+}
+
+void Program::BindUniformFromName(const char* name, float value)
+{
+    BindUniform(glGetUniformLocation(id, name), value);
+}
+
+void Program::BindUniformFromName(const char* name, const float2& value)
+{
+    BindUniform(glGetUniformLocation(id, name), value);
+}
+
+void Program::BindUniformFromName(const char* name, const float3& value)
+{
+    BindUniform(glGetUniformLocation(id, name), value);
+}
+
+void Program::BindUniformFromName(const char* name, const float4& value)
+{
+    BindUniform(glGetUniformLocation(id, name), value);
+}
+
+void Program::BindUniformFromName(const char* name, const float2x2& value)
+{
+    BindUniform(glGetUniformLocation(id, name), value);
+}
+
+void Program::BindUniformFromName(const char* name, const float3x3& value)
+{
+    BindUniform(glGetUniformLocation(id, name), value);
+}
+
+void Program::BindUniformFromName(const char* name, const float4x4& value)
+{
+    BindUniform(glGetUniformLocation(id, name), value);
+}
+
+void Program::BindUniformFromName(const char* name, int count, int* value)
+{
+    BindUniform(glGetUniformLocation(id, name), count, value);
+}
+
+void Program::BindUniformFromName(const char* name, int count, float* value)
+{
+    BindUniform(glGetUniformLocation(id, name), count, value);
+}
+
+void Program::BindUniformFromName(const char* name, int count, const float2* value)
+{
+    BindUniform(glGetUniformLocation(id, name), count, value);
+}
+
+void Program::BindUniformFromName(const char* name, int count, const float3* value)
+{
+    BindUniform(glGetUniformLocation(id, name), count, value);
+}
+
+void Program::BindUniformFromName(const char* name, int count, const float4* value)
+{
+    BindUniform(glGetUniformLocation(id, name), count, value);
+}
+
+void Program::BindUniformFromName(const char* name, int count, const float2x2* value)
+{
+    BindUniform(glGetUniformLocation(id, name), count, value);
+}
+
+void Program::BindUniformFromName(const char* name, int count, const float3x3* value)
+{
+    BindUniform(glGetUniformLocation(id, name), count, value);
+}
+
+void Program::BindUniformFromName(const char* name, int count, const float4x4* value)
+{
+    BindUniform(glGetUniformLocation(id, name), count, value);
 }
 
 void Program::BindSSBO(unsigned binding, const Buffer* buffer)

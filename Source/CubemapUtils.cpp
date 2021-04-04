@@ -74,14 +74,12 @@ CubemapUtils::CubemapUtils()
 
 void CubemapUtils::RenderSkybox(TextureCube* cubeMap, const float4x4& proj, const float4x4& view)
 {
-    if(!vao) InitBuffers();
+    if(!vao) Init();
 
-    App->programs->UseProgram("skybox", 0);
-
-    cubeMap->Bind(0, App->programs->GetUniformLocation("skybox"));
-
-    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+    skybox->Use();
+    skybox->BindTextureFromName("skybox", 0, cubeMap);
+    skybox->BindUniformFromName("proj", proj);
+    skybox->BindUniformFromName("view", view);
 
     glDepthFunc(GL_ALWAYS);
     vao->Bind();
@@ -96,7 +94,7 @@ TextureCube* CubemapUtils::DiffuseIBL(UID cubemap)
 
 TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint height)
 {
-    if(!vao) InitBuffers();
+    if(!vao) Init();
 
 	Frustum frustum;
 	frustum.type = FrustumType::PerspectiveFrustum;
@@ -114,12 +112,11 @@ TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint
     // initialize each cubemap plane
     for(uint i=0; i< 6; ++i)
     {
-        cubeMap->SetData(i, 0, width, height, GL_RGB16F, GL_RGB, GL_FLOAT, nullptr);
+        cubeMap->SetData(i, 0, width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr);
     }
 
-    App->programs->UseProgram("equirectangular");
-
-    texture->Bind(0, App->programs->GetUniformLocation("skybox"));
+    equirectangular->Use();
+    equirectangular->BindTextureFromName("skybox", 0, texture);
 
     // Render each cube plane
     for(uint i=0; i<6; ++i)
@@ -133,8 +130,8 @@ TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint
         float4x4 proj = frustum.ProjectionMatrix();
         float4x4 view = frustum.ViewMatrix();
 
-        glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+        equirectangular->BindUniformFromName("proj", proj);
+        equirectangular->BindUniformFromName("view", view);
 
         glDepthFunc(GL_ALWAYS);
         vao->Bind();
@@ -145,10 +142,17 @@ TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint
     return cubeMap;
 }
 
-void CubemapUtils::InitBuffers()
+void CubemapUtils::Init()
 {
     VertexAttrib attribs[] = { { 0, 3, GL_FLOAT, false, 0, 0 } };
 
     vbo = std::unique_ptr<Buffer>(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(skybox_vertices), skybox_vertices));
     vao = std::make_unique<VertexArray>(vbo.get(), nullptr, attribs, sizeof(attribs) / sizeof(VertexAttrib));
+
+    std::unique_ptr<Shader> vertex(Shader::CreateVSFromFile("Assets/Shaders/skybox.vs", nullptr, 0));
+    std::unique_ptr<Shader> skyboxFS(Shader::CreateFSFromFile("Assets/Shaders/skybox.fs", nullptr, 0));
+    std::unique_ptr<Shader> equirectangularFS(Shader::CreateFSFromFile("Assets/Shaders/equirectangular.fs", nullptr, 0));
+
+    if(vertex->Compiled() && skyboxFS->Compiled()) skybox.reset(new Program(vertex.get(), skyboxFS.get(), "Skybox program"));
+    if(vertex->Compiled() && equirectangularFS->Compiled()) equirectangular.reset(new Program(vertex.get(), equirectangularFS.get(), "Equirectangular program" ));
 }

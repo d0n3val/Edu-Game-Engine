@@ -25,7 +25,7 @@ PerlinProperties::PerlinProperties()
 
     if(perlin_vs->Compiled() && perlin_fs->Compiled())
     {
-        perlin_prog = std::make_unique<Program>(perlin_vs.get(), perlin_fs.get(), 2, "Perlin program");
+        perlin_prog = std::make_unique<Program>(perlin_vs.get(), perlin_fs.get(), "Perlin program");
     }
 
     timer.Start();

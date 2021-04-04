@@ -38,16 +38,6 @@ namespace
                 iluFlipImage();
             }
 
-            int channels = ilGetInteger(IL_IMAGE_CHANNELS);
-            if (channels == 3)
-            {
-                ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
-            }
-            else if (channels == 4)
-            {
-                ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-            }
-
             return true;
         }
 
@@ -165,21 +155,21 @@ bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& outp
     uint output_size    = 0;
 
     ILuint image;
-    if(ret && (ret = LoadImage(buffer, size, image)))
+    if(ret && (ret = LoadImage(buffer, size, image, IL_ORIGIN_UPPER_LEFT)))
     {
         std::unique_ptr<Texture2D> texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, ilGetInteger(IL_IMAGE_WIDTH), 
                 ilGetInteger(IL_IMAGE_HEIGHT), 
                 GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT), 
-                GL_UNSIGNED_BYTE, ilGetData(), false);
+                ilGetInteger(IL_IMAGE_TYPE), ilGetData(), false);
 
         std::unique_ptr<TextureCube> cubeMap(cubeUtils.ConvertToCubemap(texture.get(), 512, 512));
 
         output_size = sizeof(uint32_t);
 
-        std::vector<uint8_t> tmpBuffer;
+        std::vector<float> tmpBuffer;
         std::vector<uint8_t> sideData[6];
 
-        tmpBuffer.resize(512 * 512 * sizeof(uint32_t));
+        tmpBuffer.resize(512 * 512 * 3);
 
         auto writeFunc = [](void* context, void* data, int size)
         {
@@ -187,12 +177,27 @@ bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& outp
             sideData.insert(sideData.end(), reinterpret_cast<uint8_t*>(data), reinterpret_cast<uint8_t*>(data) + size);
         };
 
+        ILuint ImageName;				  
+        ilGenImages(1, &ImageName);
+        ilBindImage(ImageName);
+
         for (uint i = 0; i < 6; ++i)
         {
-            cubeMap->GetDefaultRGBAData(i, 0, &tmpBuffer[0]);
-            SOIL_save_image_to_func(writeFunc, &sideData[i], compressed ? SOIL_SAVE_TYPE_DDS: SOIL_SAVE_TYPE_TGA, 512, 512, 4, &tmpBuffer[0]);
+            cubeMap->GetData(i, 0, GL_RGB, GL_FLOAT, &tmpBuffer[0]);
+
+            ilTexImage(512, 512, 1, 3, IL_RGB, IL_FLOAT, &tmpBuffer[0]);
+            uint32_t size = ilSaveL(IL_HDR, NULL, 0 ); // Get the size of the data buffer
+            if(size > 0) 
+            {
+                sideData[i].resize(size);
+
+                ret = ilSaveL(IL_HDR, &sideData[i][0], size) > 0;
+            }
+
             output_size += (sizeof(uint32_t) + sideData[i].size());
         }
+
+        ilDeleteImage(ImageName);
 
         output_buffer = (uint8_t*)malloc(output_size);
 
@@ -302,13 +307,13 @@ bool ModuleTextures::Load(ResourceTexture* resource)
         {
             ILuint image;
 
-            if(LoadImage(buffer, total_size, image))
+            if(LoadImage(buffer, total_size, image, IL_ORIGIN_UPPER_LEFT))
             {
                 resource->width = ilGetInteger(IL_IMAGE_WIDTH);
                 resource->height = ilGetInteger(IL_IMAGE_HEIGHT);
                 resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, resource->width, resource->height, 
                                                                 !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT), 
-                                                                GL_UNSIGNED_BYTE, ilGetData(), resource->has_mips);
+                                                                ilGetInteger(IL_IMAGE_TYPE), ilGetData(), resource->has_mips);
             }
             ilDeleteImages(1, &image);
         }
@@ -324,11 +329,11 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 
                 ILuint image;
 
-                if(LoadImage(buffer, size, image, IL_ORIGIN_LOWER_LEFT))
+                if(LoadImage(buffer, size, image, IL_ORIGIN_UPPER_LEFT))
                 {
                     cube->SetData(i, 0, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT),
                         !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA,
-                        ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE, ilGetData());
+                        ilGetInteger(IL_IMAGE_FORMAT), ilGetInteger(IL_IMAGE_TYPE), ilGetData());
                 }
 
                 ilDeleteImages(1, &image);
@@ -489,7 +494,7 @@ bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], c
         {
             cube->SetData(i, 0, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT),
                     !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA,
-                    ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE, ilGetData());
+                    ilGetInteger(IL_IMAGE_FORMAT), ilGetInteger(IL_IMAGE_TYPE), ilGetData());
         }
 
         ilDeleteImages(1, &image);

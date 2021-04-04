@@ -49,7 +49,11 @@ void Skybox::Draw(const float4x4& proj, const float4x4& view)
 {
     if(cubemap)
     {
-        utils.RenderSkybox(static_cast<TextureCube*>(App->resources->GetTexture(cubemap)->GetTexture()), proj, view);
+        ResourceTexture* res = App->resources->GetTexture(cubemap);
+        if (res && res->GetType() == ResourceTexture::TextureCube)
+        {
+            utils.RenderSkybox(static_cast<TextureCube*>(res->GetTexture()), proj, view);
+        }
     }
 }
 

@@ -201,7 +201,7 @@ public:
     Program(const Program& rhs) = delete;
     Program& operator=(const Program& rhs) = delete;
 
-    Program(const Shader* vs, const Shader* fs, unsigned count, const char* log_name = nullptr);
+    Program(const Shader* vs, const Shader* fs, const char* log_name = nullptr);
     Program(const Shader** shaders, unsigned count, const char* log_name = nullptr);
     ~Program();
 
@@ -210,7 +210,8 @@ public:
     void     Use        ();
     void     Unuse      ();
 
-    void     BindTexture(uint location, uint unit, const Texture2D* texture);
+    void     BindTexture(uint location, uint unit, const Texture* texture);
+    void     BindTextureFromName(const char* name, uint unit, const Texture* texture);
 
     void     BindUniform(uint location, int value);
     void     BindUniform(uint location, float value);
@@ -228,6 +229,23 @@ public:
     void     BindUniform(uint location, int count, const float2x2* value);
     void     BindUniform(uint location, int count, const float3x3* value);
     void     BindUniform(uint location, int count, const float4x4* value);
+
+    void     BindUniformFromName(const char* name, int value);
+    void     BindUniformFromName(const char* name, float value);
+    void     BindUniformFromName(const char* name, const float2& value);
+    void     BindUniformFromName(const char* name, const float3& value);
+    void     BindUniformFromName(const char* name, const float4& value);
+    void     BindUniformFromName(const char* name, const float2x2& value);
+    void     BindUniformFromName(const char* name, const float3x3& value);
+    void     BindUniformFromName(const char* name, const float4x4& value);
+    void     BindUniformFromName(const char* name, int count, int* value);
+    void     BindUniformFromName(const char* name, int count, float* value);
+    void     BindUniformFromName(const char* name, int count, const float2* value);
+    void     BindUniformFromName(const char* name, int count, const float3* value);
+    void     BindUniformFromName(const char* name, int count, const float4* value);
+    void     BindUniformFromName(const char* name, int count, const float2x2* value);
+    void     BindUniformFromName(const char* name, int count, const float3x3* value);
+    void     BindUniformFromName(const char* name, int count, const float4x4* value);
 
     void     BindSSBO   (unsigned binding, const Buffer* buffer);
 
