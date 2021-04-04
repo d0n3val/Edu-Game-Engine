@@ -34,6 +34,10 @@ void Skybox::Load(const Config& config)
     {
         SetCubemap(texture);
     }
+    else
+    {
+        SetCubemap(App->resources->GetDefaultSkybox()->GetUID());
+    }
 }
 
 void Skybox::Save(Config& config) const
@@ -43,9 +47,9 @@ void Skybox::Save(Config& config) const
 
 void Skybox::Draw(const float4x4& proj, const float4x4& view)
 {
-    if (test)
+    if(cubemap)
     {
-        utils.RenderSkybox(test, proj, view);
+        utils.RenderSkybox(static_cast<TextureCube*>(App->resources->GetTexture(cubemap)->GetTexture()), proj, view);
     }
 }
 
@@ -58,23 +62,14 @@ void Skybox::SetCubemap(UID uid)
     }
 
     ResourceTexture* res = App->resources->GetTexture(uid);
-    if(res && res->LoadToMemory())
+    if(res && res->LoadToMemory() && res->GetType() == ResourceTexture::TextureCube)
     {      
-        if(res->GetType() == ResourceTexture::TextureCube)
-        {
-            test = static_cast<TextureCube*>(res->GetTexture());
-        }
-        else
-        {
-            test = utils.ConvertToCubemap(static_cast<Texture2D*>(res->GetTexture()), 512, 512);
-        }
-
         cubemap = uid;
     }
     else
     {
         LOG("UID %d is not a texture!!!", uid);
-        cubemap = 0;
+        cubemap = App->resources->GetDefaultSkybox()->GetUID();
     }
 }
 

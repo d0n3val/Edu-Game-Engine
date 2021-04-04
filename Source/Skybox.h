@@ -12,7 +12,6 @@ class Skybox
 
     CubemapUtils utils;
 	UID          cubemap = 0;
-    TextureCube* test = nullptr;
 
 public:
 

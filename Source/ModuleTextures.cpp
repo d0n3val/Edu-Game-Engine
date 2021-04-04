@@ -324,7 +324,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 
                 ILuint image;
 
-                if(LoadImage(buffer, size, image))
+                if(LoadImage(buffer, size, image, IL_ORIGIN_LOWER_LEFT))
                 {
                     cube->SetData(i, 0, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT),
                         !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA,

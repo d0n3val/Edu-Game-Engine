@@ -55,10 +55,11 @@ const float CubemapUtils::skybox_vertices[6*6*3] = {
          1.0f, -1.0f,  1.0f
 };
 
-const float3 CubemapUtils::front[6] = { 
-    float3(1.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f), 
-    float3(0.0f, 1.0f, 0.0f), float3(0.0f, -1.0f, 0.0f), 
-    float3(0.0f, 0.0f, 1.0f), float3(0.0f, 0.0f, -1.0f) 
+
+const float3 CubemapUtils::front[6] = {
+    float3(1.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f),
+    float3(0.0f, 1.0f, 0.0f), float3(0.0f, -1.0f, 0.0f),
+    float3(0.0f, 0.0f, 1.0f), float3(0.0f, 0.0f, -1.0f)
 };
 
 float3 CubemapUtils::up[6] = {  
@@ -66,7 +67,6 @@ float3 CubemapUtils::up[6] = {
     float3(0.0f, 0.0f, 1.0f), float3(0.0f, 0.0f, -1.0f),
     float3(0.0f, -1.0f, 0.0f), float3(0.0f, -1.0f, 0.0f) 
 };
-
 
 CubemapUtils::CubemapUtils()
 {
