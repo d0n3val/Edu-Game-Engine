@@ -160,13 +160,9 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file,
 
 bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& output_file, bool compressed)
 {
-    assert(!compressed);
-
 	bool ret = buffer  != nullptr;
     uint8_t* output_buffer = nullptr;
     uint output_size    = 0;
-
-    // \TODO: Compress image
 
     ILuint image;
     if(ret && (ret = LoadImage(buffer, size, image)))
@@ -178,22 +174,39 @@ bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& outp
 
         std::unique_ptr<TextureCube> cubeMap(cubeUtils.ConvertToCubemap(texture.get(), 512, 512));
 
-        uint32_t side_size  = 512*512*sizeof(uint32_t);
-        output_size = sizeof(uint32_t)+(sizeof(uint32_t)+side_size)*6;
+        output_size = sizeof(uint32_t);
+
+        std::vector<uint8_t> tmpBuffer;
+        std::vector<uint8_t> sideData[6];
+
+        tmpBuffer.resize(512 * 512 * sizeof(uint32_t));
+
+        auto writeFunc = [](void* context, void* data, int size)
+        {
+            std::vector<uint8_t>& sideData = *reinterpret_cast<std::vector<uint8_t>*>(context);
+            sideData.insert(sideData.end(), reinterpret_cast<uint8_t*>(data), reinterpret_cast<uint8_t*>(data) + size);
+        };
+
+        for (uint i = 0; i < 6; ++i)
+        {
+            cubeMap->GetDefaultRGBAData(i, 0, &tmpBuffer[0]);
+            SOIL_save_image_to_func(writeFunc, &sideData[i], compressed ? SOIL_SAVE_TYPE_DDS: SOIL_SAVE_TYPE_TGA, 512, 512, 4, &tmpBuffer[0]);
+            output_size += (sizeof(uint32_t) + sideData[i].size());
+        }
 
         output_buffer = (uint8_t*)malloc(output_size);
+
         *(uint32_t*)output_buffer = uint32_t(ResourceTexture::TextureCube);
 
         uint buffer_pos = sizeof(uint32_t);
 
-        for (uint i = 0; i < 6; ++i)
+        for(uint i=0; i< 6; ++i)
         {
-            *reinterpret_cast<uint32_t*>(&output_buffer[buffer_pos]) = side_size;
+            *reinterpret_cast<uint32_t*>(&output_buffer[buffer_pos]) = sideData[i].size();
             buffer_pos += sizeof(uint32_t);
-
-            cubeMap->GetDefaultRGBAData(i, 0, &output_buffer[buffer_pos]);
-
-            buffer_pos += side_size;
+            memcpy(&output_buffer[buffer_pos], &sideData[i][0], sideData[i].size());
+            
+            buffer_pos += sideData[i].size();
         }
 
         ilDeleteImages(1, &image);
@@ -274,17 +287,18 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
 // Load new texture from file path
 bool ModuleTextures::Load(ResourceTexture* resource)
 {
-	bool ret = true;
 
 	char* head_buffer = nullptr;
 	uint total_size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, resource->GetExportedFile(), &head_buffer);
 
-	if (head_buffer != nullptr && total_size > 0)
+    bool ret = head_buffer != nullptr && total_size > 0;
+
+	if (ret)
 	{
-        ResourceTexture::Type type = ResourceTexture::Type(*reinterpret_cast<uint32_t*>(head_buffer));
+        resource->type = ResourceTexture::Type(*reinterpret_cast<uint32_t*>(head_buffer));
         char* buffer = head_buffer+sizeof(uint32_t);
 
-        if(type == ResourceTexture::Texture2D)
+        if(resource->type == ResourceTexture::Texture2D)
         {
             ILuint image;
 
@@ -298,7 +312,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
             }
             ilDeleteImages(1, &image);
         }
-        else if(type == ResourceTexture::TextureCube)
+        else if(resource->type == ResourceTexture::TextureCube)
         {
             TextureCube* cube = new TextureCube();
             resource->texture = std::unique_ptr<TextureCube>(cube);

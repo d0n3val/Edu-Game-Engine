@@ -43,21 +43,23 @@ void Skybox::Save(Config& config) const
 
 void Skybox::Draw(const float4x4& proj, const float4x4& view)
 {
-    utils.RenderSkybox(test, proj, view);
+    if (test)
+    {
+        utils.RenderSkybox(test, proj, view);
+    }
 }
 
 void Skybox::SetCubemap(UID uid)
 {
     if(cubemap != 0)
     {
-        App->resources->Get(cubemap)->Release();
+        Resource* res = App->resources->Get(cubemap);
+        if(res) res->Release();
     }
 
     ResourceTexture* res = App->resources->GetTexture(uid);
-    if(res)
-    {
-        res->LoadToMemory();
-        
+    if(res && res->LoadToMemory())
+    {      
         if(res->GetType() == ResourceTexture::TextureCube)
         {
             test = static_cast<TextureCube*>(res->GetTexture());
