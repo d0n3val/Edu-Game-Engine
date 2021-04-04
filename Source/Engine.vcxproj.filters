@@ -699,6 +699,9 @@
     <ClInclude Include="SelectResourceDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="CubemapUtils.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1264,6 +1267,9 @@
     </ClCompile>
     <ClCompile Include="SelectResourceDlg.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="CubemapUtils.cpp">
+      <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

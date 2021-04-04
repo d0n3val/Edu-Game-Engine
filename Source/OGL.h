@@ -77,12 +77,10 @@ public:
 
     TextureCube();
 
-    void Bind(uint unit, uint uniform_location);
-    void Bind(uint unit = 0);
-    void Unbind(uint unit = 0);
-
     void SetData(uint face_index, uint mip_level, uint width, uint height, uint internal_format, uint format, uint type, void* data);
     void SetDefaultRGBAData(uint face_index, uint mip_level, uint width, uint height, void* data);
+    void GetData(uint face_index, uint mip_level, uint format, uint type, void* data);
+    void GetDefaultRGBAData(uint face_index, uint mip_level, void* data);
 };
 
 class Framebuffer
@@ -123,7 +121,7 @@ public:
     Buffer(const Buffer& rhs) = delete;
     Buffer& operator=(const Buffer& rhs) = delete;
 
-    Buffer(uint type, uint usage, uint size, void* data);
+    Buffer(uint type, uint usage, uint size, const void* data);
     ~Buffer();
 
     void  Bind();
@@ -136,8 +134,8 @@ public:
     void  Unmap();
     void  SetData(uint offset, uint size, const void* data);
 
-    static Buffer* CreateVBO(uint usage, uint size, void* data);
-    static Buffer* CreateIBO(uint usage, uint size, void* data);
+    static Buffer* CreateVBO(uint usage, uint size, const void* data);
+    static Buffer* CreateIBO(uint usage, uint size, const void* data);
 };
 
 struct VertexAttrib

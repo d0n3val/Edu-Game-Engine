@@ -3,6 +3,7 @@
 
 #include "Globals.h"
 #include "Module.h"
+#include "CubemapUtils.h"
 #include "Math.h"
 
 class ResourceTexture;
@@ -10,6 +11,7 @@ class Texture2DArray;
 
 class ModuleTextures : public Module
 {
+    CubemapUtils cubeUtils;
 public:
 	ModuleTextures(bool start_enabled = true);
 	~ModuleTextures();
@@ -24,7 +26,7 @@ public:
 
     bool ImportCube(const std::string files [], std::string& output_file, bool compressed);
 	bool Import(const char* file, std::string& output_file, bool compressed, bool toCubemap);
-	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);
+	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed, bool toCubemap);
 
 	bool LoadCheckers(ResourceTexture* resource);
     bool LoadFallback(ResourceTexture* resource, const float3& color);
@@ -32,7 +34,8 @@ public:
 
 private:
 	bool Import(const void* buffer, uint size, bool compressed, uint header_size, void*& output_buffer, uint& output_size);
-	bool ImportHDR(const void* buffer, uint size, std::string& output_file, bool compressed);
+	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);
+    bool ImportToCubemap(const void* buffer, uint size, std::string& output_file, bool compressed);
 };
 
 #endif // __MODULETEXTURES_H__

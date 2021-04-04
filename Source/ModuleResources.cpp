@@ -509,7 +509,7 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = App->tex->Import(buffer, size, output, true);
+			import_ok = App->tex->Import(buffer, size, output, true, false);
 		break;
 		case Resource::mesh:
 			// Old school trick: if it is a Mesh, buffer will be treated as an AiMesh*

@@ -161,6 +161,7 @@
     <ClInclude Include="ComponentTrail.h" />
     <ClInclude Include="ComponentWithResource.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="CubemapUtils.h" />
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="DefaultShader.h" />
     <ClInclude Include="default_icon.h" />
@@ -335,6 +336,7 @@
     <ClCompile Include="ComponentTrail.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="CubemapUtils.cpp" />
     <ClCompile Include="DefaultShader.cpp" />
     <ClCompile Include="DirLight.cpp" />
     <ClCompile Include="GameObject.cpp" />

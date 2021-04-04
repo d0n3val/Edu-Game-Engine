@@ -1,7 +1,7 @@
 #ifndef __SKYBOX_H__
 #define __SKYBOX_H__
 
-#include "OGL.h"
+#include "CubemapUtils.h"
 
 class ResourceTexture;
 class Config;
@@ -10,10 +10,9 @@ class TextureCube;
 class Skybox
 {
 
-    std::unique_ptr<Buffer>      vbo;
-    std::unique_ptr<VertexArray> vao;
-	UID                          cubemap = 0;
-    Texture*                     test = nullptr;
+    CubemapUtils utils;
+	UID          cubemap = 0;
+    TextureCube* test = nullptr;
 
 public:
 
@@ -26,9 +25,6 @@ public:
 
     UID     GetCubemap  () const  { return cubemap; } 
     void    SetCubemap  (UID uid);
-
-    TextureCube* ConvertToCubemap(UID uid, uint width, uint height) const;
-
 };
 
 

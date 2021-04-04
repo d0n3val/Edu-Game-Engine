@@ -170,6 +170,13 @@ TextureCube::TextureCube() : Texture(GL_TEXTURE_CUBE_MAP)
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
+void TextureCube::GetData(uint face_index, uint mip_level, uint format, uint type, void* data)
+{
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X+face_index, mip_level, format, type, data);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
 void TextureCube::SetData(uint face_index, uint mip_level, uint width, uint height, uint internal_format, uint format, uint type, void* data)
 {
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
@@ -180,6 +187,11 @@ void TextureCube::SetData(uint face_index, uint mip_level, uint width, uint heig
 void TextureCube::SetDefaultRGBAData(uint face_index, uint mip_level, uint width, uint height, void* data)
 {
     SetData(face_index, mip_level, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data);
+}
+
+void TextureCube::GetDefaultRGBAData(uint face_index, uint mip_level, void* data)
+{
+    GetData(face_index, mip_level, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
 Framebuffer::Framebuffer()
@@ -291,7 +303,7 @@ uint Framebuffer::Check()
 	return res;
 }
 
-Buffer::Buffer(uint tp, uint usage, size_t size, void* data)
+Buffer::Buffer(uint tp, uint usage, size_t size, const void* data)
 {
     type = tp;
 
@@ -357,12 +369,12 @@ void Buffer::SetData(uint offset, uint size, const void* data)
     glBindBuffer(type, 0);
 }
 
-Buffer* Buffer::CreateVBO(uint usage, uint size, void* data)
+Buffer* Buffer::CreateVBO(uint usage, uint size, const void* data)
 {
     return new Buffer(GL_ARRAY_BUFFER, usage, size, data);
 }
 
-Buffer* Buffer::CreateIBO(uint usage, uint size, void* data)
+Buffer* Buffer::CreateIBO(uint usage, uint size, const void* data)
 {
     return new Buffer(GL_ELEMENT_ARRAY_BUFFER, usage, size, data);
 }
