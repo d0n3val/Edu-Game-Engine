@@ -87,12 +87,17 @@ void CubemapUtils::RenderSkybox(TextureCube* cubeMap, const float4x4& proj, cons
     glDepthFunc(GL_LESS);
 }
 
-TextureCube* CubemapUtils::DiffuseIBL(UID cubemap)
+TextureCube* CubemapUtils::DiffuseIBL(TextureCube* texture, uint width, uint height)
 {
-    return nullptr;
+    return RenderCube(diffuseIBL.get(), texture, width, height);
 }
 
 TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint height)
+{
+    return RenderCube(equirectangular.get(), texture, width, height);
+}
+
+TextureCube* CubemapUtils::RenderCube(Program* program, Texture* texture, uint width, uint height)
 {
     if(!vao) Init();
 
@@ -115,8 +120,8 @@ TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint
         cubeMap->SetData(i, 0, width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr);
     }
 
-    equirectangular->Use();
-    equirectangular->BindTextureFromName("skybox", 0, texture);
+    program->Use();
+    program->BindTextureFromName("skybox", 0, texture);
 
     // Render each cube plane
     for(uint i=0; i<6; ++i)
@@ -130,8 +135,8 @@ TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint
         float4x4 proj = frustum.ProjectionMatrix();
         float4x4 view = frustum.ViewMatrix();
 
-        equirectangular->BindUniformFromName("proj", proj);
-        equirectangular->BindUniformFromName("view", view);
+        program->BindUniformFromName("proj", proj);
+        program->BindUniformFromName("view", view);
 
         glDepthFunc(GL_ALWAYS);
         vao->Bind();
@@ -152,7 +157,9 @@ void CubemapUtils::Init()
     std::unique_ptr<Shader> vertex(Shader::CreateVSFromFile("Assets/Shaders/skybox.vs", nullptr, 0));
     std::unique_ptr<Shader> skyboxFS(Shader::CreateFSFromFile("Assets/Shaders/skybox.fs", nullptr, 0));
     std::unique_ptr<Shader> equirectangularFS(Shader::CreateFSFromFile("Assets/Shaders/equirectangular.fs", nullptr, 0));
+    std::unique_ptr<Shader> diffuseFS(Shader::CreateFSFromFile("Assets/Shaders/diffuseIBL.glsl", nullptr, 0));
 
     if(vertex->Compiled() && skyboxFS->Compiled()) skybox.reset(new Program(vertex.get(), skyboxFS.get(), "Skybox program"));
     if(vertex->Compiled() && equirectangularFS->Compiled()) equirectangular.reset(new Program(vertex.get(), equirectangularFS.get(), "Equirectangular program" ));
+    if(vertex->Compiled() && diffuseFS->Compiled()) diffuseIBL.reset(new Program(vertex.get(), diffuseFS.get(), "Diffuse IBL program" ));
 }
