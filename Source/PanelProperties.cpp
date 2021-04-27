@@ -991,10 +991,10 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         if(!convert_fb)
         {
             convert_fb = std::make_unique<Framebuffer>();
-            diffuse    = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
-            specular   = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+            diffuse    = std::make_unique<Texture2D>(base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+            specular   = std::make_unique<Texture2D>(base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
             //occlusion  = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
-            depth      = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+            depth      = std::make_unique<Texture2D>(base->GetWidth(), base->GetHeight(), GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
             convert_fb->AttachColor(diffuse.get(), 0);
             convert_fb->AttachColor(specular.get(), 1);

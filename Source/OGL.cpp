@@ -90,15 +90,14 @@ Texture2D::Texture2D(uint target, uint tex) : Texture(target, tex)
 {
 }
 
-Texture2D::Texture2D(uint target, uint samples, uint width, uint height, uint internal_format, bool fixed_samples) : Texture(target)
+Texture2D::Texture2D(uint samples, uint width, uint height, uint internal_format, bool fixed_samples) : Texture(GL_TEXTURE_2D_MULTISAMPLE)
 {
     glBindTexture(tex_target, texture);
-    glTexImage2DMultisample(tex_target, samples, internal_format, width, height, fixed_samples ? GL_TRUE : GL_FALSE);
-    DefaultInitializeTexture(false);
+    glTexImage2DMultisample(tex_target, samples, internal_format, width, height, fixed_samples ? GL_TRUE : GL_FALSE);    
     glBindTexture(tex_target, 0);
 }
 
-Texture2D::Texture2D(uint target, uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps) : Texture(target)
+Texture2D::Texture2D(uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps) : Texture(GL_TEXTURE_2D)
 {
     glBindTexture(tex_target, texture);
 
@@ -123,7 +122,7 @@ void Texture2D::SetDefaultRGBAData(uint width, uint height, void* data)
 
 Texture2D* Texture2D::CreateDefaultRGBA(uint width, uint height, void* data, bool mipmaps)
 {
-    return new Texture2D(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
+    return new Texture2D(width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
 }
 
 Texture2DArray::Texture2DArray(uint mip_levels, uint _width, uint _height, uint _depth, uint internal_format): Texture(GL_TEXTURE_2D_ARRAY)
@@ -237,6 +236,14 @@ void Framebuffer::AttachColor(Texture2D* texture, uint attachment, uint mip_leve
     glDrawBuffers(attach_count, attachments);
     glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
 
+    Unbind();
+}
+
+void Framebuffer::ClearAttachments()
+{
+    Bind();
+    attach_count = 0;
+    glDrawBuffers(0, 0);
     Unbind();
 }
 

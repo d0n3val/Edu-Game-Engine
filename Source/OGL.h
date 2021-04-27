@@ -40,8 +40,8 @@ public:
     Texture2D& operator=(const Texture2D& rhs) = delete;
 
     Texture2D(uint target, uint tex);
-    Texture2D(uint target, uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps);
-    Texture2D(uint target, uint samples, uint width, uint height, uint internal_format, bool fixed_samples);
+    Texture2D(uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps);
+    Texture2D(uint samples, uint width, uint height, uint internal_format, bool fixed_samples);
 
     void SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data);
     void SetDefaultRGBAData(uint width, uint height, void* data);
@@ -98,7 +98,8 @@ public:
     void Clear(uint width, uint height);
     void Unbind();
     void Bind();
-
+  
+    void ClearAttachments();
     void AttachColor(Texture2D* texture, uint attachment = 0, uint mip_level = 0);
     void AttachColor(TextureCube* texture, uint face, uint attachment = 0, uint mip_level = 0);
     void AttachDepthStencil(Texture2D* texture, uint attachment);

@@ -160,7 +160,8 @@ void Postprocess::Execute(Texture2D* screen, Framebuffer* fbo, unsigned width, u
     fbo->Bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    int flags = App->hints->GetBoolValue(ModuleHints::ENABLE_BLOOM) ? 1 : 0;
+    bool enableBloom = App->hints->GetBoolValue(ModuleHints::ENABLE_BLOOM);
+    int flags = enableBloom ? 1 : 0;
     flags = flags | (App->hints->GetBoolValue(ModuleHints::ENABLE_GAMMA) ? 1 << 1 : 0);
 
     App->programs->UseProgram("postprocess", flags);
@@ -175,9 +176,12 @@ void Postprocess::Execute(Texture2D* screen, Framebuffer* fbo, unsigned width, u
     glBindTexture(GL_TEXTURE_2D, color_tex);
     glUniform1i(SCREEN_TEXTURE_LOCATION, 0); 
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
-    glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
+    if(enableBloom)
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
+        glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
+    }
 
     glDrawArrays(GL_TRIANGLES, 0, 6); 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

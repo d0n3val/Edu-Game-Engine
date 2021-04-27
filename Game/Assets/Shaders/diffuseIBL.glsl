@@ -1,7 +1,6 @@
 #version 440 
 
-#define NUM_PHI_SAMPLES 256
-#define NUM_THETA_SAMPLES 256
+#define NUM_SAMPLES 1024
 #define PI 3.1415926
 #define TWO_PI 2.0*PI
 #define HALF_PI 0.5*PI
@@ -12,18 +11,33 @@ in vec3 coords;
 
 uniform samplerCube skybox;
 
+float radicalInverse_VdC(uint bits) 
+{
+    bits = (bits << 16u) | (bits >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+
+vec2 hammersley2D(uint i, uint N) 
+{
+    return vec2(float(i)/float(N), radicalInverse_VdC(i));
+}
+
+vec3 hemisphereCosineSample(in vec2 rand)
+{
+     float phi = rand[0] * 2.0 * PI;
+     float r   = sqrt(rand[1]);
+
+     return vec3(r*cos(phi), r*sin(phi), sqrt(max(1-rand[1], 0.0)));
+}
+
 void ComputeTangetSpace(in vec3 normal, out vec3 up, out vec3 right)
 {
-    if(coords.x > coords.y || coords.z > coords.y)
-    {
-        up = vec3(0.0, 1.0, 0.0);
-    }
-    else
-    {
-        up = vec3(1.0, 0.0, 0.0);
-    }
-   
-    right = cross(up, normal);
+    up = abs(normal.y) > 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+    right = normalize(cross(up, normal));
     up    = cross(normal, right);
 }
 
@@ -36,29 +50,18 @@ void main()
 
     vec3 up, right;
     ComputeTangetSpace(normal, up, right);
+    mat3 tangentSpc = mat3(right, up, normal);
 
     // \todo: try cosine weighted disk sampling ==> montecarlo intergration
 
-    for(int i = 0;  i < NUM_PHI_SAMPLES; ++i)
+    for(int i = 0;  i < NUM_SAMPLES; ++i)
     {
-        float phi = TWO_PI*2.0*float(i)/float(NUM_PHI_SAMPLES);
+        vec3 dir = tangentSpc*hemisphereCosineSample(hammersley2D(i, NUM_SAMPLES));
 
-        for(int j = 0; j < NUM_THETA_SAMPLES; ++j)
-        {
-            float theta = HALF_PI*float(j)/float(NUM_THETA_SAMPLES);
-
-            float sin_theta = sin(theta); 
-            float cos_theta = cos(theta);
-
-            dir = right*cos(phi)*sin_theta+normal*sin(phi)*sin_theta+up*cos_theta;
-
-            vec3 Li = texture(skybox, dir).rgb;
-
-            irradiance += Li*cos_theta*sin_theta;
-        }
+        irradiance += texture(skybox, dir).rgb;
     }
 
-    // \todo: sobra pi ???
-    frag_color.rgb = PI*irradiance/float(NUM_PHI_SAMPLES*NUM_THETA_SAMPLES);
+
+    frag_color = vec4(irradiance/float(NUM_SAMPLES), 1.0);
 }
 

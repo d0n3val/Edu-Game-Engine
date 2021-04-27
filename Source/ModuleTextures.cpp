@@ -157,7 +157,7 @@ bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& outp
     ILuint image;
     if(ret && (ret = LoadImage(buffer, size, image, IL_ORIGIN_UPPER_LEFT)))
     {
-        std::unique_ptr<Texture2D> texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, ilGetInteger(IL_IMAGE_WIDTH), 
+        std::unique_ptr<Texture2D> texture = std::make_unique<Texture2D>(ilGetInteger(IL_IMAGE_WIDTH), 
                 ilGetInteger(IL_IMAGE_HEIGHT), 
                 GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT), 
                 ilGetInteger(IL_IMAGE_TYPE), ilGetData(), false);
@@ -311,7 +311,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
             {
                 resource->width = ilGetInteger(IL_IMAGE_WIDTH);
                 resource->height = ilGetInteger(IL_IMAGE_HEIGHT);
-                resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, resource->width, resource->height, 
+                resource->texture = std::make_unique<Texture2D>(resource->width, resource->height, 
                                                                 !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT), 
                                                                 ilGetInteger(IL_IMAGE_TYPE), ilGetData(), resource->has_mips);
             }
@@ -440,7 +440,7 @@ bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
 	resource->bytes = sizeof(GLubyte) * CHECKERS_HEIGHT * CHECKERS_WIDTH * 4;
 	resource->format = ResourceTexture::rgba;
     
-    resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, CHECKERS_WIDTH, CHECKERS_HEIGHT, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, checkImage, false);
+    resource->texture = std::make_unique<Texture2D>(CHECKERS_WIDTH, CHECKERS_HEIGHT, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, checkImage, false);
 
 	return true;
 }
@@ -462,7 +462,7 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
 	resource->bytes = sizeof(GLubyte) * 3;
 	resource->format = ResourceTexture::rgb;
 
-    resource->texture = std::make_unique<Texture2D>(GL_TEXTURE_2D, 1, 1, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage, false);
+    resource->texture = std::make_unique<Texture2D>(1, 1, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage, false);
 
 	return true;
 }

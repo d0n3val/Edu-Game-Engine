@@ -260,11 +260,11 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
 
     if(msaa)
     {
-        buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D_MULTISAMPLE, 4, w, h, hdr ? GL_RGBA16F : GL_RGBA, true);
+        buffer.texture_color = std::make_unique<Texture2D>(4, w, h, hdr ? GL_RGBA16F : GL_RGBA, true);
     }
     else
     {
-        buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, hdr ? GL_RGBA16F : GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+        buffer.texture_color = std::make_unique<Texture2D>(w, h, hdr ? GL_RGBA16F : GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
     }
 
     buffer.framebuffer->AttachColor(buffer.texture_color.get());
@@ -273,11 +273,11 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
     {
         if(msaa)
         {
-            buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D_MULTISAMPLE, 4, w, h, GL_DEPTH24_STENCIL8, true);
+            buffer.texture_depth = std::make_unique<Texture2D>(4, w, h, GL_DEPTH24_STENCIL8, true);
         }
         else
         {
-            buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+            buffer.texture_depth = std::make_unique<Texture2D>(w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         }
 
         buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_STENCIL_ATTACHMENT);
@@ -295,8 +295,8 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
         GenerateFBO(framebuffers[FRAMEBUFFER_POSTPROCESS], w, h, false, false, false);
 
         selection_buffer.framebuffer   = std::make_unique<Framebuffer>(); 
-        selection_buffer.texture_color = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_R32F, GL_RED, GL_FLOAT, nullptr, false);
-        selection_buffer.texture_depth = std::make_unique<Texture2D>(GL_TEXTURE_2D, w, h, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+        selection_buffer.texture_color = std::make_unique<Texture2D>(w, h, GL_R32F, GL_RED, GL_FLOAT, nullptr, false);
+        selection_buffer.texture_depth = std::make_unique<Texture2D>(w, h, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
         selection_buffer.framebuffer->AttachColor(selection_buffer.texture_color.get());
 		selection_buffer.framebuffer->AttachDepthStencil(selection_buffer.texture_depth.get(), GL_DEPTH_ATTACHMENT);

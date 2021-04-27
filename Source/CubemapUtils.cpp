@@ -89,18 +89,20 @@ void CubemapUtils::RenderSkybox(TextureCube* cubeMap, const float4x4& proj, cons
 
 TextureCube* CubemapUtils::DiffuseIBL(TextureCube* texture, uint width, uint height)
 {
+    if (!vao) Init();
+
     return RenderCube(diffuseIBL.get(), texture, width, height);
 }
 
 TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint height)
 {
+    if (!vao) Init();
+
     return RenderCube(equirectangular.get(), texture, width, height);
 }
 
 TextureCube* CubemapUtils::RenderCube(Program* program, Texture* texture, uint width, uint height)
 {
-    if(!vao) Init();
-
 	Frustum frustum;
 	frustum.type = FrustumType::PerspectiveFrustum;
 
@@ -126,8 +128,10 @@ TextureCube* CubemapUtils::RenderCube(Program* program, Texture* texture, uint w
     // Render each cube plane
     for(uint i=0; i<6; ++i)
     {
+        frameBuffer.ClearAttachments();
         frameBuffer.AttachColor(cubeMap, i, 0, 0);
-        frameBuffer.Clear(width, height);
+        frameBuffer.Bind();
+        glViewport(0, 0, width, height);
 
         frustum.front = front[i];
         frustum.up = up[i];

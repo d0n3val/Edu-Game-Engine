@@ -55,6 +55,7 @@ layout(std140) uniform Material
 } material;
 
 uniform sampler2D materialMaps[MAP_COUNT];
+uniform samplerCube diffuseIBL;
 
 struct AmbientLight
 {
@@ -334,7 +335,11 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
         color += Spot(pos, normal, view_dir, lights.spots[i], diffuse.rgb, specular, smoothness);
     }
 
-    color += diffuse.rgb*(lights.ambient.color.rgb*occlusion);
+    //color += diffuse.rgb*(lights.ambient.color.rgb*occlusion);
+
+    vec3 irradiance = texture(diffuseIBL, normal).rgb;
+    color += irradiance*(diffuse.rgb*(1.0-specular))*occlusion;
+
     color += emissive;
 
     return vec4(color, diffuse.a); 

@@ -159,7 +159,7 @@ void ShowTextureDlg::GenerateTargetFB()
     // \todo: compute zoom width and height
 
     target_fb   = std::make_unique<Framebuffer>(); 
-    target      = std::make_unique<Texture2D>(GL_TEXTURE_2D, uint(width*zoom*0.01f), uint(height*zoom*0.01f), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+    target      = std::make_unique<Texture2D>(uint(width*zoom*0.01f), uint(height*zoom*0.01f), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
 
     target_fb->AttachColor(target.get());
 }

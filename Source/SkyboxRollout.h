@@ -19,14 +19,23 @@ public:
     void DrawProperties(Skybox* skybox);
 
 private:
+    enum ScreenshoType
+    {
+        Environment,
+        DiffuseIBL,
+        SpecularIBL
+    };
+    
 
-    void TakeScreenshot(Skybox* skybox);
+    void TakeScreenshot(Skybox* skybox, ScreenshoType type);
 
 private:
+
     std::unique_ptr<Texture2D>   screenshotTex;
     std::unique_ptr<Framebuffer> screenshot_fb;
 
-    std::unique_ptr<Texture2D>   postprocessTex;
+    std::unique_ptr<Texture2D>   environmentTex;
+    std::unique_ptr<Texture2D>   diffuseIBLTex;
     std::unique_ptr<Framebuffer> postprocess_fb;
 
     std::unique_ptr<Postprocess> postProcess;

@@ -57,6 +57,14 @@ void Skybox::Draw(const float4x4& proj, const float4x4& view)
     }
 }
 
+void Skybox::DrawDiffuseIBL(const float4x4& proj, const float4x4& view)
+{
+    if(diffuseIBL)
+    {
+        utils.RenderSkybox(diffuseIBL, proj, view);
+    }
+}
+
 void Skybox::SetCubemap(UID uid)
 {
     if(cubemap != 0)
@@ -74,6 +82,15 @@ void Skybox::SetCubemap(UID uid)
     {
         LOG("UID %d is not a texture!!!", uid);
         cubemap = App->resources->GetDefaultSkybox()->GetUID();
+        res = App->resources->GetTexture(uid);
+        res->LoadToMemory();
+    }
+
+    if(res != nullptr)
+    {
+        assert(res->GetType() == ResourceTexture::TextureCube);
+
+        diffuseIBL = utils.DiffuseIBL(static_cast<TextureCube*>(res->GetTexture()), 512, 512);
     }
 }
 

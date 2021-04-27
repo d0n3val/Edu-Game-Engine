@@ -17,6 +17,7 @@
 #include "AmbientLight.h"
 #include "PointLight.h"
 #include "SpotLight.h"
+#include "Skybox.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -94,6 +95,12 @@ void DefaultShader::Use(uint flags)
     {
         static int maps[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         glUniform1iv(location, sizeof(maps) / sizeof(int), &maps[0]);
+    }
+
+    location = glGetUniformLocation(program->Id(), "diffuseIBL");
+    if(location >= 0)
+    {
+        glUniform1i(location, 10);
     }
 
 	program->Use();
@@ -402,6 +409,12 @@ void DefaultShader::BindTextures(const ResourceMaterial* material) const
             glActiveTexture(GL_TEXTURE0+i);
             glBindTexture(GL_TEXTURE_2D, id);
         }
+
+        glActiveTexture(GL_TEXTURE0+TextureCount);
+
+        Skybox* skybox = App->level->GetSkyBox();
+        unsigned lId = skybox->GetDiffuseIBL()->Id();
+        glBindTexture(GL_TEXTURE_CUBE_MAP, lId);
     }
 }
 
