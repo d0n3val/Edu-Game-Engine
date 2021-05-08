@@ -65,11 +65,11 @@ void Skybox::DrawDiffuseIBL(const float4x4& proj, const float4x4& view)
     }
 }
 
-void Skybox::DrawPrefilteredIBL(const float4x4& proj, const float4x4& view)
+void Skybox::DrawPrefilteredIBL(const float4x4& proj, const float4x4& view, float roughness)
 {
     if (prefilteredIBL)
     {
-        utils.RenderSkybox(prefilteredIBL.get(), proj, view);
+        utils.RenderSkyboxLod(prefilteredIBL.get(), proj, view, float(prefilteredLevels-1) * roughness);
     }
 }
 
@@ -99,7 +99,7 @@ void Skybox::SetCubemap(UID uid)
         assert(res->GetType() == ResourceTexture::TextureCube);
 
         diffuseIBL.reset(utils.DiffuseIBL(static_cast<TextureCube*>(res->GetTexture()), 512, 512));
-        prefilteredIBL.reset(utils.PrefilteredSpecular(static_cast<TextureCube*>(res->GetTexture()), 512, 512));
+        prefilteredIBL.reset(utils.PrefilteredSpecular(static_cast<TextureCube*>(res->GetTexture()), 512, 512, prefilteredLevels));
     }
 }
 

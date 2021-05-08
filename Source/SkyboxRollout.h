@@ -26,7 +26,6 @@ private:
         PrefilteredIBL
     };
     
-
     void TakeScreenshot(Skybox* skybox, ScreenshoType type);
 
 private:
@@ -43,6 +42,7 @@ private:
 
     float                        azimuthal = 0.0f;
     float                        polar     = 0.0f;
+    float                        roughness = 0.0f;
     SelectResourceDlg            selectTexture;
 };
 

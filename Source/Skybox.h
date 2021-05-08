@@ -16,6 +16,7 @@ class Skybox
 	UID            cubemap = 0;
     TextureCubePtr diffuseIBL = nullptr;    
     TextureCubePtr prefilteredIBL = nullptr;
+    uint           prefilteredLevels = 0;
 
 public:
 
@@ -24,7 +25,7 @@ public:
 
     void    Draw                (const float4x4& proj, const float4x4& view);
     void    DrawDiffuseIBL      (const float4x4& proj, const float4x4& view);
-    void    DrawPrefilteredIBL  (const float4x4& proj, const float4x4& view);
+    void    DrawPrefilteredIBL  (const float4x4& proj, const float4x4& view, float roughness);
     void    Load                (const Config& config);
     void    Save                (Config& config) const;
 

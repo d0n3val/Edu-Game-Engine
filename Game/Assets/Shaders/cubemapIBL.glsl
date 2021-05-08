@@ -82,6 +82,7 @@ vec3 hemisphereSampleGGX(in vec2 rand, float roughness)
 
 uniform float roughness;
 
+
 void main()
 {
     vec3 R = normalize(coords);
@@ -94,11 +95,11 @@ void main()
     for( int i = 0; i < NUM_SAMPLES; ++i ) 
     {
         vec3 H = tangentSpace*hemisphereSampleGGX( hammersley2D(i, NUM_SAMPLES), roughness);
-        vec3 L = reflect(V, H); 
-        float NdotL = max(dot( N, L ), 0.0);
+        vec3 L = reflect(-V, H); 
+        float NdotL = dot( N, L );
         if( NdotL > 0 ) 
         {
-            color += texture(skybox, L).rgb * NdotL;
+            color += texture(skybox, L).rgb; // * NdotL;
             weight += NdotL;
         }
     }

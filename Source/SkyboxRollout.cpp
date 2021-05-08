@@ -94,6 +94,7 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
         ImGui::Image((ImTextureID)diffuseIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
         ImGui::Text("Prefiltered IBL");
         ImGui::Image((ImTextureID)prefilteredIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::SliderFloat("Roughness", &roughness, 0.0, 1.0f);
 
 
         ImGui::PushItemWidth(SCREENSHOT_SIZE);
@@ -150,7 +151,7 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
             postprocess_fb->AttachColor(diffuseIBLTex.get());
             break;
         case PrefilteredIBL:
-            skybox->DrawPrefilteredIBL(proj, view);
+            skybox->DrawPrefilteredIBL(proj, view, roughness);
             postprocess_fb->ClearAttachments();
             postprocess_fb->AttachColor(prefilteredIBLTex.get());
             break;
