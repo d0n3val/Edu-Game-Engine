@@ -32,6 +32,7 @@ SkyboxRollout::SkyboxRollout()
     screenshotTex  = std::move(std::unique_ptr<Texture2D>(new Texture2D(4, SCREENSHOT_SIZE, SCREENSHOT_SIZE, GL_RGBA16F, true)));
     environmentTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
     diffuseIBLTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
+    prefilteredIBLTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
 
     screenshot_fb->AttachColor(screenshotTex.get());
 
@@ -51,6 +52,7 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
     {
         TakeScreenshot(skybox, Environment);
         TakeScreenshot(skybox, DiffuseIBL);
+        TakeScreenshot(skybox, PrefilteredIBL);
 
         ResourceTexture* info = App->resources->GetTexture(skybox->GetCubemap());
 
@@ -90,6 +92,9 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
         ImGui::Image((ImTextureID)environmentTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
         ImGui::Text("Diffuse IBL");
         ImGui::Image((ImTextureID)diffuseIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::Text("Prefiltered IBL");
+        ImGui::Image((ImTextureID)prefilteredIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+
 
         ImGui::PushItemWidth(SCREENSHOT_SIZE);
         ImGui::SliderFloat("Azimuthal", &azimuthal, 0.0f , 2.0f*math::pi);
@@ -144,7 +149,11 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
             postprocess_fb->ClearAttachments();
             postprocess_fb->AttachColor(diffuseIBLTex.get());
             break;
-
+        case PrefilteredIBL:
+            skybox->DrawPrefilteredIBL(proj, view);
+            postprocess_fb->ClearAttachments();
+            postprocess_fb->AttachColor(prefilteredIBLTex.get());
+            break;
     }
 
     assert(postprocess_fb->Check() == GL_FRAMEBUFFER_COMPLETE);

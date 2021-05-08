@@ -11,6 +11,7 @@ class CubemapUtils
     std::unique_ptr<Program>     skybox;
     std::unique_ptr<Program>     equirectangular;
     std::unique_ptr<Program>     diffuseIBL;
+    std::unique_ptr<Program>     prefilteredIBL;
 
     static const float  skybox_vertices[6*6*3];
     static const float3 front[6];
@@ -19,9 +20,11 @@ class CubemapUtils
 public:
     CubemapUtils();
 
-    void         RenderSkybox       (TextureCube* cubemap, const float4x4& proj, const float4x4& view);
+    void         RenderSkybox           (TextureCube* cubemap, const float4x4& proj, const float4x4& view);
 
-    TextureCube* DiffuseIBL         (TextureCube* texture, uint width, uint height);
+    TextureCube* DiffuseIBL             (TextureCube* texture, uint width, uint height);
+    TextureCube* PrefilteredSpecular    (TextureCube* texture, uint width, uint height);
+
     TextureCube* ConvertToCubemap   (Texture2D* texture, uint width, uint height);
 
 private:

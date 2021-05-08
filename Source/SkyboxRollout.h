@@ -23,7 +23,7 @@ private:
     {
         Environment,
         DiffuseIBL,
-        SpecularIBL
+        PrefilteredIBL
     };
     
 
@@ -36,6 +36,7 @@ private:
 
     std::unique_ptr<Texture2D>   environmentTex;
     std::unique_ptr<Texture2D>   diffuseIBLTex;
+    std::unique_ptr<Texture2D>   prefilteredIBLTex;
     std::unique_ptr<Framebuffer> postprocess_fb;
 
     std::unique_ptr<Postprocess> postProcess;
