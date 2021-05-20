@@ -86,7 +86,9 @@ void PerlinProperties::GenerateTexture(FractalNoiseCfg& info)
     perlin_text2->SetDefaultRGBAData(TEXTURE_SIZE, TEXTURE_SIZE, tex_data.data());
 #endif
 
-    perlin_fb->Clear(TEXTURE_SIZE, TEXTURE_SIZE);
+    //perlin_fb->Clear(TEXTURE_SIZE, TEXTURE_SIZE);
+    perlin_fb->Bind();
+    glViewport(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
 
     perlin_prog->Use();
 

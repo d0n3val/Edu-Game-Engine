@@ -55,7 +55,11 @@ layout(std140) uniform Material
 } material;
 
 uniform sampler2D materialMaps[MAP_COUNT];
+
 uniform samplerCube diffuseIBL;
+uniform samplerCube prefilteredIBL;
+uniform int         prefilteredLevels;
+uniform sampler2D   environmentBRDF;
 
 struct AmbientLight
 {
@@ -261,10 +265,8 @@ float SMITHVSF(float NdotL, float NdotV, float roughness)
 }
 
 vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, const vec3 light_color, 
-                const vec3 diffuseColor, const vec3 specularColor, float smoothness, float att)
+                const vec3 diffuseColor, const vec3 specularColor, float roughness, float att)
 {
-    float roughness  = Sq(1.0-smoothness); 
-
     float dotNL      = max(dot(normal, light_dir), 0.000001);
     float dotNV      = max(dot(normal, view_dir), 0.000001);
 
@@ -289,13 +291,13 @@ float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float oute
     return min(1.0, max(0.0, (cos_a-outer)/len));
 }
 
-vec3 Directional(const vec3 normal, const vec3 view_dir, const DirLight light, const vec3 diffuseColor, const vec3 specularColor, float smoothness)
+vec3 Directional(const vec3 normal, const vec3 view_dir, const DirLight light, const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
-    return GGXShading(normal, view_dir, -light.dir.xyz, light.color.rgb, diffuseColor, specularColor, smoothness, 1.0);
+    return GGXShading(normal, view_dir, -light.dir.xyz, light.color.rgb, diffuseColor, specularColor, roughness, 1.0);
 }
 
 vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLight light, 
-           const vec3 diffuseColor, const vec3 specularColor, float smoothness)
+           const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
     vec3 light_dir    = light.position.xyz-pos;
     float distance    = length(light_dir);
@@ -303,11 +305,11 @@ vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLi
 
     float att         = GetAttenuation(light.attenuation.xyz, distance);
 
-    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, smoothness, att);
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att);
 }
 
 vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLight light, 
-                   const vec3 diffuseColor, const vec3 specularColor, float smoothness)
+                   const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
     vec3 light_dir    = light.position.xyz-pos;
     float distance    = length(light_dir);
@@ -316,29 +318,35 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
     float cone        = GetCone(-light_dir, light.direction.xyz, light.inner, light.outer);
     float att         = GetAttenuation(light.attenuation.xyz, distance);
 
-    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, smoothness, att*cone);
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att*cone);
 }
 
 vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specular, float smoothness, vec3 occlusion, vec3 emissive)
 {
-    vec3 view_dir = normalize(camera.view_pos-pos);
+    vec3 V           = normalize(camera.view_pos-pos);
+    vec3 R           = reflect(-V, normal);
+    float NdotV      = max(dot(normal, V), 0.0);
+    float roughness  = Sq(1.0-smoothness); 
     
-    vec3 color = Directional(normal, view_dir, lights.directional, diffuse.rgb, specular.rgb, smoothness);
+    vec3 color = Directional(normal, V, lights.directional, diffuse.rgb, specular.rgb, roughness);
 
     for(uint i=0; i< lights.num_point; ++i)
     {
-        color += Point(pos, normal, view_dir, lights.points[i], diffuse.rgb, specular, smoothness);
+        color += Point(pos, normal, V, lights.points[i], diffuse.rgb, specular, roughness);
     }
 
     for(uint i=0; i< lights.num_spot; ++i)
     {
-        color += Spot(pos, normal, view_dir, lights.spots[i], diffuse.rgb, specular, smoothness);
+        color += Spot(pos, normal, V, lights.spots[i], diffuse.rgb, specular, roughness);
     }
 
-    //color += diffuse.rgb*(lights.ambient.color.rgb*occlusion);
-
+    // Add Indirect lighting 
     vec3 irradiance = texture(diffuseIBL, normal).rgb;
-    color += irradiance*(diffuse.rgb*(1.0-specular))*occlusion;
+    vec3 radiance   = textureLod(prefilteredIBL, R, roughness*prefilteredLevels).rgb;
+    vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
+    vec3 indirect   = (diffuse.rgb*(1-specular.rgb))*irradiance+radiance*(specular.rgb*fab.x+fab.y);
+
+    color += indirect*occlusion;
 
     color += emissive;
 

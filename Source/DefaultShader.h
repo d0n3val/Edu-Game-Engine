@@ -43,6 +43,7 @@ public:
 
 	parsb_context* blocksVS = nullptr;
 	parsb_context* blocksFS = nullptr;
+	parsb_context* depthFS  = nullptr;
 	ProgramList 			programs;
     std::unique_ptr<Buffer> cameraUBO;
     std::unique_ptr<Buffer> lightsUBO;
@@ -55,17 +56,19 @@ public:
 	DefaultShader();
 	~DefaultShader();
 
-	void Draw 				(ComponentMeshRenderer* meshRenderer);
+	void DepthPrePass 		(ComponentMeshRenderer* meshRenderer);
+	void DrawPass 		    (ComponentMeshRenderer* meshRenderer);
 	void UpdateLightUBO 	(ModuleLevelManager* level);
 	void UpdateCameraUBO	(ComponentCamera* camera);
 
 private:
 
-	void 		Use 				(uint flags = 0);
+	void 		UseDrawPass 	    (uint flags = 0);
+	void 		UseDepthPrePass     (uint flags = 0);
 	void		UpdateMaterialUBO	(ResourceMaterial* material);
 	void 		UpdateMeshUBOs		(const float4x4* skinPalette, const float* morphWeights, const ResourceMesh* mesh);
 
-	const char* GetShaderSource     (uint flags, parsb_context* context);
+	const char* GetShaderSource     (uint flags, bool depthPass, parsb_context* context);
 	bool 		ExistsBlock 	    (parsb_context* blocks, const char* name) const;
 	void 		AddBlocksFromFile   (parsb_context* blocks, const char* fileName) const;
 	void 		BindUniformBlock    (uint program, const char* name, uint block_index) const;

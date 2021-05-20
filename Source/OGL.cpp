@@ -206,15 +206,17 @@ Framebuffer::~Framebuffer()
     glDeleteFramebuffers(1, &fbo);
 }
 
+/*
 void Framebuffer::Clear(uint width, uint height)
 {
     Bind();
 
     glViewport(0, 0, width, height);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClearDepth(1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
+*/
 
 void Framebuffer::Bind() 
 {
@@ -289,6 +291,41 @@ void Framebuffer::ReadColor(uint attachment, uint x, uint y, uint width, uint he
 		}
 	}
 
+    Unbind();
+}
+
+void Framebuffer::ClearColor(uint buffer, float value[4])
+{
+    Bind();
+    glClearBufferfv(GL_COLOR, buffer, value);
+    Unbind();
+}
+
+void Framebuffer::ClearColor(uint buffer, int value[4])
+{
+    Bind();
+    glClearBufferiv(GL_COLOR, buffer, value);
+    Unbind();
+}
+
+void Framebuffer::ClearColor(uint buffer, unsigned value[4])
+{
+    Bind();
+    glClearBufferuiv(GL_COLOR, buffer, value);
+    Unbind();
+}
+
+void Framebuffer::ClearDepth(float value)
+{
+    Bind();
+    glClearBufferfv(GL_DEPTH, 0, &value);
+    Unbind();
+}
+
+void Framebuffer::ClearStencil(int value)
+{
+    Bind();
+    glClearBufferiv(GL_STENCIL, 0, &value);
     Unbind();
 }
 
@@ -404,6 +441,8 @@ VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint 
 
         glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (void*)(attribs[i].offset));
     }
+
+    glBindVertexArray(0);
 }
 
 VertexArray::~VertexArray()

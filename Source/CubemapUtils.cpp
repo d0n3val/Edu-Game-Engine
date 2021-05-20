@@ -7,6 +7,7 @@
 #include "ModulePrograms.h"
 #include "ResourceTexture.h"
 
+#include "OGL.h"
 #include "OpenGL.h"
 
 #include "Leaks.h"
@@ -176,6 +177,24 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width,
     return cubeMap;
 }
 
+Texture2D* CubemapUtils::EnvironmentBRDF(uint width, uint height)
+{
+    Texture2D* texture = new Texture2D(width, height, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
+
+    Framebuffer frameBuffer;
+
+    frameBuffer.AttachColor(texture);
+    frameBuffer.Bind();
+    glViewport(0, 0, width, height);
+
+    //frameBuffer.Clear(width, height);
+
+    environmentBRDF->Use();
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    return texture;
+}
+
 TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint height)
 {
     if (!vao) Init();
@@ -241,18 +260,22 @@ void CubemapUtils::Init()
     vao = std::make_unique<VertexArray>(vbo.get(), nullptr, attribs, sizeof(attribs) / sizeof(VertexAttrib));
 
     const char* diffuseIBLMacros[] = { "#define DIFFUSE_IBL\n" };
+    const char* prefilteredIBLMacros[] = { "#define PREFILTERED_IBL\n" };
     const char* skyboxLodMacros[] = { "#define USE_LOD\n" };
 
     std::unique_ptr<Shader> vertex(Shader::CreateVSFromFile("Assets/Shaders/skybox.vs", nullptr, 0));
+    std::unique_ptr<Shader> fullScreen(Shader::CreateVSFromFile("Assets/Shaders/fullScreenVS.glsl", nullptr, 0));
     std::unique_ptr<Shader> skyboxFS(Shader::CreateFSFromFile("Assets/Shaders/skybox.fs", nullptr, 0));
     std::unique_ptr<Shader> skyboxLodFS(Shader::CreateFSFromFile("Assets/Shaders/skybox.fs", &skyboxLodMacros[0], 1));
     std::unique_ptr<Shader> equirectangularFS(Shader::CreateFSFromFile("Assets/Shaders/equirectangular.fs", nullptr, 0));
     std::unique_ptr<Shader> diffuseFS(Shader::CreateFSFromFile("Assets/Shaders/cubemapIBL.glsl", &diffuseIBLMacros[0], 1));
-    std::unique_ptr<Shader> prefilteredFS(Shader::CreateFSFromFile("Assets/Shaders/cubemapIBL.glsl", nullptr, 0));
+    std::unique_ptr<Shader> prefilteredFS(Shader::CreateFSFromFile("Assets/Shaders/cubemapIBL.glsl", &prefilteredIBLMacros[0], 1));
+    std::unique_ptr<Shader> brdfFS(Shader::CreateFSFromFile("Assets/Shaders/cubemapIBL.glsl", nullptr, 0));
 
     if(vertex->Compiled() && skyboxFS->Compiled()) skybox.reset(new Program(vertex.get(), skyboxFS.get(), "Skybox program"));
     if(vertex->Compiled() && skyboxLodFS->Compiled()) skyboxLod.reset(new Program(vertex.get(), skyboxLodFS.get(), "Skybox LOD program"));
     if(vertex->Compiled() && equirectangularFS->Compiled()) equirectangular.reset(new Program(vertex.get(), equirectangularFS.get(), "Equirectangular program" ));
     if(vertex->Compiled() && diffuseFS->Compiled()) diffuseIBL.reset(new Program(vertex.get(), diffuseFS.get(), "Diffuse IBL program" ));
     if(vertex->Compiled() && prefilteredFS->Compiled()) prefilteredIBL.reset(new Program(vertex.get(), prefilteredFS.get(), "Prefiltered IBL program"));
+    if(fullScreen->Compiled() && brdfFS->Compiled()) environmentBRDF.reset(new Program(fullScreen.get(), brdfFS.get(), "Environment BRDF program"));
 }

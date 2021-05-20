@@ -325,17 +325,15 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, unsig
 
 
     // Render Batches
-    //DrawBatches(opaque_nodes, flags);
+    DrawBatches(render_list.GetOpaques(), flags);
 
     App->programs->UseProgram("default", flags);
 
-    
     DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawColor);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    //DrawBatches(transparent_nodes, flags);
     DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawColor);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -387,7 +385,7 @@ void ModuleRenderer::DrawColor(const TRenderInfo& render_info)
 {    
     if(render_info.mesh)
     {
-        DrawMeshColor(render_info.mesh);
+        defaultShader->DrawPass(render_info.mesh);
     }
     else if(render_info.particles && render_info.particles->GetVisible())
     {
@@ -435,34 +433,6 @@ void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
         render_info.trail->Draw();
     }
 #endif 
-}
-
-void ModuleRenderer::DrawMeshColor(ComponentMeshRenderer* mesh)
-{
-    uint flags = 0;
-
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
-    {
-        flags |= (1<< 0);
-
-        if(App->hints->GetBoolValue(ModuleHints::SHADOW_SHOW_CASCADES))
-        {
-            flags |= (1<< 1);
-        }
-
-        if(App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
-        {
-            flags |= (1 << 2);
-        }
-    }
-
-
-    defaultShader->Draw(mesh);
-
-    //App->programs->UseProgram("default",  flags);
-
-
-    //mesh->Draw();
 }
 
 void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)

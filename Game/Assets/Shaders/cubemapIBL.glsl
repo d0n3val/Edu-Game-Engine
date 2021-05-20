@@ -80,8 +80,9 @@ vec3 hemisphereSampleGGX(in vec2 rand, float roughness)
     return dir;
 }
 
-uniform float roughness;
+#ifdef PREFILTERED_IBL
 
+uniform float roughness;
 
 void main()
 {
@@ -99,13 +100,64 @@ void main()
         float NdotL = dot( N, L );
         if( NdotL > 0 ) 
         {
-            color += texture(skybox, L).rgb; // * NdotL;
+            color += texture(skybox, L).rgb * NdotL;
             weight += NdotL;
         }
     }
 
     fragColor = vec4(color / weight, 1.0);
 }
+
+#else  // ENVIRONMENT BRDF
+
+in vec2 uv;
+
+float SmithVSF(float NdotL, float NdotV, float roughness)
+{
+    float GGXV = NdotL * (NdotV * (1.0 - roughness) + roughness);
+    float GGXL = NdotV * (NdotL * (1.0 - roughness) + roughness);
+    return 0.5 / max(0.00001, (GGXV + GGXL));
+}
+
+void main()
+{
+    float NdotV = uv.x;
+    float roughness = uv.y;
+
+    vec3 V;
+    V.x = sqrt(1.0 - NdotV * NdotV); // sin
+    V.y = 0.0;
+    V.z = NdotV; // cos
+
+    vec3 N = vec3(0.0, 0.0, 1.0);
+
+    float fa = 0.0;
+    float fb = 0.0;
+
+    for (uint i = 0; i < NUM_SAMPLES; i++) 
+    {
+        vec3 H = hemisphereSampleGGX(hammersley2D(i, NUM_SAMPLES), roughness);
+
+        // Get the light direction
+        vec3 L = reflect(-V, H); 
+
+        float NdotL = max(dot(N, L), 0.0);
+        float NdotH = max(dot(N, H), 0.0);
+        float VdotH = max(dot(V, H), 0.0);
+
+        if (NdotL > 0.0) 
+        {
+            float V_pdf = SmithVSF(NdotL, NdotV, roughness) * VdotH * NdotL / NdotH;
+            float Fc = pow(1.0 - VdotH, 5.0); // note: VdotH = LdotH
+            fa += (1.0 - Fc) * V_pdf;
+            fb += Fc * V_pdf;
+        }
+    }
+
+    fragColor = vec4(4.0*fa/float(NUM_SAMPLES), 4.0*fb/float(NUM_SAMPLES), 1.0, 1.0);
+}
+
+#endif 
 
 #endif 
 

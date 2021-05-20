@@ -8,7 +8,7 @@ in vec3 coords;
 
 uniform sampler2D skybox;
 
-vec2 SphericalToEquirectangular(in vec3 dir)
+vec2 CartesianToEquirectangular(in vec3 dir)
 {
     float phi;
 
@@ -24,7 +24,7 @@ vec2 SphericalToEquirectangular(in vec3 dir)
 void main()
 {
     vec3 dir = normalize(coords);
-    vec2 uv  = SphericalToEquirectangular(dir);
+    vec2 uv  = CartesianToEquirectangular(dir);
     color    = texture(skybox, uv);
 }
 

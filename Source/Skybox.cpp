@@ -75,6 +75,8 @@ void Skybox::DrawPrefilteredIBL(const float4x4& proj, const float4x4& view, floa
 
 void Skybox::SetCubemap(UID uid)
 {
+    const int IBL_RESOLUTION = 512;
+
     if(cubemap != 0)
     {
         Resource* res = App->resources->Get(cubemap);
@@ -98,8 +100,13 @@ void Skybox::SetCubemap(UID uid)
     {
         assert(res->GetType() == ResourceTexture::TextureCube);
 
-        diffuseIBL.reset(utils.DiffuseIBL(static_cast<TextureCube*>(res->GetTexture()), 512, 512));
-        prefilteredIBL.reset(utils.PrefilteredSpecular(static_cast<TextureCube*>(res->GetTexture()), 512, 512, prefilteredLevels));
+        diffuseIBL.reset(utils.DiffuseIBL(static_cast<TextureCube*>(res->GetTexture()), IBL_RESOLUTION, IBL_RESOLUTION));
+        prefilteredIBL.reset(utils.PrefilteredSpecular(static_cast<TextureCube*>(res->GetTexture()), IBL_RESOLUTION, IBL_RESOLUTION, prefilteredLevels));
+
+        if(!environmentBRDF)
+        {
+            environmentBRDF.reset(utils.EnvironmentBRDF(IBL_RESOLUTION, IBL_RESOLUTION));
+        }
     }
 }
 

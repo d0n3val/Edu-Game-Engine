@@ -955,6 +955,7 @@ void ResourceMesh::GenerateVAO()
 		glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(offsets[ATTRIB_TEX_COORDS_1]));
 	}
 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
     glBindVertexArray(0);
 }
@@ -1173,12 +1174,12 @@ void ResourceMesh::Draw() const
         glUniform1i(App->programs->GetUniformLocation("morph"), 6);
     }
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, nullptr);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_BUFFER, 0);
+    //glBindTexture(GL_TEXTURE_BUFFER, 0);
 }
 
 void ResourceMesh::GenerateTexCoord1()

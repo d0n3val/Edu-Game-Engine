@@ -95,7 +95,6 @@ public:
     Framebuffer();
     ~Framebuffer();
 
-    void Clear(uint width, uint height);
     void Unbind();
     void Bind();
   
@@ -104,6 +103,12 @@ public:
     void AttachColor(TextureCube* texture, uint face, uint attachment = 0, uint mip_level = 0);
     void AttachDepthStencil(Texture2D* texture, uint attachment);
     void ReadColor(uint attachment, uint x, uint y, uint widht, uint height, uint format, unsigned* data);
+
+    void ClearColor(uint buffer, float value[4]);
+    void ClearColor(uint buffer, int value[4]);
+    void ClearColor(uint buffer, unsigned value[4]);
+    void ClearDepth(float value);
+    void ClearStencil(int value);
 
     void BlitTo(Framebuffer* target, uint src_x0, uint src_y0, uint src_x1, uint src_y1, uint dst_x0, uint dst_y0, 
                  uint dest_x1, uint dest_y1, uint flags, uint filter);

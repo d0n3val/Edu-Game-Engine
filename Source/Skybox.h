@@ -7,16 +7,19 @@
 class ResourceTexture;
 class Config;
 class TextureCube;
+class Texture2D;
 
 class Skybox
 {
     typedef std::unique_ptr<TextureCube> TextureCubePtr;
+    typedef std::unique_ptr<Texture2D> Texture2DPtr;
 
     CubemapUtils   utils;
 	UID            cubemap = 0;
-    TextureCubePtr diffuseIBL = nullptr;    
-    TextureCubePtr prefilteredIBL = nullptr;
+    TextureCubePtr diffuseIBL;    
+    TextureCubePtr prefilteredIBL;
     uint           prefilteredLevels = 0;
+    Texture2DPtr   environmentBRDF;
 
 public:
 
@@ -34,6 +37,8 @@ public:
 
     const TextureCube* GetDiffuseIBL () const { return diffuseIBL.get(); }
     const TextureCube* GetPrefilterdIBL() const { return prefilteredIBL.get(); }
+    uint               GetPrefilterdLevels() const { return prefilteredLevels; }
+    const Texture2D*   GetEnvironmentBRDF() const { return environmentBRDF.get(); }
 };
 
 

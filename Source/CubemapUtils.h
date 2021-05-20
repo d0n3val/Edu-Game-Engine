@@ -13,6 +13,7 @@ class CubemapUtils
     std::unique_ptr<Program>     equirectangular;
     std::unique_ptr<Program>     diffuseIBL;
     std::unique_ptr<Program>     prefilteredIBL;
+    std::unique_ptr<Program>     environmentBRDF;
 
     static const float  skybox_vertices[6*6*3];
     static const float3 front[6];
@@ -26,6 +27,7 @@ public:
 
     TextureCube* DiffuseIBL             (TextureCube* texture, uint width, uint height);
     TextureCube* PrefilteredSpecular    (TextureCube* texture, uint width, uint height, uint& prefilteredLevels);
+    Texture2D*   EnvironmentBRDF        (uint width, uint height);
 
     TextureCube* ConvertToCubemap   (Texture2D* texture, uint width, uint height);
 

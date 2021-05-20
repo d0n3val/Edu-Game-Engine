@@ -89,18 +89,20 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
 
         ImGui::Separator();
         ImGui::Text("Texture");
-        ImGui::Image((ImTextureID)environmentTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::SameLine(0, 152);
         ImGui::Text("Diffuse IBL");
-        ImGui::Image((ImTextureID)diffuseIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::SameLine(0, 127);
         ImGui::Text("Prefiltered IBL");
+        ImGui::Image((ImTextureID)environmentTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::SameLine();
+        ImGui::Image((ImTextureID)diffuseIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::SameLine();
         ImGui::Image((ImTextureID)prefilteredIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
         ImGui::SliderFloat("Roughness", &roughness, 0.0, 1.0f);
-
-
-        ImGui::PushItemWidth(SCREENSHOT_SIZE);
         ImGui::SliderFloat("Azimuthal", &azimuthal, 0.0f , 2.0f*math::pi);
         ImGui::SliderFloat("Polar", &polar, -0.5f*math::pi, 0.5f*math::pi);
-        ImGui::PushItemWidth(0.0f);
+        ImGui::Text("Environment BRDF");
+        ImGui::Image((ImTextureID)skybox->GetEnvironmentBRDF()->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
     }
 
     selectTexture.Display();

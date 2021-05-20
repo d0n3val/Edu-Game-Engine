@@ -4,6 +4,12 @@
 
 --- DATA
 
+#ifdef DEPTH_PREPASS
+layout(location = 0) in vec3 vertex_position;
+layout(location = 1) in vec3 vertex_normal;
+layout(location = 3) in ivec4 bone_indices;
+layout(location = 4) in vec4 bone_weights;
+#else
 layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_normal;
 layout(location = 2) in vec2 vertex_uv0;
@@ -11,6 +17,7 @@ layout(location = 3) in ivec4 bone_indices;
 layout(location = 4) in vec4 bone_weights;
 layout(location = 5) in vec3 vertex_tangent;
 layout(location = 6) in vec2 vertex_uv1;
+#endif 
 
 layout(std140, row_major) uniform Camera 
 {
@@ -22,6 +29,13 @@ layout(std140, row_major) uniform Camera
 
 uniform mat4 model;
 
+#ifdef DEPTH_PREPASS
+out struct VertexOut
+{
+    vec3 normal;
+    vec3 position;
+} fragment;
+#else 
 out struct VertexOut
 {
     vec2 uv0;
@@ -30,6 +44,7 @@ out struct VertexOut
     vec3 tangent;
     vec3 position;
 } fragment;
+#endif 
 
 vec3 MorphPosition(vec3 position);
 vec3 MorphNormal(vec3 position);
@@ -132,25 +147,31 @@ void TransformOutput()
 
     fragment.position = (skin_transform*vec4(MorphPosition(vertex_position), 1.0)).xyz;
     fragment.normal   = (skin_transform*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
+#ifndef DEPTH_PREPASS
     fragment.tangent  = (skin_transform*vec4(MorphTangent(vertex_tangent), 0.0)).xyz;
+#endif 
 }
 
 --- NO_SKINING
 
 void TransformOutput()
 {
-#if BATCH
     fragment.position = (model*vec4(MorphPosition(vertex_position), 1.0)).xyz;
     fragment.normal   = (model*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
-    fragment.tangent  = (model*vec4(MorphTangent(vertex_tangent), 0.0)).xyz;
-#else 
-    fragment.position = (model*vec4(MorphPosition(vertex_position), 1.0)).xyz;
-    fragment.normal   = (model*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
+#ifndef DEPTH_PREPASS
     fragment.tangent  = (model*vec4(MorphTangent(vertex_tangent), 0.0)).xyz;
 #endif
 }
 
 --- SHADOW 
+
+#ifdef DEPTH_PREPASS
+
+void ShadowCoords()
+{
+}
+
+#else
 
 #define CASCADE_COUNT 3
 
@@ -167,6 +188,8 @@ void ShadowCoords()
         shadow_coord[i].xy = shadow_coord[i].xy*0.5+0.5;
     }
 }
+
+#endif 
 
 --- NO_SHADOW
 

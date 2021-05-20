@@ -36,7 +36,9 @@ public:
     void UpdateFrom(ComponentCamera* camera, QuadtreeNode* quadtree);
     void UpdateFrom(ComponentCamera* camera, GameObject* go);
 
+    NodeList& GetOpaques() { return opaque_nodes; }
     const NodeList& GetOpaques() const { return opaque_nodes; }
+    NodeList& GetTransparents() { return transparent_nodes; }
     const NodeList& GetTransparents() const { return transparent_nodes; }
 
 

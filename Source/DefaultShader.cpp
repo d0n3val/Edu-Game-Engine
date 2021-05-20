@@ -40,25 +40,32 @@ DefaultShader::DefaultShader()
 {
 	blocksVS = parsb_create_context(parsb_options{});
 	blocksFS = parsb_create_context(parsb_options{});
+	depthFS  = parsb_create_context(parsb_options{});
 
 	AddBlocksFromFile(blocksVS, "assets/shaders/defaultSnippetsVS.glsl");
 	AddBlocksFromFile(blocksFS, "assets/shaders/defaultSnippetsFS.glsl");
+	AddBlocksFromFile(depthFS, "assets/shaders/depthPrepassSnipetFS.glsl");
+
+    parsb_add_block(blocksVS, "DEPTH_MACROS", "#define DEPTH_PREPASS\n");
+    parsb_add_block(blocksFS, "DEPTH_MACROS", "#define DEPTH_PREPASS\n");
+    parsb_add_block(depthFS,  "DEPTH_MACROS", "#define DEPTH_PREPASS\n");
 }
 
 DefaultShader::~DefaultShader()
 {
 	parsb_destroy_context(blocksVS);
 	parsb_destroy_context(blocksFS);
+	parsb_destroy_context(depthFS);
 }
 
-void DefaultShader::Use(uint flags)
+void DefaultShader::UseDrawPass(uint flags)
 {
 	std::unique_ptr<Program>& program = programs[flags];
 
 	if(!program)
 	{
-		const char* sourceVS = GetShaderSource(flags, blocksVS);
-		const char* sourceFS = GetShaderSource(flags, blocksFS);
+		const char* sourceVS = GetShaderSource(flags, false, blocksVS);
+		const char* sourceFS = GetShaderSource(flags, false, blocksFS);
 
 		std::unique_ptr<Shader> vertex = std::make_unique<Shader>(GL_VERTEX_SHADER, &sourceVS, 1);
 
@@ -100,10 +107,67 @@ void DefaultShader::Use(uint flags)
     location = glGetUniformLocation(program->Id(), "diffuseIBL");
     if(location >= 0)
     {
-        glUniform1i(location, 10);
+        glUniform1i(location, TextureCount+0);
+    }
+
+    location = glGetUniformLocation(program->Id(), "prefilteredIBL");
+    if(location >= 0)
+    {
+        glUniform1i(location, TextureCount + 1);
+    }
+
+    location = glGetUniformLocation(program->Id(), "prefilteredLevels");
+    if(location >= 0)
+    {
+        glUniform1i(location, App->level->GetSkyBox()->GetPrefilterdLevels());
+    }
+
+    location = glGetUniformLocation(program->Id(), "environmentBRDF");
+    if(location >= 0)
+    {
+        glUniform1i(location, TextureCount + 2);
     }
 
 	program->Use();
+}
+
+void DefaultShader::UseDepthPrePass(uint flags)
+{
+    std::unique_ptr<Program>& program = programs[flags];
+
+    if(!program)
+    {
+        const char* sourceVS = GetShaderSource(flags, true, blocksVS);
+        const char* sourceFS = GetShaderSource(flags, true, depthFS);
+
+        std::unique_ptr<Shader> vertex = std::make_unique<Shader>(GL_VERTEX_SHADER, &sourceVS, 1);
+
+        if (!vertex->Compiled())
+        {
+            LOG("Vertex Shader Code \n%s", sourceVS);
+        }
+
+        std::unique_ptr<Shader> fragment = std::make_unique<Shader>(GL_FRAGMENT_SHADER, &sourceFS, 1);
+
+        if (!fragment->Compiled())
+        {
+            LOG("Fragment Shader Code \n%s", sourceFS);
+        }
+
+        if(vertex->Compiled() && fragment->Compiled())
+        {
+            program.reset(new Program(vertex.get(), fragment.get(), "Default program"));
+        }
+
+        if(program && program->Linked())
+        {
+            BindUniformBlock(program->Id(), "Camera",   CAMERA_UBO_TARGET);
+            BindUniformBlock(program->Id(), "Skining",  SKINING_UBO_TARGET);
+            BindUniformBlock(program->Id(), "Morph",    MORPH_UBO_TARGET);
+        }
+    }
+
+    program->Use();
 }
 
 void DefaultShader::UpdateCameraUBO(ComponentCamera* camera)
@@ -308,7 +372,7 @@ void DefaultShader::UpdateMeshUBOs(const float4x4* skinPalette, const float* mor
     }
 }
 
-const char* DefaultShader::GetShaderSource(uint flags, parsb_context* blocks)
+const char* DefaultShader::GetShaderSource(uint flags, bool depthPass, parsb_context* blocks)
 {
 	std::string variations;
 
@@ -316,6 +380,11 @@ const char* DefaultShader::GetShaderSource(uint flags, parsb_context* blocks)
 	{
 		variations += "PREFIX ";
 	}
+
+    if(depthPass)
+    {
+        variations += "DEPTH_MACROS ";
+    }
 
 	if(ExistsBlock(blocks, "DATA"))
 	{
@@ -410,11 +479,14 @@ void DefaultShader::BindTextures(const ResourceMaterial* material) const
             glBindTexture(GL_TEXTURE_2D, id);
         }
 
-        glActiveTexture(GL_TEXTURE0+TextureCount);
-
         Skybox* skybox = App->level->GetSkyBox();
-        unsigned lId = skybox->GetDiffuseIBL()->Id();
-        glBindTexture(GL_TEXTURE_CUBE_MAP, lId);
+        glActiveTexture(GL_TEXTURE0+TextureCount+0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetDiffuseIBL()->Id());
+        glActiveTexture(GL_TEXTURE0+TextureCount+1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetPrefilterdIBL()->Id());
+
+        glActiveTexture(GL_TEXTURE0+TextureCount+2);
+        glBindTexture(GL_TEXTURE_2D, skybox->GetEnvironmentBRDF()->Id());
     }
 }
 
@@ -429,7 +501,7 @@ uint DefaultShader::GetDrawingFlags(const ResourceMesh* mesh) const
     return flags;
 }
 
-void DefaultShader::Draw(ComponentMeshRenderer* meshRenderer)
+void DefaultShader::DrawPass(ComponentMeshRenderer* meshRenderer)
 {
     const ResourceMesh* mesh   = meshRenderer->GetMeshRes();
     ResourceMaterial* material = meshRenderer->GetMaterialRes();
@@ -440,10 +512,27 @@ void DefaultShader::Draw(ComponentMeshRenderer* meshRenderer)
     UpdateMaterialUBO(material);
     UpdateMeshUBOs(meshRenderer->UpdateSkinPalette(), meshRenderer->GetMorphTargetWeights(), mesh);
 
-    Use(flags);
+    UseDrawPass(flags);
 
     glUniformMatrix4fv(glGetUniformLocation(programs[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
     BindTextures(material);
+
+    mesh->Draw();
+}
+
+void DefaultShader::DepthPrePass(ComponentMeshRenderer* meshRenderer)
+{
+    const ResourceMesh* mesh   = meshRenderer->GetMeshRes();
+    ResourceMaterial* material = meshRenderer->GetMaterialRes();
+    GameObject* go             = meshRenderer->GetGameObject();
+
+    uint flags = GetDrawingFlags(mesh);
+
+    UpdateMeshUBOs(meshRenderer->UpdateSkinPalette(), meshRenderer->GetMorphTargetWeights(), mesh);
+
+    UseDepthPrePass(flags);
+
+    glUniformMatrix4fv(glGetUniformLocation(programs[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
 
     mesh->Draw();
 }
