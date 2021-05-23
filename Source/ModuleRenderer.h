@@ -21,6 +21,7 @@ class Postprocess;
 class Texture2D;
 class Framebuffer;
 class DefaultShader;
+class DepthPrepass;
 
 class ModuleRenderer : public Module
 {
@@ -56,6 +57,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<Buffer>         cameraUBO;
     std::unique_ptr<Buffer>         lightsUBO;
     std::unique_ptr<DefaultShader>  defaultShader;
+    std::unique_ptr<DepthPrepass>   depthPrepass;
 
 public:
 
@@ -73,6 +75,7 @@ public:
 
     BatchManager*       GetBatchMananger            () const { return batch_manager.get(); }
     Postprocess*        GetPostprocess              () const { return postProcess.get(); }
+    DepthPrepass*       GetDepthPrepass             () const { return depthPrepass.get(); }
 
 private:
 

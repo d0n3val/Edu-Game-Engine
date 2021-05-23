@@ -62,8 +62,10 @@ void main()
 
     gl_Position = camera.proj*camera.view*vec4(fragment.position, 1.0);
 
+#ifndef DEPTH_PREPASS
     fragment.uv0      = vertex_uv0;
     fragment.uv1      = vertex_uv1;
+#endif
 }
 
 --- MORPH

@@ -4,8 +4,8 @@
 
 --- DATA
 
-layout(location = 0) out vec3 position;
-layout(location = 1) out vec3 normal;
+layout(location = 0) out vec4 position;
+layout(location = 1) out vec4 normal;
 
 in struct VertexOut
 {
@@ -15,9 +15,11 @@ in struct VertexOut
 
 --- MAIN
 
+// \todo: normal mapping
+
 void main()
 {
-    position = position;
-    normal = normalize(normal);
+    position = vec4(fragment.position, 1.0);
+    normal = vec4(normalize(fragment.normal)*0.5+0.5, 1.0);
 }
 

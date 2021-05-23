@@ -32,11 +32,11 @@ public:
 
 	enum UBOTargets
 	{
-		CAMERA_UBO_TARGET = 0,
+		CAMERA_UBO_TARGET   = 0,
 		MATERIAL_UBO_TARGET = 1,
-		LIGHTS_UBO_TARGET = 2,
-		SKINING_UBO_TARGET = 3,
-		MORPH_UBO_TARGET = 4
+		LIGHTS_UBO_TARGET 	= 2,
+		SKINING_UBO_TARGET  = 3,
+		MORPH_UBO_TARGET 	= 4
 	};
 
 	typedef std::unordered_map<uint, std::unique_ptr<Program> > ProgramList;
@@ -44,7 +44,9 @@ public:
 	parsb_context* blocksVS = nullptr;
 	parsb_context* blocksFS = nullptr;
 	parsb_context* depthFS  = nullptr;
-	ProgramList 			programs;
+
+	ProgramList 			drawPrograms;
+	ProgramList 			depthPrograms;
     std::unique_ptr<Buffer> cameraUBO;
     std::unique_ptr<Buffer> lightsUBO;
     std::unique_ptr<Buffer> materialUBO;

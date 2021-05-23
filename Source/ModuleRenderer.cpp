@@ -6,6 +6,7 @@
 #include "ModuleHints.h"
 #include "ModuleEditor.h"
 #include "DefaultShader.h"
+#include "DepthPrepass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -51,8 +52,9 @@
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
     batch_manager = std::make_unique<BatchManager>();
-    postProcess = std::make_unique<Postprocess>();
+    postProcess   = std::make_unique<Postprocess>();
     defaultShader = std::make_unique<DefaultShader>();
+    depthPrepass  = std::make_unique<DepthPrepass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -123,15 +125,17 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, uns
     defaultShader->UpdateCameraUBO(camera);
     defaultShader->UpdateLightUBO(App->level);
 
-    UpdateLightUBO();
-    UpdateCameraUBO(camera);
+    //UpdateLightUBO();
+    //UpdateCameraUBO(camera);
 
     render_list.UpdateFrom(culling, App->level->GetRoot()); // App->level->quadtree.root);
 
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
-    {
-        ShadowPass(camera, width, height);
-    }
+    //if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
+    //{
+        //ShadowPass(camera, width, height);
+    //}
+
+    depthPrepass->Execute(defaultShader.get(), render_list, width, height);
 
     ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), fbo, width, height);
 }
@@ -327,7 +331,7 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, unsig
     // Render Batches
     DrawBatches(render_list.GetOpaques(), flags);
 
-    App->programs->UseProgram("default", flags);
+    //App->programs->UseProgram("default", flags);
 
     DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawColor);
 

@@ -702,6 +702,9 @@
     <ClInclude Include="CubemapUtils.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="DepthPrepass.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1269,6 +1272,9 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="CubemapUtils.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthPrepass.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>

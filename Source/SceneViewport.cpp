@@ -13,6 +13,7 @@
 #include "ModulePrograms.h"
 #include "ModuleLevelManager.h"
 #include "Postprocess.h"
+#include "DepthPrepass.h"
 
 #include "GameObject.h"
 
@@ -35,7 +36,7 @@
 
 SceneViewport::SceneViewport()
 {        
-    // first row ==> positions, second row ==> uv´s
+    // first row ==> positions, second row ==> uvï¿½s
     static const float vertices[] = { -40.0f,  0.0f, 40.0f , 40.0f,  0.0f, 40.0f , 40.0f, 0.0f, -40.0f , -40.0f, 0.0f, -40.0f };
 
     static const unsigned indices[] = { 0, 1, 2, 0, 2, 3 };
@@ -236,6 +237,14 @@ void SceneViewport::ShowTexture()
             ImVec2(screenPos.x + fb_width * 0.6f, screenPos.y + fb_height * 0.2f),
             ImVec2(0, 1), ImVec2(1, 0));
 
+    }
+    else
+    {
+        ImGui::GetWindowDrawList()->AddImage(
+            (ImTextureID)App->renderer->GetDepthPrepass()->getDepthTexture()->Id(),
+            ImVec2(screenPos),
+            ImVec2(screenPos.x + fb_width*0.4f, screenPos.y + fb_height*0.4f),
+            ImVec2(0, 1), ImVec2(1, 0));
     }
 
 }

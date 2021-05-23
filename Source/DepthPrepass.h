@@ -6,6 +6,7 @@
 class Framebuffer;
 class Texture2D;
 class DefaultShader;
+class RenderList;
 
 class DepthPrepass
 {
@@ -22,6 +23,12 @@ public:
     DepthPrepass();
 
     void Execute(DefaultShader* shader, const RenderList& nodes, uint width, uint height);
+
+    const Texture2D* getDepthTexture() const { return depthTexture.get(); }
+    const Texture2D* getPositionTexture() const { return posTexture.get(); }
+    const Texture2D* getNormalTexture() const { return normalTexture.get(); }
+    uint             getWidth() const {return frameBufferWidth; }
+    uint             getHeight() const {return frameBufferHeight; }
 
 private:
 

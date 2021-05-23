@@ -33,8 +33,8 @@
 #define MAX_BONES 64
 #define MAX_MORPH_TARGETS 128
 
-static const char* variationsOn[]  = { "SKINING", "MORPH", "NO_SHADOW", "PHONG"};
-static const char* variationsOff[] = { "NO_SKINING", "NO_MORPH", "SHADOW", "NO_PHONG"};
+static const char* variationsOn[]  = { "SKINING", "MORPH", "NO_SHADOW", "PHONG" };
+static const char* variationsOff[] = { "NO_SKINING", "NO_MORPH", "SHADOW", "NO_PHONG" };
 
 DefaultShader::DefaultShader()
 {
@@ -60,7 +60,7 @@ DefaultShader::~DefaultShader()
 
 void DefaultShader::UseDrawPass(uint flags)
 {
-	std::unique_ptr<Program>& program = programs[flags];
+	std::unique_ptr<Program>& program = drawPrograms[flags];
 
 	if(!program)
 	{
@@ -133,7 +133,7 @@ void DefaultShader::UseDrawPass(uint flags)
 
 void DefaultShader::UseDepthPrePass(uint flags)
 {
-    std::unique_ptr<Program>& program = programs[flags];
+    std::unique_ptr<Program>& program = depthPrograms[flags];
 
     if(!program)
     {
@@ -514,7 +514,7 @@ void DefaultShader::DrawPass(ComponentMeshRenderer* meshRenderer)
 
     UseDrawPass(flags);
 
-    glUniformMatrix4fv(glGetUniformLocation(programs[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
+    glUniformMatrix4fv(glGetUniformLocation(drawPrograms[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
     BindTextures(material);
 
     mesh->Draw();
@@ -532,7 +532,7 @@ void DefaultShader::DepthPrePass(ComponentMeshRenderer* meshRenderer)
 
     UseDepthPrePass(flags);
 
-    glUniformMatrix4fv(glGetUniformLocation(programs[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
+    glUniformMatrix4fv(glGetUniformLocation(depthPrograms[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
 
     mesh->Draw();
 }
