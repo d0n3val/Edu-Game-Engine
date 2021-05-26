@@ -258,3 +258,4 @@ Release/Engine.exe
 Source/ModuleAudio.cpp
 *.swp
 *.swo
+.vscode/launch.json

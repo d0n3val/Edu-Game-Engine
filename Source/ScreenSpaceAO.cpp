@@ -2,15 +2,16 @@
 #include "ScreenSpaceAO.h"
 #include "Application.h"
 #include "ModuleRenderer.h"
+#include "DefaultShader.h"
 #include "DepthPrePass.h"
-#include "Blur.h"
+#include "GaussianBlur.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
 
 #include <random>
 
-#define KERNEL_UBO_TARGET 0
+#define KERNEL_UBO_TARGET 5
 #define KERNEL_SIZE 64
 #define RANDOM_SIZE 16
 
@@ -24,9 +25,14 @@ ScreenSpaceAO::ScreenSpaceAO()
         program = std::make_unique<Program>(fullScreenVS.get(), aoFS.get(), "SSAO program");
     }
 
-    std::unique_ptr<Shader> aoFS(Shader::CreateFSFromFile("assets/shaders/ssaoFS.glsl"));
+    assert(program->Linked());
 
-    blur = std::make_unique<Blur>();
+    blur = std::make_unique<GaussianBlur>();
+}
+
+ScreenSpaceAO::~ScreenSpaceAO()
+{
+
 }
 
 void ScreenSpaceAO::Execute()
@@ -40,13 +46,22 @@ void ScreenSpaceAO::Execute()
     ResizeFrameBuffer(width, height);
 
     frameBuffer->Bind();
+    
     glViewport(0, 0, width, height);
 
     program->Use();
-    // \todo: binds
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    program->BindTextureFromName("positions", 0, depthPrePass->getPositionTexture());
+    program->BindTextureFromName("normals", 1, depthPrePass->getNormalTexture());
+    program->BindUniformFromName("screenSize", float2(float(width), float(height)));
+    program->BindUniformFromName("radius", float(5.0f)); 
+    program->BindUniformBlock("Camera", DefaultShader::CAMERA_UBO_TARGET);
+    program->BindUniformBlock("Kernel", KERNEL_UBO_TARGET);
 
-    blur->Execute(result.get(), blurred.get(), width, height);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    
+
+    // \todo: use bilinear blur instead of gaussian blur
+    //blur->Execute(result.get(), blurred.get(), width, height);
 }
 
 void ScreenSpaceAO::ResizeFrameBuffer(uint width, uint height)
@@ -60,8 +75,8 @@ void ScreenSpaceAO::ResizeFrameBuffer(uint width, uint height)
 
         frameBuffer->ClearAttachments();
 
-        result = std::make_unique<Texture2D>(width, height, GL_R8, GL_RED, GL_FLOAT, nullptr, false);
-        blurred = std::make_unique<Texture2D>(width, height, GL_R8, GL_RED, GL_FLOAT, nullptr, false);
+        result = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RED, GL_FLOAT, nullptr, false);
+        blurred = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RED, GL_FLOAT, nullptr, false);
        
         frameBuffer->AttachColor(result.get(), 0, 0); 
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
@@ -120,7 +135,8 @@ void ScreenSpaceAO::GenerateKernelUBO()
             kernelData.rots[i] = float4(dir, 0.0f);
         }
 
-        kernel.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(kernelData), &kernelData));
+
+        kernel = std::make_unique<Buffer>(GL_UNIFORM_BUFFER, GL_STATIC_DRAW, sizeof(kernelData), &kernelData);
         kernel->BindToTargetIdx(KERNEL_UBO_TARGET);
     }
 }

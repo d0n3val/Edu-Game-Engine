@@ -254,6 +254,8 @@ public:
     void     BindUniformFromName(const char* name, int count, const float3x3* value);
     void     BindUniformFromName(const char* name, int count, const float4x4* value);
 
+    void     BindUniformBlock(const char* name, uint blockIndex);
+
     void     BindSSBO   (unsigned binding, const Buffer* buffer);
 
 private:

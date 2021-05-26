@@ -7,6 +7,7 @@
 #include "ModuleEditor.h"
 #include "DefaultShader.h"
 #include "DepthPrepass.h"
+#include "ScreenSpaceAO.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -52,13 +53,15 @@
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
     batch_manager = std::make_unique<BatchManager>();
-    postProcess   = std::make_unique<Postprocess>();
+    postProcess = std::make_unique<Postprocess>();
     defaultShader = std::make_unique<DefaultShader>();
-    depthPrepass  = std::make_unique<DepthPrepass>();
+    depthPrepass = std::make_unique<DepthPrepass>();
+
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
 {
+    ssao = std::make_unique<ScreenSpaceAO>();
     LoadDefaultShaders();
     postProcess->Init();
 
@@ -70,7 +73,7 @@ bool ModuleRenderer::Init(Config* config /*= nullptr*/)
         glGenFramebuffers(1, &cascades[i].blur_fbo_1);
     }
 
-	return true;
+    return true;
 }
 
 ModuleRenderer::~ModuleRenderer()
@@ -136,6 +139,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, uns
     //}
 
     depthPrepass->Execute(defaultShader.get(), render_list, width, height);
+    ssao->Execute();
 
     ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), fbo, width, height);
 }
@@ -987,8 +991,8 @@ void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, const floa
     // \todo: for transparents
 
     // \todo: 
-    // En una situación real faltaria meter objetos que, estando fuera del frustum estan dentro de los dos planos laterales de volumen ortogonal en
-    // dirección a la luz. Estos objetos, a pesar de no estar en el frustum, prodrían arrojar sombras sobre otros que si lo están.
+    // En una situaciï¿½n real faltaria meter objetos que, estando fuera del frustum estan dentro de los dos planos laterales de volumen ortogonal en
+    // direcciï¿½n a la luz. Estos objetos, a pesar de no estar en el frustum, prodrï¿½an arrojar sombras sobre otros que si lo estï¿½n.
     // Ojo!!!!!!!!!!!!!!!
 }
 

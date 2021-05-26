@@ -802,6 +802,15 @@ void Program::BindUniformFromName(const char* name, int count, const float4x4* v
     BindUniform(glGetUniformLocation(id, name), count, value);
 }
 
+void Program::BindUniformBlock(const char* name, uint blockIndex)
+{
+    int index = glGetUniformBlockIndex(id, name);
+    if (index != GL_INVALID_INDEX)
+    {
+        glUniformBlockBinding(id, index, blockIndex);
+    }
+}
+
 void Program::BindSSBO(unsigned binding, const Buffer* buffer)
 {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, buffer->Id());

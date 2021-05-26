@@ -7,16 +7,16 @@ class Framebuffer;
 class Texture2D;
 class Buffer;
 class Program;
-class Blur;
+class GaussianBlur;
 
 class ScreenSpaceAO
 {
-    std::unique_ptr<Framebuffer> frameBuffer;
-    std::unique_ptr<Texture2D>   result;
-    std::unique_ptr<Texture2D>   blurred;
-    std::unique_ptr<Buffer>      kernel;
-    std::unique_ptr<Program>     program;
-    std::unique_ptr<Blur>        blur;
+    std::unique_ptr<Framebuffer>  frameBuffer;
+    std::unique_ptr<Texture2D>    result;
+    std::unique_ptr<Texture2D>    blurred;
+    std::unique_ptr<Buffer>       kernel;
+    std::unique_ptr<Program>      program;
+    std::unique_ptr<GaussianBlur> blur;
 
     uint                         fbWidth = 0;
     uint                         fbHeight = 0;
@@ -24,10 +24,11 @@ class ScreenSpaceAO
 public:
 
     ScreenSpaceAO();
+    ~ScreenSpaceAO();
 
     void Execute();
 
-    const Texture2D* getResult() const { return blurred.get(); }
+    const Texture2D* getResult() const { return result.get(); }
 
 private:
     void ResizeFrameBuffer(uint width, uint height);

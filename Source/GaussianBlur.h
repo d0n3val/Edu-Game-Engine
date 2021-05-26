@@ -7,7 +7,7 @@ class Framebuffer;
 class Texture2D;
 class Program;
 
-class Blur
+class GaussianBlur
 {
 
     std::unique_ptr<Framebuffer> frameBuffer;
@@ -19,7 +19,7 @@ class Blur
 
 public:
 
-    Blur();
+    GaussianBlur();
 
     void Execute(const Texture2D *input, const Texture2D* output, uint width, uint height);
 };

@@ -1,13 +1,13 @@
 #include "Globals.h"
 
-#include "Blur.h"
+#include "GaussianBlur.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
 
 #include "Leaks.h"
 
-Blur::Blur()
+GaussianBlur::GaussianBlur()
 {
     const char* horizontalMacros[] = { "#define HORIZONTAL 1 \n" };
 
@@ -26,7 +26,7 @@ Blur::Blur()
     }
 }
 
-void Blur::Execute(const Texture2D *input, const Texture2D* output, uint width, uint height)
+void GaussianBlur::Execute(const Texture2D *input, const Texture2D* output, uint width, uint height)
 {
     if (!frameBuffer)
     {

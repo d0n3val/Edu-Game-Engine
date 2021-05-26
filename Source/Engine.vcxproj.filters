@@ -705,6 +705,12 @@
     <ClInclude Include="DepthPrepass.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="ScreenSpaceAO.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="GaussianBlur.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1275,6 +1281,12 @@
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="DepthPrepass.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenSpaceAO.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="GaussianBlur.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>

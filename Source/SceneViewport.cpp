@@ -14,6 +14,7 @@
 #include "ModuleLevelManager.h"
 #include "Postprocess.h"
 #include "DepthPrepass.h"
+#include "ScreenSpaceAO.h"
 
 #include "GameObject.h"
 
@@ -240,10 +241,19 @@ void SceneViewport::ShowTexture()
     }
     else
     {
+        /*
         ImGui::GetWindowDrawList()->AddImage(
-            (ImTextureID)App->renderer->GetDepthPrepass()->getDepthTexture()->Id(),
+            (ImTextureID)App->renderer->GetDepthPrepass()->getNormalTexture()->Id(),
             ImVec2(screenPos),
             ImVec2(screenPos.x + fb_width*0.4f, screenPos.y + fb_height*0.4f),
+            ImVec2(0, 1), ImVec2(1, 0));
+            */
+        
+
+        ImGui::GetWindowDrawList()->AddImage(
+            (ImTextureID)App->renderer->GetScreenSpaceAO()->getResult()->Id(),
+            ImVec2(screenPos),
+            ImVec2(screenPos.x + fb_width * 0.4f, screenPos.y + fb_height * 0.4f),
             ImVec2(0, 1), ImVec2(1, 0));
     }
 

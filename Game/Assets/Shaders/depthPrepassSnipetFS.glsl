@@ -13,13 +13,15 @@ in struct VertexOut
     vec3 position;
 } fragment;
 
+uniform mat4 model;
+
 --- MAIN
 
-// \todo: normal mapping
+// \todo: normal mapping ?? 
 
 void main()
 {
     position = vec4(fragment.position, 1.0);
-    normal = vec4(normalize(fragment.normal)*0.5+0.5, 1.0);
+    normal = vec4(normalize(fragment.normal), 1.0);
 }
 

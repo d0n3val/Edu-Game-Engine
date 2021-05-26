@@ -22,6 +22,7 @@ class Texture2D;
 class Framebuffer;
 class DefaultShader;
 class DepthPrepass;
+class ScreenSpaceAO;
 
 class ModuleRenderer : public Module
 {
@@ -58,6 +59,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<Buffer>         lightsUBO;
     std::unique_ptr<DefaultShader>  defaultShader;
     std::unique_ptr<DepthPrepass>   depthPrepass;
+    std::unique_ptr<ScreenSpaceAO>  ssao;
 
 public:
 
@@ -76,6 +78,7 @@ public:
     BatchManager*       GetBatchMananger            () const { return batch_manager.get(); }
     Postprocess*        GetPostprocess              () const { return postProcess.get(); }
     DepthPrepass*       GetDepthPrepass             () const { return depthPrepass.get(); }
+    ScreenSpaceAO*      GetScreenSpaceAO            () const { return ssao.get(); }
 
 private:
 
