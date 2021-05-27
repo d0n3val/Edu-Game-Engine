@@ -21,9 +21,45 @@
 #include "ComponentCamera.h"
 #include "GameObject.h"
 
+#include <variant>
+#include "visit_variant.h"
+
 #include "Leaks.h"
 
 using namespace std;
+
+
+namespace
+{
+
+	void DrawDHint(ModuleHints* module, const std::string& name, const ModuleHints::DValue& dvalue)
+	{
+		std::visit(overload{
+					   [name, &module](float value)
+					   {
+						   if (ImGui::InputFloat(name.c_str(), &value))
+						   {
+							   module->SetDHint(name, value);
+						   }
+					   },
+					   [name, &module](bool value)
+					   { 
+						   if (ImGui::Checkbox(name.c_str(), &value))
+						   {
+							   module->SetDHint(name, value);
+						   }
+					   },
+					   [name, &module](float2 value)
+					   { 
+						   if (ImGui::InputFloat2(name.c_str(), &value.x))
+						   {
+							   module->SetDHint(name, value);
+						   }
+					   },
+				   },
+				   dvalue);
+	}
+}
 
 // ---------------------------------------------------------
 PanelConfiguration::PanelConfiguration() : Panel("Configuration"),
@@ -499,6 +535,9 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
             module->SetIntValue(ModuleHints::SHADOW_PCF_SIZE, pcf_kernel_size > 0 ? pcf_kernel_size : 0);
         }
 	}
+
+	module->EnumerateDHints([&module](const std::string &name, const ModuleHints::DValue &value){ DrawDHint(module, name, value);});
+
 	ImGui::Separator();
 
 	bool show = module->GetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS);

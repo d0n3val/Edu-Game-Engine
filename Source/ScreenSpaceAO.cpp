@@ -2,6 +2,7 @@
 #include "ScreenSpaceAO.h"
 #include "Application.h"
 #include "ModuleRenderer.h"
+#include "ModuleHints.h"
 #include "DefaultShader.h"
 #include "DepthPrePass.h"
 #include "GaussianBlur.h"
@@ -32,7 +33,6 @@ ScreenSpaceAO::ScreenSpaceAO()
 
 ScreenSpaceAO::~ScreenSpaceAO()
 {
-
 }
 
 void ScreenSpaceAO::Execute()
@@ -53,15 +53,15 @@ void ScreenSpaceAO::Execute()
     program->BindTextureFromName("positions", 0, depthPrePass->getPositionTexture());
     program->BindTextureFromName("normals", 1, depthPrePass->getNormalTexture());
     program->BindUniformFromName("screenSize", float2(float(width), float(height)));
-    program->BindUniformFromName("radius", float(5.0f)); 
+    program->BindUniformFromName("radius", float(2.0f)); 
+    program->BindUniformFromName("bias", -std::get<float>(App->hints->GetDHint(std::string("SSAO bias"), 0.1f))); 
     program->BindUniformBlock("Camera", DefaultShader::CAMERA_UBO_TARGET);
     program->BindUniformBlock("Kernel", KERNEL_UBO_TARGET);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
     
-
     // \todo: use bilinear blur instead of gaussian blur
-    //blur->Execute(result.get(), blurred.get(), width, height);
+    blur->Execute(result.get(), blurred.get(), width, height);
 }
 
 void ScreenSpaceAO::ResizeFrameBuffer(uint width, uint height)
@@ -75,7 +75,7 @@ void ScreenSpaceAO::ResizeFrameBuffer(uint width, uint height)
 
         frameBuffer->ClearAttachments();
 
-        result = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RED, GL_FLOAT, nullptr, false);
+        result  = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RED, GL_FLOAT, nullptr, false);
         blurred = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RED, GL_FLOAT, nullptr, false);
        
         frameBuffer->AttachColor(result.get(), 0, 0); 

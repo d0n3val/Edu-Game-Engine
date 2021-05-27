@@ -51,9 +51,12 @@
 #include "SOIL2.h"
 #include "OpenGL.h"
 
+#include "visit_variant.h"
+
 #include <list>
 #include <algorithm>
 #include <variant>
+
 
 #include "Leaks.h"
 
@@ -61,10 +64,6 @@ using namespace std;
 
 #undef min
 #undef max
-
-// from  https://www.bfilipek.com/2018/09/visit-variants.html
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...)->overload<Ts...>;
 
 // ---------------------------------------------------------
 PanelProperties::PanelProperties() : Panel("Properties")

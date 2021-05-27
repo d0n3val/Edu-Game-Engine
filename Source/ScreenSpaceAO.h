@@ -28,7 +28,7 @@ public:
 
     void Execute();
 
-    const Texture2D* getResult() const { return result.get(); }
+    const Texture2D* getResult() const { return blurred.get(); }
 
 private:
     void ResizeFrameBuffer(uint width, uint height);

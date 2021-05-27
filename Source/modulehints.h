@@ -5,6 +5,10 @@
 
 #include "Math.h"
 
+#include<string>
+#include<unordered_map>
+#include<variant>
+
 class ModuleHints : public Module
 {
 public:
@@ -47,6 +51,8 @@ public:
 		COUNT
 	};
 
+    typedef std::variant<float, bool, float2> DValue;
+
 private:
 
     enum EType
@@ -69,28 +75,44 @@ private:
             int    i2value[2];
         }     value;
         EType type;
-
     } hints[COUNT];
+
+
+    struct DHint
+    {
+        std::string name;
+        DValue value;
+    };
+
+    typedef std::unordered_map<std::string, DValue> DList;
+
+    DList   dhints;
 
 public:
 
     ModuleHints();
     ~ModuleHints();
 
-    int     GetIntValue     (Hint hint) const;
-    void    SetIntValue     (Hint hint, int value);
+    void            SetDHint(const std::string& name, const DValue& value);
+    const DValue&   GetDHint(const std::string& name, const DValue& defaultDValue);
 
-    bool    GetBoolValue    (Hint hint) const;
-    void    SetBoolValue    (Hint hint, bool value);
+    template<class Callable>
+    void            EnumerateDHints(Callable&& function) const; 
 
-    float   GetFloatValue   (Hint hint) const;
-    void    SetFloatValue   (Hint hint, float value);
+    int             GetIntValue     (Hint hint) const;
+    void            SetIntValue     (Hint hint, int value);
 
-    float2  GetFloat2Value  (Hint hint) const;
-    void    SetFloat2Value  (Hint hint, const float2& value);
+    bool            GetBoolValue    (Hint hint) const;
+    void            SetBoolValue    (Hint hint, bool value);
 
-	bool    Init            (Config* config) override;
-	void    Save            (Config* config) const override;
+    float           GetFloatValue   (Hint hint) const;
+    void            SetFloatValue   (Hint hint, float value);
+
+    float2          GetFloat2Value  (Hint hint) const;
+    void            SetFloat2Value  (Hint hint, const float2& value);
+
+	bool            Init            (Config* config) override;
+	void            Save            (Config* config) const override;
 };
 
 inline bool ModuleHints::GetBoolValue(Hint hint) const
@@ -146,6 +168,10 @@ inline void ModuleHints::SetFloat2Value  (Hint hint, const float2& value)
     }
 }
 
-
+template <class Callable>
+void ModuleHints::EnumerateDHints(Callable &&function) const
+{
+    for(auto it = dhints.begin(); it != dhints.end(); ++it ) function(it->first, it->second);
+}
 
 #endif /* _HINTS_h_ */

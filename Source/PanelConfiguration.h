@@ -56,7 +56,7 @@ public:
 	void RecursiveDrawQuadtree(QuadtreeNode* node);
 
 private:
-    ImGuiTextBuffer input_buf;
+	ImGuiTextBuffer input_buf;
     bool need_scroll = false;
 	std::vector<float> fps_log;
 	std::vector<float> ms_log;

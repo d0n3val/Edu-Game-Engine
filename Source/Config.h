@@ -29,6 +29,7 @@ public:
 	size_t Save(char** buf, const char* title_comment) const;
 
 	int Size() const;
+
 	Config GetSection(const char* section_name) const;
 	Config AddSection(const char* section_name);
 
@@ -68,6 +69,8 @@ public:
 	float3  GetFloat3(const char* field, const float3& default = float3::zero);
 	bool    AddFloat4(const char* field, const float4& value);
 	float4  GetFloat4(const char* field, const float4& default = float4::zero);
+
+	JSON_Object* GetRoot() { return root; }
 
 private:
 	JSON_Value* FindValue(const char* field, int index) const;

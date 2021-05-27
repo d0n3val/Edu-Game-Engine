@@ -2,8 +2,41 @@
 #include "ModuleHints.h"
 
 #include "Config.h"
+#include "visit_variant.h"
+#include "parson.h"
 
 #include "Leaks.h"
+
+namespace
+{
+    ModuleHints::DValue ParseDValue(JSON_Value* value)
+    {
+        ModuleHints::DValue dvalue;
+
+        switch (json_value_get_type(value))
+        {
+        case JSONNumber:
+            dvalue = (float)json_value_get_number(value);
+            break;
+        case JSONArray:
+        {
+            JSON_Array* array = json_value_get_array(value);
+            assert(json_array_get_count(array) == 2 && json_value_get_type(json_array_get_value(array, 0)) == JSONNumber &&
+                json_value_get_type(json_array_get_value(array, 1)) == JSONNumber);
+
+            dvalue = float2((float)json_value_get_number(json_array_get_value(array, 0)), (float)json_value_get_number(json_array_get_value(array, 1)));
+            break;
+        }
+        case JSONBoolean:
+            dvalue = json_value_get_boolean(value) ? true : false;
+            break;
+        default:
+            break;
+        }
+
+        return dvalue;
+    }
+}
 
 ModuleHints::ModuleHints() : Module("Render Hints")
 {
@@ -134,6 +167,18 @@ void ModuleHints::Save(Config* config) const
     config->AddBool("Enable bloom", hints[ENABLE_BLOOM].value.bvalue);
 
     config->AddBool("Show billboards", hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue);
+
+    Config dHintsCfg = config->AddSection("DHits");
+
+    for(auto it = dhints.begin(); it != dhints.end(); ++it)
+    {
+        const std::string& name = it->first;
+        std::visit(overload {
+            [name, &dHintsCfg](float value) { dHintsCfg.AddFloat(name.c_str(), value);},
+            [name, &dHintsCfg](bool value)  { dHintsCfg.AddBool(name.c_str(), value);},
+            [name, &dHintsCfg](float2 value)  { dHintsCfg.AddFloat2(name.c_str(), value); },
+            }, it->second);
+    }
 }
 
 bool ModuleHints::Init(Config* config) 
@@ -175,6 +220,33 @@ bool ModuleHints::Init(Config* config)
 
     hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue = config->GetBool("Show billboards", false);
 
+    Config dHintsCfg = config->GetSection("DHits");
+    json_object_t* dHintsRoot = dHintsCfg.GetRoot();
+
+    for(int i=0, count = json_object_get_count(dHintsRoot) ; i< count; ++i)
+    {
+        const char *name = json_object_get_name(dHintsRoot, i);
+        dhints[std::string(name)] = ParseDValue(json_object_get_value_at(dHintsRoot, i));
+    }
+
     return true;
 }
 
+void ModuleHints::SetDHint(const std::string& name, const DValue& value)
+{
+    dhints[name] = value;
+}
+
+const ModuleHints::DValue& ModuleHints::GetDHint(const std::string& name, const DValue& defaultDValue) 
+{
+    auto it = dhints.find(name);
+
+    if(it != dhints.end())
+    {
+        return it->second;
+    }
+
+    dhints[name] = defaultDValue;
+
+    return defaultDValue;
+}
