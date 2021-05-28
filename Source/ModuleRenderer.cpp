@@ -55,13 +55,13 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     batch_manager = std::make_unique<BatchManager>();
     postProcess = std::make_unique<Postprocess>();
     defaultShader = std::make_unique<DefaultShader>();
-    depthPrepass = std::make_unique<DepthPrepass>();
-
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
 {
     ssao = std::make_unique<ScreenSpaceAO>();
+    depthPrepass = std::make_unique<DepthPrepass>();
+
     LoadDefaultShaders();
     postProcess->Init();
 
