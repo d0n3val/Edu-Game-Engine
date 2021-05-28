@@ -9,6 +9,8 @@
 #include "ModuleHints.h"
 #include "GameObject.h"
 #include "ComponentMeshRenderer.h"
+#include "ModuleRenderer.h"
+#include "ScreenSpaceAO.h"
 #include "ComponentCamera.h"
 #include "ResourceMaterial.h"
 #include "ResourceMesh.h"
@@ -126,6 +128,12 @@ void DefaultShader::UseDrawPass(uint flags)
     if(location >= 0)
     {
         glUniform1i(location, TextureCount + 2);
+    }
+
+    location = glGetUniformLocation(program->Id(), "ambientOcclusion");
+    if(location >= 0)
+    {
+        glUniform1i(location, TextureCount + 3);
     }
 
 	program->Use();
@@ -487,6 +495,9 @@ void DefaultShader::BindTextures(const ResourceMaterial* material) const
 
         glActiveTexture(GL_TEXTURE0+TextureCount+2);
         glBindTexture(GL_TEXTURE_2D, skybox->GetEnvironmentBRDF()->Id());
+
+        glActiveTexture(GL_TEXTURE0+TextureCount+3);
+        glBindTexture(GL_TEXTURE_2D, App->renderer->GetScreenSpaceAO()->getResult()->Id());
     }
 }
 

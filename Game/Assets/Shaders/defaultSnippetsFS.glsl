@@ -56,6 +56,7 @@ layout(std140) uniform Material
 
 uniform sampler2D materialMaps[MAP_COUNT];
 
+uniform sampler2D   ambientOcclusion;
 uniform samplerCube diffuseIBL;
 uniform samplerCube prefilteredIBL;
 uniform int         prefilteredLevels;
@@ -346,7 +347,14 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
     vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
     vec3 indirect   = (diffuse.rgb*(1-specular.rgb))*irradiance+radiance*(specular.rgb*fab.x+fab.y);
 
-    color += indirect*occlusion;
+
+    // Compute ambient occlusion
+    vec4 projectedPos = camera.proj*camera.view*vec4(fragment.position, 1.0);
+    vec2 occlusionUV  = (projectedPos.xy/projectedPos.w)*0.5+0.5;
+
+    vec3 occlusionFactor = vec3(texture(ambientOcclusion, occlusionUV).r);
+
+    color += indirect*occlusionFactor;
 
     color += emissive;
 

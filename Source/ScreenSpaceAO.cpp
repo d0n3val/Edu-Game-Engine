@@ -13,7 +13,7 @@
 #include <random>
 
 #define KERNEL_UBO_TARGET 5
-#define KERNEL_SIZE 64
+#define KERNEL_SIZE 128
 #define RANDOM_SIZE 16
 
 ScreenSpaceAO::ScreenSpaceAO()
@@ -53,15 +53,17 @@ void ScreenSpaceAO::Execute()
     program->BindTextureFromName("positions", 0, depthPrePass->getPositionTexture());
     program->BindTextureFromName("normals", 1, depthPrePass->getNormalTexture());
     program->BindUniformFromName("screenSize", float2(float(width), float(height)));
-    program->BindUniformFromName("radius", float(2.0f)); 
+    program->BindUniformFromName("radius", std::get<float>(App->hints->GetDHint(std::string("SSAO radius"), 2.0f))); 
     program->BindUniformFromName("bias", -std::get<float>(App->hints->GetDHint(std::string("SSAO bias"), 0.1f))); 
     program->BindUniformBlock("Camera", DefaultShader::CAMERA_UBO_TARGET);
     program->BindUniformBlock("Kernel", KERNEL_UBO_TARGET);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
     
-    // \todo: use bilinear blur instead of gaussian blur
-    blur->Execute(result.get(), blurred.get(), width, height);
+    if(std::get<bool>(App->hints->GetDHint(std::string("SSAO blur"), true)))
+    {
+        blur->Execute(result.get(), blurred.get(), width, height);
+    }
 }
 
 void ScreenSpaceAO::ResizeFrameBuffer(uint width, uint height)
@@ -139,4 +141,14 @@ void ScreenSpaceAO::GenerateKernelUBO()
         kernel = std::make_unique<Buffer>(GL_UNIFORM_BUFFER, GL_STATIC_DRAW, sizeof(kernelData), &kernelData);
         kernel->BindToTargetIdx(KERNEL_UBO_TARGET);
     }
+}
+
+const Texture2D* ScreenSpaceAO::getResult() const
+{
+    //if(std::get<bool>(App->hints->GetDHint(std::string("SSAO blur"), true)))
+    {
+        return blurred.get();
+    }
+
+    //return result.get();
 }

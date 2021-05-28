@@ -711,6 +711,9 @@
     <ClInclude Include="GaussianBlur.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="BilinearBlur.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1287,6 +1290,9 @@
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="GaussianBlur.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="BilinearBlur.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>

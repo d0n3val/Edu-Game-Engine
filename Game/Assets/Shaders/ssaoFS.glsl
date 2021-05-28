@@ -1,8 +1,8 @@
 #version 440
 
-#define KERNEL_SIZE 64
-#define RANDOM_ROWS 4 
-#define RANDOM_COLS 4 
+#define KERNEL_SIZE 128
+#define RANDOM_ROWS 4
+#define RANDOM_COLS 4
 
 out vec4 result;
 in vec2 uv;
@@ -24,7 +24,7 @@ layout(std140, row_major) uniform Camera
 layout(std140) uniform Kernel
 {
     vec4 offsets[KERNEL_SIZE];
-    vec4 rots[RANDOM_SIZE];
+    vec4 rots[RANDOM_ROWS*RANDOM_COLS];
 
 } kernel;
 
