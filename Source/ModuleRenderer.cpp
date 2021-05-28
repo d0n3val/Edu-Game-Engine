@@ -123,7 +123,7 @@ ModuleRenderer::~ModuleRenderer()
 
 }
 
-void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height)
+void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
     defaultShader->UpdateCameraUBO(camera);
     defaultShader->UpdateLightUBO(App->level);
@@ -141,7 +141,12 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, uns
     depthPrepass->Execute(defaultShader.get(), render_list, width, height);
     ssao->Execute();
 
-    ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), fbo, width, height);
+    frameBuffer->AttachDepthStencil(depthPrepass->getDepthTexture(), GL_DEPTH_ATTACHMENT);
+    assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+    glDepthMask(GL_FALSE);
+    ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), frameBuffer, width, height);
+    glDepthMask(GL_TRUE);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
@@ -233,12 +238,13 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
     }
 }
 
-void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, unsigned fbo, unsigned width, unsigned height)
+void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    frameBuffer->Bind();    
     glViewport(0, 0, width, height);
 
     App->level->GetSkyBox()->Draw(proj, view);
+    glDepthFunc(GL_LEQUAL);
 
     uint flags = 0;
 

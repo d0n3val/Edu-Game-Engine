@@ -75,7 +75,10 @@ void Skybox::DrawPrefilteredIBL(const float4x4& proj, const float4x4& view, floa
 
 void Skybox::SetCubemap(UID uid)
 {
-    const int IBL_RESOLUTION = 512;
+    const int ENVIRONMENT_BRDF_RESOLUTION = 512;
+    const int DIFFUSE_IBL_RESOLUTION = 512;
+    const int PREFILTERED_IBL_RESOLUTION = 2048;
+    const int PREFILTERED_IBL_LEVELS = 6; // 128x128
 
     if(cubemap != 0)
     {
@@ -100,12 +103,14 @@ void Skybox::SetCubemap(UID uid)
     {
         assert(res->GetType() == ResourceTexture::TextureCube);
 
-        diffuseIBL.reset(utils.DiffuseIBL(static_cast<TextureCube*>(res->GetTexture()), IBL_RESOLUTION, IBL_RESOLUTION));
-        prefilteredIBL.reset(utils.PrefilteredSpecular(static_cast<TextureCube*>(res->GetTexture()), IBL_RESOLUTION, IBL_RESOLUTION, prefilteredLevels));
+        prefilteredLevels = PREFILTERED_IBL_LEVELS; 
+
+        diffuseIBL.reset(utils.DiffuseIBL(static_cast<TextureCube*>(res->GetTexture()), DIFFUSE_IBL_RESOLUTION, DIFFUSE_IBL_RESOLUTION));
+        prefilteredIBL.reset(utils.PrefilteredSpecular(static_cast<TextureCube*>(res->GetTexture()), PREFILTERED_IBL_RESOLUTION, PREFILTERED_IBL_RESOLUTION, prefilteredLevels));
 
         if(!environmentBRDF)
         {
-            environmentBRDF.reset(utils.EnvironmentBRDF(IBL_RESOLUTION, IBL_RESOLUTION));
+            environmentBRDF.reset(utils.EnvironmentBRDF(ENVIRONMENT_BRDF_RESOLUTION, ENVIRONMENT_BRDF_RESOLUTION));
         }
     }
 }

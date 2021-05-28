@@ -26,7 +26,7 @@ public:
     void         RenderSkyboxLod        (TextureCube* cubemap, const float4x4& proj, const float4x4& view, float lod);
 
     TextureCube* DiffuseIBL             (TextureCube* texture, uint width, uint height);
-    TextureCube* PrefilteredSpecular    (TextureCube* texture, uint width, uint height, uint& prefilteredLevels);
+    TextureCube* PrefilteredSpecular    (TextureCube* texture, uint width, uint height, uint prefilteredLevels);
     Texture2D*   EnvironmentBRDF        (uint width, uint height);
 
     TextureCube* ConvertToCubemap   (Texture2D* texture, uint width, uint height);

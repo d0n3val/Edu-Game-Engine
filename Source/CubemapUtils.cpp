@@ -111,7 +111,7 @@ TextureCube* CubemapUtils::DiffuseIBL(TextureCube* texture, uint width, uint hei
     return RenderCube(diffuseIBL.get(), texture, width, height);
 }
 
-TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width, uint height, uint& prefilteredLevels)
+TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width, uint height, uint prefilteredLevels)
 {
     if (!vao) Init();
 
@@ -128,7 +128,6 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width,
     Framebuffer frameBuffer;
     TextureCube* cubeMap = new TextureCube();
 
-    prefilteredLevels = min(uint(logf(float(width)) / logf(2.0f)), uint(logf(float(height)) / logf(2.0f)));
     // initialize each cubemap plane
     for (uint i = 0; i < 6; ++i)
     {
@@ -180,6 +179,7 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width,
 Texture2D* CubemapUtils::EnvironmentBRDF(uint width, uint height)
 {
     Texture2D* texture = new Texture2D(width, height, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
+    texture->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
     Framebuffer frameBuffer;
 

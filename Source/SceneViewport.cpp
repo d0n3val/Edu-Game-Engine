@@ -113,7 +113,7 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         glStencilMask(0x00);
         glStencilFunc(GL_ALWAYS, 0, 0XFF);
 
-        App->renderer->Draw(camera, culling, framebuffer->Id(), fb_width, fb_height);
+        App->renderer->Draw(camera, culling, framebuffer, fb_width, fb_height);
         App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
         DrawSelection(camera, framebuffer);
@@ -247,14 +247,14 @@ void SceneViewport::ShowTexture()
             ImVec2(screenPos),
             ImVec2(screenPos.x + fb_width*0.4f, screenPos.y + fb_height*0.4f),
             ImVec2(0, 1), ImVec2(1, 0));
-            */
-        
 
         ImGui::GetWindowDrawList()->AddImage(
             (ImTextureID)App->renderer->GetScreenSpaceAO()->getResult()->Id(),
             ImVec2(screenPos),
             ImVec2(screenPos.x + fb_width * 0.6f, screenPos.y + fb_height * 0.6f),
             ImVec2(0, 1), ImVec2(1, 0));
+        */
+
     }
 
 }
@@ -290,6 +290,7 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
 
     if(depth)
     {
+        /*
         if(msaa)
         {
             buffer.texture_depth = std::make_unique<Texture2D>(4, w, h, GL_DEPTH24_STENCIL8, true);
@@ -298,8 +299,9 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
         {
             buffer.texture_depth = std::make_unique<Texture2D>(w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         }
+        */
 
-        buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_STENCIL_ATTACHMENT);
+        //buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_STENCIL_ATTACHMENT);
     }
 
     assert(buffer.framebuffer->Check() == GL_FRAMEBUFFER_COMPLETE);

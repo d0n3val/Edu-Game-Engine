@@ -326,7 +326,7 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
 {
     vec3 V           = normalize(camera.view_pos-pos);
     vec3 R           = reflect(-V, normal);
-    float NdotV      = max(dot(normal, V), 0.0);
+    float NdotV      = max(dot(normal, V), 0.00001);
     float roughness  = Sq(1.0-smoothness); 
     
     vec3 color = Directional(normal, V, lights.directional, diffuse.rgb, specular.rgb, roughness);
@@ -343,7 +343,7 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
 
     // Add Indirect lighting 
     vec3 irradiance = texture(diffuseIBL, normal).rgb;
-    vec3 radiance   = textureLod(prefilteredIBL, R, roughness*prefilteredLevels).rgb;
+    vec3 radiance   = textureLod(prefilteredIBL, R, roughness*(prefilteredLevels-1)).rgb;
     vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
     vec3 indirect   = (diffuse.rgb*(1-specular.rgb))*irradiance+radiance*(specular.rgb*fab.x+fab.y);
 

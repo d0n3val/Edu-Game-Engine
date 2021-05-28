@@ -249,7 +249,7 @@ void Framebuffer::ClearAttachments()
     Unbind();
 }
 
-void Framebuffer::AttachColor(TextureCube* texture, uint face, uint attachment, uint mip_level)
+void Framebuffer::AttachColor(const TextureCube* texture, uint face, uint attachment, uint mip_level)
 {
     Bind();
 
@@ -262,7 +262,7 @@ void Framebuffer::AttachColor(TextureCube* texture, uint face, uint attachment, 
     Unbind();
 }
 
-void Framebuffer::AttachDepthStencil(Texture2D* texture, uint attachment) 
+void Framebuffer::AttachDepthStencil(const Texture2D* texture, uint attachment) 
 {
     Bind();
 
