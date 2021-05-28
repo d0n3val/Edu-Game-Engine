@@ -67,7 +67,7 @@ public:
     ~ModuleRenderer();
 
 	bool                Init                        (Config* config = nullptr) override;
-    void                Draw                        (ComponentCamera* camera, ComponentCamera* culling, unsigned fbo, unsigned width, unsigned height);
+    void                Draw                        (ComponentCamera* camera, ComponentCamera* culling,  Framebuffer* frameBuffer, unsigned width, unsigned height);
     void                DrawForSelection            (ComponentCamera* camera);
 
 	void                DrawDebug                   () override;
@@ -83,7 +83,7 @@ public:
 private:
 
     void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);
-    void                ColorPass                   (const float4x4& proj, const float4x4& view, unsigned fbo, unsigned width, unsigned height);
+    void                ColorPass                   (const float4x4& proj, const float4x4& view, Framebuffer* frameBuffer, unsigned width, unsigned height);
     void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();
