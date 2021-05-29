@@ -33,7 +33,6 @@ vec3 GetTexel(in vec2 uv)
 
 void main()
 {
-
     color = vec4(GetTexel(uv), 1.0);
 
     float bright = dot(color.rgb, vec3(0.3, 0.6, 0.2));

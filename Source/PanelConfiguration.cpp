@@ -415,7 +415,7 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
     }
 
     int tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
-    const char* names[] = { "Uncharted 2", "Reinhard", "None" };
+    const char* names[] = { "Uncharted 2", "Reinhard", "ACES", "None" };
     if(ImGui::Combo("Tonemapping", &tonemapping, names, sizeof(names)/sizeof(char*)))
     {
         module->SetIntValue(ModuleHints::TONEMAPPING, tonemapping);

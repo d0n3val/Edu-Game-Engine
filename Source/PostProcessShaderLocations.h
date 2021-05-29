@@ -17,6 +17,7 @@ enum PostprocessSubroutineIndex
 {
     TONEMAP_UNCHARTED2 = 0,
     TONEMAP_REINHARD,
+    TONEMAP_ACES,
     TONEMAP_NONE
 };
 
