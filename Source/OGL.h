@@ -42,7 +42,9 @@ public:
     Texture2D(uint target, uint tex);
     Texture2D(uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps);
     Texture2D(uint samples, uint width, uint height, uint internal_format, bool fixed_samples);
+    Texture2D(uint widht, uint height, uint internalFormat, uint compressedSize, void* compressedData, bool mipmaps);
 
+    void SetCompressedData(uint widht, uint height, uint internalFormat, uint compressedSize, void* compressedData, bool mipMaps);
     void SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data);
     void SetDefaultRGBAData(uint width, uint height, void* data);
 

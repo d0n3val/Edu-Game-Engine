@@ -62,8 +62,8 @@ void main()
     gl_Position = camera.proj*camera.view*vec4(fragment.position, 1.0);
 
 #ifdef DEPTH_PREPASS
-    fragment.position = (camera.view*vec4(fragment.position, 1.0)).xyz;
-    fragment.normal   = mat3(camera.view)*fragment.normal;
+    //fragment.position = (camera.view*vec4(fragment.position, 1.0)).xyz;
+    //fragment.normal   = mat3(camera.view)*fragment.normal;
 #else
     fragment.uv0      = vertex_uv0;
     fragment.uv1      = vertex_uv1;

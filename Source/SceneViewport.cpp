@@ -253,7 +253,7 @@ void SceneViewport::ShowTexture()
         ImGui::GetWindowDrawList()->AddImage(
             (ImTextureID)App->renderer->GetScreenSpaceAO()->getResult()->Id(),
             ImVec2(screenPos),
-            ImVec2(screenPos.x + fb_width * 0.6f, screenPos.y + fb_height * 0.6f),
+            ImVec2(screenPos.x + fb_width , screenPos.y + fb_height ),
             ImVec2(0, 1), ImVec2(1, 0));
             */
     }

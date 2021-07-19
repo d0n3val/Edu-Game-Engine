@@ -59,8 +59,8 @@ uniform sampler2D materialMaps[MAP_COUNT];
 uniform sampler2D   ambientOcclusion;
 uniform samplerCube diffuseIBL;
 uniform samplerCube prefilteredIBL;
-uniform int         prefilteredLevels;
 uniform sampler2D   environmentBRDF;
+uniform int         prefilteredLevels;
 
 struct AmbientLight
 {
@@ -122,6 +122,7 @@ mat3 CreateTBN(const vec3 normal, const vec3 tangent);
 void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive, out vec3 normal);
 vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specular, float smoothness, vec3 occlusion, vec3 emissive);
 vec3 ComputeShadow(in vec3 color);
+vec3 applyFog( in vec3  rgb, in float dist, in vec3 rayOrig, in vec3 rayDir);
 
 --- MAIN
 
@@ -148,8 +149,19 @@ void main()
 
     color.rgb = ComputeShadow(color.rgb);
 
+    //color.rgb = applyFog(color.rgb, distance(fragment.position, camera.view_pos), camera.view_pos, normalize(fragment.position-camera.view_pos));
+
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
+}
+
+vec3 applyFog( in vec3  rgb, in float dist, in vec3 rayOrig, in vec3 rayDir) 
+{
+    float b = 0.2;
+    float a = 0.02;
+    float fogAmount = (a/b) * exp(-rayOrig.y*b) * (1.0-exp( -dist*rayDir.y*b ))/rayDir.y;
+    vec3  fogColor  = vec3(0.5,0.6,0.7);
+    return mix( rgb, fogColor, fogAmount );
 }
 
 void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive, out vec3 normal)
@@ -250,30 +262,32 @@ vec3 GetFresnel(vec3 dir0, vec3 dir1, const vec3 f0)
     return f0+(1-f0)*pow(1.0-cos_theta, 5.0);
 }
 
+// from filament
 float GGXNDF(float roughness, float NdotH)
 {
-    float sq_rough = Sq(roughness);
-    float sq_ndoth = Sq(NdotH);
-    
-    return sq_rough/(PI*Sq(sq_ndoth*(sq_rough-1.0)+1.0));
+    float a = NdotH*roughness;
+    float k = roughness/(1.0-NdotH*NdotH+a*a);
+    return k*k*(1.0/PI);
 }
 
+// from filament (note: no opt)
 float SMITHVSF(float NdotL, float NdotV, float roughness)
 {
-    float GGXV = NdotL * (NdotV * (1.0 - roughness) + roughness);
-    float GGXL = NdotV * (NdotL * (1.0 - roughness) + roughness);
-    return 0.5 / max(0.00001, (GGXV + GGXL));
+    float a2 = roughness * roughness;
+    float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - a2) + a2);
+    float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - a2) + a2);
+    return 0.5 / (GGXV + GGXL);
 }
 
 vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, const vec3 light_color, 
                 const vec3 diffuseColor, const vec3 specularColor, float roughness, float att)
 {
-    float dotNL      = max(dot(normal, light_dir), 0.000001);
-    float dotNV      = max(dot(normal, view_dir), 0.000001);
+    float dotNL      = max(dot(normal, light_dir), 0.001);
+    float dotNV      = max(dot(normal, view_dir), 0.001);
 
     vec3 half_dir    = normalize(view_dir+light_dir);
     vec3 fresnel     = GetFresnel(light_dir, half_dir, specularColor);
-    float ndf        = GGXNDF(roughness, max(0.000001, dot(half_dir, normal)));
+    float ndf        = GGXNDF(roughness, max(0.001, dot(half_dir, normal)));
     float vsf        = SMITHVSF(dotNL, dotNV, roughness);
 
     return (diffuseColor*(1-specularColor)+(fresnel*ndf*vsf))*light_color*dotNL*att;

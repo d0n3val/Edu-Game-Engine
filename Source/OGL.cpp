@@ -108,7 +108,25 @@ Texture2D::Texture2D(uint width, uint height, uint internal_format, uint format,
     glBindTexture(tex_target, 0);
 }
 
-void Texture2D::SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data)
+Texture2D::Texture2D(uint width, uint height, uint internalFormat, uint compressedSize, void* compressedData, bool mipmaps) : Texture(GL_TEXTURE_2D)
+{
+    glBindTexture(tex_target, texture);
+
+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, compressedSize, compressedData);
+    
+    DefaultInitializeTexture(mipmaps);
+
+    glBindTexture(tex_target, 0);
+}
+
+void Texture2D::SetCompressedData(uint width, uint height, uint internalFormat, uint compressedSize, void *compressedData, bool mipMaps)
+{
+    glBindTexture(tex_target, texture);
+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, compressedSize, compressedData);
+    glBindTexture(tex_target, 0);
+}
+
+void Texture2D::SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void *data)
 {
     glBindTexture(tex_target, texture);
     glTexImage2D(tex_target, mip_level, internal_format, width, height, 0, format, type, data);

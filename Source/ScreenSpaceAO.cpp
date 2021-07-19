@@ -145,10 +145,10 @@ void ScreenSpaceAO::GenerateKernelUBO()
 
 const Texture2D* ScreenSpaceAO::getResult() const
 {
-    //if(std::get<bool>(App->hints->GetDHint(std::string("SSAO blur"), true)))
+    if(std::get<bool>(App->hints->GetDHint(std::string("SSAO blur"), true)))
     {
         return blurred.get();
     }
 
-    //return result.get();
+    return result.get();
 }

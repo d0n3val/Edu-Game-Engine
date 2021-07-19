@@ -1,0 +1,11 @@
+Model Information:
+* title:	Wizard Bedroom
+* source:	https://sketchfab.com/3d-models/wizard-bedroom-037cff6ffd264318964b1bc3f758fccc
+* author:	Dunks_ (https://sketchfab.com/Dunks_)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Wizard Bedroom" (https://sketchfab.com/3d-models/wizard-bedroom-037cff6ffd264318964b1bc3f758fccc) by Dunks_ (https://sketchfab.com/Dunks_) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

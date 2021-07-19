@@ -35,6 +35,15 @@
 #define MAX_BONES 64
 #define MAX_MORPH_TARGETS 128
 
+enum ETotalTextureMaps
+{
+    TextureMap_DiffuseIBL = TextureCount,
+    TextureMap_PrefilteredIBL,
+    TextureMap_EnvironMentBRDF,
+    TextureMap_AO,
+    TextureMap_Count
+};
+
 static const char* variationsOn[]  = { "SKINING", "MORPH", "NO_SHADOW", "PHONG" };
 static const char* variationsOff[] = { "NO_SKINING", "NO_MORPH", "SHADOW", "NO_PHONG" };
 
@@ -109,13 +118,13 @@ void DefaultShader::UseDrawPass(uint flags)
     location = glGetUniformLocation(program->Id(), "diffuseIBL");
     if(location >= 0)
     {
-        glUniform1i(location, TextureCount+0);
+        glUniform1i(location, TextureMap_DiffuseIBL);
     }
 
     location = glGetUniformLocation(program->Id(), "prefilteredIBL");
     if(location >= 0)
     {
-        glUniform1i(location, TextureCount + 1);
+        glUniform1i(location, TextureMap_PrefilteredIBL);
     }
 
     location = glGetUniformLocation(program->Id(), "prefilteredLevels");
@@ -127,13 +136,13 @@ void DefaultShader::UseDrawPass(uint flags)
     location = glGetUniformLocation(program->Id(), "environmentBRDF");
     if(location >= 0)
     {
-        glUniform1i(location, TextureCount + 2);
+        glUniform1i(location, TextureMap_EnvironMentBRDF);
     }
 
     location = glGetUniformLocation(program->Id(), "ambientOcclusion");
     if(location >= 0)
     {
-        glUniform1i(location, TextureCount + 3);
+        glUniform1i(location, TextureMap_AO);
     }
 
 	program->Use();
@@ -488,15 +497,15 @@ void DefaultShader::BindTextures(const ResourceMaterial* material) const
         }
 
         Skybox* skybox = App->level->GetSkyBox();
-        glActiveTexture(GL_TEXTURE0+TextureCount+0);
+        glActiveTexture(GL_TEXTURE0+TextureMap_DiffuseIBL);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetDiffuseIBL()->Id());
-        glActiveTexture(GL_TEXTURE0+TextureCount+1);
+        glActiveTexture(GL_TEXTURE0+TextureMap_PrefilteredIBL);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetPrefilterdIBL()->Id());
 
-        glActiveTexture(GL_TEXTURE0+TextureCount+2);
+        glActiveTexture(GL_TEXTURE0+TextureMap_EnvironMentBRDF);
         glBindTexture(GL_TEXTURE_2D, skybox->GetEnvironmentBRDF()->Id());
 
-        glActiveTexture(GL_TEXTURE0+TextureCount+3);
+        glActiveTexture(GL_TEXTURE0+TextureMap_AO);
         glBindTexture(GL_TEXTURE_2D, App->renderer->GetScreenSpaceAO()->getResult()->Id());
     }
 }

@@ -14,20 +14,36 @@
 
 #include "Leaks.h"
 
+#include <assert.h>
+#include <algorithm>
+#include <set>
+#include <unordered_set>
+
 #pragma comment( lib, "Devil/libx86/DevIL.lib" )
 #pragma comment( lib, "Devil/libx86/ILU.lib" )
 #pragma comment( lib, "Devil/libx86/ILUT.lib" )
 
 using namespace std;
 
+#ifdef max 
+#undef max
+#endif
+
 namespace
 {
-    bool LoadImage(const void* buffer, uint size, ILuint& image, uint flip_origin = IL_ORIGIN_UPPER_LEFT)
+
+    bool LoadImage(const void* buffer, uint size, ILuint& image, bool& compressed, uint flip_origin = IL_ORIGIN_UPPER_LEFT)
     {
         ilGenImages(1, &image);
         ilBindImage(image);
 
-        if (ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size))
+        bool ok = compressed = ilLoadL(IL_DDS, (const void*)buffer, size);
+        if (!compressed)
+        {
+            ok = ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size);;
+        }
+
+        if (ok)
         {
             GLuint textureId = 0;
 
@@ -145,17 +161,18 @@ bool ModuleTextures::Import(const char* file, string& output_file, bool compress
 
 bool ModuleTextures::Import(const void * buffer, uint size, string& output_file, bool compressed, bool toCubemap)
 {
-    return toCubemap ? ImportToCubemap(buffer, size, output_file, compressed) : Import(buffer, size, output_file, compressed);
+    return toCubemap ? ImportToCubemap(buffer, size, output_file) : Import(buffer, size, output_file, compressed);
 }
 
-bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& output_file, bool compressed)
+bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& output_file)
 {
 	bool ret = buffer  != nullptr;
     uint8_t* output_buffer = nullptr;
     uint output_size    = 0;
 
     ILuint image;
-    if(ret && (ret = LoadImage(buffer, size, image, IL_ORIGIN_UPPER_LEFT)))
+    bool compressed;
+    if(ret && (ret = LoadImage(buffer, size, image, compressed, IL_ORIGIN_UPPER_LEFT)))
     {
         std::unique_ptr<Texture2D> texture = std::make_unique<Texture2D>(ilGetInteger(IL_IMAGE_WIDTH), 
                 ilGetInteger(IL_IMAGE_HEIGHT), 
@@ -306,14 +323,29 @@ bool ModuleTextures::Load(ResourceTexture* resource)
         if(resource->type == ResourceTexture::Texture2D)
         {
             ILuint image;
+            
 
-            if(LoadImage(buffer, total_size, image, IL_ORIGIN_UPPER_LEFT))
+            if(LoadImage(buffer, total_size, image, resource->compressed, IL_ORIGIN_UPPER_LEFT))
             {
                 resource->width = ilGetInteger(IL_IMAGE_WIDTH);
                 resource->height = ilGetInteger(IL_IMAGE_HEIGHT);
-                resource->texture = std::make_unique<Texture2D>(resource->width, resource->height, 
-                                                                !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT), 
-                                                                ilGetInteger(IL_IMAGE_TYPE), ilGetData(), resource->has_mips);
+
+                if(resource->compressed)
+                {
+                    ILuint compressedSize = ilGetDXTCData(nullptr, 0, IL_DXT5);
+                    char *compressedData = new char[compressedSize];
+                    ilGetDXTCData(compressedData, compressedSize, IL_DXT5);
+
+                    resource->texture = std::make_unique<Texture2D>(resource->width, resource->height,
+                                                                    !resource->GetLinear() ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 
+                                                                    compressedSize, compressedData, resource->has_mips);
+                }
+                else
+                {
+                    resource->texture = std::make_unique<Texture2D>(resource->width, resource->height,
+                                                                    !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT),
+                                                                    ilGetInteger(IL_IMAGE_TYPE), ilGetData(), resource->has_mips);
+                }
             }
             ilDeleteImages(1, &image);
         }
@@ -328,8 +360,8 @@ bool ModuleTextures::Load(ResourceTexture* resource)
                 buffer += sizeof(uint32_t);
 
                 ILuint image;
-
-                if(LoadImage(buffer, size, image, IL_ORIGIN_UPPER_LEFT))
+                bool compressed;
+                if(LoadImage(buffer, size, image, compressed, IL_ORIGIN_UPPER_LEFT))
                 {
                     cube->SetData(i, 0, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT),
                         !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA,
@@ -487,8 +519,8 @@ bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], c
         ret = buffer != nullptr;
 
         ILuint image;
-
-        ret = ret && LoadImage(buffer, size, image, IL_ORIGIN_LOWER_LEFT);
+        bool compressed; 
+        ret = ret && LoadImage(buffer, size, image, compressed, IL_ORIGIN_LOWER_LEFT);
 
         if(ret)
         {

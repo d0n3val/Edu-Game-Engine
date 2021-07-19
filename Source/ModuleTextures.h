@@ -35,7 +35,7 @@ public:
 private:
 	bool Import(const void* buffer, uint size, bool compressed, uint header_size, void*& output_buffer, uint& output_size);
 	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);
-    bool ImportToCubemap(const void* buffer, uint size, std::string& output_file, bool compressed);
+    bool ImportToCubemap(const void* buffer, uint size, std::string& output_file);
 };
 
 #endif // __MODULETEXTURES_H__

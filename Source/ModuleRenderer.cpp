@@ -128,15 +128,12 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     defaultShader->UpdateCameraUBO(camera);
     defaultShader->UpdateLightUBO(App->level);
 
-    //UpdateLightUBO();
-    //UpdateCameraUBO(camera);
-
     render_list.UpdateFrom(culling, App->level->GetRoot()); // App->level->quadtree.root);
 
-    //if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
-    //{
-        //ShadowPass(camera, width, height);
-    //}
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
+    {
+        ShadowPass(camera, width, height);
+    }
 
     depthPrepass->Execute(defaultShader.get(), render_list, width, height);
     ssao->Execute();
@@ -499,121 +496,6 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("showtexture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/fullscreenTextureFS.glsl", nullptr, 0);
     App->programs->Load("convert_texture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/convertMetallicTextureFS.glsl", nullptr, 0);
     //App->programs->Load("postprocess", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/postprocess.glsl", nullptr, 0);
-}
-
-void ModuleRenderer::UpdateLightUBO() 
-{
-    struct AmbientLightData
-    {
-        float4 color;
-    };
-
-    struct DirLightData
-    {
-        float4 dir;
-        float4 color;
-    };
-
-    struct PointLightData
-    {
-        float4 position;
-        float4 color;
-        float4 attenuation;
-    };
-
-    struct SpotLightData
-    {
-        float4 position;
-        float4 direction;
-        float4 color;
-        float4 attenuation;
-        float inner;
-        float outer;
-    };
-
-    struct LightsData
-    {
-        AmbientLightData ambient;
-        DirLightData     directional;
-        PointLightData   points[MAX_NUM_POINT_LIGHTS];
-        uint             num_point;
-        SpotLightData    spots[MAX_NUM_SPOT_LIGHTS];
-        uint             num_spot;
-    };
-
-    if(!lightsUBO)
-    {
-        lightsUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(LightsData), nullptr));
-    }
-
-    LightsData data;
-
-    const DirLight* directional = App->level->GetDirLight();
-    const AmbientLight* ambient = App->level->GetAmbientLight();
-
-    data.ambient.color     =  float4(ambient->GetColor(), 1.0);
-    data.directional.dir   =  float4(directional->GetDir(), 0.0);
-    data.directional.color =  float4(directional->GetColor(), 1.0);
-
-    data.num_point = 0;
-
-    for(uint i=0, count = min(App->level->GetNumPointLights(), MAX_NUM_POINT_LIGHTS); i < count; ++i)
-    {
-        const PointLight* light = App->level->GetPointLight(i);
-
-        if(light->GetEnabled())
-        {
-            uint index = data.num_point++;
-
-            data.points[index].position    = float4(light->GetPosition(), 0.0);
-            data.points[index].color       = float4(light->GetColor(), 0.0);
-            data.points[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0);
-        }
-    }
-
-    data.num_spot = 0;
-
-    for(uint i=0, count = min(App->level->GetNumSpotLights(), MAX_NUM_SPOT_LIGHTS); i< count; ++i)
-    {
-        const SpotLight* light = App->level->GetSpotLight(i);
-
-        if(light->GetEnabled())
-        {
-            uint index = data.num_spot++;
-
-            data.spots[index].position    = float4(light->GetPosition(), 0.0f);
-            data.spots[index].direction   = float4(light->GetDirection(), 0.0f);
-            data.spots[index].color       = float4(light->GetColor(), 1.0);
-            data.spots[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0f);
-            data.spots[index].inner       = light->GetInnerCutoff();
-            data.spots[index].outer       = light->GetOutterCutoff();
-        }
-    }
-
-    lightsUBO->SetData(0, sizeof(LightsData), &data);
-    lightsUBO->BindToTargetIdx(2);
-}
-
-void ModuleRenderer::UpdateCameraUBO(ComponentCamera* camera)
-{
-    struct CameraData
-    {
-        float4x4 proj     = float4x4::identity;
-        float4x4 view     = float4x4::identity;
-        float3   view_pos = float3::zero;
-    } cameraData;
-
-    if(!cameraUBO)
-    {
-        cameraUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(cameraData), nullptr));
-    }
-
-    cameraData.proj     = camera->GetProjectionMatrix();  
-    cameraData.view     = camera->GetViewMatrix();
-    cameraData.view_pos = cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart());
-
-    cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
-    cameraUBO->BindToTargetIdx(0);
 }
 
 void ModuleRenderer::DrawDebug()

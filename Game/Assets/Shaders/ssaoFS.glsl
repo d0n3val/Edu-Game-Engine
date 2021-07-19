@@ -24,7 +24,7 @@ layout(std140, row_major) uniform Camera
 layout(std140) uniform Kernel
 {
     vec4 offsets[KERNEL_SIZE];
-    vec4 rots[RANDOM_ROWS*RANDOM_COLS];
+    vec4 rots[RANDOM_ROWS][RANDOM_COLS];
 
 } kernel;
 
@@ -49,8 +49,8 @@ void main()
     vec3 normal       = normalize(texture(normals, uv).xyz);
 
     vec2 screenPos    = uv*screenSize;
-    int rotIndex      = int(mod(screenPos.y, RANDOM_ROWS)*4.0+mod(screenSize.x, RANDOM_COLS));
-    mat3 tangentSpace = createTangentSpace(normal, kernel.rots[rotIndex].xyz);
+    ivec2 rotIndex    = ivec2(int(mod(screenPos.y, RANDOM_ROWS)), int(mod(screenPos.x, RANDOM_COLS)));
+    mat3 tangentSpace = createTangentSpace(normal, kernel.rots[rotIndex.x][rotIndex.y].xyz);
 
     int occlusion     = 0;
 

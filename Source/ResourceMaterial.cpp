@@ -251,7 +251,8 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         m->textures[TextureDiffuse] = App->resources->ImportTexture(full_path.C_Str(), true, true, true, false);
     }
 
-    if (material->GetTexture(aiTextureType_NORMALS, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
+    if (material->GetTexture(aiTextureType_NORMALS, 0, &file, &mapping, &uvindex) == AI_SUCCESS || 
+        material->GetTexture(aiTextureType_HEIGHT, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
     {
         assert(mapping == aiTextureMapping_UV);
         assert(uvindex == 0);
