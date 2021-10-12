@@ -176,6 +176,7 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="gpudetect\DeviceId.h" />
     <ClInclude Include="HashString.h" />
+    <ClInclude Include="Header.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="imgui\backends\imgui_impl_sdl.h" />
     <ClInclude Include="imgui\imconfig.h" />

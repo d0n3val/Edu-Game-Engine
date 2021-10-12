@@ -714,6 +714,7 @@
     <ClInclude Include="BilinearBlur.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
