@@ -25,7 +25,7 @@ public:
     void                RemoveClip              (uint index);
     uint                FindClip                (const HashString& name) const;
 
-    uint                GetNumClips             () const           { return clips.size(); }
+    uint                GetNumClips             () const           { return uint(clips.size()); }
     const HashString&   GetClipName             (uint index) const { return clips[index].name; }
     UID                 GetClipRes              (uint index) const { return clips[index].resource; }
     bool                GetClipLoop             (uint index) const { return clips[index].loop; }
@@ -34,7 +34,7 @@ public:
     void                SetClipRes              (uint index, UID uid)                { clips[index].resource = uid; }
     void                SetClipLoop             (uint index, bool loop)              { clips[index].loop = loop; }
 
-    uint                GetNumNodes             () const           { return nodes.size(); }
+    uint                GetNumNodes             () const           { return uint(nodes.size()); }
     const HashString&   GetNodeName             (uint index) const { return nodes[index].name; }
     const HashString&   GetNodeClip             (uint index) const { return nodes[index].clip; }
 
@@ -45,7 +45,7 @@ public:
     void                SetNodeName             (uint index, const HashString& name) { nodes[index].name = name; }
     void                SetNodeClip             (uint index, const HashString& clip) { nodes[index].clip = clip; }
 
-    uint                GetNumTransitions       () const { return transitions.size();}
+    uint                GetNumTransitions       () const { return uint(transitions.size());}
     const HashString&   GetTransitionSource     (uint index) const { return transitions[index].source;}
     const HashString&   GetTransitionTarget     (uint index) const { return transitions[index].target;}
     const HashString&   GetTransitionTrigger    (uint index) const { return transitions[index].trigger;}

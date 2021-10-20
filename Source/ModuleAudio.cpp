@@ -15,9 +15,9 @@
 
 #include "Leaks.h"
 
-#pragma comment( lib, "Bass/libx86/bass.lib" )
-#pragma comment( lib, "Bass/libx86/bassenc.lib" )
-#pragma comment( lib, "Bass/libx86/bassenc_ogg.lib" )
+#pragma comment( lib, "Bass/lib/bass.lib" )
+#pragma comment( lib, "Bass/lib/bassenc.lib" )
+#pragma comment( lib, "Bass/lib/bassenc_ogg.lib" )
 
 using namespace std;
 

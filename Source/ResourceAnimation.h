@@ -65,9 +65,9 @@ public:
 
     // channels 
 
-	uint                GetNumChannels      () const { return channels.size(); }
+	uint                GetNumChannels      () const { return uint(channels.size()); }
     const Channel*      GetChannel          (const std::string& name) const;
-    uint                GetNumMorphChannels () const { return morph_channels.size(); }
+    uint                GetNumMorphChannels () const { return uint(morph_channels.size()); }
     const MorphChannel* GetMorphChannel     (const std::string& name) const; 
 
 private:

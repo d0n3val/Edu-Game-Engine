@@ -1,5 +1,5 @@
 BASSenc 2.4
-Copyright (c) 2003-2016 Un4seen Developments Ltd. All rights reserved.
+Copyright (c) 2003-2020 Un4seen Developments Ltd. All rights reserved.
 
 Files that you should have found in the BASSenc package
 =======================================================
@@ -13,94 +13,76 @@ X64\
 C\              C/C++ API and examples...
   BASSENC.H       BASSenc C/C++ header file
   BASSENC.LIB     BASSenc import library
-  BASSENC.DSW     Visual C++ 6 workspace for examples
-  BASSENC.SLN     Visual C++ 2005 (and above) solution for examples
-  MAKEFILE        Makefile for all examples
+  BASSENC.SLN     Visual Studio solution for examples
+  MAKEFILE        Makefile for examples
   MAKEFILE.IN     Makefile helper macros
   X64\
     BASSENC.LIB     64-bit BASSenc import library
-  CAST\           Shoutcast/Icecast sourcing example
-    CAST.C
-    CAST.RC
-    CAST.DSP
-    CAST.VCPROJ
-    MAKEFILE
-  CONTEST\        Console transcoding example
-    CONTEST.C
-    CONTEST.DSP
-    CONTEST.VCPROJ
-    MAKEFILE
+  CAST\           Shoutcast/Icecast source client example
+    ...
+  CONVERT\        Transcoding example
+    ...
   RECTEST\        Recording example
-    RECTEST.C
-    RECTEST.RC
-    RECTEST.DSP
-    RECTEST.VCPROJ
-    MAKEFILE
+    ...
   SERVER\         Server example
-    SERVER.C
-    SERVER.RC
-    SERVER.DSP
-    SERVER.VCPROJ
-    MAKEFILE
+    ...
   BIN\            Precompiled examples
     CAST.EXE
-    CONTEST.EXE
+    CAST-ADDONS.EXE
+    CONVERT.EXE
+    CONVERT-ADDONS.EXE
     RECTEST.EXE
+    RECTEST-ADDONS.EXE
     SERVER.EXE
+    SERVER-ADDONS.EXE
 VB\             Visual Basic API and examples...
   BASSENC.BAS     BASSenc Visual Basic module
-  CAST\           Shoutcast/Icecast sourcing example
-    PRJCAST.VBP
-    FRMCAST.FRM
-    MODCAST.BAS
+  CAST\           Shoutcast/Icecast source client example
+    ...
   RECTEST\        Recording example
-    PRJRECTEST.VBP
-    FRMRECTEST.FRM
-    MODRECTEST.BAS
+    ...
 DELPHI\         Delphi API and examples...
   BASSENC.PAS     BASSenc Delphi unit
-  CAST\           Shoutcast/Icecast sourcing example
-    CAST.DPR
-    UNIT1.PAS
-    UNIT1.DFM
+  CAST\           Shoutcast/Icecast source client example
+    ...
   RECORDTEST\     Recording example
-    RECTEST.DPR
-    UNIT1.PAS
-    UNIT1.DFM
+    ...
 
-NOTE: To run the example EXEs, first you will have to copy BASSENC.DLL and
-      BASS.DLL into the same directory as them.
+NOTE: You may need to "Unblock" the BASSENC.CHM file in its "Properties" to
+      view it on Windows 7. The documentation can also be viewed online at
+      the BASS website.
 
-NOTE: To build the examples, you will need to copy the BASS API into the
-      same directory as the BASSenc API.
+NOTE: To run the example EXEs, first you will need to copy BASSENC.DLL and
+      BASS.DLL into the same directory as them. The "addons" variants also
+      require BASSENC_MP3.DLL, BASSENC_OGG.DLL, BASSENC_OPUS.DLL and
+      BASSENC_FLAC.DLL.
 
-MacOSX version
---------------
+NOTE: To build the examples, you will need to copy the BASS API into the same
+      directory as the BASSenc API. The "addons" variants will also require the
+      BASSenc_FLAC, BASSenc_MP3, BASSenc_OGG and BASSenc_OPUS files.
+
+NOTE: The Delphi and VB examples may not always be up to date with the C
+      examples, so the latter should be preferred as references if possible.
+
+macOS version
+-------------
 BASSENC.TXT     This file
 LIBBASSENC.DYLIB  BASSenc module
 BASSENC.CHM     BASSenc documentation
 BASSENC.H       BASSenc C/C++ header file
-MAKEFILE        Makefile for all examples
-MAKEFILE.IN     Makefile helper macros
 BASSENC.XCODEPROJ  Xcode project for examples
-CAST\           Shoutcast/Icecast sourcing example
-  CAST.C
-  CAST.NIB
-  MAKEFILE
-CONTEST\        Console transcoding example
-  CONTEST.C
-  MAKEFILE
+CAST\           Shoutcast/Icecast source client example
+    ...
+CONVERT\        Transcoding example
+    ...
 RECTEST\        Recording example
-  RECTEST.C
-  RECTEST.NIB
-  MAKEFILE
+    ...
 SERVER\         Server example
-  SERVER.C
-  SERVER.NIB
-  MAKEFILE
+    ...
 
-NOTE: To build the examples, you will need to copy the BASS API into the
-      same directory as the BASSenc API.
+NOTE: To build the examples, you will need to copy the BASS API into the same
+      directory as the BASSenc API. The "addons" variants will also require the
+      BASSenc_FLAC, BASSenc_MP3, BASSenc_OGG and BASSenc_OPUS files.
 
 Linux version
 -------------
@@ -108,44 +90,48 @@ BASSENC.TXT     This file
 LIBBASSENC.SO   BASSenc module
 BASSENC.CHM     BASSenc documentation
 BASSENC.H       BASSenc C/C++ header file
-MAKEFILE        Makefile for all examples
+MAKEFILE        Makefile for examples
 MAKEFILE.IN     Makefile helper macros
 X64\
   LIBBASSENC.SO   64-bit BASSenc module
-CAST\           Shoutcast/Icecast sourcing example
-  CAST.C
-  CAST.GLADE
-  MAKEFILE
-CONTEST\        Console transcoding example
-  CONTEST.C
-  MAKEFILE
+CAST\           Shoutcast/Icecast source client example
+    ...
+CONVERT\        Transcoding example
+    ...
 RECTEST\        Recording example
-  RECTEST.C
-  RECTEST.GLADE
-  MAKEFILE
+    ...
 SERVER\         Server example
-  SERVER.C
-  SERVER.GLADE
-  MAKEFILE
+    ...
 
-NOTE: To build the examples, you will need to copy the BASS API into the
-      same directory as the BASSenc API.
+NOTE: To build the examples, you will need to copy the BASS API into the same
+      directory as the BASSenc API. The "addons" variants will also require the
+      BASSenc_FLAC, BASSenc_MP3, BASSenc_OGG and BASSenc_OPUS files.
 
 
 What's the point?
 =================
-BASSenc is an extension that allows BASS channels to be encoded using 
-command-line encoders with STDIN support (LAME/OGGENC/etc), or ACM codecs
-(on Windows) or CoreAudio codecs (on OSX), optionally sending the data to
-clients via local servers or Shoutcast/Icecast servers.
+BASSenc is an extension that allows BASS channels to be encoded using command-
+line encoders with STDIN support (LAME/OGGENC/etc), or ACM codecs (on Windows)
+or CoreAudio codecs (on macOS), optionally sending the data to listeners via
+local servers or Shoutcast/Icecast servers.
+
+Several format-specific encoding add-ons are also available from the
+www.un4seen.com website, which can be used in place of command-line encoders.
 
 
 Requirements
 ============
 BASS 2.4 is required.
 
-The examples require OGGENC and/or LAME. Both are available from the MO3
-webpage at the www.un4seen.com website.
+The OpenSSL library (libssl) is required for SSL/TLS encryped servers. That can
+be built from the latest sources available at www.openssl.org, but a version of
+it generally comes installed with Linux and macOS. Precompiled Windows builds
+are available here:
+
+	https://bintray.com/vszakats/generic/openssl
+
+The examples (except "addons" variants) require OGGENC and/or LAME. Both are
+available from the MO3 webpage at the www.un4seen.com website.
 
 
 Using BASSenc
@@ -189,6 +175,40 @@ There are of course bug fixes and other little improvements made along
 the way too! To make upgrading simpler, all functions affected by a
 change to the BASSenc interface are listed.
 
+2.4.15 - 3/12/2020
+------------------
+* Path option for servers, with support for port sharing
+	BASS_Encode_ServerInit
+* Chained OGG stream support for servers
+	BASS_Encode_ServerInit
+* SSL/TLS support for servers
+	BASS_ENCODE_SERVER_SSL (BASS_Encode_ServerInit flag)
+	BASS_CONFIG_ENCODE_SERVER_CERT/KEY (BASS_SetConfigPtr options)
+	SERVER example updated
+* Automated "Content-Type" headers for servers
+	BASS_Encode_ServerInit
+* Network selection option for casting
+	BASS_CONFIG_ENCODE_CAST_BIND
+* URL metadata can be set on Shoutcast 2 streams
+	BASS_Encode_CastSetTitle
+* Data count before floating-point conversion
+    BASS_ENCODE_COUNT_IN_FP (BASS_Encode_GetCount option)
+* Support for BASSenc add-ons added to examples
+* macOS examples rewritten in Objective-C/Cocoa
+
+2.4.14 - 16/7/2018
+------------------
+* Output file offset support for user-provided encoders
+	BASS_Encode_UserOutput
+* WAVE support for servers
+	BASS_Encode_ServerInit
+* Client download speed cap option for servers
+	BASS_Encode_ServerInit
+* Access to a CoreAudio encoder's ExtAudioFileRef on OSX/iOS
+	BASS_Encode_GetCARef
+* Fix for casting stats 4KB size limit
+	BASS_Encode_CastGetStats
+
 2.4.13 - 10/3/2016
 ------------------
 * Shoutcast metadata with built-in servers
@@ -200,7 +220,7 @@ change to the BASSenc interface are listed.
 * Dithering when converting floating-point to integer
 	BASS_ENCODE_DITHER (BASS_Encode_Start/Limit/User/ACM/CA flag)
 * Unicode proxy config option on Windows
-	BASS_CONFIG_ENCODE_CAST_PROXY (BASS_SetConfig options)
+	BASS_CONFIG_ENCODE_CAST_PROXY (BASS_SetConfigPtr option)
 
 2.4.12.7 - 7/5/2015
 -------------------
@@ -398,8 +418,8 @@ change to the BASSenc interface are listed.
 * First release
 
 
-Bug reports, Suggestions, Comments, Enquiries, etc...
-=====================================================
-If you have any of the aforementioned please visit the BASS forum at
-the website.
+Bug reports, Suggestions, Comments, Enquiries, etc
+==================================================
+If you have any of the aforementioned please visit the BASS forum at the
+website.
 

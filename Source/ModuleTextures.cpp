@@ -4,8 +4,8 @@
 #include "OGL.h"
 #include "ModuleTextures.h"
 #include "ModuleFileSystem.h"
-#include "Devil/include/il.h"
-#include "Devil/include/ilut.h"
+#include "IL/il.h"
+#include "IL/ilut.h"
 #include "ResourceTexture.h"
 #include "ModuleResources.h"
 
@@ -19,9 +19,9 @@
 #include <set>
 #include <unordered_set>
 
-#pragma comment( lib, "Devil/libx86/DevIL.lib" )
-#pragma comment( lib, "Devil/libx86/ILU.lib" )
-#pragma comment( lib, "Devil/libx86/ILUT.lib" )
+#pragma comment( lib, "Devil/lib/x64/Release/DevIL.lib" )
+#pragma comment( lib, "Devil/lib/x64/Release/ILU.lib" )
+#pragma comment( lib, "Devil/lib/x64/Release/ILUT.lib" )
 
 using namespace std;
 

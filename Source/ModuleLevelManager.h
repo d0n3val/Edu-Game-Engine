@@ -62,13 +62,13 @@ public:
 
     uint                AddPointLight           ();
     void                RemovePointLight        (uint index);
-    uint                GetNumPointLights       () const { return points.size(); }
+    uint                GetNumPointLights       () const { return uint(points.size()); }
     const PointLight*   GetPointLight           (uint index) const { return points[index]; }
     PointLight*         GetPointLight           (uint index) { return points[index]; }
 
     uint                AddSpotLight            ();
     void                RemoveSpotLight         (uint index);
-    uint                GetNumSpotLights        () const { return spots.size(); }
+    uint                GetNumSpotLights        () const { return uint(spots.size()); }
     const SpotLight*    GetSpotLight            (uint index) const { return spots[index]; }
     SpotLight*          GetSpotLight            (uint index) { return spots[index]; }
 	Skybox*		        GetSkyBox()			    { return skybox.get(); }

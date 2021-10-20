@@ -59,7 +59,7 @@ uint Batch::Add(ComponentMeshRenderer* object)
         Init(object);
     }
 
-    uint index = objects.size();
+    uint index = uint(objects.size());
 
     ObjectData data = { object, index == 0 ? 0 : objects[index-1].vertex_offset+objects[index-1].renderer->GetMeshRes()->GetNumVertices() };
     objects.push_back(data);
@@ -257,7 +257,7 @@ void Batch::CreateTextureArray()
 		{
 			const ResourceTexture* front_texture = front_material->GetTextureRes(MaterialTexture(i));
 
-			textures[i].reset(Texture2DArray::CreateDefaultRGBA(1, front_texture->GetWidth(), front_texture->GetHeight(), objects.size(), true));
+			textures[i].reset(Texture2DArray::CreateDefaultRGBA(1, front_texture->GetWidth(), front_texture->GetHeight(), uint(objects.size()), true));
 
 			uint buffer_size = front_texture->GetWidth()*front_texture->GetHeight() * sizeof(unsigned);
 

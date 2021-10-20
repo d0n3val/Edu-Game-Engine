@@ -31,7 +31,7 @@ ComponentPath::~ComponentPath()
 void ComponentPath::OnSave(Config& config) const
 {
 	if(points.size() > 0)
-		config.AddArrayFloat("Points", &points[0].x, points.size() * 3);
+		config.AddArrayFloat("Points", &points[0].x, uint(points.size()) * 3);
 }
 
 // ---------------------------------------------------------

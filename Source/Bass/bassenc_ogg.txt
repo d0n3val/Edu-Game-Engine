@@ -1,0 +1,109 @@
+BASSenc_OGG 2.4
+Copyright (c) 2016-2020 Un4seen Developments Ltd. All rights reserved.
+
+Files that you should have found in the BASSenc_OGG package
+===========================================================
+Win32 version
+-------------
+BASSENC_OGG.TXT     This file
+BASSENC_OGG.DLL     BASSenc_OGG module
+BASSENC_OGG.CHM     BASSenc_OGG documentation
+X64\
+  BASSENC_OGG.DLL     64-bit BASSenc_OGG module
+C\                  C/C++ API...
+  BASSENC_OGG.H       BASSenc_OGG C/C++ header file
+  BASSENC_OGG.LIB     BASSenc_OGG import library
+  X64\
+    BASSENC_OGG.LIB     64-bit BASSenc_OGG import library
+VB\                 Visual Basic API...
+  BASSENC_OGG.BAS     BASSenc_OGG Visual Basic module
+DELPHI\             Delphi API...
+  BASSENC_OGG.PAS     BASSenc_OGG Delphi unit
+
+MacOSX version
+--------------
+BASSENC_OGG.TXT     This file
+LIBBASSENC_OGG.DYLIB  BASSenc_OGG module
+BASSENC_OGG.CHM     BASSenc_OGG documentation
+BASSENC_OGG.H       BASSenc_OGG C/C++ header file
+
+Linux version
+-------------
+BASSENC_OGG.TXT     This file
+LIBBASSENC_OGG.SO   BASSenc_OGG module
+BASSENC_OGG.CHM     BASSenc_OGG documentation
+BASSENC_OGG.H       BASSenc_OGG C/C++ header file
+X64\
+  LIBBASSENC_OGG.SO   64-bit BASSenc_OGG module
+
+
+What's the point?
+=================
+BASSenc_OGG is an extension to the BASSenc add-on that allows BASS channels
+to be Ogg Vorbis encoded, with support for OGGENC options.
+
+
+Requirements
+============
+BASS 2.4 and BASSenc 2.4.12 or above are required.
+
+
+Using BASSenc_OGG
+=================
+The usage information in the BASS.TXT file (from the BASS package) is also
+applicable to BASSenc_OGG and other add-ons.
+
+
+Latest Version
+==============
+The latest versions of BASSenc_OGG & BASS can be found at the BASS website:
+
+	www.un4seen.com
+
+
+Licence
+=======
+BASSenc_OGG is free to use with BASS.
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, BASSENC_OGG IS PROVIDED
+"AS IS", WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND/OR FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS SHALL NOT BE HELD
+LIABLE FOR ANY DAMAGE THAT MAY RESULT FROM THE USE OF BASSENC_OGG. YOU USE
+BASSENC_OGG ENTIRELY AT YOUR OWN RISK.
+
+Usage of BASSenc_OGG indicates that you agree to the above conditions.
+
+All trademarks and other registered names contained in the BASSenc_OGG
+package are the property of their respective owners.
+
+
+Credits
+=======
+Ogg Vorbis encoding is based on libogg/vorbis,
+Copyright (c) 2002-2020 Xiph.org Foundation
+
+
+History
+=======
+These are the major (and not so major) changes at each version stage.
+There are of course bug fixes and other little improvements made along
+the way too! To make upgrading simpler, all functions affected by a
+change to the BASSenc_OGG interface are listed.
+
+2.4.1 - 3/12/2020
+-----------------
+* Bitstream chaining for option/metadata changes
+	BASS_Encode_OGG_NewStream
+* Updated to libvorbis 1.3.7
+
+2.4 - 2/9/2016
+--------------
+* First release
+
+
+Bug reports, Suggestions, Comments, Enquiries, etc...
+=====================================================
+If you have any of the aforementioned please visit the BASS forum at
+the website.
+

@@ -14,8 +14,8 @@
 
 // We need to include this here because SDL overwrites main()
 #include "SDL/include/SDL.h"
-#pragma comment( lib, "SDL/libx86/SDL2.lib" )
-#pragma comment( lib, "SDL/libx86/SDL2main.lib" )
+#pragma comment( lib, "SDL/lib/x64/SDL2.lib" )
+#pragma comment( lib, "SDL/lib/x64/SDL2main.lib" )
 
 enum main_states
 {

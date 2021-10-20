@@ -192,7 +192,7 @@ bool Application::CleanUp()
 {
 	bool ret = true;
 
-	fs->Save(SETTINGS_FOLDER "Engine.log", log.c_str(), log.size());
+	fs->Save(SETTINGS_FOLDER "Engine.log", log.c_str(), uint(log.size()));
 	SavePrefs();
 
 	for(list<Module*>::reverse_iterator it = modules.rbegin(); it != modules.rend() && ret; ++it)
@@ -312,7 +312,7 @@ void Application::SavePrefs() const
 		(*it)->Save(&config.AddSection((*it)->GetName()));
 
 	char *buf;
-	uint size = config.Save(&buf, "Saved preferences for Edu Engine");
+	uint size = uint(config.Save(&buf, "Saved preferences for Edu Engine"));
 	if(App->fs->Save(SETTINGS_FOLDER "config.json", buf, size) > 0)
 		LOG("Saved Engine Preferences");
 	RELEASE_ARRAY(buf);

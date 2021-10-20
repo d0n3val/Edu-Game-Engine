@@ -8,7 +8,7 @@
 
 #include "Leaks.h"
 
-#pragma comment( lib, "PhysFS/libx86/physfs.lib" )
+#pragma comment( lib, "PhysFS/lib/physfs.lib" )
 
 using namespace std;
 

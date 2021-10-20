@@ -130,7 +130,7 @@ public:
     Buffer(const Buffer& rhs) = delete;
     Buffer& operator=(const Buffer& rhs) = delete;
 
-    Buffer(uint type, uint usage, uint size, const void* data);
+    Buffer(uint type, uint usage, size_t size, const void* data);
     ~Buffer();
 
     void  Bind();

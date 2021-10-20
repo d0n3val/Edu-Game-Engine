@@ -8,19 +8,29 @@
 #include "Config.h"
 #include "DebugDraw.h"
 #include "Event.h"
+
+
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif 
+
 #include "Bullet/include/btBulletDynamicsCommon.h"
 #include "Bullet/include/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 
 using namespace std;
 
 #ifdef _DEBUG
-	#pragma comment (lib, "Bullet/libx86/BulletDynamics_debug.lib")
-	#pragma comment (lib, "Bullet/libx86/BulletCollision_debug.lib")
-	#pragma comment (lib, "Bullet/libx86/LinearMath_debug.lib")
+	#pragma comment (lib, "Bullet/lib/BulletDynamics_debug.lib")
+	#pragma comment (lib, "Bullet/lib/BulletCollision_Debug.lib")
+	#pragma comment (lib, "Bullet/lib/LinearMath_debug.lib")
 #else
-	#pragma comment (lib, "Bullet/libx86/BulletDynamics.lib")
-	#pragma comment (lib, "Bullet/libx86/BulletCollision.lib")
-	#pragma comment (lib, "Bullet/libx86/LinearMath.lib")
+	#pragma comment (lib, "Bullet/lib/BulletDynamics.lib")
+	#pragma comment (lib, "Bullet/lib/BulletCollision.lib")
+	#pragma comment (lib, "Bullet/lib/LinearMath.lib")
 #endif
 
 ModulePhysics3D::ModulePhysics3D(bool start_enabled) : Module("Physics", start_enabled)
