@@ -240,7 +240,11 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Frame
     frameBuffer->Bind();    
     glViewport(0, 0, width, height);
 
-    App->level->GetSkyBox()->Draw(proj, view);
+    if (!App->level->GetSkyBox()->Draw(proj, view))
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
     glDepthFunc(GL_LEQUAL);
 
     uint flags = 0;

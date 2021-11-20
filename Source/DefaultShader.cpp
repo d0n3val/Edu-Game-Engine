@@ -497,16 +497,20 @@ void DefaultShader::BindTextures(const ResourceMaterial* material) const
         }
 
         Skybox* skybox = App->level->GetSkyBox();
-        glActiveTexture(GL_TEXTURE0+TextureMap_DiffuseIBL);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetDiffuseIBL()->Id());
-        glActiveTexture(GL_TEXTURE0+TextureMap_PrefilteredIBL);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetPrefilterdIBL()->Id());
 
-        glActiveTexture(GL_TEXTURE0+TextureMap_EnvironMentBRDF);
-        glBindTexture(GL_TEXTURE_2D, skybox->GetEnvironmentBRDF()->Id());
+        if (skybox->GetDiffuseIBL() && skybox->GetPrefilterdIBL() && skybox->GetEnvironmentBRDF())
+        {
+            glActiveTexture(GL_TEXTURE0 + TextureMap_DiffuseIBL);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetDiffuseIBL()->Id());
+            glActiveTexture(GL_TEXTURE0 + TextureMap_PrefilteredIBL);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetPrefilterdIBL()->Id());
 
-        glActiveTexture(GL_TEXTURE0+TextureMap_AO);
-        glBindTexture(GL_TEXTURE_2D, App->renderer->GetScreenSpaceAO()->getResult()->Id());
+            glActiveTexture(GL_TEXTURE0 + TextureMap_EnvironMentBRDF);
+            glBindTexture(GL_TEXTURE_2D, skybox->GetEnvironmentBRDF()->Id());
+
+            glActiveTexture(GL_TEXTURE0 + TextureMap_AO);
+            glBindTexture(GL_TEXTURE_2D, App->renderer->GetScreenSpaceAO()->getResult()->Id());
+        }
     }
 }
 

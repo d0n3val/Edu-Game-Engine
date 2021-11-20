@@ -506,6 +506,7 @@ bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], c
 
     TextureCube* cube = new TextureCube();
     resource->texture = std::unique_ptr<TextureCube>(cube);
+    resource->type = ResourceTexture::TextureCube;
 
     bool ret = true;
 
