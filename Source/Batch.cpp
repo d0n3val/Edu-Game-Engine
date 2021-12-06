@@ -205,8 +205,8 @@ void Batch::CreateBuffers()
         {
             uint offset = attribs[++attrib_index].offset;
 
-			uint material_index = std::find_if(unique_materials.begin(), unique_materials.end(), 
-                    [material](const MaterialData& data) -> bool { return data.material == material; }) - unique_materials.begin();
+			uint material_index = uint(std::find_if(unique_materials.begin(), unique_materials.end(), 
+                    [material](const MaterialData& data) -> bool { return data.material == material; }) - unique_materials.begin());
 
             assert(material_index < unique_materials.size());
 

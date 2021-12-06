@@ -66,20 +66,20 @@ void Texture::GenerateMipmaps(uint base, uint max)
     glBindTexture(tex_target, 0);
 }
 
-void Texture::Bind(uint unit, uint uniform_location)
+void Texture::Bind(uint unit, uint uniform_location) const 
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, texture);
     glUniform1i(uniform_location, unit);
 }
 
-void Texture::Bind(uint unit) 
+void Texture::Bind(uint unit)  const 
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, texture);
 }
 
-void Texture::Unbind(uint unit) 
+void Texture::Unbind(uint unit) const 
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(tex_target, 0);

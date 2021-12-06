@@ -99,12 +99,7 @@ void Skybox::SetCubemap(UID uid)
     {
         LOG("UID %d is not a texture!!!", uid);
         cubemap = App->resources->GetDefaultSkybox()->GetUID();
-        res = App->resources->GetTexture(cubemap);
-        if(res)
-        {
-            res->LoadToMemory();
-        }
-        
+        res = App->resources->GetTexture(cubemap);        
     }
 
     if(res != nullptr)

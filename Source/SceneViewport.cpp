@@ -97,7 +97,6 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 
         Framebuffer* framebuffer = msaa ? framebuffers[FRAMEBUFFER_MSAA].framebuffer.get() : framebuffers[FRAMEBUFFER_NO_MSAA].framebuffer.get();
         Texture2D* texture_color = msaa ? framebuffers[FRAMEBUFFER_MSAA].texture_color.get() : framebuffers[FRAMEBUFFER_NO_MSAA].texture_color.get();
-
         
         framebuffer->Bind();
 
@@ -118,7 +117,8 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 
         DrawSelection(camera, framebuffer);
 
-        App->renderer->GetPostprocess()->Execute(texture_color, framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
+
+        App->renderer->GetPostprocess()->Execute(texture_color, App->renderer->GetDepthPrepass()->getDepthTexture(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
 
         ShowTexture();
 
@@ -291,8 +291,8 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
 
     if(depth)
     {
-        /*
-        if(msaa)
+       
+/*        if(msaa)
         {
             buffer.texture_depth = std::make_unique<Texture2D>(4, w, h, GL_DEPTH24_STENCIL8, true);
         }
@@ -300,9 +300,9 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
         {
             buffer.texture_depth = std::make_unique<Texture2D>(w, h, GL_DEPTH24_STENCIL8, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         }
-        */
+      
 
-        //buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_STENCIL_ATTACHMENT);
+        buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_ATTACHMENT);*/
     }
 
     assert(buffer.framebuffer->Check() == GL_FRAMEBUFFER_COMPLETE);

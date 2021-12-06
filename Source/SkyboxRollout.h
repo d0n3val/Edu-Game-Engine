@@ -31,6 +31,7 @@ private:
 private:
 
     std::unique_ptr<Texture2D>   screenshotTex;
+    std::unique_ptr<Texture2D>   screenshotDepthTex;
     std::unique_ptr<Framebuffer> screenshot_fb;
 
     std::unique_ptr<Texture2D>   environmentTex;

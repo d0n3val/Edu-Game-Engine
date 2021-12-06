@@ -33,8 +33,10 @@ SkyboxRollout::SkyboxRollout()
     environmentTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
     diffuseIBLTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
     prefilteredIBLTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
+    screenshotDepthTex = std::make_unique<Texture2D>(4, SCREENSHOT_SIZE, SCREENSHOT_SIZE, GL_DEPTH24_STENCIL8, true);
 
     screenshot_fb->AttachColor(screenshotTex.get());
+    screenshot_fb->AttachDepthStencil(screenshotDepthTex.get(), GL_DEPTH_ATTACHMENT);
 
     postProcess = std::make_unique<Postprocess>();
     postProcess->Init();
@@ -164,5 +166,5 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
 
     assert(postprocess_fb->Check() == GL_FRAMEBUFFER_COMPLETE);
 
-    postProcess->Execute(screenshotTex.get(), postprocess_fb.get(), SCREENSHOT_SIZE, SCREENSHOT_SIZE);
+    postProcess->Execute(screenshotTex.get(), screenshotDepthTex.get(), postprocess_fb.get(), SCREENSHOT_SIZE, SCREENSHOT_SIZE);
 }

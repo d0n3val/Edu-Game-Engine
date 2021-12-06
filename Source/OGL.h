@@ -23,9 +23,9 @@ public:
     void SetMinMaxFiler(uint min_filter, uint max_filter);
     void GenerateMipmaps(uint base, uint max);
 
-    void Bind(uint unit, uint uniform_location);
-    void Bind(uint unit);
-    void Unbind(uint unit);
+    void Bind(uint unit, uint uniform_location) const;
+    void Bind(uint unit) const ;
+    void Unbind(uint unit) const ;
 
     uint Id() const { return texture; }
     uint Target() const { return tex_target; }

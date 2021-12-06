@@ -13,7 +13,7 @@ public:
     ~Postprocess();
 
     void Init();
-    void Execute(Texture2D* screen, Framebuffer* fbo, unsigned width, unsigned height);
+    void Execute(const Texture2D* screen, const Texture2D* depth, Framebuffer* fbo, unsigned width, unsigned height);
 
 private:
 
