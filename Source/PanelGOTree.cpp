@@ -311,65 +311,75 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 	sprintf_s(name, 80, "%s##node_%i", go->name.empty() ? "(empty)": go->name.c_str(), node++);
 	uint flags = 0;// ImGuiTreeNodeFlags_OpenOnArrow;
 
-	if (go->childs.size() == 0)
-		flags |= ImGuiTreeNodeFlags_Leaf;
-
-
-    GameObject* const* selected_go  = std::get_if<GameObject*>(&App->editor->GetSelection());
-
-	if (selected_go && go == *selected_go) 
-	{
-		flags |= ImGuiTreeNodeFlags_Selected;
-		open_selected = false;
-	}
-
-	ImVec4 color = IMGUI_WHITE;
-
-	if(go->IsActive() == false)
-		color = IMGUI_RED;
-
-	if (go->visible == false)
-		color = IMGUI_GREY;
-
-	if (go->WasBBoxDirty() == true)
-		color = IMGUI_GREEN;
-
-	if (go->WasDirty() == true)
-		color = IMGUI_YELLOW;
-
-	ImGui::PushStyleColor(ImGuiCol_Text, color);
-
-	if (open_selected == true && selected_go && (*selected_go)->IsUnder(go) == true)
-		ImGui::SetNextTreeNodeOpen(true);
-
-	if (ImGui::TreeNodeEx(name, flags))
-	{
-		CheckHover(go);
-
-		if (ImGui::IsItemClicked(0)) {
-            App->editor->SetSelected(go);
-			drag = go;
-		}
-
-        if (ImGui::BeginPopupContextItem())
+    if (strstr(go->name.c_str(), "$AssimpFbx$") != nullptr)
+    {
+        for (GameObject* go : go->childs)
         {
-			if (ImGui::MenuItem("Duplicate"))
-				App->level->Duplicate(go);
-			if (ImGui::MenuItem("Remove"))
-				go->Remove();
+            RecursiveDraw(go);
+        }
+    }
+    else
+    {
+        if (go->childs.size() == 0)
+            flags |= ImGuiTreeNodeFlags_Leaf;
 
-			ImGui::EndPopup();
-		}
 
-		for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-			RecursiveDraw(*it);
+        GameObject* const* selected_go = std::get_if<GameObject*>(&App->editor->GetSelection());
 
-		ImGui::TreePop();
-	}
-	else
-		CheckHover(go);
+        if (selected_go && go == *selected_go)
+        {
+            flags |= ImGuiTreeNodeFlags_Selected;
+            open_selected = false;
+        }
 
-	ImGui::PopStyleColor();
+        ImVec4 color = IMGUI_WHITE;
+
+        if (go->IsActive() == false)
+            color = IMGUI_RED;
+
+        if (go->visible == false)
+            color = IMGUI_GREY;
+
+        if (go->WasBBoxDirty() == true)
+            color = IMGUI_GREEN;
+
+        if (go->WasDirty() == true)
+            color = IMGUI_YELLOW;
+
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+
+        if (open_selected == true && selected_go && (*selected_go)->IsUnder(go) == true)
+            ImGui::SetNextTreeNodeOpen(true);
+
+        if (ImGui::TreeNodeEx(name, flags))
+        {
+            CheckHover(go);
+
+            if (ImGui::IsItemClicked(0)) {
+                App->editor->SetSelected(go);
+                drag = go;
+            }
+
+            if (ImGui::BeginPopupContextItem())
+            {
+                if (ImGui::MenuItem("Duplicate"))
+                    App->level->Duplicate(go);
+                if (ImGui::MenuItem("Remove"))
+                    go->Remove();
+
+                ImGui::EndPopup();
+            }
+
+            for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+                RecursiveDraw(*it);
+
+            ImGui::TreePop();
+        }
+        else
+            CheckHover(go);
+
+        ImGui::PopStyleColor();
+    }
 }
 
 

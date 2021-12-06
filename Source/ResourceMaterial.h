@@ -29,10 +29,10 @@ class ResourceMaterial : public Resource
 private:
 
     float4      diffuse_color          = float4::one;
-    float3      specular_color         = float4::zero;
+    float3      specular_color         = float4::one;
     float3      emissive_color         = float4::zero;
     UID         textures[TextureCount] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    float       smoothness             = 0.5f;
+    float       smoothness             = 1.0f;
     float       normal_strength        = 1.0f;
     bool        double_sided           = false;
     float       alpha_test             = 0.0f;
