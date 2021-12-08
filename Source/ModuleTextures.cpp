@@ -282,6 +282,13 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
         {
             ilEnable(IL_FILE_OVERWRITE);
 
+            ILinfo ImageInfo;
+            iluGetImageInfo(&ImageInfo);
+            if (ImageInfo.Origin == IL_ORIGIN_LOWER_LEFT)
+            {
+                iluFlipImage();
+            }
+
             // To pick a specific DXT compression use 
             ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
             output_size = ilSaveL(compressed ? IL_DDS : IL_TGA, NULL, 0 ); // Get the size of the data buffer

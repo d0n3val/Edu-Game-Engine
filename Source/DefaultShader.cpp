@@ -193,7 +193,7 @@ void DefaultShader::UpdateCameraUBO(ComponentCamera* camera)
     {
         float4x4 proj     = float4x4::identity;
         float4x4 view     = float4x4::identity;
-        float3   view_pos = float3::zero;
+        float4   view_pos = float4::zero;
     } cameraData;
 
     if(!cameraUBO)
@@ -204,7 +204,7 @@ void DefaultShader::UpdateCameraUBO(ComponentCamera* camera)
 
     cameraData.proj     = camera->GetProjectionMatrix();  
     cameraData.view     = camera->GetViewMatrix();
-    cameraData.view_pos = cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart());
+    cameraData.view_pos = float4(cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart()), 1.0);
 
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
 }
@@ -237,6 +237,8 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
         float4 attenuation;
         float inner;
         float outer;
+        uint  padding0;
+        uint  padding1;
     };
 
     struct LightsData
@@ -244,9 +246,11 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
         AmbientLightData ambient;
         DirLightData     directional;
         PointLightData   points[MAX_NUM_POINT_LIGHTS];
-        uint             num_point;
         SpotLightData    spots[MAX_NUM_SPOT_LIGHTS];
+        uint             num_point;
         uint             num_spot;
+        uint             padding0;
+        uint             padding1;
     };
 
     if(!lightsUBO)
@@ -265,6 +269,7 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
     data.directional.dir   =  float4(directional->GetDir(), 0.0);
     data.directional.color =  float4(directional->GetColor(), 1.0);
 
+    
     data.num_point = 0;
 
     for(uint i=0, count = min(App->level->GetNumPointLights(), MAX_NUM_POINT_LIGHTS); i < count; ++i)
@@ -280,7 +285,7 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
             data.points[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0);
         }
     }
-
+    
     data.num_spot = 0;
 
     for(uint i=0, count = min(App->level->GetNumSpotLights(), MAX_NUM_SPOT_LIGHTS); i< count; ++i)
@@ -298,7 +303,7 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
             data.spots[index].inner       = light->GetInnerCutoff();
             data.spots[index].outer       = light->GetOutterCutoff();
         }
-    }
+    }    
 
     lightsUBO->SetData(0, sizeof(LightsData), &data);
 }
@@ -531,6 +536,8 @@ void DefaultShader::DrawPass(ComponentMeshRenderer* meshRenderer)
     ResourceMaterial* material = meshRenderer->GetMaterialRes();
     GameObject* go             = meshRenderer->GetGameObject();
 
+    if (!mesh)
+        return; 
     uint flags = GetDrawingFlags(mesh);
 
     UpdateMaterialUBO(material);
@@ -550,6 +557,8 @@ void DefaultShader::DepthPrePass(ComponentMeshRenderer* meshRenderer)
     ResourceMaterial* material = meshRenderer->GetMaterialRes();
     GameObject* go             = meshRenderer->GetGameObject();
 
+    if (!mesh)
+        return; 
     uint flags = GetDrawingFlags(mesh);
 
     UpdateMeshUBOs(meshRenderer->UpdateSkinPalette(), meshRenderer->GetMorphTargetWeights(), mesh);

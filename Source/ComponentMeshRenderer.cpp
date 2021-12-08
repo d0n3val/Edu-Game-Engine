@@ -71,7 +71,7 @@ void ComponentMeshRenderer::OnLoad(Config* config)
 
     SetBatchName(HashString(config->GetString("BatchName")));
 
-    // \todo: LoadToMemory doesn´t load GPU data when batching
+    // \todo: LoadToMemory doesnï¿½t load GPU data when batching
 
 }
 
@@ -228,12 +228,13 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
                 bone_node = node_cache[i] = root ? root->FindChild(bone.name.C_str(), true) : nullptr;
             }
 
-            
+            /*
             if(bone_node)
             {
                 skin_palette[i] = bone_node->GetGlobalTransformation() *bone.bind;
             }
             else
+                */
             {
                 skin_palette[i] = float4x4::identity;
             }

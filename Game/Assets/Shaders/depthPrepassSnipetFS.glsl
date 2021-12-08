@@ -11,8 +11,8 @@ layout(std140, row_major) uniform Camera
 {
     mat4 proj;
     mat4 view;
-    vec3 view_pos;
-} camera;
+    vec4 view_pos;
+};
 
 in struct VertexOut
 {
@@ -24,7 +24,7 @@ in struct VertexOut
 
 void main()
 {
-    position = camera.view*vec4(fragment.position, 1.0);
-    normal = vec4(mat3(camera.view)*normalize(fragment.normal), 1.0);
+    position = view*vec4(fragment.position, 1.0);
+    normal = vec4(mat3(view)*normalize(fragment.normal), 1.0);
 }
 

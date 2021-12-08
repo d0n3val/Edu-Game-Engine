@@ -18,7 +18,7 @@ layout(std140, row_major) uniform Camera
 {
     mat4 proj;
     mat4 view;
-    vec3 view_pos;
+    vec4 view_pos;
 } camera;
 
 layout(std140) uniform Kernel

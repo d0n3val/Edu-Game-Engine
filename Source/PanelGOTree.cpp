@@ -311,14 +311,14 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 	sprintf_s(name, 80, "%s##node_%i", go->name.empty() ? "(empty)": go->name.c_str(), node++);
 	uint flags = 0;// ImGuiTreeNodeFlags_OpenOnArrow;
 
-    if (strstr(go->name.c_str(), "$AssimpFbx$") != nullptr)
+    /*if (strstr(go->name.c_str(), "$AssimpFbx$") != nullptr)
     {
         for (GameObject* go : go->childs)
         {
             RecursiveDraw(go);
         }
     }
-    else
+    else*/
     {
         if (go->childs.size() == 0)
             flags |= ImGuiTreeNodeFlags_Leaf;

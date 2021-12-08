@@ -36,8 +36,8 @@ layout(std140, row_major) uniform Camera
 {
     mat4 proj;
     mat4 view;
-    vec3 view_pos;
-} camera;
+    vec4 view_pos;
+};
 
 layout(std140) uniform Material
 {
@@ -88,6 +88,8 @@ struct SpotLight
     vec4 attenuation;
     float inner;
     float outer;
+    uint  padding0;
+    uint  padding1;
 };
 
 layout(std140) uniform Lights
@@ -95,10 +97,12 @@ layout(std140) uniform Lights
     AmbientLight ambient;
     DirLight     directional;
     PointLight   points[MAX_POINT_LIGHTS];
-    uint         num_point;
     SpotLight    spots[MAX_SPOT_LIGHTS];
+    uint         num_point;
     uint         num_spot;
-} lights;
+    uint         padding0;
+    uint         padding1;
+};
 
 in struct VertexOut
 {
@@ -149,7 +153,7 @@ void main()
 
     color.rgb = ComputeShadow(color.rgb);
 
-    //color.rgb = applyFog(color.rgb, distance(fragment.position, camera.view_pos), camera.view_pos, normalize(fragment.position-camera.view_pos));
+    //color.rgb = applyFog(color.rgb, distance(fragment.position, view_pos.xyz), view_pos.xyz, normalize(fragment.position-view_pos.xyz));
 
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
@@ -338,21 +342,21 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
 
 vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specular, float smoothness, vec3 occlusion, vec3 emissive)
 {
-    vec3 V           = normalize(camera.view_pos-pos);
+    vec3 V           = normalize(view_pos.xyz-pos);
     vec3 R           = reflect(-V, normal);
     float NdotV      = max(dot(normal, V), 0.00001);
     float roughness  = Sq(1.0-smoothness); 
     
-    vec3 color = Directional(normal, V, lights.directional, diffuse.rgb, specular.rgb, roughness);
+    vec3 color = Directional(normal, V, directional, diffuse.rgb, specular.rgb, roughness);
 
-    for(uint i=0; i< lights.num_point; ++i)
+    for(uint i=0; i< num_point; ++i)
     {
-        color += Point(pos, normal, V, lights.points[i], diffuse.rgb, specular, roughness);
+        color += Point(pos, normal, V, points[i], diffuse.rgb, specular, roughness);
     }
 
-    for(uint i=0; i< lights.num_spot; ++i)
+    for(uint i=0; i< num_spot; ++i)
     {
-        color += Spot(pos, normal, V, lights.spots[i], diffuse.rgb, specular, roughness);
+        color += Spot(pos, normal, V, spots[i], diffuse.rgb, specular, roughness);
     }
 
     // Add Indirect lighting 
@@ -363,7 +367,7 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
 
 
     // Compute ambient occlusion
-    vec4 projectedPos = camera.proj*camera.view*vec4(fragment.position, 1.0);
+    vec4 projectedPos = proj*view*vec4(fragment.position, 1.0);
     vec2 occlusionUV  = (projectedPos.xy/projectedPos.w)*0.5+0.5;
 
     vec3 occlusionFactor = vec3(texture(ambientOcclusion, occlusionUV).r);
