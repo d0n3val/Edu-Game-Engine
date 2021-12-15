@@ -381,12 +381,12 @@ Buffer::~Buffer()
     glDeleteBuffers(1, &id);
 }
 
-void Buffer::Bind()
+void Buffer::Bind() const
 {
     glBindBuffer(type, id);
 }
 
-void Buffer::BindToTargetIdx(uint index)
+void Buffer::BindToTargetIdx(uint index) const 
 {
     assert(type == GL_ATOMIC_COUNTER_BUFFER || type == GL_TRANSFORM_FEEDBACK_BUFFER ||
            type == GL_UNIFORM_BUFFER || type ==  GL_SHADER_STORAGE_BUFFER);
@@ -394,7 +394,7 @@ void Buffer::BindToTargetIdx(uint index)
     glBindBufferBase(type, index, id);
 }
 
-void Buffer::Unbind()
+void Buffer::Unbind() const
 {
     glBindBuffer(type, 0);
 }

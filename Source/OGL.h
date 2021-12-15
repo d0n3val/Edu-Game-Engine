@@ -133,11 +133,11 @@ public:
     Buffer(uint type, uint usage, size_t size, const void* data);
     ~Buffer();
 
-    void  Bind();
-    void  BindToTargetIdx(uint index);
+    void  Bind() const;
+    void  BindToTargetIdx(uint index) const;
 
     uint  Id() const { return id;  }
-    void  Unbind();
+    void  Unbind() const;
     void* Map(uint access);
     void* MapRange(uint access, uint offset, uint size);
     void  Unmap();

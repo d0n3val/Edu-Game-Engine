@@ -27,6 +27,7 @@ enum MaterialTexture
 class ResourceMaterial : public Resource
 {
 private:
+    typedef std::unique_ptr<Buffer> BufferPtr;
 
     float4      diffuse_color          = float4::one;
     float3      specular_color         = float4::one;
@@ -40,7 +41,9 @@ private:
     float2      uv_offset              = float2(0, 0);
     float2      scnd_uv_tiling         = float2(1, 1);
     float2      scnd_uv_offset         = float2(0, 0);
-    // \todo: secondary uv set
+    BufferPtr   materialUBO;
+    bool        uboDirty               = true;
+
 
 public:
 
@@ -56,13 +59,13 @@ public:
     static UID              Import              (const aiMaterial* material, const char* source_file);
 
     const float4&           GetDiffuseColor     () const { return diffuse_color;}
-    void                    SetDiffuseColor     (const float4& value) { diffuse_color = value; }
+    void                    SetDiffuseColor     (const float4& value) { diffuse_color = value; uboDirty = true;}
 
     const float3&           GetSpecularColor    () const { return specular_color;}
-    void                    SetSpecularColor    (const float3& value) { specular_color = value; }
+    void                    SetSpecularColor    (const float3& value) { specular_color = value; uboDirty = true;}
 
     const float3&           GetEmissiveColor    () const { return emissive_color;}
-    void                    SetEmissiveColor    (const float3& value) { emissive_color = value; }
+    void                    SetEmissiveColor    (const float3& value) { emissive_color = value; uboDirty = true;}
 
     UID                     GetTexture          (MaterialTexture texture) const { return textures[texture]; }
     const ResourceTexture*  GetTextureRes       (MaterialTexture texture) const;
@@ -70,16 +73,16 @@ public:
     void                    SetTexture          (MaterialTexture texture, UID uid);
 
     float                   GetSmoothness       () const { return smoothness; }
-    void                    SetSmoothness       (float s) { smoothness = s; }
+    void                    SetSmoothness       (float s) { smoothness = s; uboDirty = true;}
 
     float                   GetNormalStrength   () const { return normal_strength; }
-    void                    SetNormalStrength   (float s) { normal_strength = s; }
+    void                    SetNormalStrength   (float s) { normal_strength = s; uboDirty = true;}
 
     bool                    GetDoubleSided      () const { return double_sided; }
-    void                    SetDoubleSided      (bool dside)  { double_sided = dside; }
+    void                    SetDoubleSided      (bool dside)  { double_sided = dside; uboDirty = true;}
 
     float                   GetAlphaTest        () const { return alpha_test; }
-    void                    SetAlphaTest        (float atest)  { alpha_test = atest; }
+    void                    SetAlphaTest        (float atest)  { alpha_test = atest; uboDirty = true;}
 
     uint                    GetMapMask          () const;
 
@@ -88,15 +91,18 @@ public:
     float2                  GetUVOffset         () const { return uv_offset; }
     float2                  GetSecondUVOffset   () const { return scnd_uv_offset; }
 
-    void                    SetUVTiling         (const float2& tiling) { uv_tiling = tiling; }
-    void                    SetSecondUVTiling   (const float2& tiling) { scnd_uv_tiling = tiling; }
-    void                    SetUVOffset         (const float2& offset) { uv_offset = offset; }
-    void                    SetSecondUVOffset   (const float2& offset) { scnd_uv_offset = offset; }
+    void                    SetUVTiling         (const float2& tiling) { uv_tiling = tiling; uboDirty = true;}
+    void                    SetSecondUVTiling   (const float2& tiling) { scnd_uv_tiling = tiling; uboDirty = true;}
+    void                    SetUVOffset         (const float2& offset) { uv_offset = offset; uboDirty = true;}
+    void                    SetSecondUVOffset   (const float2& offset) { scnd_uv_offset = offset; uboDirty = true;}
     
     static Resource::Type   GetClassType        () {return Resource::material;}
 
+    const Buffer*           GetMaterialUBO      ();
+
 private:
 	void                    SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const;
+    void                    GenerateUBO         ();
 };
 
 

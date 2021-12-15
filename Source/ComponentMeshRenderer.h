@@ -38,11 +38,6 @@ public:
 
     // mesh
 
-#if 0
-    void                    Draw                    ();
-    void                    DrawShadowPass          () const;
-#endif
-
 	void                    GetBoundingBox          (AABB& box) const override;
 
     static Types            GetClassType            () { return MeshRenderer; }

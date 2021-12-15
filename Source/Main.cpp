@@ -38,8 +38,19 @@ int __cdecl CrtDbgHook(int nReportType, char* szMsg, int* pnRet)
 	return 0;//Return false - Abort,Retry,Ignore dialog *will be displayed*
 }
 
+ struct  Test
+{
+    char a;
+    alignas(8) int b;
+    float c;
+};
+
 int main(int argc, char ** argv)
 {
+    
+    size_t a = offsetof(Test, b);
+    size_t sz = sizeof(Test);
+
 	_CrtSetReportHook2(_CRT_RPTHOOK_INSTALL, CrtDbgHook);
 	LOG("Starting EDU Engine from [%s]", argv[0]);
 

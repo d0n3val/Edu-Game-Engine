@@ -308,6 +308,7 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
     lightsUBO->SetData(0, sizeof(LightsData), &data);
 }
 
+#if 0
 void DefaultShader::UpdateMaterialUBO (ResourceMaterial* material)
 {
     struct MaterialData
@@ -341,6 +342,7 @@ void DefaultShader::UpdateMaterialUBO (ResourceMaterial* material)
         materialUBO->SetData(0, sizeof(MaterialData), &materialData);
     }
 }
+#endif 
 
 void DefaultShader::UpdateMeshUBOs(const float4x4* skinPalette, const float* morphWeights, const ResourceMesh* mesh)
 {
@@ -540,7 +542,7 @@ void DefaultShader::DrawPass(ComponentMeshRenderer* meshRenderer)
         return; 
     uint flags = GetDrawingFlags(mesh);
 
-    UpdateMaterialUBO(material);
+    material->GetMaterialUBO()->BindToTargetIdx(MATERIAL_UBO_TARGET);
     UpdateMeshUBOs(meshRenderer->UpdateSkinPalette(), meshRenderer->GetMorphTargetWeights(), mesh);
 
     UseDrawPass(flags);

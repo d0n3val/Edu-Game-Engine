@@ -101,11 +101,54 @@ bool ResourceMaterial::LoadInMemory()
 
             delete[] buffer;
 
+            uboDirty = true;
+
             return true;
         }
     }
 
     return false;
+}
+
+const Buffer* ResourceMaterial::GetMaterialUBO()
+{
+    if(uboDirty)
+    {
+        GenerateUBO();
+    }
+
+    return materialUBO.get();
+}
+
+void ResourceMaterial::GenerateUBO()
+{
+    struct MaterialData
+    {
+        float4 diffuse_color;
+        float4 specular_color;
+        float4 emissive_color;
+        float2 tiling;
+        float2 offset;
+        float2 secondary_tiling;
+        float2 secondary_offset;
+        float  smoothness;
+        float  normal_strength;
+        float  alpha_test;
+        uint   mapMask;
+    };
+
+    if (material)
+    {
+        MaterialData materialData = { diffuse_color, specular_color, emissive_color,
+                                      uv_tiling, uv_offset, scnd_uv_tiling,
+                                      scnd_uv_offset, smoothness, normal_strength, 
+                                      alpha_test, GetMapMask() };
+
+        materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialData), nullptr));
+        materialUBO->SetData(0, sizeof(MaterialData), &materialData);
+    }
+
+    uboDirty = false;
 }
 
 // ---------------------------------------------------------

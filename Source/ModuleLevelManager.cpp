@@ -255,7 +255,7 @@ bool ModuleLevelManager::Load(const char * file)
 
 	if (file != nullptr)
 	{
-		int len = strlen(file);
+		int len = int(strlen(file));
 
 		char* buffer = nullptr;
 		uint size = App->fs->Load(file, &buffer);
@@ -305,7 +305,7 @@ bool ModuleLevelManager::Save(const char * file)
 
 	// Finally save to file
 	char* buf = nullptr;
-	uint size = save.Save(&buf, "Level save file from EDU Engine");
+	uint size = uint(save.Save(&buf, "Level save file from EDU Engine"));
 	App->fs->Save(file, buf, size);
 	RELEASE_ARRAY(buf);
 
@@ -580,7 +580,7 @@ GameObject* ModuleLevelManager::AddModel(UID id)
                     ok = mesh->SetMaterialRes(node.renderers[j].material);
                 }
 
-                mesh->SetRootUID(parent == nullptr ? gos[0]->GetUID() : parent->GetUID());
+                mesh->SetRootUID(gos[0]->GetUID());
                 go->components.push_back(mesh);
             }
         }
@@ -612,7 +612,7 @@ GameObject* ModuleLevelManager::AddModel(UID id)
 
 uint ModuleLevelManager::AddPointLight()
 {
-    uint index = points.size();
+    uint index = uint(points.size());
     points.push_back(new PointLight);
     return index;
 }
@@ -625,7 +625,7 @@ void ModuleLevelManager::RemovePointLight(uint index)
 
 uint ModuleLevelManager::AddSpotLight()
 {
-    uint index = spots.size();
+    uint index = uint(spots.size());
     spots.push_back(new SpotLight);
 
     return index;

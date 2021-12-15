@@ -218,6 +218,8 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
 
 	if(mesh && mesh->num_bones > 0)
 	{
+        float4x4 rootT = root->GetGlobalTransformation().Inverted();
+
 		for(unsigned i=0; i < mesh->num_bones; ++i)
 		{
 			const ResourceMesh::Bone& bone = mesh->bones[i];
@@ -228,13 +230,11 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
                 bone_node = node_cache[i] = root ? root->FindChild(bone.name.C_str(), true) : nullptr;
             }
 
-            /*
             if(bone_node)
             {
-                skin_palette[i] = bone_node->GetGlobalTransformation() *bone.bind;
+                skin_palette[i] = rootT*bone_node->GetGlobalTransformation() *bone.bind;
             }
             else
-                */
             {
                 skin_palette[i] = float4x4::identity;
             }
@@ -243,60 +243,6 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
 
     return skin_palette;
 }
-
-#if 0
-void ComponentMeshRenderer::Draw() 
-{
-    const GameObject* go       = GetGameObject();
-    const ResourceMesh* mesh   = GetMeshRes();
-    ResourceMaterial* material = GetMaterialRes();
-
-    if(material != nullptr && mesh != nullptr)
-    {
-        float4x4 transform = go->GetGlobalTransformation();
-
-        glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
-
-        //UpdateCPUMorphTargets();
-        
-        mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
-        material->UpdateUniforms();
-        material->BindTextures();
-        mesh->Draw();
-        material->UnbindTextures();
-    }
-}
-
-void ComponentMeshRenderer::DrawShadowPass() const
-{
-    const GameObject* go              = GetGameObject();
-    const ResourceMesh* mesh          = GetMeshRes();
-    const ResourceMaterial* material  = GetMaterialRes();
-    float4x4 transform                = go->GetGlobalTransformation();
-
-	if (mesh != nullptr && cast_shadows)
-	{
-		glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
-        
-
-        mesh->UpdateUniforms(UpdateSkinPalette(), morph_weights.get());
-
-        const ResourceTexture* diffuse = material->GetTextureRes(TextureDiffuse);
-        unsigned diffuse_id = diffuse ? diffuse->GetID() : App->resources->GetWhiteFallback()->GetID();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuse_id);
-
-        glUniform1i(2, 0);
-        glUniform1f(1, material->GetAlphaTest());
-
-        mesh->Draw();
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-	}
-}
-#endif
-
 
 void ComponentMeshRenderer::UpdateCPUMorphTargets() const
 {

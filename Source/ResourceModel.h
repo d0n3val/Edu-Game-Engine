@@ -47,7 +47,7 @@ public:
     bool        Save                (std::string& output) const;
 	static bool Import              (const char* full_path, float scale, std::string& output);
 
-    unsigned    GetNumNodes         () const { return nodes.size(); }
+    unsigned    GetNumNodes         () const { return unsigned(nodes.size()); }
     const Node& GetNode             (uint index) const { return nodes[index]; }
 
 private:
