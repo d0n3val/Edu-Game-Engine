@@ -308,42 +308,6 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
     lightsUBO->SetData(0, sizeof(LightsData), &data);
 }
 
-#if 0
-void DefaultShader::UpdateMaterialUBO (ResourceMaterial* material)
-{
-    struct MaterialData
-    {
-        float4 diffuse_color;
-        float4 specular_color;
-        float4 emissive_color;
-        float2 tiling;
-        float2 offset;
-        float2 secondary_tiling;
-        float2 secondary_offset;
-        float  smoothness;
-        float  normal_strength;
-        float  alpha_test;
-        uint   mapMask;
-    };
-
-    if (material)
-    {
-        MaterialData materialData = { material->GetDiffuseColor(), material->GetSpecularColor(), material->GetEmissiveColor(),
-                                      material->GetUVTiling(), material->GetUVOffset(), material->GetSecondUVTiling(),
-                                      material->GetSecondUVOffset(), material->GetSmoothness(), material->GetNormalStrength(), 
-                                      material->GetAlphaTest(), material->GetMapMask() };
-
-        if (!materialUBO)
-        {
-            materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialData), nullptr));
-            materialUBO->BindToTargetIdx(MATERIAL_UBO_TARGET);
-        }
-
-        materialUBO->SetData(0, sizeof(MaterialData), &materialData);
-    }
-}
-#endif 
-
 void DefaultShader::UpdateMeshUBOs(const float4x4* skinPalette, const float* morphWeights, const ResourceMesh* mesh)
 {
     if(mesh->HasAttrib(ATTRIB_BONES))

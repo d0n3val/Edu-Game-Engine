@@ -49,7 +49,6 @@ public:
 	ProgramList 			depthPrograms;
     std::unique_ptr<Buffer> cameraUBO;
     std::unique_ptr<Buffer> lightsUBO;
-    std::unique_ptr<Buffer> materialUBO;
     std::unique_ptr<Buffer> skiningUBO;
     std::unique_ptr<Buffer> morphUBO;
 
@@ -67,7 +66,6 @@ private:
 
 	void 		UseDrawPass 	    (uint flags = 0);
 	void 		UseDepthPrePass     (uint flags = 0);
-	void		UpdateMaterialUBO	(ResourceMaterial* material);
 	void 		UpdateMeshUBOs		(const float4x4* skinPalette, const float* morphWeights, const ResourceMesh* mesh);
 
 	const char* GetShaderSource     (uint flags, bool depthPass, parsb_context* context);
