@@ -124,25 +124,35 @@ void ResourceMaterial::GenerateUBO()
 {
     struct MaterialData
     {
-        float4 diffuse_color;
-        float4 specular_color;
-        float4 emissive_color;
-        float2 tiling;
-        float2 offset;
-        float2 secondary_tiling;
-        float2 secondary_offset;
-        float  smoothness;
-        float  normal_strength;
-        float  alpha_test;
-        uint   mapMask;
+        float4   diffuse_color;
+        float4   specular_color;
+        float4   emissive_color;
+        float2   tiling;
+        float2   offset;
+        float2   secondary_tiling;
+        float2   secondary_offset;
+        float    smoothness;
+        float    normal_strength;
+        float    alpha_test;
+        uint     mapMask;
     };
 
     if (material)
     {
-        MaterialData materialData = { diffuse_color, specular_color, emissive_color,
-                                      uv_tiling, uv_offset, scnd_uv_tiling,
-                                      scnd_uv_offset, smoothness, normal_strength, 
-                                      alpha_test, GetMapMask() };
+        MaterialData materialData;
+
+        materialData.diffuse_color = diffuse_color;
+        materialData.specular_color = float4(specular_color, 0.0f);
+        materialData.emissive_color = float4(emissive_color, 0.0f);
+        materialData.tiling = uv_tiling;
+        materialData.offset = uv_offset;
+        materialData.secondary_tiling = scnd_uv_tiling;
+        materialData.secondary_offset = scnd_uv_offset;
+        materialData.smoothness = smoothness;
+        materialData.normal_strength = normal_strength;
+        materialData.alpha_test = alpha_test;
+        materialData.mapMask = GetMapMask();
+
 
         materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialData), nullptr));
         materialUBO->SetData(0, sizeof(MaterialData), &materialData);
@@ -179,7 +189,7 @@ bool ResourceMaterial::Save(std::string& output) const
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 
-    return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
+    return App->fs->SaveUnique(output, &data[0], uint(data.size()), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial");
 }
 
 // ---------------------------------------------------------
@@ -197,12 +207,12 @@ bool ResourceMaterial::Save()
 
 		sprintf_s(full_path, 250, "%s%s", LIBRARY_MATERIAL_FOLDER, exported_file.c_str());
 
-        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+        return App->fs->Save(full_path, &data[0], uint(data.size())) > 0;
     }
 
 	std::string output;
 
-	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial"))
+	if (App->fs->SaveUnique(output, &data[0], uint(data.size()), LIBRARY_MATERIAL_FOLDER, "material", "edumaterial"))
 	{
         App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
 

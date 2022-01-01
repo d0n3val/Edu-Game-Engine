@@ -39,6 +39,36 @@ layout(std140, row_major) uniform Camera
     vec4 view_pos;
 };
 
+struct TexHandle
+{
+    int index;
+    float slice;
+};
+
+struct Material
+{
+    vec4      diffuseColor;
+    vec4      specularColor;
+    vec4      emissiveColor;
+    vec2      uv_tiling;
+    vec2      uv_offset;
+    vec2      uv_secondary_tiling;
+    vec2      uv_secondary_offset;
+    float     smoothness;
+    float     normalStrength;
+    float     alphaTest;
+    uint      mapMask;
+    TexHandle handles[MAP_COUNT];
+};
+
+layout(std430) buffer Materials
+{
+    Material materials[];
+};
+
+uniform sampler2DArray textures[64];
+
+/*
 layout(std140) uniform Material
 {
     vec4      diffuseColor;
@@ -55,6 +85,7 @@ layout(std140) uniform Material
 } material;
 
 uniform sampler2D materialMaps[MAP_COUNT];
+*/
 
 uniform sampler2D   ambientOcclusion;
 uniform samplerCube diffuseIBL;
@@ -113,6 +144,8 @@ in struct VertexOut
     vec3 position;
 } fragment;
 
+in flat int draw_id;
+
 out vec4 color;
 
 //////////////////// FUNCTIONS ////////////////////////
@@ -127,12 +160,18 @@ void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out 
 vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specular, float smoothness, vec3 occlusion, vec3 emissive);
 vec3 ComputeShadow(in vec3 color);
 vec3 applyFog( in vec3  rgb, in float dist, in vec3 rayOrig, in vec3 rayDir);
+vec4 sampleTexture(uint textureIndex, vec2 uv);
 
 --- MAIN
 
 void main()
 {
-    vec4 baked = texture(materialMaps[LIGHT_MAP_INDEX], fragment.uv1);
+    vec4 baked = vec4(0.0);
+
+    if((materials[draw_id].mapMask & LIGHT_MAP_FLAG) != 0)
+    {
+        sampleTexture(LIGHT_MAP_INDEX, fragment.uv1);
+    }
 
     vec4 diffuse;
     vec3 specular;
@@ -144,19 +183,27 @@ void main()
     GetMaterial(diffuse, specular, smoothness, occlusion, emissive, normal);
 
     color      = Shading(fragment.position, normal, diffuse, specular, smoothness, occlusion, emissive);
-    color.rgb += baked.rgb;
+    //color.rgb += baked.rgb;
 
-    if(color.a < material.alphaTest)
+    if(color.a < materials[draw_id].alphaTest)
     {
         discard;
     }
 
-    color.rgb = ComputeShadow(color.rgb);
+    //color.rgb = ComputeShadow(color.rgb);
+
 
     //color.rgb = applyFog(color.rgb, distance(fragment.position, view_pos.xyz), view_pos.xyz, normalize(fragment.position-view_pos.xyz));
 
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
+}
+
+vec4 sampleTexture(uint textureIndex, vec2 uv)
+{
+    TexHandle handle  = materials[draw_id].handles[textureIndex];
+
+    return texture(textures[handle.index], vec3(uv, handle.slice));
 }
 
 vec3 applyFog( in vec3  rgb, in float dist, in vec3 rayOrig, in vec3 rayDir) 
@@ -170,6 +217,8 @@ vec3 applyFog( in vec3  rgb, in float dist, in vec3 rayOrig, in vec3 rayDir)
 
 void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive, out vec3 normal)
 {
+    Material material = materials[draw_id];
+
     diffuse    = material.diffuseColor;
     specular   = material.specularColor.rgb;
     smoothness = material.smoothness;
@@ -181,24 +230,24 @@ void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out 
 
     if((material.mapMask & DIFFUSE_MAP_FLAG) != 0)
     {
-        diffuse *= texture(materialMaps[DIFFUSE_MAP_INDEX], uv0);
+        diffuse *= sampleTexture(DIFFUSE_MAP_INDEX, uv0);
     }
 
     if((material.mapMask & SPECULAR_MAP_FLAG) != 0)
     {
-        vec4 tmp = texture(materialMaps[SPECULAR_MAP_INDEX], uv0);
+        vec4 tmp = sampleTexture(SPECULAR_MAP_INDEX, uv0);
         specular   *= tmp.rgb;
         smoothness *= tmp.a;
     }
 
     if((material.mapMask & OCCLUSION_MAP_FLAG) != 0)
     {
-        occlusion *= texture(materialMaps[OCCLUSION_MAP_INDEX], uv0).rgb;
+        occlusion *= sampleTexture(OCCLUSION_MAP_INDEX, uv0).rgb;
     }
 
     if((material.mapMask & EMISSIVE_MAP_FLAG) != 0)
     {
-        emissive *= texture(materialMaps[EMISSIVE_MAP_INDEX], uv0).rgb;
+        emissive *= sampleTexture(EMISSIVE_MAP_INDEX, uv0).rgb;
     }
 
     vec3 tex_normal = vec3(0.0);
@@ -206,32 +255,33 @@ void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out 
 
     if((material.mapMask & NORMAL_MAP_FLAG) != 0)
     {
-        tex_normal = texture(materialMaps[NORMAL_MAP_INDEX], uv0).xyz*2.0-1.0;
+        tex_normal = sampleTexture(NORMAL_MAP_INDEX, uv0).xyz*2.0-1.0;
         tex_normal.xy *= material.normalStrength;
         tex_normal = normalize(tex_normal);
 
         has_tex_normal = true;
     }
+    
 
     if((material.mapMask & DETAIL_MASK_FLAG) != 0)
     {
-        float blend = texture(materialMaps[DETAIL_MASK_MAP_INDEX], fragment.uv0).a;
+        float blend = sampleTexture(DETAIL_MASK_MAP_INDEX, fragment.uv0).a;
 
         if((material.mapMask & SECOND_DIFFUSE_FLAG) != 0)
         {
-            diffuse = mix(diffuse, texture(materialMaps[SECOND_DIFFUSE_MAP_INDEX], uv1), blend);
+            diffuse = mix(diffuse, sampleTexture(SECOND_DIFFUSE_MAP_INDEX, uv1), blend);
         }
 
         if((material.mapMask & SECOND_SPECULAR_FLAG) != 0)
         {
-            vec4 spec  = texture(materialMaps[SECOND_SPECULAR_MAP_INDEX], uv1);
+            vec4 spec  = sampleTexture(SECOND_SPECULAR_MAP_INDEX, uv1);
             specular   = mix(specular, spec.rgb, blend);
             smoothness = mix(smoothness, spec.a, blend);
         }
 
         if((material.mapMask & SECOND_NORMAL_FLAG) != 0)
         {
-            vec3 second_tex_normal = texture(materialMaps[SECOND_NORMAL_MAP_INDEX], uv1).xyz*2.0-1.0;
+            vec3 second_tex_normal = sampleTexture(SECOND_NORMAL_MAP_INDEX, uv1).xyz*2.0-1.0;
             // \todo: second_tex_normal.xy *= material.normalStrength;
             second_tex_normal = normalize(second_tex_normal);
 
@@ -349,6 +399,7 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
     
     vec3 color = Directional(normal, V, directional, diffuse.rgb, specular.rgb, roughness);
 
+#if 0
     for(uint i=0; i< num_point; ++i)
     {
         color += Point(pos, normal, V, points[i], diffuse.rgb, specular, roughness);
@@ -375,6 +426,7 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
     color += indirect*occlusionFactor;
 
     color += emissive;
+#endif
 
     return vec4(color, diffuse.a); 
 }

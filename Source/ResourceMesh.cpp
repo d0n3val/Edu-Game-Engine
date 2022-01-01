@@ -746,6 +746,12 @@ void ResourceMesh::GenerateVBO()
     if(vbo == 0)
     {
         glGenBuffers(1, &vbo);
+        if (!file.empty())
+        {
+            char lTmp[1024];
+            _snprintf(lTmp, 1023, "VB:%s(%ld)", file.c_str(), GetUID());
+            glObjectLabel(GL_BUFFER, vbo, -1, lTmp);
+        }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -784,6 +790,12 @@ void ResourceMesh::GenerateVBO()
     if(ibo == 0)
     {
         glGenBuffers(1, &ibo);
+        if (!file.empty())
+        {
+            char lTmp[1024];
+            _snprintf(lTmp, 1023, "IB:%s(%ld)", file.c_str(), GetUID());
+            glObjectLabel(GL_BUFFER, ibo, -1, lTmp);
+        }
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);

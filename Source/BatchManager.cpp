@@ -38,7 +38,7 @@ void BatchManager::AddToBatch(ComponentMeshRenderer* object, const HashString& t
 
         if(batch_index == batches.size())
         {
-            batches.push_back(std::make_unique<Batch>(tag, DEFAULT_MAX_VERTICES, DEFAULT_MAX_OBJECTS));
+            batches.push_back(std::make_unique<Batch>(tag));
 
             object_index = batches.back()->Add(object);
         }
@@ -53,7 +53,7 @@ void BatchManager::RemoveFromBatch(uint batch_index, uint object_index)
 
     if(batches[batch_index]->IsEmpty())
     {
-        batches[batch_index].reset(new Batch(batches[batch_index]->GetTagName(), DEFAULT_MAX_VERTICES, DEFAULT_MAX_OBJECTS));
+        batches[batch_index].reset(new Batch(batches[batch_index]->GetTagName()));
     }
 }
 
@@ -64,14 +64,14 @@ void BatchManager::AddToRender(uint batch_index, uint object_index)
     batches[batch_index]->AddToRender(object_index);
 }
 
-void BatchManager::DoRender()
+void BatchManager::DoRender(uint transformIndex, uint materialsIndex, uint texturesLocation)
 {
     // \todo: Sort from front to back ?
     for(std::unique_ptr<Batch>& batch : batches)
     {
         if (!batch->IsEmpty())
         {
-            batch->DoRender();
+            batch->DoRender(transformIndex, materialsIndex, texturesLocation);
         }
     }
 }

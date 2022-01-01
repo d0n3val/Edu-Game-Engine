@@ -67,7 +67,7 @@ void ModulePrograms::Clear()
 	programs.clear();
 }
 
-void ModulePrograms::UseProgram(const char* name, unsigned variations)
+uint ModulePrograms::UseProgram(const char* name, unsigned variations)
 {
 	KeyProg key;
 	key.first = HashString(name);
@@ -81,10 +81,15 @@ void ModulePrograms::UseProgram(const char* name, unsigned variations)
 		it = programs.find(key);
     }
 
+    uint program = 0;
     if(it != programs.end())
 	{
-		glUseProgram(it->second);
+        program = it->second;
 	}
+
+    glUseProgram(program);
+
+    return program;
 }
 
 void ModulePrograms::UnuseProgram()
@@ -138,7 +143,7 @@ void ModulePrograms::Compile(char** data,  char* shader_data, unsigned id, unsig
 {
     if(version)
     {
-        data[0] = "#version 430\n";
+        data[0] = "#version 440\n";
     }
 
 	for(unsigned i=0; i< num_macros; ++i)

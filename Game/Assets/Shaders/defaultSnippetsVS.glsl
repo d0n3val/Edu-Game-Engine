@@ -9,6 +9,7 @@ layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_normal;
 layout(location = 3) in ivec4 bone_indices;
 layout(location = 4) in vec4 bone_weights;
+layout(location = 7) in int  draw_id_att;
 #else
 layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_normal;
@@ -17,6 +18,7 @@ layout(location = 3) in ivec4 bone_indices;
 layout(location = 4) in vec4 bone_weights;
 layout(location = 5) in vec3 vertex_tangent;
 layout(location = 6) in vec2 vertex_uv1;
+layout(location = 7) in int  draw_id_att;
 #endif 
 
 layout(std140, row_major) uniform Camera 
@@ -26,7 +28,11 @@ layout(std140, row_major) uniform Camera
     vec4 view_pos;
 };
 
-uniform mat4 model;
+layout(std430, row_major) buffer Transforms
+{
+    mat4 models[];
+};
+
 
 #ifdef DEPTH_PREPASS
 out struct VertexOut
@@ -44,6 +50,8 @@ out struct VertexOut
     vec3 position;
 } fragment;
 #endif 
+
+out flat int draw_id;
 
 vec3 MorphPosition(vec3 position);
 vec3 MorphNormal(vec3 position);
@@ -65,6 +73,7 @@ void main()
     fragment.uv0      = vertex_uv0;
     fragment.uv1      = vertex_uv1;
 #endif
+    draw_id  = draw_id_att;
 }
 
 --- MORPH
@@ -146,6 +155,8 @@ void TransformOutput()
     mat4 skin_transform = palette[bone_indices[0]]*bone_weights[0]+palette[bone_indices[1]]*bone_weights[1]+
                           palette[bone_indices[2]]*bone_weights[2]+palette[bone_indices[3]]*bone_weights[3];
 
+    mat4 model = models[draw_id_att];
+
     fragment.position = (model*skin_transform*vec4(MorphPosition(vertex_position), 1.0)).xyz;
     fragment.normal   = (model*skin_transform*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
 #ifndef DEPTH_PREPASS
@@ -157,6 +168,8 @@ void TransformOutput()
 
 void TransformOutput()
 {
+    mat4 model = models[draw_id_att];
+
     fragment.position = (model*vec4(MorphPosition(vertex_position), 1.0)).xyz;
     fragment.normal   = (model*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
 #ifndef DEPTH_PREPASS

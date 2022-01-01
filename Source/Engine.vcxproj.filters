@@ -715,6 +715,9 @@
       <Filter>Helpers</Filter>
     </ClInclude>
     <ClInclude Include="Header.h" />
+    <ClInclude Include="TextureBatch.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1294,6 +1297,9 @@
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="BilinearBlur.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureBatch.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>

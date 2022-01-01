@@ -2,8 +2,8 @@
 #define _DEFAULT_SHADER_H_
 
 #include "Math.h"
-
 #include "utils/par_string_blocks.h"
+#include "RenderList.h"
 
 #include <unordered_map>
 #include <memory>
@@ -15,6 +15,7 @@ class ModuleLevelManager;
 class ResourceMaterial;
 class ResourceMesh;
 class Buffer;
+class BatchManager;
 
 class DefaultShader
 {
@@ -57,6 +58,7 @@ public:
 	DefaultShader();
 	~DefaultShader();
 
+	void Render 			(BatchManager* batch, const RenderList& objects);
 	void DepthPrePass 		(ComponentMeshRenderer* meshRenderer);
 	void DrawPass 		    (ComponentMeshRenderer* meshRenderer);
 	void UpdateLightUBO 	(ModuleLevelManager* level);

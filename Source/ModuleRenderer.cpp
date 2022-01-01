@@ -136,14 +136,14 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     }
 
     depthPrepass->Execute(defaultShader.get(), render_list, width, height);
-    ssao->Execute();
+    //ssao->Execute();
 
     frameBuffer->AttachDepthStencil(depthPrepass->getDepthTexture(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
-    glDepthMask(GL_FALSE);
+    //glDepthMask(GL_FALSE);
     ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), frameBuffer, width, height);
-    glDepthMask(GL_TRUE);
+    //glDepthMask(GL_TRUE);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
@@ -247,6 +247,7 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Frame
 
     glDepthFunc(GL_LEQUAL);
 
+#if 0
     uint flags = 0;
 
     if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
@@ -338,18 +339,27 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Frame
 	glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
 	App->programs->UnuseProgram();
 
+#endif 
 
+    defaultShader->Render(batch_manager.get(), render_list);
     // Render Batches
-    DrawBatches(render_list.GetOpaques(), flags);
+    //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Batches pass");
+    //DrawBatches(render_list.GetOpaques(), flags);
+    //glPopDebugGroup();
 
     //App->programs->UseProgram("default", flags);
 
-    DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawColor);
+    
+    //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Opaque pass");
+    //DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawColor);
+    //glPopDebugGroup();
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Transparent pass");
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawColor);
+    //DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawColor);
+    //glPopDebugGroup();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -382,8 +392,16 @@ void ModuleRenderer::DrawBatches(NodeList& nodes, uint render_flags)
         }
     }
 
-    App->programs->UseProgram("default_batch", render_flags); // enable batch
-    batch_manager->DoRender();
+    uint programId = App->programs->UseProgram("default_batch", render_flags); // enable batch
+    const uint transformBlockIndex = 10;
+    const uint materialsBlockIndex = 11;
+    uint resourceIndex = glGetProgramResourceIndex(programId, GL_SHADER_STORAGE_BLOCK, "Transforms");
+    glShaderStorageBlockBinding(programId, resourceIndex, transformBlockIndex);
+    resourceIndex = glGetProgramResourceIndex(programId, GL_SHADER_STORAGE_BLOCK, "Materials");
+    glShaderStorageBlockBinding(programId, resourceIndex, materialsBlockIndex);
+    int texturesLocation = glGetUniformLocation(programId, "textures");
+
+    batch_manager->DoRender(transformBlockIndex, materialsBlockIndex, texturesLocation);
     App->programs->UnuseProgram();
 
 }

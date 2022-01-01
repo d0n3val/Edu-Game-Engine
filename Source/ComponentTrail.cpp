@@ -79,7 +79,7 @@ void ComponentTrail::UpdateBuffers()
 {
     assert(!segments.empty());
 
-    uint max_num_billboards = (segments.size()-1)*(config_trail.NumAddVertices+1);
+    uint max_num_billboards = uint(segments.size()-1)*(config_trail.NumAddVertices+1);
     uint max_num_vertices   = max_num_billboards*4;
     uint max_num_indices    = max_num_billboards*6;
     

@@ -32,8 +32,8 @@ void Texture::DefaultInitializeTexture(bool mipmaps)
     {
         glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
+        //glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
+        //glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
     }
 
     glTexParameteri(tex_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -143,16 +143,16 @@ Texture2D* Texture2D::CreateDefaultRGBA(uint width, uint height, void* data, boo
     return new Texture2D(width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
 }
 
-Texture2DArray::Texture2DArray(uint mip_levels, uint _width, uint _height, uint _depth, uint internal_format): Texture(GL_TEXTURE_2D_ARRAY)
+Texture2DArray::Texture2DArray(uint _width, uint _height, uint _depth, uint internal_format, uint format, uint type): Texture(GL_TEXTURE_2D_ARRAY)
 {
     width  = _width;
     height = _height;
     depth  = _depth;
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, internal_format, width, height, depth, 0, format, type, 0);
 
-    glTexStorage3D(GL_TEXTURE_2D_ARRAY, mip_levels, internal_format, width, height, depth);
-    DefaultInitializeTexture(mip_levels > 1);
+    DefaultInitializeTexture(false);
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
@@ -165,14 +165,31 @@ void Texture2DArray::SetSubData(uint mip_level, uint depth_index, uint format, u
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
+void Texture2DArray::SetCompressedSubData(uint mip_level, uint depth_index, uint format, uint imageSize, void *data)
+{
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, mip_level, 0, 0, depth_index, width, height, 1, format, imageSize, data);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+}
+
 void Texture2DArray::SetDefaultRGBASubData(uint mip_level, uint depth_index, void* data)
 {
     SetSubData(mip_level, depth_index, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
-Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth, bool convert_linear)
+Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint width, uint height, uint depth, bool convert_linear)
 {
-    return new Texture2DArray(mip_levels, width, height, depth, convert_linear ? GL_SRGB8_ALPHA8 : GL_SRGB8_ALPHA8);
+    return new Texture2DArray(width, height, depth, convert_linear ? GL_SRGB8_ALPHA8 : GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE);
+}
+
+void Texture2DArray::GenerateMipmaps()
+{
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 1000);
+    glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
 TextureCube::TextureCube() : Texture(GL_TEXTURE_CUBE_MAP)
@@ -448,16 +465,17 @@ VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint 
 
     vbo->Bind();
 
-    if (ibo)
-    {
-        ibo->Bind();
-    }
-
     for (uint32_t i = 0; i < count; i++)
     {
         glEnableVertexAttribArray(attribs[i].index);
 
         glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (void*)(attribs[i].offset));
+        glVertexAttribDivisor(attribs[i].index, attribs[i].divisor);
+    }
+
+    if (ibo)
+    {
+        ibo->Bind();
     }
 
     glBindVertexArray(0);

@@ -284,7 +284,7 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
 
             ILinfo ImageInfo;
             iluGetImageInfo(&ImageInfo);
-            if (ImageInfo.Origin == IL_ORIGIN_LOWER_LEFT)
+            if (ImageInfo.Origin == IL_ORIGIN_UPPER_LEFT)
             {
                 iluFlipImage();
             }
@@ -346,6 +346,8 @@ bool ModuleTextures::Load(ResourceTexture* resource)
                     resource->texture = std::make_unique<Texture2D>(resource->width, resource->height,
                                                                     !resource->GetLinear() ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 
                                                                     compressedSize, compressedData, resource->has_mips);
+
+                    delete[] compressedData;
                 }
                 else
                 {
@@ -384,64 +386,61 @@ bool ModuleTextures::Load(ResourceTexture* resource)
     }
 
 	RELEASE_ARRAY(head_buffer);
-
 	return ret;
 }
 
 bool ModuleTextures::LoadToArray(const ResourceTexture* resource, Texture2DArray* texture, uint index)
 {
-	bool ret = false;
+    assert(resource->type == ResourceTexture::Texture2D);
 
-	char* buffer = nullptr;
-	uint size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, resource->GetExportedFile(), &buffer);
+    char* head_buffer = nullptr;
+    uint total_size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, resource->GetExportedFile(), &head_buffer);
 
-	if (buffer != nullptr && size > 0)
-	{
-        ResourceTexture::Type type = ResourceTexture::Type(*reinterpret_cast<uint32_t*>(buffer));
-        buffer += sizeof(uint32_t);
+    bool ret = head_buffer != nullptr && total_size > 0;
 
-        ILuint ImageName;
-        ilGenImages(1, &ImageName);
-        ilBindImage(ImageName);
+    if (ret)
+    {
+        char* buffer = head_buffer + sizeof(uint32_t);
 
-        if (ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size))
+        if (resource->type == ResourceTexture::Texture2D)
         {
-            GLuint textureId = 0;
+            ILuint image;
+            bool compressed = false;
 
-            ILinfo ImageInfo;
-            iluGetImageInfo(&ImageInfo);
-            if (ImageInfo.Origin == IL_ORIGIN_UPPER_LEFT)
+            if (LoadImage(buffer, total_size, image, compressed, IL_ORIGIN_UPPER_LEFT))
             {
-                iluFlipImage();
+                assert(compressed == resource->GetCompressed());
+                if (resource->GetCompressed())
+                {
+                    ILuint compressedSize = ilGetDXTCData(nullptr, 0, IL_DXT5);
+                    char* compressedData = new char[compressedSize];
+                    ilGetDXTCData(compressedData, compressedSize, IL_DXT5);
+
+                    texture->SetCompressedSubData(0, index, resource->GetLinear() ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, compressedSize, compressedData);
+                    delete[] compressedData;
+                }
+                else
+                {
+                    /* Forced to be UNSIGNED_BYTE ??? take into account format when creating*/
+                    int channels = ilGetInteger(IL_IMAGE_CHANNELS);
+                    if (channels == 3)
+                    {
+                        ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
+                    }
+                    else if (channels == 4)
+                    {
+                        ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+                    }
+
+                    texture->SetSubData(0, index, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
+                }
+
+                ilDeleteImages(1, &image);
             }
-
-            int channels = ilGetInteger(IL_IMAGE_CHANNELS);
-            if (channels == 3)
-            {
-                ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
-            }
-            else if (channels == 4)
-            {
-                ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-            }
-
-            ILubyte* data = ilGetData();
-            int width	  = ilGetInteger(IL_IMAGE_WIDTH);
-            int height	  = ilGetInteger(IL_IMAGE_HEIGHT);
-
-            texture->SetDefaultRGBASubData(0, index, data);
-
-            ilDeleteImages(1, &ImageName);
-
-            ret = true;
-        }
-        else
-        {
-            LOG("Cannot load texture resource %s", resource->GetFile());
         }
     }
 
-	RELEASE_ARRAY(buffer);
+    RELEASE_ARRAY(head_buffer);
 
 	return ret;
 }

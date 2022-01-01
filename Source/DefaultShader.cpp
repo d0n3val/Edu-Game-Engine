@@ -1,6 +1,6 @@
-#include "Globals.h"
-
 #define PAR_STRING_BLOCKS_IMPLEMENTATION
+
+#include "Globals.h"
 
 #include "DefaultShader.h"
 
@@ -20,15 +20,12 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "Skybox.h"
+#include "BatchManager.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
 
 #include "Leaks.h"
-
-#include <string>
-#include <fstream>
-#include <streambuf>
 
 #define MAX_NUM_POINT_LIGHTS 4
 #define MAX_NUM_SPOT_LIGHTS 4
@@ -309,7 +306,8 @@ void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
 }
 
 void DefaultShader::UpdateMeshUBOs(const float4x4* skinPalette, const float* morphWeights, const ResourceMesh* mesh)
-{
+{   
+    /*
     if(mesh->HasAttrib(ATTRIB_BONES))
     {
         struct SkiningData
@@ -327,6 +325,7 @@ void DefaultShader::UpdateMeshUBOs(const float4x4* skinPalette, const float* mor
         skiningUBO->SetData(0, sizeof(SkiningData), data);
         skiningUBO->BindToTargetIdx(SKINING_UBO_TARGET);
     }
+    */
 
     if(morphWeights != nullptr)
     {
@@ -533,5 +532,31 @@ void DefaultShader::DepthPrePass(ComponentMeshRenderer* meshRenderer)
 
     glUniformMatrix4fv(glGetUniformLocation(depthPrograms[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
 
-    mesh->Draw();
+    //mesh->Draw();
+}
+
+void DefaultShader::Render(BatchManager* batch, const RenderList& objects)
+{
+    const NodeList&  opaques = objects.GetOpaques();
+
+    for(const TRenderInfo& info : opaques)
+    {
+        if(info.mesh != nullptr && info.mesh->GetBatchIndex() != UINT_MAX && info.mesh->GetBatchObjectIndex() != UINT_MAX)
+        {
+            batch->AddToRender(info.mesh->GetBatchIndex(), info.mesh->GetBatchObjectIndex());
+        }
+    }
+
+    UseDrawPass(0);
+
+    const uint transformBlockIndex = 10;
+    const uint materialsBlockIndex = 11;
+
+    uint resourceIndex = glGetProgramResourceIndex(drawPrograms[0]->Id(), GL_SHADER_STORAGE_BLOCK, "Transforms");
+    glShaderStorageBlockBinding(drawPrograms[0]->Id(), resourceIndex, transformBlockIndex);
+    resourceIndex = glGetProgramResourceIndex(drawPrograms[0]->Id(), GL_SHADER_STORAGE_BLOCK, "Materials");
+    glShaderStorageBlockBinding(drawPrograms[0]->Id(), resourceIndex, materialsBlockIndex);
+    int texturesLocation = glGetUniformLocation(drawPrograms[0]->Id(), "textures");
+
+    batch->DoRender(transformBlockIndex, materialsBlockIndex, texturesLocation);
 }

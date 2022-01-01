@@ -62,12 +62,14 @@ public:
     Texture2DArray(const Texture2DArray& rhs) = delete;
     Texture2DArray& operator=(const Texture2DArray& rhs) = delete;
 
-    Texture2DArray(uint mip_levels, uint width, uint height, uint depth, uint internal_format);
+    Texture2DArray( uint width, uint height, uint depth, uint internal_format, uint format, uint type);
 
     void SetSubData(uint mip_level, uint depth_index, uint format, uint type, void* data);
+    void SetCompressedSubData(uint mip_level, uint depth_index, uint format, uint imageSize, void* data);
     void SetDefaultRGBASubData(uint mip_level, uint depth_index, void* data);
+    void GenerateMipmaps();
 
-    static Texture2DArray* CreateDefaultRGBA(uint mip_levels, uint width, uint height, uint depth, bool convert_linear);
+    static Texture2DArray* CreateDefaultRGBA(uint width, uint height, uint depth, bool convert_linear);
 };
 
 class TextureCube : public Texture
@@ -155,6 +157,7 @@ struct VertexAttrib
     bool normalize    = false;
     uint stride       = 0;
     uint offset       = 0;
+    uint divisor      = 0;
 };
 
 class VertexArray

@@ -23,7 +23,7 @@ public:
     void RemoveFromBatch(uint batch_index, uint object_index);
 
     void AddToRender(uint batch_index, uint object_index);
-    void DoRender();
+    void DoRender(uint transformIndex, uint materialsIndex, uint texturesLocation);
 
     void FillBatchNames(std::vector<HashString>& names) const;
 };
