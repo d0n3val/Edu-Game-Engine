@@ -6,9 +6,6 @@
 
 #include "Leaks.h"
 
-#define DEFAULT_MAX_VERTICES 64000
-#define DEFAULT_MAX_OBJECTS 32
-
 BatchManager::BatchManager()
 {
 }
@@ -17,51 +14,48 @@ BatchManager::~BatchManager()
 {
 }
 
-void BatchManager::AddToBatch(ComponentMeshRenderer* object, const HashString& tag, uint& batch_index, uint& object_index)
+uint BatchManager::Add(ComponentMeshRenderer* object, const HashString& tag)
 {
-    if(object->GetMeshRes()->HasAttrib(ATTRIB_BONES))
-	{
-		batch_index  = UINT_MAX;
-		object_index = UINT_MAX;
-    }
-    else
+    uint batch_index = 0;
+
+    for (; batch_index < batches.size(); ++batch_index)
     {
-        for(batch_index = 0; batch_index < batches.size(); ++batch_index)
+        std::unique_ptr<Batch> &batch = batches[batch_index];
+        if (batch->GetTagName() == tag && batch->CanAdd(object))
         {
-            std::unique_ptr<Batch>& batch = batches[batch_index];
-            if(batch->GetTagName() == tag && batch->CanAdd(object))
-            {
-                object_index = batch->Add(object);
-                break;
-            }
-        }
-
-        if(batch_index == batches.size())
-        {
-            batches.push_back(std::make_unique<Batch>(tag));
-
-            object_index = batches.back()->Add(object);
+            batch->Add(object);
+            break;
         }
     }
-}
 
-void BatchManager::RemoveFromBatch(uint batch_index, uint object_index)
-{
-    assert(batch_index < batches.size());
-
-    batches[batch_index]->Remove(object_index);
-
-    if(batches[batch_index]->IsEmpty())
+    if (batch_index == batches.size())
     {
-        batches[batch_index].reset(new Batch(batches[batch_index]->GetTagName()));
+        batches.push_back(std::make_unique<Batch>(tag));
+        batches.back()->Add(object);
     }
+
+    return batch_index;
 }
 
-void BatchManager::AddToRender(uint batch_index, uint object_index)
+void BatchManager::Remove(ComponentMeshRenderer* object)
 {
-    assert(batch_index < batches.size() && !batches[batch_index]->IsEmpty());
+    batches[object->GetBatchIndex()]->Remove(object);
+}
 
-    batches[batch_index]->AddToRender(object_index);
+void BatchManager::Render(const ComponentMeshRenderer* object)
+{
+    batches[object->GetBatchIndex()]->Render(object);
+}
+
+void BatchManager::UpdateModel(const NodeList& objects)
+{
+    for(const TRenderInfo& info : objects)
+    {
+        if(info.mesh && info.mesh->GetBatchIndex() != UINT_MAX)
+        {
+            batches[info.mesh->GetBatchIndex()]->UpdateModel(info.mesh);
+        }
+    }
 }
 
 void BatchManager::DoRender(uint transformIndex, uint materialsIndex, uint texturesLocation)

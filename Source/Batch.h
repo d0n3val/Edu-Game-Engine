@@ -10,27 +10,21 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 class ComponentMeshRenderer;
 
 class Batch
 {
-
 	struct MeshData
 	{
+        UID  uid            = 0;
 		uint refCount       = 0;
         uint baseVertex     = 0;
         uint vertexCount    = 0;
         uint baseIndex      = 0;
         uint indexCount     = 0;
 	};
-
-    struct MaterialData
-    {
-        uint refCount = 0;
-        uint offset   = 0;
-        TextureBatch::Handle handle[TextureCount];
-    };
 
     struct DrawCommand
     {
@@ -41,18 +35,12 @@ class Batch
         uint baseInstance;
     }; 
 
-    typedef std::unordered_map<UID, MeshData>       MeshList;
-    typedef std::unordered_map<UID, MaterialData>   MaterialList;
-    typedef std::vector<DrawCommand>                CommandList;
-    typedef std::vector<ComponentMeshRenderer*>     ObjectList;
-    typedef std::vector<uint>                       ObjectHandleList;
+    typedef std::vector<DrawCommand>                                CommandList;
+    typedef std::unordered_map<UID, MeshData>                       MeshList;
+    typedef std::unordered_map<const ComponentMeshRenderer*, uint>  ObjectList; // second is the instance index
+    typedef std::vector<const ComponentMeshRenderer*>               UpdateList;
 
-    uint                            texture_size[TextureCount][2];
-
-    uint                            vertex_size  = 0;
     uint                            attrib_flags = 0;
-    uint                            attrib_count = 0;
-    VertexAttrib                    attribs[ATTRIB_COUNT+1];
 
     std::unique_ptr<VertexArray>    vao;
     std::unique_ptr<Buffer>         ibo;
@@ -64,14 +52,11 @@ class Batch
     uint                            commandBufferSize = 0;
 
     MeshList                        meshes;
-    MaterialList                    materials;
+    ObjectList                      objects;
     TextureBatch                    textures;
 
-    ObjectHandleList                objectHandles;
-    ObjectList                      objects;
-    uint                            firstFreeObject;
-
     CommandList                     commands;
+    UpdateList                      modelUpdates;
 
     HashString                      tagName;
     bool                            bufferDirty = false;
@@ -81,11 +66,12 @@ public:
     explicit Batch(const HashString& tag);
     ~Batch() = default;
    
-    bool               CanAdd            (ComponentMeshRenderer* object) const;
-    uint               Add               (ComponentMeshRenderer* object);
-    void               Remove            (uint index);
+    bool               CanAdd            (const ComponentMeshRenderer* object) const;
+    void               Add               (const ComponentMeshRenderer* object);
+    void               Remove            (const ComponentMeshRenderer* object);
 
-    void               AddToRender       (uint index);
+    void               UpdateModel       (const ComponentMeshRenderer* object);
+    void               Render            (const ComponentMeshRenderer* object);
     void               DoRender          (uint transformsIndex, uint materialsIndex, uint texturesLocation);
 
     bool               IsEmpty           () const { return objects.empty(); }
@@ -95,13 +81,14 @@ public:
 private:
 
     void ClearRenderData      ();
-    void Init                 (ComponentMeshRenderer* object);
+    void GetVertexAttribs     (VertexAttrib* attribs, uint& count, uint& vertex_size) const;
 
     void CreateVertexBuffers  ();
     void CreateDrawIdBuffer   ();
     void CreateMaterialBuffer ();
     void CreateTransformBuffer();
     void CreateCommandBuffer();
+    void UpdateModels();
 };
 
 #endif /* _BATCH_H_ */

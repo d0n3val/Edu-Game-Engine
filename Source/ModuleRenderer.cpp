@@ -341,6 +341,8 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Frame
 
 #endif 
 
+    batch_manager->UpdateModel(render_list.GetOpaques());
+    batch_manager->UpdateModel(render_list.GetTransparents());
     defaultShader->Render(batch_manager.get(), render_list);
     // Render Batches
     //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Batches pass");
@@ -381,9 +383,9 @@ void ModuleRenderer::DrawBatches(NodeList& nodes, uint render_flags)
 	for(auto it = nodes.begin(); it != nodes.end(); )
 	{
         const TRenderInfo& render_info = *it;
-        if(render_info.mesh != nullptr && render_info.mesh->GetBatchIndex() != UINT_MAX && render_info.mesh->GetBatchObjectIndex() != UINT_MAX)
+        if(render_info.mesh != nullptr && render_info.mesh->GetBatchIndex() != UINT_MAX)
         {
-            batch_manager->AddToRender(render_info.mesh->GetBatchIndex(), render_info.mesh->GetBatchObjectIndex());
+            batch_manager->Render(render_info.mesh);
             it = nodes.erase(it);
         }
         else

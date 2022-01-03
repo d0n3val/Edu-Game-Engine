@@ -1,6 +1,7 @@
 #ifndef _BATCHMANAGER_H_
 #define _BATCHMANAGER_H_
 
+#include "RenderList.h"
 #include "HashString.h"
 
 #include <vector>
@@ -19,10 +20,12 @@ public:
     BatchManager();
     ~BatchManager();
 
-    void AddToBatch(ComponentMeshRenderer* object, const HashString& tag, uint& batch_index, uint& object_index);
-    void RemoveFromBatch(uint batch_index, uint object_index);
+    uint Add(ComponentMeshRenderer* object, const HashString& tag);
+    void Remove(ComponentMeshRenderer* object);
 
-    void AddToRender(uint batch_index, uint object_index);
+    void Render(const ComponentMeshRenderer* object);
+
+    void UpdateModel(const NodeList& objects);
     void DoRender(uint transformIndex, uint materialsIndex, uint texturesLocation);
 
     void FillBatchNames(std::vector<HashString>& names) const;

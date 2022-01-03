@@ -541,9 +541,10 @@ void DefaultShader::Render(BatchManager* batch, const RenderList& objects)
 
     for(const TRenderInfo& info : opaques)
     {
-        if(info.mesh != nullptr && info.mesh->GetBatchIndex() != UINT_MAX && info.mesh->GetBatchObjectIndex() != UINT_MAX)
+        if(info.mesh != nullptr && info.mesh->GetBatchIndex() != UINT_MAX)
         {
-            batch->AddToRender(info.mesh->GetBatchIndex(), info.mesh->GetBatchObjectIndex());
+            // \todo: do in renderer
+            batch->Render(info.mesh);
         }
     }
 

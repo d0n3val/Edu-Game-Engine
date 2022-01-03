@@ -150,7 +150,7 @@ bool ModuleFileSystem::CopyFromOutsideFS(const char * full_path, const char * de
 	if (source && dest)
 	{
 		while (size = fread_s(buf, 8192, 1, 8192, source))
-			PHYSFS_write(dest, buf, 1, size);
+			PHYSFS_write(dest, buf, 1, int(size));
 
 		fclose(source);
 		PHYSFS_close(dest);

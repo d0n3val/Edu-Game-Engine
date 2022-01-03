@@ -532,11 +532,7 @@ bool PanelProperties::InitComponentDraw(Component* component, const char * name)
 void PanelProperties::DrawBatchProperties(ComponentMeshRenderer* component)
 {
     const ResourceMesh* mesh = component->GetMeshRes();
-    if(mesh && mesh->HasAttrib(ATTRIB_BONES))
-    {
-        ImGui::Text("No batch supported on meshes with bones");
-    }
-    else
+    if(mesh)
     {
         BatchManager* batch_manager = App->renderer->GetBatchMananger();
 

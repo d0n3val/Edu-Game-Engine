@@ -69,7 +69,8 @@ void ComponentMeshRenderer::OnLoad(Config* config)
 	SetMaterialRes(config->GetUID("MaterialResource", 0));
 	SetMeshRes(config->GetUID("MeshResource", 0));
 
-    SetBatchName(HashString(config->GetString("BatchName")));
+    HashString batchName(config->GetString("BatchName"));
+    SetBatchName(batchName);
 
     // \todo: LoadToMemory doesn�t load GPU data when batching
 
@@ -87,18 +88,17 @@ void ComponentMeshRenderer::GetBoundingBox (AABB& box) const
 
 void ComponentMeshRenderer::SetBatchName(const HashString& name)
 {
-    if(batch_index != UINT_MAX && batch_object_index != UINT_MAX)
+    if(batch_index != UINT_MAX)
     {
-        App->renderer->GetBatchMananger()->RemoveFromBatch(batch_index, batch_object_index);
-        batch_index        = UINT_MAX;
-        batch_object_index = UINT_MAX;
+        App->renderer->GetBatchMananger()->Remove(this);
+        batch_index = UINT_MAX;
     }
 
     batch_name = name;
 
     if(batch_name)
     {
-        App->renderer->GetBatchMananger()->AddToBatch(this, batch_name, batch_index, batch_object_index);
+        batch_index = App->renderer->GetBatchMananger()->Add(this, batch_name);
     }
 }
 

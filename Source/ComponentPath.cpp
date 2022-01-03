@@ -98,7 +98,7 @@ void ComponentPath::DrawEditor()
 {
 	IMGUI_PRINT("Length: ", "%.3f", path_lenght);
 
-	int num_points = points.size();
+	int num_points = int(points.size());
 	if (ImGui::InputInt("# Points", &num_points))
 	{
 		if (num_points > 2)
@@ -116,7 +116,7 @@ void ComponentPath::DrawEditor()
 			GenerateSpline();
 	}
 
-	if (ImGui::SliderInt("Degrees", &degrees, 1, points.size()-1))
+	if (ImGui::SliderInt("Degrees", &degrees, 1, int(points.size()-1)))
 		GenerateSpline();
 
 	ImGui::SliderFloat("Test Point", &test_point, 0.0f, 1.0f);

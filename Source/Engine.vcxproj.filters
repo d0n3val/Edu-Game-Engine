@@ -513,12 +513,6 @@
     <ClInclude Include="ComponentPath.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
-    <ClInclude Include="tinyspline\include\tinyspline.h">
-      <Filter>3rd Party\tinyspline</Filter>
-    </ClInclude>
-    <ClInclude Include="tinyspline\include\tinysplinecpp.h">
-      <Filter>3rd Party\tinyspline</Filter>
-    </ClInclude>
     <ClInclude Include="HashString.h">
       <Filter>Helpers</Filter>
     </ClInclude>
@@ -717,6 +711,12 @@
     <ClInclude Include="Header.h" />
     <ClInclude Include="TextureBatch.h">
       <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyspline\include\tinyspline.h">
+      <Filter>3rd Party\tinyspline</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyspline\include\tinysplinecpp.h">
+      <Filter>3rd Party\tinyspline</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -947,12 +947,6 @@
     </ClCompile>
     <ClCompile Include="ComponentPath.cpp">
       <Filter>Game Objects\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="tinyspline\include\tinyspline.c">
-      <Filter>3rd Party\tinyspline</Filter>
-    </ClCompile>
-    <ClCompile Include="tinyspline\include\tinysplinecpp.cpp">
-      <Filter>3rd Party\tinyspline</Filter>
     </ClCompile>
     <ClCompile Include="HashString.cpp">
       <Filter>Helpers</Filter>
@@ -1301,6 +1295,12 @@
     </ClCompile>
     <ClCompile Include="TextureBatch.cpp">
       <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyspline\include\tinyspline.c">
+      <Filter>3rd Party\tinyspline</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyspline\include\tinysplinecpp.cpp">
+      <Filter>3rd Party\tinyspline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

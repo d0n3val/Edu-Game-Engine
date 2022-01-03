@@ -276,7 +276,7 @@ void ComponentRigidBody::DrawEditor()
 		IMGUI_PRINT("Angular Velocity: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
 		data = body->getCenterOfMassPosition();
 		IMGUI_PRINT("Center of Mass: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
-		data = body->getLocalInertia();
+//		data = body->getLocalInertia();
 		IMGUI_PRINT("Local Inertia: ", "%.2f %.2f %.2f", data.x, data.y, data.z);
 		data = body->getTotalForce();
 		IMGUI_PRINT("Total Force: ", "%.2f %.2f %.2f", data.x, data.y, data.z);

@@ -422,15 +422,8 @@ bool ModuleTextures::LoadToArray(const ResourceTexture* resource, Texture2DArray
                 else
                 {
                     /* Forced to be UNSIGNED_BYTE ??? take into account format when creating*/
-                    int channels = ilGetInteger(IL_IMAGE_CHANNELS);
-                    if (channels == 3)
-                    {
-                        ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE);
-                    }
-                    else if (channels == 4)
-                    {
-                        ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-                    }
+                    /* TODO: Create different channels size IL_IMAGE_CHANNELS*/
+                    ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
 
                     texture->SetSubData(0, index, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
                 }

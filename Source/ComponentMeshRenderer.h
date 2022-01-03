@@ -28,10 +28,12 @@ public:
 	bool                    SetMeshRes              (UID uid);
     const ResourceMesh*     GetMeshRes              () const;
     ResourceMesh*           GetMeshRes              ();
+    UID                     GetMeshUID              () const { return mesh_resource; }
 
     bool                    SetMaterialRes          (UID uid);
     const ResourceMaterial* GetMaterialRes          () const;
     ResourceMaterial*       GetMaterialRes          ();
+    UID                     GetMaterialUID          () const {return material_resource; }
 
     virtual void            OnSave                  (Config& config) const override;
     virtual void            OnLoad                  (Config* config) override;
@@ -69,8 +71,7 @@ public:
     void                    SetBatchName            (const HashString& name);
 
     uint                    GetBatchIndex           () const {return batch_index;}
-    uint                    GetBatchObjectIndex     () const {return batch_object_index;}
-
+    
 private:
 
     // mesh 
@@ -91,7 +92,6 @@ private:
 
     HashString               batch_name;
     uint                     batch_index        = UINT_MAX;
-    uint                     batch_object_index = UINT_MAX;
 };
 
 #endif /* __COMPONENT_MESHRENDERER_H__ */

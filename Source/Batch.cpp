@@ -16,124 +16,46 @@
 
 #include "Leaks.h"
 
-Batch::Batch(const HashString& tag) : tagName(tag), firstFreeObject(UINT32_MAX)
+Batch::Batch(const HashString& tag) : tagName(tag)
 {
 }
 
-bool Batch::CanAdd(ComponentMeshRenderer* object) const
+bool Batch::CanAdd(const ComponentMeshRenderer* object) const
 {
     if(objects.empty())
     {
         return true;
     }
 
-    const ResourceMesh* mesh         = object->GetMeshRes();
-    const ResourceMaterial* material = object->GetMaterialRes();
-
-	return mesh->GetAttribs() == attrib_flags && textures.CanAdd(material);
+	return object->GetMeshRes()->GetAttribs() == attrib_flags && textures.CanAdd(object->GetMaterialRes());
 }
 
-uint Batch::Add(ComponentMeshRenderer* object)
+void Batch::Add(const ComponentMeshRenderer* object)
 {
     assert(CanAdd(object));
+    assert(commands.empty());
 
-    if(objects.size() == 0)
+    if(objects.empty())
     {
-        Init(object);
+        attrib_flags = object->GetMeshRes()->GetAttribs();
     }
 
-    meshes[object->GetMeshRes()->GetUID()].refCount++;
+    meshes[object->GetMeshUID()].refCount++;
+    objects[object] = 0;
 
-    const ResourceMaterial* material = object->GetMaterialRes();
-    if((materials[material->GetUID()].refCount++) == 0)
-    {
-        textures.Add(material);
-    }
-
-    uint objectId = 0;
-
-    if(firstFreeObject != UINT32_MAX)
-    {
-        objectId = firstFreeObject;
-        firstFreeObject = objectHandles[firstFreeObject];
-        objectHandles[objectId] = uint(objects.size());
-    }
-    else
-    {
-        objectId = uint(objectHandles.size());
-        objectHandles.push_back(uint(objects.size()));
-    }
-
-    objects.push_back(object);
+    textures.Add(object->GetMaterialRes());
 
     ClearRenderData();
-
-    return objectId;
-}
-
-void Batch::Init(ComponentMeshRenderer* object)
-{
-    const ResourceMesh* mesh         = object->GetMeshRes();
-    const ResourceMaterial* material = object->GetMaterialRes();
-
-    // Texture sizes
-
-    for(uint i=0; i< TextureCount; ++i)
-    {
-        const ResourceTexture* texture = material->GetTextureRes(MaterialTexture(i));
-        if (texture)
-        {
-            texture_size[i][0] = texture->GetWidth();
-            texture_size[i][1] = texture->GetHeight();
-        }
-        else
-        {
-            texture_size[i][0] = 0;
-            texture_size[i][1] = 0;
-        }
-    }
-
-    // Vertex Attribs and vertex size 
-
-    attrib_flags            = mesh->GetAttribs();
-    vertex_size             = sizeof(float3);
-    attrib_count            = 0;
-    attribs[attrib_count++] = {0, 3, GL_FLOAT, GL_FALSE, 0, 0};
-
-    if(mesh->HasAttrib(ATTRIB_TEX_COORDS_0))
-    {
-        attribs[attrib_count++] = {2, 2, GL_FLOAT, GL_FALSE, 0, vertex_size} ;
-
-        vertex_size += sizeof(float2);
-    }
-
-    if(mesh->HasAttrib(ATTRIB_NORMALS))
-    {
-        attribs[attrib_count++] = {1, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
-
-        vertex_size += sizeof(float3);
-    }
-
-    if(mesh->HasAttrib(ATTRIB_TANGENTS))
-    {
-        attribs[attrib_count++] = {5, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
-
-        vertex_size += sizeof(float3);
-    }
-
-    for(uint i=0; i< attrib_count; ++i)
-    {
-        attribs[i].stride = vertex_size;
-    }
 }
 
 void Batch::CreateRenderData()
 {
     CreateVertexBuffers();
+    CreateDrawIdBuffer();
     CreateMaterialBuffer();
     CreateTransformBuffer();
-    CreateDrawIdBuffer();
     bufferDirty = false;
+    modelUpdates.clear();
 }
 
 void Batch::ClearRenderData()
@@ -149,10 +71,16 @@ void Batch::ClearRenderData()
 
 void Batch::CreateVertexBuffers()
 {
+    uint         vertex_size  = 0;
+    uint         attrib_count = 0;
+    VertexAttrib attribs[ATTRIB_COUNT];
+
+    GetVertexAttribs(attribs, attrib_count, vertex_size);
+
     uint numIndices  = 0;
     uint numVertices = 0;
 
-    for(const std::pair<UID, MeshData>& meshData  : meshes)
+    for(const std::pair<const UID, MeshData>& meshData  : meshes)
     {
         const ResourceMesh *mesh = static_cast<const ResourceMesh *>(App->resources->Get(meshData.first));
         numVertices += mesh->num_vertices;
@@ -172,10 +100,10 @@ void Batch::CreateVertexBuffers()
     {
         const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
 
-        meshData.second.baseVertex = baseVertex;
-        meshData.second.baseIndex = baseIndex;
+        meshData.second.baseVertex  = baseVertex;
+        meshData.second.baseIndex   = baseIndex;
         meshData.second.vertexCount = mesh->num_vertices;
-        meshData.second.indexCount = mesh->num_indices;
+        meshData.second.indexCount  = mesh->num_indices;
 
         baseVertex += mesh->num_vertices;
         baseIndex += mesh->num_indices;
@@ -233,9 +161,9 @@ void Batch::CreateTransformBuffer()
 {
     transformSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, objects.size()*sizeof(float4x4), nullptr);
     float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->Map(GL_WRITE_ONLY));
-    for(uint index = 0, count = uint(objects.size()); index < count; ++index)
+    for(std::pair<const ComponentMeshRenderer* const, uint>& object : objects)
     {
-        transforms[index] = objects[index]->GetGameObject()->GetGlobalTransformation();
+        transforms[object.second] = object.first->GetGameObject()->GetGlobalTransformation();
     }
     transformSSBO->Unmap();
 }
@@ -273,12 +201,12 @@ void Batch::CreateMaterialBuffer()
 
     textures.GenerateTextures();
 
-    materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW, sizeof(MaterialData)*materials.size(), nullptr);
+    materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW, sizeof(MaterialData)*objects.size(), nullptr);
     MaterialData* matData = reinterpret_cast<MaterialData*>(materialSSBO->Map(GL_WRITE_ONLY));
-    for(auto it = materials.begin(); it != materials.end(); ++it)
+    for(const std::pair<const ComponentMeshRenderer*, uint>& object : objects)
     {
-        MaterialData& out = *(matData++);
-        const ResourceMaterial* material = reinterpret_cast<const ResourceMaterial*>(App->resources->Get(it->first));
+        MaterialData& out = matData[object.second];
+        const ResourceMaterial* material = reinterpret_cast<const ResourceMaterial*>(App->resources->Get(object.first->GetMaterialRes()->GetUID()));
 
         out.diffuse_color    = material->GetDiffuseColor();
         out.specular_color   = float4(material->GetSpecularColor(), 0.0f);
@@ -310,9 +238,11 @@ void Batch::CreateDrawIdBuffer()
     drawIdVBO.reset(Buffer::CreateVBO(GL_STATIC_DRAW, uint(objects.size()*sizeof(int)), nullptr));
     int* drawIds = (int*)drawIdVBO->Map(GL_WRITE_ONLY);
 
-    for(uint i=0; i< uint(objects.size()); ++i)
+    uint instanceId = 0;
+    for(std::pair<const ComponentMeshRenderer* const, uint>& object : objects)
     {
-        drawIds[i] = i;
+        object.second = instanceId++;
+        drawIds[object.second] = object.second;
     }
     drawIdVBO->Unmap();
 
@@ -325,31 +255,29 @@ void Batch::CreateDrawIdBuffer()
     vao->Unbind();
 }
 
-void Batch::AddToRender(uint index)
+void Batch::Render(const ComponentMeshRenderer* object)
 {
-    assert(index < objectHandles.size());
+    if (bufferDirty)
+    {
+        CreateRenderData();
+    }
 
-    uint objIndex = objectHandles[index];
+    auto itMesh = meshes.find(object->GetMeshUID());
+    auto itObject = objects.find(object);
 
-    auto itMesh = meshes.find(objects[objIndex]->GetMeshRes()->GetUID());
-    assert(itMesh != meshes.end());
-
-    const MeshData& meshData = itMesh->second;
-
-    DrawCommand command = { meshData.indexCount, 1, meshData.baseIndex, meshData.baseVertex, objIndex };
-    commands.push_back(command);
+    if(itMesh != meshes.end() && itObject != objects.end())
+    {
+        DrawCommand command = {itMesh->second.indexCount, 1, itMesh->second.baseIndex, itMesh->second.baseVertex, itObject->second };
+        commands.push_back(command);
+    }
 }
 
 void Batch::DoRender(uint transformsIndex, uint materialsIndex, uint texturesLocation)
 {
     if (!commands.empty())
     {
-        if(bufferDirty)
-        {
-            CreateRenderData();
-        }
-
         CreateCommandBuffer();
+        UpdateModels();
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, transformsIndex, transformSSBO->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsIndex, materialSSBO->Id());
@@ -367,40 +295,74 @@ void Batch::DoRender(uint transformsIndex, uint materialsIndex, uint texturesLoc
     }
 }
 
-void Batch::Remove(uint index)
+void Batch::Remove(const ComponentMeshRenderer* object)
 {
-    uint objIndex = objectHandles[index];
-    ComponentMeshRenderer* mesh = objects[objIndex];
-    UID meshId  = mesh->GetMeshRes()->GetUID();
-    auto itMesh = meshes.find(meshId);
-    assert(itMesh != meshes.end());
+    assert(commands.empty());
 
-    if((--itMesh->second.refCount) == 0)
+    auto it = meshes.find(object->GetMeshUID());
+    if((--it->second.refCount) == 0)
     {
-        meshes.erase(itMesh);
+        meshes.erase(it);
     }
 
-    const ResourceMaterial* material = mesh->GetMaterialRes();
-    UID materialId  = material->GetUID();
-    auto itMaterial = materials.find(materialId);
-    assert(itMaterial != materials.end());
-
-    if((--itMaterial->second.refCount) == 0)
-    {
-        materials.erase(itMaterial);
-        textures.Remove(material);
-    }
-
-    for (auto it = objectHandles.begin() + index + 1; it != objectHandles.end(); ++it)
-    {
-        --(*it);
-    }
-
-    objectHandles[index] = firstFreeObject;
-    
-    firstFreeObject = index;
-
-    objects.erase(objects.begin()+objIndex);
+    objects.erase(object);
+    textures.Remove(object->GetMaterialRes());
 
 	ClearRenderData();
+}
+
+void Batch::GetVertexAttribs(VertexAttrib *attribs, uint &count, uint& vertex_size) const
+{
+    vertex_size      = sizeof(float3);
+    count            = 0;
+    attribs[count++] = {0, 3, GL_FLOAT, GL_FALSE, 0, 0};
+
+    const ResourceMesh* mesh = objects.begin()->first->GetMeshRes();
+
+    if(mesh->HasAttrib(ATTRIB_TEX_COORDS_0))
+    {
+        attribs[count++] = {2, 2, GL_FLOAT, GL_FALSE, 0, vertex_size} ;
+        vertex_size += sizeof(float2);
+    }
+
+    if(mesh->HasAttrib(ATTRIB_NORMALS))
+    {
+        attribs[count++] = {1, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
+        vertex_size += sizeof(float3);
+    }
+
+    if(mesh->HasAttrib(ATTRIB_TANGENTS))
+    {
+        attribs[count++] = {5, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
+        vertex_size += sizeof(float3);
+    }
+
+    for(uint i=0; i< count; ++i)
+    {
+        attribs[i].stride = vertex_size;
+    }
+}
+
+void Batch::UpdateModel(const ComponentMeshRenderer *object)
+{
+    modelUpdates.push_back(object);
+}
+
+void Batch::UpdateModels()
+{
+    if(!modelUpdates.empty())
+    {
+        float4x4 *transforms = reinterpret_cast<float4x4 *>(transformSSBO->Map(GL_WRITE_ONLY));
+        for (const ComponentMeshRenderer *object : modelUpdates)
+        {
+            auto it = objects.find(object);
+            if (it != objects.end())
+            {
+                transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
+            }
+        }
+        transformSSBO->Unmap();
+
+        modelUpdates.clear();
+    }
 }

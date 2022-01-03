@@ -61,31 +61,12 @@ struct Material
     TexHandle handles[MAP_COUNT];
 };
 
-layout(std430) buffer Materials
+readonly layout(std430) buffer Materials
 {
     Material materials[];
 };
 
 uniform sampler2DArray textures[64];
-
-/*
-layout(std140) uniform Material
-{
-    vec4      diffuseColor;
-    vec4      specularColor;
-    vec4      emissiveColor;
-    vec2      uv_tiling;
-    vec2      uv_offset;
-    vec2      uv_secondary_tiling;
-    vec2      uv_secondary_offset;
-    float     smoothness;
-    float     normalStrength;
-    float     alphaTest;
-    uint      mapMask;
-} material;
-
-uniform sampler2D materialMaps[MAP_COUNT];
-*/
 
 uniform sampler2D   ambientOcclusion;
 uniform samplerCube diffuseIBL;
@@ -197,6 +178,7 @@ void main()
 
 	// gamma correction
     //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
+
 }
 
 vec4 sampleTexture(uint textureIndex, vec2 uv)
@@ -217,7 +199,7 @@ vec3 applyFog( in vec3  rgb, in float dist, in vec3 rayOrig, in vec3 rayDir)
 
 void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive, out vec3 normal)
 {
-    Material material = materials[draw_id];
+    Material material = materials[draw_id]; 
 
     diffuse    = material.diffuseColor;
     specular   = material.specularColor.rgb;
@@ -230,6 +212,7 @@ void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out 
 
     if((material.mapMask & DIFFUSE_MAP_FLAG) != 0)
     {
+        //diffuse = texture(textures[0], vec3(fragment.uv0, 0.0));
         diffuse *= sampleTexture(DIFFUSE_MAP_INDEX, uv0);
     }
 
@@ -307,6 +290,7 @@ void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out 
     {
         normal = normalize(fragment.normal);
     }
+
 }
 
 vec3 GetFresnel(vec3 dir0, vec3 dir1, const vec3 f0)

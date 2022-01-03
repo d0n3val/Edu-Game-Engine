@@ -28,7 +28,7 @@ layout(std140, row_major) uniform Camera
     vec4 view_pos;
 };
 
-layout(std430, row_major) buffer Transforms
+readonly layout(std430, row_major) buffer Transforms
 {
     mat4 models[];
 };

@@ -653,7 +653,7 @@ void ComponentSteering::DrawEditor()
 	else
 		velocities.push_back(mov_velocity.Length());
 	
-	ImGui::PlotHistogram("##velocity", &velocities[0], velocities.size(), 0, "Movement Velocity", 0.0f, max_mov_speed, ImVec2(310,75));
+	ImGui::PlotHistogram("##velocity", &velocities[0], int(velocities.size()), 0, "Movement Velocity", 0.0f, max_mov_speed, ImVec2(310,75));
 
 	// Editor for rotation stuff --------------------
 	ImGui::Separator();
