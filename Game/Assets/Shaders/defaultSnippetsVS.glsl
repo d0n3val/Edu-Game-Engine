@@ -1,6 +1,6 @@
 --- PREFIX
 
-#version 440
+#version 460
 
 --- DATA
 
@@ -21,14 +21,14 @@ layout(location = 6) in vec2 vertex_uv1;
 layout(location = 7) in int  draw_id_att;
 #endif 
 
-layout(std140, row_major) uniform Camera 
+layout(std140, row_major, binding = 0) uniform Camera 
 {
     mat4 proj;
     mat4 view;
     vec4 view_pos;
 };
 
-readonly layout(std430, row_major) buffer Transforms
+readonly layout(std430, row_major, binding = 10) buffer Transforms
 {
     mat4 models[];
 };

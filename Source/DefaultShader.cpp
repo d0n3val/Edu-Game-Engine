@@ -104,39 +104,7 @@ void DefaultShader::UseDrawPass(uint flags)
         }
     }
 
-    int location = glGetUniformLocation(program->Id(), "materialMaps");
-
-    if (location >= 0)
-    {
-        static int maps[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-        glUniform1iv(location, sizeof(maps) / sizeof(int), &maps[0]);
-    }
-
-    location = glGetUniformLocation(program->Id(), "diffuseIBL");
-    if(location >= 0)
-    {
-        glUniform1i(location, TextureMap_DiffuseIBL);
-    }
-
-    location = glGetUniformLocation(program->Id(), "prefilteredIBL");
-    if(location >= 0)
-    {
-        glUniform1i(location, TextureMap_PrefilteredIBL);
-    }
-
-    location = glGetUniformLocation(program->Id(), "prefilteredLevels");
-    if(location >= 0)
-    {
-        glUniform1i(location, App->level->GetSkyBox()->GetPrefilterdLevels());
-    }
-
-    location = glGetUniformLocation(program->Id(), "environmentBRDF");
-    if(location >= 0)
-    {
-        glUniform1i(location, TextureMap_EnvironMentBRDF);
-    }
-
-    location = glGetUniformLocation(program->Id(), "ambientOcclusion");
+    int location = glGetUniformLocation(program->Id(), "ambientOcclusion");
     if(location >= 0)
     {
         glUniform1i(location, TextureMap_AO);
@@ -182,28 +150,6 @@ void DefaultShader::UseDepthPrePass(uint flags)
     }
 
     program->Use();
-}
-
-void DefaultShader::UpdateCameraUBO(ComponentCamera* camera)
-{
-    struct CameraData
-    {
-        float4x4 proj     = float4x4::identity;
-        float4x4 view     = float4x4::identity;
-        float4   view_pos = float4::zero;
-    } cameraData;
-
-    if(!cameraUBO)
-    {
-        cameraUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(cameraData), nullptr));
-        cameraUBO->BindToTargetIdx(CAMERA_UBO_TARGET);
-    }
-
-    cameraData.proj     = camera->GetProjectionMatrix();  
-    cameraData.view     = camera->GetViewMatrix();
-    cameraData.view_pos = float4(cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart()), 1.0);
-
-    cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
 }
 
 void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
@@ -535,29 +481,30 @@ void DefaultShader::DepthPrePass(ComponentMeshRenderer* meshRenderer)
     //mesh->Draw();
 }
 
-void DefaultShader::Render(BatchManager* batch, const RenderList& objects)
+void DefaultShader::Render(BatchManager *batch, const RenderList &objects, Buffer* cameraUBO)
 {
-    const NodeList&  opaques = objects.GetOpaques();
-
-    for(const TRenderInfo& info : opaques)
-    {
-        if(info.mesh != nullptr && info.mesh->GetBatchIndex() != UINT_MAX)
-        {
-            // \todo: do in renderer
-            batch->Render(info.mesh);
-        }
-    }
-
     UseDrawPass(0);
 
     const uint transformBlockIndex = 10;
     const uint materialsBlockIndex = 11;
+    const uint cameraBlockIndex = 0;
+    const uint levelsLoc = 64;
 
-    uint resourceIndex = glGetProgramResourceIndex(drawPrograms[0]->Id(), GL_SHADER_STORAGE_BLOCK, "Transforms");
-    glShaderStorageBlockBinding(drawPrograms[0]->Id(), resourceIndex, transformBlockIndex);
-    resourceIndex = glGetProgramResourceIndex(drawPrograms[0]->Id(), GL_SHADER_STORAGE_BLOCK, "Materials");
-    glShaderStorageBlockBinding(drawPrograms[0]->Id(), resourceIndex, materialsBlockIndex);
-    int texturesLocation = glGetUniformLocation(drawPrograms[0]->Id(), "textures");
+    // Bind  camera
+    cameraUBO->BindToTargetIdx(cameraBlockIndex);
 
-    batch->DoRender(transformBlockIndex, materialsBlockIndex, texturesLocation);
+    // Bind IBL
+    App->level->GetSkyBox()->BindIBL(levelsLoc, TextureMap_DiffuseIBL, TextureMap_PrefilteredIBL, TextureMap_EnvironMentBRDF);
+
+    // opaques
+    batch->Render(objects.GetOpaques(), transformBlockIndex, materialsBlockIndex, false);
+
+    // transparents
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    batch->Render(objects.GetTransparents(), transformBlockIndex, materialsBlockIndex, true);
+
+    glDisable(GL_BLEND);
 }

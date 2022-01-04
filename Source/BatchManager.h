@@ -23,10 +23,8 @@ public:
     uint Add(ComponentMeshRenderer* object, const HashString& tag);
     void Remove(ComponentMeshRenderer* object);
 
-    void Render(const ComponentMeshRenderer* object);
-
     void UpdateModel(const NodeList& objects);
-    void DoRender(uint transformIndex, uint materialsIndex, uint texturesLocation);
+    void Render(const NodeList& objects, uint transformIndex, uint materialsIndex, bool keepOrder);
 
     void FillBatchNames(std::vector<HashString>& names) const;
 };

@@ -58,6 +58,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<DefaultShader>  defaultShader;
     std::unique_ptr<DepthPrepass>   depthPrepass;
     std::unique_ptr<ScreenSpaceAO>  ssao;
+    std::unique_ptr<Buffer>         cameraUBO;
 
 public:
 
@@ -86,7 +87,6 @@ private:
 
     void                LoadDefaultShaders          ();
 
-    void                DrawBatches                 (NodeList& nodes, uint render_flags);
     void                DrawNodes                   (const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo& ));
 
     void                DrawColor                   (const TRenderInfo& render_info);
@@ -115,7 +115,7 @@ private:
     float4x4            SetOrtho                    (float left, float right, float bottom, float top, float _near, float _far);
     float4x4            SetFrustum                  (float left, float right, float bottom, float top, float _near, float _far);
     float4x4            ComputePerspShadowMtx       (const float3& view_pos, const float3& view_dir, const float3& light_dir, const float3x3& light_view);
+    void                UpdateCameraUBO             (ComponentCamera *camera);
 };
-
 
 #endif /* _RENDERER_H_ */

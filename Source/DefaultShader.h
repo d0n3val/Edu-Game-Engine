@@ -48,7 +48,6 @@ public:
 
 	ProgramList 			drawPrograms;
 	ProgramList 			depthPrograms;
-    std::unique_ptr<Buffer> cameraUBO;
     std::unique_ptr<Buffer> lightsUBO;
     std::unique_ptr<Buffer> skiningUBO;
     std::unique_ptr<Buffer> morphUBO;
@@ -58,7 +57,7 @@ public:
 	DefaultShader();
 	~DefaultShader();
 
-	void Render 			(BatchManager* batch, const RenderList& objects);
+	void Render 			(BatchManager* batch, const RenderList& objects, Buffer* cameraUBO);
 	void DepthPrePass 		(ComponentMeshRenderer* meshRenderer);
 	void DrawPass 		    (ComponentMeshRenderer* meshRenderer);
 	void UpdateLightUBO 	(ModuleLevelManager* level);

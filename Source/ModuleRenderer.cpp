@@ -125,10 +125,14 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
-    defaultShader->UpdateCameraUBO(camera);
+    UpdateCameraUBO(camera);
+
     defaultShader->UpdateLightUBO(App->level);
 
     render_list.UpdateFrom(culling, App->level->GetRoot()); // App->level->quadtree.root);
+
+    batch_manager->UpdateModel(render_list.GetOpaques());
+    batch_manager->UpdateModel(render_list.GetTransparents());
 
     if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
     {
@@ -235,6 +239,27 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
     }
 }
 
+void ModuleRenderer::UpdateCameraUBO(ComponentCamera *camera)
+{
+    struct CameraData
+    {
+        float4x4 proj     = float4x4::identity;
+        float4x4 view     = float4x4::identity;
+        float4   view_pos = float4::zero;
+    } cameraData;
+
+    if(!cameraUBO)
+    {
+        cameraUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(cameraData), nullptr));
+    }
+
+    cameraData.proj     = camera->GetProjectionMatrix();  
+    cameraData.view     = camera->GetViewMatrix();
+    cameraData.view_pos = float4(cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart()), 1.0);
+
+    cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
+}
+
 void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
     frameBuffer->Bind();    
@@ -244,126 +269,11 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Frame
     {
         glClear(GL_COLOR_BUFFER_BIT);
     }
-
     glDepthFunc(GL_LEQUAL);
 
-#if 0
-    uint flags = 0;
+    defaultShader->Render(batch_manager.get(), render_list, cameraUBO.get());
 
-    if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
-    {
-        flags |= (1 << 0);
-
-        if (App->hints->GetBoolValue(ModuleHints::SHADOW_SHOW_CASCADES))
-        {
-            flags |= (1 << 1);
-        }
-
-        if(App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
-        {
-            flags |= (1 << 2);
-        }
-    }
-
-    // Set camera uniforms shared for all
-    App->programs->UseProgram("default", flags);
-
-    App->programs->BindUniformBlock("default", flags, "Camera", 0);
-    App->programs->BindUniformBlock("default", flags, "Material", 1);
-    App->programs->BindUniformBlock("default", flags, "Lights", 2);
-
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
-    {
-        float2 shadow_res[3] = { App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_RES),
-                          App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_1_RES),
-                          App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_2_RES) };
-
-
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[0]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[1]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[1].proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_proj[2]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[2].proj));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[0]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[0].view));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[1]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[1].view));
-        glUniformMatrix4fv(App->programs->GetUniformLocation("light_view[2]"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[2].view));
-
-        glUniform2fv(App->programs->GetUniformLocation("map_size[0]"), 1, &shadow_res[0].x);
-        glUniform2fv(App->programs->GetUniformLocation("map_size[1]"), 1, &shadow_res[1].x);
-        glUniform2fv(App->programs->GetUniformLocation("map_size[2]"), 1, &shadow_res[2].x);
-
-        glUniform1f(App->programs->GetUniformLocation("shadow_bias"), App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
-        glUniform1i(App->programs->GetUniformLocation("kernel_half_size"), App->hints->GetIntValue(ModuleHints::SHADOW_PCF_SIZE));
-        if(App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT) )
-        {
-            glActiveTexture(GL_TEXTURE8);
-            glBindTexture(GL_TEXTURE_2D, cascades[0].blur_tex_1);
-            glUniform1i(App->programs->GetUniformLocation("shadow_map[0]"), 8);
-
-            glActiveTexture(GL_TEXTURE9);
-            glBindTexture(GL_TEXTURE_2D, cascades[1].blur_tex_1);
-            glUniform1i(App->programs->GetUniformLocation("shadow_map[1]"), 9);
-
-            glActiveTexture(GL_TEXTURE9+1);
-            glBindTexture(GL_TEXTURE_2D, cascades[2].blur_tex_1);
-            glUniform1i(App->programs->GetUniformLocation("shadow_map[2]"), 10);
-        }
-        else
-        {
-            glActiveTexture(GL_TEXTURE8);
-            glBindTexture(GL_TEXTURE_2D, cascades[0].tex);
-            glUniform1i(App->programs->GetUniformLocation("shadow_map[0]"), 8);
-
-            glActiveTexture(GL_TEXTURE9);
-            glBindTexture(GL_TEXTURE_2D, cascades[1].tex);
-            glUniform1i(App->programs->GetUniformLocation("shadow_map[1]"), 9);
-
-            glActiveTexture(GL_TEXTURE9+1);
-            glBindTexture(GL_TEXTURE_2D, cascades[2].tex);
-            glUniform1i(App->programs->GetUniformLocation("shadow_map[2]"), 10);
-        }
-    }
-
-    App->programs->UnuseProgram();
-
-    App->programs->UseProgram("particles", 0);
-    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
-    App->programs->UnuseProgram();
-
-    App->programs->UseProgram("trails", 0);
-    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
-    App->programs->UnuseProgram();
-
-	App->programs->UseProgram("default_batch", flags);
-	glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-	glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
-	App->programs->UnuseProgram();
-
-#endif 
-
-    batch_manager->UpdateModel(render_list.GetOpaques());
-    batch_manager->UpdateModel(render_list.GetTransparents());
-    defaultShader->Render(batch_manager.get(), render_list);
-    // Render Batches
-    //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Batches pass");
-    //DrawBatches(render_list.GetOpaques(), flags);
-    //glPopDebugGroup();
-
-    //App->programs->UseProgram("default", flags);
-
-    
-    //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Opaque pass");
-    //DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawColor);
-    //glPopDebugGroup();
-
-    //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Transparent pass");
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    //DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawColor);
-    //glPopDebugGroup();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    frameBuffer->Unbind();
 }
 
 void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
@@ -376,36 +286,6 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
 
     DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawSelection);
     DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawSelection);
-}
-
-void ModuleRenderer::DrawBatches(NodeList& nodes, uint render_flags)
-{
-	for(auto it = nodes.begin(); it != nodes.end(); )
-	{
-        const TRenderInfo& render_info = *it;
-        if(render_info.mesh != nullptr && render_info.mesh->GetBatchIndex() != UINT_MAX)
-        {
-            batch_manager->Render(render_info.mesh);
-            it = nodes.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
-    }
-
-    uint programId = App->programs->UseProgram("default_batch", render_flags); // enable batch
-    const uint transformBlockIndex = 10;
-    const uint materialsBlockIndex = 11;
-    uint resourceIndex = glGetProgramResourceIndex(programId, GL_SHADER_STORAGE_BLOCK, "Transforms");
-    glShaderStorageBlockBinding(programId, resourceIndex, transformBlockIndex);
-    resourceIndex = glGetProgramResourceIndex(programId, GL_SHADER_STORAGE_BLOCK, "Materials");
-    glShaderStorageBlockBinding(programId, resourceIndex, materialsBlockIndex);
-    int texturesLocation = glGetUniformLocation(programId, "textures");
-
-    batch_manager->DoRender(transformBlockIndex, materialsBlockIndex, texturesLocation);
-    App->programs->UnuseProgram();
-
 }
 
 void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo&)) 

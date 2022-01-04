@@ -27,7 +27,7 @@ private:
         std::vector<TexData> textures;
     };
 
-    enum { MAX_TEXTURE_ARRAY_COUNT = 64 };
+    enum { MAX_TEXTURE_ARRAY_COUNT = 24 };
 
     TexArrayInfo textures[MAX_TEXTURE_ARRAY_COUNT];
     bool         texturesDirty = false;
@@ -47,7 +47,6 @@ public:
     bool GetHandle(const ResourceTexture* texture, Handle& handle) const;
 
     void Bind();
-    void SetUniform(uint location);
     void GenerateTextures();
 
 private:

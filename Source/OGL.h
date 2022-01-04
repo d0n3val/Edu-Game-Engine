@@ -62,14 +62,14 @@ public:
     Texture2DArray(const Texture2DArray& rhs) = delete;
     Texture2DArray& operator=(const Texture2DArray& rhs) = delete;
 
-    Texture2DArray( uint width, uint height, uint depth, uint internal_format, uint format, uint type);
+    Texture2DArray(uint mipLevels, uint width, uint height, uint depth, uint internal_format);
 
     void SetSubData(uint mip_level, uint depth_index, uint format, uint type, void* data);
     void SetCompressedSubData(uint mip_level, uint depth_index, uint format, uint imageSize, void* data);
     void SetDefaultRGBASubData(uint mip_level, uint depth_index, void* data);
     void GenerateMipmaps();
 
-    static Texture2DArray* CreateDefaultRGBA(uint width, uint height, uint depth, bool convert_linear);
+    static Texture2DArray* CreateDefaultRGBA(uint mipLevels, uint width, uint height, uint depth, bool convert_linear);
 };
 
 class TextureCube : public Texture
@@ -132,7 +132,7 @@ public:
     Buffer(const Buffer& rhs) = delete;
     Buffer& operator=(const Buffer& rhs) = delete;
 
-    Buffer(uint type, uint usage, size_t size, const void* data);
+    Buffer(uint type, uint flags, size_t size, const void* data, bool storage = false);
     ~Buffer();
 
     void  Bind() const;
@@ -225,22 +225,24 @@ public:
     void     BindTexture(uint location, uint unit, const Texture* texture);
     void     BindTextureFromName(const char* name, uint unit, const Texture* texture);
 
-    void     BindUniform(uint location, int value);
-    void     BindUniform(uint location, float value);
-    void     BindUniform(uint location, const float2& value);
-    void     BindUniform(uint location, const float3& value);
-    void     BindUniform(uint location, const float4& value);
-    void     BindUniform(uint location, const float2x2& value);
-    void     BindUniform(uint location, const float3x3& value);
-    void     BindUniform(uint location, const float4x4& value);
-    void     BindUniform(uint location, int count, int* value);
-    void     BindUniform(uint location, int count, float* value);
-    void     BindUniform(uint location, int count, const float2* value);
-    void     BindUniform(uint location, int count, const float3* value);
-    void     BindUniform(uint location, int count, const float4* value);
-    void     BindUniform(uint location, int count, const float2x2* value);
-    void     BindUniform(uint location, int count, const float3x3* value);
-    void     BindUniform(uint location, int count, const float4x4* value);
+    int      GetLocation(const char* name);
+
+    void     BindUniform(int location, int value);
+    void     BindUniform(int location, float value);
+    void     BindUniform(int location, const float2& value);
+    void     BindUniform(int location, const float3& value);
+    void     BindUniform(int location, const float4& value);
+    void     BindUniform(int location, const float2x2& value);
+    void     BindUniform(int location, const float3x3& value);
+    void     BindUniform(int location, const float4x4& value);
+    void     BindUniform(int location, int count, int* value);
+    void     BindUniform(int location, int count, float* value);
+    void     BindUniform(int location, int count, const float2* value);
+    void     BindUniform(int location, int count, const float3* value);
+    void     BindUniform(int location, int count, const float4* value);
+    void     BindUniform(int location, int count, const float2x2* value);
+    void     BindUniform(int location, int count, const float3x3* value);
+    void     BindUniform(int location, int count, const float4x4* value);
 
     void     BindUniformFromName(const char* name, int value);
     void     BindUniformFromName(const char* name, float value);

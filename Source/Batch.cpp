@@ -159,20 +159,20 @@ void Batch::CreateVertexBuffers()
 
 void Batch::CreateTransformBuffer()
 {
-    transformSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, objects.size()*sizeof(float4x4), nullptr);
-    float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->Map(GL_WRITE_ONLY));
+    transformSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT, objects.size()*sizeof(float4x4), nullptr, true);
+    transforms = reinterpret_cast<float4x4*>(transformSSBO->Map(GL_WRITE_ONLY));
     for(std::pair<const ComponentMeshRenderer* const, uint>& object : objects)
     {
         transforms[object.second] = object.first->GetGameObject()->GetGlobalTransformation();
     }
-    transformSSBO->Unmap();
+    glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 }
 
 void Batch::CreateCommandBuffer()
 {
     if(commandBufferSize < uint(commands.size()))
     {
-        commandBuffer = std::make_unique<Buffer>(GL_DRAW_INDIRECT_BUFFER, GL_DYNAMIC_DRAW, commands.size()*sizeof(DrawCommand), &commands[0]);
+        commandBuffer = std::make_unique<Buffer>(GL_DRAW_INDIRECT_BUFFER, GL_STATIC_DRAW, commands.size()*sizeof(DrawCommand), &commands[0], false);
         commandBufferSize = uint(commands.size());
     }
     else
@@ -272,7 +272,7 @@ void Batch::Render(const ComponentMeshRenderer* object)
     }
 }
 
-void Batch::DoRender(uint transformsIndex, uint materialsIndex, uint texturesLocation)
+void Batch::DoRender(uint transformsIndex, uint materialsIndex)
 {
     if (!commands.empty())
     {
@@ -284,7 +284,6 @@ void Batch::DoRender(uint transformsIndex, uint materialsIndex, uint texturesLoc
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsIndex, materialSSBO->Id());
         commandBuffer->Bind();
 
-        textures.SetUniform(texturesLocation);
         textures.Bind();
 
         vao->Bind();
@@ -352,7 +351,6 @@ void Batch::UpdateModels()
 {
     if(!modelUpdates.empty())
     {
-        float4x4 *transforms = reinterpret_cast<float4x4 *>(transformSSBO->Map(GL_WRITE_ONLY));
         for (const ComponentMeshRenderer *object : modelUpdates)
         {
             auto it = objects.find(object);
@@ -361,7 +359,7 @@ void Batch::UpdateModels()
                 transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
             }
         }
-        transformSSBO->Unmap();
+        glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
         modelUpdates.clear();
     }

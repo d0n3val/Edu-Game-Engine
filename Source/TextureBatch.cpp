@@ -10,6 +10,12 @@
 
 #include "Leaks.h"
 
+#include <algorithm>
+
+#ifdef min
+#undef min
+#endif 
+
 TextureBatch::TextureBatch()
 {
 }
@@ -177,17 +183,6 @@ void TextureBatch::Bind()
     }
 }
 
-void TextureBatch::SetUniform(uint location)
-{
-    int maps[MAX_TEXTURE_ARRAY_COUNT ];
-    for(int i=0; i< MAX_TEXTURE_ARRAY_COUNT; ++i)
-    {
-        maps[i] = i;
-    }
-
-    glUniform1iv(location, sizeof(maps) / sizeof(int), &maps[0]);
-}
-
 uint TextureBatch::GetMaxLayers()
 {
     static GLint max_layers = 0;
@@ -213,7 +208,10 @@ void TextureBatch::GenerateTextures()
         {
             const ResourceTexture* front = info.textures.front().texture;
 
-            info.textureArray = std::make_unique<Texture2DArray>(front->GetWidth(), front->GetHeight(), uint(info.textures.size()), GetFormat(front), GL_RGBA, GL_UNSIGNED_BYTE);
+            uint minSize = std::min(front->GetWidth(), front->GetHeight());
+            uint levels = uint(log(float(minSize))/log(2.0f))-3;
+
+            info.textureArray = std::make_unique<Texture2DArray>(levels, front->GetWidth(), front->GetHeight(), uint(info.textures.size()), GetFormat(front));
 
             for(uint j=0; j < info.textures.size(); ++j)
             {
@@ -272,5 +270,5 @@ uint TextureBatch::GetFormat(const ResourceTexture *texture)
         return texture->GetLinear() ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
     }
 
-    return texture->GetLinear() ? GL_RGBA : GL_SRGB8_ALPHA8;
+    return texture->GetLinear() ? GL_RGBA8 : GL_SRGB8_ALPHA8;
 }

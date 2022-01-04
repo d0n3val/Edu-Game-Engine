@@ -35,6 +35,8 @@ public:
     UID     GetCubemap          () const  { return cubemap; } 
     void    SetCubemap          (UID uid);
 
+    void    BindIBL             (uint levelsLoc, uint diffuseUnit, uint prefilteredUnit, uint brdfUnit);
+
     const TextureCube* GetDiffuseIBL () const { return diffuseIBL.get(); }
     const TextureCube* GetPrefilterdIBL() const { return prefilteredIBL.get(); }
     uint               GetPrefilterdLevels() const { return prefilteredLevels; }

@@ -3,6 +3,7 @@
 #include "BatchManager.h"
 #include "Batch.h"
 #include "ComponentMeshRenderer.h"
+#include "GameObject.h"
 
 #include "Leaks.h"
 
@@ -42,9 +43,50 @@ void BatchManager::Remove(ComponentMeshRenderer* object)
     batches[object->GetBatchIndex()]->Remove(object);
 }
 
-void BatchManager::Render(const ComponentMeshRenderer* object)
+void BatchManager::Render(const NodeList &objects, uint transformIndex, uint materialsIndex, bool keepOrder)
 {
-    batches[object->GetBatchIndex()]->Render(object);
+    if(keepOrder)
+    {
+        uint lastBatch = UINT_MAX;
+        for (const TRenderInfo &info : objects)
+        {
+            uint batch = info.mesh->GetBatchIndex();
+            if (batch != UINT_MAX)
+            {
+                if (batch != lastBatch && lastBatch != UINT_MAX)
+                {
+                    batches[lastBatch]->DoRender(transformIndex, materialsIndex);
+                }
+
+                batches[batch]->Render(info.mesh);
+                lastBatch = batch;
+            }
+        }
+
+        if(lastBatch != UINT_MAX)
+        {
+            batches[lastBatch]->DoRender(transformIndex, materialsIndex);
+        }
+    }
+    else
+    {
+        for (const TRenderInfo &info : objects)
+        {
+            uint batchIndex = info.mesh->GetBatchIndex();
+            if (batchIndex != UINT_MAX)
+            {
+                batches[batchIndex]->Render(info.mesh);
+            }
+        }
+
+        for (std::unique_ptr<Batch> &batch : batches)
+        {
+            if (!batch->IsEmpty())
+            {
+                batch->DoRender(transformIndex, materialsIndex);
+            }
+        }
+    }
 }
 
 void BatchManager::UpdateModel(const NodeList& objects)
@@ -54,18 +96,6 @@ void BatchManager::UpdateModel(const NodeList& objects)
         if(info.mesh && info.mesh->GetBatchIndex() != UINT_MAX)
         {
             batches[info.mesh->GetBatchIndex()]->UpdateModel(info.mesh);
-        }
-    }
-}
-
-void BatchManager::DoRender(uint transformIndex, uint materialsIndex, uint texturesLocation)
-{
-    // \todo: Sort from front to back ?
-    for(std::unique_ptr<Batch>& batch : batches)
-    {
-        if (!batch->IsEmpty())
-        {
-            batch->DoRender(transformIndex, materialsIndex, texturesLocation);
         }
     }
 }

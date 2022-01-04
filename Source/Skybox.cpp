@@ -118,3 +118,17 @@ void Skybox::SetCubemap(UID uid)
     }
 }
 
+void Skybox::BindIBL(uint levelsLoc, uint diffuseUnit, uint prefilteredUnit, uint brdfUnit)
+{
+    if (diffuseIBL && prefilteredIBL && environmentBRDF)
+    {
+        glUniform1i(levelsLoc, prefilteredLevels);
+
+        glActiveTexture(GL_TEXTURE0 + diffuseUnit);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseIBL->Id());
+        glActiveTexture(GL_TEXTURE0 + prefilteredUnit);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilteredIBL->Id());
+        glActiveTexture(GL_TEXTURE0 + brdfUnit);
+        glBindTexture(GL_TEXTURE_2D, environmentBRDF->Id());
+    }
+}

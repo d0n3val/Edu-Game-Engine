@@ -57,6 +57,7 @@ class Batch
 
     CommandList                     commands;
     UpdateList                      modelUpdates;
+    float4x4*                       transforms = nullptr;
 
     HashString                      tagName;
     bool                            bufferDirty = false;
@@ -72,7 +73,7 @@ public:
 
     void               UpdateModel       (const ComponentMeshRenderer* object);
     void               Render            (const ComponentMeshRenderer* object);
-    void               DoRender          (uint transformsIndex, uint materialsIndex, uint texturesLocation);
+    void               DoRender          (uint transformsIndex, uint materialsIndex);
 
     bool               IsEmpty           () const { return objects.empty(); }
     const HashString&  GetTagName        () const { return tagName; }

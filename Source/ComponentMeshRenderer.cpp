@@ -70,10 +70,7 @@ void ComponentMeshRenderer::OnLoad(Config* config)
 	SetMeshRes(config->GetUID("MeshResource", 0));
 
     HashString batchName(config->GetString("BatchName"));
-    SetBatchName(batchName);
-
-    // \todo: LoadToMemory doesn�t load GPU data when batching
-
+    SetBatchName(batchName ? batchName : HashString("default"));
 }
 
 void ComponentMeshRenderer::GetBoundingBox (AABB& box) const 

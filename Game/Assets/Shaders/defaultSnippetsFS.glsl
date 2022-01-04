@@ -1,6 +1,6 @@
 --- PREFIX
 
-#version 440
+#version 460
 
 --- DATA
 
@@ -61,18 +61,18 @@ struct Material
     TexHandle handles[MAP_COUNT];
 };
 
-readonly layout(std430) buffer Materials
+readonly layout(std430, binding = 11) buffer Materials
 {
     Material materials[];
 };
 
-uniform sampler2DArray textures[64];
+layout(binding = 0) uniform sampler2DArray textures[24];
 
 uniform sampler2D   ambientOcclusion;
-uniform samplerCube diffuseIBL;
-uniform samplerCube prefilteredIBL;
-uniform sampler2D   environmentBRDF;
-uniform int         prefilteredLevels;
+layout(binding = 10) uniform samplerCube diffuseIBL;
+layout(binding = 11) uniform samplerCube prefilteredIBL;
+layout(binding = 12) uniform sampler2D   environmentBRDF;
+layout(location = 64) uniform int         prefilteredLevels;
 
 struct AmbientLight
 {
@@ -380,6 +380,12 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
     vec3 R           = reflect(-V, normal);
     float NdotV      = max(dot(normal, V), 0.00001);
     float roughness  = Sq(1.0-smoothness); 
+
+    // Add Indirect lighting 
+    vec3 irradiance = texture(diffuseIBL, normal).rgb;
+    vec3 radiance   = textureLod(prefilteredIBL, R, roughness*(prefilteredLevels-1)).rgb;
+    vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
+    vec3 indirect   = (diffuse.rgb*(1-specular.rgb))*irradiance+radiance*(specular.rgb*fab.x+fab.y);
     
     vec3 color = Directional(normal, V, directional, diffuse.rgb, specular.rgb, roughness);
 
@@ -393,24 +399,21 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
     {
         color += Spot(pos, normal, V, spots[i], diffuse.rgb, specular, roughness);
     }
+#endif
 
-    // Add Indirect lighting 
-    vec3 irradiance = texture(diffuseIBL, normal).rgb;
-    vec3 radiance   = textureLod(prefilteredIBL, R, roughness*(prefilteredLevels-1)).rgb;
-    vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
-    vec3 indirect   = (diffuse.rgb*(1-specular.rgb))*irradiance+radiance*(specular.rgb*fab.x+fab.y);
-
-
+#if 0
     // Compute ambient occlusion
     vec4 projectedPos = proj*view*vec4(fragment.position, 1.0);
     vec2 occlusionUV  = (projectedPos.xy/projectedPos.w)*0.5+0.5;
 
     vec3 occlusionFactor = vec3(texture(ambientOcclusion, occlusionUV).r);
+#else
+    vec3 occlusionFactor = vec3(1.0);
+
+#endif
 
     color += indirect*occlusionFactor;
-
     color += emissive;
-#endif
 
     return vec4(color, diffuse.a); 
 }

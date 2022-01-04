@@ -143,14 +143,14 @@ Texture2D* Texture2D::CreateDefaultRGBA(uint width, uint height, void* data, boo
     return new Texture2D(width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
 }
 
-Texture2DArray::Texture2DArray(uint _width, uint _height, uint _depth, uint internal_format, uint format, uint type): Texture(GL_TEXTURE_2D_ARRAY)
+Texture2DArray::Texture2DArray(uint mipLevels, uint _width, uint _height, uint _depth, uint internal_format): Texture(GL_TEXTURE_2D_ARRAY)
 {
     width  = _width;
     height = _height;
     depth  = _depth;
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, internal_format, width, height, depth, 0, format, type, 0);
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, mipLevels, internal_format, width, height, depth);
 
     DefaultInitializeTexture(false);
 
@@ -177,9 +177,9 @@ void Texture2DArray::SetDefaultRGBASubData(uint mip_level, uint depth_index, voi
     SetSubData(mip_level, depth_index, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
-Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint width, uint height, uint depth, bool convert_linear)
+Texture2DArray* Texture2DArray::CreateDefaultRGBA(uint mipLevels, uint width, uint height, uint depth, bool convert_linear)
 {
-    return new Texture2DArray(width, height, depth, convert_linear ? GL_SRGB8_ALPHA8 : GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE);
+    return new Texture2DArray(mipLevels, width, height, depth, convert_linear ? GL_SRGB8_ALPHA8 : GL_RGB8);
 }
 
 void Texture2DArray::GenerateMipmaps()
@@ -382,14 +382,21 @@ uint Framebuffer::Check()
 	return res;
 }
 
-Buffer::Buffer(uint tp, uint usage, size_t size, const void* data)
+Buffer::Buffer(uint tp, uint flags, size_t size, const void* data, bool storage)
 {
     type = tp;
 
     glGenBuffers(1, &id);
 
     glBindBuffer(type, id);
-    glBufferData(type, size, data, usage);
+    if (storage)
+    {
+        glBufferStorage(type, size, data, flags);
+    }
+    else
+    {
+        glBufferData(type, size, data, flags);
+    }
     glBindBuffer(type, 0);
 }
 
@@ -678,82 +685,87 @@ void Program::BindTextureFromName(const char* name, uint unit, const Texture* te
     BindTexture(glGetUniformLocation(id, name), unit, texture);
 }
 
-void Program::BindUniform(uint location, int value)
+int Program::GetLocation(const char *name)
+{
+    return glGetUniformLocation(id, name);
+}
+
+void Program::BindUniform(int location, int value)
 {
     glUniform1i(location, value);        
 }
 
-void Program::BindUniform(uint location, float value)
+void Program::BindUniform(int location, float value)
 {
     glUniform1f(location, value);        
 }
 
-void Program::BindUniform(uint location, const float2& value)
+void Program::BindUniform(int location, const float2& value)
 {
     glUniform2f(location, value.x, value.y);
 }
 
-void Program::BindUniform(uint location, const float3& value)
+void Program::BindUniform(int location, const float3& value)
 {
     glUniform3f(location, value.x, value.y, value.z);
 }
 
-void Program::BindUniform(uint location, const float4& value)
+void Program::BindUniform(int location, const float4& value)
 {
     glUniform4f(location, value.x, value.y, value.z, value.w);
 }
 
-void Program::BindUniform(uint location, const float2x2& value)
+void Program::BindUniform(int location, const float2x2& value)
 {
     glUniformMatrix2fv(location, 1, GL_TRUE, reinterpret_cast<const float*>(&value));
 }
 
-void Program::BindUniform(uint location, const float3x3& value)
+void Program::BindUniform(int location, const float3x3& value)
 {
     glUniformMatrix3fv(location, 1, GL_TRUE, reinterpret_cast<const float*>(&value));
 }
 
-void Program::BindUniform(uint location, const float4x4& value)
+void Program::BindUniform(int location, const float4x4& value)
 {
     glUniformMatrix4fv(location, 1, GL_TRUE, reinterpret_cast<const float*>(&value));
 }
 
-void Program::BindUniform(uint location, int count, int* value)
+void Program::BindUniform(int location, int count, int* value)
 {
     glUniform1iv(location, count, value);
 }
 
-void Program::BindUniform(uint location, int count, float* value)
+void Program::BindUniform(int location, int count, float* value)
 {
     glUniform1fv(location, count, value);
 }
 
-void Program::BindUniform(uint location, int count, const float2* value)
+void Program::BindUniform(int location, int count, const float2* value)
 {
     glUniform2fv(location, count, reinterpret_cast<const float*>(value));
 }
 
-void Program::BindUniform(uint location, int count, const float3* value)
+void Program::BindUniform(int location, int count, const float3* value)
 {
     glUniform3fv(location, count, reinterpret_cast<const float*>(value));
 }
 
-void Program::BindUniform(uint location, int count, const float4* value)
+void Program::BindUniform(int location, int count, const float4* value)
 {
     glUniform4fv(location, count, reinterpret_cast<const float*>(value));
 }
 
-void Program::BindUniform(uint location, int count, const float2x2* value)
+void Program::BindUniform(int location, int count, const float2x2* value)
 {
     glUniformMatrix2fv(location, count, GL_TRUE, reinterpret_cast<const float*>(&value));
 }
 
-void Program::BindUniform(uint location, int count, const float3x3* value)
+void Program::BindUniform(int location, int count, const float3x3* value)
 {
     glUniformMatrix3fv(location, count, GL_TRUE, reinterpret_cast<const float*>(&value));
 }
 
-void Program::BindUniform(uint location, int count, const float4x4* value)
+void Program::BindUniform(int location, int count, const float4x4* value)
 {
     glUniformMatrix4fv(location, count, GL_TRUE, reinterpret_cast<const float*>(&value));
 }
