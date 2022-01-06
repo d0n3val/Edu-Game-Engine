@@ -197,7 +197,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AmbientLight.h" />
     <ClInclude Include="AnimController.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Assimp\include\ai_assert.h" />
@@ -286,6 +285,7 @@
     <ClInclude Include="ImportCubemapDlg.h" />
     <ClInclude Include="ImportModelDlg.h" />
     <ClInclude Include="ImportTextureDlg.h" />
+    <ClInclude Include="LightManager.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="MathGeoLib\include\Algorithm\Random\LCG.h" />
     <ClInclude Include="MathGeoLib\include\Geometry\AABB.h" />
@@ -413,7 +413,6 @@
     <ClInclude Include="Viewport.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AmbientLight.cpp" />
     <ClCompile Include="AnimController.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Batch.cpp" />
@@ -460,6 +459,7 @@
     <ClCompile Include="ImportCubemapDlg.cpp" />
     <ClCompile Include="ImportModelDlg.cpp" />
     <ClCompile Include="ImportTextureDlg.cpp" />
+    <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathGeoLib\include\Algorithm\Random\LCG.cpp" />
     <ClCompile Include="MathGeoLib\include\Geometry\AABB.cpp" />

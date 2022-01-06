@@ -139,7 +139,7 @@ void ScreenSpaceAO::GenerateKernelUBO()
 
 
         kernel = std::make_unique<Buffer>(GL_UNIFORM_BUFFER, GL_STATIC_DRAW, sizeof(kernelData), &kernelData);
-        kernel->BindToTargetIdx(KERNEL_UBO_TARGET);
+        kernel->BindToPoint(KERNEL_UBO_TARGET);
     }
 }
 

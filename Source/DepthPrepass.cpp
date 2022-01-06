@@ -42,7 +42,7 @@ void DepthPrepass::Execute(DefaultShader* shader, const RenderList& nodes, uint 
     {
         if(info.mesh)
         {
-            shader->DepthPrePass(info.mesh);
+            //shader->DepthPrePass(info.mesh);
         }
     }
 

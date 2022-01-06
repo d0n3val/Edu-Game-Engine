@@ -72,12 +72,7 @@ uniform sampler2D   ambientOcclusion;
 layout(binding = 10) uniform samplerCube diffuseIBL;
 layout(binding = 11) uniform samplerCube prefilteredIBL;
 layout(binding = 12) uniform sampler2D   environmentBRDF;
-layout(location = 64) uniform int         prefilteredLevels;
-
-struct AmbientLight
-{
-    vec4 color;
-};
+layout(location = 64) uniform int        prefilteredLevels;
 
 struct DirLight
 {
@@ -104,16 +99,21 @@ struct SpotLight
     uint  padding1;
 };
 
-layout(std140) uniform Lights
+layout(std430, binding = 12) buffer DirLightBuffer
 {
-    AmbientLight ambient;
-    DirLight     directional;
-    PointLight   points[MAX_POINT_LIGHTS];
-    SpotLight    spots[MAX_SPOT_LIGHTS];
-    uint         num_point;
-    uint         num_spot;
-    uint         padding0;
-    uint         padding1;
+    DirLight directional;
+};
+
+layout(std430, binding = 13) buffer PointLights
+{
+    uint       num_point;
+    PointLight points[];
+};
+
+layout(std430, binding = 14) buffer SpotLights
+{
+    uint      num_spot;
+    SpotLight spots[];
 };
 
 in struct VertexOut
@@ -164,7 +164,7 @@ void main()
     GetMaterial(diffuse, specular, smoothness, occlusion, emissive, normal);
 
     color      = Shading(fragment.position, normal, diffuse, specular, smoothness, occlusion, emissive);
-    //color.rgb += baked.rgb;
+    color.rgb += baked.rgb;
 
     if(color.a < materials[draw_id].alphaTest)
     {
@@ -175,10 +175,6 @@ void main()
 
 
     //color.rgb = applyFog(color.rgb, distance(fragment.position, view_pos.xyz), view_pos.xyz, normalize(fragment.position-view_pos.xyz));
-
-	// gamma correction
-    //color.rgb   = pow(color.rgb, vec3(1.0/2.2));
-
 }
 
 vec4 sampleTexture(uint textureIndex, vec2 uv)
@@ -389,7 +385,6 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
     
     vec3 color = Directional(normal, V, directional, diffuse.rgb, specular.rgb, roughness);
 
-#if 0
     for(uint i=0; i< num_point; ++i)
     {
         color += Point(pos, normal, V, points[i], diffuse.rgb, specular, roughness);
@@ -399,7 +394,6 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
     {
         color += Spot(pos, normal, V, spots[i], diffuse.rgb, specular, roughness);
     }
-#endif
 
 #if 0
     // Compute ambient occlusion

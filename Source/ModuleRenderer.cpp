@@ -26,11 +26,9 @@
 #include "ResourceMaterial.h"
 #include "ResourceTexture.h"
 
-#include "AmbientLight.h"
-#include "DirLight.h"
-#include "PointLight.h"
-#include "SpotLight.h"
 #include "Skybox.h"
+#include "LightManager.h"
+#include "DirLight.h"
 
 #include "Application.h"
 
@@ -47,8 +45,6 @@
 
 #include "Leaks.h"
 
-#define MAX_NUM_POINT_LIGHTS 4
-#define MAX_NUM_SPOT_LIGHTS 4
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
@@ -126,8 +122,7 @@ ModuleRenderer::~ModuleRenderer()
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
     UpdateCameraUBO(camera);
-
-    defaultShader->UpdateLightUBO(App->level);
+    App->level->GetLightManager()->UpdateGPUBuffers();
 
     render_list.UpdateFrom(culling, App->level->GetRoot()); // App->level->quadtree.root);
 
@@ -206,7 +201,7 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
                 glCullFace(GL_FRONT);
             }
 
-            DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
+            //DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
 
             if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
             {
@@ -271,6 +266,8 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Frame
     }
     glDepthFunc(GL_LEQUAL);
 
+    const LightManager* lightManager = App->level->GetLightManager();
+
     defaultShader->Render(batch_manager.get(), render_list, cameraUBO.get());
 
     frameBuffer->Unbind();
@@ -284,42 +281,8 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
     glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
     glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
 
-    DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawSelection);
-    DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawSelection);
-}
-
-void ModuleRenderer::DrawNodes(const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo&)) 
-{
-	for(NodeList::const_iterator it = nodes.begin(), end = nodes.end(); it != end; ++it)
-	{
-        (this->*drawer)(*it);
-    }
-}
-
-void ModuleRenderer::DrawColor(const TRenderInfo& render_info)
-{    
-    if(render_info.mesh)
-    {
-        defaultShader->DrawPass(render_info.mesh);
-    }
-    else if(render_info.particles && render_info.particles->GetVisible())
-    {
-        DrawParticles(render_info.particles);
-    }
-    else if(render_info.trail && render_info.trail)
-    {
-        DrawTrails(render_info.trail);
-    }
-}
-
-void ModuleRenderer::DrawShadow(const TRenderInfo& render_info)
-{
-    if(render_info.mesh /*&& render_info.mesh->cast_shadows*/)
-    {
-        /* TODO:
-        render_info.mesh->DrawShadowPass();
-        */
-    }
+    //DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawSelection);
+    //DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawSelection);
 }
 
 void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
@@ -591,7 +554,7 @@ void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint i
             break;
     }
 
-    const DirLight* light = App->level->GetDirLight();
+    const DirLight* light = App->level->GetLightManager()->GetDirLight();
 
 	if (light == nullptr)
     {

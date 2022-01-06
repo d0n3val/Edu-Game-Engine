@@ -46,7 +46,7 @@ public:
         SelSkybox
     };
 
-    typedef std::variant<GameObject*, DirLight*, AmbientLight*, PointLight*, SpotLight*, Skybox*> SelectionVariant;
+    typedef std::variant<GameObject*, DirLight*, PointLight*, SpotLight*, Skybox*> SelectionVariant;
 
 
     enum TabPanelEnum

@@ -62,7 +62,6 @@ public:
 	void DrawCameraComponent(ComponentCamera * component);
 private:
     void DrawGameObject(GameObject* go);
-    void DrawAmbientLight(AmbientLight* light);
     void DrawDirLight(DirLight* light);
     void DrawPointLight(PointLight* light);
     void DrawSpotLight(SpotLight* light);

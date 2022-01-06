@@ -87,8 +87,6 @@ private:
 
     void                LoadDefaultShaders          ();
 
-    void                DrawNodes                   (const NodeList& nodes, void (ModuleRenderer::*drawer)(const TRenderInfo& ));
-
     void                DrawColor                   (const TRenderInfo& render_info);
     void                DrawShadow                  (const TRenderInfo& render_info);
     void                DrawParticles               (ComponentParticleSystem* particles);

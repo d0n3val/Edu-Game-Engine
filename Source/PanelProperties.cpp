@@ -44,7 +44,6 @@
 #include "SkyboxRollout.h"
 
 #include "DirLight.h"
-#include "AmbientLight.h"
 #include "PointLight.h"
 #include "SpotLight.h"
 
@@ -85,7 +84,6 @@ void PanelProperties::Draw()
 {
     std::visit(overload {
         [this](GameObject* go)      { DrawGameObject(go);      },
-        [this](AmbientLight* light) { DrawAmbientLight(light); },
         [this](DirLight* light)     { DrawDirLight(light);     },
         [this](PointLight* light)   { DrawPointLight(light);   },
         [this](SpotLight* light)    { DrawSpotLight(light);    },
@@ -97,19 +95,6 @@ void PanelProperties::Draw()
     for (uint i = 0; i < TextureCount; ++i)
     {
         selectTexture[i].Display();
-    }
-}
-
-// ---------------------------------------------------------
-void PanelProperties::DrawAmbientLight(AmbientLight* light)
-{
-    if (ImGui::CollapsingHeader("Ambient light", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        float3 color = light->GetColor();
-        if(ImGui::ColorEdit3("color", (float*)&color))
-        {
-            light->SetColor(color);
-        }
     }
 }
 

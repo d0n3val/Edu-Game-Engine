@@ -19,11 +19,8 @@
 
 #include "Event.h"
 
-#include "AmbientLight.h"
-#include "DirLight.h"
-#include "PointLight.h"
-#include "SpotLight.h"
 #include "Skybox.h"
+#include "LightManager.h"
 
 #include "OpenGL.h"
 #include "Leaks.h"
@@ -32,18 +29,11 @@ using namespace std;
 
 ModuleLevelManager::ModuleLevelManager( bool start_enabled) : Module("LevelManager", start_enabled)
 {
-    ambient = new AmbientLight();
-    directional = new DirLight();
-
 }
 
 // Destructor
 ModuleLevelManager::~ModuleLevelManager()
 {
-    delete ambient;
-    delete directional;
-
-    RemoveLights();
 }
 
 // Called before render is available
@@ -57,6 +47,7 @@ bool ModuleLevelManager::Init(Config* config)
 	quadtree.SetBoundaries(AABB(float3(-500,0,-500), float3(500,30,500)));
 
     skybox = std::make_unique<Skybox>();
+	lightManager = std::make_unique<LightManager>();
 
 	return ret;
 }
@@ -94,8 +85,6 @@ bool ModuleLevelManager::CleanUp()
 
 	// This recursively must destroy all gameobjects
 	RELEASE(root);
-
-	RemoveLights();
 
 	return true;
 }
@@ -223,32 +212,6 @@ void ModuleLevelManager::LoadGameObjects(const Config & config)
 		it->first->OnStart();
 }
 
-void ModuleLevelManager::LoadLights(const Config& config)
-{
-    RemoveLights();
-
-    ambient->Load(config.GetSection("Ambient"));
-    directional->Load(config.GetSection("Directional"));
-
-    uint count = config.GetArrayCount("Points");
-    for(uint i=0; i< count; ++i)
-    {
-        PointLight* point = new PointLight;
-        point->Load(config.GetArray("Points", i));
-
-        points.push_back(point);
-    }
-
-    count = config.GetArrayCount("Spots");
-    for(uint i=0; i< count; ++i)
-    {
-        SpotLight* spot = new SpotLight;
-        spot->Load(config.GetArray("Spots", i));
-
-        spots.push_back(spot);
-    }
-}
-
 bool ModuleLevelManager::Load(const char * file)
 {
 	bool ret = false;
@@ -270,7 +233,7 @@ bool ModuleLevelManager::Load(const char * file)
             //App->hints->Init(&desc);
 			//App->camera->Load(&desc);
 
-            LoadLights(config.GetSection("Lights"));
+            lightManager->LoadLights(config.GetSection("Lights"));
 			LoadGameObjects(config);
 			skybox->Load(config.GetSection("Skybox"));
 		}
@@ -293,7 +256,7 @@ bool ModuleLevelManager::Save(const char * file)
     //App->hints->Save(&desc);
     //App->camera->Save(&desc);
 
-    SaveLights(save.AddSection("Lights"));
+    lightManager->SaveLights(save.AddSection("Lights"));
 
 	// Serialize GameObjects recursively
 	save.AddArray("Game Objects");
@@ -310,32 +273,6 @@ bool ModuleLevelManager::Save(const char * file)
 	RELEASE_ARRAY(buf);
 
 	return ret;
-}
-
-void ModuleLevelManager::SaveLights(Config& config) const
-{
-    ambient->Save(config.AddSection("Ambient"));
-    directional->Save(config.AddSection("Directional"));
-
-    config.AddArray("Points");
-
-    for(std::vector<PointLight*>::const_iterator it = points.begin(), end = points.end(); it != end; ++it)
-    {
-        Config point;
-        (*it)->Save(point);
-
-        config.AddArrayEntry(point);
-    }
-
-    config.AddArray("Spots");
-
-    for(std::vector<SpotLight*>::const_iterator it = spots.begin(), end = spots.end(); it != end; ++it)
-    {
-        Config spot;
-        (*it)->Save(spot);
-
-        config.AddArrayEntry(spot);
-    }
 }
 
 void ModuleLevelManager::UnloadCurrent()
@@ -608,47 +545,4 @@ GameObject* ModuleLevelManager::AddModel(UID id)
     }
 
     return ret;
-}
-
-uint ModuleLevelManager::AddPointLight()
-{
-    uint index = uint(points.size());
-    points.push_back(new PointLight);
-    return index;
-}
-
-void ModuleLevelManager::RemovePointLight(uint index)
-{
-    delete points[index];
-    points.erase(points.begin()+index);
-}
-
-uint ModuleLevelManager::AddSpotLight()
-{
-    uint index = uint(spots.size());
-    spots.push_back(new SpotLight);
-
-    return index;
-}
-
-void ModuleLevelManager::RemoveSpotLight(uint index)
-{
-    delete spots[index];
-    spots.erase(spots.begin()+index);
-}
-
-void ModuleLevelManager::RemoveLights()
-{
-    for(std::vector<PointLight*>::iterator it = points.begin(), end = points.end(); it != end; ++it)
-    {
-        delete *it;
-    }
-
-    for(std::vector<SpotLight*>::iterator it = spots.begin(), end = spots.end(); it != end; ++it)
-    {
-        delete *it;
-    }
-
-    points.clear();
-    spots.clear();
 }

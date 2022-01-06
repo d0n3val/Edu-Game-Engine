@@ -4,6 +4,7 @@
 #include "Imgui/imgui.h"
 #include "Application.h"
 #include "ModuleLevelManager.h"
+#include "LightManager.h"
 #include "ModuleEditor.h"
 #include "ModuleEditorCamera.h"
 #include "ModuleResources.h"
@@ -98,10 +99,10 @@ void PanelGOTree::Draw()
 			App->level->CreateGameObject();
 
         if(ImGui::MenuItem("New Point Light"))
-            App->level->AddPointLight();
+            App->level->GetLightManager()->AddPointLight();
 
         if(ImGui::MenuItem("New Spot Light"))
-            App->level->AddSpotLight();
+            App->level->GetLightManager()->AddSpotLight();
 
 		if (ImGui::MenuItem("Clear Scene", "!"))
 			App->level->GetRoot()->Remove();
@@ -166,27 +167,9 @@ void PanelGOTree::DrawLights()
         ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_GREY);
         uint flags = ImGuiTreeNodeFlags_Leaf;
 
-        AmbientLight* const* ambient = std::get_if<AmbientLight*>(&App->editor->GetSelection());
-
-        if(ambient != nullptr && *ambient == App->level->GetAmbientLight())
-        {
-            flags |= ImGuiTreeNodeFlags_Selected;
-        }
-
-        if(ImGui::TreeNodeEx("Ambient", flags))
-        {
-            if (ImGui::IsItemClicked(0)) 
-            {
-                App->editor->SetSelected(App->level->GetAmbientLight());                
-            }
-            ImGui::TreePop();
-        }
-
-        flags = ImGuiTreeNodeFlags_Leaf;
-
         DirLight* const* dir_light = std::get_if<DirLight*>(&App->editor->GetSelection());
 
-        if(dir_light && *dir_light == App->level->GetDirLight())
+        if(dir_light && *dir_light == App->level->GetLightManager()->GetDirLight())
         {
             flags |= ImGuiTreeNodeFlags_Selected;
         }
@@ -195,7 +178,7 @@ void PanelGOTree::DrawLights()
         {
             if (ImGui::IsItemClicked(0)) 
             {
-                App->editor->SetSelected(App->level->GetDirLight());
+                App->editor->SetSelected(App->level->GetLightManager()->GetDirLight());
             }
             ImGui::TreePop();
         }
@@ -204,14 +187,14 @@ void PanelGOTree::DrawLights()
         {
             bool remove = false;
             char number[16];
-            for(uint i=0, count = App->level->GetNumPointLights(); !remove && i < count; ++i)
+            for(uint i=0, count = App->level->GetLightManager()->GetNumPointLights(); !remove && i < count; ++i)
             {
                 sprintf_s(number, 15, "[%d]", i);
 
                 flags = ImGuiTreeNodeFlags_Leaf;
 
                 PointLight* const* point_light = std::get_if<PointLight*>(&App->editor->GetSelection());
-                bool is_selected = point_light && *point_light == App->level->GetPointLight(i);
+                bool is_selected = point_light && *point_light == App->level->GetLightManager()->GetPointLight(i);
                 if(is_selected)
                 {
                     flags |= ImGuiTreeNodeFlags_Selected;
@@ -221,7 +204,7 @@ void PanelGOTree::DrawLights()
                 {
                     if (ImGui::IsItemClicked(0)) 
                     {
-                        App->editor->SetSelected(App->level->GetPointLight(i));
+                        App->editor->SetSelected(App->level->GetLightManager()->GetPointLight(i));
                     }
 
                     if (ImGui::IsItemClicked(1))
@@ -236,7 +219,7 @@ void PanelGOTree::DrawLights()
                                 App->editor->ClearSelected();                                
                             }
 
-                            App->level->RemovePointLight(i);
+                            App->level->GetLightManager()->RemovePointLight(i);
                         }
                         ImGui::EndPopup();
                     }
@@ -256,13 +239,13 @@ void PanelGOTree::DrawLights()
 
             SpotLight* const* spot = std::get_if<SpotLight*>(&App->editor->GetSelection());
 
-            for(uint i=0, count = App->level->GetNumSpotLights(); !remove && i < count; ++i)
+            for(uint i=0, count = App->level->GetLightManager()->GetNumSpotLights(); !remove && i < count; ++i)
             {
                 sprintf_s(number, 15, "[%d]", i);
 
                 flags = ImGuiTreeNodeFlags_Leaf;
 
-                if(spot && *spot == App->level->GetSpotLight(i))
+                if(spot && *spot == App->level->GetLightManager()->GetSpotLight(i))
                 {
                     flags |= ImGuiTreeNodeFlags_Selected;
                 }
@@ -271,7 +254,7 @@ void PanelGOTree::DrawLights()
                 {
                     if (ImGui::IsItemClicked(0)) 
                     {
-                        App->editor->SetSelected(App->level->GetSpotLight(i));                
+                        App->editor->SetSelected(App->level->GetLightManager()->GetSpotLight(i));
                     }
 
                     if (ImGui::IsItemClicked(1))
@@ -281,12 +264,12 @@ void PanelGOTree::DrawLights()
                     {
                         if (true == (remove = ImGui::MenuItem("Remove")))
                         {
-                            if(spot && *spot == App->level->GetSpotLight(i))
+                            if(spot && *spot == App->level->GetLightManager()->GetSpotLight(i))
                             {
                                 App->editor->ClearSelected();
                             }
 
-                            App->level->RemoveSpotLight(i);
+                            App->level->GetLightManager()->RemoveSpotLight(i);
                         }
                         ImGui::EndPopup();
                     }

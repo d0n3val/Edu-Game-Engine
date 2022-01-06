@@ -16,6 +16,7 @@ class ResourceMaterial;
 class ResourceMesh;
 class Buffer;
 class BatchManager;
+struct SceneBuffers;
 
 class DefaultShader
 {
@@ -48,7 +49,6 @@ public:
 
 	ProgramList 			drawPrograms;
 	ProgramList 			depthPrograms;
-    std::unique_ptr<Buffer> lightsUBO;
     std::unique_ptr<Buffer> skiningUBO;
     std::unique_ptr<Buffer> morphUBO;
 
@@ -57,17 +57,11 @@ public:
 	DefaultShader();
 	~DefaultShader();
 
-	void Render 			(BatchManager* batch, const RenderList& objects, Buffer* cameraUBO);
-	void DepthPrePass 		(ComponentMeshRenderer* meshRenderer);
-	void DrawPass 		    (ComponentMeshRenderer* meshRenderer);
-	void UpdateLightUBO 	(ModuleLevelManager* level);
-	void UpdateCameraUBO	(ComponentCamera* camera);
+	void Render 			(BatchManager* batch, const RenderList& objects, const Buffer* cameraUBO);
 
 private:
 
 	void 		UseDrawPass 	    (uint flags = 0);
-	void 		UseDepthPrePass     (uint flags = 0);
-	void 		UpdateMeshUBOs		(const float4x4* skinPalette, const float* morphWeights, const ResourceMesh* mesh);
 
 	const char* GetShaderSource     (uint flags, bool depthPass, parsb_context* context);
 	bool 		ExistsBlock 	    (parsb_context* blocks, const char* name) const;

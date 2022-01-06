@@ -15,10 +15,7 @@
 #include "ResourceMaterial.h"
 #include "ResourceMesh.h"
 #include "ResourceTexture.h"
-#include "DirLight.h"
-#include "AmbientLight.h"
-#include "PointLight.h"
-#include "SpotLight.h"
+#include "LightManager.h"
 #include "Skybox.h"
 #include "BatchManager.h"
 
@@ -93,216 +90,9 @@ void DefaultShader::UseDrawPass(uint flags)
 		{
 			program.reset(new Program(vertex.get(), fragment.get(), "Default program"));
 		}
-
-        if(program && program->Linked())
-        {
-            BindUniformBlock(program->Id(), "Camera",   CAMERA_UBO_TARGET);
-            BindUniformBlock(program->Id(), "Material", MATERIAL_UBO_TARGET);
-            BindUniformBlock(program->Id(), "Lights",   LIGHTS_UBO_TARGET);
-            BindUniformBlock(program->Id(), "Skining",  SKINING_UBO_TARGET);
-            BindUniformBlock(program->Id(), "Morph",    MORPH_UBO_TARGET);
-        }
-    }
-
-    int location = glGetUniformLocation(program->Id(), "ambientOcclusion");
-    if(location >= 0)
-    {
-        glUniform1i(location, TextureMap_AO);
     }
 
 	program->Use();
-}
-
-void DefaultShader::UseDepthPrePass(uint flags)
-{
-    std::unique_ptr<Program>& program = depthPrograms[flags];
-
-    if(!program)
-    {
-        const char* sourceVS = GetShaderSource(flags, true, blocksVS);
-        const char* sourceFS = GetShaderSource(flags, true, depthFS);
-
-        std::unique_ptr<Shader> vertex = std::make_unique<Shader>(GL_VERTEX_SHADER, &sourceVS, 1);
-
-        if (!vertex->Compiled())
-        {
-            LOG("Vertex Shader Code \n%s", sourceVS);
-        }
-
-        std::unique_ptr<Shader> fragment = std::make_unique<Shader>(GL_FRAGMENT_SHADER, &sourceFS, 1);
-
-        if (!fragment->Compiled())
-        {
-            LOG("Fragment Shader Code \n%s", sourceFS);
-        }
-
-        if(vertex->Compiled() && fragment->Compiled())
-        {
-            program.reset(new Program(vertex.get(), fragment.get(), "Default program"));
-        }
-
-        if(program && program->Linked())
-        {
-            BindUniformBlock(program->Id(), "Camera",   CAMERA_UBO_TARGET);
-            BindUniformBlock(program->Id(), "Skining",  SKINING_UBO_TARGET);
-            BindUniformBlock(program->Id(), "Morph",    MORPH_UBO_TARGET);
-        }
-    }
-
-    program->Use();
-}
-
-void DefaultShader::UpdateLightUBO(ModuleLevelManager* level)
-{
-    struct AmbientLightData
-    {
-        float4 color;
-    };
-
-    struct DirLightData
-    {
-        float4 dir;
-        float4 color;
-    };
-
-    struct PointLightData
-    {
-        float4 position;
-        float4 color;
-        float4 attenuation;
-    };
-
-    struct SpotLightData
-    {
-        float4 position;
-        float4 direction;
-        float4 color;
-        float4 attenuation;
-        float inner;
-        float outer;
-        uint  padding0;
-        uint  padding1;
-    };
-
-    struct LightsData
-    {
-        AmbientLightData ambient;
-        DirLightData     directional;
-        PointLightData   points[MAX_NUM_POINT_LIGHTS];
-        SpotLightData    spots[MAX_NUM_SPOT_LIGHTS];
-        uint             num_point;
-        uint             num_spot;
-        uint             padding0;
-        uint             padding1;
-    };
-
-    if(!lightsUBO)
-    {
-        lightsUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(LightsData), nullptr));
-        lightsUBO->BindToTargetIdx(LIGHTS_UBO_TARGET);
-
-    }
-
-    LightsData data;
-
-    const DirLight* directional = App->level->GetDirLight();
-    const AmbientLight* ambient = App->level->GetAmbientLight();
-
-    data.ambient.color     =  float4(ambient->GetColor(), 1.0);
-    data.directional.dir   =  float4(directional->GetDir(), 0.0);
-    data.directional.color =  float4(directional->GetColor(), 1.0);
-
-    
-    data.num_point = 0;
-
-    for(uint i=0, count = min(App->level->GetNumPointLights(), MAX_NUM_POINT_LIGHTS); i < count; ++i)
-    {
-        const PointLight* light = App->level->GetPointLight(i);
-
-        if(light->GetEnabled())
-        {
-            uint index = data.num_point++;
-
-            data.points[index].position    = float4(light->GetPosition(), 0.0);
-            data.points[index].color       = float4(light->GetColor(), 0.0);
-            data.points[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0);
-        }
-    }
-    
-    data.num_spot = 0;
-
-    for(uint i=0, count = min(App->level->GetNumSpotLights(), MAX_NUM_SPOT_LIGHTS); i< count; ++i)
-    {
-        const SpotLight* light = App->level->GetSpotLight(i);
-
-        if(light->GetEnabled())
-        {
-            uint index = data.num_spot++;
-
-            data.spots[index].position    = float4(light->GetPosition(), 0.0f);
-            data.spots[index].direction   = float4(light->GetDirection(), 0.0f);
-            data.spots[index].color       = float4(light->GetColor(), 1.0);
-            data.spots[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0f);
-            data.spots[index].inner       = light->GetInnerCutoff();
-            data.spots[index].outer       = light->GetOutterCutoff();
-        }
-    }    
-
-    lightsUBO->SetData(0, sizeof(LightsData), &data);
-}
-
-void DefaultShader::UpdateMeshUBOs(const float4x4* skinPalette, const float* morphWeights, const ResourceMesh* mesh)
-{   
-    /*
-    if(mesh->HasAttrib(ATTRIB_BONES))
-    {
-        struct SkiningData
-        {
-            float4x4 palette[MAX_BONES];
-        };
-
-        const SkiningData* data = reinterpret_cast<const SkiningData*>(skinPalette);
-
-        if (!skiningUBO)
-        {
-            skiningUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(SkiningData), nullptr));
-        }
-
-        skiningUBO->SetData(0, sizeof(SkiningData), data);
-        skiningUBO->BindToTargetIdx(SKINING_UBO_TARGET);
-    }
-    */
-
-    if(morphWeights != nullptr)
-    {
-        struct MorphData
-        {
-            int   target_stride;
-            int   normals_stride;
-            int   tangents_stride;
-            float weights[MAX_MORPH_TARGETS];
-            int   num_targets;
-        };
-
-        MorphData data;
-        data.target_stride   = mesh->GetNumVertices()*mesh->GetMorphNumAttribs();
-        data.normals_stride  = mesh->GetNumVertices();
-        data.tangents_stride = mesh->GetNumVertices()*2;
-        data.num_targets     = mesh->GetNumMorphTargets();
-
-        for (int i = 0; i < data.num_targets; ++i)
-        {
-            data.weights[i] = morphWeights[i];
-        }
-
-        if(!morphUBO)
-        {
-            morphUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MorphData), nullptr));
-        }
-
-        morphUBO->SetData(0, sizeof(MorphData), &data);
-        morphUBO->BindToTargetIdx(MORPH_UBO_TARGET);
-    }
 }
 
 const char* DefaultShader::GetShaderSource(uint flags, bool depthPass, parsb_context* blocks)
@@ -441,57 +231,24 @@ uint DefaultShader::GetDrawingFlags(const ResourceMesh* mesh) const
     return flags;
 }
 
-void DefaultShader::DrawPass(ComponentMeshRenderer* meshRenderer)
-{
-    const ResourceMesh* mesh   = meshRenderer->GetMeshRes();
-    ResourceMaterial* material = meshRenderer->GetMaterialRes();
-    GameObject* go             = meshRenderer->GetGameObject();
-
-    if (!mesh)
-        return; 
-    uint flags = GetDrawingFlags(mesh);
-
-    material->GetMaterialUBO()->BindToTargetIdx(MATERIAL_UBO_TARGET);
-    UpdateMeshUBOs(meshRenderer->UpdateSkinPalette(), meshRenderer->GetMorphTargetWeights(), mesh);
-
-    UseDrawPass(flags);
-
-    glUniformMatrix4fv(glGetUniformLocation(drawPrograms[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
-    BindTextures(material);
-
-    mesh->Draw();
-}
-
-void DefaultShader::DepthPrePass(ComponentMeshRenderer* meshRenderer)
-{
-    const ResourceMesh* mesh   = meshRenderer->GetMeshRes();
-    ResourceMaterial* material = meshRenderer->GetMaterialRes();
-    GameObject* go             = meshRenderer->GetGameObject();
-
-    if (!mesh)
-        return; 
-    uint flags = GetDrawingFlags(mesh);
-
-    UpdateMeshUBOs(meshRenderer->UpdateSkinPalette(), meshRenderer->GetMorphTargetWeights(), mesh);
-
-    UseDepthPrePass(flags);
-
-    glUniformMatrix4fv(glGetUniformLocation(depthPrograms[flags]->Id(), "model"), 1, GL_TRUE, reinterpret_cast<const float*>(&go->GetGlobalTransformation()));
-
-    //mesh->Draw();
-}
-
-void DefaultShader::Render(BatchManager *batch, const RenderList &objects, Buffer* cameraUBO)
+void DefaultShader::Render(BatchManager *batch, const RenderList &objects, const Buffer* cameraUBO)
 {
     UseDrawPass(0);
 
+    // \todo: Add bindings into a header shared with shaders
     const uint transformBlockIndex = 10;
     const uint materialsBlockIndex = 11;
+    const uint directionalBlockIndex = 12;
+    const uint pointBlockIndex = 13;
+    const uint spotBlockIndex = 14;
     const uint cameraBlockIndex = 0;
     const uint levelsLoc = 64;
 
     // Bind  camera
-    cameraUBO->BindToTargetIdx(cameraBlockIndex);
+    cameraUBO->BindToPoint(cameraBlockIndex);
+
+	// Bind lights
+	App->level->GetLightManager()->Bind(directionalBlockIndex, pointBlockIndex, spotBlockIndex);
 
     // Bind IBL
     App->level->GetSkyBox()->BindIBL(levelsLoc, TextureMap_DiffuseIBL, TextureMap_PrefilteredIBL, TextureMap_EnvironMentBRDF);

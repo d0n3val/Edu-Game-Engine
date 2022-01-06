@@ -410,7 +410,7 @@ void Buffer::Bind() const
     glBindBuffer(type, id);
 }
 
-void Buffer::BindToTargetIdx(uint index) const 
+void Buffer::BindToPoint(uint index) const 
 {
     assert(type == GL_ATOMIC_COUNTER_BUFFER || type == GL_TRANSFORM_FEEDBACK_BUFFER ||
            type == GL_UNIFORM_BUFFER || type ==  GL_SHADER_STORAGE_BUFFER);

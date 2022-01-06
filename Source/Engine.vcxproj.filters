@@ -573,9 +573,6 @@
     <ClInclude Include="spotlight.h">
       <Filter>Lights</Filter>
     </ClInclude>
-    <ClInclude Include="AmbientLight.h">
-      <Filter>Lights</Filter>
-    </ClInclude>
     <ClInclude Include="DirLight.h">
       <Filter>Lights</Filter>
     </ClInclude>
@@ -717,6 +714,9 @@
     </ClInclude>
     <ClInclude Include="tinyspline\include\tinysplinecpp.h">
       <Filter>3rd Party\tinyspline</Filter>
+    </ClInclude>
+    <ClInclude Include="LightManager.h">
+      <Filter>Lights</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1003,9 +1003,6 @@
       <Filter>Lights</Filter>
     </ClCompile>
     <ClCompile Include="SpotLight.cpp">
-      <Filter>Lights</Filter>
-    </ClCompile>
-    <ClCompile Include="AmbientLight.cpp">
       <Filter>Lights</Filter>
     </ClCompile>
     <ClCompile Include="DirLight.cpp">
@@ -1301,6 +1298,9 @@
     </ClCompile>
     <ClCompile Include="tinyspline\include\tinysplinecpp.cpp">
       <Filter>3rd Party\tinyspline</Filter>
+    </ClCompile>
+    <ClCompile Include="LightManager.cpp">
+      <Filter>Lights</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

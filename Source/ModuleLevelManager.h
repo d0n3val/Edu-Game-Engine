@@ -7,11 +7,8 @@
 #include "QuadTree.h"
 
 class GameObject;
-class PointLight;
-class SpotLight;
-class DirLight;
-class AmbientLight;
 class Skybox;
+class LightManager;
 
 class ModuleLevelManager : public Module
 {
@@ -54,26 +51,8 @@ public:
 
     GameObject*         AddModel                (UID model);
 
-    const DirLight*     GetDirLight             () const { return directional; }
-    DirLight*           GetDirLight             () { return directional; }
-
-    const AmbientLight* GetAmbientLight         () const { return ambient; }
-    AmbientLight*       GetAmbientLight         () { return ambient; }
-
-    uint                AddPointLight           ();
-    void                RemovePointLight        (uint index);
-    uint                GetNumPointLights       () const { return uint(points.size()); }
-    const PointLight*   GetPointLight           (uint index) const { return points[index]; }
-    PointLight*         GetPointLight           (uint index) { return points[index]; }
-
-    uint                AddSpotLight            ();
-    void                RemoveSpotLight         (uint index);
-    uint                GetNumSpotLights        () const { return uint(spots.size()); }
-    const SpotLight*    GetSpotLight            (uint index) const { return spots[index]; }
-    SpotLight*          GetSpotLight            (uint index) { return spots[index]; }
 	Skybox*		        GetSkyBox()			    { return skybox.get(); }
-
-
+	LightManager* 		GetLightManager() 		{ return lightManager.get(); }
     
 private:
 
@@ -86,10 +65,6 @@ private:
 	void DestroyFlaggedGameObjects();
 
 	void LoadGameObjects(const Config& config);
-	void LoadLights(const Config& config);
-
-    void SaveLights(Config& config) const;
-    void RemoveLights();
 
 public:
 	Quadtree quadtree;
@@ -97,14 +72,11 @@ public:
 
 private:
 	GameObject* root = nullptr;
-    AmbientLight* ambient = nullptr;
-    DirLight* directional = nullptr;
-    std::vector<PointLight*> points;
-    std::vector<SpotLight*> spots;
 
 	std::string name;
 
     std::unique_ptr<Skybox> skybox;
+    std::unique_ptr<LightManager> lightManager;
 };
 
 #endif // __MODULE_LEVELMANAGER_H__

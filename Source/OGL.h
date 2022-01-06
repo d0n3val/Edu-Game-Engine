@@ -136,7 +136,7 @@ public:
     ~Buffer();
 
     void  Bind() const;
-    void  BindToTargetIdx(uint index) const;
+    void  BindToPoint(uint index) const;
 
     uint  Id() const { return id;  }
     void  Unbind() const;
