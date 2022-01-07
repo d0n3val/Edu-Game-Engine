@@ -29,14 +29,8 @@ public:
     float           GetOutterCutoff  () const { return outter; }
     void            SetOutterCutoff  (float angle) { outter = angle; }
 
-    float           GetConstantAtt  () const { return constant; }
-    void            SetConstantAtt  (float att) { constant = att; }
-
-    float           GetLinearAtt    () const { return linear; }
-    void            SetLinearAtt    (float att) { linear = att; }
-
-    float           GetQuadricAtt   () const { return quadric; }
-    void            SetQuadricAtt   (float att) { quadric = att; }
+    float           GetDistance      () const { return distance; }
+    void            SetDistance      (float r) { distance = r; }
 
     bool            GetEnabled      () const { return enabled; }
     void            SetEnabled      (bool e) { enabled = e; }
@@ -48,9 +42,7 @@ private:
     float3 direction = -float3::unitY;
     float  inner     = 0.0f;
     float  outter    = 0.0f;
-    float  constant  = 1.0f;
-    float  linear    = 0.0f;
-    float  quadric   = 0.0f;
+    float  distance   = 1.0f;
     bool   enabled   = true;
 };
 

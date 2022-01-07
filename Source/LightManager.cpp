@@ -120,9 +120,9 @@ void LightManager::UpdateGPUBuffers()
     {
         if(light->GetEnabled())
         {
-            pointPtr->points[index].position    = float4(light->GetPosition(), 0.0);
-            pointPtr->points[index].color       = float4(light->GetColor(), 0.0);
-            pointPtr->points[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0);
+            pointPtr->points[index].position = light->GetPosition();
+            pointPtr->points[index].radius   = light->GetRadius();
+            pointPtr->points[index].color    = float4(light->GetColor(), 0.0);
 
             ++index;
         }
@@ -145,12 +145,12 @@ void LightManager::UpdateGPUBuffers()
     {
         if(light->GetEnabled())
         {
-            spotPtr->spots[index].position    = float4(light->GetPosition(), 0.0);
-            spotPtr->spots[index].direction   = float4(light->GetDirection(), 0.0);
-            spotPtr->spots[index].color       = float4(light->GetColor(), 0.0);
-            spotPtr->spots[index].attenuation = float4(light->GetConstantAtt(), light->GetLinearAtt(), light->GetQuadricAtt(), 0.0f);
-            spotPtr->spots[index].inner       = light->GetInnerCutoff();
-            spotPtr->spots[index].outer       = light->GetOutterCutoff();
+            spotPtr->spots[index].position    = light->GetPosition();
+            spotPtr->spots[index].distance    = light->GetDistance();
+            spotPtr->spots[index].direction   = light->GetDirection();
+            spotPtr->spots[index].inner       = cosf(light->GetInnerCutoff());
+            spotPtr->spots[index].color       = light->GetColor();
+            spotPtr->spots[index].outer       = cosf(light->GetOutterCutoff());
 
             ++index;
         }

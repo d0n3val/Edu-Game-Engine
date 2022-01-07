@@ -82,9 +82,8 @@ struct DirLight
 
 struct PointLight
 {
-    vec4 position;
+    vec4 position; // position+radius
     vec4 color;
-    vec4 attenuation;
 };
 
 struct SpotLight
@@ -92,11 +91,6 @@ struct SpotLight
     vec4 position;
     vec4 direction;
     vec4 color;
-    vec4 attenuation;
-    float inner;
-    float outer;
-    uint  padding0;
-    uint  padding1;
 };
 
 layout(std430, binding = 12) buffer DirLightBuffer
@@ -327,11 +321,6 @@ vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, co
     return (diffuseColor*(1-specularColor)+(fresnel*ndf*vsf))*light_color*dotNL*att;
 }
 
-float GetAttenuation(const vec3 constants, float distance)
-{
-    return 1.0/(constants[0]+constants[1]*distance+constants[2]*(distance*distance));
-}
-
 float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
 {
     float cos_a    = dot(light_dir, cone_dir);
@@ -351,8 +340,10 @@ vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLi
     vec3 light_dir    = light.position.xyz-pos;
     float distance    = length(light_dir);
     light_dir         = light_dir/distance;
+    float radius      = light.position.w;
 
-    float att         = GetAttenuation(light.attenuation.xyz, distance);
+    // epic falloff
+    float att         = Sq(max(1.0-Sq(Sq(distance/radius)), 0.0))/(Sq(distance)+1);
 
     return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att);
 }
@@ -362,10 +353,16 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
 {
     vec3 light_dir    = light.position.xyz-pos;
     float distance    = length(light_dir);
+    float projDist    = dot(light.direction.xyz, -light_dir);
     light_dir         = light_dir/distance;
+    float lightDist   = light.position.w;
+    float inner       = light.direction.w;
+    float outer       = light.color.a;
 
-    float cone        = GetCone(-light_dir, light.direction.xyz, light.inner, light.outer);
-    float att         = GetAttenuation(light.attenuation.xyz, distance);
+    float cone        = GetCone(-light_dir, light.direction.xyz, inner, outer);
+
+    // epic falloff
+    float att         = Sq(max(1.0-Sq(Sq(projDist/lightDist)), 0.0))/(Sq(projDist)+1);
 
     return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att*cone);
 }

@@ -24,10 +24,6 @@
 
 #include "Leaks.h"
 
-#define MAX_NUM_POINT_LIGHTS 4
-#define MAX_NUM_SPOT_LIGHTS 4
-#define MAX_BONES 64
-#define MAX_MORPH_TARGETS 128
 
 enum ETotalTextureMaps
 {

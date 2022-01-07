@@ -20,14 +20,8 @@ public:
     float3          GetPosition     () const { return position; }
     void            SetPosition     (const float3& p) { position = p; }
 
-    float           GetConstantAtt  () const { return constant; }
-    void            SetConstantAtt  (float att) { constant = att; }
-
-    float           GetLinearAtt    () const { return linear; }
-    void            SetLinearAtt    (float att) { linear = att; }
-
-    float           GetQuadricAtt   () const { return quadric; }
-    void            SetQuadricAtt   (float att) { quadric = att; }
+    float           GetRadius  () const  { return radius; }
+    void            SetRadius  (float r) { radius = r; }
 
     bool            GetEnabled      () const { return enabled; }
     void            SetEnabled      (bool e) { enabled = e; }
@@ -36,9 +30,7 @@ private:
 
     float3 color     = float3::one;
     float3 position  = float3::zero;
-    float  constant  = 1.0f;
-    float  linear    = 0.0f;
-    float  quadric   = 0.0f;
+    float  radius    = 1.0f;
     bool  enabled    = true;
 };
 

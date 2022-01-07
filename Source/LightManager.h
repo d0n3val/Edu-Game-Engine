@@ -19,9 +19,9 @@ class LightManager
 
     struct PointLightData
     {
-        float4 position;
+        float3 position;
+        float  radius;
         float4 color;
-        float4 attenuation;
     };
 
     struct PointLightSet
@@ -35,14 +35,12 @@ class LightManager
 
     struct SpotLightData
     {
-        float4 position;
-        float4 direction;
-        float4 color;
-        float4 attenuation;
-        float inner;
-        float outer;
-        uint  padding0;
-        uint  padding1;
+        float3 position;
+        float  distance;
+        float3 direction;
+        float  inner;
+        float3 color;
+        float  outer;
     };
 
     struct SpotLightSet

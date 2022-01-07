@@ -632,7 +632,7 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)
         point->SetPosition(model.TranslatePart());
     }
 
-    float distance = DistanceFromAtt(point->GetConstantAtt(), point->GetLinearAtt(), point->GetQuadricAtt(), 0.1f);
+    float distance = point->GetRadius();
 
     float3 pos      = point->GetPosition();
     float3 color    = point->GetColor();
@@ -679,12 +679,12 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
         spot->SetDirection(model.Row3(2));
     }
 
-    float distance = DistanceFromAtt(spot->GetConstantAtt(), spot->GetLinearAtt(), spot->GetQuadricAtt(), 0.1f);
+    float distance = spot->GetDistance();
 
     float3 pos   = spot->GetPosition();
     float3 dir   = spot->GetDirection();
     float3 color = spot->GetColor();
-    float angle  = min(spot->GetOutterCutoff(), spot->GetInnerCutoff());
+    float angle  = spot->GetOutterCutoff();
     float cos_a  = cos(angle);
     float sin_a  = sin(angle);
     float3 axis[] = { model.Row3(0), model.Row3(1), (model.Row3(0)+model.Row3(1)).Normalized(), (model.Row3(0)-model.Row3(1)).Normalized()};
@@ -692,10 +692,13 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     dd::arrow(pos, pos+dir*(distance*0.1f), color, distance*0.01f);
     dd::line(pos, pos+dir*distance, color);
 
+    float len2 = distance / cos_a;
+    len2 = sqrt(len2 * len2 - distance*distance);
+
     for(uint i=0, count = sizeof(axis)/sizeof(float3); i < count; ++i)
     {
-        dd::line(pos, pos+(dir*cos_a+axis[i]*sin_a)*distance, color);
-        dd::line(pos, pos+(dir*cos_a-axis[i]*sin_a)*distance, color);
+        dd::line(pos, pos+dir*distance+axis[i]*len2, color);
+        dd::line(pos, pos+dir*distance-axis[i]*len2, color);
     }
 }
 

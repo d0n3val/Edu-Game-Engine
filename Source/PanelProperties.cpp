@@ -140,22 +140,10 @@ void PanelProperties::DrawPointLight(PointLight* light)
 
         ImGui::Separator();
 
-        float constant = light->GetConstantAtt();
-        if(ImGui::InputFloat("constant att.", &constant, 0.00001f, 0.1f, "%.9f"))
+        float radius = light->GetRadius();
+        if(ImGui::InputFloat("radius", &radius, 0.01f, 0.1f, "%.9f"))
         {
-            light->SetConstantAtt(constant);
-        }
-
-        float linear = light->GetLinearAtt();
-        if(ImGui::InputFloat("linear att.", &linear, 0.00001f, 0.1f, "%.9f"))
-        {
-            light->SetLinearAtt(linear);
-        }
-
-        float quadric = light->GetQuadricAtt();
-        if(ImGui::InputFloat("quadric att.", &quadric, 0.00001f, 0.1f, "%.9f"))
-        {
-            light->SetQuadricAtt(quadric);
+            light->SetRadius(radius);
         }
 
         bool enabled = light->GetEnabled();
@@ -197,22 +185,10 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
 
         ImGui::Separator();
 
-        float constant = light->GetConstantAtt();
-        if(ImGui::InputFloat("constant att.", &constant, 0.00001f, 0.1f, "%.9f"))
+        float distance = light->GetDistance();
+        if(ImGui::InputFloat("distance", &distance, 0.1f, 0.1f, "%.9f"))
         {
-            light->SetConstantAtt(constant);
-        }
-
-        float linear = light->GetLinearAtt();
-        if(ImGui::InputFloat("linear att.", &linear, 0.00001f, 0.1f, "%.9f"))
-        {
-            light->SetLinearAtt(linear);
-        }
-
-        float quadric = light->GetQuadricAtt();
-        if(ImGui::InputFloat("quadric att.", &quadric, 0.00001f, 0.1f, "%.9f"))
-        {
-            light->SetQuadricAtt(quadric);
+            light->SetDistance(distance);
         }
 
         bool enabled = light->GetEnabled();

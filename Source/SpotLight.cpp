@@ -20,9 +20,7 @@ void SpotLight::Save(Config& config) const
 	config.AddFloat3("color", color);
     config.AddFloat("inner", inner);
     config.AddFloat("outter", outter);
-	config.AddFloat("constant", constant);
-	config.AddFloat("linear", linear);
-	config.AddFloat("quadric", quadric*1000.0f);
+	config.AddFloat("distance", distance);
 	config.AddBool("Enabled", enabled);
 }
 
@@ -33,9 +31,7 @@ void SpotLight::Load(Config& config)
 	color     = config.GetFloat3("color", float3::one);
     inner     = config.GetFloat("inner", 0.0f);
     outter    = config.GetFloat("outter", 0.0f);
-	constant  = config.GetFloat("constant", 1.0f);
-	linear    = config.GetFloat("linear", 0.0f);
-	quadric   = config.GetFloat("quadric", 0.0f)*0.001f;
+	distance    = config.GetFloat("distance", 1.0f);
     enabled   = config.GetBool("Enabled", true);
 }
 
