@@ -22,6 +22,7 @@ void DirLight::Save(Config& config) const
     config.AddFloat("polar", polar);
     config.AddFloat("azimuthal", azimuthal);
 	config.AddFloat3("color", color);
+	config.AddFloat("intensity", intensity);
 }
 
 // ---------------------------------------------------------
@@ -30,6 +31,7 @@ void DirLight::Load(Config& config)
     polar = config.GetFloat("polar", PI/2.0f);
     azimuthal = config.GetFloat("azimuthal", PI/2.0f);
     color = config.GetFloat3("color", float3(1.0f, 1.0f, 1.0f));
+    intensity = config.GetFloat("intensity", 1.0f);
 }
 
 // ---------------------------------------------------------

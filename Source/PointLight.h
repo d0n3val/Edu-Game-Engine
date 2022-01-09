@@ -23,6 +23,9 @@ public:
     float           GetRadius  () const  { return radius; }
     void            SetRadius  (float r) { radius = r; }
 
+    float           GetIntensity () const { return intensity; }
+    void            SetIntensity (float i) { intensity = i;}
+
     bool            GetEnabled      () const { return enabled; }
     void            SetEnabled      (bool e) { enabled = e; }
 
@@ -31,6 +34,7 @@ private:
     float3 color     = float3::one;
     float3 position  = float3::zero;
     float  radius    = 1.0f;
+    float  intensity = 1.0f;
     bool  enabled    = true;
 };
 

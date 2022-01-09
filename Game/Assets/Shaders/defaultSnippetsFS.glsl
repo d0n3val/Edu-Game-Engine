@@ -88,23 +88,27 @@ struct PointLight
 
 struct SpotLight
 {
-    vec4 position;
-    vec4 direction;
-    vec4 color;
+    vec4  position;
+    vec4  direction;
+    vec4  color;
+    float dist;
+    float inner;
+    float outer;
+    float intensity;
 };
 
-layout(std430, binding = 12) buffer DirLightBuffer
+readonly layout(std430, binding = 12) buffer DirLightBuffer
 {
     DirLight directional;
 };
 
-layout(std430, binding = 13) buffer PointLights
+readonly layout(std430, binding = 13) buffer PointLights
 {
     uint       num_point;
     PointLight points[];
 };
 
-layout(std430, binding = 14) buffer SpotLights
+readonly layout(std430, binding = 14) buffer SpotLights
 {
     uint      num_spot;
     SpotLight spots[];
@@ -331,7 +335,7 @@ float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float oute
 
 vec3 Directional(const vec3 normal, const vec3 view_dir, const DirLight light, const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
-    return GGXShading(normal, view_dir, -light.dir.xyz, light.color.rgb, diffuseColor, specularColor, roughness, 1.0);
+    return GGXShading(normal, view_dir, -light.dir.xyz, light.color.rgb*light.color.a, diffuseColor, specularColor, roughness, 1.0);
 }
 
 vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLight light, 
@@ -341,11 +345,12 @@ vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLi
     float distance    = length(light_dir);
     light_dir         = light_dir/distance;
     float radius      = light.position.w;
+    float intensity   = light.color.a;
 
     // epic falloff
     float att         = Sq(max(1.0-Sq(Sq(distance/radius)), 0.0))/(Sq(distance)+1);
 
-    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att);
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb*intensity, diffuseColor, specularColor, roughness, att);
 }
 
 vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLight light, 
@@ -355,16 +360,17 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
     float distance    = length(light_dir);
     float projDist    = dot(light.direction.xyz, -light_dir);
     light_dir         = light_dir/distance;
-    float lightDist   = light.position.w;
-    float inner       = light.direction.w;
-    float outer       = light.color.a;
+    float lightDist   = light.dist;
+    float inner       = light.inner;
+    float outer       = light.outer;
+    float intensity   = light.intensity;
 
     float cone        = GetCone(-light_dir, light.direction.xyz, inner, outer);
 
     // epic falloff
     float att         = Sq(max(1.0-Sq(Sq(projDist/lightDist)), 0.0))/(Sq(projDist)+1);
 
-    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att*cone);
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb*intensity, diffuseColor, specularColor, roughness, att*cone);
 }
 
 vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specular, float smoothness, vec3 occlusion, vec3 emissive)

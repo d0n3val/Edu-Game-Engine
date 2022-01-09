@@ -685,56 +685,18 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     float3 dir   = spot->GetDirection();
     float3 color = spot->GetColor();
     float angle  = spot->GetOutterCutoff();
-    float cos_a  = cos(angle);
-    float sin_a  = sin(angle);
     float3 axis[] = { model.Row3(0), model.Row3(1), (model.Row3(0)+model.Row3(1)).Normalized(), (model.Row3(0)-model.Row3(1)).Normalized()};
 
     dd::arrow(pos, pos+dir*(distance*0.1f), color, distance*0.01f);
     dd::line(pos, pos+dir*distance, color);
 
-    float len2 = distance / cos_a;
-    len2 = sqrt(len2 * len2 - distance*distance);
+    float tan_a = tanf(angle);
 
     for(uint i=0, count = sizeof(axis)/sizeof(float3); i < count; ++i)
     {
-        dd::line(pos, pos+dir*distance+axis[i]*len2, color);
-        dd::line(pos, pos+dir*distance-axis[i]*len2, color);
+        dd::line(pos, pos+(dir+axis[i]*tan_a)*distance, color);
+        dd::line(pos, pos+(dir*distance-axis[i]*tan_a)*distance, color);
     }
-}
-
-float SceneViewport::DistanceFromAtt(float constant, float linear, float quadric, float epsilon)
-{
-    // Solve (1.0/constant+distance*linear+distance*distance*qua) <= 0.1; for solving distance for 0.1 attenuation
-    // 1.0 <= 0.1*(c+d*l+d*d*q); 
-    // 0 = (-1.0+0.1*c)+(0.1*l)*d+(0.1*q)*d*d;
-    // a = 0.1*q;
-    // b = 0.1*l;
-    // d = (-b+-sqrt(b*b-4*a*c))/2.0f*a;
-    
-    float a = epsilon*quadric;
-    float b = epsilon*linear;
-    float c = epsilon*constant-1.0f;
-
-    float distance = 100000.0f;
-
-    if(a == 0.0f)
-    {
-        if(b != 0.0f)
-        {
-            distance = -c/b;
-        }
-    }
-    else
-    {
-        float sq = sqrt(b*b-4.0f*a*c);
-        float den = 1/(2.0f*a);
-        float d0 = (-b+sq)*den;
-        float d1 = (-b-sq)*den;
-
-        distance = max(d0, d1);
-    }
-
-    return distance;
 }
 
 void SceneViewport::DrawGrid(ComponentCamera* camera)

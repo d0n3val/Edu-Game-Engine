@@ -32,6 +32,9 @@ public:
     float           GetDistance      () const { return distance; }
     void            SetDistance      (float r) { distance = r; }
 
+    float           GetIntensity     () const { return intensity; }
+    void            SetIntensity     (float i) { intensity = i; }
+
     bool            GetEnabled      () const { return enabled; }
     void            SetEnabled      (bool e) { enabled = e; }
 
@@ -42,7 +45,8 @@ private:
     float3 direction = -float3::unitY;
     float  inner     = 0.0f;
     float  outter    = 0.0f;
-    float  distance   = 1.0f;
+    float  distance  = 1.0f;
+    float  intensity = 1.0f;
     bool   enabled   = true;
 };
 

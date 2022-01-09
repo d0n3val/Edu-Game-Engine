@@ -26,11 +26,15 @@ public:
     float3          GetDir      () const;
     float3          GetUp       () const;
 
+    float           GetIntensity     () const { return intensity; }
+    void            SetIntensity     (float i) { intensity = i; }
+
 private:
 
     float3 color     = math::float3::one;
     float  polar     = PI/2.0f;
     float  azimuthal = PI/2.0f;
+    float  intensity = 1.0f;
 };
 
 #endif /* __DIRLIGHT_H__ */

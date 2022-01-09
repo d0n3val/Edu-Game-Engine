@@ -109,6 +109,12 @@ void PanelProperties::DrawDirLight(DirLight* light)
             light->SetColor(color);
         }
 
+        float intensity = light->GetIntensity();
+        if(ImGui::SliderFloat("intensity", &intensity, 0.0f, 100.0f))
+        {
+            light->SetIntensity(intensity);
+        }
+
         float azimuthal = light->GetAzimuthal();
         if(ImGui::SliderAngle("azimuthal", &azimuthal, 0.0f, 360.0f))
         {
@@ -132,6 +138,12 @@ void PanelProperties::DrawPointLight(PointLight* light)
         if(ImGui::ColorEdit3("color", (float*)&color))
         {
             light->SetColor(color);
+        }
+
+        float intensity = light->GetIntensity();
+        if(ImGui::SliderFloat("intensity", &intensity, 0.0f, 100.0f))
+        {
+            light->SetIntensity(intensity);
         }
 
         ImGui::Separator();
@@ -163,6 +175,12 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
         if(ImGui::ColorEdit3("color", (float*)&color))
         {
             light->SetColor(color);
+        }
+
+        float intensity = light->GetIntensity();
+        if(ImGui::SliderFloat("intensity", &intensity, 0.0f, 100.0f))
+        {
+            light->SetIntensity(intensity);
         }
 
         ImGui::Separator();
