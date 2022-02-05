@@ -285,3 +285,6 @@ x64/Release/Engine.ipdb
 *.iobj
 x64/Release/Engine.ipdb
 *.ipdb
+*.tlog
+*.iobj
+*.ipdb

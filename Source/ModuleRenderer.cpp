@@ -252,6 +252,7 @@ void ModuleRenderer::UpdateCameraUBO(ComponentCamera *camera)
     cameraData.view     = camera->GetViewMatrix();
     cameraData.view_pos = float4(cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart()), 1.0);
 
+    cameraUBO->InvalidateData();
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
 }
 

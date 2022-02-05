@@ -7,14 +7,14 @@
 #include <vector>
 #include <memory>
 
-class Batch;
+class GeometryBatch;
 class ComponentMeshRenderer;
 
 class BatchManager
 {
-    typedef std::vector<std::unique_ptr<Batch> > BatchPool;
+    typedef std::vector<std::unique_ptr<GeometryBatch> > GeometryBatchPool;
 
-    BatchPool batches;
+    GeometryBatchPool batches;
 
 public:
     BatchManager();

@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "variant": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "vector": "cpp"
     }
 }

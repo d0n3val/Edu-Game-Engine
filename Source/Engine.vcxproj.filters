@@ -645,9 +645,6 @@
     <ClInclude Include="Noise.h">
       <Filter>Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="Batch.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="BatchManager.h">
       <Filter>Helpers</Filter>
     </ClInclude>
@@ -717,6 +714,9 @@
     </ClInclude>
     <ClInclude Include="LightManager.h">
       <Filter>Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryBatch.h">
+      <Filter>Helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1230,9 +1230,6 @@
     <ClCompile Include="Noise.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
-    <ClCompile Include="Batch.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
     <ClCompile Include="BatchManager.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
@@ -1301,6 +1298,9 @@
     </ClCompile>
     <ClCompile Include="LightManager.cpp">
       <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryBatch.cpp">
+      <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

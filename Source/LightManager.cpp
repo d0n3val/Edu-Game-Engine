@@ -97,21 +97,21 @@ void LightManager::UpdateGPUBuffers()
     // directional
     if(!directionalSSBO)
     {
-        directionalSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT, 
-                                                                sizeof(DirLightData), nullptr, true);
-        directionalPtr = reinterpret_cast<DirLightData*>(directionalSSBO->Map(GL_WRITE_ONLY));
+        directionalSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(DirLightData), nullptr, true);
     }
 
+    DirLightData* directionalPtr = reinterpret_cast<DirLightData *>(directionalSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, sizeof(DirLightData)));
     directionalPtr->dir = float4(directional->GetDir(), 0.0);
     directionalPtr->color = float4(directional->GetColor(), directional->GetIntensity());
+    directionalSSBO->Unmap();
 
     if(uint(points.size()) > pointBufferSize || !pointLightSSBO)
     {
         pointBufferSize = uint(points.size());
-        pointLightSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT, 
-                                                  pointBufferSize*sizeof(PointLightData)+sizeof(int)*4, nullptr, true);
-        pointPtr = reinterpret_cast<PointLightSet*>(pointLightSSBO->Map(GL_WRITE_ONLY));
+        pointLightSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, pointBufferSize*sizeof(PointLightData)+sizeof(int)*4, nullptr, true);
     }
+
+    PointLightSet* pointPtr = reinterpret_cast<PointLightSet *>(pointLightSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, pointBufferSize*sizeof(PointLightData)+sizeof(int)*4));
 
     // point lights
     uint index = 0;
@@ -127,16 +127,17 @@ void LightManager::UpdateGPUBuffers()
             ++index;
         }
     }
-
     pointPtr->count = index;
+
+    pointLightSSBO->Unmap();
 
     if(uint(spots.size()) > spotBufferSize || !spotLightSSBO)
     {
         spotBufferSize = uint(spots.size());
-        spotLightSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT, 
-                                                 spotBufferSize*sizeof(SpotLightData)+sizeof(int)*4, nullptr, true);
-        spotPtr = reinterpret_cast<SpotLightSet*>(spotLightSSBO->Map(GL_WRITE_ONLY));
+        spotLightSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, spotBufferSize*sizeof(SpotLightData)+sizeof(int)*4, nullptr, true);
     }
+
+    SpotLightSet* spotPtr = reinterpret_cast<SpotLightSet*>(spotLightSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, spotBufferSize*sizeof(SpotLightData)+sizeof(int)*4));
 
     // spot lights
     index = 0;
@@ -159,7 +160,7 @@ void LightManager::UpdateGPUBuffers()
 
     spotPtr->count = index;
 
-    glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+    spotLightSSBO->Unmap();
 }
 
 void LightManager::Bind(uint dirIdx, uint pointIdx, uint spotIdx)

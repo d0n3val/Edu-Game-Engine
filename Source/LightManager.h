@@ -64,10 +64,6 @@ class LightManager
     std::unique_ptr<Buffer>     spotLightSSBO;
     std::unique_ptr<Buffer>     pointLightSSBO;
 
-    DirLightData*               directionalPtr = nullptr;
-    PointLightSet*              pointPtr = nullptr;
-    SpotLightSet*               spotPtr = nullptr;
-
     uint                        pointBufferSize = 0;
     uint                        spotBufferSize = 0;
 public:

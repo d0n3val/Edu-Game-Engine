@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-#include "Batch.h"
+#include "GeometryBatch.h"
 
 #include "Application.h"
 #include "ComponentMeshRenderer.h"
@@ -18,11 +18,11 @@
 
 #include "Leaks.h"
 
-Batch::Batch(const HashString& tag) : tagName(tag)
+GeometryBatch::GeometryBatch(const HashString& tag) : tagName(tag)
 {
 }
 
-bool Batch::CanAdd(const ComponentMeshRenderer* object) const
+bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
 {
     if(objects.empty())
     {
@@ -32,7 +32,7 @@ bool Batch::CanAdd(const ComponentMeshRenderer* object) const
  	return object->GetMeshRes()->GetAttribs() == attrib_flags && textures.CanAdd(object->GetMaterialRes());
 }
 
-void Batch::Add(const ComponentMeshRenderer* object)
+void GeometryBatch::Add(const ComponentMeshRenderer* object)
 {
     assert(CanAdd(object));
     assert(commands.empty());
@@ -50,7 +50,7 @@ void Batch::Add(const ComponentMeshRenderer* object)
     ClearRenderData();
 }
 
-void Batch::CreateRenderData()
+void GeometryBatch::CreateRenderData()
 {
     CreateVertexBuffers();
     CreateDrawIdBuffer();
@@ -60,7 +60,7 @@ void Batch::CreateRenderData()
     modelUpdates.clear();
 }
 
-void Batch::ClearRenderData()
+void GeometryBatch::ClearRenderData()
 {
     vao.reset();
     vbo.reset();
@@ -71,7 +71,7 @@ void Batch::ClearRenderData()
     bufferDirty = true;
 }
 
-void Batch::CreateVertexBuffers()
+void GeometryBatch::CreateVertexBuffers()
 {
     uint         vertex_size  = 0;
     uint         attrib_count = 0;
@@ -159,7 +159,7 @@ void Batch::CreateVertexBuffers()
     vao = std::make_unique<VertexArray>(vbo.get(), ibo.get(), attribs, attrib_count);
 }
 
-void Batch::CreateTransformBuffer()
+void GeometryBatch::CreateTransformBuffer()
 {
     transformSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, objects.size()*sizeof(float4x4), nullptr, true);
     float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->Map(GL_WRITE_ONLY));
@@ -170,7 +170,7 @@ void Batch::CreateTransformBuffer()
     transformSSBO->Unmap();
 }
 
-void Batch::CreateCommandBuffer()
+void GeometryBatch::CreateCommandBuffer()
 {
     if(commandBufferSize < uint(commands.size()))
     {
@@ -183,7 +183,7 @@ void Batch::CreateCommandBuffer()
     }
 }
 
-void Batch::CreateMaterialBuffer()
+void GeometryBatch::CreateMaterialBuffer()
 {
     struct MaterialData
     {
@@ -235,7 +235,7 @@ void Batch::CreateMaterialBuffer()
     materialSSBO->Unmap();
 }
 
-void Batch::CreateDrawIdBuffer()
+void GeometryBatch::CreateDrawIdBuffer()
 {
     drawIdVBO.reset(Buffer::CreateVBO(GL_STATIC_DRAW, uint(objects.size()*sizeof(int)), nullptr));
     int* drawIds = (int*)drawIdVBO->Map(GL_WRITE_ONLY);
@@ -257,7 +257,7 @@ void Batch::CreateDrawIdBuffer()
     vao->Unbind();
 }
 
-void Batch::Render(const ComponentMeshRenderer* object)
+void GeometryBatch::Render(const ComponentMeshRenderer* object)
 {
     if (bufferDirty)
     {
@@ -274,7 +274,7 @@ void Batch::Render(const ComponentMeshRenderer* object)
     }
 }
 
-void Batch::DoRender(uint transformsIndex, uint materialsIndex)
+void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex)
 {
     if (!commands.empty())
     {
@@ -296,7 +296,7 @@ void Batch::DoRender(uint transformsIndex, uint materialsIndex)
     }
 }
 
-void Batch::Remove(const ComponentMeshRenderer* object)
+void GeometryBatch::Remove(const ComponentMeshRenderer* object)
 {
     assert(commands.empty());
 
@@ -312,7 +312,7 @@ void Batch::Remove(const ComponentMeshRenderer* object)
 	ClearRenderData();
 }
 
-void Batch::GetVertexAttribs(VertexAttrib *attribs, uint &count, uint& vertex_size) const
+void GeometryBatch::GetVertexAttribs(VertexAttrib *attribs, uint &count, uint& vertex_size) const
 {
     vertex_size      = sizeof(float3);
     count            = 0;
@@ -344,12 +344,12 @@ void Batch::GetVertexAttribs(VertexAttrib *attribs, uint &count, uint& vertex_si
     }
 }
 
-void Batch::UpdateModel(const ComponentMeshRenderer *object)
+void GeometryBatch::UpdateModel(const ComponentMeshRenderer *object)
 {
     modelUpdates.push_back(object);
 }
 
-void Batch::UpdateModels()
+void GeometryBatch::UpdateModels()
 {
     if(!modelUpdates.empty())
     {
@@ -368,7 +368,7 @@ void Batch::UpdateModels()
     }
 }
 
-void Batch::OnMaterialModified(UID materialID)
+void GeometryBatch::OnMaterialModified(UID materialID)
 {
     std::vector<const ComponentMeshRenderer*> modifyList;
 

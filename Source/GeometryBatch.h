@@ -1,5 +1,5 @@
-#ifndef _BATCH_H_
-#define _BATCH_H_
+#ifndef _GEOMETRY_BATCH_H_
+#define _GEOMETRY_BATCH_H_
 
 #include "ResourceMaterial.h"
 #include "ResourceMesh.h"
@@ -14,7 +14,7 @@
 
 class ComponentMeshRenderer;
 
-class Batch
+class GeometryBatch
 {
 	struct MeshData
 	{
@@ -64,8 +64,8 @@ class Batch
 
 public:
 
-    explicit Batch(const HashString& tag);
-    ~Batch() = default;
+    explicit GeometryBatch(const HashString& tag);
+    ~GeometryBatch() = default;
    
     bool               CanAdd            (const ComponentMeshRenderer* object) const;
     void               Add               (const ComponentMeshRenderer* object);
@@ -93,4 +93,4 @@ private:
     void UpdateModels();
 };
 
-#endif /* _BATCH_H_ */
+#endif /* _GEOMETRY_BATCH_H_ */

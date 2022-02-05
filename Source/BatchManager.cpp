@@ -1,7 +1,7 @@
 #include "Globals.h"
 
 #include "BatchManager.h"
-#include "Batch.h"
+#include "GeometryBatch.h"
 #include "ComponentMeshRenderer.h"
 #include "GameObject.h"
 
@@ -21,7 +21,7 @@ uint BatchManager::Add(const ComponentMeshRenderer* object, const HashString& ta
 
     for (; batch_index < batches.size(); ++batch_index)
     {
-        std::unique_ptr<Batch> &batch = batches[batch_index];
+        std::unique_ptr<GeometryBatch> &batch = batches[batch_index];
         if (batch->GetTagName() == tag && batch->CanAdd(object))
         {
             batch->Add(object);
@@ -31,7 +31,7 @@ uint BatchManager::Add(const ComponentMeshRenderer* object, const HashString& ta
 
     if (batch_index == batches.size())
     {
-        batches.push_back(std::make_unique<Batch>(tag));
+        batches.push_back(std::make_unique<GeometryBatch>(tag));
         batches.back()->Add(object);
     }
 
@@ -79,7 +79,7 @@ void BatchManager::Render(const NodeList &objects, uint transformIndex, uint mat
             }
         }
 
-        for (std::unique_ptr<Batch> &batch : batches)
+        for (std::unique_ptr<GeometryBatch> &batch : batches)
         {
             if (!batch->IsEmpty())
             {
@@ -102,7 +102,7 @@ void BatchManager::UpdateModel(const NodeList& objects)
 
 void BatchManager::FillBatchNames(std::vector<HashString>& names) const
 {
-    for(const std::unique_ptr<Batch>& batch : batches)
+    for(const std::unique_ptr<GeometryBatch>& batch : batches)
     {
         const HashString& tag_name = batch->GetTagName();
         if(std::find(names.begin(), names.end(), tag_name) == names.end())
@@ -114,7 +114,7 @@ void BatchManager::FillBatchNames(std::vector<HashString>& names) const
 
 void BatchManager::OnMaterialModified(UID materialID)
 {
-    for(const std::unique_ptr<Batch>& batch : batches)
+    for(const std::unique_ptr<GeometryBatch>& batch : batches)
     {
         batch->OnMaterialModified(materialID);
     }

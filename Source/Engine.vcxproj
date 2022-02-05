@@ -232,7 +232,6 @@
     <ClInclude Include="Assimp\include\vector2.h" />
     <ClInclude Include="Assimp\include\vector3.h" />
     <ClInclude Include="Assimp\include\version.h" />
-    <ClInclude Include="Batch.h" />
     <ClInclude Include="BatchManager.h" />
     <ClInclude Include="BilinearBlur.h" />
     <ClInclude Include="Bullet\include\btBulletCollisionCommon.h" />
@@ -264,6 +263,7 @@
     <ClInclude Include="Event.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GaussianBlur.h" />
+    <ClInclude Include="GeometryBatch.h" />
     <ClInclude Include="glmath.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="gpudetect\DeviceId.h" />
@@ -415,7 +415,6 @@
   <ItemGroup>
     <ClCompile Include="AnimController.cpp" />
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="Batch.cpp" />
     <ClCompile Include="BatchManager.cpp" />
     <ClCompile Include="BilinearBlur.cpp" />
     <ClCompile Include="Color.cpp" />
@@ -441,6 +440,7 @@
     <ClCompile Include="DirLight.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
+    <ClCompile Include="GeometryBatch.cpp" />
     <ClCompile Include="glmath.cpp" />
     <ClCompile Include="gpudetect\DeviceId.cpp" />
     <ClCompile Include="HashString.cpp" />
