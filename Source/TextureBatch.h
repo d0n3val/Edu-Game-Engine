@@ -27,9 +27,10 @@ private:
         std::vector<TexData> textures;
     };
 
-    enum { MAX_TEXTURE_ARRAY_COUNT = 24 };
+    typedef std::unique_ptr<TexArrayInfo[]> TexArrayPtr;
 
-    TexArrayInfo textures[MAX_TEXTURE_ARRAY_COUNT];
+    TexArrayPtr  textures;
+    uint         maxUnits = 0;
     bool         texturesDirty = false;
 public:
 

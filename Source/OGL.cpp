@@ -455,6 +455,11 @@ void Buffer::SetData(uint offset, uint size, const void* data)
     glBindBuffer(type, 0);
 }
 
+void Buffer::InvalidateData()
+{
+    glInvalidateBufferData(id);
+}
+
 Buffer* Buffer::CreateVBO(uint usage, uint size, const void* data)
 {
     return new Buffer(GL_ARRAY_BUFFER, usage, size, data);

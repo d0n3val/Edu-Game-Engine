@@ -5,8 +5,10 @@
 #include "Application.h"
 #include "ComponentMeshRenderer.h"
 #include "ModuleTextures.h"
+#include "ModuleRenderer.h"
 #include "ModuleResources.h"
 #include "GameObject.h"
+#include "BatchManager.h"
 
 #include "ResourceTexture.h"
 
@@ -27,7 +29,7 @@ bool Batch::CanAdd(const ComponentMeshRenderer* object) const
         return true;
     }
 
-	return object->GetMeshRes()->GetAttribs() == attrib_flags && textures.CanAdd(object->GetMaterialRes());
+ 	return object->GetMeshRes()->GetAttribs() == attrib_flags && textures.CanAdd(object->GetMaterialRes());
 }
 
 void Batch::Add(const ComponentMeshRenderer* object)
@@ -159,13 +161,13 @@ void Batch::CreateVertexBuffers()
 
 void Batch::CreateTransformBuffer()
 {
-    transformSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT, objects.size()*sizeof(float4x4), nullptr, true);
-    transforms = reinterpret_cast<float4x4*>(transformSSBO->Map(GL_WRITE_ONLY));
+    transformSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, objects.size()*sizeof(float4x4), nullptr, true);
+    float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->Map(GL_WRITE_ONLY));
     for(std::pair<const ComponentMeshRenderer* const, uint>& object : objects)
     {
         transforms[object.second] = object.first->GetGameObject()->GetGlobalTransformation();
     }
-    glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+    transformSSBO->Unmap();
 }
 
 void Batch::CreateCommandBuffer()
@@ -351,6 +353,7 @@ void Batch::UpdateModels()
 {
     if(!modelUpdates.empty())
     {
+        float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(objects.size() * sizeof(float4x4))));
         for (const ComponentMeshRenderer *object : modelUpdates)
         {
             auto it = objects.find(object);
@@ -359,8 +362,33 @@ void Batch::UpdateModels()
                 transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
             }
         }
-        glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+        transformSSBO->Unmap();
 
         modelUpdates.clear();
+    }
+}
+
+void Batch::OnMaterialModified(UID materialID)
+{
+    std::vector<const ComponentMeshRenderer*> modifyList;
+
+    modifyList.reserve(objects.size());
+
+    for (std::pair<const ComponentMeshRenderer *const, uint> &object : objects)
+    {
+        if(object.first->GetMaterialUID() == materialID)
+        {
+            modifyList.push_back(object.first);
+        }
+    }
+
+    for(const ComponentMeshRenderer* object : modifyList)
+    {
+        Remove(object);
+    }
+
+    for(const ComponentMeshRenderer* object : modifyList)
+    {
+        App->renderer->GetBatchManager()->Add(object, tagName);
     }
 }

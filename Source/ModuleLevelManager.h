@@ -62,7 +62,6 @@ private:
 	void RecursiveProcessEvent(GameObject* go, const Event& event) const;
 	void RecursiveUpdate(GameObject* go, float dt) const;
 	GameObject* RecursiveFind(uint uid, GameObject* go) const;
-	void DestroyFlaggedGameObjects();
 
 	void LoadGameObjects(const Config& config);
 

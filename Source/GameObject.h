@@ -37,7 +37,6 @@ public:
 
 	void RecalculateBoundingBox();
 
-	bool RecursiveRemoveFlagged();
 	Component* CreateComponent(Component::Types type);
 
 	void SetNewParent(GameObject* node, bool recalc_transformation = false);
@@ -116,7 +115,6 @@ public:
 	std::list<Component*> components;
 	OBB global_bbox;
 	mutable bool visible = false;
-	bool flag_for_removal = false;
 };
 
 #endif // __GAMEOBJECT_H__

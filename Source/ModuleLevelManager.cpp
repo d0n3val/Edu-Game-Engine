@@ -62,7 +62,6 @@ bool ModuleLevelManager::Start(Config * config)
 
 update_status ModuleLevelManager::PreUpdate(float dt)
 {
-	DestroyFlaggedGameObjects();
 	// Update transformations tree for this frame
 	root->RecursiveCalcGlobalTransform(float4x4::identity, false);
 	root->RecursiveCalcBoundingBoxes();
@@ -158,26 +157,6 @@ GameObject * ModuleLevelManager::Duplicate(const GameObject * original)
 	return ret;
 }
 
-void ModuleLevelManager::DestroyFlaggedGameObjects()
-{
-	// we never really have to remove root, but we remove all its childs
-	if (root->flag_for_removal == true)
-	{
-		for (list<GameObject*>::iterator it = root->childs.begin(); it != root->childs.end(); ++it)
-			(*it)->flag_for_removal = true;
-		root->flag_for_removal = false;
-	}
-
-	// Find parent and cut connection
-	if (root->RecursiveRemoveFlagged())
-	{
-		// Notify everybody that a GameObject has been destroyed
-		// this gives the oportunity to other modules to Validate()
-		// their pointers to GameObjects
-		Event event(Event::gameobject_destroyed);
-		App->BroadcastEvent(event);
-	}
-}
 
 void ModuleLevelManager::LoadGameObjects(const Config & config)
 {

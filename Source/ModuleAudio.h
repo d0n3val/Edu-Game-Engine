@@ -54,9 +54,14 @@ private:
 	void UpdateSource(ComponentAudioSource* source) const;
 
 private:
+	friend class ComponentAudioSource;
+	friend class ComponentAudioListener;
+
 	float volume = 1.0f;
 	float music_volume = 1.0f;
 	float fx_volume = 1.0f;
+	std::vector<ComponentAudioSource*> sources;
+	std::vector<ComponentAudioListener*> listeners;
 };
 
 #endif // __MODULEAUDIO_H__

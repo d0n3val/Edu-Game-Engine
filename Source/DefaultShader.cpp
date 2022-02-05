@@ -250,7 +250,7 @@ void DefaultShader::Render(BatchManager *batch, const RenderList &objects, const
     App->level->GetSkyBox()->BindIBL(levelsLoc, TextureMap_DiffuseIBL, TextureMap_PrefilteredIBL, TextureMap_EnvironMentBRDF);
 
     // opaques
-    batch->Render(objects.GetOpaques(), transformBlockIndex, materialsBlockIndex, false);
+    batch->Render(objects.GetOpaques(), transformBlockIndex, materialsBlockIndex, true);
 
     // transparents
     glEnable(GL_BLEND);

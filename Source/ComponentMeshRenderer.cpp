@@ -87,7 +87,7 @@ void ComponentMeshRenderer::SetBatchName(const HashString& name)
 {
     if(batch_index != UINT_MAX)
     {
-        App->renderer->GetBatchMananger()->Remove(this);
+        App->renderer->GetBatchManager()->Remove(this);
         batch_index = UINT_MAX;
     }
 
@@ -95,7 +95,7 @@ void ComponentMeshRenderer::SetBatchName(const HashString& name)
 
     if(batch_name)
     {
-        batch_index = App->renderer->GetBatchMananger()->Add(this, batch_name);
+        batch_index = App->renderer->GetBatchManager()->Add(this, batch_name);
     }
 }
 

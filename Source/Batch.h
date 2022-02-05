@@ -79,6 +79,7 @@ public:
     const HashString&  GetTagName        () const { return tagName; }
 
     void               CreateRenderData  ();
+    void               OnMaterialModified(UID materialID);
 private:
 
     void ClearRenderData      ();

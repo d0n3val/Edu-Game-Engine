@@ -281,3 +281,7 @@ x64/Release/Engine.ipdb
 x64/Release/Engine.exe
 x64/Release/Engine.iobj
 x64/Release/Engine.ipdb
+*.iobj
+*.iobj
+x64/Release/Engine.ipdb
+*.ipdb

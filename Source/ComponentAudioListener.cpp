@@ -1,15 +1,21 @@
 #include "Globals.h"
 #include "ComponentAudioListener.h"
+#include "Application.h"
+#include "ModuleAudio.h"
 
 #include "Leaks.h"
 
 // ---------------------------------------------------------
 ComponentAudioListener::ComponentAudioListener(GameObject* container) : Component(container, Types::AudioListener)
-{}
+{
+	App->audio->listeners.push_back(this);
+}
 
 // ---------------------------------------------------------
 ComponentAudioListener::~ComponentAudioListener()
-{}
+{
+	App->audio->listeners.erase(std::remove(App->audio->listeners.begin(), App->audio->listeners.end(),this), App->audio->listeners.end());
+}
 
 // ---------------------------------------------------------
 void ComponentAudioListener::OnSave(Config& config) const

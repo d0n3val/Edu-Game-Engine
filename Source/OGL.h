@@ -144,6 +144,7 @@ public:
     void* MapRange(uint access, uint offset, uint size);
     void  Unmap();
     void  SetData(uint offset, uint size, const void* data);
+    void  InvalidateData();
 
     static Buffer* CreateVBO(uint usage, uint size, const void* data);
     static Buffer* CreateIBO(uint usage, uint size, const void* data);

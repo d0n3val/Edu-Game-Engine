@@ -289,16 +289,21 @@ void PanelGOTree::DrawLights()
 }
 
 // ---------------------------------------------------------
-void PanelGOTree::RecursiveDraw(GameObject* go)
+bool PanelGOTree::RecursiveDraw(GameObject* go)
 {
+    bool stop = false;
 	sprintf_s(name, 80, "%s##node_%i", go->name.empty() ? "(empty)": go->name.c_str(), node++);
 	uint flags = 0;// ImGuiTreeNodeFlags_OpenOnArrow;
 
-    if (strstr(go->name.c_str(), "$AssimpFbx$") != nullptr)
+    const char* str = strstr(go->name.c_str(), "$AssimpFbx$");
+    if (str != nullptr)
     {
-        for (GameObject* go : go->childs)
+        for (GameObject* go : go->childs) 
         {
-            RecursiveDraw(go);
+            if((stop = RecursiveDraw(go)) == true)
+            {
+                break;
+            }
         }
     }
     else
@@ -348,13 +353,20 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
                 if (ImGui::MenuItem("Duplicate"))
                     App->level->Duplicate(go);
                 if (ImGui::MenuItem("Remove"))
+                {
+                    App->editor->ClearSelected();
                     go->Remove();
+                    stop = true;
+                }
 
                 ImGui::EndPopup();
             }
 
-            for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
-                RecursiveDraw(*it);
+            if(!stop)
+            {
+                for (list<GameObject*>::const_iterator it = go->childs.begin(); it != go->childs.end(); ++it)
+                    if ((stop = RecursiveDraw(*it)) == true) break;
+            }
 
             ImGui::TreePop();
         }
@@ -363,6 +375,8 @@ void PanelGOTree::RecursiveDraw(GameObject* go)
 
         ImGui::PopStyleColor();
     }
+
+    return stop;
 }
 
 

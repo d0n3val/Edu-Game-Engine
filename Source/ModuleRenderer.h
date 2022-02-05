@@ -74,7 +74,7 @@ public:
     unsigned            GetShadowMap                (uint index) const { return cascades[index].tex; }
     unsigned            GetShadowMapWidth           (uint index) const { return cascades[index].width; }
 
-    BatchManager*       GetBatchMananger            () const { return batch_manager.get(); }
+    BatchManager*       GetBatchManager             () const { return batch_manager.get(); }
     Postprocess*        GetPostprocess              () const { return postProcess.get(); }
     DepthPrepass*       GetDepthPrepass             () const { return depthPrepass.get(); }
     ScreenSpaceAO*      GetScreenSpaceAO            () const { return ssao.get(); }

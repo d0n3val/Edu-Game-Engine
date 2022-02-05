@@ -249,47 +249,6 @@ void GameObject::RecalculateBoundingBox()
 }
 
 // ---------------------------------------------------------
-bool GameObject::RecursiveRemoveFlagged()
-{
-	bool ret = false;
-
-	for (list<Component*>::iterator it = components.begin(); it != components.end();)
-	{
-		if (flag_for_removal || (*it)->flag_for_removal == true)
-		{
-			(*it)->OnFinish();
-			RELEASE(*it);
-			it = components.erase(it);
-		}
-		else
-			++it;
-	}
-
-	for (list<GameObject*>::iterator it = childs.begin(); it != childs.end();)
-	{
-		(*it)->flag_for_removal = flag_for_removal || (*it)->flag_for_removal ;
-
-		// Keep looking, hay millones de premios
-		ret |= (*it)->RecursiveRemoveFlagged();
-
-		if ((*it)->flag_for_removal == true)
-		{
-			(*it)->OnFinish();
-			App->level->quadtree.Erase(*it);
-			RELEASE(*it);
-			it = childs.erase(it);
-			ret = true;
-		}
-		else
-		{
-			++it;
-		}
-	}
-
-	return ret;
-}
-
-// ---------------------------------------------------------
 Component* GameObject::CreateComponent(Component::Types type)
 {
 	static_assert(Component::Types::Unknown == 13, "code needs update");
@@ -557,7 +516,19 @@ bool GameObject::WasBBoxDirty() const
 // ---------------------------------------------------------
 void GameObject::Remove()
 {
-	flag_for_removal = true;
+    for (list<Component*>::iterator it = components.begin(); it != components.end();++it)
+    {
+        (*it)->OnFinish();
+        RELEASE(*it);
+    }
+
+    if (parent)
+    {
+        App->level->quadtree.Erase(this);
+        auto it = std::remove(parent->childs.begin(), parent->childs.end(), this);
+        parent->childs.erase(it, parent->childs.end());
+        delete this;
+    }
 }
 
 // ---------------------------------------------------------

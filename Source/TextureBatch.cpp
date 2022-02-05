@@ -18,6 +18,10 @@
 
 TextureBatch::TextureBatch()
 {
+    GLint units;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &units);
+    maxUnits = uint(units-8);
+    textures = std::make_unique<TexArrayInfo[]>(maxUnits);
 }
 
 bool TextureBatch::CanAdd(const ResourceMaterial *material) const
@@ -36,7 +40,7 @@ bool TextureBatch::CanAdd(const ResourceMaterial *material) const
 bool TextureBatch::CanAdd(const ResourceTexture *texture) const
 {
     uint i = 0;
-    for (; i < MAX_TEXTURE_ARRAY_COUNT; ++i)
+    for (; i < maxUnits; ++i)
     {
         const TexArrayInfo& info = textures[i];
 
@@ -59,7 +63,7 @@ bool TextureBatch::CanAdd(const ResourceTexture *texture) const
         }
     }
 
-    return i < MAX_TEXTURE_ARRAY_COUNT;
+    return i < maxUnits;
 }
 
 bool TextureBatch::Add(const ResourceMaterial *material)
@@ -78,7 +82,7 @@ bool TextureBatch::Add(const ResourceMaterial *material)
 bool TextureBatch::Add(const ResourceTexture *texture)
 {
     // check already in
-    for (uint i = 0; i < MAX_TEXTURE_ARRAY_COUNT; ++i)
+    for (uint i = 0; i < maxUnits; ++i)
     {
         TexArrayInfo& info = textures[i];
         if(!info.textures.empty())
@@ -96,7 +100,7 @@ bool TextureBatch::Add(const ResourceTexture *texture)
 
     // check for any place
     uint index = 0;
-    for (; index < MAX_TEXTURE_ARRAY_COUNT; ++index)
+    for (; index < maxUnits; ++index)
     {
         TexArrayInfo& info = textures[index];
 
@@ -115,7 +119,7 @@ bool TextureBatch::Add(const ResourceTexture *texture)
         }
     }
 
-    if(index < MAX_TEXTURE_ARRAY_COUNT) // add new Texture Array
+    if(index < maxUnits) // add new Texture Array
     {
         TexData texData = { texture, 1 };
         textures[index].textures.push_back(texData);
@@ -141,7 +145,7 @@ void TextureBatch::Remove(const ResourceMaterial *material)
 
 void TextureBatch::Remove(const ResourceTexture *texture)
 {
-    for (uint i = 0; i < MAX_TEXTURE_ARRAY_COUNT; ++i)
+    for (uint i = 0; i < maxUnits; ++i)
     {
         TexArrayInfo& info = textures[i];
         if(!info.textures.empty())
@@ -168,7 +172,7 @@ void TextureBatch::Bind()
         GenerateTextures();
     }
 
-    for(int i = 0; i< MAX_TEXTURE_ARRAY_COUNT; ++i)
+    for(uint i = 0; i< maxUnits; ++i)
     {
         const TexArrayInfo& info = textures[i];
         if(info.textures.empty())
@@ -197,7 +201,7 @@ uint TextureBatch::GetMaxLayers()
 
 void TextureBatch::GenerateTextures()
 {
-    for(int i = 0; i< MAX_TEXTURE_ARRAY_COUNT; ++i)
+    for(uint i = 0; i< maxUnits; ++i)
     {
         TexArrayInfo& info = textures[i];
         if(info.textures.empty())
@@ -232,7 +236,7 @@ bool TextureBatch::GetHandle(const ResourceTexture *texture, Handle &handle) con
 {
     assert(texturesDirty == false);
 
-    for (uint index = 0; index < MAX_TEXTURE_ARRAY_COUNT; ++index)
+    for (uint index = 0; index < maxUnits; ++index)
     {
         const TexArrayInfo& info = textures[index];
 

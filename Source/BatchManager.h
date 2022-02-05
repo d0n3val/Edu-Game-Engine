@@ -20,13 +20,14 @@ public:
     BatchManager();
     ~BatchManager();
 
-    uint Add(ComponentMeshRenderer* object, const HashString& tag);
-    void Remove(ComponentMeshRenderer* object);
+    uint Add(const ComponentMeshRenderer* object, const HashString& tag);
+    void Remove(const ComponentMeshRenderer* object);
 
     void UpdateModel(const NodeList& objects);
     void Render(const NodeList& objects, uint transformIndex, uint materialsIndex, bool keepOrder);
 
     void FillBatchNames(std::vector<HashString>& names) const;
+    void OnMaterialModified(UID materialID);
 };
 
 #endif /* _BATCHMANAGER_H_ */

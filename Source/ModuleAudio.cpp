@@ -386,6 +386,17 @@ void ModuleAudio::UpdateAudio()	const
 
 void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
 {
+	for(ComponentAudioListener* listener : listeners)
+	{
+		UpdateListener(listener);
+	}
+
+	for(ComponentAudioSource* source : sources)
+	{
+		UpdateSource(source);
+	}
+
+	/*
 	for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
 		if ((*it)->IsActive() == false)
@@ -406,6 +417,7 @@ void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
 	// Recursive call to all childs
 	for (list<GameObject*>::iterator it = go->childs.begin(); it != go->childs.end(); ++it)
 		RecursiveUpdateAudio(*it);
+		*/
 }
 
 void ModuleAudio::UpdateListener(ComponentAudioListener * listener) const

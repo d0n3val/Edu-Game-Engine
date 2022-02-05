@@ -15,7 +15,7 @@ BatchManager::~BatchManager()
 {
 }
 
-uint BatchManager::Add(ComponentMeshRenderer* object, const HashString& tag)
+uint BatchManager::Add(const ComponentMeshRenderer* object, const HashString& tag)
 {
     uint batch_index = 0;
 
@@ -38,7 +38,7 @@ uint BatchManager::Add(ComponentMeshRenderer* object, const HashString& tag)
     return batch_index;
 }
 
-void BatchManager::Remove(ComponentMeshRenderer* object)
+void BatchManager::Remove(const ComponentMeshRenderer* object)
 {
     batches[object->GetBatchIndex()]->Remove(object);
 }
@@ -109,5 +109,13 @@ void BatchManager::FillBatchNames(std::vector<HashString>& names) const
         {
             names.push_back(tag_name);
         }
+    }
+}
+
+void BatchManager::OnMaterialModified(UID materialID)
+{
+    for(const std::unique_ptr<Batch>& batch : batches)
+    {
+        batch->OnMaterialModified(materialID);
     }
 }

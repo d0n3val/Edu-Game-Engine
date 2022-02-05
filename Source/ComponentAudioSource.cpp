@@ -10,11 +10,15 @@
 
 // ---------------------------------------------------------
 ComponentAudioSource::ComponentAudioSource(GameObject* container) : Component(container, Types::AudioSource)
-{}
+{
+	App->audio->sources.push_back(this);
+}
 
 // ---------------------------------------------------------
 ComponentAudioSource::~ComponentAudioSource()
-{}
+{
+	App->audio->sources.erase(std::remove(App->audio->sources.begin(), App->audio->sources.end(),this), App->audio->sources.end());
+}
 
 // ---------------------------------------------------------
 void ComponentAudioSource::GetBoundingBox(AABB & box) const

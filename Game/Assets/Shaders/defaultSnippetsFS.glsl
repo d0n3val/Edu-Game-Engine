@@ -66,9 +66,9 @@ readonly layout(std430, binding = 11) buffer Materials
     Material materials[];
 };
 
-layout(binding = 0) uniform sampler2DArray textures[24];
+layout(binding = 0) uniform sampler2DArray textures[gl_MaxTextureImageUnits-8];
 
-uniform sampler2D   ambientOcclusion;
+uniform sampler2D ambientOcclusion;
 layout(binding = 10) uniform samplerCube diffuseIBL;
 layout(binding = 11) uniform samplerCube prefilteredIBL;
 layout(binding = 12) uniform sampler2D   environmentBRDF;
@@ -164,10 +164,12 @@ void main()
     color      = Shading(fragment.position, normal, diffuse, specular, smoothness, occlusion, emissive);
     color.rgb += baked.rgb;
 
+/*  \todo: Add as ifdef
     if(color.a < materials[draw_id].alphaTest)
     {
         discard;
     }
+*/
 
     //color.rgb = ComputeShadow(color.rgb);
 
@@ -302,13 +304,18 @@ float GGXNDF(float roughness, float NdotH)
     return k*k*(1.0/PI);
 }
 
-// from filament (note: no opt)
 float SMITHVSF(float NdotL, float NdotV, float roughness)
 {
+    /*
+    // from filament (note: no opt)
     float a2 = roughness * roughness;
     float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - a2) + a2);
     float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - a2) + a2);
     return 0.5 / (GGXV + GGXL);
+    */
+
+    // optimized version
+    return 0.5/mix(2.0*NdotL*NdotV, NdotL+NdotV, roughness);
 }
 
 vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, const vec3 light_color, 

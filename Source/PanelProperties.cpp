@@ -513,7 +513,7 @@ void PanelProperties::DrawBatchProperties(ComponentMeshRenderer* component)
     const ResourceMesh* mesh = component->GetMeshRes();
     if(mesh)
     {
-        BatchManager* batch_manager = App->renderer->GetBatchMananger();
+        BatchManager* batch_manager = App->renderer->GetBatchManager();
 
         std::vector<HashString> tag_names;
 
@@ -522,7 +522,7 @@ void PanelProperties::DrawBatchProperties(ComponentMeshRenderer* component)
 
         std::vector<HashString>::iterator it = std::find(tag_names.begin(), tag_names.end(), batch_name);
 
-        int selected_index = it == tag_names.end() ? tag_names.size() : it - tag_names.begin();
+        int selected_index = it == tag_names.end() ? int(tag_names.size()) : int(it - tag_names.begin());
 
         tag_names.push_back(HashString("empty"));
 
@@ -1015,6 +1015,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
     if(modified)
     {
         material->Save();
+        App->renderer->GetBatchManager()->OnMaterialModified(material->GetUID());
     }
 
 }
