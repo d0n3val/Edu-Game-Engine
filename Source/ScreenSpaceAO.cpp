@@ -15,6 +15,8 @@
 #define KERNEL_UBO_TARGET 5
 #define KERNEL_SIZE 128
 #define RANDOM_SIZE 16
+#define CAMERA_BLOCK_INDEX 0
+
 
 ScreenSpaceAO::ScreenSpaceAO()
 {
@@ -55,7 +57,7 @@ void ScreenSpaceAO::Execute()
     program->BindUniformFromName("screenSize", float2(float(width), float(height)));
     program->BindUniformFromName("radius", std::get<float>(App->hints->GetDHint(std::string("SSAO radius"), 2.0f))); 
     program->BindUniformFromName("bias", -std::get<float>(App->hints->GetDHint(std::string("SSAO bias"), 0.1f))); 
-    program->BindUniformBlock("Camera", DefaultShader::CAMERA_UBO_TARGET);
+    program->BindUniformBlock("Camera", CAMERA_BLOCK_INDEX);
     program->BindUniformBlock("Kernel", KERNEL_UBO_TARGET);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);

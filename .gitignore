@@ -288,3 +288,8 @@ x64/Release/Engine.ipdb
 *.tlog
 *.iobj
 *.ipdb
+*.tlog
+*.ipdb
+*.iobj
+*.exe
+x64/Release/Engine.exe

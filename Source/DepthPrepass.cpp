@@ -77,9 +77,9 @@ void DepthPrepass::ResizeFrameBuffer(uint width, uint height, bool msaa)
             posTextureMS = std::make_unique<Texture2D>(4, width, height, GL_RGB32F, true);
             normalTextureMS = std::make_unique<Texture2D>(4, width, height, GL_RGB32F, true);
 
-            depthTexture->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-            posTextureMS->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-            normalTextureMS->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+            //depthTexture->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+            //posTextureMS->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+            //normalTextureMS->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
             frameBuffer->AttachColor(posTextureMS.get(), 0, 0);
             frameBuffer->AttachColor(normalTextureMS.get(), 1, 0);

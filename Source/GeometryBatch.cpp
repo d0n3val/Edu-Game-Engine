@@ -55,6 +55,7 @@ void GeometryBatch::CreateRenderData()
     CreateVertexBuffers();
     CreateDrawIdBuffer();
     CreateMaterialBuffer();
+    CreateInstanceBuffer();
     CreateTransformBuffer();
     bufferDirty = false;
     modelUpdates.clear();
@@ -203,14 +204,14 @@ void GeometryBatch::CreateMaterialBuffer()
 
     textures.GenerateTextures();
 
-    materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW, sizeof(MaterialData)*objects.size(), nullptr);
+    materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(MaterialData)*objects.size(), nullptr, true);
     MaterialData* matData = reinterpret_cast<MaterialData*>(materialSSBO->Map(GL_WRITE_ONLY));
     for(const std::pair<const ComponentMeshRenderer*, uint>& object : objects)
     {
         MaterialData& out = matData[object.second];
         const ResourceMaterial* material = reinterpret_cast<const ResourceMaterial*>(App->resources->Get(object.first->GetMaterialRes()->GetUID()));
 
-        out.diffuse_color    = material->GetDiffuseColor();
+        out.diffuse_color = material->GetDiffuseColor();
         out.specular_color   = float4(material->GetSpecularColor(), 0.0f);
         out.emissive_color   = float4(material->GetEmissiveColor(), 0.0f);
         out.tiling           = material->GetUVTiling();
@@ -220,7 +221,7 @@ void GeometryBatch::CreateMaterialBuffer()
         out.smoothness       = material->GetSmoothness();
         out.normal_strength  = material->GetNormalStrength();
         out.alpha_test       = material->GetAlphaTest();
-        out.mapMask          = material->GetMapMask();
+        out.mapMask          = material->GetMapMask();       
 
         for(uint i=0; i< TextureCount; ++i)
         {
@@ -229,10 +230,31 @@ void GeometryBatch::CreateMaterialBuffer()
             {
                 textures.GetHandle(texture, out.handles[i]);
             }
-        }
+        }        
     }
 
     materialSSBO->Unmap();
+}
+
+void GeometryBatch::CreateInstanceBuffer()
+{
+    struct PerInstance
+    {
+        uint numBones;
+        uint padding0;
+        uint padding1;
+        uint padding2;
+    };
+    
+    instanceSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(PerInstance)*objects.size(), nullptr, true);
+    PerInstance* instanceData = reinterpret_cast<PerInstance*>(instanceSSBO->Map(GL_WRITE_ONLY));
+    for(const std::pair<const ComponentMeshRenderer*, uint>& object : objects)
+    {
+        PerInstance& out = instanceData[object.second];
+        out.numBones = 0; //object.first->GetMeshRes()->GetNumBones();
+    }
+
+    instanceSSBO->Unmap();
 }
 
 void GeometryBatch::CreateDrawIdBuffer()
@@ -269,12 +291,13 @@ void GeometryBatch::Render(const ComponentMeshRenderer* object)
 
     if(itMesh != meshes.end() && itObject != objects.end())
     {
-        DrawCommand command = {itMesh->second.indexCount, 1, itMesh->second.baseIndex, itMesh->second.baseVertex, itObject->second };
-        commands.push_back(command);
+        DrawCommand command = {itMesh->second.indexCount, 1, itMesh->second.baseIndex, itMesh->second.baseVertex, itObject->second};
+
+        commands.push_back(command);        
     }
 }
 
-void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex)
+void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex, uint instancesIndex)
 {
     if (!commands.empty())
     {
@@ -283,7 +306,7 @@ void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex)
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, transformsIndex, transformSSBO->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsIndex, materialSSBO->Id());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsIndex, materialSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, instancesIndex, instanceSSBO->Id());
         commandBuffer->Bind();
 
         textures.Bind();

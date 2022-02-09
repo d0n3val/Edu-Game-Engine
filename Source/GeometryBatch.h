@@ -48,6 +48,7 @@ class GeometryBatch
     std::unique_ptr<Buffer>         drawIdVBO;
     std::unique_ptr<Buffer>         transformSSBO;
     std::unique_ptr<Buffer>         materialSSBO;
+    std::unique_ptr<Buffer>         instanceSSBO;
     std::unique_ptr<Buffer>         commandBuffer;
     uint                            commandBufferSize = 0;
 
@@ -73,8 +74,9 @@ public:
 
     void               UpdateModel       (const ComponentMeshRenderer* object);
     void               Render            (const ComponentMeshRenderer* object);
-    void               DoRender          (uint transformsIndex, uint materialsIndex);
+    void               DoRender          (uint transformsIndex, uint materialsIndex, uint instancesIndex);
 
+    bool               HasCommands       () const { return commands.empty();  }
     bool               IsEmpty           () const { return objects.empty(); }
     const HashString&  GetTagName        () const { return tagName; }
 
@@ -88,6 +90,7 @@ private:
     void CreateVertexBuffers  ();
     void CreateDrawIdBuffer   ();
     void CreateMaterialBuffer ();
+    void CreateInstanceBuffer ();
     void CreateTransformBuffer();
     void CreateCommandBuffer();
     void UpdateModels();

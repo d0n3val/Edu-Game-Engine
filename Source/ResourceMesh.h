@@ -68,7 +68,7 @@ public:
 
     uint                  GetNumVertices      () const { return num_vertices; }
     uint                  GetNumIndices       () const { return num_indices; }
-    uint                  GEtNumBones         () const { return num_bones; }
+    uint                  GetNumBones         () const { return num_bones; }
 
     // morph targets
     uint                  GetNumMorphTargets  () const { return num_morph_targets; }
