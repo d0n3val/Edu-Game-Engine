@@ -26,6 +26,14 @@ class GeometryBatch
         uint indexCount     = 0;
 	};
 
+    struct PerInstance
+    {
+        uint numBones = 0;
+        uint baseBone = 0;
+        uint padding1;
+        uint padding2;
+    };
+
     struct DrawCommand
     {
         uint count;
@@ -39,6 +47,7 @@ class GeometryBatch
     typedef std::unordered_map<UID, MeshData>                       MeshList;
     typedef std::unordered_map<const ComponentMeshRenderer*, uint>  ObjectList; // second is the instance index
     typedef std::vector<const ComponentMeshRenderer*>               UpdateList;
+    typedef std::vector<PerInstance>                               InstanceList;
 
     uint                            attrib_flags = 0;
 
@@ -49,16 +58,18 @@ class GeometryBatch
     std::unique_ptr<Buffer>         transformSSBO;
     std::unique_ptr<Buffer>         materialSSBO;
     std::unique_ptr<Buffer>         instanceSSBO;
+    std::unique_ptr<Buffer>         skinning;
     std::unique_ptr<Buffer>         commandBuffer;
     uint                            commandBufferSize = 0;
+    uint                            totalBones = 0;
 
     MeshList                        meshes;
     ObjectList                      objects;
     TextureBatch                    textures;
+    InstanceList                    instances;
 
     CommandList                     commands;
     UpdateList                      modelUpdates;
-    float4x4*                       transforms = nullptr;
 
     HashString                      tagName;
     bool                            bufferDirty = false;
@@ -74,7 +85,7 @@ public:
 
     void               UpdateModel       (const ComponentMeshRenderer* object);
     void               Render            (const ComponentMeshRenderer* object);
-    void               DoRender          (uint transformsIndex, uint materialsIndex, uint instancesIndex);
+    void               DoRender          (uint transformsIndex, uint materialsIndex, uint instancesIndex, uint skinningIndex);
 
     bool               HasCommands       () const { return commands.empty();  }
     bool               IsEmpty           () const { return objects.empty(); }

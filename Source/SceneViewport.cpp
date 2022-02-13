@@ -178,7 +178,7 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 
             if (mesh_res)
             {
-                mesh_res->UpdateUniforms(mesh->UpdateSkinPalette(), mesh->GetMorphTargetWeights());
+                //mesh_res->UpdateUniforms(mesh->UpdateSkinPalette(), mesh->GetMorphTargetWeights());
                 mesh_res->Draw();
             }
 
@@ -195,7 +195,7 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 
             if (mesh_res)
             {
-                mesh_res->UpdateUniforms(mesh->UpdateSkinPalette(), mesh->GetMorphTargetWeights());
+                //mesh_res->UpdateUniforms(mesh->UpdateSkinPalette(), mesh->GetMorphTargetWeights());
                 mesh_res->Draw();
             }
 

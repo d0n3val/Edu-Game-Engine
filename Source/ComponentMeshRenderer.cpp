@@ -35,9 +35,6 @@ ComponentMeshRenderer::~ComponentMeshRenderer()
 		res->Release();
 	}
 
-    delete [] skin_palette;
-    skin_palette = nullptr;
-
     delete [] node_cache;
     node_cache = nullptr;
 }
@@ -101,9 +98,6 @@ void ComponentMeshRenderer::SetBatchName(const HashString& name)
 
 bool ComponentMeshRenderer::SetMeshRes(UID uid) 
 {
-    delete [] skin_palette;
-    skin_palette = nullptr;
-
     delete [] node_cache;
     node_cache = nullptr;
 
@@ -130,7 +124,6 @@ bool ComponentMeshRenderer::SetMeshRes(UID uid)
 
             if(mesh->num_bones > 0)
             {
-                skin_palette = new float4x4[mesh->num_bones];
                 node_cache   = new const GameObject* [mesh->num_bones];
 
                 for(uint i=0; i< mesh->num_bones; ++i)
@@ -203,7 +196,7 @@ ResourceMaterial* ComponentMeshRenderer::GetMaterialRes ()
 }
 
 
-const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
+void ComponentMeshRenderer::UpdateSkinPalette(float4x4* palette) const
 {
     ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(mesh_resource));
     const GameObject* root   = GetGameObject();
@@ -229,16 +222,15 @@ const float4x4* ComponentMeshRenderer::UpdateSkinPalette() const
 
             if(bone_node)
             {
-                skin_palette[i] = rootT*bone_node->GetGlobalTransformation() *bone.bind;
+                palette[i] = rootT*bone_node->GetGlobalTransformation() *bone.bind;
             }
             else
             {
-                skin_palette[i] = float4x4::identity;
+                palette[i] = float4x4::identity;
             }
         }
     }
 
-    return skin_palette;
 }
 
 void ComponentMeshRenderer::UpdateCPUMorphTargets() const

@@ -43,7 +43,7 @@ void BatchManager::Remove(const ComponentMeshRenderer* object)
     batches[object->GetBatchIndex()]->Remove(object);
 }
 
-void BatchManager::Render(const NodeList &objects, uint transformIndex, uint materialsIndex, uint instancesIndex, bool keepOrder)
+void BatchManager::Render(const NodeList &objects, uint transformIndex, uint materialsIndex, uint instancesIndex, uint skinningIndex, bool keepOrder)
 {
     if(keepOrder)
     {
@@ -55,7 +55,7 @@ void BatchManager::Render(const NodeList &objects, uint transformIndex, uint mat
             {
                 if (batch != lastBatch && lastBatch != UINT_MAX)
                 {
-                    batches[lastBatch]->DoRender(transformIndex, materialsIndex, instancesIndex);
+                    batches[lastBatch]->DoRender(transformIndex, materialsIndex, instancesIndex, skinningIndex);
                 }
 
                 batches[batch]->Render(info.mesh);
@@ -65,7 +65,7 @@ void BatchManager::Render(const NodeList &objects, uint transformIndex, uint mat
 
         if(lastBatch != UINT_MAX)
         {
-            batches[lastBatch]->DoRender(transformIndex, materialsIndex, instancesIndex);
+            batches[lastBatch]->DoRender(transformIndex, materialsIndex, instancesIndex, skinningIndex);
         }
     }
     else
@@ -83,7 +83,7 @@ void BatchManager::Render(const NodeList &objects, uint transformIndex, uint mat
         {
             if (!batch->HasCommands())
             {
-                batch->DoRender(transformIndex, materialsIndex, instancesIndex);                
+                batch->DoRender(transformIndex, materialsIndex, instancesIndex, skinningIndex);                
             }
         }
     }

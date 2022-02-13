@@ -481,7 +481,15 @@ VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint 
     {
         glEnableVertexAttribArray(attribs[i].index);
 
-        glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (void*)(attribs[i].offset));
+        if (attribs[i].type == GL_INT || attribs[i].type == GL_UNSIGNED_INT)
+        {
+            glVertexAttribIPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].stride, (const void*)(attribs[i].offset));
+        }
+        else
+        {
+            glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (const void*)(attribs[i].offset));
+        }
+
         glVertexAttribDivisor(attribs[i].index, attribs[i].divisor);
     }
 

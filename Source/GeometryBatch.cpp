@@ -76,7 +76,7 @@ void GeometryBatch::CreateVertexBuffers()
 {
     uint         vertex_size  = 0;
     uint         attrib_count = 0;
-    VertexAttrib attribs[ATTRIB_COUNT];
+    VertexAttrib attribs[ATTRIB_COUNT+1];
 
     GetVertexAttribs(attribs, attrib_count, vertex_size);
 
@@ -145,6 +145,24 @@ void GeometryBatch::CreateVertexBuffers()
             for(uint i=0; i < mesh->GetNumVertices(); ++i)
             {
                 (float3&)(data[i*vertex_size+offset]) = mesh->src_tangents[i];
+            }
+        }
+
+        if(mesh->HasAttrib(ATTRIB_BONES))
+        {
+            uint index_offset  = attribs[++attrib_index].offset;
+            uint weight_offset = attribs[++attrib_index].offset;
+
+            for(uint i=0; i< mesh->GetNumVertices(); ++i)
+            {
+                int* indices = (int*)&data[i * vertex_size + index_offset];
+
+                for(uint j=0; j<4; ++j)
+                {
+                    indices[j] = mesh->src_bone_indices[i * 4 + j];
+                }
+
+                (float4 &)(data[i * vertex_size + weight_offset]) = mesh->src_bone_weights[i];
             }
         }
 
@@ -238,23 +256,22 @@ void GeometryBatch::CreateMaterialBuffer()
 
 void GeometryBatch::CreateInstanceBuffer()
 {
-    struct PerInstance
-    {
-        uint numBones;
-        uint padding0;
-        uint padding1;
-        uint padding2;
-    };
+    instances.resize(objects.size());
     
-    instanceSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(PerInstance)*objects.size(), nullptr, true);
-    PerInstance* instanceData = reinterpret_cast<PerInstance*>(instanceSSBO->Map(GL_WRITE_ONLY));
+    totalBones = 0;
+
     for(const std::pair<const ComponentMeshRenderer*, uint>& object : objects)
     {
-        PerInstance& out = instanceData[object.second];
-        out.numBones = 0; //object.first->GetMeshRes()->GetNumBones();
+        PerInstance& out = instances[object.second];
+
+        uint numBones = object.first->GetMeshRes()->GetNumBones();
+        out.numBones = numBones;
+        out.baseBone = totalBones;
+        totalBones += numBones;
     }
 
-    instanceSSBO->Unmap();
+    instanceSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, 0, sizeof(PerInstance)*objects.size(), &instances[0], true);
+    skinning = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, totalBones*sizeof(float4x4), nullptr, true);
 }
 
 void GeometryBatch::CreateDrawIdBuffer()
@@ -297,16 +314,18 @@ void GeometryBatch::Render(const ComponentMeshRenderer* object)
     }
 }
 
-void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex, uint instancesIndex)
+void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex, uint instancesIndex, uint skinningIndex)
 {
     if (!commands.empty())
     {
         CreateCommandBuffer();
+
         UpdateModels();
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, transformsIndex, transformSSBO->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsIndex, materialSSBO->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, instancesIndex, instanceSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, skinningIndex, skinning->Id());
         commandBuffer->Bind();
 
         textures.Bind();
@@ -361,6 +380,14 @@ void GeometryBatch::GetVertexAttribs(VertexAttrib *attribs, uint &count, uint& v
         vertex_size += sizeof(float3);
     }
 
+    if(mesh->HasAttrib(ATTRIB_BONES))
+    {
+        attribs[count++] = {3, 4, GL_UNSIGNED_INT, GL_FALSE, 0, vertex_size };
+        vertex_size += sizeof(int)*4;
+        attribs[count++] = {4, 4, GL_FLOAT, GL_FALSE, 0, vertex_size };
+        vertex_size += sizeof(float4);
+    }
+
     for(uint i=0; i< count; ++i)
     {
         attribs[i].stride = vertex_size;
@@ -377,15 +404,25 @@ void GeometryBatch::UpdateModels()
     if(!modelUpdates.empty())
     {
         float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(objects.size() * sizeof(float4x4))));
+        float4x4* palette    = reinterpret_cast<float4x4*>(skinning->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(totalBones * sizeof(float4x4))));
+
         for (const ComponentMeshRenderer *object : modelUpdates)
         {
             auto it = objects.find(object);
             if (it != objects.end())
             {
                 transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
+
+                // skinning update
+                const PerInstance& instanceData = instances[it->second];
+                if(instanceData.numBones > 0)
+                {
+                    object->UpdateSkinPalette(&palette[instanceData.baseBone]);
+                }
             }
         }
         transformSSBO->Unmap();
+        skinning->Unmap();
 
         modelUpdates.clear();
     }

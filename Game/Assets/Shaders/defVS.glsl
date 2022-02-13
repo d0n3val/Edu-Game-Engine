@@ -24,7 +24,7 @@ readonly layout(std430, row_major, binding = 10) buffer Transforms
 struct PerInstance
 {
     uint numBones;
-    uint padding0;
+    uint baseBone;
     uint padding1;
     uint padding2;
 };
@@ -33,6 +33,12 @@ readonly layout(std430, binding = 15) buffer PerInstances
 {
     PerInstance instanceInfo[];
 };
+
+layout(std430, row_major, binding = 16) buffer Skining
+{
+    mat4 palette[];
+};
+
 
 out struct VertexOut
 {
@@ -127,13 +133,6 @@ vec3 MorphTangent(vec3 tangent)
 }
 */
 
-#define MAX_BONES 64
-
-layout(std140, row_major) uniform Skining
-{
-    mat4 palette[MAX_BONES];
-};
-
 void TransformOutput()
 {
     PerInstance instance = instanceInfo[draw_id_att];
@@ -141,8 +140,8 @@ void TransformOutput()
 
     if(instance.numBones > 0) // Skinning 
     {
-        mat4 skin_transform = palette[bone_indices[0]]*bone_weights[0]+palette[bone_indices[1]]*bone_weights[1]+
-                              palette[bone_indices[2]]*bone_weights[2]+palette[bone_indices[3]]*bone_weights[3];
+        mat4 skin_transform = palette[instance.baseBone+bone_indices[0]]*bone_weights[0]+palette[instance.baseBone+bone_indices[1]]*bone_weights[1]+
+                              palette[instance.baseBone+bone_indices[2]]*bone_weights[2]+palette[instance.baseBone+bone_indices[3]]*bone_weights[3];
 
         mat4 model = models[draw_id_att];
 

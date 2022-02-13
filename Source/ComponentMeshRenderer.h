@@ -47,7 +47,7 @@ public:
     bool                    GetVisible              () const { return visible; }
     void                    SetVisible              (bool v) { visible = v; }
 
-    const float4x4*         UpdateSkinPalette       () const;
+    void                    UpdateSkinPalette       (float4x4* palette) const;
     void                    UpdateCPUMorphTargets   () const;
     void                    SetRootUID              (UID r) { root_uid = r; }
 
@@ -76,7 +76,6 @@ private:
 
     // mesh 
 	UID                      mesh_resource      = 0;
-    mutable float4x4*        skin_palette       = nullptr;
     const GameObject**       node_cache         = nullptr;
     bool                     visible            = true;
     UID                      root_uid           = 0;

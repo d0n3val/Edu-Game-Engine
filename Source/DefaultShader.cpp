@@ -29,6 +29,7 @@ namespace
 	const uint transformBlockIndex = 10;
 	const uint materialsBlockIndex = 5;
 	const uint instancesBlockIndex = 15;
+    const uint skinningBlockIndex = 16;
 	const uint directionalBlockIndex = 12;
 	const uint pointBlockIndex = 13;
 	const uint spotBlockIndex = 14;
@@ -61,18 +62,16 @@ void DefaultShader::Render(BatchManager *batch, const RenderList &objects, const
     App->level->GetSkyBox()->BindIBL(levelsLoc, diffuseIBL, prefilteredIBL, environmentIBL);
 
     // opaques 
-    batch->Render(objects.GetOpaques(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, false);
+    batch->Render(objects.GetOpaques(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, skinningBlockIndex, false);
 
     // transparents 
-    /*
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    batch->Render(objects.GetTransparents(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, true);
+    batch->Render(objects.GetTransparents(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, skinningBlockIndex, true);
 
     glDisable(GL_BLEND);
-    */
 }
 
 void DefaultShader::UseProgram()
