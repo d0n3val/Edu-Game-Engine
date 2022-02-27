@@ -24,30 +24,36 @@ class GeometryBatch
         uint vertexCount    = 0;
         uint baseIndex      = 0;
         uint indexCount     = 0;
+        uint numTargets     = 0;
+        uint baseTarget     = 0;
 	};
 
     struct PerInstance
     {
-        uint numBones = 0;
-        uint baseBone = 0;
-        uint padding1;
-        uint padding2;
+        uint numBones         = 0;
+        uint baseBone         = 0;
+        uint numTargets       = 0;
+        uint baseTarget       = 0;
+        uint baseTargetWeight = 0;
+        uint targetStride     = 0;
+        uint normalsStride    = 0;
+        uint tangentsStride   = 0;
     };
 
     struct DrawCommand
     {
-        uint count;
-        uint instanceCount;
-        uint firstIndex;
-        uint baseVertex;
-        uint baseInstance;
+        uint count         = 0;
+        uint instanceCount = 0;
+        uint firstIndex    = 0;
+        uint baseVertex    = 0;
+        uint baseInstance  = 0;
     }; 
 
     typedef std::vector<DrawCommand>                                CommandList;
     typedef std::unordered_map<UID, MeshData>                       MeshList;
     typedef std::unordered_map<const ComponentMeshRenderer*, uint>  ObjectList; // second is the instance index
     typedef std::vector<const ComponentMeshRenderer*>               UpdateList;
-    typedef std::vector<PerInstance>                               InstanceList;
+    typedef std::vector<PerInstance>                                InstanceList;
 
     uint                            attrib_flags = 0;
 
@@ -59,9 +65,13 @@ class GeometryBatch
     std::unique_ptr<Buffer>         materialSSBO;
     std::unique_ptr<Buffer>         instanceSSBO;
     std::unique_ptr<Buffer>         skinning;
+    std::unique_ptr<Buffer>         morphBuffer;
+    std::unique_ptr<TextureBuffer>  morphTexture;
+    std::unique_ptr<Buffer>         morphWeights;
     std::unique_ptr<Buffer>         commandBuffer;
     uint                            commandBufferSize = 0;
     uint                            totalBones = 0;
+    uint                            totalTargets = 0;
 
     MeshList                        meshes;
     ObjectList                      objects;
@@ -85,7 +95,7 @@ public:
 
     void               UpdateModel       (const ComponentMeshRenderer* object);
     void               Render            (const ComponentMeshRenderer* object);
-    void               DoRender          (uint transformsIndex, uint materialsIndex, uint instancesIndex, uint skinningIndex);
+    void               DoRender          (uint transformsIndex, uint materialsIndex, uint instancesIndex, uint skiningIndex, uint morphDataIndex, uint morphWeightsIndex);
 
     bool               HasCommands       () const { return commands.empty();  }
     bool               IsEmpty           () const { return objects.empty(); }
@@ -102,6 +112,7 @@ private:
     void CreateDrawIdBuffer   ();
     void CreateMaterialBuffer ();
     void CreateInstanceBuffer ();
+    void CreateMorphBuffer    ();
     void CreateTransformBuffer();
     void CreateCommandBuffer();
     void UpdateModels();

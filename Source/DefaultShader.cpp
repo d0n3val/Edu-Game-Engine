@@ -30,6 +30,8 @@ namespace
 	const uint materialsBlockIndex = 5;
 	const uint instancesBlockIndex = 15;
     const uint skinningBlockIndex = 16;
+    const uint morphDataIndex = 13;
+    const uint morphWeightsIndex = 17;
 	const uint directionalBlockIndex = 12;
 	const uint pointBlockIndex = 13;
 	const uint spotBlockIndex = 14;
@@ -62,14 +64,14 @@ void DefaultShader::Render(BatchManager *batch, const RenderList &objects, const
     App->level->GetSkyBox()->BindIBL(levelsLoc, diffuseIBL, prefilteredIBL, environmentIBL);
 
     // opaques 
-    batch->Render(objects.GetOpaques(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, skinningBlockIndex, false);
+    batch->Render(objects.GetOpaques(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, skinningBlockIndex, morphDataIndex, morphWeightsIndex, false);
 
     // transparents 
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    batch->Render(objects.GetTransparents(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, skinningBlockIndex, true);
+    batch->Render(objects.GetTransparents(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, skinningBlockIndex, morphDataIndex, morphWeightsIndex, true);
 
     glDisable(GL_BLEND);
 }

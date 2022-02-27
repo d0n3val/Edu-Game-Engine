@@ -4,6 +4,8 @@
 #include "Math.h"
 #include <string>
 
+class Buffer;
+
 class Texture
 {
 protected:
@@ -85,6 +87,21 @@ public:
     void SetDefaultRGBAData(uint face_index, uint mip_level, uint width, uint height, void* data);
     void GetData(uint face_index, uint mip_level, uint format, uint type, void* data);
     void GetDefaultRGBAData(uint face_index, uint mip_level, void* data);
+};
+
+class TextureBuffer
+{
+    unsigned id = 0;
+public:
+    TextureBuffer(const TextureBuffer&) = delete;
+    TextureBuffer& operator=(const TextureBuffer&) = delete;
+
+    TextureBuffer(Buffer* buffer, uint format);
+
+    void Bind(uint unit) const;
+    void Unbind(uint unit) const;
+
+    uint Id() const { return id; }
 };
 
 class Framebuffer

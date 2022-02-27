@@ -23,10 +23,14 @@ readonly layout(std430, row_major, binding = 10) buffer Transforms
 
 struct PerInstance
 {
-    uint numBones;
-    uint baseBone;
-    uint padding1;
-    uint padding2;
+    uint  numBones;
+    uint  baseBone;
+    uint  numTargets;
+    uint  baseTarget;
+    uint  baseTargetWeight;
+    uint  targetStride;
+    uint  normalsStride;
+    uint  tangentsStride;
 };
 
 readonly layout(std430, binding = 15) buffer PerInstances
@@ -39,6 +43,12 @@ layout(std430, row_major, binding = 16) buffer Skining
     mat4 palette[];
 };
 
+layout(std430, binding = 17) buffer MorphWeights
+{
+    float morphWeights[];
+};
+
+layout(binding=13) uniform samplerBuffer morphData;
 
 out struct VertexOut
 {
@@ -56,12 +66,10 @@ vec3 MorphNormal(vec3 position);
 vec3 MorphTangent(vec3 position);
 
 void TransformOutput();
-void ShadowCoords();
 
 void main()
 {
     TransformOutput();
-    ShadowCoords();
 
     gl_Position = proj*view*vec4(fragment.position, 1.0);
 
@@ -70,41 +78,15 @@ void main()
     draw_id      = draw_id_att;
 }
 
-#define MAX_MORPH_TARGETS 128
-
-uniform samplerBuffer morphBuffer;
-
-layout(std140) uniform Morph
-{
-    int   target_stride;
-    int   normals_stride;
-    int   tangents_stride;
-    float weights[MAX_MORPH_TARGETS];
-    int   num_targets;
-};
-
 vec3 MorphPosition(vec3 position)
 {
-    return position;
-}
+    PerInstance instance = instanceInfo[draw_id_att];
 
-vec3 MorphNormal(vec3 normal)
-{
-    return normal;
-}
-
-vec3 MorphTangent(vec3 tangent)
-{
-    return tangent;
-}
-
-/*
-vec3 MorphPosition(vec3 position)
-{
     vec3 res = position;
-    for(int i=0; i< num_targets; ++i)
+    for(int i=0; i< instance.numTargets; ++i)
     {
-        res += texelFetch(morphBuffer, target_stride*i+gl_VertexID).xyz*weights[i];
+        int texelIndex = int(instance.baseTarget+instance.targetStride*i+gl_VertexID);
+        res += texelFetch(morphData, texelIndex).xyz*morphWeights[i];
     }
 
     return res;
@@ -112,10 +94,13 @@ vec3 MorphPosition(vec3 position)
 
 vec3 MorphNormal(vec3 normal)
 {
+    PerInstance instance = instanceInfo[draw_id_att];
+
     vec3 res = normal;
-    for(int i=0; i< num_targets; ++i)
+    for(int i=0; i< instance.numTargets; ++i)
     {
-        res = normalize(res+texelFetch(morphBuffer, target_stride*i+normals_stride+gl_VertexID).xyz*weights[i]);
+        int texelIndex = int(instance.baseTarget+instance.targetStride*i+instance.normalsStride+gl_VertexID);
+        res = normalize(res+texelFetch(morphData, texelIndex).xyz*morphWeights[i]);
     }
 
     return res;
@@ -123,20 +108,35 @@ vec3 MorphNormal(vec3 normal)
 
 vec3 MorphTangent(vec3 tangent)
 {
+    PerInstance instance = instanceInfo[draw_id_att];
+
     vec3 res = tangent;
-    for(int i=0; i< num_targets; ++i)
+    for(int i=0; i< instance.numTargets; ++i)
     {
-        res = normalize(res+texelFetch(morphBuffer, target_stride*i+tangents_stride+gl_VertexID).xyz*weights[i]);
+        int texelIndex = int(instance.baseTarget+instance.targetStride*i+instance.tangentsStride+gl_VertexID);
+        res = normalize(res+texelFetch(morphData, texelIndex).xyz*morphWeights[i]);
     }
 
     return res;
 }
-*/
 
 void TransformOutput()
 {
     PerInstance instance = instanceInfo[draw_id_att];
     mat4 model = models[draw_id_att];
+
+    if(instance.numTargets > 0) // MorphTargets
+    {
+        fragment.position = MorphPosition(vertex_position);
+        fragment.normal   = MorphNormal(vertex_normal);
+        fragment.tangent  = MorphTangent(vertex_tangent);
+    }
+    else // No MorphTargets
+    {
+        fragment.position = vertex_position;
+        fragment.normal   = vertex_normal;
+        fragment.tangent  = vertex_tangent;
+    }
 
     if(instance.numBones > 0) // Skinning 
     {
@@ -145,36 +145,14 @@ void TransformOutput()
 
         mat4 model = models[draw_id_att];
 
-        fragment.position = (model*skin_transform*vec4(MorphPosition(vertex_position), 1.0)).xyz;
-        fragment.normal   = (model*skin_transform*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
-        fragment.tangent  = (model*skin_transform*vec4(MorphTangent(vertex_tangent), 0.0)).xyz;
+        fragment.position = (model*skin_transform*vec4(fragment.position, 1.0)).xyz;
+        fragment.normal   = (model*skin_transform*vec4(fragment.normal, 0.0)).xyz;
+        fragment.tangent  = (model*skin_transform*vec4(fragment.tangent, 0.0)).xyz;
     }
-    else
+    else // No Skinning
     {
-        fragment.position = (model*vec4(MorphPosition(vertex_position), 1.0)).xyz;
-        fragment.normal   = (model*vec4(MorphNormal(vertex_normal), 0.0)).xyz;
-        fragment.tangent  = (model*vec4(MorphTangent(vertex_tangent), 0.0)).xyz;
+        fragment.position = (model*vec4(fragment.position, 1.0)).xyz;
+        fragment.normal   = (model*vec4(fragment.normal, 0.0)).xyz;
+        fragment.tangent  = (model*vec4(fragment.tangent, 0.0)).xyz;
     }
-}
-
-#define CASCADE_COUNT 3
-
-out vec4 shadow_coord[3];
-uniform mat4 light_proj[CASCADE_COUNT];
-uniform mat4 light_view[CASCADE_COUNT];
-
-/*
-void ShadowCoords()
-{
-    for(uint i=0; i<3; ++i)
-    {
-        shadow_coord[i] = light_proj[i]*light_view[i]*vec4(fragment.position, 1.0);
-        shadow_coord[i] /= shadow_coord[i].w;
-        shadow_coord[i].xy = shadow_coord[i].xy*0.5+0.5;
-    }
-}
-*/
-
-void ShadowCoords()
-{
 }

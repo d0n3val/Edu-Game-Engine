@@ -228,6 +228,26 @@ void TextureCube::GetDefaultRGBAData(uint face_index, uint mip_level, void* data
     GetData(face_index, mip_level, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
+TextureBuffer::TextureBuffer(Buffer *buffer, uint format)
+{
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_BUFFER, id);
+    glTexBuffer(GL_TEXTURE_BUFFER, format, buffer->Id());
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
+}
+
+void TextureBuffer::Bind(uint unit) const
+{
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_BUFFER, id);
+}
+
+void TextureBuffer::Unbind(uint unit) const
+{
+    glActiveTexture(GL_TEXTURE0+unit);
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
+}
+
 Framebuffer::Framebuffer()
 {
     glGenFramebuffers(1, &fbo);
