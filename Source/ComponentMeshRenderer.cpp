@@ -23,6 +23,12 @@ ComponentMeshRenderer::ComponentMeshRenderer(GameObject* go) : Component(go, Typ
 
 ComponentMeshRenderer::~ComponentMeshRenderer()
 {
+    if (batch_index != UINT_MAX)
+    {
+        App->renderer->GetBatchManager()->Remove(this);
+        batch_index = UINT_MAX;
+    }
+
 	Resource* res = App->resources->Get(mesh_resource);
 	if (res != nullptr)
 	{

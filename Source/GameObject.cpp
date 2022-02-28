@@ -529,6 +529,14 @@ void GameObject::Remove()
         parent->childs.erase(it, parent->childs.end());
         delete this;
     }
+    else
+    {
+        while(!childs.empty())
+        {
+            childs.front()->Remove();
+        }
+    }
+
 }
 
 // ---------------------------------------------------------

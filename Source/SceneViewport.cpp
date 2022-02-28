@@ -115,7 +115,7 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         App->renderer->Draw(camera, culling, framebuffer, fb_width, fb_height);
         App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
-        DrawSelection(camera, framebuffer);
+        //DrawSelection(camera, framebuffer);
 
 
         App->renderer->GetPostprocess()->Execute(texture_color, App->renderer->GetDepthPrepass()->getDepthTexture(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);

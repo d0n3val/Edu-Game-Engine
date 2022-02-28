@@ -287,8 +287,16 @@ void GeometryBatch::CreateInstanceBuffer()
     }
 
     instanceSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, 0, sizeof(PerInstance)*objects.size(), &instances[0], true);
-    skinning     = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, totalBones*sizeof(float4x4), nullptr, true);
-    morphWeights = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, totalTargets*sizeof(float), nullptr, true);
+
+    if (totalBones > 0)
+    {
+        skinning = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, totalBones * sizeof(float4x4), nullptr, true);
+    }
+
+    if (totalTargets > 0)
+    {
+        morphWeights = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, totalTargets * sizeof(float), nullptr, true);
+    }
 }
 
 void GeometryBatch::CreateMorphBuffer()
@@ -303,42 +311,49 @@ void GeometryBatch::CreateMorphBuffer()
 
         uint numTargets     = mesh->GetNumMorphTargets();
         uint targetsAttribs = mesh->GetMorphNumAttribs();
+        uint numVertices    = mesh->GetNumVertices();
 
         data.numTargets = numTargets;
         data.baseTarget = totalTargetOffset;
 
-        totalTargetOffset += targetsAttribs*numTargets;
+        totalTargetOffset += targetsAttribs*numTargets*numVertices;
     }
 
-    morphBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, 0, totalTargetOffset*sizeof(float3), nullptr, true);
-
-    for(const std::pair<const UID, MeshData>& meshData  : meshes)
+    if (totalTargetOffset > 0)
     {
-        const ResourceMesh *mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
+        morphBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, GL_MAP_WRITE_BIT, totalTargetOffset * sizeof(float3), nullptr, true);
+        float3* data = reinterpret_cast<float3*>(morphBuffer->Map(GL_WRITE_ONLY));
 
-        uint numTargets = mesh->GetNumMorphTargets();
-
-        for (uint i = 0; i < numTargets; ++i)
+        for (const std::pair<const UID, MeshData>& meshData : meshes)
         {
-            const ResourceMesh::MorphData& morphData = mesh->GetMorphTarget(i);
+            const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
 
-            uint morphSize = mesh->GetMorphNumAttribs() * sizeof(float3);
-            uint numVertices = mesh->GetNumVertices();
+            uint numTargets = mesh->GetNumMorphTargets();
 
-            morphBuffer->SetData(numVertices * morphSize * i, numVertices * sizeof(float3), morphData.src_vertices.get());
-
-            if (mesh->HasAttrib(ATTRIB_NORMALS))
+            for (uint i = 0; i < numTargets; ++i)
             {
-                morphBuffer->SetData(numVertices * morphSize * i + numVertices*sizeof(float3), numVertices * sizeof(float3), morphData.src_normals.get());
-                if (mesh->HasAttrib(ATTRIB_TANGENTS))
+                const ResourceMesh::MorphData& morphData = mesh->GetMorphTarget(i);
+
+                uint morphSize = mesh->GetMorphNumAttribs() ;
+                uint numVertices = mesh->GetNumVertices();
+
+                memcpy(&data[numVertices * morphSize * i], morphData.src_vertices.get(), numVertices*sizeof(float3));
+
+                if (mesh->HasAttrib(ATTRIB_NORMALS))
                 {
-                    morphBuffer->SetData(numVertices * morphSize * i + numVertices * sizeof(float3) * 2, numVertices * sizeof(float3), morphData.src_tangents.get());
+                    memcpy(&data[numVertices * morphSize * i + numVertices], morphData.src_normals.get(), numVertices * sizeof(float3));
+                    if (mesh->HasAttrib(ATTRIB_TANGENTS))
+                    {
+                        memcpy(&data[numVertices * morphSize * i + numVertices * 2], morphData.src_tangents.get(), numVertices * sizeof(float3));
+                    }
                 }
             }
         }
-    }
 
-    morphTexture = std::make_unique<TextureBuffer>(morphBuffer.get(), GL_RGBA32F);
+        morphBuffer->Unmap();
+
+        morphTexture = std::make_unique<TextureBuffer>(morphBuffer.get(), GL_RGB32F);
+    }
 }
 
 void GeometryBatch::CreateDrawIdBuffer()
@@ -392,12 +407,21 @@ void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex, uint ins
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, transformsIndex, transformSSBO->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsIndex, materialSSBO->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, instancesIndex, instanceSSBO->Id());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, skinningIndex, skinning->Id());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, morphWeightIndex, morphWeights->Id());
+
+        if (skinning)
+        {
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, skinningIndex, skinning->Id());
+        }
+
+        if (morphWeights)
+        {
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, morphWeightIndex, morphWeights->Id());
+        }
 
         commandBuffer->Bind();
         textures.Bind();
-        morphTexture->Bind(morphDataIndex);
+
+        if(morphTexture) morphTexture->Bind(morphDataIndex);
 
         vao->Bind();
         glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, int(commands.size()), 0);
@@ -473,8 +497,18 @@ void GeometryBatch::UpdateModels()
     if(!modelUpdates.empty())
     {
         float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(objects.size() * sizeof(float4x4))));
-        float4x4* palette    = reinterpret_cast<float4x4*>(skinning->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(totalBones * sizeof(float4x4))));
-        float* weights       = reinterpret_cast<float*>(morphWeights->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(totalTargets * sizeof(float))));
+        float4x4* palette    = nullptr;
+        float* weights       = nullptr;
+
+        if (totalBones > 0)
+        {
+            palette = reinterpret_cast<float4x4*>(skinning->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(totalBones * sizeof(float4x4))));
+        }
+
+        if (totalTargets > 0)
+        {
+            weights = reinterpret_cast<float*>(morphWeights->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(totalTargets * sizeof(float))));
+        }
 
         for (const ComponentMeshRenderer *object : modelUpdates)
         {
@@ -491,13 +525,24 @@ void GeometryBatch::UpdateModels()
                 }
 
                 // morph targets
-                memcpy(&weights[instanceData.baseTargetWeight], object->GetMorphTargetWeights(), sizeof(float)*instanceData.numTargets);
+                if (totalTargets)
+                {
+                    memcpy(&weights[instanceData.baseTargetWeight], object->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
+                }
             }
         }
 
         transformSSBO->Unmap();
-        skinning->Unmap();
-        morphWeights->Unmap();
+
+        if (totalBones > 0)
+        {
+            skinning->Unmap();
+        }
+
+        if (totalTargets)
+        {
+            morphWeights->Unmap();
+        }
 
         modelUpdates.clear();
     }

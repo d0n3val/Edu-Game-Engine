@@ -52,11 +52,13 @@ layout(binding=13) uniform samplerBuffer morphData;
 
 out struct VertexOut
 {
+
     vec2 uv0;
     vec2 uv1;
     vec3 normal;
     vec3 tangent;
     vec3 position;
+
 } fragment;
 
 out flat int draw_id;
@@ -103,7 +105,9 @@ vec3 MorphNormal(vec3 normal)
         res = normalize(res+texelFetch(morphData, texelIndex).xyz*morphWeights[i]);
     }
 
-    return res;
+    //return res;
+
+    return normal;
 }
 
 vec3 MorphTangent(vec3 tangent)
@@ -117,7 +121,9 @@ vec3 MorphTangent(vec3 tangent)
         res = normalize(res+texelFetch(morphData, texelIndex).xyz*morphWeights[i]);
     }
 
-    return res;
+    //return res;
+
+    return tangent;
 }
 
 void TransformOutput()
