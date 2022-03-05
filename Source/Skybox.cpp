@@ -9,6 +9,7 @@
 #include "ResourceTexture.h"
 
 #include "OpenGL.h"
+#include "DefaultShaderBindings.h"
 
 Skybox::Skybox()
 {
@@ -118,17 +119,17 @@ void Skybox::SetCubemap(UID uid)
     }
 }
 
-void Skybox::BindIBL(uint levelsLoc, uint diffuseUnit, uint prefilteredUnit, uint brdfUnit)
+void Skybox::BindIBL()
 {
     if (diffuseIBL && prefilteredIBL && environmentBRDF)
     {
         glUniform1i(levelsLoc, prefilteredLevels);
 
-        glActiveTexture(GL_TEXTURE0 + diffuseUnit);
+        glActiveTexture(GL_TEXTURE0 + diffuseIBLUnit);
         glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseIBL->Id());
-        glActiveTexture(GL_TEXTURE0 + prefilteredUnit);
+        glActiveTexture(GL_TEXTURE0 + prefilteredIBLUnit );
         glBindTexture(GL_TEXTURE_CUBE_MAP, prefilteredIBL->Id());
-        glActiveTexture(GL_TEXTURE0 + brdfUnit);
+        glActiveTexture(GL_TEXTURE0 + environmentIBLUnit);
         glBindTexture(GL_TEXTURE_2D, environmentBRDF->Id());
     }
 }

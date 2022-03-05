@@ -13,10 +13,12 @@
 #include "ResourceTexture.h"
 
 #include "OpenGL.h"
+#include "DefaultShaderBindings.h"
+
+#include "Leaks.h"
 
 #include <algorithm>
 
-#include "Leaks.h"
 
 GeometryBatch::GeometryBatch(const HashString& tag) : tagName(tag)
 {
@@ -396,7 +398,7 @@ void GeometryBatch::Render(const ComponentMeshRenderer* object)
     }
 }
 
-void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex, uint instancesIndex, uint skinningIndex, uint morphDataIndex, uint morphWeightIndex)
+void GeometryBatch::DoRender()
 {
     if (!commands.empty())
     {
@@ -404,18 +406,18 @@ void GeometryBatch::DoRender(uint transformsIndex, uint materialsIndex, uint ins
 
         UpdateModels();
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, transformsIndex, transformSSBO->Id());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsIndex, materialSSBO->Id());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, instancesIndex, instanceSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, transformBlockIndex, transformSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsBlockIndex, materialSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, instancesBlockIndex, instanceSSBO->Id());
 
         if (skinning)
         {
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, skinningIndex, skinning->Id());
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, skinningBlockIndex, skinning->Id());
         }
 
         if (morphWeights)
         {
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, morphWeightIndex, morphWeights->Id());
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, morphWeightsIndex, morphWeights->Id());
         }
 
         commandBuffer->Bind();
@@ -502,12 +504,12 @@ void GeometryBatch::UpdateModels()
 
         if (totalBones > 0)
         {
-            palette = reinterpret_cast<float4x4*>(skinning->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(totalBones * sizeof(float4x4))));
+            palette = reinterpret_cast<float4x4*>(skinning->MapRange(GL_MAP_WRITE_BIT /*| GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT*/, 0, uint(totalBones * sizeof(float4x4))));
         }
 
         if (totalTargets > 0)
         {
-            weights = reinterpret_cast<float*>(morphWeights->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(totalTargets * sizeof(float))));
+            weights = reinterpret_cast<float*>(morphWeights->MapRange(GL_MAP_WRITE_BIT /*| GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT*/, 0, uint(totalTargets * sizeof(float))));
         }
 
         for (const ComponentMeshRenderer *object : modelUpdates)
@@ -517,9 +519,11 @@ void GeometryBatch::UpdateModels()
             {
                 transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
 
+                static bool stop = false;
+
                 // skinning update
                 const PerInstance& instanceData = instances[it->second];
-                if(instanceData.numBones > 0)
+                if(instanceData.numBones > 0 && !stop)
                 {
                     object->UpdateSkinPalette(&palette[instanceData.baseBone]);
                 }

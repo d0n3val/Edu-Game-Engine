@@ -20,7 +20,7 @@ public:
 	DefaultShader();
 	~DefaultShader();
 
-	void Render(BatchManager* batch, const RenderList& objects, const Buffer* cameraUBO);
+	void Render(const RenderList& objects);
 
 private:
 

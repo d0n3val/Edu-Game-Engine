@@ -95,7 +95,7 @@ public:
 
     void               UpdateModel       (const ComponentMeshRenderer* object);
     void               Render            (const ComponentMeshRenderer* object);
-    void               DoRender          (uint transformsIndex, uint materialsIndex, uint instancesIndex, uint skiningIndex, uint morphDataIndex, uint morphWeightsIndex);
+    void               DoRender          ();
 
     bool               HasCommands       () const { return commands.empty();  }
     bool               IsEmpty           () const { return objects.empty(); }

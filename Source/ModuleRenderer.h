@@ -23,6 +23,7 @@ class Framebuffer;
 class DefaultShader;
 class DepthPrepass;
 class ScreenSpaceAO;
+class GBufferExportPass;
 
 class ModuleRenderer : public Module
 {
@@ -53,12 +54,13 @@ class ModuleRenderer : public Module
 
     ShadowMap cascades[CASCADE_COUNT];
 
-    std::unique_ptr<BatchManager>   batch_manager;
-    std::unique_ptr<Postprocess>    postProcess;
-    std::unique_ptr<DefaultShader>  defaultShader;
-    std::unique_ptr<DepthPrepass>   depthPrepass;
-    std::unique_ptr<ScreenSpaceAO>  ssao;
-    std::unique_ptr<Buffer>         cameraUBO;
+    std::unique_ptr<BatchManager>       batch_manager;
+    std::unique_ptr<Postprocess>        postProcess;
+    std::unique_ptr<DefaultShader>      defaultShader;
+    std::unique_ptr<GBufferExportPass>  exportGBuffer;
+    std::unique_ptr<DepthPrepass>       depthPrepass;
+    std::unique_ptr<ScreenSpaceAO>      ssao;
+    std::unique_ptr<Buffer>             cameraUBO;
 
 public:
 
@@ -78,6 +80,7 @@ public:
     Postprocess*        GetPostprocess              () const { return postProcess.get(); }
     DepthPrepass*       GetDepthPrepass             () const { return depthPrepass.get(); }
     ScreenSpaceAO*      GetScreenSpaceAO            () const { return ssao.get(); }
+    Buffer*             GetCameraUBO                () const { return cameraUBO.get(); }
 
 private:
 

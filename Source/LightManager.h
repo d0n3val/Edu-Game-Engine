@@ -76,7 +76,7 @@ public:
     void RemoveLights();
 
     void UpdateGPUBuffers();
-    void Bind(uint dirIdx, uint pointIdx, uint spotIdx);
+    void Bind();
 
     const Buffer*       GetDirectionalBuffer    () const { return directionalSSBO.get();}
     const Buffer*       GetSpotBuffer           () const { return spotLightSSBO.get();}

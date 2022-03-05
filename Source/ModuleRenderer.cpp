@@ -7,6 +7,7 @@
 #include "ModuleEditor.h"
 #include "DefaultShader.h"
 #include "DepthPrepass.h"
+#include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"
 
 #include "PostprocessShaderLocations.h"
@@ -51,6 +52,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     batch_manager = std::make_unique<BatchManager>();
     postProcess = std::make_unique<Postprocess>();
     defaultShader = std::make_unique<DefaultShader>();
+    exportGBuffer = std::make_unique<GBufferExportPass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -124,7 +126,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     UpdateCameraUBO(camera);
     App->level->GetLightManager()->UpdateGPUBuffers();
 
-    render_list.UpdateFrom(culling, App->level->GetRoot()); // App->level->quadtree.root);
+    render_list.UpdateFrom(culling, App->level->GetRoot()); 
 
     batch_manager->UpdateModel(render_list.GetOpaques());
     batch_manager->UpdateModel(render_list.GetTransparents());
@@ -134,6 +136,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
         ShadowPass(camera, width, height);
     }
 
+    exportGBuffer->execute(render_list, width, height);
     depthPrepass->Execute(defaultShader.get(), render_list, width, height);
     //ssao->Execute();
 
@@ -269,7 +272,7 @@ void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Frame
 
     const LightManager* lightManager = App->level->GetLightManager();
 
-    defaultShader->Render(batch_manager.get(), render_list, cameraUBO.get());
+    defaultShader->Render(render_list);
 
     frameBuffer->Unbind();
 }

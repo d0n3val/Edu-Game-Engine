@@ -7,6 +7,7 @@
 #include "Config.h"
 
 #include "OpenGL.h"
+#include "DefaultShaderBindings.h"
 
 #include "Leaks.h"
 
@@ -163,9 +164,9 @@ void LightManager::UpdateGPUBuffers()
     spotLightSSBO->Unmap();
 }
 
-void LightManager::Bind(uint dirIdx, uint pointIdx, uint spotIdx)
+void LightManager::Bind()
 {
-    directionalSSBO->BindToPoint(dirIdx);
-    pointLightSSBO->BindToPoint(pointIdx);
-    spotLightSSBO->BindToPoint(spotIdx);
+    directionalSSBO->BindToPoint(directionalBlockIndex);
+    pointLightSSBO->BindToPoint(pointBlockIndex);
+    spotLightSSBO->BindToPoint(spotBlockIndex);
 }

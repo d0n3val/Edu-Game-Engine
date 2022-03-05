@@ -718,6 +718,9 @@
     <ClInclude Include="GeometryBatch.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="GBufferExportPass.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1300,6 +1303,9 @@
       <Filter>Lights</Filter>
     </ClCompile>
     <ClCompile Include="GeometryBatch.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="GBufferExportPass.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>

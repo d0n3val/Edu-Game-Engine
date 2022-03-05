@@ -24,8 +24,7 @@ public:
     void Remove(const ComponentMeshRenderer* object);
 
     void UpdateModel(const NodeList& objects);
-    void Render(const NodeList& objects, uint transformIndex, uint materialsIndex, uint instancesIndex, uint skinningIndex, 
-                uint morphDataIndex, uint morphWeightsIndex, bool keepOrder);
+    void Render(const NodeList& objects, bool keepOrder);
 
     void FillBatchNames(std::vector<HashString>& names) const;
     void OnMaterialModified(UID materialID);

@@ -157,7 +157,7 @@ bool ResourceAnimation::Save(std::string& output) const
 void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
 {
     write_stream << duration;
-    write_stream << channels.size();
+    write_stream << uint(channels.size());
 
     for(const std::pair<const std::string, Channel>& channel : channels)
     {
@@ -176,7 +176,7 @@ void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_
         }
     }
 
-    write_stream << morph_channels.size();
+    write_stream << uint(morph_channels.size());
 
     for(const std::pair<const std::string, MorphChannel>& morph_channel : morph_channels)
     {

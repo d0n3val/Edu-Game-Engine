@@ -26,81 +26,84 @@ bool ResourceStateMachine::LoadInMemory()
 
         uint size = App->fs->Load(LIBRARY_STATE_MACHINE_FOLDER, GetExportedFile(), &buffer);
 
-        simple::mem_istream<std::true_type> read_stream(buffer, size);
-
-        uint array_size = 0;
-        read_stream >> array_size; 
-
-        clips.resize(array_size);
-
-        for(uint i=0; i < clips.size(); ++i)
+        if (size > 0)
         {
-            Clip& clip = clips[i];
+            simple::mem_istream<std::true_type> read_stream(buffer, size);
 
-            std::string name;
-            read_stream >> name;
+            uint array_size = 0;
+            read_stream >> array_size;
 
-            clip.name = HashString(name.c_str());
+            clips.resize(array_size);
 
-            read_stream >> clip.resource;
-            read_stream >> clip.loop;
+            for (uint i = 0; i < clips.size(); ++i)
+            {
+                Clip& clip = clips[i];
+
+                std::string name;
+                read_stream >> name;
+
+                clip.name = HashString(name.c_str());
+
+                read_stream >> clip.resource;
+                read_stream >> clip.loop;
+            }
+
+            read_stream >> array_size;
+
+            nodes.resize(array_size);
+
+            for (uint i = 0; i < nodes.size(); ++i)
+            {
+                Node& node = nodes[i];
+
+                std::string name;
+                read_stream >> name;
+
+                node.name = HashString(name.c_str());
+
+                name.clear();
+                read_stream >> name;
+
+                node.clip = HashString(name.c_str());
+            }
+
+            read_stream >> array_size;
+
+            transitions.resize(array_size);
+
+            for (uint i = 0; i < transitions.size(); ++i)
+            {
+                Transition& transition = transitions[i];
+
+                std::string name;
+                read_stream >> name;
+
+                transition.source = HashString(name.c_str());
+                name.clear();
+                read_stream >> name;
+                transition.target = HashString(name.c_str());
+                name.clear();
+                read_stream >> name;
+                transition.trigger = HashString(name.c_str());
+
+                read_stream >> transition.blend;
+            }
+
+            for (uint i = 0; i < clips.size(); ++i)
+            {
+                if (clips[i].resource != 0)
+                {
+                    Resource* anim_res = App->resources->Get(clips[i].resource);
+
+                    if (anim_res)
+                    {
+                        anim_res->LoadToMemory();
+                    }
+                }
+            }
+
+            return true;
         }
-
-        read_stream >> array_size;
-
-        nodes.resize(array_size);
-
-        for(uint i=0; i< nodes.size(); ++i)
-        {
-            Node& node = nodes[i];
-
-            std::string name;
-            read_stream >> name;
-
-            node.name = HashString(name.c_str());
-
-            name.clear();
-            read_stream >> name;
-
-            node.clip = HashString(name.c_str());
-        }
-
-        read_stream >> array_size;
-
-        transitions.resize(array_size);
-
-        for(uint i=0; i< transitions.size(); ++i)
-        {
-            Transition& transition = transitions[i];
-
-            std::string name;
-            read_stream >> name;
-
-            transition.source = HashString(name.c_str());
-            name.clear();
-            read_stream >> name;
-            transition.target = HashString(name.c_str());
-            name.clear();
-            read_stream >> name;
-            transition.trigger = HashString(name.c_str());
-
-            read_stream >> transition.blend;
-        }
-
-        for(uint i=0; i < clips.size(); ++i)
-        {
-			if (clips[i].resource != 0)
-			{
-				Resource* anim_res = App->resources->Get(clips[i].resource);
-
-				if (anim_res)
-				{
-                    anim_res->LoadToMemory();
-				}
-			}
-        }
-
-        return true;
     }
 
     return false;
@@ -169,7 +172,7 @@ bool ResourceStateMachine::Save(std::string& output) const
 // ---------------------------------------------------------
 void ResourceStateMachine::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
 {
-    write_stream << clips.size();
+    write_stream << uint(clips.size());
 
     for(uint i=0; i < clips.size(); ++i)
     {
@@ -180,7 +183,7 @@ void ResourceStateMachine::SaveToStream(simple::mem_ostream<std::true_type>& wri
         write_stream << clip.loop;
     }
 
-    write_stream << nodes.size();
+    write_stream << uint(nodes.size());
     for(uint i=0; i< nodes.size(); ++i)
     {
         const Node& node = nodes[i];
@@ -189,7 +192,7 @@ void ResourceStateMachine::SaveToStream(simple::mem_ostream<std::true_type>& wri
         write_stream << node.clip.C_str();
     }
 
-    write_stream << transitions.size();
+    write_stream << uint(transitions.size());
     for(uint i=0; i< transitions.size(); ++i)
     {
         const Transition& transition = transitions[i];

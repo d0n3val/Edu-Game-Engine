@@ -21,26 +21,9 @@
 
 #include "OGL.h"
 #include "OpenGL.h"
+#include "DefaultShaderBindings.h"
 
 #include "Leaks.h"
-
-namespace
-{
-	const uint transformBlockIndex = 10;
-	const uint materialsBlockIndex = 5;
-	const uint instancesBlockIndex = 15;
-    const uint skinningBlockIndex = 16;
-    const uint morphDataIndex = 13;
-    const uint morphWeightsIndex = 17;
-	const uint directionalBlockIndex = 12;
-	const uint pointBlockIndex = 13;
-	const uint spotBlockIndex = 14;
-	const uint cameraBlockIndex = 0;
-	const uint levelsLoc = 64;
-	const uint diffuseIBL = TextureCount;
-	const uint prefilteredIBL = TextureCount + 1;
-	const uint environmentIBL = TextureCount + 2;
-}
 
 DefaultShader::DefaultShader()
 {
@@ -50,28 +33,28 @@ DefaultShader::~DefaultShader()
 {
 }
 
-void DefaultShader::Render(BatchManager *batch, const RenderList &objects, const Buffer* cameraUBO)
+void DefaultShader::Render(const RenderList &objects)
 {
     UseProgram();
 
     // Bind  camera 
-    cameraUBO->BindToPoint(cameraBlockIndex);
+	App->renderer->GetCameraUBO()->BindToPoint(cameraBlockIndex);
 
 	// Bind lights 
-	App->level->GetLightManager()->Bind(directionalBlockIndex, pointBlockIndex, spotBlockIndex);
+	App->level->GetLightManager()->Bind();
 
     // Bind IBL 
-    App->level->GetSkyBox()->BindIBL(levelsLoc, diffuseIBL, prefilteredIBL, environmentIBL);
+    App->level->GetSkyBox()->BindIBL();
 
     // opaques 
-    batch->Render(objects.GetOpaques(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, skinningBlockIndex, morphDataIndex, morphWeightsIndex, false);
+    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), false);
 
     // transparents 
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    batch->Render(objects.GetTransparents(), transformBlockIndex, materialsBlockIndex, instancesBlockIndex, skinningBlockIndex, morphDataIndex, morphWeightsIndex, true);
+    App->renderer->GetBatchManager()->Render(objects.GetTransparents(), true);
 
     glDisable(GL_BLEND);
 }

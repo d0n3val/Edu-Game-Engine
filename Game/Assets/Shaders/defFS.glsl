@@ -188,7 +188,6 @@ vec3 applyFog( in vec3  rgb, in float dist, in vec3 rayOrig, in vec3 rayDir)
 void GetMaterial(out vec4 diffuse, out vec3 specular, out float smoothness, out vec3 occlusion, out vec3 emissive, out vec3 normal)
 {
     Material material = materials[draw_id]; 
-
     
     diffuse    = material.diffuseColor;
     specular   = material.specularColor.rgb;
@@ -375,14 +374,19 @@ vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specula
 {
     vec3 V           = normalize(view_pos.xyz-pos);
     vec3 R           = reflect(-V, normal);
-    float NdotV      = max(dot(normal, V), 0.00001);
+    float NdotV      = dot(normal, V);
     float roughness  = Sq(1.0-smoothness); 
 
     // Add Indirect lighting 
-    vec3 irradiance = texture(diffuseIBL, normal).rgb;
-    vec3 radiance   = textureLod(prefilteredIBL, R, roughness*(prefilteredLevels-1)).rgb;
-    vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
-    vec3 indirect   = (diffuse.rgb*(1-specular.rgb))*irradiance+radiance*(specular.rgb*fab.x+fab.y);
+    vec3 indirect = vec3(0.0);
+
+    if(NdotV >= 0.0)
+    {
+        vec3 irradiance = texture(diffuseIBL, normal).rgb;
+        vec3 radiance   = textureLod(prefilteredIBL, R, roughness*(prefilteredLevels-1)).rgb;
+        vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
+        indirect        = (diffuse.rgb*(1-specular))*irradiance+radiance*(specular*fab.x+fab.y);
+    }
     
     vec3 color = Directional(normal, V, directional, diffuse.rgb, specular.rgb, roughness);
 
