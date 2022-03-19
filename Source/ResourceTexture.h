@@ -42,7 +42,7 @@ public:
 	void             Load         (const Config& config) override;
 
     Texture*		 GetTexture   () const { return texture.get(); }
-    uint             GetID        () const { return texture ? texture->Id() : 0; }
+    ulong            GetID        () const { return texture ? texture->Id() : 0; }
     uint             GetWidth     () const { return width; }
     uint             GetHeight    () const { return height; }
     uint             GetDepth     () const { return depth; }

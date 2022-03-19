@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+
 #include "Leaks.h"
 
 ModulePrograms::ModulePrograms(bool start_active) : Module("Program", start_active)
@@ -16,6 +20,32 @@ ModulePrograms::ModulePrograms(bool start_active) : Module("Program", start_acti
 ModulePrograms::~ModulePrograms()
 {
 	Clear();
+}
+
+bool ModulePrograms::Init(Config* /*config = nullptr*/) 
+{
+    // GLSL include files virtual filesystem
+
+    for(const auto& entry : std::filesystem::recursive_directory_iterator("Assets/shaders"))
+    {
+        if(entry.is_regular_file())
+        {
+            std::string path = entry.path().generic_u8string();
+            std::ifstream strm(path.c_str());
+            std::stringstream buffer;
+            buffer << strm.rdbuf();
+
+            size_t pos = path.find_first_of("/", 0);
+            if (pos != std::string::npos)
+            {
+                const char* includePath = &path.c_str()[pos];
+                glNamedStringARB(GL_SHADER_INCLUDE_ARB, -1, includePath, -1, buffer.str().c_str());
+                LOG("Adding shader %s to include files", includePath);
+            }
+        }
+    }
+
+    return true;
 }
 
 void ModulePrograms::Load(const char* name, const char* vertex_shader, const char* fragment_shader, 

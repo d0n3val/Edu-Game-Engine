@@ -3,7 +3,6 @@
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "ModuleHints.h"
-#include "DefaultShader.h"
 #include "DepthPrePass.h"
 #include "GaussianBlur.h"
 

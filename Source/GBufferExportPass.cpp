@@ -9,11 +9,12 @@
 #include "Skybox.h"
 #include "BatchManager.h"
 #include "RenderList.h"
-#include "DefaultShaderBindings.h"
 #include "OGL.h"
 #include "OpenGL.h"
 
 #include <assert.h>
+
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 GBufferExportPass::GBufferExportPass()
 {
@@ -25,22 +26,22 @@ void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height
 
     useProgram();
 
+    glDisable(GL_BLEND);
     glViewport(0, 0, width, height);
 
-    /* \todo: Clear GBuffer
-    float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     frameBuffer->ClearColor(0, clearColor);
     frameBuffer->ClearColor(1, clearColor);
-    */
+    frameBuffer->ClearColor(2, clearColor);
+    frameBuffer->ClearColor(3, clearColor);
+    frameBuffer->ClearColor(4, clearColor);
     frameBuffer->ClearDepth(1.0f);
 
     frameBuffer->Bind();
     
-	App->renderer->GetCameraUBO()->BindToPoint(cameraBlockIndex);
     App->renderer->GetBatchManager()->Render(nodes.GetOpaques(), false);
 
     frameBuffer->Unbind();
-
 }
 
 void GBufferExportPass::useProgram()
@@ -76,6 +77,16 @@ void GBufferExportPass::resizeFrameBuffer(uint width, uint height)
         positionTex = std::make_unique<Texture2D>(width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr, false);
         normalTex   = std::make_unique<Texture2D>(width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr, false);
 
+        albedoTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
+        specularTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
+        emissiveTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
+        depthTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
+        positionTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
+        normalTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
+
+        albedoTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        specularTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        emissiveTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         depthTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         positionTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         normalTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
@@ -122,5 +133,4 @@ bool GBufferExportPass::generateProgram()
 	}
 
 	return ok;
-
 }

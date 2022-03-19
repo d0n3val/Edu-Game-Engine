@@ -681,9 +681,6 @@
     <ClInclude Include="Postprocess.h">
       <Filter>Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="DefaultShader.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="SelectResourceDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -719,6 +716,12 @@
       <Filter>Helpers</Filter>
     </ClInclude>
     <ClInclude Include="GBufferExportPass.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferredResolvePass.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="ForwardPass.h">
       <Filter>Helpers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1269,9 +1272,6 @@
     <ClCompile Include="Postprocess.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
-    <ClCompile Include="DefaultShader.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
     <ClCompile Include="SelectResourceDlg.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -1306,6 +1306,12 @@
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="GBufferExportPass.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredResolvePass.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ForwardPass.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>

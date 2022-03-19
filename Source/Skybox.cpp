@@ -9,7 +9,8 @@
 #include "ResourceTexture.h"
 
 #include "OpenGL.h"
-#include "DefaultShaderBindings.h"
+
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 Skybox::Skybox()
 {
@@ -123,13 +124,13 @@ void Skybox::BindIBL()
 {
     if (diffuseIBL && prefilteredIBL && environmentBRDF)
     {
-        glUniform1i(levelsLoc, prefilteredLevels);
+        glUniform1i(PREFILTERED_LOD_LEVELS_LOCATION, prefilteredLevels);
 
-        glActiveTexture(GL_TEXTURE0 + diffuseIBLUnit);
+        glActiveTexture(GL_TEXTURE0 + DIFFUSE_IBL_TEX_BINDING);
         glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseIBL->Id());
-        glActiveTexture(GL_TEXTURE0 + prefilteredIBLUnit );
+        glActiveTexture(GL_TEXTURE0 + PREFILTERED_IBL_TEX_BINDING);
         glBindTexture(GL_TEXTURE_CUBE_MAP, prefilteredIBL->Id());
-        glActiveTexture(GL_TEXTURE0 + environmentIBLUnit);
+        glActiveTexture(GL_TEXTURE0 + ENVIRONMENT_BRDF_TEX_BINDING);
         glBindTexture(GL_TEXTURE_2D, environmentBRDF->Id());
     }
 }

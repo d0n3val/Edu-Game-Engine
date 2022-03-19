@@ -32,6 +32,7 @@ public:
 
     Texture2D* getAlbedo() const {return albedoTex.get();}
     Texture2D* getSpecular() const {return specularTex.get();}
+    Texture2D* getEmissive() const { return emissiveTex.get(); }
     Texture2D* getPosition() const {return positionTex.get();}
     Texture2D* getNormal() const {return normalTex.get();}
     Texture2D* getDepth() const {return depthTex.get();}

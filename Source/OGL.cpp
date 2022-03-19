@@ -622,6 +622,7 @@ void Shader::Init(unsigned type, const char** source, unsigned count, std::strin
     GLchar log[512];
 
     glShaderSource(id, count, source, nullptr);
+
     glCompileShader(id);
     glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 

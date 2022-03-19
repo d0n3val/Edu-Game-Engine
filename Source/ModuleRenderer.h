@@ -20,10 +20,11 @@ class QuadtreeNode;
 class Postprocess;
 class Texture2D;
 class Framebuffer;
-class DefaultShader;
+class ForwardPass;
 class DepthPrepass;
 class ScreenSpaceAO;
 class GBufferExportPass;
+class DeferredResolvePass;
 
 class ModuleRenderer : public Module
 {
@@ -54,13 +55,14 @@ class ModuleRenderer : public Module
 
     ShadowMap cascades[CASCADE_COUNT];
 
-    std::unique_ptr<BatchManager>       batch_manager;
-    std::unique_ptr<Postprocess>        postProcess;
-    std::unique_ptr<DefaultShader>      defaultShader;
-    std::unique_ptr<GBufferExportPass>  exportGBuffer;
-    std::unique_ptr<DepthPrepass>       depthPrepass;
-    std::unique_ptr<ScreenSpaceAO>      ssao;
-    std::unique_ptr<Buffer>             cameraUBO;
+    std::unique_ptr<BatchManager>         batch_manager;
+    std::unique_ptr<Postprocess>          postProcess;
+    std::unique_ptr<ForwardPass>          forward;
+    std::unique_ptr<GBufferExportPass>    exportGBuffer;
+    std::unique_ptr<DeferredResolvePass>  deferredResolve;
+    std::unique_ptr<DepthPrepass>         depthPrepass;
+    std::unique_ptr<ScreenSpaceAO>        ssao;
+    std::unique_ptr<Buffer>               cameraUBO;
 
 public:
 
@@ -80,12 +82,12 @@ public:
     Postprocess*        GetPostprocess              () const { return postProcess.get(); }
     DepthPrepass*       GetDepthPrepass             () const { return depthPrepass.get(); }
     ScreenSpaceAO*      GetScreenSpaceAO            () const { return ssao.get(); }
+    GBufferExportPass*  GetGBufferExportPass        () const { return exportGBuffer.get(); }
     Buffer*             GetCameraUBO                () const { return cameraUBO.get(); }
 
 private:
 
     void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);
-    void                ColorPass                   (const float4x4& proj, const float4x4& view, Framebuffer* frameBuffer, unsigned width, unsigned height);
     void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();

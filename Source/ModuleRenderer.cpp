@@ -5,10 +5,11 @@
 #include "ModuleResources.h"
 #include "ModuleHints.h"
 #include "ModuleEditor.h"
-#include "DefaultShader.h"
 #include "DepthPrepass.h"
 #include "GBufferExportPass.h"
+#include "DeferredResolvePass.h"
 #include "ScreenSpaceAO.h"
+#include "ForwardPass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -46,13 +47,15 @@
 
 #include "Leaks.h"
 
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 ModuleRenderer::ModuleRenderer() : Module("renderer")
 {
     batch_manager = std::make_unique<BatchManager>();
     postProcess = std::make_unique<Postprocess>();
-    defaultShader = std::make_unique<DefaultShader>();
+    forward = std::make_unique<ForwardPass>();
     exportGBuffer = std::make_unique<GBufferExportPass>();
+    deferredResolve = std::make_unique<DeferredResolvePass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -136,15 +139,24 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
         ShadowPass(camera, width, height);
     }
 
+    cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
+    App->level->GetLightManager()->Bind();
+    App->level->GetSkyBox()->BindIBL();
+
     exportGBuffer->execute(render_list, width, height);
-    depthPrepass->Execute(defaultShader.get(), render_list, width, height);
+    deferredResolve->execute(frameBuffer, width, height);
+
+    //frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
+    //assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+    //depthPrepass->Execute(defaultShader.get(), render_list, width, height);
     //ssao->Execute();
 
-    frameBuffer->AttachDepthStencil(depthPrepass->getDepthTexture(), GL_DEPTH_ATTACHMENT);
-    assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+    //frameBuffer->AttachDepthStencil(depthPrepass->getDepthTexture(), GL_DEPTH_ATTACHMENT);
+    //assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
     //glDepthMask(GL_FALSE);
-    ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), frameBuffer, width, height);
+    //ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), frameBuffer, width, height);
     //glDepthMask(GL_TRUE);
 }
 
@@ -257,24 +269,6 @@ void ModuleRenderer::UpdateCameraUBO(ComponentCamera *camera)
 
     cameraUBO->InvalidateData();
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
-}
-
-void ModuleRenderer::ColorPass(const float4x4& proj, const float4x4& view, Framebuffer* frameBuffer, unsigned width, unsigned height)
-{
-    frameBuffer->Bind();    
-    glViewport(0, 0, width, height);
-
-    if (!App->level->GetSkyBox()->Draw(proj, view))
-    {
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
-    glDepthFunc(GL_LEQUAL);
-
-    const LightManager* lightManager = App->level->GetLightManager();
-
-    defaultShader->Render(render_list);
-
-    frameBuffer->Unbind();
 }
 
 void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)

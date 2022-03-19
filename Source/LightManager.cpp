@@ -7,9 +7,10 @@
 #include "Config.h"
 
 #include "OpenGL.h"
-#include "DefaultShaderBindings.h"
 
 #include "Leaks.h"
+
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 LightManager::LightManager()
 {
@@ -166,7 +167,7 @@ void LightManager::UpdateGPUBuffers()
 
 void LightManager::Bind()
 {
-    directionalSSBO->BindToPoint(directionalBlockIndex);
-    pointLightSSBO->BindToPoint(pointBlockIndex);
-    spotLightSSBO->BindToPoint(spotBlockIndex);
+    directionalSSBO->BindToPoint(DIRLIGHT_SSBO_BINDING);
+    pointLightSSBO->BindToPoint(POINTLIGHT_SSBO_BINDING);
+    spotLightSSBO->BindToPoint(SPOTLIGHT_SSBO_BINDING);
 }

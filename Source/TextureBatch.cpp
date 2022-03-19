@@ -10,6 +10,8 @@
 
 #include "Leaks.h"
 
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
+
 #include <algorithm>
 
 #ifdef min
@@ -181,7 +183,7 @@ void TextureBatch::Bind()
         }
         else
         {
-            glActiveTexture(GL_TEXTURE0 + i);
+            glActiveTexture(GL_TEXTURE0 + MATERIAL_TEX_BINDING + i);
             glBindTexture(GL_TEXTURE_2D_ARRAY, textures[i].textureArray->Id());
         }
     }

@@ -1,22 +1,19 @@
 #version 460
+#extension GL_ARB_shading_language_include : require
 
-layout(location = 0) in vec3 vertex_position;
-layout(location = 1) in vec3 vertex_normal;
-layout(location = 2) in vec2 vertex_uv0;
-layout(location = 3) in ivec4 bone_indices;
-layout(location = 4) in vec4 bone_weights;
-layout(location = 5) in vec3 vertex_tangent;
-layout(location = 6) in vec2 vertex_uv1;
-layout(location = 7) in int  draw_id_att;
+#include "/shaders/LocationsAndBindings.h"
+#include "/shaders/cameraDefs.glsl"
 
-layout(std140, row_major, binding = 0) uniform Camera 
-{
-    mat4 proj;
-    mat4 view;
-    vec4 view_pos;
-};
+layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
+layout(location = NORMAL_ATTRIB_LOCATION) in vec3 vertex_normal;
+layout(location = UV0_ATTRIB_LOCATION) in vec2 vertex_uv0;
+layout(location = BONE_INDEX_ATTRIB_LOCATION) in ivec4 bone_indices;
+layout(location = BONE_WEIGHT_ATTRIB_LOCATION) in vec4 bone_weights;
+layout(location = TANGENT_ATTRIB_LOCATION) in vec3 vertex_tangent;
+layout(location = UV1_ATTRIB_LOCATION) in vec2 vertex_uv1;
+layout(location = DRAW_ID_ATTRIB_LOCATION) in int  draw_id_att;
 
-readonly layout(std430, row_major, binding = 10) buffer Transforms
+readonly layout(std430, row_major, binding = MODEL_SSBO_BINDING) buffer Transforms
 {
     mat4 models[];
 };
@@ -33,22 +30,22 @@ struct PerInstance
     uint  tangentsStride;
 };
 
-readonly layout(std430, binding = 15) buffer PerInstances
+readonly layout(std430, binding = PERINSTANCE_SSBO_BINDING) buffer PerInstances
 {
     PerInstance instanceInfo[];
 };
 
-layout(std430, row_major, binding = 16) buffer Skining
+layout(std430, row_major, binding = PALETTE_SSBO_BINDING) buffer Skinning 
 {
     mat4 palette[];
 };
 
-layout(std430, binding = 17) buffer MorphWeights
+layout(std430, binding = MORPH_WEIGHT_SSBO_BINDING) buffer MorphWeights
 {
     float morphWeights[];
 };
 
-layout(binding=13) uniform samplerBuffer morphData;
+layout(binding=MORPH_TARGET_TBO_BINDING) uniform samplerBuffer morphData;
 
 out struct VertexOut
 {

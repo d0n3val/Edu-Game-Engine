@@ -44,6 +44,9 @@ public:
 
 public:
 
+    bool Init(Config* config = nullptr) override;
+
+
 	void Load                           (const char* name, const char* vertex_shader, const char* fragment_shader, 
                                         const char** macros, unsigned num_macros, bool version = true);
 

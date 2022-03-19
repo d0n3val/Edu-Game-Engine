@@ -13,9 +13,10 @@
 #include "ResourceTexture.h"
 
 #include "OpenGL.h"
-#include "DefaultShaderBindings.h"
 
 #include "Leaks.h"
+
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 #include <algorithm>
 
@@ -31,7 +32,13 @@ bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
         return true;
     }
 
- 	return object->GetMeshRes()->GetAttribs() == attrib_flags && textures.CanAdd(object->GetMaterialRes());
+    const ResourceMesh* meshRes = object->GetMeshRes();
+    if (meshRes->GetAttribs() == attrib_flags && textures.CanAdd(object->GetMaterialRes()))
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void GeometryBatch::Add(const ComponentMeshRenderer* object)
@@ -374,9 +381,9 @@ void GeometryBatch::CreateDrawIdBuffer()
     // add drawId to vao
     vao->Bind();
     drawIdVBO->Bind();
-    glEnableVertexAttribArray(7);
-    glVertexAttribIPointer(7, 1, GL_INT, sizeof(int), (void *)0);
-    glVertexAttribDivisor(7, 1);
+    glEnableVertexAttribArray(DRAW_ID_ATTRIB_LOCATION);
+    glVertexAttribIPointer(DRAW_ID_ATTRIB_LOCATION, 1, GL_INT, sizeof(int), (void *)0);
+    glVertexAttribDivisor(DRAW_ID_ATTRIB_LOCATION, 1);
     vao->Unbind();
 }
 
@@ -406,24 +413,27 @@ void GeometryBatch::DoRender()
 
         UpdateModels();
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, transformBlockIndex, transformSSBO->Id());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, materialsBlockIndex, materialSSBO->Id());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, instancesBlockIndex, instanceSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MODEL_SSBO_BINDING, transformSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MATERIAL_SSBO_BINDING, materialSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PERINSTANCE_SSBO_BINDING, instanceSSBO->Id());
 
         if (skinning)
         {
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, skinningBlockIndex, skinning->Id());
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PALETTE_SSBO_BINDING, skinning->Id());
         }
 
         if (morphWeights)
         {
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, morphWeightsIndex, morphWeights->Id());
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MORPH_WEIGHT_SSBO_BINDING, morphWeights->Id());
         }
 
         commandBuffer->Bind();
         textures.Bind();
 
-        if(morphTexture) morphTexture->Bind(morphDataIndex);
+        if(morphTexture) 
+        {
+            morphTexture->Bind(MORPH_TARGET_TBO_BINDING);
+        }
 
         vao->Bind();
         glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, int(commands.size()), 0);
@@ -453,33 +463,33 @@ void GeometryBatch::GetVertexAttribs(VertexAttrib *attribs, uint &count, uint& v
 {
     vertex_size      = sizeof(float3);
     count            = 0;
-    attribs[count++] = {0, 3, GL_FLOAT, GL_FALSE, 0, 0};
+    attribs[count++] = {POSITION_ATTRIB_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, 0};
 
     const ResourceMesh* mesh = objects.begin()->first->GetMeshRes();
 
     if(mesh->HasAttrib(ATTRIB_TEX_COORDS_0))
     {
-        attribs[count++] = {2, 2, GL_FLOAT, GL_FALSE, 0, vertex_size} ;
+        attribs[count++] = {UV0_ATTRIB_LOCATION , 2, GL_FLOAT, GL_FALSE, 0, vertex_size} ;
         vertex_size += sizeof(float2);
     }
 
     if(mesh->HasAttrib(ATTRIB_NORMALS))
     {
-        attribs[count++] = {1, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
+        attribs[count++] = {NORMAL_ATTRIB_LOCATION, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
         vertex_size += sizeof(float3);
     }
 
     if(mesh->HasAttrib(ATTRIB_TANGENTS))
     {
-        attribs[count++] = {5, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
+        attribs[count++] = {TANGENT_ATTRIB_LOCATION, 3, GL_FLOAT, GL_TRUE, 0, vertex_size};
         vertex_size += sizeof(float3);
     }
 
     if(mesh->HasAttrib(ATTRIB_BONES))
     {
-        attribs[count++] = {3, 4, GL_UNSIGNED_INT, GL_FALSE, 0, vertex_size };
+        attribs[count++] = {BONE_INDEX_ATTRIB_LOCATION, 4, GL_UNSIGNED_INT, GL_FALSE, 0, vertex_size };
         vertex_size += sizeof(int)*4;
-        attribs[count++] = {4, 4, GL_FLOAT, GL_FALSE, 0, vertex_size };
+        attribs[count++] = {BONE_WEIGHT_ATTRIB_LOCATION, 4, GL_FLOAT, GL_FALSE, 0, vertex_size };
         vertex_size += sizeof(float4);
     }
 

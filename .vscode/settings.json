@@ -2,6 +2,7 @@
     "files.associations": {
         "variant": "cpp",
         "memory": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "filesystem": "cpp"
     }
 }

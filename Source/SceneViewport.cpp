@@ -14,6 +14,7 @@
 #include "ModuleLevelManager.h"
 #include "Postprocess.h"
 #include "DepthPrepass.h"
+#include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"
 
 #include "GameObject.h"
@@ -118,7 +119,7 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         //DrawSelection(camera, framebuffer);
 
 
-        App->renderer->GetPostprocess()->Execute(texture_color, App->renderer->GetDepthPrepass()->getDepthTexture(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
+        App->renderer->GetPostprocess()->Execute(texture_color, App->renderer->GetGBufferExportPass()->getDepth(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
 
         ShowTexture();
 

@@ -1,7 +1,6 @@
 #include "Globals.h"
 
 #include "DepthPrepass.h"
-#include "DefaultShader.h"
 #include "RenderList.h"
 #include "Application.h"
 #include "ModuleHints.h"

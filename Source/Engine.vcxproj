@@ -255,12 +255,13 @@
     <ClInclude Include="Config.h" />
     <ClInclude Include="CubemapUtils.h" />
     <ClInclude Include="DebugDraw.h" />
-    <ClInclude Include="DefaultShader.h" />
     <ClInclude Include="default_icon.h" />
+    <ClInclude Include="DeferredResolvePass.h" />
     <ClInclude Include="DepthPrepass.h" />
     <ClInclude Include="DirLight.h" />
     <ClInclude Include="dxgi1_4.h" />
     <ClInclude Include="Event.h" />
+    <ClInclude Include="ForwardPass.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GaussianBlur.h" />
     <ClInclude Include="GBufferExportPass.h" />
@@ -436,9 +437,10 @@
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="CubemapUtils.cpp" />
-    <ClCompile Include="DefaultShader.cpp" />
+    <ClCompile Include="DeferredResolvePass.cpp" />
     <ClCompile Include="DepthPrepass.cpp" />
     <ClCompile Include="DirLight.cpp" />
+    <ClCompile Include="ForwardPass.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
     <ClCompile Include="GBufferExportPass.cpp" />
