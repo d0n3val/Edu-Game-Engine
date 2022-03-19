@@ -4,6 +4,8 @@
 
 #include "Application.h"
 #include "ModuleRenderer.h"
+#include "ModuleLevelManager.h"
+#include "Skybox.h"
 #include "GBufferExportPass.h"
 #include "OGL.h"
 #include "OpenGL.h"
@@ -32,7 +34,7 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
     exportPass->getNormal()->Bind(GBUFFER_NORMAL_TEX_BINDING);
 
-    // TODO: Other binds
+    App->level->GetSkyBox()->BindIBL();
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 

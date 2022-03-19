@@ -139,16 +139,24 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
         ShadowPass(camera, width, height);
     }
 
+    // General Buffer bindings 
     cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetLightManager()->Bind();
-    App->level->GetSkyBox()->BindIBL();
 
+    // Deferred
     exportGBuffer->execute(render_list, width, height);
     deferredResolve->execute(frameBuffer, width, height);
 
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+    // Forward Transparent
     forward->executeTransparent(render_list, frameBuffer, width, height);
+
+    // Skybox
+    frameBuffer->Bind();
+    App->level->GetSkyBox()->Render(camera->GetProjectionMatrix(), camera->GetViewMatrix());
+    frameBuffer->Unbind();
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)

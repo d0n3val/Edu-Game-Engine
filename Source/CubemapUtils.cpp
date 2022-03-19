@@ -82,10 +82,13 @@ void CubemapUtils::RenderSkybox(TextureCube* cubeMap, const float4x4& proj, cons
     skybox->BindUniformFromName("proj", proj);
     skybox->BindUniformFromName("view", view);
 
-    glDepthFunc(GL_ALWAYS);
+    //glDepthFunc(GL_ALWAYS);
+    //glDepthMask(GL_TRUE);
+    //glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
     vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 6*6);
-    glDepthFunc(GL_LESS);
+    //glDepthFunc(GL_LESS);
 }
 
 void CubemapUtils::RenderSkyboxLod(TextureCube* cubeMap, const float4x4& proj, const float4x4& view, float lod)

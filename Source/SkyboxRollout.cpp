@@ -148,7 +148,7 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
     switch(type)
     {
         case Environment:
-            skybox->Draw(proj, view);
+            skybox->Render(proj, view);
             postprocess_fb->ClearAttachments();
             postprocess_fb->AttachColor(environmentTex.get());
             break;

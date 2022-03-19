@@ -47,7 +47,7 @@ void Skybox::Save(Config& config) const
     config.AddUInt("Texture", uint(cubemap));
 }
 
-bool Skybox::Draw(const float4x4& proj, const float4x4& view)
+bool Skybox::Render(const float4x4& proj, const float4x4& view)
 {
     if(cubemap)
     {
