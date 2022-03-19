@@ -146,18 +146,9 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     exportGBuffer->execute(render_list, width, height);
     deferredResolve->execute(frameBuffer, width, height);
 
-    //frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
-    //assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
-
-    //depthPrepass->Execute(defaultShader.get(), render_list, width, height);
-    //ssao->Execute();
-
-    //frameBuffer->AttachDepthStencil(depthPrepass->getDepthTexture(), GL_DEPTH_ATTACHMENT);
-    //assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
-
-    //glDepthMask(GL_FALSE);
-    //ColorPass(camera->GetProjectionMatrix(), camera->GetViewMatrix(), frameBuffer, width, height);
-    //glDepthMask(GL_TRUE);
+    frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
+    assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+    forward->executeTransparent(render_list, frameBuffer, width, height);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)

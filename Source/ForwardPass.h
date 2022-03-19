@@ -19,8 +19,8 @@ public:
 	ForwardPass();
 	~ForwardPass();
 
-	void executeOpaque(Framebuffer *target, uint width, uint height, const RenderList& objects);
-	void executeTransparent(Framebuffer *target, uint width, uint height, const RenderList& objects);
+	void executeOpaque(const RenderList& objects, Framebuffer *target, uint width, uint height);
+	void executeTransparent(const RenderList& objects, Framebuffer *target, uint width, uint height);
 
 private:
 

@@ -18,7 +18,7 @@ ForwardPass::~ForwardPass()
 {
 }
 
-void ForwardPass::executeOpaque(Framebuffer *target, uint width, uint height, const RenderList &objects)
+void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, uint width, uint height)
 {
     UseProgram();
 
@@ -30,7 +30,7 @@ void ForwardPass::executeOpaque(Framebuffer *target, uint width, uint height, co
     target->Unbind();
 }
 
-void ForwardPass::executeTransparent(Framebuffer *target, uint width, uint height, const RenderList &objects)
+void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *target, uint width, uint height)
 {
     UseProgram();
 

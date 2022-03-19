@@ -80,13 +80,16 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in vec3 vertexPositi
     pbr.smoothness = material.smoothness;
     pbr.occlusion  = 1.0;
     pbr.emissive   = material.emissiveColor.rgb;
+    pbr.alpha      = material.diffuseColor.a;
 
     uv0      = uv0*material.uv_tiling+material.uv_offset;
     vec2 uv1 = uv0*material.uv_secondary_tiling+material.uv_secondary_offset;
 
     if((material.mapMask & DIFFUSE_MAP_FLAG) != 0)
     {
-        pbr.diffuse *= sampleTexture(DIFFUSE_MAP_INDEX, uv0, matIndex).rgb;
+        vec4 diffuse = sampleTexture(DIFFUSE_MAP_INDEX, uv0, matIndex);
+        pbr.diffuse *= diffuse.rgb;
+        pbr.alpha    = diffuse.a;
     }
 
     if((material.mapMask & SPECULAR_MAP_FLAG) != 0)

@@ -143,7 +143,7 @@ vec4 Shading(in PBR pbr)
     color += indirect*occlusionFactor;
     color += pbr.emissive;
 
-    return vec4(color, 1.0); 
+    return vec4(color, pbr.alpha); 
 }
 
 
