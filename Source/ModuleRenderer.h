@@ -87,12 +87,15 @@ public:
 
 private:
 
+    void                RenderForward               (ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height);
+    void                RenderDeferred              (ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height);
+
+
     void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);
     void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();
 
-    void                DrawColor                   (const TRenderInfo& render_info);
     void                DrawShadow                  (const TRenderInfo& render_info);
     void                DrawParticles               (ComponentParticleSystem* particles);
     void                DrawTrails                  (ComponentTrail* trail);

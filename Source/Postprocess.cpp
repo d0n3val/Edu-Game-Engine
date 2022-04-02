@@ -126,7 +126,7 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
         glClear(GL_COLOR_BUFFER_BIT);
         App->programs->UseProgram("bloom", msaa ? 1 : 0);
         screen->Bind(0, App->programs->GetUniformLocation("image"));
-        depth->Bind(1, App->programs->GetUniformLocation("depth"));
+        //depth->Bind(1, App->programs->GetUniformLocation("depth"));
 
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }

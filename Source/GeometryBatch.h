@@ -97,7 +97,7 @@ public:
     void               Render            (const ComponentMeshRenderer* object);
     void               DoRender          ();
 
-    bool               HasCommands       () const { return commands.empty();  }
+    bool               HasCommands       () const { return !commands.empty();  }
     bool               IsEmpty           () const { return objects.empty(); }
     const HashString&  GetTagName        () const { return tagName; }
 

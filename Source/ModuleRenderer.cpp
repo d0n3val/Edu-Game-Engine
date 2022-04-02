@@ -143,6 +143,27 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetLightManager()->Bind();
 
+    RenderDeferred(camera, frameBuffer, width, height);
+}
+
+void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
+{
+    frameBuffer->Bind();
+    glViewport(0, 0, width, height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    forward->executeOpaque(render_list, nullptr, width, height);
+    forward->executeTransparent(render_list, nullptr, width, height);
+    frameBuffer->Unbind();
+
+    // Skybox
+    frameBuffer->Bind();
+    App->level->GetSkyBox()->Render(camera->GetProjectionMatrix(), camera->GetViewMatrix());
+    frameBuffer->Unbind();
+}
+
+void ModuleRenderer::RenderDeferred(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
+{
     // Deferred
     exportGBuffer->execute(render_list, width, height);
     deferredResolve->execute(frameBuffer, width, height);
@@ -151,13 +172,16 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
     // Forward Transparent
-    forward->executeTransparent(render_list, frameBuffer, width, height);
+    frameBuffer->Bind();
+    forward->executeTransparent(render_list, nullptr, width, height);
+    frameBuffer->Unbind();
 
     // Skybox
     frameBuffer->Bind();
     App->level->GetSkyBox()->Render(camera->GetProjectionMatrix(), camera->GetViewMatrix());
     frameBuffer->Unbind();
 }
+
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
 {
@@ -280,34 +304,6 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
 
     //DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawSelection);
     //DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawSelection);
-}
-
-void ModuleRenderer::DrawSelection(const TRenderInfo& render_info)
-{
-#if 0 
-    // TODO
-    App->programs->UseProgram("selection", 0);
-
-    uint uid = render_info.go->GetUID();
-
-	glUniform1f(1, *((float*)&uid));
-
-    if(render_info.mesh)
-    {
-        // update selection uniform
-        render_info.mesh->Draw();
-    }
-    else if(render_info.particles)
-    {
-        // update selection uniform
-        render_info.particles->Draw(App->hints->GetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS));
-    }
-    else if(render_info.trail && render_info.trail)
-    {
-        // update selection uniform
-        render_info.trail->Draw();
-    }
-#endif 
 }
 
 void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)

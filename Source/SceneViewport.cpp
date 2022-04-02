@@ -104,6 +104,7 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         glEnable(GL_STENCIL_TEST);
         glViewport(0, 0, fb_width, fb_height);
         glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
+        
 
         glStencilMask(0x01);
 
@@ -293,7 +294,7 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
     if(depth)
     {
        
-/*        if(msaa)
+        if(msaa)
         {
             buffer.texture_depth = std::make_unique<Texture2D>(4, w, h, GL_DEPTH24_STENCIL8, true);
         }
@@ -303,7 +304,7 @@ void SceneViewport::GenerateFBO(FramebufferInfo& buffer, unsigned w, unsigned h,
         }
       
 
-        buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_ATTACHMENT);*/
+        buffer.framebuffer->AttachDepthStencil(buffer.texture_depth.get(), GL_DEPTH_ATTACHMENT);
     }
 
     assert(buffer.framebuffer->Check() == GL_FRAMEBUFFER_COMPLETE);

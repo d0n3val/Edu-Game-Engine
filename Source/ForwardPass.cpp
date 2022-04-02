@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "BatchManager.h"
 #include "ModuleRenderer.h"
+#include "ModuleLevelManager.h"
+#include "Skybox.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -22,20 +24,33 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
 {
     UseProgram();
 
-    target->Bind();
-    glViewport(0, 0, width, height);
+    App->level->GetSkyBox()->BindIBL();
 
-    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), false);
+    if (target)
+    {
+        target->Bind();
+        glViewport(0, 0, width, height);
+    }
 
-    target->Unbind();
+    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), true);
+
+    if (target)
+    {
+        target->Unbind();
+    }
 }
 
 void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *target, uint width, uint height)
 {
     UseProgram();
 
-    target->Bind();
-    glViewport(0, 0, width, height);
+    App->level->GetSkyBox()->BindIBL();
+
+    if (target)
+    {
+        target->Bind();
+        glViewport(0, 0, width, height);
+    }
 
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
@@ -44,7 +59,11 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
     App->renderer->GetBatchManager()->Render(objects.GetTransparents(), true);
 
     glDisable(GL_BLEND);
-    target->Unbind();
+
+    if (target)
+    {
+        target->Unbind();
+    }
 }
 
 void ForwardPass::UseProgram()

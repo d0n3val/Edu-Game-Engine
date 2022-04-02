@@ -145,7 +145,8 @@ void RenderList::CollectMeshRenderers(const float3& camera_pos, GameObject* go)
                 NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render, 
                         [](const TRenderInfo& info, const TRenderInfo& new_info) 
                         { 
-                            return info.distance < new_info.distance; 
+                            //return info.distance < new_info.distance; 
+                            return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
                         } );
 
                 opaque_nodes.insert(it, render);

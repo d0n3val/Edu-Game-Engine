@@ -81,7 +81,7 @@ void BatchManager::Render(const NodeList &objects, bool keepOrder)
 
         for (std::unique_ptr<GeometryBatch> &batch : batches)
         {
-            if (!batch->HasCommands())
+            if (batch->HasCommands())
             {
                 batch->DoRender();
             }
