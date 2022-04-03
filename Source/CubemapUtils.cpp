@@ -260,7 +260,7 @@ void CubemapUtils::Init()
     VertexAttrib attribs[] = { { 0, 3, GL_FLOAT, false, 0, 0 } };
 
     vbo = std::unique_ptr<Buffer>(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(skybox_vertices), skybox_vertices));
-    vao = std::make_unique<VertexArray>(vbo.get(), nullptr, attribs, sizeof(attribs) / sizeof(VertexAttrib));
+    vao = std::make_unique<VertexArray>(vbo.get(), nullptr, attribs, uint(sizeof(attribs) / sizeof(VertexAttrib)));
 
     const char* diffuseIBLMacros[] = { "#define DIFFUSE_IBL\n" };
     const char* prefilteredIBLMacros[] = { "#define PREFILTERED_IBL\n" };

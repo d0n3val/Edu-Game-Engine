@@ -242,6 +242,7 @@
     <ClInclude Include="ComponentAudioListener.h" />
     <ClInclude Include="ComponentAudioSource.h" />
     <ClInclude Include="ComponentCamera.h" />
+    <ClInclude Include="ComponentDecal.h" />
     <ClInclude Include="ComponentGrass.h" />
     <ClInclude Include="ComponentMeshRenderer.h" />
     <ClInclude Include="componentparticlesystem.h" />
@@ -425,6 +426,7 @@
     <ClCompile Include="ComponentAudioListener.cpp" />
     <ClCompile Include="ComponentAudioSource.cpp" />
     <ClCompile Include="ComponentCamera.cpp" />
+    <ClCompile Include="ComponentDecal.cpp" />
     <ClCompile Include="ComponentGrass.cpp" />
     <ClCompile Include="ComponentMeshRenderer.cpp" />
     <ClCompile Include="ComponentParticleSystem.cpp" />

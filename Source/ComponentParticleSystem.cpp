@@ -485,7 +485,7 @@ void ComponentParticleSystem::Draw(bool show_billboard)
         if(tex_res)
         {
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, tex_res->GetID());
+            glBindTexture(GL_TEXTURE_2D, uint(tex_res->GetID()));
             glUniform1i(TEXTURE_MAP_LOC, 0);
         }
 

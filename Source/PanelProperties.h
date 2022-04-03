@@ -22,6 +22,7 @@ class ComponentRootMotion;
 class ComponentMeshRenderer;
 class ComponentParticleSystem;
 class ComponentGrass;
+class ComponentDecal;
 class ResourceMaterial;
 class ResourceTexture;
 class ResourceMesh;
@@ -70,9 +71,11 @@ private:
 	void DrawBatchProperties(ComponentMeshRenderer* component);
 	void DrawMeshRendererComponent(ComponentMeshRenderer* component);
     void DrawGrassComponent(ComponentGrass* component);
+    void DrawDecalComponent(ComponentDecal* decal);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
     bool TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name);
+    UID TextureButton(ResourceTexture* texture, ResourceMesh* mesh, const char* name, int uniqueId);
 	void DrawAnimationComponent(ComponentAnimation * component);
 	void DrawRootMotionComponent(ComponentRootMotion * component);
     void DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh);
@@ -95,7 +98,7 @@ private:
     PerlinPtr           perlin;
 
     ShowTextureDlg      show_texture;
-    SelectResourceDlg   selectTexture[TextureCount];
+    SelectResourceDlg   selectTexture;
 
 };
 

@@ -236,7 +236,7 @@ char normalize_char(char c)
 
 void ModuleFileSystem::NormalizePath(char * full_path) const
 {
-	int len = strlen(full_path);
+	int len = int(strlen(full_path));
 	for (int i = 0; i < len; ++i)
 	{
 		if (full_path[i] == '\\')
@@ -430,7 +430,7 @@ const char * ModuleFileSystem::GetReadPaths() const
 
 size_t AssimpWrite(aiFile* file, const char* data, size_t size, size_t chunks)
 {
-	PHYSFS_sint64 ret = PHYSFS_write((PHYSFS_File*)file->UserData, (void*)data, size, chunks);
+	PHYSFS_sint64 ret = PHYSFS_write((PHYSFS_File*)file->UserData, (void*)data, PHYSFS_uint32(size), PHYSFS_uint32(chunks));
 	if(ret == -1)
 		LOG("File System error while WRITE via assimp: %s", PHYSFS_getLastError());
 
@@ -439,7 +439,7 @@ size_t AssimpWrite(aiFile* file, const char* data, size_t size, size_t chunks)
 
 size_t AssimpRead(aiFile* file, char* data, size_t size, size_t chunks)
 {
-	PHYSFS_sint64 ret = PHYSFS_read((PHYSFS_File*)file->UserData, (void*)data, size, chunks);
+	PHYSFS_sint64 ret = PHYSFS_read((PHYSFS_File*)file->UserData, (void*)data, PHYSFS_uint32(size), PHYSFS_uint32(chunks));
 	if(ret == -1)
 		LOG("File System error while READ via assimp: %s", PHYSFS_getLastError());
 

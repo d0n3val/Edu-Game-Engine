@@ -84,7 +84,7 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
 
         if(ImGui::SmallButton("Select Texture"))
         {
-            selectTexture.Open(Resource::texture, "Skybox texture");
+            selectTexture.Open(Resource::texture, "Skybox texture", 0);
         }
 
         ImGui::EndGroup();
@@ -112,7 +112,7 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
 
     selectTexture.Display();
 
-    if(selectTexture.HasSelection())
+    if(selectTexture.HasSelection(0))
     {
         skybox->SetCubemap(selectTexture.GetResource());
         selectTexture.ClearSelection();

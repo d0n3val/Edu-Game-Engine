@@ -414,12 +414,15 @@ void SceneViewport::DrawGuizmoProperties(GameObject* go)
 
     ImGui::RadioButton("Translate", (int*)&guizmo_op, (int)ImGuizmo::TRANSLATE);
     ImGui::SameLine();
-    ImGui::RadioButton("Rotate", (int*)&guizmo_op, ImGuizmo::ROTATE);
+    ImGui::RadioButton("Rotate", (int*)&guizmo_op, (int)ImGuizmo::ROTATE);
+    ImGui::SameLine();
+    ImGui::RadioButton("Scale", (int*)&guizmo_op, (int)ImGuizmo::SCALE);
 
     float matrixTranslation[3], matrixRotation[3], matrixScale[3];
     ImGuizmo::DecomposeMatrixToComponents((float*)&model, matrixTranslation, matrixRotation, matrixScale);
     bool transform_changed = ImGui::DragFloat3("Tr", matrixTranslation, 3);
     transform_changed = transform_changed || ImGui::DragFloat3("Rt", matrixRotation, 3);
+    transform_changed = transform_changed || ImGui::DragFloat3("Sc", matrixScale, 3);
 
     if(transform_changed)
     {

@@ -53,6 +53,7 @@ public:
 	Resource*   CreateNewResource (Resource::Type type, UID force_uid = 0);
 	void        GatherResourceType(std::vector<const Resource*>& resources, Resource::Type type) const;
 
+	void ReleaseFromMemory(UID uid);
     void RemoveResource(UID uid);
 	
     const ResourceTexture* GetWhiteFallback() const { return white_fallback; }

@@ -11,8 +11,9 @@
 
 #include <vector>
 
-void SelectResourceDlg::Open(int resourceType, const char* popupName)
+void SelectResourceDlg::Open(int resourceType, const char* popupName, int uniqueId)
 {
+    openUniqueId = uniqueId;
     open_name = std::string(popupName) + std::string("##resources") + std::to_string((size_t)this);
     open_flag = true;
     type = resourceType;

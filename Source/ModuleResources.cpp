@@ -648,6 +648,15 @@ void ModuleResources::SaveUID() const
 		LOG("WARNING! Cannot write resource UID into file [%s]", file.c_str());
 }
 
+void ModuleResources::ReleaseFromMemory(UID uid)
+{
+    Resource *res = Get(uid);
+    if (res != nullptr)
+    {
+        res->Release();
+    }
+}
+
 void ModuleResources::RemoveResource(UID uid)
 {
     map<UID, Resource*>::iterator it = resources.find(uid);

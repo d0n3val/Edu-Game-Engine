@@ -28,6 +28,7 @@ public:
         ParticleSystem,
         Trail,
         Grass,
+		Decal,
 		Unknown
 	};
 

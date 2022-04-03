@@ -16,6 +16,7 @@
 #include "ComponentParticleSystem.h"
 #include "ComponentTrail.h"
 #include "ComponentGrass.h"
+#include "ComponentDecal.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
 #include "ModuleEditor.h"
@@ -91,11 +92,7 @@ void PanelProperties::Draw()
         }, App->editor->GetSelection());
 
     show_texture.Display();
-
-    for (uint i = 0; i < TextureCount; ++i)
-    {
-        selectTexture[i].Display();
-    }
+    selectTexture.Display();
 }
 
 // ---------------------------------------------------------
@@ -229,7 +226,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
             go->SetLocalRotation(Quat::identity);
         }
 
-        static_assert(Component::Types::Unknown == 13, "code needs update");
+        static_assert(Component::Types::Unknown == 14, "code needs update");
         if (ImGui::BeginMenu("New Component", (go != nullptr)))
         {
             if (ImGui::MenuItem("Audio Listener"))
@@ -258,6 +255,8 @@ void PanelProperties::DrawGameObject(GameObject* go)
 				go->CreateComponent(Component::Types::Trail);
 			if (ImGui::MenuItem("Grass"))
 				go->CreateComponent(Component::Types::Grass);
+			if (ImGui::MenuItem("Decal"))
+				go->CreateComponent(Component::Types::Decal);
             ImGui::EndMenu();
         }
 
@@ -307,7 +306,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         }
 
         // Iterate all components and draw
-        static_assert(Component::Types::Unknown == 13, "code needs update");
+        static_assert(Component::Types::Unknown == 14, "code needs update");
         for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
         {
             ImGui::PushID(*it);
@@ -351,6 +350,9 @@ void PanelProperties::DrawGameObject(GameObject* go)
                         break;
 					case Component::Types::Grass:
 						DrawGrassComponent(static_cast<ComponentGrass*>(*it));
+                        break;
+					case Component::Types::Decal:
+						DrawDecalComponent(static_cast<ComponentDecal*>(*it));
                         break;
 				}
             }
@@ -1020,21 +1022,20 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
 }
 
-bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name)
+UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh, const char* name, int uniqueId)
 {
-    bool modified = false;
-    ResourceTexture* info = material->GetTextureRes(MaterialTexture(texture));
+    UID res = texture ? texture->GetUID() : 0;
 
     ImVec2 size(64.0f, 64.0f);
 
-    if(info != nullptr)
+    if(texture != nullptr)
     {
 		ImGui::PushID(texture);
-        if(info->GetType() == ResourceTexture::Texture2D && ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+        if(texture->GetType() == ResourceTexture::Texture2D && ImGui::ImageButton((ImTextureID)texture->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
 
-            show_texture.Open(mesh, info);
+            show_texture.Open(mesh, texture);
         }
         else 
         {
@@ -1042,7 +1043,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
 
 			if (ImGui::IsItemHovered())
 			{
-				ImGui::SetTooltip("%s", info->GetFile());
+				ImGui::SetTooltip("%s", texture->GetFile());
 			}
         }
 
@@ -1052,17 +1053,17 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
 
         std::string file;
-        App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+        App->fs->SplitFilePath(texture->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
-        ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
+        ImGui::Text("(%u,%u) %s %u bpp %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->GetBPP(), texture->GetCompressed() ? "compressed" : "");
         ImGui::PopStyleColor();
 
         ImGui::PushID(name);
-        bool mips = info->HasMips();
+        bool mips = texture->HasMips();
         if(ImGui::Checkbox("Mipmaps", &mips))
         {
-            info->EnableMips(mips);
+            texture->EnableMips(mips);
         }
         ImGui::PopID();
 
@@ -1071,18 +1072,17 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         char tmp[128];
         sprintf_s(tmp, 127, "%sLinear", name);
         ImGui::PushID(tmp);
-        bool linear = !info->GetLinear();
+        bool linear = !texture->GetLinear();
         if(ImGui::Checkbox("sRGB", &linear))
         {
-            info->SetLinear(!linear);
+            texture->SetLinear(!linear);
         }
         ImGui::PopID();
 
         ImGui::PushID(name);
         if(ImGui::SmallButton("Delete"))
         {
-            material->SetTexture(MaterialTexture(texture), 0);
-            modified = true;
+            res = 0;
         }
         ImGui::PopID();
 
@@ -1091,14 +1091,12 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         if(ImGui::SmallButton("Select texture"))
         {
             ImGui::PopID();
-            selectTexture[texture].Open(Resource::texture, name);
+            selectTexture.Open(Resource::texture, name, uniqueId);
         }
         else
         {
             ImGui::PopID();
         }
-
-        
 
         ImGui::EndGroup();
     }
@@ -1108,7 +1106,7 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         if(ImGui::SmallButton("Select texture"))
         {
             ImGui::PopID();
-            selectTexture[texture].Open(Resource::texture, name);
+            selectTexture.Open(Resource::texture, name, uniqueId);
         }
         else
         {
@@ -1116,14 +1114,25 @@ bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* me
         }
     }
 
-    if(selectTexture[texture].HasSelection())
+    if(selectTexture.HasSelection(uniqueId))
     {
-        material->SetTexture(MaterialTexture(texture), selectTexture[texture].GetResource());
-        modified = true;
-        selectTexture[texture].ClearSelection();
+        res = selectTexture.GetResource();
+        selectTexture.ClearSelection();
     }
 
-    return modified;
+    return res;
+}
+
+bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name)
+{
+    UID newUID = TextureButton(material->GetTextureRes(MaterialTexture(texture)), mesh, name, int(texture));
+    if(newUID != material->GetTexture(MaterialTexture(texture)))
+    {
+        material->SetTexture(MaterialTexture(texture), newUID);
+        return true;
+    }
+
+    return false;
 }
 
 void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
@@ -1307,7 +1316,40 @@ void PanelProperties::DrawMesh(const ResourceMesh* res)
     }
 }
 
+void PanelProperties::DrawDecalComponent(ComponentDecal* decal)
+{
+    bool modified = false;
 
+    if (ImGui::CollapsingHeader("Albedo", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        UID newUID = TextureButton(decal->GetAlbedoRes(), nullptr, "Albedo", 0);
+        if (newUID != decal->GetAlbedo())
+        {
+            decal->SetAlbedo(newUID);
+            modified = true;
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        UID newUID = TextureButton(decal->GetNormalRes(), nullptr, "Normal", 1);
+        if(newUID != decal->GetNormal())
+        {
+            decal->SetNormal(newUID);
+            modified = true;
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        UID newUID = TextureButton(decal->GetEmissiveRes(), nullptr, "Emissive", 2);
+        if(newUID != decal->GetEmissive())
+        {
+            decal->SetEmissive(newUID);
+            modified = true;
+        }
+    }
+}
 
 void PanelProperties::DrawGrassComponent(ComponentGrass* component)
 {

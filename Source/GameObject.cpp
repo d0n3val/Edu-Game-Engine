@@ -17,6 +17,7 @@
 #include "ComponentParticleSystem.h"
 #include "ComponentTrail.h"
 #include "ComponentGrass.h"
+#include "ComponentDecal.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Config.h"
@@ -251,7 +252,7 @@ void GameObject::RecalculateBoundingBox()
 // ---------------------------------------------------------
 Component* GameObject::CreateComponent(Component::Types type)
 {
-	static_assert(Component::Types::Unknown == 13, "code needs update");
+	static_assert(Component::Types::Unknown == 14, "code needs update");
 
 	Component* ret = nullptr;
 
@@ -296,6 +297,9 @@ Component* GameObject::CreateComponent(Component::Types type)
 		case Component::Types::Grass:
 			ret = new ComponentGrass(this);
 			break;
+        case Component::Types::Decal:
+            ret = new ComponentDecal(this);
+            break;
 	}
 
 	if (ret != nullptr)

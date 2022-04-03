@@ -29,7 +29,7 @@ public:
     void Bind(uint unit) const ;
     void Unbind(uint unit) const ;
 
-    ulong Id() const { return texture; }
+    uint Id() const { return texture; }
     uint Target() const { return tex_target; }
 };
 

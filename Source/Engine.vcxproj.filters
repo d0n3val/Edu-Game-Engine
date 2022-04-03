@@ -724,6 +724,9 @@
     <ClInclude Include="ForwardPass.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentDecal.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1313,6 +1316,9 @@
     </ClCompile>
     <ClCompile Include="ForwardPass.cpp">
       <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentDecal.cpp">
+      <Filter>Game Objects\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

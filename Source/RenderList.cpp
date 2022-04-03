@@ -6,6 +6,7 @@
 #include "ComponentMeshRenderer.h"
 #include "ComponentParticleSystem.h"
 #include "ComponentTrail.h"
+#include "ComponentDecal.h"
 #include "GameObject.h"
 
 void RenderList::UpdateFrom(ComponentCamera* camera, QuadtreeNode* quadtree)
@@ -51,6 +52,7 @@ void RenderList::CollectObjects(Plane* camera_planes, const float3& camera_pos, 
                 CollectMeshRenderers(camera_pos, go);
                 CollectParticleSystems(camera_pos, go);
                 CollectTrails(camera_pos, go);
+                CollectDecals(camera_pos, go);
             }
         }
 
@@ -115,6 +117,7 @@ void RenderList::CollectObjects(ComponentCamera* camera, GameObject* go)
         CollectMeshRenderers(camera_pos, go);
         CollectParticleSystems(camera_pos, go);
         CollectTrails(camera_pos, go);
+        CollectDecals(camera_pos, go);
     }
 
     for(auto it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
@@ -187,7 +190,7 @@ void RenderList::CollectParticleSystems(const float3& camera_pos, GameObject* go
                         { 
                             return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
                         });
-        transparent_nodes.insert(it, render);
+        particles.insert(it, render);
     }
 }
 
@@ -212,8 +215,29 @@ void RenderList::CollectTrails(const float3& camera_pos, GameObject* go)
                         { 
                             return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
                         });
-        transparent_nodes.insert(it, render);
+        trails.insert(it, render);
     }
 }
+
+void RenderList::CollectDecals(const float3& camera_pos, GameObject* go)
+{
+    std::vector<Component*> components;
+    go->FindComponents(Component::Decal, components);
+
+    float distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
+
+    for(Component* comp : components)
+    {
+        TRenderInfo render;
+        render.name = go->name.c_str();
+        render.go   = go;
+
+        render.distance = distance;
+        render.decal = static_cast<ComponentDecal*>(comp);
+
+        decals.push_back(render);
+    }
+}
+
 
 

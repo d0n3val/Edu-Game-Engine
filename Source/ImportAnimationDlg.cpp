@@ -27,12 +27,12 @@ void ImportAnimationDlg::Display()
 
             ImGui::InputFloat("Scale", &scale);
 
-            int num_clips = clips.size();
+            int num_clips = int(clips.size());
 
             if(ImGui::InputInt("# Clips", &num_clips))
             {
                 uint new_size  = std::max(1, num_clips);
-                uint prev_size = clips.size();
+                uint prev_size = uint(clips.size());
 
                 clips.resize(new_size);
 
