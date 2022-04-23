@@ -56,6 +56,7 @@ bool ModuleResources::Start(Config * config)
     App->tex->LoadFallback(black_fallback, float3(0.0f));
 
 	LoadDefaultSkybox();
+	//LoadDefaultBox();
 
 	return true;
 }
@@ -692,4 +693,12 @@ bool ModuleResources::LoadDefaultSkybox()
     }
 
 	return false;
+}
+
+bool ModuleResources::LoadDefaultBox()
+{
+	cube = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadCube("DefaultBox", 1)));
+	cube->LoadToMemory();
+
+	return cube != nullptr;
 }

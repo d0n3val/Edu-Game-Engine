@@ -5,9 +5,9 @@
 #include "ModuleResources.h"
 #include "ModuleHints.h"
 #include "ModuleEditor.h"
-#include "DepthPrepass.h"
 #include "GBufferExportPass.h"
 #include "DeferredResolvePass.h"
+#include "DeferredDecalPass.h"
 #include "ScreenSpaceAO.h"
 #include "ForwardPass.h"
 
@@ -56,12 +56,12 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     forward = std::make_unique<ForwardPass>();
     exportGBuffer = std::make_unique<GBufferExportPass>();
     deferredResolve = std::make_unique<DeferredResolvePass>();
+    decalPass = std::make_unique<DeferredDecalPass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
 {
     ssao = std::make_unique<ScreenSpaceAO>();
-    depthPrepass = std::make_unique<DepthPrepass>();
 
     LoadDefaultShaders();
     postProcess->Init();
@@ -166,6 +166,9 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, Framebuffer* frameB
 {
     // Deferred
     exportGBuffer->execute(render_list, width, height);
+    decalPass->execute(camera, render_list, width, height);
+    ssao->execute(width, height);
+
     deferredResolve->execute(frameBuffer, width, height);
 
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);

@@ -10,18 +10,25 @@ class Program;
 class GaussianBlur
 {
 
-    std::unique_ptr<Framebuffer> frameBuffer;
+    std::unique_ptr<Framebuffer> frameBufferH;
+    std::unique_ptr<Framebuffer> frameBufferV;
     std::unique_ptr<Texture2D>   result;
     std::unique_ptr<Program>     horizontal;
     std::unique_ptr<Program>     vertical;
-    uint                         fbWidth = 0;
-    uint                         fbHeight = 0;
+    uint                         rWidth = 0;
+    uint                         rHeight = 0;
+    uint                         rInternal = 0;
+    uint                         rFormat = 0;
+    uint                         rType = 0;
 
 public:
 
     GaussianBlur();
 
-    void Execute(const Texture2D *input, const Texture2D* output, uint width, uint height);
+    void execute(const Texture2D *input, const Texture2D* output, uint internal_format, uint format, uint type, uint width, uint height);
+
+private:
+    void createResult(uint internal_format, uint format, uint type, uint width, uint height);
 };
 
 

@@ -13,20 +13,24 @@ public:
 
 	void OnSave (Config& config) const override;
 	void OnLoad (Config* config) override;
+	void GetBoundingBox(AABB& box) const override;
 
     static Types GetClassType () { return Decal; }
 
     UID GetAlbedo() const { return albedo; }
     UID GetNormal() const { return normal; }
-    UID GetEmissive() const { return emissive; }
+    UID GetSpecular() const { return specular; }
+
+    float GetNormalStrength() const { return normalStrength; }
+    void SetNormalStrength(float strength) { normalStrength = strength; }
 
     void SetAlbedo(UID uid);
     void SetNormal(UID uid);
-    void SetEmissive(UID uid);
+    void SetSpecular(UID uid);
 
     ResourceTexture* GetAlbedoRes();
     ResourceTexture* GetNormalRes();
-    ResourceTexture* GetEmissiveRes();
+    ResourceTexture* GetSpecularRes();
 
 private:
 
@@ -35,7 +39,8 @@ private:
 private:
     UID albedo;
     UID normal;
-    UID emissive;
+    UID specular;
+    float normalStrength = 1.0f;
 };
 
 

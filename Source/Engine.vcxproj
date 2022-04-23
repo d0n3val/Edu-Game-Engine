@@ -257,6 +257,7 @@
     <ClInclude Include="CubemapUtils.h" />
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="default_icon.h" />
+    <ClInclude Include="DeferredDecalPass.h" />
     <ClInclude Include="DeferredResolvePass.h" />
     <ClInclude Include="DepthPrepass.h" />
     <ClInclude Include="DirLight.h" />
@@ -439,6 +440,7 @@
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="CubemapUtils.cpp" />
+    <ClCompile Include="DeferredDecalPass.cpp" />
     <ClCompile Include="DeferredResolvePass.cpp" />
     <ClCompile Include="DepthPrepass.cpp" />
     <ClCompile Include="DirLight.cpp" />

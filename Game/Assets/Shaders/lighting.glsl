@@ -129,18 +129,7 @@ vec4 Shading(in PBR pbr)
         color += Spot(pbr.position, pbr.normal, V, spots[i], pbr.diffuse, pbr.specular, roughness);
     }
 
-#if 0
-    // Compute ambient occlusion
-    vec4 projectedPos = proj*view*vec4(pbr.position, 1.0);
-    vec2 occlusionUV  = (projectedPos.xy/projectedPos.w)*0.5+0.5;
-
-    vec3 occlusionFactor = vec3(texture(ambientOcclusion, occlusionUV).r);
-#else
-    vec3 occlusionFactor = vec3(1.0);
-
-#endif
-
-    color += indirect*occlusionFactor;
+    color += indirect*pbr.occlusion;
     color += pbr.emissive;
 
     return vec4(color, pbr.alpha); 

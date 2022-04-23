@@ -30,12 +30,13 @@ public:
 
     void execute(const RenderList& nodes, uint width, uint height);
 
-    Texture2D* getAlbedo() const {return albedoTex.get();}
-    Texture2D* getSpecular() const {return specularTex.get();}
-    Texture2D* getEmissive() const { return emissiveTex.get(); }
-    Texture2D* getPosition() const {return positionTex.get();}
-    Texture2D* getNormal() const {return normalTex.get();}
-    Texture2D* getDepth() const {return depthTex.get();}
+    Framebuffer* getFB() const {return frameBuffer.get(); }
+    Texture2D*   getAlbedo() const {return albedoTex.get();}
+    Texture2D*   getSpecular() const {return specularTex.get();}
+    Texture2D*   getEmissive() const { return emissiveTex.get(); }
+    Texture2D*   getPosition() const {return positionTex.get();}
+    Texture2D*   getNormal() const {return normalTex.get();}
+    Texture2D*   getDepth() const {return depthTex.get();}
     
 private:
 

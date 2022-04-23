@@ -72,8 +72,11 @@ void ComponentMeshRenderer::OnLoad(Config* config)
 	SetMaterialRes(config->GetUID("MaterialResource", 0));
 	SetMeshRes(config->GetUID("MeshResource", 0));
 
-    HashString batchName(config->GetString("BatchName"));
-    SetBatchName(batchName ? batchName : HashString("default"));
+    if (GetMeshUID() != 0 && GetMaterialUID() != 0)
+    {
+        HashString batchName(config->GetString("BatchName"));
+        SetBatchName(batchName ? batchName : HashString("default"));
+    }
 }
 
 void ComponentMeshRenderer::GetBoundingBox (AABB& box) const 

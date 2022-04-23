@@ -21,10 +21,10 @@ class Postprocess;
 class Texture2D;
 class Framebuffer;
 class ForwardPass;
-class DepthPrepass;
 class ScreenSpaceAO;
 class GBufferExportPass;
 class DeferredResolvePass;
+class DeferredDecalPass;
 
 class ModuleRenderer : public Module
 {
@@ -60,7 +60,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<ForwardPass>          forward;
     std::unique_ptr<GBufferExportPass>    exportGBuffer;
     std::unique_ptr<DeferredResolvePass>  deferredResolve;
-    std::unique_ptr<DepthPrepass>         depthPrepass;
+    std::unique_ptr<DeferredDecalPass>    decalPass;
     std::unique_ptr<ScreenSpaceAO>        ssao;
     std::unique_ptr<Buffer>               cameraUBO;
 
@@ -80,7 +80,6 @@ public:
 
     BatchManager*       GetBatchManager             () const { return batch_manager.get(); }
     Postprocess*        GetPostprocess              () const { return postProcess.get(); }
-    DepthPrepass*       GetDepthPrepass             () const { return depthPrepass.get(); }
     ScreenSpaceAO*      GetScreenSpaceAO            () const { return ssao.get(); }
     GBufferExportPass*  GetGBufferExportPass        () const { return exportGBuffer.get(); }
     Buffer*             GetCameraUBO                () const { return cameraUBO.get(); }

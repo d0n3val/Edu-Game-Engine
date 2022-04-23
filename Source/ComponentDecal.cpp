@@ -5,6 +5,8 @@
 #include "ModuleResources.h"
 #include "ResourceTexture.h"
 
+#include "GameObject.h"
+
 ComponentDecal::ComponentDecal(GameObject* go) : Component(go, Decal)
 {
 }
@@ -13,21 +15,23 @@ ComponentDecal::~ComponentDecal()
 {
     App->resources->ReleaseFromMemory(albedo);
     App->resources->ReleaseFromMemory(normal);
-    App->resources->ReleaseFromMemory(emissive);
+    App->resources->ReleaseFromMemory(specular);
 }
 
 void ComponentDecal::OnSave(Config &config) const 
 {
     config.AddUID("Albedo", albedo);
     config.AddUID("Normal", normal);
-    config.AddUID("Emissive", emissive);
+    config.AddUID("Specular", specular);
+    config.AddFloat("NormalStrength", normalStrength);
 }
 
 void ComponentDecal::OnLoad(Config *config) 
 {
     albedo   = LoadTexToMemory(config->GetUID("Albedo", 0));
     normal   = LoadTexToMemory(config->GetUID("Normal", 0));
-    emissive = LoadTexToMemory(config->GetUID("Emissive", 0));
+    specular = LoadTexToMemory(config->GetUID("Specular", 0));
+    normalStrength = config->GetFloat("NormalStrength", 1.0f);
 }
 
 ResourceTexture* ComponentDecal::GetAlbedoRes()
@@ -40,9 +44,9 @@ ResourceTexture* ComponentDecal::GetNormalRes()
 	return static_cast<ResourceTexture*>(App->resources->Get(normal));
 }
 
-ResourceTexture* ComponentDecal::GetEmissiveRes()
+ResourceTexture* ComponentDecal::GetSpecularRes()
 {
-	return static_cast<ResourceTexture*>(App->resources->Get(emissive));
+	return static_cast<ResourceTexture*>(App->resources->Get(specular));
 }
 
 void ComponentDecal::SetAlbedo(UID uid)
@@ -63,12 +67,12 @@ void ComponentDecal::SetNormal(UID uid)
     }
 }
 
-void ComponentDecal::SetEmissive(UID uid)
+void ComponentDecal::SetSpecular(UID uid)
 {
-    if(uid != emissive)
+    if(uid != specular)
     {
-        App->resources->ReleaseFromMemory(emissive);
-        emissive = LoadTexToMemory(uid);
+        App->resources->ReleaseFromMemory(specular);
+        specular = LoadTexToMemory(uid);
     }
 }
 
@@ -85,4 +89,15 @@ UID ComponentDecal::LoadTexToMemory(UID uid)
     }
 
     return 0;
+}
+
+void ComponentDecal::GetBoundingBox(AABB &box) const 
+{
+    float3 halfSize = game_object->GetLocalScale()*0.5f;
+
+    AABB aabb(-halfSize, halfSize);
+
+    OBB obb;
+    obb.SetFrom(aabb, game_object->GetGlobalTransformation());
+    box.SetFrom(obb);
 }

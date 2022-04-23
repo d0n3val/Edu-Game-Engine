@@ -7,6 +7,7 @@
 #include "ModuleLevelManager.h"
 #include "Skybox.h"
 #include "GBufferExportPass.h"
+#include "ScreenSpaceAO.h"
 #include "OGL.h"
 #include "OpenGL.h"
 
@@ -19,6 +20,7 @@ DeferredResolvePass::DeferredResolvePass()
 void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
 {
     GBufferExportPass* exportPass = App->renderer->GetGBufferExportPass();
+	ScreenSpaceAO* ssao = App->renderer->GetScreenSpaceAO();
 
     useProgram();
 
@@ -34,7 +36,9 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
     exportPass->getNormal()->Bind(GBUFFER_NORMAL_TEX_BINDING);
 
-    App->level->GetSkyBox()->BindIBL();
+	ssao->bindResult();
+
+	App->level->GetSkyBox()->BindIBL();
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 

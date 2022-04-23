@@ -3,19 +3,19 @@
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "ModuleHints.h"
-#include "DepthPrePass.h"
+#include "GBufferExportPass.h"
 #include "GaussianBlur.h"
+
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
 
 #include <random>
 
-#define KERNEL_UBO_TARGET 5
 #define KERNEL_SIZE 128
 #define RANDOM_SIZE 16
 #define CAMERA_BLOCK_INDEX 0
-
 
 ScreenSpaceAO::ScreenSpaceAO()
 {
@@ -36,38 +36,34 @@ ScreenSpaceAO::~ScreenSpaceAO()
 {
 }
 
-void ScreenSpaceAO::Execute()
+void ScreenSpaceAO::execute(uint width, uint height)
 {
-    GenerateKernelUBO();
+    generateKernelUBO();
 
-    DepthPrepass* depthPrePass = App->renderer->GetDepthPrepass();
+    GBufferExportPass* gbufferPass = App->renderer->GetGBufferExportPass();
 
-    uint width = depthPrePass->getWidth();
-    uint height = depthPrePass->getHeight();
-    ResizeFrameBuffer(width, height);
+    resizeFrameBuffer(width, height);
 
     frameBuffer->Bind();
     
     glViewport(0, 0, width, height);
 
     program->Use();
-    program->BindTextureFromName("positions", 0, depthPrePass->getPositionTexture());
-    program->BindTextureFromName("normals", 1, depthPrePass->getNormalTexture());
+    program->BindTextureFromName("positions", 0, gbufferPass->getPosition());
+    program->BindTextureFromName("normals", 1, gbufferPass->getNormal());
     program->BindUniformFromName("screenSize", float2(float(width), float(height)));
     program->BindUniformFromName("radius", std::get<float>(App->hints->GetDHint(std::string("SSAO radius"), 2.0f))); 
     program->BindUniformFromName("bias", -std::get<float>(App->hints->GetDHint(std::string("SSAO bias"), 0.1f))); 
-    program->BindUniformBlock("Camera", CAMERA_BLOCK_INDEX);
-    program->BindUniformBlock("Kernel", KERNEL_UBO_TARGET);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
     
     if(std::get<bool>(App->hints->GetDHint(std::string("SSAO blur"), true)))
     {
-        blur->Execute(result.get(), blurred.get(), width, height);
+        blur->execute(result.get(), blurred.get(), GL_R8, GL_RED, GL_FLOAT, width, height);
     }
 }
 
-void ScreenSpaceAO::ResizeFrameBuffer(uint width, uint height)
+void ScreenSpaceAO::resizeFrameBuffer(uint width, uint height)
 {
     if(width != fbWidth || height != fbHeight)
     {
@@ -78,8 +74,8 @@ void ScreenSpaceAO::ResizeFrameBuffer(uint width, uint height)
 
         frameBuffer->ClearAttachments();
 
-        result  = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RED, GL_FLOAT, nullptr, false);
-        blurred = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RED, GL_FLOAT, nullptr, false);
+        result  = std::make_unique<Texture2D>(width, height, GL_R8, GL_RED, GL_FLOAT, nullptr, false);
+        blurred = std::make_unique<Texture2D>(width, height, GL_R8, GL_RED, GL_FLOAT, nullptr, false);
        
         frameBuffer->AttachColor(result.get(), 0, 0); 
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
@@ -89,7 +85,7 @@ void ScreenSpaceAO::ResizeFrameBuffer(uint width, uint height)
     }
 }
 
-void ScreenSpaceAO::GenerateKernelUBO()
+void ScreenSpaceAO::generateKernelUBO()
 {
     if(!kernel)
     {
@@ -138,9 +134,8 @@ void ScreenSpaceAO::GenerateKernelUBO()
             kernelData.rots[i] = float4(dir, 0.0f);
         }
 
-
         kernel = std::make_unique<Buffer>(GL_UNIFORM_BUFFER, GL_STATIC_DRAW, sizeof(kernelData), &kernelData);
-        kernel->BindToPoint(KERNEL_UBO_TARGET);
+        kernel->BindToPoint(SSAO_KERNEL_BINDING);
     }
 }
 
@@ -152,4 +147,9 @@ const Texture2D* ScreenSpaceAO::getResult() const
     }
 
     return result.get();
+}
+
+void ScreenSpaceAO::bindResult()
+{
+	result->Bind(SSAO_TEX_BINDING);
 }

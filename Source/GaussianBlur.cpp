@@ -26,18 +26,31 @@ GaussianBlur::GaussianBlur()
     }
 }
 
-void GaussianBlur::Execute(const Texture2D *input, const Texture2D* output, uint width, uint height)
+void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint internal_format, uint format, uint type, uint width, uint height)
 {
-    if (!frameBuffer)
+    if (!frameBufferH)
     {
-        frameBuffer = std::make_unique<Framebuffer>();
+        frameBufferH = std::make_unique<Framebuffer>();
     }
 
-    frameBuffer->ClearAttachments();
-    frameBuffer->AttachColor(output, 0, 0);
-    assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+    if (!frameBufferV)
+    {
+        frameBufferV = std::make_unique<Framebuffer>();
+    }
 
-    frameBuffer->Bind();
+    createResult(internal_format, format, type, width, height);
+
+    // first output should be result, second input should be result
+
+    frameBufferH->ClearAttachments();
+    frameBufferH->AttachColor(result.get(), 0, 0);
+    assert(frameBufferH->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+    frameBufferV->ClearAttachments();
+    frameBufferV->AttachColor(output, 0, 0);
+    assert(frameBufferV->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+    frameBufferH->Bind();
     glViewport(0, 0, width, height);
 
     // horizontal pass
@@ -45,8 +58,24 @@ void GaussianBlur::Execute(const Texture2D *input, const Texture2D* output, uint
     horizontal->BindTextureFromName("image", 0, input);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    frameBufferV->Bind();
+    glViewport(0, 0, width, height);
     // vertical pass
     vertical->Use();
-    vertical->BindTextureFromName("image", 0, input);
+    vertical->BindTextureFromName("image", 0, result.get());
     glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void GaussianBlur::createResult(uint internal_format, uint format, uint type, uint width, uint height)
+{
+    if (internal_format != rInternal || format != rFormat || type != rType || width != rWidth || height != rHeight)
+    {
+        result = std::make_unique<Texture2D>(width, height, internal_format, format, type, nullptr, false);
+        rInternal = internal_format;
+        rFormat = format;
+        rType = type;
+        rWidth = width;
+        rHeight = height;
+    }
+
 }

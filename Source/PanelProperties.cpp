@@ -1338,17 +1338,26 @@ void PanelProperties::DrawDecalComponent(ComponentDecal* decal)
             decal->SetNormal(newUID);
             modified = true;
         }
-    }
 
-    if (ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        UID newUID = TextureButton(decal->GetEmissiveRes(), nullptr, "Emissive", 2);
-        if(newUID != decal->GetEmissive())
+        float strength = Clamp(decal->GetNormalStrength(), 0.0f, 100.0f);
+        if(ImGui::SliderFloat("Strength", &strength, 0.0f, 10.0f))
         {
-            decal->SetEmissive(newUID);
+            decal->SetNormalStrength(strength);
             modified = true;
         }
     }
+
+    if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        UID newUID = TextureButton(decal->GetSpecularRes(), nullptr, "Specular", 2);
+        if(newUID != decal->GetSpecular())
+        {
+            decal->SetSpecular(newUID);
+            modified = true;
+        }
+    }
+
+
 }
 
 void PanelProperties::DrawGrassComponent(ComponentGrass* component)

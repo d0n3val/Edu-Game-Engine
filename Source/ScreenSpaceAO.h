@@ -26,13 +26,14 @@ public:
     ScreenSpaceAO();
     ~ScreenSpaceAO();
 
-    void Execute();
+    void execute(uint width, uint height);
 
+    void bindResult();
     const Texture2D* getResult() const;
 
 private:
-    void ResizeFrameBuffer(uint width, uint height);
-    void GenerateKernelUBO();
+    void resizeFrameBuffer(uint width, uint height);
+    void generateKernelUBO();
 };
 
 

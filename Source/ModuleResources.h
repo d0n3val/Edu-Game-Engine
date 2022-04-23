@@ -60,6 +60,8 @@ public:
     const ResourceTexture* GetBlackFallback() const { return black_fallback; }
     const ResourceTexture* GetDefaultSkybox() const { return skybox; }
 
+	const ResourceMesh*    GetDefaultBox() const { return cube; }
+
     const char* GetDirByType(Resource::Type type) const;
 
 private:
@@ -68,6 +70,7 @@ private:
 	void SaveUID() const;
     UID ImportSuccess(Resource::Type type, const char* file_name, const char* user_name, const std::string& output);
     bool LoadDefaultSkybox();
+	bool LoadDefaultBox();
 
 private:
 	std::string asset_folder;

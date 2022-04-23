@@ -11,6 +11,7 @@ layout(binding = GBUFFER_SPECULAR_TEX_BINDING) uniform sampler2D specular;
 layout(binding = GBUFFER_EMISSIVE_TEX_BINDING) uniform sampler2D emissive;
 layout(binding = GBUFFER_POSITION_TEX_BINDING) uniform sampler2D position;
 layout(binding = GBUFFER_NORMAL_TEX_BINDING) uniform sampler2D normal;
+layout(binding = SSAO_TEX_BINDING) uniform sampler2D ssao;
 
 in vec2 uv;
 out vec4 color;
@@ -28,10 +29,15 @@ void unpackGBuffer(out PBR pbr)
     pbr.diffuse    = albedoSmp.rgb;
     pbr.specular   = specularSmp.rgb;
     pbr.emissive   = emissiveSmp.rgb;
-    pbr.normal     = normalSmp.rgb;
+    pbr.normal     = normalize(normalSmp.rgb*2.0-1.0);
     pbr.position   = positionSmp.rgb;
     pbr.smoothness = specularSmp.a;
     pbr.occlusion  = emissiveSmp.a;
+}
+
+void sampleSSAO(inout PBR pbr)
+{
+    pbr.occlusion *= texture(ssao, uv).r;
 }
 
 void main()
@@ -39,5 +45,8 @@ void main()
     PBR pbr;
     unpackGBuffer(pbr);
 
+    sampleSSAO(pbr);
+
+    //color.rgb = texture(ssao, uv).rgb;
     color = Shading(pbr);
 }

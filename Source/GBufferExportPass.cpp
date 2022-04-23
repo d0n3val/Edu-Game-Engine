@@ -59,8 +59,6 @@ void GBufferExportPass::useProgram()
 
 void GBufferExportPass::resizeFrameBuffer(uint width, uint height)
 {
-    // \todo: resolve MSAA
-
     if (width != fbWidth || height != fbHeight)
     {
         if (!frameBuffer)
@@ -75,14 +73,7 @@ void GBufferExportPass::resizeFrameBuffer(uint width, uint height)
         emissiveTex = std::make_unique<Texture2D>(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT, nullptr, false);
         depthTex    = std::make_unique<Texture2D>(width, height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         positionTex = std::make_unique<Texture2D>(width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr, false);
-        normalTex   = std::make_unique<Texture2D>(width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr, false);
-
-        albedoTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
-        specularTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
-        emissiveTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
-        depthTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
-        positionTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
-        normalTex->SetMinMaxFiler(GL_NEAREST, GL_NEAREST);
+        normalTex   = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RGB, GL_UNSIGNED_INT, nullptr, false);
 
         albedoTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         specularTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);

@@ -76,6 +76,9 @@
     <Filter Include="3rd Party\thekla">
       <UniqueIdentifier>{956abef9-717b-4a0c-8a66-1cde369193c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Helpers\RenderPasses">
+      <UniqueIdentifier>{731faf38-db35-4584-96b7-9cb5730b75ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -678,19 +681,10 @@
     <ClInclude Include="SkyboxRollout.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Postprocess.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="SelectResourceDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="CubemapUtils.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthPrepass.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="ScreenSpaceAO.h">
       <Filter>Helpers</Filter>
     </ClInclude>
     <ClInclude Include="GaussianBlur.h">
@@ -715,17 +709,29 @@
     <ClInclude Include="GeometryBatch.h">
       <Filter>Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="GBufferExportPass.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="DeferredResolvePass.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="ForwardPass.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentDecal.h">
       <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferredResolvePass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthPrepass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="ForwardPass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="GBufferExportPass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenSpaceAO.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="Postprocess.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferredDecalPass.h">
+      <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1272,19 +1278,10 @@
     <ClCompile Include="SkyboxRollout.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Postprocess.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
     <ClCompile Include="SelectResourceDlg.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="CubemapUtils.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthPrepass.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="ScreenSpaceAO.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="GaussianBlur.cpp">
@@ -1308,17 +1305,29 @@
     <ClCompile Include="GeometryBatch.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
-    <ClCompile Include="GBufferExportPass.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="DeferredResolvePass.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="ForwardPass.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentDecal.cpp">
       <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredResolvePass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthPrepass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="ForwardPass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="GBufferExportPass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenSpaceAO.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="Postprocess.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredDecalPass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

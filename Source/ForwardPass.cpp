@@ -6,6 +6,7 @@
 #include "ModuleRenderer.h"
 #include "ModuleLevelManager.h"
 #include "Skybox.h"
+#include "ScreenSpaceAO.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -25,6 +26,7 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
     UseProgram();
 
     App->level->GetSkyBox()->BindIBL();
+	App->renderer->GetScreenSpaceAO()->bindResult();
 
     if (target)
     {
@@ -45,6 +47,7 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
     UseProgram();
 
     App->level->GetSkyBox()->BindIBL();
+	App->renderer->GetScreenSpaceAO()->bindResult();
 
     if (target)
     {

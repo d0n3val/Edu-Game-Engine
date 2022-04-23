@@ -25,13 +25,13 @@ layout(location = 4)out vec4 normal;
 
 void packGBuffer(in PBR pbr)
 {
-    albedo.rgb   = pbr.diffuse;
-    specular.rgb = pbr.specular;
-    specular.a   = pbr.smoothness;
-    emissive.rgb = pbr.emissive;
-    emissive.a   = pbr.occlusion;
-    normal.rgb   = pbr.normal;
-    position.rgb = pbr.position;
+    albedo.rgb        = pbr.diffuse;
+    specular.rgb      = pbr.specular;
+    specular.a        = pbr.smoothness;
+    emissive.rgb      = pbr.emissive;
+    emissive.a        = pbr.occlusion;
+    normal.rgb        = pbr.normal*0.5+0.5;
+    position.rgb      = pbr.position;
 }
 
 void main()
