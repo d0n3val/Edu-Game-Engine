@@ -45,10 +45,10 @@ void main()
         discard;
     }
 
-    vec3 bitangent = normalize(dxWp);
-    vec3 tangent   = normalize(dyWp);
+    vec3 tangent = normalize(dxWp);
+    vec3 bitangent   = normalize(dyWp);
 
-    mat3 transform = mat3(bitangent, tangent, geoNormal);
+    mat3 transform = mat3(tangent, bitangent, geoNormal);
 
     vec3 texNormal = texture(decalNormalTex, texCoords).xyz*2.0-1.0;
     texNormal.xy *= normalStrength;

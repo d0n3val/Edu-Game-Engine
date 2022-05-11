@@ -32,6 +32,7 @@ private:
     float4      diffuse_color          = float4::one;
     float3      specular_color         = float4::one;
     float3      emissive_color         = float4::zero;
+    float       emissive_intensity     = 1.0;
     UID         textures[TextureCount] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float       smoothness             = 1.0f;
     float       normal_strength        = 1.0f;
@@ -66,6 +67,9 @@ public:
 
     const float3&           GetEmissiveColor    () const { return emissive_color;}
     void                    SetEmissiveColor    (const float3& value) { emissive_color = value; uboDirty = true;}
+
+    float                   GetEmissiveIntensity () const { return emissive_intensity; }
+    void                    SetEmissiveIntensity (float intensity) { emissive_intensity = intensity; }
 
     UID                     GetTexture          (MaterialTexture texture) const { return textures[texture]; }
     const ResourceTexture*  GetTextureRes       (MaterialTexture texture) const;

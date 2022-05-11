@@ -876,20 +876,19 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
     {
         modified = TextureButton(material, mesh, TextureEmissive, "Emissive") || modified;
         float3 color = material->GetEmissiveColor();
-        float intensity = max(color.Length(), 1.0f);
-        color = color/intensity;
         ImGui::PushID("emissive");
         if(ImGui::ColorEdit3("color", (float*)&color))
         {
-            material->SetEmissiveColor(color*intensity);
+            material->SetEmissiveColor(color);
             modified = true;
         }
 
         ImGui::PopID();
 
+        float intensity = material->GetEmissiveIntensity();
         if(ImGui::SliderFloat("Intensity", &intensity, 1.0f, 50.0f))
         {
-            material->SetEmissiveColor(color*intensity);
+            material->SetEmissiveIntensity(intensity);
             modified  = true;
         }
     }

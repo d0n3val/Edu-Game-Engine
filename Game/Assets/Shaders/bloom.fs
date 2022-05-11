@@ -7,6 +7,7 @@ in vec2 uv;
 
 uniform sampler2DMS image;
 uniform sampler2DMS depth;
+uniform sampler2DMS emissive;
 
 vec3 GetTexel(in vec2 uv, sampler2DMS img)
 {
@@ -25,6 +26,7 @@ vec3 GetTexel(in vec2 uv, sampler2DMS img)
 
 uniform sampler2D image;
 uniform sampler2D depth;
+uniform sampler2D emissive;
 
 vec3 GetTexel(in vec2 uv, sampler2D img)
 {
@@ -38,10 +40,11 @@ void main()
     color = vec4(GetTexel(uv, image), 1.0);
     float depthValue = GetTexel(uv, depth).r;
 
-    float bright = dot(color.rgb, vec3(0.3, 0.6, 0.2));
+    //float bright = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
+    vec3 emissive_color = GetTexel(uv, emissive);
 
-    if(depthValue < 1.0 && bright > 1.0) 
-        bloom = color;
+    if(depthValue < 1.0 && dot(emissive_color, emissive_color) > 0.0)
+        bloom = vec4(emissive_color, 1.0); //color;
     else 
         bloom = vec4(0.0, 0.0, 0.0, 1.0);
 }

@@ -241,7 +241,7 @@ void GeometryBatch::CreateMaterialBuffer()
 
         out.diffuse_color = material->GetDiffuseColor();
         out.specular_color   = float4(material->GetSpecularColor(), 0.0f);
-        out.emissive_color   = float4(material->GetEmissiveColor(), 0.0f);
+        out.emissive_color   = float4(material->GetEmissiveColor()*material->GetEmissiveIntensity(), 0.0f);
         out.tiling           = material->GetUVTiling();
         out.offset           = material->GetUVOffset();
         out.secondary_tiling = material->GetSecondUVTiling();

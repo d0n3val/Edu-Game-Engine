@@ -264,6 +264,7 @@
     <ClInclude Include="dxgi1_4.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="ForwardPass.h" />
+    <ClInclude Include="FxaaPass.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GaussianBlur.h" />
     <ClInclude Include="GBufferExportPass.h" />
@@ -289,6 +290,7 @@
     <ClInclude Include="ImportCubemapDlg.h" />
     <ClInclude Include="ImportModelDlg.h" />
     <ClInclude Include="ImportTextureDlg.h" />
+    <ClInclude Include="KawaseBlur.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="MathGeoLib\include\Algorithm\Random\LCG.h" />
@@ -445,6 +447,7 @@
     <ClCompile Include="DepthPrepass.cpp" />
     <ClCompile Include="DirLight.cpp" />
     <ClCompile Include="ForwardPass.cpp" />
+    <ClCompile Include="FxaaPass.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
     <ClCompile Include="GBufferExportPass.cpp" />
@@ -467,6 +470,7 @@
     <ClCompile Include="ImportCubemapDlg.cpp" />
     <ClCompile Include="ImportModelDlg.cpp" />
     <ClCompile Include="ImportTextureDlg.cpp" />
+    <ClCompile Include="KawaseBlur.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathGeoLib\include\Algorithm\Random\LCG.cpp" />

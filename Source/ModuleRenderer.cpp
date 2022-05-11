@@ -10,6 +10,7 @@
 #include "DeferredDecalPass.h"
 #include "ScreenSpaceAO.h"
 #include "ForwardPass.h"
+#include "FxaaPass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -57,6 +58,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     exportGBuffer = std::make_unique<GBufferExportPass>();
     deferredResolve = std::make_unique<DeferredResolvePass>();
     decalPass = std::make_unique<DeferredDecalPass>();
+    fxaa = std::make_unique<FxaaPass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)

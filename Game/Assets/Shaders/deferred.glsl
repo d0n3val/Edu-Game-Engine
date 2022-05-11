@@ -47,6 +47,5 @@ void main()
 
     sampleSSAO(pbr);
 
-    //color.rgb = texture(ssao, uv).rgb;
     color = Shading(pbr);
 }

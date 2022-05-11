@@ -4,6 +4,10 @@
 #include "Application.h"
 #include "modulehints.h"
 #include "ModulePrograms.h"
+#include "Application.h"
+#include "ModuleRenderer.h"
+#include "GBufferExportPass.h"
+#include "KawaseBlur.h"
 
 #include "PostProcessShaderLocations.h"
 #include "OpenGL.h"
@@ -13,6 +17,7 @@
 
 Postprocess::Postprocess()
 {
+    kawase = std::make_unique<KawaseBlur>();
 }
 
 Postprocess::~Postprocess()
@@ -126,37 +131,13 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
         glClear(GL_COLOR_BUFFER_BIT);
         App->programs->UseProgram("bloom", msaa ? 1 : 0);
         screen->Bind(0, App->programs->GetUniformLocation("image"));
-        //depth->Bind(1, App->programs->GetUniformLocation("depth"));
+        depth->Bind(1, App->programs->GetUniformLocation("depth"));
+        App->renderer->GetGBufferExportPass()->getEmissive()->Bind(2, App->programs->GetUniformLocation("emissive"));
 
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
 
-    float weights[] = { 0.198596f,	0.175713f,	0.121703f,	0.065984f,	0.028002f,	0.0093f };
-
-    // blur
-    glBindVertexArray(post_vao);
-    glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_0);
-    {
-        glClear(GL_COLOR_BUFFER_BIT);
-        App->programs->UseProgram("gaussian", 1);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, bloom_tex);
-        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
-        glUniform1fv(App->programs->GetUniformLocation("weight"), sizeof(weights)/sizeof(float), weights);
-        glDrawArrays(GL_TRIANGLES, 0, 6); 
-    }
-
-    glBindVertexArray(post_vao);
-    glBindFramebuffer(GL_FRAMEBUFFER, bloom_blur_fbo_1);
-    {
-        glClear(GL_COLOR_BUFFER_BIT);
-        App->programs->UseProgram("gaussian", 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_0);
-        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
-        glUniform1fv(App->programs->GetUniformLocation("weight"), sizeof(weights)/sizeof(float), weights);
-        glDrawArrays(GL_TRIANGLES, 0, 6); 
-    }
+    kawase->execute(App->renderer->GetGBufferExportPass()->getEmissive(), GL_RGB32F, GL_RGB, GL_FLOAT, width, height);
 
     fbo->Bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -180,12 +161,14 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
     if(enableBloom)
     {
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
+        //glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
+        glBindTexture(GL_TEXTURE_2D, kawase->getResult()->Id());
         glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
     }
 
     glDrawArrays(GL_TRIANGLES, 0, 6); 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void Postprocess::GenerateBloomFBO(unsigned width, unsigned height)

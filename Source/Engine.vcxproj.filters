@@ -733,6 +733,12 @@
     <ClInclude Include="DeferredDecalPass.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="FxaaPass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="KawaseBlur.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1327,6 +1333,12 @@
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
     <ClCompile Include="DeferredDecalPass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="FxaaPass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="KawaseBlur.cpp">
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>

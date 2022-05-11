@@ -13,7 +13,7 @@
 
 #include <random>
 
-#define KERNEL_SIZE 128
+#define KERNEL_SIZE 64
 #define RANDOM_SIZE 16
 #define CAMERA_BLOCK_INDEX 0
 
@@ -39,6 +39,14 @@ ScreenSpaceAO::~ScreenSpaceAO()
 void ScreenSpaceAO::execute(uint width, uint height)
 {
     generateKernelUBO();
+
+    float scale = std::get<float>(App->hints->GetDHint(std::string("SSAO scale"), 1.0f));
+
+    if (scale > 0.0f)
+    {
+        width = uint(width * scale);
+        height = uint(height * scale);
+    }
 
     GBufferExportPass* gbufferPass = App->renderer->GetGBufferExportPass();
 
@@ -151,5 +159,12 @@ const Texture2D* ScreenSpaceAO::getResult() const
 
 void ScreenSpaceAO::bindResult()
 {
-	result->Bind(SSAO_TEX_BINDING);
+    if (std::get<bool>(App->hints->GetDHint(std::string("SSAO blur"), true)))
+    {
+        blurred->Bind(SSAO_TEX_BINDING);
+    }
+    else
+    {
+        result->Bind(SSAO_TEX_BINDING);
+    }
 }

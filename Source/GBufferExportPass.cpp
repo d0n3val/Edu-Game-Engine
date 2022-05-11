@@ -70,7 +70,7 @@ void GBufferExportPass::resizeFrameBuffer(uint width, uint height)
 
         albedoTex   = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RGB, GL_UNSIGNED_INT, nullptr, false);
         specularTex = std::make_unique<Texture2D>(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT, nullptr, false);
-        emissiveTex = std::make_unique<Texture2D>(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT, nullptr, false);
+        emissiveTex = std::make_unique<Texture2D>(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
         depthTex    = std::make_unique<Texture2D>(width, height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         positionTex = std::make_unique<Texture2D>(width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr, false);
         normalTex   = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RGB, GL_UNSIGNED_INT, nullptr, false);

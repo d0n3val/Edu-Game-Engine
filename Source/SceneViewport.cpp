@@ -16,6 +16,7 @@
 #include "DepthPrepass.h"
 #include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"
+#include "FxaaPass.h"
 
 #include "GameObject.h"
 
@@ -117,10 +118,12 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         App->renderer->Draw(camera, culling, framebuffer, fb_width, fb_height);
         App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
-        //DrawSelection(camera, framebuffer);
-
-
         App->renderer->GetPostprocess()->Execute(texture_color, App->renderer->GetGBufferExportPass()->getDepth(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
+
+        if (std::get<bool>(App->hints->GetDHint(std::string("Enable Fxaa"), true)))
+        {
+            App->renderer->GetFxaaPass()->execute(framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color.get(), fb_width, fb_height);
+        }
 
         ShowTexture();
 
@@ -213,9 +216,19 @@ void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuf
 void SceneViewport::ShowTexture()
 {
     ImVec2 screenPos = ImGui::GetCursorScreenPos();
+    
+    void *id;
+    if (std::get<bool>(App->hints->GetDHint(std::string("Enable Fxaa"), true)))
+    {
+        id = (void *)App->renderer->GetFxaaPass()->getOutput()->Id();
+    }
+    else
+    {
+        id = (void*)framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->Id();
+    }
 
     ImGui::GetWindowDrawList()->AddImage(
-            (void*)framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->Id(),
+            id,
             ImVec2(screenPos),
             ImVec2(screenPos.x + fb_width, screenPos.y + fb_height), 
             ImVec2(0, 1), ImVec2(1, 0));
@@ -453,7 +466,7 @@ void SceneViewport::DrawGuizmoProperties(GameObject* go)
     ImGui::PopID();
     ImGui::SameLine();
 
-    switch (guizmo_op)
+    switch (guizmo_op    )
     {
         case ImGuizmo::TRANSLATE:
             ImGui::InputFloat3("Snap", &guizmo_snap.x);

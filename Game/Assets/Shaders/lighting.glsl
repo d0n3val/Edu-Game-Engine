@@ -98,7 +98,6 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
     return GGXShading(normal, view_dir, light_dir, light.color.rgb*intensity, diffuseColor, specularColor, roughness, att*cone);
 }
 
-//vec4 Shading(const in vec3 pos, const in vec3 normal, vec4 diffuse, vec3 specular, float smoothness, vec3 occlusion, vec3 emissive)
 vec4 Shading(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
@@ -117,20 +116,20 @@ vec4 Shading(in PBR pbr)
         indirect        = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
     }
     
-    vec3 color = Directional(pbr.normal, V, directional, pbr.diffuse, pbr.specular, roughness);
+    vec3 color = Directional(pbr.normal, V, directional, pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
 
     for(uint i=0; i< num_point; ++i)
     {
-        color += Point(pbr.position, pbr.normal, V, points[i], pbr.diffuse, pbr.specular, roughness);
+        color += Point(pbr.position, pbr.normal, V, points[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
     }
 
     for(uint i=0; i< num_spot; ++i)
     {
-        color += Spot(pbr.position, pbr.normal, V, spots[i], pbr.diffuse, pbr.specular, roughness);
+        color += Spot(pbr.position, pbr.normal, V, spots[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
     }
 
     color += indirect*pbr.occlusion;
-    color += pbr.emissive;
+    // note: will be added with bloom color += pbr.emissive;
 
     return vec4(color, pbr.alpha); 
 }

@@ -5,7 +5,7 @@
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/cameraDefs.glsl"
 
-#define KERNEL_SIZE 128
+#define KERNEL_SIZE 64
 #define RANDOM_ROWS 4
 #define RANDOM_COLS 4
 
@@ -50,7 +50,7 @@ void main()
     ivec2 rotIndex    = ivec2(int(mod(screenPos.y, RANDOM_ROWS)), int(mod(screenPos.x, RANDOM_COLS)));
     mat3 tangentSpace = createTangentSpace(normal, kernel.rots[rotIndex.x][rotIndex.y].xyz);
 
-    int occlusion     = 0;
+    float occlusion     = 0;
 
     for(int i=0; i< KERNEL_SIZE; ++i) 
     {
@@ -59,22 +59,9 @@ void main()
 
         float sampleDepth = getSampleDepth(samplePos);
 
-        if(sampleDepth+bias >= samplePos.z && abs(sampleDepth-position.z) < radius)
-        {
-            ++occlusion;
-        }
+        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(position.z - sampleDepth));
+        occlusion       += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;   
     }
 
-#if 0
-    vec3 offset       = tangentSpace*vec3(0.0, 0.0, 0.0); //kernel.offsets[i].xyz; 
-    vec3 samplePos    = position; //+offset; //*radius;
-    float sampleDepth = getSampleDepth(samplePos);
-    vec4 clippingSpace = proj*vec4(samplePos, 1.0);
-    vec2 sampleUV = (clippingSpace.xy/clippingSpace.w)*0.5+0.5;
-    sampleDepth = (view*vec4(texture(positions, sampleUV).xyz, 1.0)).z;
-    vec3 tmp = (view*vec4(texture(positions, sampleUV).xyz, 1.0)).xyz;
-    result.xyz = position.zzz; //tmp.zzz;
-#endif 
-    
-    result = vec4(vec3(1.0-float(occlusion)/float(KERNEL_SIZE)), 1.0f);
+    result = vec4(vec3(1.0-occlusion/float(KERNEL_SIZE)), 1.0f);
 }
