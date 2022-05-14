@@ -405,17 +405,22 @@ void GeometryBatch::Render(const ComponentMeshRenderer* object)
     }
 }
 
-void GeometryBatch::DoRender()
+void GeometryBatch::DoRender(uint flags)
 {
     if (!commands.empty())
     {
         CreateCommandBuffer();
 
-        UpdateModels();
+        if((flags & BR_FLAG_AVOID_UPDATE_MODEL_MATRIX) == 0)
+        {
+            UpdateModels();
+        }
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MODEL_SSBO_BINDING, transformSSBO->Id());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MATERIAL_SSBO_BINDING, materialSSBO->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PERINSTANCE_SSBO_BINDING, instanceSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MATERIAL_SSBO_BINDING, materialSSBO->Id());
+
+        textures.Bind();
 
         if (skinning)
         {
@@ -428,7 +433,6 @@ void GeometryBatch::DoRender()
         }
 
         commandBuffer->Bind();
-        textures.Bind();
 
         if(morphTexture) 
         {

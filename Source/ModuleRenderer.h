@@ -25,6 +25,7 @@ class ScreenSpaceAO;
 class GBufferExportPass;
 class DeferredResolvePass;
 class DeferredDecalPass;
+class ShadowmapPass;
 class FxaaPass;
 
 class ModuleRenderer : public Module
@@ -64,6 +65,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<DeferredDecalPass>    decalPass;
     std::unique_ptr<ScreenSpaceAO>        ssao;
     std::unique_ptr<FxaaPass>             fxaa;
+    std::unique_ptr<ShadowmapPass>        shadowmapPass;
     std::unique_ptr<Buffer>               cameraUBO;
 
 public:
@@ -85,12 +87,13 @@ public:
     ScreenSpaceAO*      GetScreenSpaceAO            () const { return ssao.get(); }
     GBufferExportPass*  GetGBufferExportPass        () const { return exportGBuffer.get(); }
     FxaaPass*           GetFxaaPass                 () const { return fxaa.get(); }
+    ShadowmapPass*      GetShadowmapPass            () const { return shadowmapPass.get(); }
     Buffer*             GetCameraUBO                () const { return cameraUBO.get(); }
 
 private:
 
     void                RenderForward               (ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height);
-    void                RenderDeferred              (ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height);
+    void                RenderDeferred              (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
 
 
     void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);

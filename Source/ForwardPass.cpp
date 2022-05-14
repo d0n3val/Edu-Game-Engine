@@ -13,6 +13,9 @@
 
 #include "Leaks.h"
 
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
+
+
 ForwardPass::ForwardPass()
 {
 }
@@ -25,6 +28,7 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
 {
     UseProgram();
 
+    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetSkyBox()->BindIBL();
 	App->renderer->GetScreenSpaceAO()->bindResult();
 
@@ -46,6 +50,7 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
 {
     UseProgram();
 
+    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetSkyBox()->BindIBL();
 	App->renderer->GetScreenSpaceAO()->bindResult();
 

@@ -24,6 +24,7 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
 
     useProgram();
 
+    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
     target->Bind();
     glViewport(0, 0, width, height);
 

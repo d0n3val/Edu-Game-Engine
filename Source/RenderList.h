@@ -3,7 +3,6 @@
 
 #include "Math.h"
 
-class ComponentCamera;
 class QuadtreeNode;
 class GameObject;
 class ComponentMeshRenderer;
@@ -26,6 +25,18 @@ struct TRenderInfo
     float layer        = 0.0f;
 };
 
+enum RenderListObjTypes
+{
+    RENDERLIST_OBJ_OPAQUE = 1 << 0,
+    RENDERLIST_OBJ_TRANSPARENT = 1 << 1,
+    RENDERLIST_OBJ_PARTICLES = 1 << 2,
+    RENDERLIST_OBJ_TRAILS = 1 << 3,
+    RENDERLIST_OBJ_DECALS = 1 << 4,
+    RENDERLIST_OBJ_MESH = (RENDERLIST_OBJ_OPAQUE | RENDERLIST_OBJ_TRANSPARENT),
+    RENDERLIST_OBJ_ALL = (RENDERLIST_OBJ_OPAQUE | RENDERLIST_OBJ_TRANSPARENT | RENDERLIST_OBJ_PARTICLES | 
+                          RENDERLIST_OBJ_TRAILS | RENDERLIST_OBJ_DECALS)
+};
+
 typedef std::vector<TRenderInfo> NodeList;
 
 class RenderList
@@ -40,8 +51,8 @@ private:
 
 public:
 
-    void UpdateFrom(ComponentCamera* camera, QuadtreeNode* quadtree);
-    void UpdateFrom(ComponentCamera* camera, GameObject* go);
+    void UpdateFrom(const Frustum& frustum, QuadtreeNode* quadtree, uint objTypes = RENDERLIST_OBJ_ALL);
+    void UpdateFrom(const Frustum& frustum, GameObject* go, uint objTypes = RENDERLIST_OBJ_ALL);
 
     NodeList&       GetOpaques() { return opaque_nodes; }
     const NodeList& GetOpaques() const { return opaque_nodes; }
@@ -60,13 +71,13 @@ public:
 
 private:
 
-    void CollectObjects(Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree);
-    void CollectObjects(ComponentCamera* camera, GameObject* go);
+    void CollectObjects(Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree, uint objTypes);
+    void CollectObjects(const Frustum& frustum, GameObject* go, uint objTypes);
 
     bool Intersects(Plane* camera_planes, const AABB& aabb);
     bool Intersects(Plane* camera_planes, const OBB& obb);
     bool Intersects(Plane* camera_planes, const float3* points);
-    void CollectMeshRenderers        (const float3& camera_pos, GameObject* go);
+    void CollectMeshRenderers        (const float3& camera_pos, GameObject* go, uint objTypes);
     void CollectParticleSystems      (const float3& camera_pos, GameObject* go);
     void CollectTrails               (const float3& camera_pos, GameObject* go);
     void CollectDecals               (const float3& camera_pos, GameObject* go);

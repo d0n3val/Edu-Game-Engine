@@ -95,7 +95,7 @@ public:
 
     void               UpdateModel       (const ComponentMeshRenderer* object);
     void               Render            (const ComponentMeshRenderer* object);
-    void               DoRender          ();
+    void               DoRender          (uint flags);
 
     bool               HasCommands       () const { return !commands.empty();  }
     bool               IsEmpty           () const { return objects.empty(); }

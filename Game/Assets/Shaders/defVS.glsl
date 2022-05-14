@@ -102,9 +102,7 @@ vec3 MorphNormal(vec3 normal)
         res = normalize(res+texelFetch(morphData, texelIndex).xyz*morphWeights[i]);
     }
 
-    //return res;
-
-    return normal;
+    return res;
 }
 
 vec3 MorphTangent(vec3 tangent)
@@ -118,15 +116,15 @@ vec3 MorphTangent(vec3 tangent)
         res = normalize(res+texelFetch(morphData, texelIndex).xyz*morphWeights[i]);
     }
 
-    //return res;
-
-    return tangent;
+    return res;
 }
 
 void TransformOutput()
 {
     PerInstance instance = instanceInfo[draw_id_att];
     mat4 model = models[draw_id_att];
+
+    mat3 normalMat = transpose(inverse(mat3(model)));
 
     if(instance.numTargets > 0) // MorphTargets
     {
@@ -146,16 +144,14 @@ void TransformOutput()
         mat4 skin_transform = palette[instance.baseBone+bone_indices[0]]*bone_weights[0]+palette[instance.baseBone+bone_indices[1]]*bone_weights[1]+
                               palette[instance.baseBone+bone_indices[2]]*bone_weights[2]+palette[instance.baseBone+bone_indices[3]]*bone_weights[3];
 
-        mat4 model = models[draw_id_att];
-
         fragment.position = (model*skin_transform*vec4(fragment.position, 1.0)).xyz;
-        fragment.normal   = (model*skin_transform*vec4(fragment.normal, 0.0)).xyz;
-        fragment.tangent  = (model*skin_transform*vec4(fragment.tangent, 0.0)).xyz;
+        fragment.normal   = normalMat*mat3(skin_transform)*fragment.normal;
+        fragment.tangent  = normalMat*mat3(skin_transform)*fragment.tangent;
     }
     else // No Skinning
     {
         fragment.position = (model*vec4(fragment.position, 1.0)).xyz;
-        fragment.normal   = (model*vec4(fragment.normal, 0.0)).xyz;
-        fragment.tangent  = (model*vec4(fragment.tangent, 0.0)).xyz;
+        fragment.normal   = normalMat*fragment.normal;
+        fragment.tangent  = normalMat*fragment.tangent;
     }
 }

@@ -11,6 +11,7 @@
 #include "ScreenSpaceAO.h"
 #include "ForwardPass.h"
 #include "FxaaPass.h"
+#include "ShadowmapPass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -59,6 +60,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     deferredResolve = std::make_unique<DeferredResolvePass>();
     decalPass = std::make_unique<DeferredDecalPass>();
     fxaa = std::make_unique<FxaaPass>();
+    shadowmapPass = std::make_unique<ShadowmapPass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -131,7 +133,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     UpdateCameraUBO(camera);
     App->level->GetLightManager()->UpdateGPUBuffers();
 
-    render_list.UpdateFrom(culling, App->level->GetRoot()); 
+    render_list.UpdateFrom(culling->frustum, App->level->GetRoot()); 
 
     batch_manager->UpdateModel(render_list.GetOpaques());
     batch_manager->UpdateModel(render_list.GetTransparents());
@@ -145,7 +147,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetLightManager()->Bind();
 
-    RenderDeferred(camera, frameBuffer, width, height);
+    RenderDeferred(camera, culling, frameBuffer, width, height);
 }
 
 void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
@@ -164,18 +166,22 @@ void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBu
     frameBuffer->Unbind();
 }
 
-void ModuleRenderer::RenderDeferred(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
+void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
     // Deferred
     exportGBuffer->execute(render_list, width, height);
     decalPass->execute(camera, render_list, width, height);
     ssao->execute(width, height);
 
+    // todo: forward renderer
+    shadowmapPass->execute(culling);
+
     deferredResolve->execute(frameBuffer, width, height);
 
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
+    cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
     // Forward Transparent
     frameBuffer->Bind();
     forward->executeTransparent(render_list, nullptr, width, height);
@@ -193,7 +199,7 @@ void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
 	float4x4 proj   = camera->GetProjectionMatrix();	
 	float4x4 view   = camera->GetViewMatrix();
 
-    render_list.UpdateFrom(camera, App->level->GetRoot());
+    render_list.UpdateFrom(camera->frustum, App->level->GetRoot());
 
     SelectionPass(proj, view);
 }

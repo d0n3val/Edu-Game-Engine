@@ -43,9 +43,9 @@ void BatchManager::Remove(const ComponentMeshRenderer* object)
     batches[object->GetBatchIndex()]->Remove(object);
 }
 
-void BatchManager::Render(const NodeList &objects, bool keepOrder)
+void BatchManager::Render(const NodeList &objects, uint flags)
 {
-    if(keepOrder)
+    if((flags & BR_FLAG_KEEP_ORDER) != 0)
     {
         uint lastBatch = UINT_MAX;
         for (const TRenderInfo &info : objects)
@@ -55,7 +55,7 @@ void BatchManager::Render(const NodeList &objects, bool keepOrder)
             {
                 if (batch != lastBatch && lastBatch != UINT_MAX)
                 {
-                    batches[lastBatch]->DoRender();
+                    batches[lastBatch]->DoRender(flags);
                 }
 
                 batches[batch]->Render(info.mesh);
@@ -65,7 +65,7 @@ void BatchManager::Render(const NodeList &objects, bool keepOrder)
 
         if(lastBatch != UINT_MAX)
         {
-            batches[lastBatch]->DoRender();
+            batches[lastBatch]->DoRender(flags);
         }
     }
     else
@@ -83,7 +83,7 @@ void BatchManager::Render(const NodeList &objects, bool keepOrder)
         {
             if (batch->HasCommands())
             {
-                batch->DoRender();
+                batch->DoRender(flags);
             }
         }
     }

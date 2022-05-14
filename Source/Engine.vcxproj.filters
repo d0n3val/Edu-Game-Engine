@@ -739,6 +739,9 @@
     <ClInclude Include="KawaseBlur.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowmapPass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1339,6 +1342,9 @@
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
     <ClCompile Include="KawaseBlur.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowmapPass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>

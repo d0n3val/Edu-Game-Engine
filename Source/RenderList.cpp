@@ -2,35 +2,40 @@
 #include "RenderList.h"
 
 #include "Quadtree.h"
-#include "ComponentCamera.h"
 #include "ComponentMeshRenderer.h"
 #include "ComponentParticleSystem.h"
 #include "ComponentTrail.h"
 #include "ComponentDecal.h"
 #include "GameObject.h"
 
-void RenderList::UpdateFrom(ComponentCamera* camera, QuadtreeNode* quadtree)
+void RenderList::UpdateFrom(const Frustum& frustum, QuadtreeNode* quadtree, uint objTypes /*= RENDERLIST_OBJ_ALL*/)
 {
     opaque_nodes.clear();
     transparent_nodes.clear();
+    particles.clear();
+    trails.clear();
+    decals.clear();
 
     Plane planes[6];
-    camera->frustum.GetPlanes(planes);
+    frustum.GetPlanes(planes);
 
-    float3 pos = camera->GetCameraMatrix().TranslatePart();
+    float3 pos = frustum.WorldMatrix().TranslatePart();
 
-    CollectObjects(planes, pos, quadtree);
+    CollectObjects(planes, pos, quadtree, objTypes);
 }
 
-void RenderList::UpdateFrom(ComponentCamera* camera, GameObject* go)
+void RenderList::UpdateFrom(const Frustum& frustum, GameObject* go, uint objTypes /*= RENDERLIST_OBJ_ALL*/)
 {
     opaque_nodes.clear();
     transparent_nodes.clear();
+    particles.clear();
+    trails.clear();
+    decals.clear();
 
-    CollectObjects(camera, go);
+    CollectObjects(frustum, go, objTypes);
 }
 
-void RenderList::CollectObjects(Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree)
+void RenderList::CollectObjects(Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree, uint objTypes)
 {
     if (quadtree->box.IsFinite() && Intersects(camera_planes, quadtree->box))
     {
@@ -49,10 +54,25 @@ void RenderList::CollectObjects(Plane* camera_planes, const float3& camera_pos, 
 
             if (inside)
             {
-                CollectMeshRenderers(camera_pos, go);
-                CollectParticleSystems(camera_pos, go);
-                CollectTrails(camera_pos, go);
-                CollectDecals(camera_pos, go);
+                if((objTypes & RENDERLIST_OBJ_MESH) != 0)
+                {
+                    CollectMeshRenderers(camera_pos, go, objTypes);
+                }
+
+                if((objTypes & RENDERLIST_OBJ_PARTICLES) != 0)
+                {
+                    CollectParticleSystems(camera_pos, go);
+                }
+
+                if((objTypes & RENDERLIST_OBJ_TRAILS) != 0)
+                {
+                    CollectTrails(camera_pos, go);
+                }
+
+                if((objTypes & RENDERLIST_OBJ_DECALS) != 0)
+                {
+                    CollectDecals(camera_pos, go);
+                }
             }
         }
 
@@ -60,7 +80,7 @@ void RenderList::CollectObjects(Plane* camera_planes, const float3& camera_pos, 
         {
             if (child)
             {
-                CollectObjects(camera_planes, camera_pos, child);
+                CollectObjects(camera_planes, camera_pos, child, objTypes);
             }
         }
     }
@@ -98,7 +118,7 @@ bool RenderList::Intersects(Plane* camera_planes, const float3* points)
     return true;
 }
 
-void RenderList::CollectObjects(ComponentCamera* camera, GameObject* go)
+void RenderList::CollectObjects(const Frustum& frustum, GameObject* go, uint objTypes)
 {
     AABB local_bounding = go->GetLocalBBox();
 
@@ -108,25 +128,37 @@ void RenderList::CollectObjects(ComponentCamera* camera, GameObject* go)
         float4x4 transform = go->GetGlobalTransformation();
 
         OBB global_bounding = local_bounding.Transform(transform);
-        inside = camera->frustum.Intersects(global_bounding);
+        inside = frustum.Intersects(global_bounding);
     }
 
     if (inside)
     {
-        float3 camera_pos = camera->GetCameraMatrix().TranslatePart();
-        CollectMeshRenderers(camera_pos, go);
-        CollectParticleSystems(camera_pos, go);
-        CollectTrails(camera_pos, go);
-        CollectDecals(camera_pos, go);
+        float3 camera_pos = frustum.WorldMatrix().TranslatePart();
+        if ((objTypes & RENDERLIST_OBJ_MESH) != 0)
+        {
+            CollectMeshRenderers(camera_pos, go, objTypes);
+        }
+        if ((objTypes & RENDERLIST_OBJ_PARTICLES) != 0)
+        {
+            CollectParticleSystems(camera_pos, go);
+        }
+        if((objTypes & RENDERLIST_OBJ_TRAILS) != 0)
+        {
+            CollectTrails(camera_pos, go);
+        }
+        if ((objTypes & RENDERLIST_OBJ_DECALS) != 0)
+        {
+            CollectDecals(camera_pos, go);
+        }
     }
 
     for(auto it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
     {
-        CollectObjects(camera, *it);
+        CollectObjects(frustum, *it, objTypes);
     }
 }
 
-void RenderList::CollectMeshRenderers(const float3& camera_pos, GameObject* go)
+void RenderList::CollectMeshRenderers(const float3& camera_pos, GameObject* go, uint objType)
 {
     std::vector<Component*> components;
     go->FindComponents(Component::MeshRenderer, components);
@@ -145,24 +177,30 @@ void RenderList::CollectMeshRenderers(const float3& camera_pos, GameObject* go)
         {
             if(render.mesh->RenderMode() == ComponentMeshRenderer::RENDER_OPAQUE)
             {
-                NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render, 
-                        [](const TRenderInfo& info, const TRenderInfo& new_info) 
-                        { 
-                            //return info.distance < new_info.distance; 
-                            return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
-                        } );
+                if((objType & RENDERLIST_OBJ_OPAQUE) != 0)
+                {
+                    NodeList::iterator it = std::lower_bound(opaque_nodes.begin(), opaque_nodes.end(), render,
+                                                             [](const TRenderInfo &info, const TRenderInfo &new_info)
+                                                             {
+                                                                 // return info.distance < new_info.distance;
+                                                                 return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
+                                                             });
 
-                opaque_nodes.insert(it, render);
+                    opaque_nodes.insert(it, render);
+                }
             }
             else
             {
-                NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, 
-                        [](const TRenderInfo& info, const TRenderInfo& new_info) 
-                        { 
-                            return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
-                        });
+                if((objType & RENDERLIST_OBJ_TRANSPARENT) != 0)
+                {
+                    NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, 
+                            [](const TRenderInfo& info, const TRenderInfo& new_info) 
+                            { 
+                                return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
+                            });
 
-                transparent_nodes.insert(it, render);
+                    transparent_nodes.insert(it, render);
+                }
             }
         }
     }
