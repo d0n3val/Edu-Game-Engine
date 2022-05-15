@@ -13,6 +13,7 @@ struct PBR
     float smoothness;
     float occlusion;
     float alpha;
+    float shadow;
 };
 
 vec3 GetFresnel(vec3 dir0, vec3 dir1, const vec3 f0)

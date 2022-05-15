@@ -5,10 +5,12 @@
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "ModuleLevelManager.h"
+#include "ModuleHints.h"
 #include "LightManager.h"
 #include "Skybox.h"
 #include "BatchManager.h"
 #include "RenderList.h"
+#include "ShadowmapPass.h"
 #include "OGL.h"
 #include "OpenGL.h"
 
@@ -20,14 +22,24 @@ GBufferExportPass::GBufferExportPass()
 {
 }
 
+GBufferExportPass::~GBufferExportPass()
+{
+}
+
 void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height)
 {
     resizeFrameBuffer(width, height);
 
+    glDisable(GL_BLEND);
+
     useProgram();
 
-    glDisable(GL_BLEND);
-    glViewport(0, 0, width, height);
+    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+
+    ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
+    program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
+    program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS)); 
+    shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
 
     float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     frameBuffer->ClearColor(0, clearColor);
@@ -38,6 +50,7 @@ void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height
     frameBuffer->ClearDepth(1.0f);
 
     frameBuffer->Bind();
+    glViewport(0, 0, width, height);
     
     App->renderer->GetBatchManager()->Render(nodes.GetOpaques(), false);
 
@@ -68,7 +81,7 @@ void GBufferExportPass::resizeFrameBuffer(uint width, uint height)
 
         frameBuffer->ClearAttachments();
 
-        albedoTex   = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RGB, GL_UNSIGNED_INT, nullptr, false);
+        albedoTex   = std::make_unique<Texture2D>(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT, nullptr, false);
         specularTex = std::make_unique<Texture2D>(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT, nullptr, false);
         emissiveTex = std::make_unique<Texture2D>(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
         depthTex    = std::make_unique<Texture2D>(width, height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);

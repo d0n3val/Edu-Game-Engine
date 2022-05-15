@@ -15,6 +15,7 @@ in struct VertexOut
     vec3 normal;
     vec3 tangent;
     vec3 position;
+    vec3 shadowCoord;
 } fragment;
 
 in flat int draw_id;
@@ -33,7 +34,7 @@ void sampleSSAO(inout PBR pbr)
 void main()
 {
     PBR pbr;
-    getMaterial(pbr, draw_id, fragment.uv0, fragment.position, fragment.normal, fragment.tangent);
+    getMaterial(pbr, draw_id, fragment.uv0, fragment.position, fragment.normal, fragment.tangent, fragment.shadowCoord);
 
     sampleSSAO(pbr);
 

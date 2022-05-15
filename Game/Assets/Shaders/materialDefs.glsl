@@ -3,6 +3,7 @@
 
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/pbrDefs.glsl"
+#include "/shaders/shadows.glsl"
 
 #define DIFFUSE_MAP_INDEX 0
 #define SPECULAR_MAP_INDEX 1
@@ -71,7 +72,7 @@ mat3 createTBN(const vec3 normal, const vec3 tangent)
     return mat3(tangent, bitangent, normal);
 }
 
-void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in vec3 vertexPosition, in vec3 vertexNormal, in vec3 vertexTangent)
+void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in vec3 vertexPosition, in vec3 vertexNormal, in vec3 vertexTangent, in vec3 shadowCoord)
 {
     Material material = materials[matIndex]; 
     
@@ -168,6 +169,7 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in vec3 vertexPositi
     }
 
     pbr.position = vertexPosition;
+    pbr.shadow = ComputeShadow(shadowCoord);
 }
 
 #endif /* _MATERIAL_DEFS_GLSL_ */

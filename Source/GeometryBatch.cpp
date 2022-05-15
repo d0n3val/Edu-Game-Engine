@@ -512,7 +512,7 @@ void GeometryBatch::UpdateModels()
 {
     if(!modelUpdates.empty())
     {
-        float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, uint(objects.size() * sizeof(float4x4))));
+        float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->MapRange(GL_MAP_WRITE_BIT /*| GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT*/, 0, uint(objects.size() * sizeof(float4x4))));
         float4x4* palette    = nullptr;
         float* weights       = nullptr;
 

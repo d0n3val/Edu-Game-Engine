@@ -27,6 +27,7 @@ void unpackGBuffer(out PBR pbr)
     vec4 normalSmp   = texture(normal, uv);
 
     pbr.diffuse    = albedoSmp.rgb;
+    pbr.shadow     = albedoSmp.a;
     pbr.specular   = specularSmp.rgb;
     pbr.emissive   = emissiveSmp.rgb;
     pbr.normal     = normalize(normalSmp.rgb*2.0-1.0);

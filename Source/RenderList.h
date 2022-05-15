@@ -53,6 +53,7 @@ public:
 
     void UpdateFrom(const Frustum& frustum, QuadtreeNode* quadtree, uint objTypes = RENDERLIST_OBJ_ALL);
     void UpdateFrom(const Frustum& frustum, GameObject* go, uint objTypes = RENDERLIST_OBJ_ALL);
+    void UpdateFrom(const Plane* cameraPlanes, const float3& cameraPos, GameObject* go, uint objTypes = RENDERLIST_OBJ_ALL);
 
     NodeList&       GetOpaques() { return opaque_nodes; }
     const NodeList& GetOpaques() const { return opaque_nodes; }
@@ -71,12 +72,12 @@ public:
 
 private:
 
-    void CollectObjects(Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree, uint objTypes);
-    void CollectObjects(const Frustum& frustum, GameObject* go, uint objTypes);
+    void CollectObjects(const Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree, uint objTypes);
+    void CollectObjects(const Plane* camera_planes, const float3& camera_pos, GameObject* go, uint objTypes);
 
-    bool Intersects(Plane* camera_planes, const AABB& aabb);
-    bool Intersects(Plane* camera_planes, const OBB& obb);
-    bool Intersects(Plane* camera_planes, const float3* points);
+    bool Intersects(const Plane* camera_planes, const AABB& aabb);
+    bool Intersects(const Plane* camera_planes, const OBB& obb);
+    bool Intersects(const Plane* camera_planes, const float3* points);
     void CollectMeshRenderers        (const float3& camera_pos, GameObject* go, uint objTypes);
     void CollectParticleSystems      (const float3& camera_pos, GameObject* go);
     void CollectTrails               (const float3& camera_pos, GameObject* go);

@@ -28,7 +28,6 @@ public:
 
     void execute(uint width, uint height);
 
-    void bindResult();
     const Texture2D* getResult() const;
 
 private:

@@ -15,6 +15,7 @@
 #include "Postprocess.h"
 #include "DepthPrepass.h"
 #include "GBufferExportPass.h"
+#include "ShadowmapPass.h"
 #include "ScreenSpaceAO.h"
 #include "FxaaPass.h"
 
@@ -236,6 +237,13 @@ void SceneViewport::ShowTexture()
     if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING) && App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_MAP))
     {
         ImGui::GetWindowDrawList()->AddImage(
+            (ImTextureID)App->renderer->GetShadowmapPass()->getDepthTex()->Id(),
+            ImVec2(screenPos),
+            ImVec2(screenPos.x + fb_width * 0.4f, screenPos.y + fb_height * 0.4f),
+            ImVec2(0, 1), ImVec2(1, 0));
+
+        /*
+        ImGui::GetWindowDrawList()->AddImage(
             (ImTextureID)App->renderer->GetShadowMap(0),
             ImVec2(screenPos),
             ImVec2(screenPos.x + fb_width*0.2f, screenPos.y + fb_height*0.2f),
@@ -252,7 +260,7 @@ void SceneViewport::ShowTexture()
             ImVec2(screenPos.x + fb_width * 0.4f, screenPos.y),
             ImVec2(screenPos.x + fb_width * 0.6f, screenPos.y + fb_height * 0.2f),
             ImVec2(0, 1), ImVec2(1, 0));
-
+            */
     }
     else
     {

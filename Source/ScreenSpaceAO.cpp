@@ -156,15 +156,3 @@ const Texture2D* ScreenSpaceAO::getResult() const
 
     return result.get();
 }
-
-void ScreenSpaceAO::bindResult()
-{
-    if (std::get<bool>(App->hints->GetDHint(std::string("SSAO blur"), true)))
-    {
-        blurred->Bind(SSAO_TEX_BINDING);
-    }
-    else
-    {
-        result->Bind(SSAO_TEX_BINDING);
-    }
-}

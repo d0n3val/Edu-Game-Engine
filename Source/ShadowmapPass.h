@@ -18,6 +18,9 @@ class ShadowmapPass
     std::unique_ptr<Program>     program;
     RenderList                   objects;
     Frustum                      frustum;
+    OBB                          lightOBB;
+    float3                       sphereCenter;
+    float                        sphereRadius;
     std::unique_ptr<Buffer>      cameraUBO;
 
 public:
@@ -26,7 +29,10 @@ public:
 
     void execute(ComponentCamera* camera);
 
-    const Texture2D* getDepth() const {return depthTex.get();}
+    void debugDraw();
+
+    const Texture2D* getDepthTex() const {return depthTex.get();}
+    const Frustum& getFrustum() const {return frustum;}
 
 private:
     void updateFrustum(ComponentCamera* camera);

@@ -36,8 +36,8 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     exportPass->getEmissive()->Bind(GBUFFER_EMISSIVE_TEX_BINDING);
     exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
     exportPass->getNormal()->Bind(GBUFFER_NORMAL_TEX_BINDING);
-
-	ssao->bindResult();
+    
+	ssao->getResult()->Bind(SSAO_TEX_BINDING);
 
 	App->level->GetSkyBox()->BindIBL();
 

@@ -13,6 +13,7 @@ in struct VertexOut
     vec3 normal;
     vec3 tangent;
     vec3 position;
+    vec3 shadowCoord;
 } fragment;
 
 in flat int draw_id;

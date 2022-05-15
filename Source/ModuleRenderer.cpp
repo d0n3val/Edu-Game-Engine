@@ -168,20 +168,19 @@ void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBu
 
 void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
+    // todo: forward
+    shadowmapPass->execute(culling);
+
     // Deferred
     exportGBuffer->execute(render_list, width, height);
     decalPass->execute(camera, render_list, width, height);
     ssao->execute(width, height);
-
-    // todo: forward renderer
-    shadowmapPass->execute(culling);
 
     deferredResolve->execute(frameBuffer, width, height);
 
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
-    cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
     // Forward Transparent
     frameBuffer->Bind();
     forward->executeTransparent(render_list, nullptr, width, height);
@@ -371,7 +370,8 @@ void ModuleRenderer::LoadDefaultShaders()
 
 void ModuleRenderer::DrawDebug()
 {
-    DebugDrawOBB();
+    shadowmapPass->debugDraw();
+    //DebugDrawOBB();
 }
 
 void ModuleRenderer::DebugDrawOBB(const NodeList& objects)

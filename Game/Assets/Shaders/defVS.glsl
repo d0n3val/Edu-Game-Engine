@@ -4,6 +4,7 @@
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/cameraDefs.glsl"
 
+
 layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
 layout(location = NORMAL_ATTRIB_LOCATION) in vec3 vertex_normal;
 layout(location = UV0_ATTRIB_LOCATION) in vec2 vertex_uv0;
@@ -12,6 +13,7 @@ layout(location = BONE_WEIGHT_ATTRIB_LOCATION) in vec4 bone_weights;
 layout(location = TANGENT_ATTRIB_LOCATION) in vec3 vertex_tangent;
 layout(location = UV1_ATTRIB_LOCATION) in vec2 vertex_uv1;
 layout(location = DRAW_ID_ATTRIB_LOCATION) in int  draw_id_att;
+
 
 readonly layout(std430, row_major, binding = MODEL_SSBO_BINDING) buffer Transforms
 {
@@ -47,6 +49,8 @@ layout(std430, binding = MORPH_WEIGHT_SSBO_BINDING) buffer MorphWeights
 
 layout(binding=MORPH_TARGET_TBO_BINDING) uniform samplerBuffer morphData;
 
+layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj;
+
 out struct VertexOut
 {
 
@@ -55,6 +59,7 @@ out struct VertexOut
     vec3 normal;
     vec3 tangent;
     vec3 position;
+    vec3 shadowCoord;
 
 } fragment;
 
@@ -65,6 +70,7 @@ vec3 MorphNormal(vec3 position);
 vec3 MorphTangent(vec3 position);
 
 void TransformOutput();
+void computeShadowCoord();
 
 void main()
 {
@@ -75,6 +81,17 @@ void main()
     fragment.uv0 = vertex_uv0;
     fragment.uv1 = vertex_uv1;
     draw_id      = draw_id_att;
+
+    computeShadowCoord();
+}
+
+void computeShadowCoord()
+{
+    vec4 coord = shadowViewProj*vec4(fragment.position, 1.0);
+    coord.xyz /= coord.w;
+    coord.xy = coord.xy*0.5+0.5;
+
+    fragment.shadowCoord = coord.xyz;
 }
 
 vec3 MorphPosition(vec3 position)

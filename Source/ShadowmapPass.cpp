@@ -14,6 +14,7 @@
 #include "OpenGL.h"
 
 #include "Leaks.h"
+#include "DebugDraw.h"
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
@@ -23,7 +24,7 @@
 
 #include <algorithm>
 
-#define SHADOW_MAP_TEXTURE_SIZE 512
+#define SHADOW_MAP_TEXTURE_SIZE 4096
 
 ShadowmapPass::ShadowmapPass()
 {
@@ -43,17 +44,33 @@ void ShadowmapPass::execute(ComponentCamera* camera)
     updateFrustum(camera);
     updateCameraUBO();
 
-    objects.UpdateFrom(frustum, App->level->GetRoot(), RENDERLIST_OBJ_OPAQUE);
+    Plane obbPlanes[6];
+    lightOBB.GetFacePlanes(obbPlanes);
+
+    objects.UpdateFrom(obbPlanes, frustum.pos, App->level->GetRoot(), RENDERLIST_OBJ_OPAQUE);
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LESS);
     cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
     program->Use();
     frameBuffer->Bind();
     glViewport(0, 0, SHADOW_MAP_TEXTURE_SIZE, SHADOW_MAP_TEXTURE_SIZE);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), BR_FLAG_AVOID_UPDATE_MODEL_MATRIX);
+    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), 0);
+}
+
+void ShadowmapPass::debugDraw()
+{
+    float3 p[8];
+    lightOBB.GetCornerPoints(p);
+    std::swap(p[2], p[5]);
+    std::swap(p[3], p[4]);
+    std::swap(p[4], p[5]);
+    std::swap(p[6], p[7]);
+    dd::box(p, dd::colors::White);
+
+    dd::sphere(sphereCenter, dd::colors::AntiqueWhite, sphereRadius);
 }
 
 void ShadowmapPass::updateFrustum(ComponentCamera* camera)
@@ -61,26 +78,32 @@ void ShadowmapPass::updateFrustum(ComponentCamera* camera)
     float3 corner[8];
 
     camera->frustum.GetCornerPoints(corner);
-    float3 center = camera->frustum.CenterPoint();
+    sphereCenter = camera->frustum.CenterPoint();
 
-    float radius = 0.0f;
+    sphereRadius = 0.0f;
 
     for(uint i=0; i< 8; ++i)
     {
-        radius = std::max(radius, center.Distance(corner[i]));
+        sphereRadius = std::max(sphereRadius, sphereCenter.Distance(corner[i]));
     }
 
     const DirLight* light = App->level->GetLightManager()->GetDirLight();
     float3 lightDir = light->GetDir();
 
-    frustum.type  = FrustumType::OrthographicFrustum;
-    frustum.pos   = center-lightDir*radius;
-    frustum.front = lightDir;
-    frustum.up    = light->GetUp(); // TODO: simplify for students
+    lightOBB.axis[0] = lightDir;
+    lightOBB.axis[1] = light->GetUp();
+    lightOBB.axis[2] = lightDir.Cross(light->GetUp());
+    lightOBB.r = float3(sphereRadius);
+    lightOBB.pos = sphereCenter;
+
+    frustum.type               = FrustumType::OrthographicFrustum;
+    frustum.pos                = sphereCenter-lightDir*sphereRadius;
+    frustum.front              = lightDir;
+    frustum.up                 = light->GetUp(); // TODO: simplify for students
     frustum.nearPlaneDistance  = 0.0f;
-    frustum.farPlaneDistance   = radius*2.0f;
-    frustum.orthographicWidth  = radius*2.0f;
-    frustum.orthographicHeight = radius*2.0f;
+    frustum.farPlaneDistance   = sphereRadius*2.0f;
+    frustum.orthographicWidth  = sphereRadius*2.0f;
+    frustum.orthographicHeight = sphereRadius*2.0f;    
 }
 
 void ShadowmapPass::createFramebuffer()
@@ -89,6 +112,11 @@ void ShadowmapPass::createFramebuffer()
     {
         frameBuffer = std::make_unique<Framebuffer>();
         depthTex = std::make_unique<Texture2D>(SHADOW_MAP_TEXTURE_SIZE, SHADOW_MAP_TEXTURE_SIZE, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+
+        depthTex->Bind(0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+        depthTex->Unbind(0);
 
         frameBuffer->AttachDepthStencil(depthTex.get(), GL_DEPTH_ATTACHMENT);
 

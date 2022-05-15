@@ -5,8 +5,10 @@
 #include "BatchManager.h"
 #include "ModuleRenderer.h"
 #include "ModuleLevelManager.h"
+#include "ModuleHints.h"
 #include "Skybox.h"
 #include "ScreenSpaceAO.h"
+#include "ShadowmapPass.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -26,11 +28,17 @@ ForwardPass::~ForwardPass()
 
 void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, uint width, uint height)
 {
+    ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
+
     UseProgram();
+
+    program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
+    program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS)); 
+    shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
 
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetSkyBox()->BindIBL();
-	App->renderer->GetScreenSpaceAO()->bindResult();
+    App->renderer->GetScreenSpaceAO()->getResult()->Bind(SSAO_TEX_BINDING);
 
     if (target)
     {
@@ -52,7 +60,7 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
 
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetSkyBox()->BindIBL();
-	App->renderer->GetScreenSpaceAO()->bindResult();
+    App->renderer->GetScreenSpaceAO()->getResult()->Bind(SSAO_TEX_BINDING);
 
     if (target)
     {

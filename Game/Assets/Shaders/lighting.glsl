@@ -115,21 +115,28 @@ vec4 Shading(in PBR pbr)
         vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
         indirect        = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
     }
+
+    float shadow = pbr.shadow;
     
-    vec3 color = Directional(pbr.normal, V, directional, pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
+    vec3 color = Directional(pbr.normal, V, directional, pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+
+    shadow = min(1.0, pbr.shadow+0.15);
 
     for(uint i=0; i< num_point; ++i)
     {
-        color += Point(pbr.position, pbr.normal, V, points[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
+        color += Point(pbr.position, pbr.normal, V, points[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
     }
 
     for(uint i=0; i< num_spot; ++i)
     {
-        color += Spot(pbr.position, pbr.normal, V, spots[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
+        color += Spot(pbr.position, pbr.normal, V, spots[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
     }
 
-    color += indirect*pbr.occlusion;
-    // note: will be added with bloom color += pbr.emissive;
+    shadow = min(1.0, pbr.shadow+0.3);
+
+    color += indirect*pbr.occlusion*shadow;
+    
+
 
     return vec4(color, pbr.alpha); 
 }

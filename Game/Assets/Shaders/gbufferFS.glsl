@@ -13,6 +13,8 @@ in struct VertexOut
     vec3 normal;
     vec3 tangent;
     vec3 position;
+    vec3 shadowCoord;
+
 } fragment;
 
 in flat int draw_id;
@@ -26,6 +28,7 @@ layout(location = 4)out vec4 normal;
 void packGBuffer(in PBR pbr)
 {
     albedo.rgb        = pbr.diffuse;
+    albedo.a          = pbr.shadow;
     specular.rgb      = pbr.specular;
     specular.a        = pbr.smoothness;
     emissive.rgb      = pbr.emissive;
@@ -38,6 +41,7 @@ void main()
 {
     PBR pbr;
 
-    getMaterial(pbr, draw_id, fragment.uv0, fragment.position, fragment.normal, fragment.tangent);
+    getMaterial(pbr, draw_id, fragment.uv0, fragment.position, fragment.normal, fragment.tangent, fragment.shadowCoord);
+
     packGBuffer(pbr);
 }

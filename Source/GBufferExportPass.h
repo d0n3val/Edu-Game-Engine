@@ -27,6 +27,7 @@ class GBufferExportPass
 public:
 
     GBufferExportPass();
+    ~GBufferExportPass();
 
     void execute(const RenderList& nodes, uint width, uint height);
 
