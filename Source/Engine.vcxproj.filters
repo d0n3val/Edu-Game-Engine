@@ -742,6 +742,9 @@
     <ClInclude Include="ShadowmapPass.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="CascadeShadowPass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1345,6 +1348,9 @@
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
     <ClCompile Include="ShadowmapPass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="CascadeShadowPass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>

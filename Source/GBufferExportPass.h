@@ -20,6 +20,7 @@ class GBufferExportPass
     std::unique_ptr<Texture2D>   depthTex;
 
     std::unique_ptr<Program>     program;
+    std::unique_ptr<Program>     programCascade;
 
     uint                         fbWidth = 0;
     uint                         fbHeight = 0;
@@ -43,7 +44,8 @@ private:
 
     void resizeFrameBuffer(uint width, uint height);
     void useProgram();
-    bool generateProgram();
+    bool generatePrograms();
+    void bindShadows();
 };
 
 #endif /* _GBUFFEREXPORT_PASS_H_ */

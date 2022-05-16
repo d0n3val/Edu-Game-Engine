@@ -26,6 +26,7 @@ class GBufferExportPass;
 class DeferredResolvePass;
 class DeferredDecalPass;
 class ShadowmapPass;
+class CascadeShadowPass;
 class FxaaPass;
 
 class ModuleRenderer : public Module
@@ -66,6 +67,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<ScreenSpaceAO>        ssao;
     std::unique_ptr<FxaaPass>             fxaa;
     std::unique_ptr<ShadowmapPass>        shadowmapPass;
+    std::unique_ptr<CascadeShadowPass>    cascadeShadowPass;
     std::unique_ptr<Buffer>               cameraUBO;
 
 public:
@@ -88,6 +90,7 @@ public:
     GBufferExportPass*  GetGBufferExportPass        () const { return exportGBuffer.get(); }
     FxaaPass*           GetFxaaPass                 () const { return fxaa.get(); }
     ShadowmapPass*      GetShadowmapPass            () const { return shadowmapPass.get(); }
+    CascadeShadowPass*  GetCascadeShadowPass        () const { return cascadeShadowPass.get(); }
     Buffer*             GetCameraUBO                () const { return cameraUBO.get(); }
 
 private:

@@ -12,6 +12,7 @@
 #include "ForwardPass.h"
 #include "FxaaPass.h"
 #include "ShadowmapPass.h"
+#include "CascadeShadowPass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -61,6 +62,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     decalPass = std::make_unique<DeferredDecalPass>();
     fxaa = std::make_unique<FxaaPass>();
     shadowmapPass = std::make_unique<ShadowmapPass>();
+    cascadeShadowPass = std::make_unique<CascadeShadowPass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -169,7 +171,15 @@ void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBu
 void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
     // todo: forward
-    shadowmapPass->execute(culling);
+
+    //if(App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
+    {
+        cascadeShadowPass->execute(culling->frustum);
+    }
+    //else
+    {
+        shadowmapPass->execute(culling->frustum, 4096, 4096);
+    }
 
     // Deferred
     exportGBuffer->execute(render_list, width, height);
@@ -244,17 +254,8 @@ void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigne
             //glUniformMatrix4fv(App->programs->GetUniformLocation("camera_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&camera_proj));
             //glUniformMatrix4fv(App->programs->GetUniformLocation("camera_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&camera_view));
 
-            if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
-            {
-                glCullFace(GL_FRONT);
-            }
 
             //DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
-
-            if (App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_FRONT_CULLING))
-            {
-                glCullFace(GL_BACK);
-            }
 
             if (App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
             {

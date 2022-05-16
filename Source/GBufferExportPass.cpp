@@ -11,6 +11,7 @@
 #include "BatchManager.h"
 #include "RenderList.h"
 #include "ShadowmapPass.h"
+#include "CascadeShadowPass.h"
 #include "OGL.h"
 #include "OpenGL.h"
 
@@ -36,10 +37,7 @@ void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height
 
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
 
-    ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
-    program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
-    program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS)); 
-    shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
+    bindShadows();
 
     float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     frameBuffer->ClearColor(0, clearColor);
@@ -61,13 +59,23 @@ void GBufferExportPass::useProgram()
 {
 	if(!program)
 	{
-		generateProgram();
+		generatePrograms();
 	}
 
-	if(program)
-	{
-		program->Use();
-	}
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
+    {
+        if(programCascade)
+        {
+            programCascade->Use();
+        }
+    }
+    else
+    {
+        if(program)
+        {
+            program->Use();
+        }
+    }
 }
 
 void GBufferExportPass::resizeFrameBuffer(uint width, uint height)
@@ -109,13 +117,13 @@ void GBufferExportPass::resizeFrameBuffer(uint width, uint height)
     }
 }
 
-bool GBufferExportPass::generateProgram()
+bool GBufferExportPass::generatePrograms()
 {
 	std::unique_ptr<Shader> vertex, fragment;
 
-	vertex.reset(Shader::CreateVSFromFile("assets/shaders/defVS.glsl", 0, 0));
+    vertex.reset(Shader::CreateVSFromFile("assets/shaders/defVS.glsl", 0, 0));
 
-	bool ok = vertex->Compiled();
+    bool ok = vertex->Compiled();
 
 	if (ok)
 	{
@@ -131,10 +139,55 @@ bool GBufferExportPass::generateProgram()
 		ok = program->Linked();
 	}
 
-	if (!ok)
+    const char *cascadeMacros[] = {"#define CASCADE_SHADOWMAP\n"};
+    if (ok)
+    {
+        vertex.reset(Shader::CreateVSFromFile("assets/shaders/defVS.glsl", &cascadeMacros[0], sizeof(cascadeMacros)/sizeof(const char*)));
+        bool ok = vertex->Compiled();
+    }
+
+    if(ok)
+    {
+		fragment.reset(Shader::CreateFSFromFile("assets/shaders/gbufferFS.glsl", &cascadeMacros[0], sizeof(cascadeMacros)/sizeof(const char*)));
+		ok = fragment->Compiled();
+    }
+
+	if (ok)
+	{
+		programCascade = std::make_unique<Program>(vertex.get(), fragment.get(), "ExportGBufferCascade");
+
+		ok = programCascade->Linked();
+	}
+
+
+    if (!ok)
 	{
 		program.release();
+        programCascade.release();
 	}
 
 	return ok;
+}
+
+void GBufferExportPass::bindShadows()
+{
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
+    {
+        CascadeShadowPass* shadowMap = App->renderer->GetCascadeShadowPass();
+
+        for (uint i = 0; i < CascadeShadowPass::CASCADE_COUNT; ++i)
+        {
+            program->BindUniform(SHADOW_VIEWPROJ_LOCATION + i, shadowMap->getFrustum(i).ViewProjMatrix());
+            shadowMap->getDepthTex(i)->Bind(SHADOWMAP_TEX_BINDING + i);
+        }
+
+        program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+    }
+    else
+    {
+        ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
+        program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
+        program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+        shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
+    }
 }

@@ -55,8 +55,8 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[SHOW_SHADOW_CLIPPING].type              = TYPE_BOOL; 
     hints[SHOW_SHADOW_CLIPPING].value.bvalue      = false;
 
-    hints[ENABLE_SHADOW_FRONT_CULLING].type          = TYPE_BOOL; 
-    hints[ENABLE_SHADOW_FRONT_CULLING].value.bvalue  = true;
+    hints[ENABLE_CASCADE_SHADOW].type          = TYPE_BOOL; 
+    hints[ENABLE_CASCADE_SHADOW].value.bvalue  = true;
 
     hints[UPDATE_SHADOW_VOLUME].type                 = TYPE_BOOL; 
     hints[UPDATE_SHADOW_VOLUME].value.bvalue         = true;
@@ -137,7 +137,7 @@ void ModuleHints::Save(Config* config) const
     config->AddBool("Specular mapping", hints[ENABLE_SPECULAR_MAPPING].value.bvalue);
     config->AddBool("Shadow mapping", hints[ENABLE_SHADOW_MAPPING].value.bvalue);
     config->AddBool("Show shadow clipping", hints[SHOW_SHADOW_CLIPPING].value.bvalue);
-    config->AddBool("Enable shadow front culling", hints[ENABLE_SHADOW_FRONT_CULLING].value.bvalue);
+    config->AddBool("Enable shadow front culling", hints[ENABLE_CASCADE_SHADOW].value.bvalue);
     config->AddBool("Update shadow volume", hints[UPDATE_SHADOW_VOLUME].value.bvalue);
     config->AddBool("Show shadow map", hints[SHOW_SHADOW_MAP].value.bvalue);
 
@@ -188,7 +188,7 @@ bool ModuleHints::Init(Config* config)
     hints[ENABLE_SPECULAR_MAPPING].value.bvalue = config->GetBool("Specular mapping", true);
     hints[ENABLE_SHADOW_MAPPING].value.bvalue = config->GetBool("Shadow mapping", true);
     hints[SHOW_SHADOW_CLIPPING].value.bvalue = config->GetBool("Show shadow clipping", false);
-    hints[ENABLE_SHADOW_FRONT_CULLING].value.bvalue = config->GetBool("Enable shadow front culling", true);
+    hints[ENABLE_CASCADE_SHADOW].value.bvalue = config->GetBool("Enable shadow front culling", true);
     hints[UPDATE_SHADOW_VOLUME].value.bvalue = config->GetBool("Update shadow volume", true);
     hints[SHOW_SHADOW_MAP].value.bvalue = config->GetBool("Show shadow map", true);
 

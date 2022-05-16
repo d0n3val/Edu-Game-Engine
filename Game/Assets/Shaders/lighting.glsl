@@ -120,7 +120,7 @@ vec4 Shading(in PBR pbr)
     
     vec3 color = Directional(pbr.normal, V, directional, pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
 
-    shadow = min(1.0, pbr.shadow+0.15);
+    shadow = min(1.0, pbr.shadow+0.5);
 
     for(uint i=0; i< num_point; ++i)
     {
@@ -132,7 +132,7 @@ vec4 Shading(in PBR pbr)
         color += Spot(pbr.position, pbr.normal, V, spots[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
     }
 
-    shadow = min(1.0, pbr.shadow+0.3);
+    shadow = min(1.0, pbr.shadow+0.25);
 
     color += indirect*pbr.occlusion*shadow;
     

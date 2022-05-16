@@ -22,12 +22,14 @@ class ShadowmapPass
     float3                       sphereCenter;
     float                        sphereRadius;
     std::unique_ptr<Buffer>      cameraUBO;
+    uint                         fbWidth = 0;
+    uint                         fbHeight = 0;
 
 public:
     ShadowmapPass();
     ~ShadowmapPass();
 
-    void execute(ComponentCamera* camera);
+    void execute(const Frustum& culling, uint width, uint height);
 
     void debugDraw();
 
@@ -35,9 +37,11 @@ public:
     const Frustum& getFrustum() const {return frustum;}
 
 private:
-    void updateFrustum(ComponentCamera* camera);
-    void createFramebuffer();
+    void updateFrustum(const Frustum& culling);
+    void createFramebuffer(uint width, uint height);
     void createProgram();
     void updateCameraUBO();
+    void updateRenderList();
+    void render();
 
 };

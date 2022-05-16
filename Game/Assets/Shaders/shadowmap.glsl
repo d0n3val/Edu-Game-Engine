@@ -5,17 +5,9 @@ layout(early_fragment_tests) in;
 
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/materialDefs.glsl"
+#include "/shaders/vertexDefs.glsl"
 
-in struct VertexOut
-{
-    vec2 uv0;
-    vec2 uv1;
-    vec3 normal;
-    vec3 tangent;
-    vec3 position;
-    vec3 shadowCoord;
-} fragment;
-
+in VertexOut fragment;
 in flat int draw_id;
 
 void main()

@@ -3,7 +3,7 @@
 
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/cameraDefs.glsl"
-
+#include "/shaders/vertexDefs.glsl"
 
 layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
 layout(location = NORMAL_ATTRIB_LOCATION) in vec3 vertex_normal;
@@ -49,49 +49,59 @@ layout(std430, binding = MORPH_WEIGHT_SSBO_BINDING) buffer MorphWeights
 
 layout(binding=MORPH_TARGET_TBO_BINDING) uniform samplerBuffer morphData;
 
+#ifdef CASCADE_SHADOWMAP
+layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj[NUM_CASCADES];
+#else
 layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj;
+#endif 
 
-out struct VertexOut
-{
-
-    vec2 uv0;
-    vec2 uv1;
-    vec3 normal;
-    vec3 tangent;
-    vec3 position;
-    vec3 shadowCoord;
-
-} fragment;
-
+out VertexOut fragment;
 out flat int draw_id;
 
 vec3 MorphPosition(vec3 position);
 vec3 MorphNormal(vec3 position);
 vec3 MorphTangent(vec3 position);
 
-void TransformOutput();
-void computeShadowCoord();
+void TransformOutput(out GeomData geom);
+void computeShadowCoord(in vec3 position);
 
 void main()
 {
-    TransformOutput();
+    GeomData geom;
+    TransformOutput(geom);
 
-    gl_Position = proj*view*vec4(fragment.position, 1.0);
+    gl_Position = proj*view*vec4(geom.position, 1.0);
 
-    fragment.uv0 = vertex_uv0;
-    fragment.uv1 = vertex_uv1;
-    draw_id      = draw_id_att;
+    fragment.geom = geom;
+    fragment.uv0  = vertex_uv0;
+    fragment.uv1  = vertex_uv1;
+    draw_id       = draw_id_att;
 
-    computeShadowCoord();
+    computeShadowCoord(geom.position);
 }
 
-void computeShadowCoord()
+void computeShadowCoord(in vec3 position)
 {
-    vec4 coord = shadowViewProj*vec4(fragment.position, 1.0);
+#ifndef SHADOW_MAP
+
+#ifdef CASCADE_SHADOWMAP
+    for(int i=0; i< NUM_CASCADES; ++i)
+    {
+        vec4 coord = shadowViewProj[i]*vec4(position, 1.0);
+        coord.xyz /= coord.w;
+        coord.xy = coord.xy*0.5+0.5;
+
+        fragment.shadowCoord[i] = coord.xyz;
+    }
+#else 
+    vec4 coord = shadowViewProj*vec4(position, 1.0);
     coord.xyz /= coord.w;
     coord.xy = coord.xy*0.5+0.5;
 
     fragment.shadowCoord = coord.xyz;
+#endif 
+
+#endif 
 }
 
 vec3 MorphPosition(vec3 position)
@@ -136,7 +146,7 @@ vec3 MorphTangent(vec3 tangent)
     return res;
 }
 
-void TransformOutput()
+void TransformOutput(out GeomData geom)
 {
     PerInstance instance = instanceInfo[draw_id_att];
     mat4 model = models[draw_id_att];
@@ -145,15 +155,15 @@ void TransformOutput()
 
     if(instance.numTargets > 0) // MorphTargets
     {
-        fragment.position = MorphPosition(vertex_position);
-        fragment.normal   = MorphNormal(vertex_normal);
-        fragment.tangent  = MorphTangent(vertex_tangent);
+        geom.position = MorphPosition(vertex_position);
+        geom.normal   = MorphNormal(vertex_normal);
+        geom.tangent  = MorphTangent(vertex_tangent);
     }
     else // No MorphTargets
     {
-        fragment.position = vertex_position;
-        fragment.normal   = vertex_normal;
-        fragment.tangent  = vertex_tangent;
+        geom.position = vertex_position;
+        geom.normal   = vertex_normal;
+        geom.tangent  = vertex_tangent;
     }
 
     if(instance.numBones > 0) // Skinning 
@@ -161,14 +171,14 @@ void TransformOutput()
         mat4 skin_transform = palette[instance.baseBone+bone_indices[0]]*bone_weights[0]+palette[instance.baseBone+bone_indices[1]]*bone_weights[1]+
                               palette[instance.baseBone+bone_indices[2]]*bone_weights[2]+palette[instance.baseBone+bone_indices[3]]*bone_weights[3];
 
-        fragment.position = (model*skin_transform*vec4(fragment.position, 1.0)).xyz;
-        fragment.normal   = normalMat*mat3(skin_transform)*fragment.normal;
-        fragment.tangent  = normalMat*mat3(skin_transform)*fragment.tangent;
+        geom.position = (model*skin_transform*vec4(geom.position, 1.0)).xyz;
+        geom.normal   = normalMat*mat3(skin_transform)*geom.normal;
+        geom.tangent  = normalMat*mat3(skin_transform)*geom.tangent;
     }
     else // No Skinning
     {
-        fragment.position = (model*vec4(fragment.position, 1.0)).xyz;
-        fragment.normal   = normalMat*fragment.normal;
-        fragment.tangent  = normalMat*fragment.tangent;
+        geom.position = (model*vec4(geom.position, 1.0)).xyz;
+        geom.normal   = normalMat*geom.normal;
+        geom.tangent  = normalMat*geom.tangent;
     }
 }

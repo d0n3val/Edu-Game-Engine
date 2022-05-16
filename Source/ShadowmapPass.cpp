@@ -12,9 +12,9 @@
 
 #include "OGL.h"
 #include "OpenGL.h"
+#include "DebugDraw.h"
 
 #include "Leaks.h"
-#include "DebugDraw.h"
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
@@ -24,7 +24,6 @@
 
 #include <algorithm>
 
-#define SHADOW_MAP_TEXTURE_SIZE 4096
 
 ShadowmapPass::ShadowmapPass()
 {
@@ -36,28 +35,16 @@ ShadowmapPass::~ShadowmapPass()
 
 }
 
-void ShadowmapPass::execute(ComponentCamera* camera)
+void ShadowmapPass::execute(const Frustum& culling, uint width, uint height)
 {
-    createFramebuffer();
+    createFramebuffer(width, height);
     createProgram();
 
-    updateFrustum(camera);
+    updateFrustum(culling);
     updateCameraUBO();
+    updateRenderList();
 
-    Plane obbPlanes[6];
-    lightOBB.GetFacePlanes(obbPlanes);
-
-    objects.UpdateFrom(obbPlanes, frustum.pos, App->level->GetRoot(), RENDERLIST_OBJ_OPAQUE);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
-    program->Use();
-    frameBuffer->Bind();
-    glViewport(0, 0, SHADOW_MAP_TEXTURE_SIZE, SHADOW_MAP_TEXTURE_SIZE);
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), 0);
+    render();
 }
 
 void ShadowmapPass::debugDraw()
@@ -73,12 +60,12 @@ void ShadowmapPass::debugDraw()
     dd::sphere(sphereCenter, dd::colors::AntiqueWhite, sphereRadius);
 }
 
-void ShadowmapPass::updateFrustum(ComponentCamera* camera)
+void ShadowmapPass::updateFrustum(const Frustum& culling)
 {
     float3 corner[8];
 
-    camera->frustum.GetCornerPoints(corner);
-    sphereCenter = camera->frustum.CenterPoint();
+    culling.GetCornerPoints(corner);
+    sphereCenter = culling.CenterPoint();
 
     sphereRadius = 0.0f;
 
@@ -106,12 +93,18 @@ void ShadowmapPass::updateFrustum(ComponentCamera* camera)
     frustum.orthographicHeight = sphereRadius*2.0f;    
 }
 
-void ShadowmapPass::createFramebuffer()
+void ShadowmapPass::createFramebuffer(uint width, uint height)
 {
-    if (!frameBuffer)
+    if (width != fbWidth || height != fbHeight)
     {
-        frameBuffer = std::make_unique<Framebuffer>();
-        depthTex = std::make_unique<Texture2D>(SHADOW_MAP_TEXTURE_SIZE, SHADOW_MAP_TEXTURE_SIZE, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+        if(!frameBuffer)
+        {
+            frameBuffer = std::make_unique<Framebuffer>();
+        }
+
+        frameBuffer->ClearAttachments();
+
+        depthTex = std::make_unique<Texture2D>(width, height, GL_DEPTH_COMPONENT16_ARB, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
         depthTex->Bind(0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
@@ -121,6 +114,9 @@ void ShadowmapPass::createFramebuffer()
         frameBuffer->AttachDepthStencil(depthTex.get(), GL_DEPTH_ATTACHMENT);
 
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+        fbWidth = width;
+        fbHeight = height;
     }
 }
 
@@ -130,13 +126,15 @@ void ShadowmapPass::createProgram()
     {
         std::unique_ptr<Shader> vertex, fragment;
 
-        vertex.reset(Shader::CreateVSFromFile("assets/shaders/defVS.glsl", 0, 0));
+        const char *shadowMapMacros[] = {"#define SHADOW_MAP\n"};
+
+        vertex.reset(Shader::CreateVSFromFile("assets/shaders/defVS.glsl", &shadowMapMacros[0], sizeof(shadowMapMacros)/sizeof(const char*)));
 
         bool ok = vertex->Compiled();
 
         if (ok)
         {
-            fragment.reset(Shader::CreateFSFromFile("assets/shaders/shadowmap.glsl", 0, 0));
+            fragment.reset(Shader::CreateFSFromFile("assets/shaders/shadowmap.glsl", &shadowMapMacros[0], sizeof(shadowMapMacros)/sizeof(const char*)));
 
             ok = fragment->Compiled();
         }
@@ -175,4 +173,25 @@ void ShadowmapPass::updateCameraUBO()
 
     cameraUBO->InvalidateData();
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
+}
+
+void ShadowmapPass::updateRenderList()
+{
+    Plane obbPlanes[6];
+    lightOBB.GetFacePlanes(obbPlanes);
+
+    objects.UpdateFrom(obbPlanes, frustum.pos, App->level->GetRoot(), RENDERLIST_OBJ_OPAQUE);
+}
+
+void ShadowmapPass::render()
+{
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
+    program->Use();
+    frameBuffer->Bind();
+    glViewport(0, 0, fbWidth, fbHeight);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), 0);
 }

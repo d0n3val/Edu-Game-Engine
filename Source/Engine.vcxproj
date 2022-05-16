@@ -236,6 +236,7 @@
     <ClInclude Include="BilinearBlur.h" />
     <ClInclude Include="Bullet\include\btBulletCollisionCommon.h" />
     <ClInclude Include="Bullet\include\btBulletDynamicsCommon.h" />
+    <ClInclude Include="CascadeShadowPass.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentAnimation.h" />
@@ -424,6 +425,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="BatchManager.cpp" />
     <ClCompile Include="BilinearBlur.cpp" />
+    <ClCompile Include="CascadeShadowPass.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentAnimation.cpp" />

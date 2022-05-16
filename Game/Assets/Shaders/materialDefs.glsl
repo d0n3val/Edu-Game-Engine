@@ -4,6 +4,7 @@
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/pbrDefs.glsl"
 #include "/shaders/shadows.glsl"
+#include "/shaders/vertexDefs.glsl"
 
 #define DIFFUSE_MAP_INDEX 0
 #define SPECULAR_MAP_INDEX 1
@@ -72,7 +73,11 @@ mat3 createTBN(const vec3 normal, const vec3 tangent)
     return mat3(tangent, bitangent, normal);
 }
 
-void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in vec3 vertexPosition, in vec3 vertexNormal, in vec3 vertexTangent, in vec3 shadowCoord)
+#ifdef CASCADE_SHADOWMAP
+void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in vec3 shadowCoord[NUM_CASCADES])
+#else
+void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in vec3 shadowCoord)
+#endif 
 {
     Material material = materials[matIndex]; 
     
@@ -160,15 +165,15 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in vec3 vertexPositi
 
     if(has_tex_normal)
     {
-        mat3 tbn = createTBN(normalize(vertexNormal), normalize(vertexTangent));
+        mat3 tbn = createTBN(normalize(geom.normal), normalize(geom.tangent));
         pbr.normal = normalize(tbn*tex_normal);
     }
     else
     {
-        pbr.normal = normalize(vertexNormal);
+        pbr.normal = normalize(geom.normal);
     }
 
-    pbr.position = vertexPosition;
+    pbr.position = geom.position;
     pbr.shadow = ComputeShadow(shadowCoord);
 }
 
