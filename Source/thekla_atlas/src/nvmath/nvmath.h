@@ -144,7 +144,7 @@ inline float asinf_assert(const float f)
 #define asinf asinf_assert
 #endif
 
-#if NV_CC_MSVC
+#if 0 //NV_CC_MSVC
 NV_FORCEINLINE float log2f(float x)
 {
     nvCheck(x >= 0);

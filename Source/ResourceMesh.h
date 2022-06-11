@@ -57,7 +57,7 @@ public:
     bool                  Save                (std::string& output) const;
     static UID            Import              (const aiMesh* mesh, const char* source_file, float scale);
 
-    static UID            LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks);
+    static UID            LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks, UID uid);
     static UID            LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
     static UID            LoadCube            (const char* cube_name, float size);
     static UID            LoadCylinder        (const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks);
@@ -98,7 +98,7 @@ public:
 private:
 
     uint                GetBoneWeightOffset () const { return sizeof(uint)*4*num_vertices; }
-    static UID          Generate            (const char* shape_name, par_shapes_mesh_s* shape);
+    static UID          Generate            (const char* shape_name, par_shapes_mesh_s* shape, UID uid = 0);
     void                GenerateAttribInfo  ();
     void                GenerateCPUBuffers  (const Thekla::Atlas_Output_Mesh* atlas);
     void                GenerateCPUBuffers  (const aiMesh* mesh, float scale);

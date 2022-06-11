@@ -496,7 +496,7 @@ void PanelResources::DrawSphereProperties()
             sprintf_s(lTmp, 511, "**Sphere_%g_%d_%d**", radius, slices, stacks);
 
             close = true;
-            ResourceMesh::LoadSphere(lTmp, radius, slices, stacks);
+            ResourceMesh::LoadSphere(lTmp, radius, slices, stacks, 0);
         }
 
         if(close)

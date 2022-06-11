@@ -91,4 +91,6 @@ bool FxaaPass::generateProgram()
 
         return ok;
     }
+
+    return true;
 }

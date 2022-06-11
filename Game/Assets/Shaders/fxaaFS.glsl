@@ -49,7 +49,7 @@ struct EdgeData
 
 float ComputePixelBlendFactor(in LumNeighbours luminance) 
 {
-    float avg = 2.0*(luminance.north+luminance.south, luminance.east, luminance.west);
+    float avg = 2.0*(luminance.north+luminance.south+luminance.east+luminance.west);
     avg += (luminance.north_east+luminance.north_west+luminance.south_east+luminance.south_west);
     avg /= 12.0;
 

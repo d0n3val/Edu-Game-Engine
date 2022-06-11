@@ -26,7 +26,7 @@ void sampleSSAO(inout PBR pbr)
 void main()
 {
     PBR pbr;
-    getMaterial(pbr, draw_id, fragment.uv0, fragment.geom, fragment.shadowCoord);
+    getMaterial(pbr, draw_id, fragment.uv0, fragment.geom, fragment.shadow);
 
     sampleSSAO(pbr);
 

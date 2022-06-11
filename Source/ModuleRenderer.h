@@ -24,6 +24,7 @@ class ForwardPass;
 class ScreenSpaceAO;
 class GBufferExportPass;
 class DeferredResolvePass;
+class DeferredResolveProxy;
 class DeferredDecalPass;
 class ShadowmapPass;
 class CascadeShadowPass;
@@ -63,6 +64,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<ForwardPass>          forward;
     std::unique_ptr<GBufferExportPass>    exportGBuffer;
     std::unique_ptr<DeferredResolvePass>  deferredResolve;
+    std::unique_ptr<DeferredResolveProxy> deferredProxy;
     std::unique_ptr<DeferredDecalPass>    decalPass;
     std::unique_ptr<ScreenSpaceAO>        ssao;
     std::unique_ptr<FxaaPass>             fxaa;

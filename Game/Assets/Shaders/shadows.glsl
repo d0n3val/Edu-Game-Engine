@@ -16,11 +16,11 @@ layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2D shadow_map[NUM_CASCADES]
 
 layout(location=SHADOW_BIAS_LOCATION) uniform float shadow_bias;
 
-float ComputeShadow(in vec3 coords[NUM_CASCADES])
+float ComputeShadow(in ShadowData shadow)
 {
     for(uint i=0; i< 3; ++i)
     {
-        vec3 coord = coords[i];
+        vec3 coord = shadow.shadowCoord[i];
 
         if(coord.x >= 0.0 && coord.x <= 1.0 && 
            coord.y >= 0.0 && coord.y <= 1.0 &&
@@ -70,8 +70,10 @@ layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2D shadow_map;
 #endif 
 layout(location=SHADOW_BIAS_LOCATION) uniform float shadow_bias;
 
-float ComputeShadow(in vec3 coord)
+float ComputeShadow(in ShadowData shadow)
 {
+    vec3 coord = shadow.shadowCoord;
+
     if(coord.x >= 0.0 && coord.x <= 1.0 && 
        coord.y >= 0.0 && coord.y <= 1.0 &&
        coord.z >= 0.0 && coord.z <= 1.0)

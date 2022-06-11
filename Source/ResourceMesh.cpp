@@ -960,7 +960,7 @@ void ResourceMesh::GenerateVAO()
     glBindVertexArray(0);
 }
 
-UID ResourceMesh::LoadSphere(const char* sphere_name, float size, unsigned slices, unsigned stacks)
+UID ResourceMesh::LoadSphere(const char* sphere_name, float size, unsigned slices, unsigned stacks, UID uid)
 {
     par_shapes_mesh* mesh = par_shapes_create_parametric_sphere(int(slices), int(stacks));
 
@@ -968,7 +968,7 @@ UID ResourceMesh::LoadSphere(const char* sphere_name, float size, unsigned slice
 	{
         par_shapes_scale(mesh, size, size, size);
 
-        UID uid = Generate(sphere_name, mesh);
+        uid = Generate(sphere_name, mesh, uid);
 
         par_shapes_free_mesh(mesh);
 
@@ -1087,21 +1087,31 @@ UID  ResourceMesh::LoadPlane(const char* plane_name, float width, float height, 
 	return 0;
 }
 
-UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape)
+UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape, UID uid)
 {
-    ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
+    ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh, uid));
 
     m->name = HashString(shape_name);
 
     m->GenerateCPUBuffers(shape);
     m->GenerateAttribInfo();
 
-	std::string output;
-    bool ok = m->Save(shape_name, output);
+    bool ok = true;
 
-    m->ReleaseFromMemory();
+    if (m->GetUID() > RESERVED_RESOURCES)
+    {
+        std::string output;
+        ok = m->Save(shape_name, output);
+        m->ReleaseFromMemory();
+    }
+    else
+    {
+        m->GenerateVBO();
+        m->GenerateVAO();
+    }
 
-    return ok ? m->uid : 0;
+
+    return ok ? m->GetUID() : 0;
 }
 
 void ResourceMesh::GenerateCPUBuffers(par_shapes_mesh* shape)

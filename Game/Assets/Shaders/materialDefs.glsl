@@ -73,11 +73,7 @@ mat3 createTBN(const vec3 normal, const vec3 tangent)
     return mat3(tangent, bitangent, normal);
 }
 
-#ifdef CASCADE_SHADOWMAP
-void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in vec3 shadowCoord[NUM_CASCADES])
-#else
-void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in vec3 shadowCoord)
-#endif 
+void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in ShadowData shadow)
 {
     Material material = materials[matIndex]; 
     
@@ -174,7 +170,7 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in
     }
 
     pbr.position = geom.position;
-    pbr.shadow = ComputeShadow(shadowCoord);
+    pbr.shadow = ComputeShadow(shadow);
 }
 
 #endif /* _MATERIAL_DEFS_GLSL_ */

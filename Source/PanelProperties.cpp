@@ -43,6 +43,7 @@
 #include "SceneViewport.h"
 #include "BatchManager.h"
 #include "SkyboxRollout.h"
+#include "LightManager.h"
 
 #include "DirLight.h"
 #include "PointLight.h"
@@ -159,6 +160,27 @@ void PanelProperties::DrawPointLight(PointLight* light)
         if(ImGui::Checkbox("Enabled", &enabled))
         {
             light->SetEnabled(enabled);
+        }
+
+        if(ImGui::Button("Generate"))
+        {
+            float scale = 0.5f;
+            LightManager* lightManager = App->level->GetLightManager();
+            for(int i =0; i <10; ++i)
+            {
+                for(int j=0; j <10; ++j)
+                {
+                    for(int k=0; k < 10; ++k)
+                    {
+                        uint index = lightManager->AddPointLight();
+                        PointLight* light = lightManager->GetPointLight(index);
+                        light->SetPosition(float3(float(i), float(j), float(-k))*scale);
+                        light->SetRadius(scale*0.5);
+                        light->SetColor(float3(1.0f, 1.0f, 1.0f));
+                        light->SetIntensity(10.0f);
+                    }
+                }
+            }
         }
     }
 }

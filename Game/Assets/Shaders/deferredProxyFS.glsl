@@ -1,9 +1,7 @@
 #version 460
 #extension GL_ARB_shading_language_include : require
 
-#include "/shaders/common.glsl"
 #include "/shaders/LocationsAndBindings.h"
-#include "/shaders/cameraDefs.glsl"
 #include "/shaders/lighting.glsl"
 
 layout(binding = GBUFFER_ALBEDO_TEX_BINDING) uniform sampler2D albedo;
@@ -14,6 +12,7 @@ layout(binding = GBUFFER_NORMAL_TEX_BINDING) uniform sampler2D normal;
 layout(binding = SSAO_TEX_BINDING) uniform sampler2D ssao;
 
 in vec2 uv;
+in flat int draw_id;
 out vec4 color;
 
 //////////////////// FUNCTIONS ////////////////////////
@@ -48,5 +47,6 @@ void main()
 
     sampleSSAO(pbr);
 
-    color = ShadingNoPoint(pbr);
+    color.rgb = ShadingPoint(pbr, draw_id);
+    color.a = 1.0;
 }

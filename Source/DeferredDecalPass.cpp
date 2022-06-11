@@ -114,12 +114,12 @@ void DeferredDecalPass::execute(ComponentCamera* camera, const RenderList& objec
 		decal->GetAlbedoRes()->GetTexture()->Bind(DECAL_ALBEDO_TEX_BINDING);
 		decal->GetNormalRes()->GetTexture()->Bind(DECAL_NORMAL_TEX_BINDING);
 		decal->GetSpecularRes()->GetTexture()->Bind(DECAL_SPECULAR_TEX_BINDING);
-
 		frameBuffer->Bind();
 		glViewport(0, 0, width, height);
 
 		glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, GLuint(decal->GetAlbedoRes()->GetID()));
+
 
 		glDisable(GL_BLEND);
 

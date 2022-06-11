@@ -3,6 +3,7 @@
 
 #include "/shaders/common.glsl"
 #include "/shaders/pbrDefs.glsl"
+#include "/shaders/cameraDefs.glsl"
 
 layout(binding = AO_TEX_BINDING) uniform sampler2D ambientOcclusion;
 layout(binding = DIFFUSE_IBL_TEX_BINDING) uniform samplerCube     diffuseIBL;
@@ -98,14 +99,23 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
     return GGXShading(normal, view_dir, light_dir, light.color.rgb*intensity, diffuseColor, specularColor, roughness, att*cone);
 }
 
-vec4 Shading(in PBR pbr)
+vec3 ShadingDirectional(in PBR pbr)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = Sq(1.0-pbr.smoothness); 
+
+    vec3 color = Directional(pbr.normal, V, directional, pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*pbr.shadow;
+
+    return color;
+}
+
+vec3 ShadingAmbient(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
     vec3 R           = reflect(-V, pbr.normal);
     float NdotV      = dot(pbr.normal, V);
     float roughness  = Sq(1.0-pbr.smoothness); 
 
-    // Add Indirect lighting 
     vec3 indirect = vec3(0.0);
 
     if(NdotV >= 0.0)
@@ -116,29 +126,74 @@ vec4 Shading(in PBR pbr)
         indirect        = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
     }
 
-    float shadow = pbr.shadow;
-    
-    vec3 color = Directional(pbr.normal, V, directional, pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+    float shadow = min(1.0, pbr.shadow+0.25);
 
-    shadow = min(1.0, pbr.shadow+0.5);
+    vec3 color = indirect*pbr.occlusion*shadow;
+
+    return color;
+}
+
+vec3 ShadingPoint(in PBR pbr, uint index)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = Sq(1.0-pbr.smoothness); 
+
+    float shadow = min(1.0, pbr.shadow+0.5);
+
+    return Point(pbr.position, pbr.normal, V, points[index], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+}
+
+vec3 ShadingPoint(in PBR pbr)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = Sq(1.0-pbr.smoothness); 
+
+    vec3 color = vec3(0.0);
+
+    float shadow = min(1.0, pbr.shadow+0.5);
 
     for(uint i=0; i< num_point; ++i)
     {
         color += Point(pbr.position, pbr.normal, V, points[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
     }
 
+    return color;
+}
+
+vec3 ShadingSpot(in PBR pbr)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = Sq(1.0-pbr.smoothness); 
+
+    vec3 color = vec3(0.0);
+
+    float shadow = min(1.0, pbr.shadow+0.5);
+
     for(uint i=0; i< num_spot; ++i)
     {
         color += Spot(pbr.position, pbr.normal, V, spots[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
     }
 
-    shadow = min(1.0, pbr.shadow+0.25);
+    return color;
+}
 
-    color += indirect*pbr.occlusion*shadow;
-    
+vec4 Shading(in PBR pbr)
+{
+    vec3 color = ShadingAmbient(pbr);
+    color += ShadingDirectional(pbr);
+    color += ShadingPoint(pbr);
+    color += ShadingSpot(pbr);
 
+    return vec4(color, pbr.alpha);
+}
 
-    return vec4(color, pbr.alpha); 
+vec4 ShadingNoPoint(in PBR pbr)
+{
+    vec3 color = ShadingAmbient(pbr);
+    color += ShadingDirectional(pbr);
+    color += ShadingSpot(pbr);
+
+    return vec4(color, pbr.alpha);
 }
 
 

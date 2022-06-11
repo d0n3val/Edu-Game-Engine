@@ -293,3 +293,4 @@ x64/Release/Engine.ipdb
 *.iobj
 *.exe
 x64/Release/Engine.exe
+*.recipe

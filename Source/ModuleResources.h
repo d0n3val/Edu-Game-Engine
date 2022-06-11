@@ -61,6 +61,7 @@ public:
     const ResourceTexture* GetDefaultSkybox() const { return skybox; }
 
 	const ResourceMesh*    GetDefaultBox() const { return cube; }
+	const ResourceMesh*    GetDefaultSphere() const { return sphere; }
 
     const char* GetDirByType(Resource::Type type) const;
 
@@ -71,6 +72,7 @@ private:
     UID ImportSuccess(Resource::Type type, const char* file_name, const char* user_name, const std::string& output);
     bool LoadDefaultSkybox();
 	bool LoadDefaultBox();
+	bool LoadDefaultSphere();
 
 private:
 	std::string asset_folder;

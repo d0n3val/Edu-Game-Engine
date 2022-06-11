@@ -63,7 +63,7 @@ vec3 MorphNormal(vec3 position);
 vec3 MorphTangent(vec3 position);
 
 void TransformOutput(out GeomData geom);
-void computeShadowCoord(in vec3 position);
+void computeShadowCoord(in vec3 position, out ShadowData shadow);
 
 void main()
 {
@@ -77,12 +77,17 @@ void main()
     fragment.uv1  = vertex_uv1;
     draw_id       = draw_id_att;
 
-    computeShadowCoord(geom.position);
+#ifndef SHADOW_MAP
+    ShadowData shadow;
+    computeShadowCoord(geom.position, shadow);
+
+    fragment.shadow = shadow;
+#endif 
 }
 
-void computeShadowCoord(in vec3 position)
-{
 #ifndef SHADOW_MAP
+void computeShadowCoord(in vec3 position, out ShadowData shadow)
+{
 
 #ifdef CASCADE_SHADOWMAP
     for(int i=0; i< NUM_CASCADES; ++i)
@@ -91,18 +96,18 @@ void computeShadowCoord(in vec3 position)
         coord.xyz /= coord.w;
         coord.xy = coord.xy*0.5+0.5;
 
-        fragment.shadowCoord[i] = coord.xyz;
+        shadow.shadowCoord[i] = coord.xyz;
     }
 #else 
     vec4 coord = shadowViewProj*vec4(position, 1.0);
     coord.xyz /= coord.w;
     coord.xy = coord.xy*0.5+0.5;
 
-    fragment.shadowCoord = coord.xyz;
+    shadow.shadowCoord = coord.xyz;
 #endif 
 
-#endif 
 }
+#endif 
 
 vec3 MorphPosition(vec3 position)
 {

@@ -12,20 +12,23 @@ struct GeomData
     vec3 tangent;
 };
 
-struct VertexOut
+struct ShadowData
 {
-    vec2 uv0;
-    vec2 uv1;
-    GeomData geom;
-
-#ifndef SHADOW_MAP
-
 #ifdef CASCADE_SHADOWMAP
     vec3 shadowCoord[NUM_CASCADES];
 #else 
     vec3 shadowCoord;
 #endif 
 
+};
+
+struct VertexOut
+{
+    vec2 uv0;
+    vec2 uv1;
+    GeomData geom;
+#ifndef SHADOW_MAP
+    ShadowData shadow;
 #endif 
 };
 

@@ -7,6 +7,7 @@
 #include "ModuleEditor.h"
 #include "GBufferExportPass.h"
 #include "DeferredResolvePass.h"
+#include "DeferredResolveProxy.h"
 #include "DeferredDecalPass.h"
 #include "ScreenSpaceAO.h"
 #include "ForwardPass.h"
@@ -59,6 +60,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     forward = std::make_unique<ForwardPass>();
     exportGBuffer = std::make_unique<GBufferExportPass>();
     deferredResolve = std::make_unique<DeferredResolvePass>();
+    deferredProxy = std::make_unique<DeferredResolveProxy>();
     decalPass = std::make_unique<DeferredDecalPass>();
     fxaa = std::make_unique<FxaaPass>();
     shadowmapPass = std::make_unique<ShadowmapPass>();
@@ -172,11 +174,11 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 {
     // todo: forward
 
-    //if(App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
+    if(App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
     {
         cascadeShadowPass->execute(culling->frustum);
     }
-    //else
+    else
     {
         shadowmapPass->execute(culling->frustum, 4096, 4096);
     }
@@ -187,6 +189,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     ssao->execute(width, height);
 
     deferredResolve->execute(frameBuffer, width, height);
+    deferredProxy->execute(frameBuffer, width, height);
 
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);

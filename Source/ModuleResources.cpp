@@ -38,7 +38,7 @@ bool ModuleResources::Init(Config* config)
 
 	LoadUID();
 	LoadResources();
-
+    
 	return ret;
 }
 
@@ -56,6 +56,8 @@ bool ModuleResources::Start(Config * config)
     App->tex->LoadFallback(black_fallback, float3(0.0f));
 
 	LoadDefaultSkybox();
+    LoadDefaultSphere();
+
 	//LoadDefaultBox();
 
 	return true;
@@ -701,4 +703,11 @@ bool ModuleResources::LoadDefaultBox()
 	cube->LoadToMemory();
 
 	return cube != nullptr;
+}
+
+bool ModuleResources::LoadDefaultSphere()
+{
+	sphere = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadSphere("DefaultSphere", 1.0f, 20, 20, UID(4))));
+
+	return sphere != nullptr;
 }
