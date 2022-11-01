@@ -11,20 +11,29 @@ class ResourceTexture : public Resource
 public:
 
 	enum Format {
-		color_index,
-		rgb,
-		rgba,
-		bgr,
+		rgba = 0,
 		bgra,
-		luminance,
-		unknown
+		bgr,
+		bc1,
+		bc3,
+		bc4,
+		bc5,
+		bc6s,
+		bc6u,
+		bc7,
+        unknown
 	};
 
-	enum Type
+	enum ColorSpace
+	{
+		gamma,
+		linear
+	};
+
+	enum TextureType
 	{
 		Texture2D = 0,
-		TextureCube = 1,
-		TextureArray = 2
+		TextureCube = 1
 	};
 
 public:
@@ -32,46 +41,52 @@ public:
 	ResourceTexture(UID id);
 	virtual ~ResourceTexture();
 
-	const char*      GetFormatStr() const;
+	const char*      GetFormatStr 		() const;
 
-	bool             LoadInMemory() override;
-    void             ReleaseFromMemory() override;
+	bool             LoadInMemory 		() override;
+    void             ReleaseFromMemory 	() override;
 
-    bool             Save         ();
-	void             Save         (Config& config) const override;
-	void             Load         (const Config& config) override;
+    bool             Save         		();
+	void             Save         		(Config& config) const override;
+	void             Load         		(const Config& config) override;
 
-    Texture*		 GetTexture   () const { return texture.get(); }
-    ullong           GetID        () const { return texture ? ullong(texture->Id()) : 0; }
-    uint             GetWidth     () const { return width; }
-    uint             GetHeight    () const { return height; }
-    uint             GetDepth     () const { return depth; }
-    uint             GetBPP       () const { return bpp; }
-    bool             HasMips      () const { return has_mips; }
-    uint             GetBytes     () const { return bytes; }
-    bool             GetLinear    () const { return linear; }
-    bool             GetCompressed() const { return compressed; }
-	Type			 GetType	  () const { return type;  }
+    Texture*		 GetTexture   		() const { return glTexture.get(); }
+    uint             GetID        		() const { return glTexture ? uint(glTexture->Id()) : uint(0); }
+    uint             GetWidth     		() const { return width; }
+    uint             GetHeight    		() const { return height; }
+    uint             GetDepth     		() const { return depth; }
+	ColorSpace 		 GetColorSpace 		() const { return colorSpace; }
+	Format 		 	 GetFormat    		() const { return format; }
+    uint             GetGLInternalFormat() const;
+    TextureType      GetTexType   		() const { return textype; }
+	
+    bool             GetMipmaps 		() const { return mipMaps;  }
+    void 			 GenerateMipmaps	(bool generate);
+	void 		 	 SetColorSpace 		(ColorSpace space) { colorSpace = space; }
+    bool             IsCompressed 		() const;
 
-    void             SetLinear    (bool l);
-    void             EnableMips   (bool enable);
+	bool 			 LoadToArray 		(Texture2DArray* texArray, uint index) const;
 
-    static Resource::Type GetClassType() { return Resource::texture; }
+    static Type GetClassType() { return texture; }
+
+
+private:
+
+    uint GetGLFormat() const;
+	uint GetGLType() const;
 
 private:
 
 	uint width      = 0;
 	uint height     = 0;
 	uint depth      = 0;
-	uint bpp        = 0;
-	bool has_mips   = false;
-    bool linear     = true;
-    bool compressed = true;
-	uint bytes      = 0;
-	Format format   = unknown;
-	Type type		= Texture2D;
+	uint arraySize  = 0;
+    bool mipMaps = false;
+	ColorSpace colorSpace = gamma;
+	Format format   = rgba;
+	TextureType textype = Texture2D;
 
-    std::unique_ptr<Texture> texture;
+    std::unique_ptr<Texture> glTexture;
 
 };
 

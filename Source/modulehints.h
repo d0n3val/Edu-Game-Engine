@@ -51,7 +51,7 @@ public:
 		COUNT
 	};
 
-    typedef std::variant<float, bool, float2> DValue;
+    typedef std::variant<float, bool, float2, float3> DValue;
 
 private:
 
@@ -60,7 +60,8 @@ private:
         TYPE_FLOAT  = 0,
         TYPE_BOOL   = 1,
         TYPE_INT    = 2,
-        TYPE_FLOAT2 = 3
+        TYPE_FLOAT2 = 3,
+        TYPE_FLOAT3 = 4
     };
 
     struct

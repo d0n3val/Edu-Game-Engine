@@ -13,6 +13,9 @@
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
+#include "Leaks.h"
+
+
 DeferredResolvePass::DeferredResolvePass()
 {
 }
@@ -65,7 +68,6 @@ void DeferredResolvePass::useProgram()
 bool DeferredResolvePass::generateProgram()
 {
 	std::unique_ptr<Shader> vertex, fragment;
-
 
 	vertex.reset(Shader::CreateVSFromFile("assets/shaders/fullscreenVS.glsl", 0, 0));
 

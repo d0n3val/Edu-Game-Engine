@@ -75,7 +75,7 @@ private:
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
     bool TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name);
-    UID TextureButton(ResourceTexture* texture, ResourceMesh* mesh, const char* name, int uniqueId);
+    UID TextureButton(ResourceTexture* texture, ResourceMesh* mesh, const char* name, int uniqueId, bool& modified);
 	void DrawAnimationComponent(ComponentAnimation * component);
 	void DrawRootMotionComponent(ComponentRootMotion * component);
     void DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh);

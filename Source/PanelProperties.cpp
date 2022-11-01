@@ -49,7 +49,6 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 
-#include "SOIL2.h"
 #include "OpenGL.h"
 
 #include "visit_variant.h"
@@ -175,7 +174,7 @@ void PanelProperties::DrawPointLight(PointLight* light)
                         uint index = lightManager->AddPointLight();
                         PointLight* light = lightManager->GetPointLight(index);
                         light->SetPosition(float3(float(i), float(j), float(-k))*scale);
-                        light->SetRadius(scale*0.5);
+                        light->SetRadius(scale*0.5f);
                         light->SetColor(float3(1.0f, 1.0f, 1.0f));
                         light->SetIntensity(10.0f);
                     }
@@ -1023,10 +1022,10 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         unsigned* data = new unsigned[base->GetWidth()*base->GetHeight()];
 
         convert_fb->ReadColor(0, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
-        SOIL_save_image_quality("diffuse.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
+        //SOIL_save_image_quality("diffuse.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
 
         convert_fb->ReadColor(1, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
-        SOIL_save_image_quality("specular.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
+        //SOIL_save_image_quality("specular.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
 
         //convert_fb->ReadColor(2, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
         //SOIL_save_image_quality("occlusion.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
@@ -1043,7 +1042,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
 }
 
-UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh, const char* name, int uniqueId)
+UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh, const char* name, int uniqueId, bool& modified)
 {
     UID res = texture ? texture->GetUID() : 0;
 
@@ -1052,7 +1051,7 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
     if(texture != nullptr)
     {
 		ImGui::PushID(texture);
-        if(texture->GetType() == ResourceTexture::Texture2D && ImGui::ImageButton((ImTextureID)texture->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+        if(texture->GetTexType() == ResourceTexture::Texture2D && ImGui::ImageButton((ImTextureID)texture->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
 
@@ -1077,14 +1076,15 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
         App->fs->SplitFilePath(texture->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
-        ImGui::Text("(%u,%u) %s %u bpp %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->GetBPP(), texture->GetCompressed() ? "compressed" : "");
+        ImGui::Text("(%u,%u) %s %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->IsCompressed() ? "compressed" : "");
         ImGui::PopStyleColor();
 
         ImGui::PushID(name);
-        bool mips = texture->HasMips();
+        bool mips = texture->GetMipmaps();
         if(ImGui::Checkbox("Mipmaps", &mips))
         {
-            texture->EnableMips(mips);
+            modified = true;
+            texture->GenerateMipmaps(mips);
         }
         ImGui::PopID();
 
@@ -1093,10 +1093,11 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
         char tmp[128];
         sprintf_s(tmp, 127, "%sLinear", name);
         ImGui::PushID(tmp);
-        bool linear = !texture->GetLinear();
-        if(ImGui::Checkbox("sRGB", &linear))
+        bool gamma = texture->GetColorSpace() == ResourceTexture::gamma;
+        if(ImGui::Checkbox("sRGB", &gamma))
         {
-            texture->SetLinear(!linear);
+            modified = true;
+            texture->SetColorSpace(gamma ? ResourceTexture::gamma : ResourceTexture::linear);
         }
         ImGui::PopID();
 
@@ -1146,14 +1147,15 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
 
 bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name)
 {
-    UID newUID = TextureButton(material->GetTextureRes(MaterialTexture(texture)), mesh, name, int(texture));
+    bool modified = false;
+    UID newUID = TextureButton(material->GetTextureRes(MaterialTexture(texture)), mesh, name, int(texture), modified);
     if(newUID != material->GetTexture(MaterialTexture(texture)))
     {
         material->SetTexture(MaterialTexture(texture), newUID);
         return true;
     }
 
-    return false;
+    return modified;
 }
 
 void PanelProperties::DrawAnimationComponent(ComponentAnimation* component)
@@ -1343,7 +1345,7 @@ void PanelProperties::DrawDecalComponent(ComponentDecal* decal)
 
     if (ImGui::CollapsingHeader("Albedo", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        UID newUID = TextureButton(decal->GetAlbedoRes(), nullptr, "Albedo", 0);
+        UID newUID = TextureButton(decal->GetAlbedoRes(), nullptr, "Albedo", 0, modified);
         if (newUID != decal->GetAlbedo())
         {
             decal->SetAlbedo(newUID);
@@ -1353,7 +1355,7 @@ void PanelProperties::DrawDecalComponent(ComponentDecal* decal)
 
     if (ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        UID newUID = TextureButton(decal->GetNormalRes(), nullptr, "Normal", 1);
+        UID newUID = TextureButton(decal->GetNormalRes(), nullptr, "Normal", 1, modified);
         if(newUID != decal->GetNormal())
         {
             decal->SetNormal(newUID);
@@ -1370,7 +1372,7 @@ void PanelProperties::DrawDecalComponent(ComponentDecal* decal)
 
     if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        UID newUID = TextureButton(decal->GetSpecularRes(), nullptr, "Specular", 2);
+        UID newUID = TextureButton(decal->GetSpecularRes(), nullptr, "Specular", 2, modified);
         if(newUID != decal->GetSpecular())
         {
             decal->SetSpecular(newUID);
@@ -1493,20 +1495,20 @@ void DrawTrailComponent(ComponentTrail* component)
             App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
 
             ImGui::Text("%s", file.c_str());
-            ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
+            ImGui::Text("(%u,%u) %s %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->IsCompressed() ? "compressed" : "");
             ImGui::PopStyleColor();
 
-            bool mips = info->HasMips();
+            bool mips = info->GetMipmaps();
             if(ImGui::Checkbox("Mipmaps", &mips))
             {
-                info->EnableMips(mips);
+                info->GenerateMipmaps(mips);
             }
 
             ImGui::SameLine();
-            bool linear = !info->GetLinear();
+            bool linear = info->GetColorSpace() == ResourceTexture::linear;
             if(ImGui::Checkbox("sRGB", &linear))
             {
-                info->SetLinear(!linear);
+                info->SetColorSpace(linear ? ResourceTexture::linear : ResourceTexture::gamma);
             }
 
             if(ImGui::SmallButton("Delete"))
@@ -1614,20 +1616,20 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
             App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
 
             ImGui::Text("%s", file.c_str());
-            ImGui::Text("(%u,%u) %s %u bpp %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->GetBPP(), info->GetCompressed() ? "compressed" : "");
+            ImGui::Text("(%u,%u) %s %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->IsCompressed() ? "compressed" : "");
             ImGui::PopStyleColor();
 
-            bool mips = info->HasMips();
+            bool mips = info->GetMipmaps();
             if(ImGui::Checkbox("Mipmaps", &mips))
             {
-                info->EnableMips(mips);
+                info->GenerateMipmaps(mips);
             }
 
             ImGui::SameLine();
-            bool linear = !info->GetLinear();
+            bool linear = info->GetColorSpace() != ResourceTexture::linear;
             if(ImGui::Checkbox("sRGB", &linear))
             {
-                info->SetLinear(!linear);
+                info->SetColorSpace(linear ? ResourceTexture::gamma : ResourceTexture::linear);
             }
 
             if(ImGui::SmallButton("Delete"))

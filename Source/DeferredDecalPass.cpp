@@ -86,6 +86,7 @@ void DeferredDecalPass::execute(ComponentCamera* camera, const RenderList& objec
 		float3 cameraPos = camera->GetPos();
 
 		ComponentDecal* decal = decals.front().decal;
+        
 		GBufferExportPass *gbuffer = App->renderer->GetGBufferExportPass();
 
 		// bind model

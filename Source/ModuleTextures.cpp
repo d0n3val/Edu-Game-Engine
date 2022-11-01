@@ -9,8 +9,7 @@
 #include "ResourceTexture.h"
 #include "ModuleResources.h"
 
-#include "SOIL2.h"
-#include "stb_image.h"
+#include "DirectXTex/DirectXTex.h"
 
 #include "Leaks.h"
 
@@ -23,10 +22,12 @@
 #pragma comment( lib, "Devil/lib/x64/Release/ILU.lib" )
 #pragma comment( lib, "Devil/lib/x64/Release/ILUT.lib" )
 
+#pragma comment( lib, "DirectXTex.lib" )
+
 using namespace std;
 
 #ifdef max 
-#undef max
+#undef max 
 #endif
 
 namespace
@@ -149,6 +150,7 @@ bool ModuleTextures::Import(const char* file, string& output_file, bool compress
 	char* buffer = nullptr;
 	uint size = App->fs->Load(file, &buffer);
 
+
     bool ret = Import(buffer, size, output_file, compressed, toCubemap);
 
     if (ret == false)
@@ -211,7 +213,7 @@ bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& outp
                 ret = ilSaveL(IL_HDR, &sideData[i][0], size) > 0;
             }
 
-            output_size += (sizeof(uint32_t) + sideData[i].size());
+            output_size += uint(sizeof(uint32_t) + sideData[i].size());
         }
 
         ilDeleteImage(ImageName);
@@ -224,11 +226,11 @@ bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& outp
 
         for(uint i=0; i< 6; ++i)
         {
-            *reinterpret_cast<uint32_t*>(&output_buffer[buffer_pos]) = sideData[i].size();
+            *reinterpret_cast<uint32_t*>(&output_buffer[buffer_pos]) = uint(sideData[i].size());
             buffer_pos += sizeof(uint32_t);
             memcpy(&output_buffer[buffer_pos], &sideData[i][0], sideData[i].size());
             
-            buffer_pos += sideData[i].size();
+            buffer_pos += uint(sideData[i].size());
         }
 
         ilDeleteImages(1, &image);
@@ -255,10 +257,10 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file,
 
     ret = ret && Import(buffer, size, compressed, header_size, output_buffer, output_size);
 
-    if(ret)
+    if (ret)
     {
         *reinterpret_cast<uint32_t*>(output_buffer) = uint32_t(ResourceTexture::Texture2D);
-        ret = App->fs->SaveUnique(output_file, output_buffer, output_size+header_size, LIBRARY_TEXTURES_FOLDER, "texture", "tex");
+        ret = App->fs->SaveUnique(output_file, output_buffer, output_size + header_size, LIBRARY_TEXTURES_FOLDER, "texture", "tex");
 
         RELEASE_ARRAY(buffer);
         RELEASE_ARRAY(output_buffer);
@@ -268,42 +270,44 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file,
 
 }
 
+
 bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint header_size, void*& output_buffer, uint& output_size)
 {
 	bool ret = false;
 
 	if (buffer)
-	{
-        ILuint ImageName;				  
-        ilGenImages(1, &ImageName);
-        ilBindImage(ImageName);
+	{        
+        DirectX::ScratchImage image, fliped, converted;
+        DirectX::ScratchImage* result = &image;
+        HRESULT res = DirectX::LoadFromDDSMemory(buffer, size, DirectX::DDS_FLAGS_NONE, nullptr, image);
+        if (res != S_OK) res = DirectX::LoadFromHDRMemory(buffer, size, nullptr, image);
+        if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, size, DirectX::TGA_FLAGS_NONE, nullptr, image);
+        if (res != S_OK) res = DirectX::LoadFromWICMemory(buffer, size, DirectX::WIC_FLAGS_NONE, nullptr, image);
 
-        if (ilLoadL(IL_TYPE_UNKNOWN, (const void*)buffer, size))
+        if (res == S_OK && image.GetMetadata().format != DXGI_FORMAT_R8G8B8A8_UNORM)
         {
-            ilEnable(IL_FILE_OVERWRITE);
-
-            ILinfo ImageInfo;
-            iluGetImageInfo(&ImageInfo);
-            if (ImageInfo.Origin == IL_ORIGIN_UPPER_LEFT)
-            {
-                iluFlipImage();
-            }
-
-            // To pick a specific DXT compression use 
-            ilSetInteger(IL_DXTC_FORMAT, IL_DXT5);
-            output_size = ilSaveL(compressed ? IL_DDS : IL_TGA, NULL, 0 ); // Get the size of the data buffer
-            if(output_size > 0) 
-            {
-                output_buffer = new ILubyte[header_size+output_size]; 
-
-                ret = ilSaveL(compressed ? IL_DDS : IL_TGA, &((ILubyte*)output_buffer)[header_size], output_size) > 0;
-            }
-            ilDeleteImages(1, &ImageName);
+            res = DirectX::Convert(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DXGI_FORMAT_R8G8B8A8_UNORM, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT, converted);
+            result = &converted;
         }
-        else
+        
+        if (res == S_OK)
         {
-            ILenum error = ilGetError();
-            LOG("%d, %s", error, iluErrorString(error));
+            res = DirectX::FlipRotate(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::TEX_FR_FLIP_VERTICAL, fliped);
+            result = &fliped;
+        }
+
+        if (res == S_OK)
+        {
+            DirectX::Blob blob;  
+            
+            ret = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
+            
+            if (ret)
+            {
+                output_size = uint(blob.GetBufferSize());
+                output_buffer = new char[blob.GetBufferSize()+header_size];
+                memcpy(&reinterpret_cast<char*>(output_buffer)[header_size], blob.GetBufferPointer(), blob.GetBufferSize());
+            }
         }
     }
 
@@ -329,39 +333,56 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 
         if(resource->type == ResourceTexture::Texture2D)
         {
-            ILuint image;
-            
+            /*
+            DirectX::ScratchImage image;
+            HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size, DirectX::DDS_FLAGS_NONE, nullptr, image);
 
-            if(LoadImage(buffer, total_size, image, resource->compressed, IL_ORIGIN_UPPER_LEFT))
+            if (res == S_OK)
             {
-                resource->width = ilGetInteger(IL_IMAGE_WIDTH);
-                resource->height = ilGetInteger(IL_IMAGE_HEIGHT);
+                resource->width = image.GetMetadata().width;
+                resource->height = image.GetMetadata().height;
+                resource->compressed = true;
 
-                if(resource->compressed)
-                {
-                    ILuint compressedSize = ilGetDXTCData(nullptr, 0, IL_DXT5);
-                    char *compressedData = new char[compressedSize];
-                    ilGetDXTCData(compressedData, compressedSize, IL_DXT5);
-
-                    resource->texture = std::make_unique<Texture2D>(resource->width, resource->height,
-                                                                    !resource->GetLinear() ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 
-                                                                    compressedSize, compressedData, resource->has_mips);
-
-                    delete[] compressedData;
-                }
-                else
-                {
-                    resource->texture = std::make_unique<Texture2D>(resource->width, resource->height,
-                                                                    !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT),
-                                                                    ilGetInteger(IL_IMAGE_TYPE), ilGetData(), resource->has_mips);
-                }
+                resource->texture = std::make_unique<Texture2D>(resource->width, resource->height,
+                    !resource->GetLinear() ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
+                    image.GetPixelsSize(), image.GetPixels(), resource->has_mips);
             }
-            ilDeleteImages(1, &image);
+            else*/
+            {
+                /*
+                ILuint image;
+
+                if (LoadImage(buffer, total_size, image, resource->compressed, IL_ORIGIN_UPPER_LEFT))
+                {
+                    resource->width = ilGetInteger(IL_IMAGE_WIDTH);
+                    resource->height = ilGetInteger(IL_IMAGE_HEIGHT);
+
+                    if (resource->compressed)
+                    {
+                        ILuint compressedSize = ilGetDXTCData(nullptr, 0, IL_DXT5);
+                        char* compressedData = new char[compressedSize];
+                        ilGetDXTCData(compressedData, compressedSize, IL_DXT5);
+
+                        resource->texture = std::make_unique<Texture2D>(resource->width, resource->height,
+                            !resource->GetLinear() ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
+                            compressedSize, compressedData, resource->has_mips);
+
+                        delete[] compressedData;
+                    }
+                    else
+                    {
+                        resource->texture = std::make_unique<Texture2D>(resource->width, resource->height,
+                            !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA, ilGetInteger(IL_IMAGE_FORMAT),
+                            ilGetInteger(IL_IMAGE_TYPE), ilGetData(), resource->has_mips);
+                    }
+                }
+                ilDeleteImages(1, &image);*/
+            }
         }
         else if(resource->type == ResourceTexture::TextureCube)
         {
             TextureCube* cube = new TextureCube();
-            resource->texture = std::unique_ptr<TextureCube>(cube);
+            resource->glTexture = std::unique_ptr<TextureCube>(cube);
 
             for(uint i=0; i<6; ++i)
             {
@@ -373,7 +394,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
                 if(LoadImage(buffer, size, image, compressed, IL_ORIGIN_UPPER_LEFT))
                 {
                     cube->SetData(i, 0, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT),
-                        !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA,
+                        resource->GetColorSpace() == ResourceTexture::gamma ? GL_SRGB8_ALPHA8 : GL_RGBA,
                         ilGetInteger(IL_IMAGE_FORMAT), ilGetInteger(IL_IMAGE_TYPE), ilGetData());
                 }
 
@@ -391,7 +412,7 @@ bool ModuleTextures::Load(ResourceTexture* resource)
 
 bool ModuleTextures::LoadToArray(const ResourceTexture* resource, Texture2DArray* texture, uint index)
 {
-    assert(resource->type == ResourceTexture::Texture2D);
+    assert(resource->GetTexType() == ResourceTexture::Texture2D);
 
     char* head_buffer = nullptr;
     uint total_size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, resource->GetExportedFile(), &head_buffer);
@@ -402,33 +423,56 @@ bool ModuleTextures::LoadToArray(const ResourceTexture* resource, Texture2DArray
     {
         char* buffer = head_buffer + sizeof(uint32_t);
 
-        if (resource->type == ResourceTexture::Texture2D)
+        if (resource->GetTexType() == ResourceTexture::Texture2D)
         {
-            ILuint image;
-            bool compressed = false;
+            DirectX::ScratchImage image;
+            HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size - sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);
 
-            if (LoadImage(buffer, total_size, image, compressed, IL_ORIGIN_UPPER_LEFT))
+            if (res == S_OK)
             {
-                assert(compressed == resource->GetCompressed());
-                if (resource->GetCompressed())
+                if (image.GetMetadata().format == DXGI_FORMAT_BC3_UNORM)
                 {
-                    ILuint compressedSize = ilGetDXTCData(nullptr, 0, IL_DXT5);
-                    char* compressedData = new char[compressedSize];
-                    ilGetDXTCData(compressedData, compressedSize, IL_DXT5);
-
-                    texture->SetCompressedSubData(0, index, resource->GetLinear() ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, compressedSize, compressedData);
-                    delete[] compressedData;
+                    texture->SetCompressedSubData(0, index, resource->GetColorSpace() == ResourceTexture::linear ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, uint(image.GetPixelsSize()), image.GetPixels());
                 }
                 else
                 {
-                    /* Forced to be UNSIGNED_BYTE ??? take into account format when creating*/
-                    /* TODO: Create different channels size IL_IMAGE_CHANNELS*/
-                    ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-
-                    texture->SetSubData(0, index, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
+                    texture->SetSubData(0, index, GL_RGBA, GL_UNSIGNED_BYTE, image.GetPixels());
                 }
+            }
+            else
+            {
+                ILuint image;
+                bool compressed = false;
 
-                ilDeleteImages(1, &image);
+                if (LoadImage(buffer, total_size, image, compressed, IL_ORIGIN_UPPER_LEFT))
+                {
+                    assert(compressed == resource->IsCompressed());
+                    if (resource->IsCompressed())
+                    {
+                        ILuint compressedSize = ilGetDXTCData(nullptr, 0, IL_DXT5);
+                        char* compressedData = new char[compressedSize];
+                        ilGetDXTCData(compressedData, compressedSize, IL_DXT5);
+
+                        texture->SetCompressedSubData(0, index, resource->GetColorSpace() == ResourceTexture::linear ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, compressedSize, compressedData);
+                        delete[] compressedData;
+                    }
+                    else
+                    {
+
+                        /* Forced to be UNSIGNED_BYTE ??? take into account format when creating*/
+                        /* TODO: Create different channels size IL_IMAGE_CHANNELS*/
+                        ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+
+                        texture->SetSubData(0, index, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
+                    }
+
+                    ilDeleteImages(1, &image);
+                }
+                else
+                {
+                    int i = 0;
+                    ++i;
+                }
             }
         }
     }
@@ -465,13 +509,11 @@ bool ModuleTextures::LoadCheckers(ResourceTexture * resource)
 
 	resource->width = CHECKERS_WIDTH;
 	resource->height = CHECKERS_HEIGHT;
-	resource->bpp = 1;
 	resource->depth = 4;
-	resource->has_mips = false;
-	resource->bytes = sizeof(GLubyte) * CHECKERS_HEIGHT * CHECKERS_WIDTH * 4;
+	resource->mipMaps = false;
 	resource->format = ResourceTexture::rgba;
     
-    resource->texture = std::make_unique<Texture2D>(CHECKERS_WIDTH, CHECKERS_HEIGHT, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, checkImage, false);
+    resource->glTexture = std::make_unique<Texture2D>(CHECKERS_WIDTH, CHECKERS_HEIGHT, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, checkImage, false);
 
 	return true;
 }
@@ -487,13 +529,11 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
 
 	resource->width = 1;
 	resource->height = 1;
-	resource->bpp = 1;
 	resource->depth = 3;
-	resource->has_mips = false;
-	resource->bytes = sizeof(GLubyte) * 3;
-	resource->format = ResourceTexture::rgb;
+	resource->mipMaps = false;
+	resource->format = ResourceTexture::bgr;
 
-    resource->texture = std::make_unique<Texture2D>(1, 1, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage, false);
+    resource->glTexture = std::make_unique<Texture2D>(1, 1, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage, false);
 
 	return true;
 }
@@ -504,8 +544,8 @@ bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], c
     std::string sPath(path);
 
     TextureCube* cube = new TextureCube();
-    resource->texture = std::unique_ptr<TextureCube>(cube);
-    resource->type = ResourceTexture::TextureCube;
+    resource->glTexture = std::unique_ptr<TextureCube>(cube);
+    resource->textype = ResourceTexture::TextureCube;
 
     bool ret = true;
 
@@ -525,7 +565,7 @@ bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], c
         if(ret)
         {
             cube->SetData(i, 0, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT),
-                    !resource->GetLinear() ? GL_SRGB8_ALPHA8 : GL_RGBA,
+                    resource->GetColorSpace() == ResourceTexture::gamma ? GL_SRGB8_ALPHA8 : GL_RGBA,
                     ilGetInteger(IL_IMAGE_FORMAT), ilGetInteger(IL_IMAGE_TYPE), ilGetData());
         }
 

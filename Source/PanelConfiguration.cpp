@@ -56,6 +56,13 @@ namespace
 							   module->SetDHint(name, value);
 						   }
 					   },
+                       [name, &module](float3 value)
+                       {
+                           if (ImGui::InputFloat3(name.c_str(), &value.x))
+                           {
+                               module->SetDHint(name, value);
+                           }
+                       }
 				   },
 				   dvalue);
 	}
@@ -564,8 +571,7 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 			ImGui::BeginTooltip();
 			ImGui::TextColored(IMGUI_YELLOW, info->GetFile());
 			ImGui::Text("%s", (info->GetID() != 0) ? "Loaded in VRAM" : "Not in VRAM");
-			ImGui::Text("(%u,%u) %0.1f Mb %s", info->GetWidth(), info->GetHeight(), info->GetBytes() / (1024.f*1024.f) , info->GetFormatStr());
-			ImGui::Text("Depth: %u Bpp: %u", info->GetDepth(), info->GetBPP());
+			ImGui::Text("(%u,%u,%u) %s", info->GetWidth(), info->GetHeight(), info->GetDepth(), info->GetFormatStr());
 
 			ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
 			float max_size = 250.f;

@@ -124,7 +124,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnablePREfast>false</EnablePREfast>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>./Devil/include;./Bullet/include;./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./DirectXTex;./Devil/include;./Bullet/include;./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
@@ -134,7 +134,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
-      <AdditionalLibraryDirectories>./glew-2.1.0/lib/Release/x64;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./glew-2.1.0/lib/Release/x64;./DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Debug;</AdditionalLibraryDirectories>
     </Link>
     <PreLinkEvent>
       <Command>copy /Y "$(ProjectDir)Bullet\libx86\*.pdb"  "$(TargetDir)" </Command>
@@ -179,7 +179,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnablePREfast>false</EnablePREfast>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>./Devil/include;./Bullet/include;./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./DirectXTex;./Devil/include;./Bullet/include;./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <RuntimeTypeInfo>
@@ -193,7 +193,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
-      <AdditionalLibraryDirectories>./glew-2.1.0/lib/Release/x64;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./glew-2.1.0/lib/Release/x64;./DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -265,6 +265,7 @@
     <ClInclude Include="DirLight.h" />
     <ClInclude Include="dxgi1_4.h" />
     <ClInclude Include="Event.h" />
+    <ClInclude Include="FogPass.h" />
     <ClInclude Include="ForwardPass.h" />
     <ClInclude Include="FxaaPass.h" />
     <ClInclude Include="GameObject.h" />
@@ -451,6 +452,7 @@
     <ClCompile Include="DeferredResolveProxy.cpp" />
     <ClCompile Include="DepthPrepass.cpp" />
     <ClCompile Include="DirLight.cpp" />
+    <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="ForwardPass.cpp" />
     <ClCompile Include="FxaaPass.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -564,10 +566,6 @@
     <ClCompile Include="ShowTextureDlg.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="SkyboxRollout.cpp" />
-    <ClCompile Include="SOIL2\srcs\etc1_utils.c" />
-    <ClCompile Include="SOIL2\srcs\image_DXT.c" />
-    <ClCompile Include="SOIL2\srcs\image_helper.c" />
-    <ClCompile Include="SOIL2\srcs\SOIL2.c" />
     <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="StateViewport.cpp" />
     <ClCompile Include="TextureBatch.cpp" />

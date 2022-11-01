@@ -18,12 +18,17 @@
 
 #include "Leaks.h"
 
+//#define DEBUG_RENDER
+
 void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 {
     GBufferExportPass* exportPass = App->renderer->GetGBufferExportPass();
 	ScreenSpaceAO* ssao = App->renderer->GetScreenSpaceAO();
+	const ResourceMesh* sphere = App->resources->GetDefaultSphere();
 
     createDrawIdVBO();
+	target->Bind();
+
     useProgram();
 
 	// Additive Blend
@@ -34,7 +39,6 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
     glFrontFace(GL_CW);
 
 	App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
-	target->Bind();
     glViewport(0, 0, width, height);
 
     exportPass->getAlbedo()->Bind(GBUFFER_ALBEDO_TEX_BINDING);
@@ -46,7 +50,6 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 	ssao->getResult()->Bind(SSAO_TEX_BINDING);
 	App->level->GetSkyBox()->BindIBL();
 
-	const ResourceMesh* sphere = App->resources->GetDefaultSphere();
     glBindVertexArray(sphere->GetVAO());
 	glDrawElementsInstanced(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetNumPointLights());
 
@@ -55,7 +58,63 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
     glFrontFace(GL_CCW);
     glEnable(GL_DEPTH_TEST);
 
+#ifdef DEBUG_RENDER
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	useDebug();
+    glPolygonMode(GL_FRONT, GL_LINE);
+    glBindVertexArray(sphere->GetVAO());
+	glDrawElementsInstanced(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetNumPointLights());
+    glPolygonMode(GL_FRONT, GL_FILL);
+	glDisable(GL_BLEND);
+#endif 
+
 	target->Unbind();
+}
+
+void DeferredResolveProxy::useDebug()
+{
+	if(!debugProgram)
+	{
+		generateDebug();
+	}
+
+	if(debugProgram)
+	{
+        debugProgram->Use();
+	}
+}
+
+bool DeferredResolveProxy::generateDebug()
+{
+	std::unique_ptr<Shader> vertex, fragment;
+
+	vertex.reset(Shader::CreateVSFromFile("assets/shaders/deferredProxyVS.glsl", 0, 0));
+
+	bool ok = vertex->Compiled();
+
+	if (ok)
+	{
+
+        fragment.reset(Shader::CreateFSFromFile("assets/shaders/showProxyFS.glsl", 0, 0));
+
+		ok = fragment->Compiled();
+	}
+
+	if (ok)
+	{
+        debugProgram = std::make_unique<Program>(vertex.get(), fragment.get(), "ShowProxy");
+
+		ok = debugProgram->Linked();
+	}
+
+	if (!ok)
+	{
+        debugProgram.release();
+	}
+
+	return ok;
+
 }
 
 void DeferredResolveProxy::useProgram()
@@ -89,7 +148,7 @@ bool DeferredResolveProxy::generateProgram()
 
 	if (ok)
 	{
-		program = std::make_unique<Program>(vertex.get(), fragment.get(), "DeferredResolve");
+		program = std::make_unique<Program>(vertex.get(), fragment.get(), "DeferredProxy");
 
 		ok = program->Linked();
 	}

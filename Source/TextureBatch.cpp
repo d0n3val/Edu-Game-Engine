@@ -58,8 +58,8 @@ bool TextureBatch::CanAdd(const ResourceTexture *texture) const
         }
 
         if (res->GetWidth() == texture->GetWidth() && res->GetHeight() == texture->GetHeight() && 
-            res->GetCompressed() == texture->GetCompressed() && res->GetLinear() == texture->GetLinear() &&
-            res->HasMips() == texture->HasMips() && info.textures.size() < GetMaxLayers())
+            res->GetFormat() == texture->GetFormat() && res->GetColorSpace() == texture->GetColorSpace() &&
+            res->GetMipmaps() == texture->GetMipmaps() && info.textures.size() < GetMaxLayers())
         {
             break;
         }
@@ -114,8 +114,8 @@ bool TextureBatch::Add(const ResourceTexture *texture)
         TexData& texData = info.textures.front();
 
         if (texData.texture->GetWidth() == texture->GetWidth() && texData.texture->GetHeight() == texture->GetHeight() && 
-            texData.texture->GetCompressed() == texture->GetCompressed() && texData.texture->GetLinear() == texture->GetLinear() &&
-            texData.texture->HasMips() == texture->HasMips() && info.textures.size() < GetMaxLayers())
+            texData.texture->IsCompressed() == texture->IsCompressed() && texData.texture->GetColorSpace() == texture->GetColorSpace() &&
+            texData.texture->GetMipmaps() == texture->GetMipmaps() && info.textures.size() < GetMaxLayers())
         {
             break;
         }
@@ -217,14 +217,14 @@ void TextureBatch::GenerateTextures()
             uint minSize = std::min(front->GetWidth(), front->GetHeight());
             uint levels = uint(log(float(minSize))/log(2.0f))-3;
 
-            info.textureArray = std::make_unique<Texture2DArray>(levels, front->GetWidth(), front->GetHeight(), uint(info.textures.size()), GetFormat(front));
+            info.textureArray = std::make_unique<Texture2DArray>(levels, front->GetWidth(), front->GetHeight(), uint(info.textures.size()), front->GetGLInternalFormat());
 
             for(uint j=0; j < info.textures.size(); ++j)
             {
-                App->tex->LoadToArray(info.textures[j].texture, info.textureArray.get(), j);
+                info.textures[j].texture->LoadToArray(info.textureArray.get(), j);
             }
 
-            if(front->HasMips())
+            if(front->GetMipmaps())
             {
                 info.textureArray->GenerateMipmaps();
             }
@@ -247,8 +247,8 @@ bool TextureBatch::GetHandle(const ResourceTexture *texture, Handle &handle) con
             const ResourceTexture *front = info.textures.front().texture;
 
             if (front->GetWidth() == texture->GetWidth() && front->GetHeight() == texture->GetHeight() &&
-                front->GetCompressed() == texture->GetCompressed() && front->GetLinear() == texture->GetLinear() &&
-                front->HasMips() == texture->HasMips() && info.textures.size() < GetMaxLayers())
+                front->IsCompressed() == texture->IsCompressed() && front->GetColorSpace() == texture->GetColorSpace() &&
+                front->GetMipmaps() == texture->GetMipmaps() && info.textures.size() < GetMaxLayers())
             {
                 for (uint layer = 0; layer < uint(info.textures.size()); ++layer)
                 {
@@ -271,10 +271,10 @@ bool TextureBatch::GetHandle(const ResourceTexture *texture, Handle &handle) con
 
 uint TextureBatch::GetFormat(const ResourceTexture *texture) 
 {
-    if (texture->GetCompressed())
+    if (texture->IsCompressed())
     {
-        return texture->GetLinear() ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+        return texture->GetColorSpace() == ResourceTexture::linear ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
     }
 
-    return texture->GetLinear() ? GL_RGBA8 : GL_SRGB8_ALPHA8;
+    return texture->GetColorSpace() == ResourceTexture::linear ? GL_RGBA8 : GL_SRGB8_ALPHA8;
 }

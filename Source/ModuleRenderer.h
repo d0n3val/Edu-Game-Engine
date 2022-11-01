@@ -29,6 +29,7 @@ class DeferredDecalPass;
 class ShadowmapPass;
 class CascadeShadowPass;
 class FxaaPass;
+class FogPass;
 
 class ModuleRenderer : public Module
 {
@@ -68,6 +69,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<DeferredDecalPass>    decalPass;
     std::unique_ptr<ScreenSpaceAO>        ssao;
     std::unique_ptr<FxaaPass>             fxaa;
+    std::unique_ptr<FogPass>              fogPass;
     std::unique_ptr<ShadowmapPass>        shadowmapPass;
     std::unique_ptr<CascadeShadowPass>    cascadeShadowPass;
     std::unique_ptr<Buffer>               cameraUBO;

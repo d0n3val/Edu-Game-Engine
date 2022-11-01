@@ -67,9 +67,6 @@
     <Filter Include="Lights">
       <UniqueIdentifier>{e9dde8d3-a07c-4262-a852-7221c1bc7326}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rd Party\SOIL2">
-      <UniqueIdentifier>{12ce4457-e1e1-4727-a647-63cb490ccc7b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rd Party\imgui-node-editor">
       <UniqueIdentifier>{4cd4b3a5-9f57-47f3-80a2-ff44fa8f504e}</UniqueIdentifier>
     </Filter>
@@ -748,6 +745,9 @@
     <ClInclude Include="DeferredResolveProxy.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="FogPass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1037,18 +1037,6 @@
     </ClCompile>
     <ClCompile Include="DirLight.cpp">
       <Filter>Lights</Filter>
-    </ClCompile>
-    <ClCompile Include="SOIL2\srcs\etc1_utils.c">
-      <Filter>3rd Party\SOIL2</Filter>
-    </ClCompile>
-    <ClCompile Include="SOIL2\srcs\image_DXT.c">
-      <Filter>3rd Party\SOIL2</Filter>
-    </ClCompile>
-    <ClCompile Include="SOIL2\srcs\image_helper.c">
-      <Filter>3rd Party\SOIL2</Filter>
-    </ClCompile>
-    <ClCompile Include="SOIL2\srcs\SOIL2.c">
-      <Filter>3rd Party\SOIL2</Filter>
     </ClCompile>
     <ClCompile Include="AnimController.cpp">
       <Filter>Helpers</Filter>
@@ -1357,6 +1345,9 @@
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
     <ClCompile Include="DeferredResolveProxy.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="FogPass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>

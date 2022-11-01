@@ -6,6 +6,8 @@
 #include "CubemapUtils.h"
 #include "Math.h"
 
+#include<vector>
+
 class ResourceTexture;
 class Texture2DArray;
 

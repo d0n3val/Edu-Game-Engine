@@ -47,7 +47,7 @@ void ShowTextureDlg::Display()
         ImGui::OpenPopup(open_name.c_str());
         open_flag = false;
 
-        if(source->GetType() == ResourceTexture::Texture2D)
+        if(source->GetTexType() == ResourceTexture::Texture2D)
         {
             GeneratePreview();
         }
@@ -109,7 +109,7 @@ void ShowTextureDlg::Display()
         ImGui::EndPopup();
     }
 
-    generate = generate && source->GetType() == ResourceTexture::Texture2D;
+    generate = generate && source->GetTexType() == ResourceTexture::Texture2D;
 
     if(generate)
     {
@@ -150,7 +150,7 @@ void ShowTextureDlg::GeneratePreview()
 void ShowTextureDlg::GenerateSourceFB()
 {
     source_fb = std::make_unique<Framebuffer>();
-    assert(source->GetType() == ResourceTexture::Texture2D);
+    assert(source->GetTexType() == ResourceTexture::Texture2D);
     source_fb->AttachColor(static_cast<Texture2D*>(source->GetTexture()), 0, 0);
 }
 

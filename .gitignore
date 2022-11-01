@@ -294,3 +294,4 @@ x64/Release/Engine.ipdb
 *.exe
 x64/Release/Engine.exe
 *.recipe
+Source/x64/Release/Engine.vcxproj.FileListAbsolute.txt

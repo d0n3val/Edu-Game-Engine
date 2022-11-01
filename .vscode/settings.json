@@ -3,6 +3,8 @@
         "variant": "cpp",
         "memory": "cpp",
         "vector": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "chrono": "cpp",
+        "format": "cpp"
     }
 }

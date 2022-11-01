@@ -68,18 +68,18 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
         ImGui::Text("%s", file.c_str());
         ImGui::PopStyleColor();
 
-        bool mips = info->HasMips();
+        bool mips = info->GetMipmaps();
         if(ImGui::Checkbox("Mipmaps", &mips))
         {
-            info->EnableMips(mips);
+            info->GenerateMipmaps(mips);
         }
 
         ImGui::SameLine();
 
-        bool linear = !info->GetLinear();
+        bool linear = info->GetColorSpace() == ResourceTexture::linear;
         if(ImGui::Checkbox("sRGB", &linear))
         {
-            info->SetLinear(!linear);
+            info->SetColorSpace(linear ? ResourceTexture::linear : ResourceTexture::gamma);
         }
 
         if(ImGui::SmallButton("Select Texture"))

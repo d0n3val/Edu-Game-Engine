@@ -21,10 +21,19 @@ namespace
         case JSONArray:
         {
             JSON_Array* array = json_value_get_array(value);
-            assert(json_array_get_count(array) == 2 && json_value_get_type(json_array_get_value(array, 0)) == JSONNumber &&
-                json_value_get_type(json_array_get_value(array, 1)) == JSONNumber);
+            if (json_array_get_count(array) == 2 && json_value_get_type(json_array_get_value(array, 0)) == JSONNumber &&
+                json_value_get_type(json_array_get_value(array, 1)) == JSONNumber)
+            {
+                dvalue = float2((float)json_value_get_number(json_array_get_value(array, 0)), (float)json_value_get_number(json_array_get_value(array, 1)));
+            }
+            else if (json_array_get_count(array) == 3 && json_value_get_type(json_array_get_value(array, 0)) == JSONNumber &&
+                json_value_get_type(json_array_get_value(array, 1)) == JSONNumber && json_value_get_type(json_array_get_value(array, 2)) == JSONNumber)
+            {
+                dvalue = float3((float)json_value_get_number(json_array_get_value(array, 0)), (float)json_value_get_number(json_array_get_value(array, 1)),
+                                (float)json_value_get_number(json_array_get_value(array, 2)));
+            }
+            
 
-            dvalue = float2((float)json_value_get_number(json_array_get_value(array, 0)), (float)json_value_get_number(json_array_get_value(array, 1)));
             break;
         }
         case JSONBoolean:
@@ -177,6 +186,7 @@ void ModuleHints::Save(Config* config) const
             [name, &dHintsCfg](float value) { dHintsCfg.AddFloat(name.c_str(), value);},
             [name, &dHintsCfg](bool value)  { dHintsCfg.AddBool(name.c_str(), value);},
             [name, &dHintsCfg](float2 value)  { dHintsCfg.AddFloat2(name.c_str(), value); },
+            [name, &dHintsCfg](float3 value) { dHintsCfg.AddFloat3(name.c_str(), value);  },            
             }, it->second);
     }
 }

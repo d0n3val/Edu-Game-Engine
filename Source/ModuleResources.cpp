@@ -160,7 +160,7 @@ void ModuleResources::SaveResources() const
 
 	// Finally save to file
 	char* buf = nullptr;
-	uint size = save.Save(&buf, "Resources setup from the EDU Engine");
+	uint size = uint(save.Save(&buf, "Resources setup from the EDU Engine"));
 	App->fs->Save(SETTINGS_FOLDER "resources.json", buf, size);
 	RELEASE_ARRAY(buf);
 }
@@ -212,7 +212,7 @@ void ModuleResources::SaveResourcesTo(const char* path)
 
 	// Finally save to file
 	char* buf = nullptr;
-	uint size = save.Save(&buf, "Resources setup from the EDU Engine");
+	uint size = uint(save.Save(&buf, "Resources setup from the EDU Engine"));
 
     sprintf_s(tmp, 255, "/%s%s%s", path, SETTINGS_FOLDER, "resources.json");
     App->fs->Save(tmp, buf, size);
@@ -386,8 +386,8 @@ UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool 
 	{
         ret = ImportSuccess(Resource::texture, file_name, "", written_file);
         ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
-        texture->EnableMips(mipmaps);
-        texture->SetLinear(!srgb);
+        texture->GenerateMipmaps(true);
+        texture->SetColorSpace(srgb ? ResourceTexture::linear : ResourceTexture::gamma);
 	}
 	else
     {
@@ -412,8 +412,8 @@ UID ModuleResources::ImportCubemap(const std::string file_names[], const std::st
 	{
 		ret = ImportSuccess(Resource::texture, nullptr, user_name.c_str(), written_file);
 		ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
-		texture->EnableMips(mipmaps);
-		texture->SetLinear(!srgb);
+		texture->GenerateMipmaps(true);
+        texture->SetColorSpace(srgb ? ResourceTexture::linear : ResourceTexture::gamma);
 	}
 	else
 	{
@@ -684,7 +684,7 @@ bool ModuleResources::LoadDefaultSkybox()
     std::string output_file;
 
 	skybox = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture, 3));
-	skybox->SetLinear(false);
+    skybox->SetColorSpace(ResourceTexture::linear);
     if (App->tex->LoadCube(skybox, files, "Assets/Textures/Cubemaps/"))
     {
 		skybox->file = "*Default Skybox*";

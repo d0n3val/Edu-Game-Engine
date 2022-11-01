@@ -14,6 +14,7 @@
 #include "FxaaPass.h"
 #include "ShadowmapPass.h"
 #include "CascadeShadowPass.h"
+#include "FogPass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -43,8 +44,6 @@
 
 #include "imgui/imgui.h"
 
-#include "SOIL2.h"
-
 #include <string>
 #include <functional>
 #include <algorithm>
@@ -65,6 +64,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     fxaa = std::make_unique<FxaaPass>();
     shadowmapPass = std::make_unique<ShadowmapPass>();
     cascadeShadowPass = std::make_unique<CascadeShadowPass>();
+    fogPass = std::make_unique<FogPass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -203,6 +203,9 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     frameBuffer->Bind();
     App->level->GetSkyBox()->Render(camera->GetProjectionMatrix(), camera->GetViewMatrix());
     frameBuffer->Unbind();
+
+    fogPass->execute(frameBuffer, width, height);
+
 }
 
 

@@ -106,7 +106,7 @@ void Skybox::SetCubemap(UID uid)
 
     if(res != nullptr)
     {
-        assert(res->GetType() == ResourceTexture::TextureCube);
+        assert(res->GetTexType() == ResourceTexture::TextureCube);
 
         prefilteredLevels = PREFILTERED_IBL_LEVELS; 
 
