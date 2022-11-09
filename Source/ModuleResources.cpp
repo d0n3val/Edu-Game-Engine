@@ -373,7 +373,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	return ret;
 }
 
-UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool mipmaps, bool srgb, bool toCubemap)
+UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool mipmaps, bool toCubemap)
 {
 	UID ret = 0;
     bool import_ok = false;
@@ -387,7 +387,6 @@ UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool 
         ret = ImportSuccess(Resource::texture, file_name, "", written_file);
         ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
         texture->GenerateMipmaps(true);
-        texture->SetColorSpace(srgb ? ResourceTexture::linear : ResourceTexture::gamma);
 	}
 	else
     {
@@ -399,7 +398,7 @@ UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool 
 	return ret;
 }
 
-UID ModuleResources::ImportCubemap(const std::string file_names[], const std::string& user_name, bool compressed, bool mipmaps, bool srgb)
+UID ModuleResources::ImportCubemap(const std::string file_names[], const std::string& user_name, bool compressed, bool mipmaps)
 {
 	UID ret = 0;
 	bool import_ok = false;
@@ -413,7 +412,6 @@ UID ModuleResources::ImportCubemap(const std::string file_names[], const std::st
 		ret = ImportSuccess(Resource::texture, nullptr, user_name.c_str(), written_file);
 		ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
 		texture->GenerateMipmaps(true);
-        texture->SetColorSpace(srgb ? ResourceTexture::linear : ResourceTexture::gamma);
 	}
 	else
 	{

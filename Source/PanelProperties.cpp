@@ -1089,7 +1089,6 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
         ImGui::PopID();
 
         ImGui::SameLine();
-
         char tmp[128];
         sprintf_s(tmp, 127, "%sLinear", name);
         ImGui::PushID(tmp);

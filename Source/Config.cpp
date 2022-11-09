@@ -77,6 +77,55 @@ JSON_Value * Config::FindValue(const char * field, int index) const
 	return nullptr;
 }
 
+bool Config::HasBool(const char *field, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	return value && json_value_get_type(value) == JSONBoolean;
+}
+
+bool Config::HasInt(const char *field, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	return value && json_value_get_type(value) == JSONNumber;
+}
+
+bool Config::HasUInt(const char *field, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	return value && json_value_get_type(value) == JSONNumber;
+}
+
+bool Config::HasUID(const char *field, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	return value && json_value_get_type(value) == JSONNumber;
+}
+
+bool Config::HasDouble(const char *field, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	return value && json_value_get_type(value) == JSONNumber;
+}
+
+bool Config::HasFloat(const char *field, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	return value && json_value_get_type(value) == JSONNumber;
+}
+
+bool Config::HasString(const char *field, int index) const
+{
+	JSON_Value* value = FindValue(field, index);
+
+	return value && json_value_get_type(value) == JSONString;
+}
+
 bool Config::GetBool(const char * field, bool default, int index) const
 {
 	JSON_Value* value = FindValue(field, index);

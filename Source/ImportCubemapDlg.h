@@ -30,7 +30,6 @@ public:
     const std::string* GetFiles     () const { return files; }
     bool               GetCompressed() const { return textureDlg.GetCompressed(); }
     bool               GetMipmaps   () const { return textureDlg.GetMipmaps(); }
-    bool               GetSRGB      () const { return textureDlg.GetSRGB(); }
 
 };
 

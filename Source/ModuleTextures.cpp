@@ -284,12 +284,6 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
         if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, size, DirectX::TGA_FLAGS_NONE, nullptr, image);
         if (res != S_OK) res = DirectX::LoadFromWICMemory(buffer, size, DirectX::WIC_FLAGS_NONE, nullptr, image);
 
-        if (res == S_OK && image.GetMetadata().format != DXGI_FORMAT_R8G8B8A8_UNORM)
-        {
-            res = DirectX::Convert(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DXGI_FORMAT_R8G8B8A8_UNORM, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT, converted);
-            result = &converted;
-        }
-        
         if (res == S_OK)
         {
             res = DirectX::FlipRotate(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::TEX_FR_FLIP_VERTICAL, fliped);
@@ -298,8 +292,7 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
 
         if (res == S_OK)
         {
-            DirectX::Blob blob;  
-            
+            DirectX::Blob blob;            
             ret = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
             
             if (ret)

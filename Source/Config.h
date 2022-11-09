@@ -33,6 +33,14 @@ public:
 	Config GetSection(const char* section_name) const;
 	Config AddSection(const char* section_name);
 
+    bool HasBool(const char* field, int index = -1) const;
+    bool HasInt(const char* field, int index = -1) const;
+    bool HasUInt(const char* field, int index = -1) const;
+    bool HasUID(const char* field, int index = -1) const;
+    bool HasDouble(const char* field, int index = -1) const;
+	bool HasFloat(const char* field, int index = -1) const;
+	bool HasString(const char* field, int index = -1) const;
+
 	bool GetBool(const char * field, bool default = false, int index = -1) const;
 	int GetInt(const char* field, int default = 0, int index = -1) const;
 	uint GetUInt(const char* field, uint default = 0, int index = -1) const;

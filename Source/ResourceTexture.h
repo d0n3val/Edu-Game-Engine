@@ -5,15 +5,18 @@
 #include "OGL.h"
 #include "utils/SimpleBinStream.h"
 
+#include <optional>
+
 class ResourceTexture : public Resource
 {
 	friend class ModuleTextures;
 public:
 
-	enum Format {
-		rgba = 0,
-		bgra,
-		bgr,
+    enum Format {
+        rgba = 0,
+        bgra,
+        bgr,
+        red,
 		bc1,
 		bc3,
 		bc4,
@@ -55,14 +58,14 @@ public:
     uint             GetWidth     		() const { return width; }
     uint             GetHeight    		() const { return height; }
     uint             GetDepth     		() const { return depth; }
-	ColorSpace 		 GetColorSpace 		() const { return colorSpace; }
+	ColorSpace 		 GetColorSpace 		() const { return colorSpace.value_or(formatColorSpace);; }
 	Format 		 	 GetFormat    		() const { return format; }
     uint             GetGLInternalFormat() const;
     TextureType      GetTexType   		() const { return textype; }
 	
     bool             GetMipmaps 		() const { return mipMaps;  }
     void 			 GenerateMipmaps	(bool generate);
-	void 		 	 SetColorSpace 		(ColorSpace space) { colorSpace = space; }
+    void 		 	 SetColorSpace      (ColorSpace space) { colorSpace = space;}
     bool             IsCompressed 		() const;
 
 	bool 			 LoadToArray 		(Texture2DArray* texArray, uint index) const;
@@ -82,7 +85,8 @@ private:
 	uint depth      = 0;
 	uint arraySize  = 0;
     bool mipMaps = false;
-	ColorSpace colorSpace = gamma;
+	std::optional<ColorSpace> colorSpace;
+    ColorSpace formatColorSpace;
 	Format format   = rgba;
 	TextureType textype = Texture2D;
 

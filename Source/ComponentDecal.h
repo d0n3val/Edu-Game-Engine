@@ -24,6 +24,7 @@ public:
     float GetNormalStrength() const { return normalStrength; }
     void SetNormalStrength(float strength) { normalStrength = strength; }
 
+    bool IsValid() const { return albedo != 0 && specular != 0 && normal != 0; }
     void SetAlbedo(UID uid);
     void SetNormal(UID uid);
     void SetSpecular(UID uid);

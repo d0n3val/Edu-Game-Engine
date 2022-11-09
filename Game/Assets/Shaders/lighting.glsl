@@ -185,7 +185,7 @@ vec4 Shading(in PBR pbr)
     color += ShadingSpot(pbr);
 
     //return vec4(color, pbr.alpha);
-    return vec4(pbr.diffuse, pbr.alpha);
+    return vec4(pbr.specular, pbr.alpha);
 }
 
 vec4 ShadingNoPoint(in PBR pbr)
@@ -194,8 +194,8 @@ vec4 ShadingNoPoint(in PBR pbr)
     color += ShadingDirectional(pbr);
     color += ShadingSpot(pbr);
 
-    //return vec4(color, pbr.alpha);
-    return vec4(pbr.diffuse, pbr.alpha);
+    return vec4(color, pbr.alpha);
+    //return vec4(pbr.specular, pbr.alpha);
 }
 
 

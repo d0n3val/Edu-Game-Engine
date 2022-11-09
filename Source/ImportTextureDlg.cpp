@@ -30,7 +30,6 @@ void ImportTexturesDlg::Display()
         {
             ImGui::Checkbox("Compressed", &compressed);
             ImGui::Checkbox("Mipmaps", &mipmaps);
-            ImGui::Checkbox("sRGB", &srgb);
             ImGui::Checkbox("Equirectangular to Cubemap", &toCubemap);
         }
         ImGui::EndChild();
@@ -52,7 +51,6 @@ void ImportTexturesDlg::ClearSelection()
     file.clear();
     compressed = true;
     mipmaps    = true;
-    srgb       = true;
     toCubemap  = false;
     selection  = false;
 }
