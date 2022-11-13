@@ -297,7 +297,7 @@ bool ModuleTextures::Import(const void* buffer, uint size, uint header_size, voi
             DirectX::Blob blob;            
             ret = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
             
-            if (ret == S_OK)
+            if (ret)
             {
                 output_size = uint(blob.GetBufferSize());
                 output_buffer = new char[blob.GetBufferSize()+header_size];

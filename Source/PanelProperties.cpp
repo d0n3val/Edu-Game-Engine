@@ -1077,16 +1077,18 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
         App->fs->SplitFilePath(texture->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
-        ImGui::Text("(%u,%u) %s %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->IsCompressed() ? "compressed" : "");
+        ImGui::Text("(%u,%u) %s (%u Mb) %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->GetMemSize() >> 20, texture->IsCompressed() ? "compressed" : "");
         ImGui::PopStyleColor();
 
         ImGui::SameLine();
         if (!texture->IsCompressed())
         {
+            ImGui::PushID(name);
             if(ImGui::Button("Compress"))
             {
                 compressTexture.Open(uniqueId);
             }
+            ImGui::PopID();
         }
 
         ImGui::PushID(name);

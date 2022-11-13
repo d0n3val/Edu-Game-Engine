@@ -121,9 +121,7 @@ bool ResourceTexture::LoadInMemory()
         char *buffer = head_buffer + sizeof(uint32_t);
 
         DirectX::ScratchImage image;
-        HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size-sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);
-        //if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, total_size - sizeof(uint32_t), nullptr, image);
-        
+        HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size-sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);       
 
         if (res == S_OK)
         {
@@ -163,6 +161,8 @@ bool ResourceTexture::LoadInMemory()
                     assert(false && "Unsupported texture dimension");
                     break;
             }
+
+            memSize = image.GetPixelsSize();
         }
     }
 

@@ -83,6 +83,8 @@ public:
     bool             IsCompressed 		() const;
     void             Compress           (CompressType type);
 
+    uint             GetMemSize() const { return memSize; }
+
 	bool 			 LoadToArray 		(Texture2DArray* texArray, uint index) const;
 
     static Type GetClassType() { return texture; }
@@ -99,6 +101,7 @@ private:
 	uint height     = 0;
 	uint depth      = 0;
 	uint arraySize  = 0;
+    uint memSize    = 0;
     bool mipMaps = false;
 	std::optional<ColorSpace> colorSpace;
     ColorSpace formatColorSpace;
