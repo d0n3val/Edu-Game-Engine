@@ -93,6 +93,7 @@ void PanelProperties::Draw()
 
     show_texture.Display();
     selectTexture.Display();
+    compressTexture.Display();
 }
 
 // ---------------------------------------------------------
@@ -1079,6 +1080,15 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
         ImGui::Text("(%u,%u) %s %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->IsCompressed() ? "compressed" : "");
         ImGui::PopStyleColor();
 
+        ImGui::SameLine();
+        if (!texture->IsCompressed())
+        {
+            if(ImGui::Button("Compress"))
+            {
+                compressTexture.Open(uniqueId);
+            }
+        }
+
         ImGui::PushID(name);
         bool mips = texture->GetMipmaps();
         if(ImGui::Checkbox("Mipmaps", &mips))
@@ -1139,6 +1149,12 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
     {
         res = selectTexture.GetResource();
         selectTexture.ClearSelection();
+    }
+
+    if (compressTexture.HasSelection(uniqueId))
+    {
+        texture->Compress(ResourceTexture::CompressType(compressTexture.GetType()));
+        compressTexture.ClearSelection();
     }
 
     return res;

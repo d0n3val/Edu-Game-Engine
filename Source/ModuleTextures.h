@@ -26,17 +26,17 @@ public:
 
 	// TODO: Unload Texture
 
-    bool ImportCube(const std::string files [], std::string& output_file, bool compressed);
-	bool Import(const char* file, std::string& output_file, bool compressed, bool toCubemap);
-	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed, bool toCubemap);
+    bool ImportCube(const std::string files [], std::string& output_file);
+	bool Import(const char* file, std::string& output_file, bool toCubemap);
+	bool Import(const void* buffer, uint size, std::string& output_file, bool toCubemap);
 
 	bool LoadCheckers(ResourceTexture* resource);
     bool LoadFallback(ResourceTexture* resource, const float3& color);
     bool LoadCube(ResourceTexture* resource, const char* files [], const char* path);
 
 private:
-	bool Import(const void* buffer, uint size, bool compressed, uint header_size, void*& output_buffer, uint& output_size);
-	bool Import(const void* buffer, uint size, std::string& output_file, bool compressed);
+	bool Import(const void* buffer, uint size, uint header_size, void*& output_buffer, uint& output_size);
+	bool Import(const void* buffer, uint size, std::string& output_file);
     bool ImportToCubemap(const void* buffer, uint size, std::string& output_file);
 };
 

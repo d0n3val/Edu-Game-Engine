@@ -28,7 +28,6 @@ void ImportTexturesDlg::Display()
     {
         if(ImGui::BeginChild("Canvas", ImVec2(280, 190), true, ImGuiWindowFlags_NoMove))
         {
-            ImGui::Checkbox("Compressed", &compressed);
             ImGui::Checkbox("Mipmaps", &mipmaps);
             ImGui::Checkbox("Equirectangular to Cubemap", &toCubemap);
         }
@@ -49,7 +48,6 @@ void ImportTexturesDlg::Display()
 void ImportTexturesDlg::ClearSelection()
 {
     file.clear();
-    compressed = true;
     mipmaps    = true;
     toCubemap  = false;
     selection  = false;

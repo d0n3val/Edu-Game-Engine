@@ -347,7 +347,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = App->tex->Import(new_file_in_assets, written_file, true, false);
+			import_ok = App->tex->Import(new_file_in_assets, written_file, false);
 		break;
 		case Resource::audio:
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
@@ -373,13 +373,13 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	return ret;
 }
 
-UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool mipmaps, bool toCubemap)
+UID ModuleResources::ImportTexture(const char* file_name, bool mipmaps, bool toCubemap)
 {
 	UID ret = 0;
     bool import_ok = false;
     string written_file;
 
-    import_ok = App->tex->Import(file_name, written_file, compressed, toCubemap);
+    import_ok = App->tex->Import(file_name, written_file, toCubemap);
 
 	// If export was successfull, create a new resource
 	if (import_ok == true)
@@ -398,13 +398,13 @@ UID ModuleResources::ImportTexture(const char* file_name, bool compressed, bool 
 	return ret;
 }
 
-UID ModuleResources::ImportCubemap(const std::string file_names[], const std::string& user_name, bool compressed, bool mipmaps)
+UID ModuleResources::ImportCubemap(const std::string file_names[], const std::string& user_name, bool mipmaps)
 {
 	UID ret = 0;
 	bool import_ok = false;
 	string written_file;
 
-	import_ok = App->tex->ImportCube(file_names, written_file, compressed);
+	import_ok = App->tex->ImportCube(file_names, written_file);
 
 	// If export was successfull, create a new resource
 	if (import_ok == true)
@@ -510,7 +510,7 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = App->tex->Import(buffer, size, output, true, false);
+			import_ok = App->tex->Import(buffer, size, output, false);
 		break;
 		case Resource::mesh:
 			// Old school trick: if it is a Mesh, buffer will be treated as an AiMesh*

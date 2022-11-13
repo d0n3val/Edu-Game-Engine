@@ -307,7 +307,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureDiffuse] = App->resources->ImportTexture(full_path.C_Str(), true, true, false);
+        m->textures[TextureDiffuse] = App->resources->ImportTexture(full_path.C_Str(), true, false);
     }
 
     if (material->GetTexture(aiTextureType_NORMALS, 0, &file, &mapping, &uvindex) == AI_SUCCESS || 
@@ -319,7 +319,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureNormal] = App->resources->ImportTexture(full_path.C_Str(), false, true, false);
+        m->textures[TextureNormal] = App->resources->ImportTexture(full_path.C_Str(), true, false);
     }
 
     if (material->GetTexture(aiTextureType_SPECULAR, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -330,7 +330,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureSpecular] = App->resources->ImportTexture(full_path.C_Str(), true, true, false);
+        m->textures[TextureSpecular] = App->resources->ImportTexture(full_path.C_Str(), true, false);
     }
 
     if (material->GetTexture(aiTextureType_AMBIENT, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -341,7 +341,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureOcclusion] = App->resources->ImportTexture(full_path.C_Str(), true, true, false);
+        m->textures[TextureOcclusion] = App->resources->ImportTexture(full_path.C_Str(), true, false);
     }
 
     if (material->GetTexture(aiTextureType_EMISSIVE, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -352,7 +352,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureEmissive] = App->resources->ImportTexture(full_path.C_Str(), true, true, false);
+        m->textures[TextureEmissive] = App->resources->ImportTexture(full_path.C_Str(), true, false);
     }
 
     if (source_file != nullptr) 

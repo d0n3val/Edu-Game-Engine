@@ -332,6 +332,13 @@ int close_sdl_rwops(SDL_RWops *rw)
 	return 0;
 }
 
+unsigned int ModuleFileSystem::Save(const char* path, const char* file, const void* buffer, unsigned int size, bool append) const
+{
+    string full_path(path);
+    full_path += file;
+    return Save(full_path.c_str(), buffer, size, append);
+}
+
 // Save a whole buffer to disk
 uint ModuleFileSystem::Save(const char* file, const void* buffer, unsigned int size, bool append) const
 {

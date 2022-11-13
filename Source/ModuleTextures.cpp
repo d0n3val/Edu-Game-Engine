@@ -93,7 +93,7 @@ bool ModuleTextures::CleanUp()
 	return true;
 }
 
-bool ModuleTextures::ImportCube(const std::string files [], std::string& output_file, bool compressed)
+bool ModuleTextures::ImportCube(const std::string files [], std::string& output_file)
 {
     bool ret = true;
     void* output_buffers[6];
@@ -106,7 +106,7 @@ bool ModuleTextures::ImportCube(const std::string files [], std::string& output_
         uint size = App->fs->Load((char*) files[i].c_str(), &buffer);
 
         ret = buffer != nullptr;
-        ret = ret && Import(buffer, size, compressed, 0, output_buffers[i], output_sizes[i]);
+        ret = ret && Import(buffer, size, 0, output_buffers[i], output_sizes[i]);
 
         total_size += output_sizes[i];
 
@@ -143,7 +143,7 @@ bool ModuleTextures::ImportCube(const std::string files [], std::string& output_
 }
 
 // Import new texture from file path
-bool ModuleTextures::Import(const char* file, string& output_file, bool compressed, bool toCubemap)
+bool ModuleTextures::Import(const char* file, string& output_file, bool toCubemap)
 {
 	std::string sFile(file);
 
@@ -151,7 +151,7 @@ bool ModuleTextures::Import(const char* file, string& output_file, bool compress
 	uint size = App->fs->Load(file, &buffer);
 
 
-    bool ret = Import(buffer, size, output_file, compressed, toCubemap);
+    bool ret = Import(buffer, size, output_file, toCubemap);
 
     if (ret == false)
     {
@@ -161,9 +161,9 @@ bool ModuleTextures::Import(const char* file, string& output_file, bool compress
     return ret;
 }
 
-bool ModuleTextures::Import(const void * buffer, uint size, string& output_file, bool compressed, bool toCubemap)
+bool ModuleTextures::Import(const void * buffer, uint size, string& output_file, bool toCubemap)
 {
-    return toCubemap ? ImportToCubemap(buffer, size, output_file) : Import(buffer, size, output_file, compressed);
+    return toCubemap ? ImportToCubemap(buffer, size, output_file) : Import(buffer, size, output_file);
 }
 
 bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& output_file)
@@ -247,15 +247,15 @@ bool ModuleTextures::ImportToCubemap(const void* buffer, uint size, string& outp
 	return ret;
 }
 
-bool ModuleTextures::Import(const void * buffer, uint size, string& output_file, bool compressed)
-{
+bool ModuleTextures::Import(const void * buffer, uint size, string& output_file)
+{   
 	bool ret = buffer != nullptr;
 
     void* output_buffer = nullptr;
     uint output_size = 0;
     uint header_size = sizeof(uint32_t);
 
-    ret = ret && Import(buffer, size, compressed, header_size, output_buffer, output_size);
+    ret = ret && Import(buffer, size, header_size, output_buffer, output_size);
 
     if (ret)
     {
@@ -271,7 +271,7 @@ bool ModuleTextures::Import(const void * buffer, uint size, string& output_file,
 }
 
 
-bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint header_size, void*& output_buffer, uint& output_size)
+bool ModuleTextures::Import(const void* buffer, uint size, uint header_size, void*& output_buffer, uint& output_size)
 {
 	bool ret = false;
 
@@ -286,8 +286,10 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
 
         if (res == S_OK)
         {
-            res = DirectX::FlipRotate(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::TEX_FR_FLIP_VERTICAL, fliped);
-            result = &fliped;
+            if (DirectX::FlipRotate(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::TEX_FR_FLIP_VERTICAL, fliped) == S_OK)
+            {
+                result = &fliped;
+            }
         }
 
         if (res == S_OK)
@@ -295,7 +297,7 @@ bool ModuleTextures::Import(const void* buffer, uint size, bool compressed, uint
             DirectX::Blob blob;            
             ret = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
             
-            if (ret)
+            if (ret == S_OK)
             {
                 output_size = uint(blob.GetBufferSize());
                 output_buffer = new char[blob.GetBufferSize()+header_size];

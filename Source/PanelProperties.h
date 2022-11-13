@@ -10,6 +10,7 @@
 
 #include "ShowTextureDlg.h"
 #include "SelectResourceDlg.h"
+#include "CompressTextureDlg.h"
 
 class GameObject;
 class Component;
@@ -99,6 +100,7 @@ private:
 
     ShowTextureDlg      show_texture;
     SelectResourceDlg   selectTexture;
+    CompressTextureDlg  compressTexture;
 
 };
 

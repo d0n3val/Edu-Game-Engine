@@ -44,7 +44,7 @@ void PanelResources::Draw()
     textures_dlg.Display();
     if(textures_dlg.HasSelection())
     {
-        App->resources->ImportTexture(textures_dlg.GetFile().c_str(), textures_dlg.GetCompressed(), textures_dlg.GetMipmaps(), textures_dlg.GetToCubemap()); 
+        App->resources->ImportTexture(textures_dlg.GetFile().c_str(), textures_dlg.GetMipmaps(), textures_dlg.GetToCubemap()); 
         textures_dlg.ClearSelection();
     }
 
@@ -61,7 +61,7 @@ void PanelResources::Draw()
     cubemap_dlg.Display();
     if(cubemap_dlg.HasSelection())
     {
-        App->resources->ImportCubemap(cubemap_dlg.GetFiles(), std::string(), cubemap_dlg.GetCompressed(), cubemap_dlg.GetMipmaps());
+        App->resources->ImportCubemap(cubemap_dlg.GetFiles(), std::string(), cubemap_dlg.GetMipmaps());
         cubemap_dlg.ClearSelection();
     }
 

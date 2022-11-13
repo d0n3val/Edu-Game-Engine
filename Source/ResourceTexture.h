@@ -27,6 +27,19 @@ public:
         unknown
 	};
 
+    enum CompressType
+    {
+        Compress_BC1 = 0, // Color RGB
+        Compress_BC3, // Color RGBA
+        Compress_BC4, // Greyscale
+        Compress_BC5, // Two Greayscale (normals?)
+        Compress_BC6, // half-floats
+        Compress_BC7, // Color RGB or RGBA high quality
+        Compress_BC7_FAST,  // Prev Faster
+        Compress_Count
+    };
+
+
 	enum ColorSpace
 	{
 		gamma,
@@ -66,7 +79,9 @@ public:
     bool             GetMipmaps 		() const { return mipMaps;  }
     void 			 GenerateMipmaps	(bool generate);
     void 		 	 SetColorSpace      (ColorSpace space) { colorSpace = space;}
+    
     bool             IsCompressed 		() const;
+    void             Compress           (CompressType type);
 
 	bool 			 LoadToArray 		(Texture2DArray* texArray, uint index) const;
 

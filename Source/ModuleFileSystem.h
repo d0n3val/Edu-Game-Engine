@@ -49,6 +49,7 @@ public:
 	aiFileIO* GetAssimpIO();
 	BASS_FILEPROCS* GetBassIO();
 
+    unsigned int Save(const char* path, const char* file, const void* buffer, unsigned int size, bool append = false) const;
 	unsigned int Save(const char* file, const void* buffer, unsigned int size, bool append = false) const;
 	bool SaveUnique(std::string& output, const void* buffer, uint size, const char* path, const char* prefix, const char* extension);
 	bool Remove(const char* file);

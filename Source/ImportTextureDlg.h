@@ -7,7 +7,6 @@ class ImportTexturesDlg
 {
     std::string file;
     std::string open_name;
-    bool        compressed = true;
     bool        mipmaps    = true;
 
     bool        toCubemap  = false;
@@ -24,7 +23,6 @@ public:
 
     bool               HasSelection () const { return selection; }
     const std::string& GetFile      () const { return file; }
-    bool               GetCompressed() const { return compressed; }
     bool               GetMipmaps   () const { return mipmaps; }
     bool               GetToCubemap () const { return toCubemap; }
 };

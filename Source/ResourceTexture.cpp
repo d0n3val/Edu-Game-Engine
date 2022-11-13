@@ -15,6 +15,33 @@
 
 namespace
 {
+    DXGI_FORMAT GetDXGIFromCompressType(ResourceTexture::CompressType type, DirectX::TEX_COMPRESS_FLAGS& flags)
+    {
+        flags = DirectX::TEX_COMPRESS_DEFAULT;
+        switch (type)
+        {
+        case ResourceTexture::Compress_BC1:
+            return DXGI_FORMAT_BC1_UNORM;
+        case ResourceTexture::Compress_BC3:
+            return DXGI_FORMAT_BC3_UNORM;
+        case ResourceTexture::Compress_BC4:
+            return DXGI_FORMAT_BC4_UNORM;
+        case ResourceTexture::Compress_BC5:
+            return DXGI_FORMAT_BC5_UNORM;
+        case ResourceTexture::Compress_BC6:
+            return DXGI_FORMAT_BC6H_SF16;
+        case ResourceTexture::Compress_BC7:
+            return DXGI_FORMAT_BC7_UNORM;
+        case ResourceTexture::Compress_BC7_FAST:
+            flags = DirectX::TEX_COMPRESS_BC7_QUICK;
+            return DXGI_FORMAT_BC7_UNORM;
+        default:
+            assert(false && "Unsupported format");
+        }
+
+        return DXGI_FORMAT_BC1_UNORM;
+    }
+
     ResourceTexture::Format GetFormatFromDXGI(DXGI_FORMAT format, ResourceTexture::ColorSpace& colorSpace)
     {
         colorSpace = ResourceTexture::linear;
@@ -95,7 +122,7 @@ bool ResourceTexture::LoadInMemory()
 
         DirectX::ScratchImage image;
         HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size-sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);
-        if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, total_size - sizeof(uint32_t), nullptr, image);
+        //if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, total_size - sizeof(uint32_t), nullptr, image);
         
 
         if (res == S_OK)
@@ -155,8 +182,8 @@ void ResourceTexture::GenerateMipmaps(bool generate)
 // ---------------------------------------------------------
 uint ResourceTexture::GetGLInternalFormat() const 
 {
-    static uint gl_internal[] = { GL_RGBA8, GL_RGBA8, GL_RGB8, GL_R8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT };
-    static uint gl_internal_gamma[] = { GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8 , GL_SRGB8, GL_R8, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT };
+    static uint gl_internal[] = { GL_RGBA8, GL_RGBA8, GL_RGB8, GL_R8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM };
+    static uint gl_internal_gamma[] = { GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8 , GL_SRGB8, GL_R8, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM };
 
     return GetColorSpace() == linear ? gl_internal[uint(format)] : gl_internal_gamma[uint(format)];
 }
@@ -287,5 +314,51 @@ bool ResourceTexture::LoadToArray(Texture2DArray* texArray, uint index) const
     RELEASE_ARRAY(head_buffer);
 
     return ret;
+}
+
+void ResourceTexture::Compress(CompressType type)
+{
+    assert(IsCompressed() == false);
+    char* head_buffer = nullptr;
+    uint total_size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, GetExportedFile(), &head_buffer);
+
+    if (head_buffer != nullptr && total_size > 0)
+    {
+        char* buffer = head_buffer + sizeof(uint32_t);
+
+        DirectX::ScratchImage image, compressed;
+        HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size - sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);
+        if (res == S_OK)
+        {
+            DirectX::TEX_COMPRESS_FLAGS flags;
+            DXGI_FORMAT format = GetDXGIFromCompressType(type, flags);
+            res = DirectX::Compress(image.GetImages(), image.GetImageCount(), image.GetMetadata(), format, flags, 0.2f, compressed);
+        }
+
+        if (res == S_OK)
+        {
+            DirectX::Blob blob;
+            res = DirectX::SaveToDDSMemory(compressed.GetImages(), compressed.GetImageCount(), compressed.GetMetadata(), DirectX::DDS_FLAGS_NONE, blob);
+
+            if (res == S_OK)
+            {
+                uint header_size = sizeof(uint32_t);
+                uint output_size = uint(blob.GetBufferSize());
+                char* output_buffer = new char[blob.GetBufferSize() + header_size];
+                memcpy(&reinterpret_cast<char*>(output_buffer)[header_size], blob.GetBufferPointer(), blob.GetBufferSize());
+                *reinterpret_cast<uint32_t*>(output_buffer) = uint32_t(ResourceTexture::Texture2D);
+
+                if (App->fs->Save(LIBRARY_TEXTURES_FOLDER, GetExportedFile(), output_buffer, output_size + header_size))
+                {
+                    ReleaseFromMemory();
+                    LoadInMemory();
+                }
+
+                RELEASE_ARRAY(output_buffer);
+            }
+        }
+    }
+
+    RELEASE_ARRAY(head_buffer);
 }
 

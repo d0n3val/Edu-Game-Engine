@@ -254,6 +254,7 @@
     <ClInclude Include="ComponentSteering.h" />
     <ClInclude Include="ComponentTrail.h" />
     <ClInclude Include="ComponentWithResource.h" />
+    <ClInclude Include="CompressTextureDlg.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="CubemapUtils.h" />
     <ClInclude Include="DebugDraw.h" />
@@ -445,6 +446,7 @@
     <ClCompile Include="ComponentSteering.cpp" />
     <ClCompile Include="ComponentTrail.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
+    <ClCompile Include="CompressTextureDlg.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="CubemapUtils.cpp" />
     <ClCompile Include="DeferredDecalPass.cpp" />

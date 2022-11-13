@@ -748,6 +748,9 @@
     <ClInclude Include="FogPass.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="CompressTextureDlg.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1349,6 +1352,9 @@
     </ClCompile>
     <ClCompile Include="FogPass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="CompressTextureDlg.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

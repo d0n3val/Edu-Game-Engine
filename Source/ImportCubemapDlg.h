@@ -28,7 +28,6 @@ public:
 
     bool               HasSelection () const { return selection; }
     const std::string* GetFiles     () const { return files; }
-    bool               GetCompressed() const { return textureDlg.GetCompressed(); }
     bool               GetMipmaps   () const { return textureDlg.GetMipmaps(); }
 
 };
