@@ -1,5 +1,6 @@
 #version 460
 #extension GL_ARB_shading_language_include : require
+#extension GL_ARB_bindless_texture : require
 
 layout(early_fragment_tests) in;
 

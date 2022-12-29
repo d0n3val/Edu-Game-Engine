@@ -416,7 +416,6 @@
     <ClInclude Include="SkyboxRollout.h" />
     <ClInclude Include="spotlight.h" />
     <ClInclude Include="StateViewport.h" />
-    <ClInclude Include="TextureBatch.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="PhysVehicle3D.h" />
     <ClInclude Include="tinyspline\include\tinyspline.h" />
@@ -570,7 +569,6 @@
     <ClCompile Include="SkyboxRollout.cpp" />
     <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="StateViewport.cpp" />
-    <ClCompile Include="TextureBatch.cpp" />
     <ClCompile Include="thekla_atlas\extern\poshlib\posh.c" />
     <ClCompile Include="thekla_atlas\src\nvcore\Debug.cpp" />
     <ClCompile Include="thekla_atlas\src\nvcore\FileSystem.cpp" />

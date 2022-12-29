@@ -5,10 +5,13 @@
 
 class Program;
 class Framebuffer;
+class VertexArray;
 
 class DeferredResolvePass
 {
     std::unique_ptr<Program> program;
+    std::unique_ptr<VertexArray> vao;
+
 public:
     DeferredResolvePass();
 
@@ -17,6 +20,7 @@ public:
 private:
     void useProgram();
     bool generateProgram();
+    void bindShadows();
 };
 
 #endif /* _DEFERRED_RESOLVE_H_ */

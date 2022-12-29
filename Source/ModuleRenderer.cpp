@@ -142,11 +142,6 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     batch_manager->UpdateModel(render_list.GetOpaques());
     batch_manager->UpdateModel(render_list.GetTransparents());
 
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_SHADOW_MAPPING))
-    {
-        ShadowPass(camera, width, height);
-    }
-
     // General Buffer bindings 
     cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetLightManager()->Bind();
@@ -172,9 +167,12 @@ void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBu
 
 void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
-    // todo: forward
+    // TODO: Update batch transforms and skinning / morphing for 2 cameras, render and shadows
+    
+    // Deferred
+    exportGBuffer->execute(render_list, width, height);
 
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
+    if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
     {
         cascadeShadowPass->execute(culling->frustum);
     }
@@ -183,8 +181,6 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
         shadowmapPass->execute(culling->frustum, 4096, 4096);
     }
 
-    // Deferred
-    exportGBuffer->execute(render_list, width, height);
     decalPass->execute(camera, render_list, width, height);
     ssao->execute(width, height);
 
@@ -217,76 +213,6 @@ void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
     render_list.UpdateFrom(camera->frustum, App->level->GetRoot());
 
     SelectionPass(proj, view);
-}
-
-void ModuleRenderer::ShadowPass(ComponentCamera* camera, unsigned width, unsigned height)
-{
-    static const uint cascasdes_res_cte[] = {ModuleHints::SHADOW_CASCADE_0_RES, ModuleHints::SHADOW_CASCADE_1_RES, ModuleHints::SHADOW_CASCADE_2_RES };
-
-    float2 shadow_res[3] =  { App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_RES), 
-                              App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_1_RES), 
-                              App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_2_RES)};
-
-    int periods[] = { App->hints->GetIntValue(ModuleHints::SHADOW_CASCADE_0_UPDATE),  
-                      App->hints->GetIntValue(ModuleHints::SHADOW_CASCADE_1_UPDATE), 
-                      App->hints->GetIntValue(ModuleHints::SHADOW_CASCADE_2_UPDATE) };
-
-    for(uint i=0; i<  CASCADE_COUNT; ++i)
-    {
-        cascades[i].tick = ((cascades[i].tick+1)%periods[i]);
-
-        if(cascades[i].tick == 0)
-        {
-            if (App->hints->GetBoolValue(ModuleHints::UPDATE_SHADOW_VOLUME))
-            {
-                ComputeDirLightShadowVolume(camera, i);
-            }
-
-            GenerateShadowFBO(cascades[i], int(shadow_res[i].x), int(shadow_res[i].y));
-
-            glBindFramebuffer(GL_FRAMEBUFFER, cascades[i].fbo);
-
-            glViewport(0, 0, int(shadow_res[i].x), int(shadow_res[i].y));
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-            App->programs->UseProgram("shadow", 0);
-
-            //float4x4 camera_proj   = camera->GetProjectionMatrix();	
-            //float4x4 camera_view   = camera->GetViewMatrix();
-
-            glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].proj));
-            glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&cascades[i].view));
-            //glUniformMatrix4fv(App->programs->GetUniformLocation("camera_proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&camera_proj));
-            //glUniformMatrix4fv(App->programs->GetUniformLocation("camera_view"), 1, GL_TRUE, reinterpret_cast<const float*>(&camera_view));
-
-
-            //DrawNodes(cascades[i].casters, &ModuleRenderer::DrawShadow);
-
-            if (App->hints->GetBoolValue(ModuleHints::SHADOW_ENABLE_SOFT))
-            {
-                BlurShadow(i);
-            }
-        }
-
-        if (App->hints->GetBoolValue(ModuleHints::SHOW_SHADOW_CLIPPING))
-        {
-            math::float3 p[8];
-            cascades[i].world_bb.GetCornerPoints(p);
-            std::swap(p[2], p[5]);
-            std::swap(p[3], p[4]);
-            std::swap(p[4], p[5]);
-            std::swap(p[6], p[7]);
-            dd::box(p, i == 0 ? dd::colors::Red : (i == 1 ? dd::colors::Green : dd::colors::Blue));
-
-            cascades[i].frustum.GetCornerPoints(p);
-            std::swap(p[2], p[5]);
-            std::swap(p[3], p[4]);
-            std::swap(p[4], p[5]);
-            std::swap(p[6], p[7]);
-            dd::box(p, dd::colors::White);
-        }
-    }
 }
 
 void ModuleRenderer::UpdateCameraUBO(ComponentCamera *camera)
@@ -351,7 +277,7 @@ void ModuleRenderer::LoadDefaultShaders()
     //App->programs->Load("equirectangular", "Assets/Shaders/skybox.vs", "Assets/Shaders/equirectangular.fs", nullptr, 0);
     App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0);
     App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0);
-    App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0);
+    //App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0);
 
     const char* gaussian_macros[]       = { "#define HORIZONTAL 1 \n" }; 
     const unsigned num_gaussian_macros  = sizeof(gaussian_macros)/sizeof(const char*);

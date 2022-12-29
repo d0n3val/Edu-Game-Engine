@@ -5,6 +5,7 @@
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/cameraDefs.glsl"
 #include "/shaders/lighting.glsl"
+#include "/shaders/shadows.glsl"
 
 layout(binding = GBUFFER_ALBEDO_TEX_BINDING) uniform sampler2D albedo;
 layout(binding = GBUFFER_SPECULAR_TEX_BINDING) uniform sampler2D specular;
@@ -27,7 +28,7 @@ void unpackGBuffer(out PBR pbr)
     vec4 normalSmp   = texture(normal, uv);
 
     pbr.diffuse    = albedoSmp.rgb;
-    pbr.shadow     = albedoSmp.a;
+    pbr.shadow     = 1.0;
     pbr.specular   = specularSmp.rgb;
     pbr.emissive   = emissiveSmp.rgb;
     pbr.normal     = normalize(normalSmp.rgb*2.0-1.0);
@@ -47,6 +48,8 @@ void main()
     unpackGBuffer(pbr);
 
     sampleSSAO(pbr);
+
+    pbr.shadow = computeShadow(pbr.position);
 
     color = ShadingNoPoint(pbr);
 }

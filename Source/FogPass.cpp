@@ -39,11 +39,16 @@ void FogPass::execute(Framebuffer *target, uint width, uint height)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
+    if(!vao) vao = std::make_unique<VertexArray>();
+
+    vao->Bind();
+
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 
+    vao->Unbind();
 	target->Unbind();
 }
 

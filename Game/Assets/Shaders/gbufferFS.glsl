@@ -1,6 +1,8 @@
 #version 460
 
 #extension GL_ARB_shading_language_include : require
+#extension GL_ARB_bindless_texture : require
+
 
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/common.glsl"
@@ -19,7 +21,6 @@ layout(location = 4)out vec4 normal;
 void packGBuffer(in PBR pbr)
 {
     albedo.rgb        = pbr.diffuse;
-    albedo.a          = pbr.shadow;
     specular.rgb      = pbr.specular;
     specular.a        = pbr.smoothness;
     emissive.rgb      = pbr.emissive;
@@ -32,7 +33,7 @@ void main()
 {
     PBR pbr;
 
-    getMaterial(pbr, draw_id, fragment.uv0, fragment.geom, fragment.shadow);
+    getMaterial(pbr, draw_id, fragment.uv0, fragment.geom);
 
     packGBuffer(pbr);
 }

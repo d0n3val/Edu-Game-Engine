@@ -1,0 +1,87 @@
+prefab_name: test_lightmaps.blender
+name: RootNode
+enabled: true
+component:
+  - !<transform>
+    type: 1
+    enabled: true
+    position: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+child:
+  - name: Cube
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [-0.0068, 0.0001, -0.0013]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 7992685397785045483
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 8209783679106095800
+        tint_color: [1, 1, 1, 1]
+  - name: Plane
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [0.0025, -0.0026, 0.0022]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 5365437739014058141
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 1053025316278227345
+        tint_color: [1, 1, 1, 1]
+  - name: Sphere
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [-0.0068, 0.0001, -0.0013]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 16523111167199782136
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 18307854544874737316
+        tint_color: [1, 1, 1, 1]
+  - name: Suzanne
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [-0.0341, 0.0099, 0.0077]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 13736695439830883122
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 5260603037476249355
+        tint_color: [1, 1, 1, 1]

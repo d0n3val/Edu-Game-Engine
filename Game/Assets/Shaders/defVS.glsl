@@ -12,7 +12,6 @@ layout(location = BONE_INDEX_ATTRIB_LOCATION) in ivec4 bone_indices;
 layout(location = BONE_WEIGHT_ATTRIB_LOCATION) in vec4 bone_weights;
 layout(location = TANGENT_ATTRIB_LOCATION) in vec3 vertex_tangent;
 layout(location = UV1_ATTRIB_LOCATION) in vec2 vertex_uv1;
-layout(location = DRAW_ID_ATTRIB_LOCATION) in int  draw_id_att;
 
 
 readonly layout(std430, row_major, binding = MODEL_SSBO_BINDING) buffer Transforms
@@ -49,12 +48,6 @@ layout(std430, binding = MORPH_WEIGHT_SSBO_BINDING) buffer MorphWeights
 
 layout(binding=MORPH_TARGET_TBO_BINDING) uniform samplerBuffer morphData;
 
-#ifdef CASCADE_SHADOWMAP
-layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj[NUM_CASCADES];
-#else
-layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj;
-#endif 
-
 out VertexOut fragment;
 out flat int draw_id;
 
@@ -63,7 +56,6 @@ vec3 MorphNormal(vec3 position);
 vec3 MorphTangent(vec3 position);
 
 void TransformOutput(out GeomData geom);
-void computeShadowCoord(in vec3 position, out ShadowData shadow);
 
 void main()
 {
@@ -75,43 +67,12 @@ void main()
     fragment.geom = geom;
     fragment.uv0  = vertex_uv0;
     fragment.uv1  = vertex_uv1;
-    draw_id       = draw_id_att;
-
-#ifndef SHADOW_MAP
-    ShadowData shadow;
-    computeShadowCoord(geom.position, shadow);
-
-    fragment.shadow = shadow;
-#endif 
+    draw_id       = gl_BaseInstance;
 }
-
-#ifndef SHADOW_MAP
-void computeShadowCoord(in vec3 position, out ShadowData shadow)
-{
-
-#ifdef CASCADE_SHADOWMAP
-    for(int i=0; i< NUM_CASCADES; ++i)
-    {
-        vec4 coord = shadowViewProj[i]*vec4(position, 1.0);
-        coord.xyz /= coord.w;
-        coord.xy = coord.xy*0.5+0.5;
-
-        shadow.shadowCoord[i] = coord.xyz;
-    }
-#else 
-    vec4 coord = shadowViewProj*vec4(position, 1.0);
-    coord.xyz /= coord.w;
-    coord.xy = coord.xy*0.5+0.5;
-
-    shadow.shadowCoord = coord.xyz;
-#endif 
-
-}
-#endif 
 
 vec3 MorphPosition(vec3 position)
 {
-    PerInstance instance = instanceInfo[draw_id_att];
+    PerInstance instance = instanceInfo[gl_BaseInstance];
 
     vec3 res = position;
     for(int i=0; i< instance.numTargets; ++i)
@@ -125,7 +86,7 @@ vec3 MorphPosition(vec3 position)
 
 vec3 MorphNormal(vec3 normal)
 {
-    PerInstance instance = instanceInfo[draw_id_att];
+    PerInstance instance = instanceInfo[gl_BaseInstance];
 
     vec3 res = normal;
     for(int i=0; i< instance.numTargets; ++i)
@@ -139,7 +100,7 @@ vec3 MorphNormal(vec3 normal)
 
 vec3 MorphTangent(vec3 tangent)
 {
-    PerInstance instance = instanceInfo[draw_id_att];
+    PerInstance instance = instanceInfo[gl_BaseInstance];
 
     vec3 res = tangent;
     for(int i=0; i< instance.numTargets; ++i)
@@ -153,8 +114,8 @@ vec3 MorphTangent(vec3 tangent)
 
 void TransformOutput(out GeomData geom)
 {
-    PerInstance instance = instanceInfo[draw_id_att];
-    mat4 model = models[draw_id_att];
+    PerInstance instance = instanceInfo[gl_BaseInstance];
+    mat4 model = models[gl_BaseInstance];
 
     mat3 normalMat = transpose(inverse(mat3(model)));
 

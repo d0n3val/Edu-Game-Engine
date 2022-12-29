@@ -1,0 +1,30 @@
+prefab_name: SpinningTop
+name: RootNode
+enabled: true
+component:
+  - !<transform>
+    type: 1
+    enabled: true
+    position: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+child:
+  - name: SpinningTop
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [0, 0, 0]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 9155821373255214936
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 1977299241415254628
+        tint_color: [1, 1, 1, 1]

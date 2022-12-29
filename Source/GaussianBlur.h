@@ -6,6 +6,7 @@
 class Framebuffer;
 class Texture2D;
 class Program;
+class VertexArray;
 
 class GaussianBlur
 {
@@ -15,6 +16,8 @@ class GaussianBlur
     std::unique_ptr<Texture2D>   result;
     std::unique_ptr<Program>     horizontal;
     std::unique_ptr<Program>     vertical;
+    std::unique_ptr<VertexArray> vao;
+
     uint                         rWidth = 0;
     uint                         rHeight = 0;
     uint                         rInternal = 0;

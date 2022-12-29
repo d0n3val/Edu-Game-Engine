@@ -1,5 +1,6 @@
 #version 460
 #extension GL_ARB_shading_language_include : require
+#extension GL_ARB_bindless_texture : require
 
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/cameraDefs.glsl"
@@ -26,7 +27,7 @@ void sampleSSAO(inout PBR pbr)
 void main()
 {
     PBR pbr;
-    getMaterial(pbr, draw_id, fragment.uv0, fragment.geom, fragment.shadow);
+    getMaterial(pbr, draw_id, fragment.uv0, fragment.geom);
 
     sampleSSAO(pbr);
 

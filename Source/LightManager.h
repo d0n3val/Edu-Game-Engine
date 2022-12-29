@@ -60,12 +60,17 @@ class LightManager
     PointLightList              points;
     SpotLightList               spots;
 
-    std::unique_ptr<Buffer>     directionalSSBO;
-    std::unique_ptr<Buffer>     spotLightSSBO;
-    std::unique_ptr<Buffer>     pointLightSSBO;
+    std::unique_ptr<Buffer>     directionalSSBO[2];
+    std::unique_ptr<Buffer>     spotLightSSBO[2];
+    std::unique_ptr<Buffer>     pointLightSSBO[2];
+
+    DirLightData*               directionalData[2];
+    PointLightSet*              pointLightData[2];
+    SpotLightSet*               spotLightData[2];
 
     uint                        pointBufferSize = 0;
     uint                        spotBufferSize = 0;
+    uint                        frameCount = 0;
 public:
 
     LightManager();
@@ -78,9 +83,9 @@ public:
     void UpdateGPUBuffers();
     void Bind();
 
-    const Buffer*       GetDirectionalBuffer    () const { return directionalSSBO.get();}
-    const Buffer*       GetSpotBuffer           () const { return spotLightSSBO.get();}
-    const Buffer*       GetPointBuffer          () const { return pointLightSSBO.get();}
+    const Buffer*       GetDirectionalBuffer    () const { return directionalSSBO[frameCount].get(); }
+    const Buffer*       GetSpotBuffer           () const { return spotLightSSBO[frameCount].get(); }
+    const Buffer*       GetPointBuffer          () const { return pointLightSSBO[frameCount].get(); }
 
     const DirLight*     GetDirLight             () const { return directional.get(); }
     DirLight*           GetDirLight             () { return directional.get(); }

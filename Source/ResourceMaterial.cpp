@@ -16,6 +16,7 @@
 #include "Leaks.h"
 
 #define MATERIAL_VERSION 0.3f
+//#define FORCE_COMPRESS_ON_LOAD
 
 // ---------------------------------------------------------
 ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::material)
@@ -92,10 +93,34 @@ bool ResourceMaterial::LoadInMemory()
                     if (tex_res)
                     {
                         tex_res->LoadToMemory();
+#ifdef FORCE_COMPRESS_ON_LOAD
+                        if (!tex_res->IsCompressed())
+                        {
+                            switch (i)
+                            {
+                            case TextureDiffuse:
+                                tex_res->Compress(ResourceTexture::Compress_Colour);
+                                break;
+                            case TextureSpecular:
+                                tex_res->Compress(ResourceTexture::Compress_Colour);
+                                break;
+                            case TextureNormal:
+                                tex_res->Compress(ResourceTexture::Compress_Normals);
+                                break;
+                            case TextureOcclusion:
+                                tex_res->Compress(ResourceTexture::Compress_Grayscale);
+                                break;
+                            case TextureEmissive:
+                                tex_res->Compress(ResourceTexture::Compress_Colour);
+                                break;
+                            default:
+                                break;
+                            }
+                        }
+#endif 
                     }
                 }
             }
-
             if(version >= 0.2f)
             {
                 read_stream >> uv_tiling;

@@ -5,6 +5,9 @@
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "ModuleLevelManager.h"
+#include "modulehints.h"
+#include "CascadeShadowPass.h"
+#include "ShadowmapPass.h"
 #include "Skybox.h"
 #include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"
@@ -22,11 +25,13 @@ DeferredResolvePass::DeferredResolvePass()
 
 void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
 {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "DeferredResolve");
     GBufferExportPass* exportPass = App->renderer->GetGBufferExportPass();
 	ScreenSpaceAO* ssao = App->renderer->GetScreenSpaceAO();
 
     useProgram();
 
+    bindShadows();
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
     target->Bind();
     glViewport(0, 0, width, height);
@@ -44,12 +49,19 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
 
 	App->level->GetSkyBox()->BindIBL();
 
+    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+
+    if(!vao) vao = std::make_unique<VertexArray>();
+
+    vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
 
+    vao->Unbind();
     target->Unbind();
+    glPopDebugGroup();
 }
 
 void DeferredResolvePass::useProgram()
@@ -95,3 +107,27 @@ bool DeferredResolvePass::generateProgram()
 
 	return ok;
 }
+
+void DeferredResolvePass::bindShadows()
+{
+    if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
+    {
+        CascadeShadowPass* shadowMap = App->renderer->GetCascadeShadowPass();
+
+        for (uint i = 0; i < CascadeShadowPass::CASCADE_COUNT; ++i)
+        {
+            program->BindUniform(SHADOW_VIEWPROJ_LOCATION + i, shadowMap->getFrustum(i).ViewProjMatrix());
+            shadowMap->getDepthTex(i)->Bind(SHADOWMAP_TEX_BINDING + i);
+        }
+
+        program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+    }
+    else
+    {
+        ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
+        program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
+        program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+        shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
+    }
+}
+

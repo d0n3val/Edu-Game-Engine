@@ -15,6 +15,11 @@ Texture::Texture(uint target, uint text) : tex_target(target), texture(text)
 
 Texture::~Texture()
 {
+    if(handle != 0)
+    {
+        glMakeTextureHandleNonResidentARB(handle);
+    }
+
     glDeleteTextures(1, &texture);
 }
 
@@ -87,6 +92,26 @@ void Texture::Unbind(uint unit) const
     glBindTexture(tex_target, 0);
 }
 
+uint64_t Texture::GetBindlessHandle() 
+{
+    if(handle == 0)
+    {
+        handle = glGetTextureHandleARB(texture);
+        glMakeTextureHandleResidentARB(handle);
+    }
+
+    return handle;
+}
+
+void Texture::MakeBindlessResident()
+{
+    glMakeTextureHandleResidentARB(GetBindlessHandle());
+}
+
+void Texture::MakeBindlessNonResident()
+{
+    glMakeTextureHandleNonResidentARB(GetBindlessHandle());
+}
 
 Texture2D::Texture2D(uint target, uint tex) : Texture(target, tex)
 {
@@ -492,11 +517,17 @@ Buffer* Buffer::CreateIBO(uint usage, uint size, const void* data)
     return new Buffer(GL_ELEMENT_ARRAY_BUFFER, usage, size, data);
 }
 
+VertexArray::VertexArray()
+{
+    glGenVertexArrays(1, &id);
+    glBindVertexArray(id);
+    glBindVertexArray(0);
+}
+
 VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint count)
 {
     glGenVertexArrays(1, &id);
     glBindVertexArray(id);
-
     vbo->Bind();
 
     for (uint32_t i = 0; i < count; i++)

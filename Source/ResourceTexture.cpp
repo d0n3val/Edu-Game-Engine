@@ -15,28 +15,24 @@
 
 namespace
 {
-    DXGI_FORMAT GetDXGIFromCompressType(ResourceTexture::CompressType type, DirectX::TEX_COMPRESS_FLAGS& flags)
+    DXGI_FORMAT GetDXGIFromCompressType(ResourceTexture::CompressType type, bool opaqueAlpha, DirectX::TEX_COMPRESS_FLAGS& flags)
     {
         flags = DirectX::TEX_COMPRESS_DEFAULT;
         switch (type)
         {
-        case ResourceTexture::Compress_BC1:
-            return DXGI_FORMAT_BC1_UNORM;
-        case ResourceTexture::Compress_BC3:
+        case ResourceTexture::Compress_Colour:
+            if (opaqueAlpha) return DXGI_FORMAT_BC1_UNORM;
             return DXGI_FORMAT_BC3_UNORM;
-        case ResourceTexture::Compress_BC4:
+        case ResourceTexture::Compress_Grayscale:
             return DXGI_FORMAT_BC4_UNORM;
-        case ResourceTexture::Compress_BC5:
+        case ResourceTexture::Compress_Normals:
             return DXGI_FORMAT_BC5_UNORM;
-        case ResourceTexture::Compress_BC6:
+        case ResourceTexture::Compress_HDR:
             return DXGI_FORMAT_BC6H_SF16;
-        case ResourceTexture::Compress_BC7:
-            return DXGI_FORMAT_BC7_UNORM;
-        case ResourceTexture::Compress_BC7_FAST:
+        case ResourceTexture::Compress_Colour_HQ_Fast:
             flags = DirectX::TEX_COMPRESS_BC7_QUICK;
+        case ResourceTexture::Compress_Colour_HQ:
             return DXGI_FORMAT_BC7_UNORM;
-        default:
-            assert(false && "Unsupported format");
         }
 
         return DXGI_FORMAT_BC1_UNORM;
@@ -182,8 +178,8 @@ void ResourceTexture::GenerateMipmaps(bool generate)
 // ---------------------------------------------------------
 uint ResourceTexture::GetGLInternalFormat() const 
 {
-    static uint gl_internal[] = { GL_RGBA8, GL_RGBA8, GL_RGB8, GL_R8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM };
-    static uint gl_internal_gamma[] = { GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8 , GL_SRGB8, GL_R8, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM };
+    static uint gl_internal[] = { GL_RGBA8, GL_RGBA8, GL_RGB8, GL_R8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM };
+    static uint gl_internal_gamma[] = { GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8 , GL_SRGB8, GL_R8, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2 , GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM };
 
     return GetColorSpace() == linear ? gl_internal[uint(format)] : gl_internal_gamma[uint(format)];
 }
@@ -331,7 +327,7 @@ void ResourceTexture::Compress(CompressType type)
         if (res == S_OK)
         {
             DirectX::TEX_COMPRESS_FLAGS flags;
-            DXGI_FORMAT format = GetDXGIFromCompressType(type, flags);
+            DXGI_FORMAT format = GetDXGIFromCompressType(type, image.IsAlphaAllOpaque(),flags);
             res = DirectX::Compress(image.GetImages(), image.GetImageCount(), image.GetMetadata(), format, flags, 0.2f, compressed);
         }
 

@@ -1,0 +1,40 @@
+prefab_name: terrain
+name: RootNode
+enabled: true
+component:
+  - !<transform>
+    type: 1
+    enabled: true
+    position: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+child:
+  - name: terrain_near_01
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [0, 0, 0]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 12784403454214586729
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 17860309293914978036
+        tint_color: [1, 1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 7653427384966421849
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 3833286602000127979
+        tint_color: [1, 1, 1, 1]

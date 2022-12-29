@@ -41,7 +41,8 @@ bool ModulePrograms::Init(Config* /*config = nullptr*/)
                 const char* includePath = &path.c_str()[pos];
                 glNamedStringARB(GL_SHADER_INCLUDE_ARB, -1, includePath, -1, buffer.str().c_str());
                 LOG("Adding shader %s to include files", includePath);
-            }
+            }  
+            strm.close();
         }
     }
 

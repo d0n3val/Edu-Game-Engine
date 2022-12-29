@@ -8,7 +8,7 @@
 
 namespace
 {
-    const char* names[] = { "BC1 (Color RGB)", "BC3 (Color RGBA)", "BC4 (Grayscale)", "BC5 (Two Grayscale)", "BC6 (HDR half-float)", "BC7 (Color RGB or RGBA hq)", "BC7 faster" };
+    const char* names[] = { "Colour", "Grayscale", "Normals", "HDR", "Colour High Quality", "Colour High Quality (faster)"};
 }
 
 CompressTextureDlg::CompressTextureDlg()

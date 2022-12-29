@@ -1,0 +1,70 @@
+prefab_name: Glacial_Base_BlockOut
+name: RootNode
+enabled: true
+component:
+  - !<transform>
+    type: 1
+    enabled: true
+    position: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+child:
+  - name: SM_ObsWall_Interior_01
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [59.23, -0.1836, 19.24]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 13450267389421889579
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 868980322284436765
+        tint_color: [1, 1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 11892459894896842190
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 9205293946494214074
+        tint_color: [1, 1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 650056230445080145
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 7457805500630583817
+        tint_color: [1, 1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 14037002755156656017
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 6726594216243249376
+        tint_color: [1, 1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 14080918120708665420
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 15231273835020192927
+        tint_color: [1, 1, 1, 1]

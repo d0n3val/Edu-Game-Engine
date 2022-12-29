@@ -45,7 +45,6 @@ private:
     void resizeFrameBuffer(uint width, uint height);
     void useProgram();
     bool generatePrograms();
-    void bindShadows();
 };
 
 #endif /* _GBUFFEREXPORT_PASS_H_ */

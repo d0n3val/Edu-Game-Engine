@@ -22,14 +22,18 @@
 
 void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "DeferredResolveProxyLights");
     GBufferExportPass* exportPass = App->renderer->GetGBufferExportPass();
 	ScreenSpaceAO* ssao = App->renderer->GetScreenSpaceAO();
 	const ResourceMesh* sphere = App->resources->GetDefaultSphere();
+
 
     createDrawIdVBO();
 	target->Bind();
 
     useProgram();
+
+    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
 
 	// Additive Blend
 	glEnable(GL_BLEND);
@@ -70,6 +74,8 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 #endif 
 
 	target->Unbind();
+
+    glPopDebugGroup();
 }
 
 void DeferredResolveProxy::useDebug()

@@ -193,5 +193,5 @@ void ShadowmapPass::render()
     glViewport(0, 0, fbWidth, fbHeight);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), 0);
+    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), BR_FLAG_AVOID_UPDATE_MODEL_MATRIX);
 }

@@ -87,15 +87,12 @@ bool ModuleRenderer3D::Init(Config* config)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY); 
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);	
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
     //Create context
 	context = SDL_GL_CreateContext(App->window->GetWindow());
@@ -123,44 +120,29 @@ bool ModuleRenderer3D::Init(Config* config)
 		LOG("OpenGL version supported %s", glGetString(GL_VERSION));
 		LOG("GLSL: %s\n", glGetString (GL_SHADING_LANGUAGE_VERSION));
 
+#if _DEBUG
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
+
+        glDebugMessageCallback(&DebugMessageGL, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+
 		//Use Vsync
 		bool set_vsync = config->GetBool("Vertical Sync", false);
 		vsync = !set_vsync; // force change
 		SetVSync(set_vsync);
 
-		//Check for error
-		GLenum error = glGetError();
-		if(error != GL_NO_ERROR)
-		{
-			LOG("Error initializing OpenGL! %s\n", gluErrorString(error));
-			ret = false;
-		}
-
-		//Check for error
-		error = glGetError();
-		if(error != GL_NO_ERROR)
-		{
-			LOG("Error initializing OpenGL! %s\n", gluErrorString(error));
-			ret = false;
-		}
-		
-        //glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
         glClearDepth(1.0f);
 		glClearStencil(0);
 		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
 		
 		//Initialize clear color
 		glClearColor(0.4f, 0.4f, 0.4f, 1.f);
 
-		//Check for error
-		error = glGetError();
-		if(error != GL_NO_ERROR)
-		{
-			LOG("Error initializing OpenGL! %s\n", gluErrorString(error));
-			ret = false;
-		}
 
 		// Blend for transparency
         glEnable(GL_BLEND);
@@ -169,19 +151,7 @@ bool ModuleRenderer3D::Init(Config* config)
 		glDepthFunc(GL_LESS);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
-		glEnable(GL_TEXTURE_2D);
-
-        glEnable(GL_MULTISAMPLE);  
-        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);  
     }
-
-#if _DEBUG
-	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-#endif
-
-	glDebugMessageCallback(&DebugMessageGL, nullptr);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 
 
     viewport = new Viewport;

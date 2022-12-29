@@ -33,7 +33,7 @@ bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
     }
 
     const ResourceMesh* meshRes = object->GetMeshRes();
-    if (meshRes->GetAttribs() == attrib_flags && textures.CanAdd(object->GetMaterialRes()))
+    if (meshRes->GetAttribs() == attrib_flags)
     {
         return true;
     }
@@ -53,8 +53,6 @@ void GeometryBatch::Add(const ComponentMeshRenderer* object)
 
     meshes[object->GetMeshUID()].refCount++;
     objects[object] = 0;
-
-    textures.Add(object->GetMaterialRes());
 
     ClearRenderData();
 }
@@ -190,13 +188,11 @@ void GeometryBatch::CreateVertexBuffers()
 
 void GeometryBatch::CreateTransformBuffer()
 {
-    transformSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, objects.size()*sizeof(float4x4), nullptr, true);
-    float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->Map(GL_WRITE_ONLY));
-    for(std::pair<const ComponentMeshRenderer* const, uint>& object : objects)
-    {
-        transforms[object.second] = object.first->GetGameObject()->GetGlobalTransformation();
-    }
-    transformSSBO->Unmap();
+    transformSSBO[0] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, objects.size()*sizeof(float4x4), nullptr, true);
+    transformsData[0] = reinterpret_cast<float4x4*>(transformSSBO[0]->MapRange(GL_MAP_WRITE_BIT, 0, uint(objects.size() * sizeof(float4x4))));
+
+    transformSSBO[1] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, objects.size()*sizeof(float4x4), nullptr, true);
+    transformsData[1] = reinterpret_cast<float4x4*>(transformSSBO[1]->MapRange(GL_MAP_WRITE_BIT, 0, uint(objects.size() * sizeof(float4x4))));
 }
 
 void GeometryBatch::CreateCommandBuffer()
@@ -227,10 +223,9 @@ void GeometryBatch::CreateMaterialBuffer()
         float                normal_strength;
         float                alpha_test;
         uint                 mapMask;
-        TextureBatch::Handle handles[TextureCount];
+        uint64_t             handles[TextureCount];
     };
 
-    textures.GenerateTextures();
 
     materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(MaterialData)*objects.size(), nullptr, true);
     MaterialData* matData = reinterpret_cast<MaterialData*>(materialSSBO->Map(GL_WRITE_ONLY));
@@ -256,7 +251,7 @@ void GeometryBatch::CreateMaterialBuffer()
             const ResourceTexture* texture = material->GetTextureRes(MaterialTexture(i));
             if (texture != nullptr)
             {
-                textures.GetHandle(texture, out.handles[i]);
+                out.handles[i] = texture->GetTexture()->GetBindlessHandle();
             }
         }        
     }
@@ -299,12 +294,20 @@ void GeometryBatch::CreateInstanceBuffer()
 
     if (totalBones > 0)
     {
-        skinning = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, totalBones * sizeof(float4x4), nullptr, true);
+        skinning[0] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalBones * sizeof(float4x4), nullptr, true);
+        skinningData[0] = reinterpret_cast<float4x4*>(skinning[0]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalBones * sizeof(float4x4))));
+
+        skinning[1] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalBones * sizeof(float4x4), nullptr, true);
+        skinningData[1] = reinterpret_cast<float4x4*>(skinning[1]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalBones * sizeof(float4x4))));
     }
 
     if (totalTargets > 0)
     {
-        morphWeights = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, totalTargets * sizeof(float), nullptr, true);
+        morphWeights[0] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalTargets * sizeof(float), nullptr, true);
+        morphWeightsData[0] = reinterpret_cast<float*>(morphWeights[0]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalTargets * sizeof(float))));
+
+        morphWeights[1] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalTargets * sizeof(float), nullptr, true);
+        morphWeightsData[1] = reinterpret_cast<float*>(morphWeights[1]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalTargets * sizeof(float))));
     }
 }
 
@@ -416,20 +419,18 @@ void GeometryBatch::DoRender(uint flags)
             UpdateModels();
         }
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MODEL_SSBO_BINDING, transformSSBO->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MODEL_SSBO_BINDING, transformSSBO[frameCount]->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PERINSTANCE_SSBO_BINDING, instanceSSBO->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MATERIAL_SSBO_BINDING, materialSSBO->Id());
 
-        textures.Bind();
-
-        if (skinning)
+        if (skinning[frameCount])
         {
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PALETTE_SSBO_BINDING, skinning->Id());
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PALETTE_SSBO_BINDING, skinning[frameCount]->Id());
         }
 
-        if (morphWeights)
+        if (morphWeights[frameCount])
         {
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MORPH_WEIGHT_SSBO_BINDING, morphWeights->Id());
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MORPH_WEIGHT_SSBO_BINDING, morphWeights[frameCount]->Id());
         }
 
         commandBuffer->Bind();
@@ -444,6 +445,13 @@ void GeometryBatch::DoRender(uint flags)
         vao->Unbind();
 
         commands.clear();
+
+        if(sync[frameCount])
+        {
+            glDeleteSync((GLsync)sync[frameCount]);
+        }
+
+        sync[frameCount] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 }
 
@@ -458,7 +466,6 @@ void GeometryBatch::Remove(const ComponentMeshRenderer* object)
     }
 
     objects.erase(object);
-    textures.Remove(object->GetMaterialRes());
 
 	ClearRenderData();
 }
@@ -512,18 +519,30 @@ void GeometryBatch::UpdateModels()
 {
     if(!modelUpdates.empty())
     {
-        float4x4* transforms = reinterpret_cast<float4x4*>(transformSSBO->MapRange(GL_MAP_WRITE_BIT /*| GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT*/, 0, uint(objects.size() * sizeof(float4x4))));
+        frameCount = (frameCount + 1) % 2;
+
+        if(sync[frameCount])
+        {
+            GLenum waitReturn;
+            
+            do
+            {
+                waitReturn = glClientWaitSync((GLsync)sync[frameCount], GL_SYNC_FLUSH_COMMANDS_BIT, 1000);
+            }while(waitReturn == GL_TIMEOUT_EXPIRED);
+        }
+
+        float4x4* transforms = transformsData[frameCount]; 
         float4x4* palette    = nullptr;
         float* weights       = nullptr;
 
         if (totalBones > 0)
         {
-            palette = reinterpret_cast<float4x4*>(skinning->MapRange(GL_MAP_WRITE_BIT /*| GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT*/, 0, uint(totalBones * sizeof(float4x4))));
+            palette = skinningData[frameCount]; 
         }
 
         if (totalTargets > 0)
         {
-            weights = reinterpret_cast<float*>(morphWeights->MapRange(GL_MAP_WRITE_BIT /*| GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT*/, 0, uint(totalTargets * sizeof(float))));
+            weights = morphWeightsData[frameCount]; 
         }
 
         for (const ComponentMeshRenderer *object : modelUpdates)
@@ -548,18 +567,6 @@ void GeometryBatch::UpdateModels()
                     memcpy(&weights[instanceData.baseTargetWeight], object->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
                 }
             }
-        }
-
-        transformSSBO->Unmap();
-
-        if (totalBones > 0)
-        {
-            skinning->Unmap();
-        }
-
-        if (totalTargets)
-        {
-            morphWeights->Unmap();
         }
 
         modelUpdates.clear();

@@ -3,7 +3,6 @@
 
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/pbrDefs.glsl"
-#include "/shaders/shadows.glsl"
 #include "/shaders/vertexDefs.glsl"
 
 #define DIFFUSE_MAP_INDEX 0
@@ -48,7 +47,8 @@ struct Material
     float     normalStrength;
     float     alphaTest;
     uint      mapMask;
-    TexHandle handles[MAP_COUNT];
+    //TexHandle handles[MAP_COUNT];
+    sampler2D handles[MAP_COUNT];
 };
 
 readonly layout(std430, binding = MATERIAL_SSBO_BINDING) buffer Mats
@@ -60,9 +60,7 @@ layout(binding = MATERIAL_TEX_BINDING) uniform sampler2DArray textures[gl_MaxTex
 
 vec4 sampleTexture(in uint textureIndex, in vec2 uv, in int matIndex)
 {
-    TexHandle handle  = materials[matIndex].handles[textureIndex];
-
-    return texture(textures[handle.index], vec3(uv, handle.slice));
+    return texture(materials[matIndex].handles[textureIndex], uv);
 }
 
 mat3 createTBN(const vec3 normal, const vec3 tangent)
@@ -73,7 +71,7 @@ mat3 createTBN(const vec3 normal, const vec3 tangent)
     return mat3(tangent, bitangent, normal);
 }
 
-void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in ShadowData shadow)
+void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom)
 {
     Material material = materials[matIndex]; 
     
@@ -117,6 +115,7 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in
     if((material.mapMask & NORMAL_MAP_FLAG) != 0)
     {
         tex_normal = sampleTexture(NORMAL_MAP_INDEX, uv0, matIndex).xyz*2.0-1.0;
+        tex_normal.z = sqrt(clamp(1-dot(tex_normal.xy, tex_normal.xy), 0.0, 1.0)); // unpack from two channel texture
         tex_normal.xy *= material.normalStrength;
         tex_normal = normalize(tex_normal);
 
@@ -170,7 +169,6 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom, in
     }
 
     pbr.position = geom.position;
-    pbr.shadow = ComputeShadow(shadow);
 }
 
 #endif /* _MATERIAL_DEFS_GLSL_ */

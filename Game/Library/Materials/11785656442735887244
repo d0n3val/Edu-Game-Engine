@@ -1,0 +1,13 @@
+name: 01 - Default
+diffuse: 0
+specular: 0
+normals: 0
+metalness: 0
+emissive: 0
+diffuse_color: [0.5882, 0.5882, 0.5882, 1]
+specular_color: [0.9, 0.9, 0.9, 1]
+emissive_color: [0, 0, 0, 1]
+smoothness: 0.5
+metalness_value: 0.5
+is_metallic: 1
+is_transparent: 0

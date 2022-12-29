@@ -103,7 +103,6 @@ private:
     void                RenderDeferred              (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
 
 
-    void                ShadowPass                  (ComponentCamera* camera, unsigned width, unsigned height);
     void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();

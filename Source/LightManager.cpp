@@ -96,24 +96,31 @@ void LightManager::RemoveSpotLight(uint index)
 
 void LightManager::UpdateGPUBuffers()
 {
+    static bool needsUpdate = true;
+
+    if (!needsUpdate)
+        return;
+    frameCount = (frameCount + 1) % 2;
+
     // directional
-    if(!directionalSSBO)
+    if(!directionalSSBO[frameCount])
     {
-        directionalSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(DirLightData), nullptr, true);
+        directionalSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, sizeof(DirLightData), nullptr, true);
+        directionalData[frameCount] = reinterpret_cast<DirLightData *>(directionalSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, sizeof(DirLightData)));
     }
 
-    DirLightData* directionalPtr = reinterpret_cast<DirLightData *>(directionalSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, sizeof(DirLightData)));
+    DirLightData* directionalPtr = directionalData[frameCount]; 
     directionalPtr->dir = float4(directional->GetDir(), 0.0);
     directionalPtr->color = float4(directional->GetColor(), directional->GetIntensity());
-    directionalSSBO->Unmap();
 
-    if(uint(points.size()) > pointBufferSize || !pointLightSSBO)
+    if(uint(points.size()) > pointBufferSize || !pointLightSSBO[frameCount])
     {
         pointBufferSize = uint(points.size());
-        pointLightSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, pointBufferSize*sizeof(PointLightData)+sizeof(int)*4, nullptr, true);
+        pointLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, pointBufferSize * sizeof(PointLightData) + sizeof(int) * 4, nullptr, true);
+        pointLightData[frameCount] = reinterpret_cast<PointLightSet*>(pointLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, pointBufferSize * sizeof(PointLightData) + sizeof(int) * 4));
     }
 
-    PointLightSet* pointPtr = reinterpret_cast<PointLightSet *>(pointLightSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, pointBufferSize*sizeof(PointLightData)+sizeof(int)*4));
+    PointLightSet* pointPtr = pointLightData[frameCount]; 
 
     // point lights
     uint index = 0;
@@ -131,15 +138,14 @@ void LightManager::UpdateGPUBuffers()
     }
     pointPtr->count = index;
 
-    pointLightSSBO->Unmap();
-
-    if(uint(spots.size()) > spotBufferSize || !spotLightSSBO)
+    if(uint(spots.size()) > spotBufferSize || !spotLightSSBO[frameCount])
     {
         spotBufferSize = uint(spots.size());
-        spotLightSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, spotBufferSize*sizeof(SpotLightData)+sizeof(int)*4, nullptr, true);
+        spotLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, spotBufferSize * sizeof(SpotLightData) + sizeof(int) * 4, nullptr, true);
+        spotLightData[frameCount] = reinterpret_cast<SpotLightSet*>(spotLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, spotBufferSize * sizeof(SpotLightData) + sizeof(int) * 4));
     }
 
-    SpotLightSet* spotPtr = reinterpret_cast<SpotLightSet*>(spotLightSSBO->MapRange(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT, 0, spotBufferSize*sizeof(SpotLightData)+sizeof(int)*4));
+    SpotLightSet* spotPtr = spotLightData[frameCount]; 
 
     // spot lights
     index = 0;
@@ -161,13 +167,11 @@ void LightManager::UpdateGPUBuffers()
     }
 
     spotPtr->count = index;
-
-    spotLightSSBO->Unmap();
 }
 
 void LightManager::Bind()
 {
-    directionalSSBO->BindToPoint(DIRLIGHT_SSBO_BINDING);
-    pointLightSSBO->BindToPoint(POINTLIGHT_SSBO_BINDING);
-    spotLightSSBO->BindToPoint(SPOTLIGHT_SSBO_BINDING);
+    directionalSSBO[frameCount]->BindToPoint(DIRLIGHT_SSBO_BINDING);
+    pointLightSSBO[frameCount]->BindToPoint(POINTLIGHT_SSBO_BINDING);
+    spotLightSSBO[frameCount]->BindToPoint(SPOTLIGHT_SSBO_BINDING);
 }

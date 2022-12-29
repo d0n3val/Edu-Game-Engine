@@ -9,9 +9,9 @@ subroutine void TransformOutput();
 
 layout(location=0) subroutine uniform TransformOutput transform_output;
 
-uniform mat4 proj;
-uniform mat4 view;
-uniform mat4 model;
+layout(location=3)uniform mat4 proj;
+layout(location=4)uniform mat4 view;
+layout(location=5)uniform mat4 model;
 
 uniform mat4 palette[MAX_BONES];
 

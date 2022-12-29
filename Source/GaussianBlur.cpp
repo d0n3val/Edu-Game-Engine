@@ -11,6 +11,7 @@ GaussianBlur::GaussianBlur()
 {
     const char* horizontalMacros[] = { "#define HORIZONTAL 1 \n" };
 
+    vao = std::make_unique<VertexArray>();
     std::unique_ptr<Shader> fullScreenVS(Shader::CreateVSFromFile("assets/shaders/fullscreenVS.glsl"));
     std::unique_ptr<Shader> horizontalFS(Shader::CreateFSFromFile("assets/shaders/gaussian.glsl", horizontalMacros, 1));
     std::unique_ptr<Shader> verticalFS(Shader::CreateFSFromFile("assets/shaders/gaussian.glsl"));
@@ -56,7 +57,9 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
     // horizontal pass
     horizontal->Use();
     horizontal->BindTextureFromName("image", 0, input);
+    vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
 
     frameBufferV->Bind();
     glViewport(0, 0, width, height);
@@ -64,6 +67,7 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
     vertical->Use();
     vertical->BindTextureFromName("image", 0, result.get());
     glDrawArrays(GL_TRIANGLES, 0, 3);
+    vao->Unbind();
 }
 
 void GaussianBlur::createResult(uint internal_format, uint format, uint type, uint width, uint height)

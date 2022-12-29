@@ -1,0 +1,2439 @@
+prefab_name: Dreamhouse
+name: RootNode
+enabled: true
+component:
+  - !<transform>
+    type: 1
+    enabled: true
+    position: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+  - !<animation>
+    type: 14
+    enabled: true
+    state_machine: 0
+child:
+  - name: DreamlandHouse
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [0, 0, 0]
+        rotation: [0, 0, 0]
+        scale: [0.01, 0.01, 0.01]
+    child:
+      - name: Vaso
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-7.62, 8.756, 3.953]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 10220363801537833799
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 18333385537035600413
+            tint_color: [1, 1, 1, 1]
+      - name: torus3
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-26.56, -4.273, -17.22]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 2919549159472324161
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1894418077506102663
+            tint_color: [1, 1, 1, 1]
+      - name: torus2
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-26.74, -4.279, -7.586]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 11403463178672613741
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1894418077506102663
+            tint_color: [1, 1, 1, 1]
+      - name: torus1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-36.15, -3.141, -12.33]
+            rotation: [-11.92, -1.4, 25.35]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 14510259624149515836
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1894418077506102663
+            tint_color: [1, 1, 1, 1]
+      - name: torus
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-32.08, -3.353, -10.83]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 600068290047914090
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1894418077506102663
+            tint_color: [1, 1, 1, 1]
+      - name: Taburete
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-14.15, -1.988, 14.59]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 9658584720794635696
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5569224421179788742
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 12019660688167414727
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 18385375228320555318
+            tint_color: [1, 1, 1, 1]
+      - name: Rubik
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-46.13, 12.45, -42.19]
+            rotation: [0, 21, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 6682288877351277886
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5701958553170757215
+            tint_color: [1, 1, 1, 1]
+      - name: Pelota
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-20.15, 1.522, 31.4]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 17689061386461195423
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5898157501558107877
+            tint_color: [1, 1, 1, 1]
+      - name: Paredes
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-12.04, 57.25, 16.28]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 11482296075371681099
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 3413830770448342416
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 6992036226817542882
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 12398915500956722513
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 7475598363310518784
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 3039364265796213025
+            tint_color: [1, 1, 1, 1]
+      - name: Papel
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-2.454, 7.245, 6.538]
+            rotation: [0, -10.5, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 7108837520475274036
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 8464088320127301308
+            tint_color: [1, 1, 1, 1]
+      - name: Panda1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [18.38, -0.7976, 58.25]
+            rotation: [-104.6, -8.5, -138.6]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1726287094310863990
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4914512736781945298
+            tint_color: [1, 1, 1, 1]
+      - name: MesitaDeco1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-45.5, 1.112, 49.62]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 6623243477490685072
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 10844699177609162410
+            tint_color: [1, 1, 1, 1]
+      - name: MesitaDeco
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-45.5, 1.112, -55.06]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1175193871568149031
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 10844699177609162410
+            tint_color: [1, 1, 1, 1]
+      - name: Mesita2
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [0.3562, 0.9291, 1.33]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8741892713655526720
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 18385375228320555318
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 11716762169975110077
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 14024084682255198257
+            tint_color: [1, 1, 1, 1]
+      - name: Mesita1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-50.59, 3.089, 50.67]
+            rotation: [0, 89.98, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 17482949106770712996
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 15378541812349541103
+            tint_color: [1, 1, 1, 1]
+      - name: Mesita
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-50.59, 3.089, -54.02]
+            rotation: [0, 89.98, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 5672081953845587133
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 15378541812349541103
+            tint_color: [1, 1, 1, 1]
+      - name: MarcoVentana
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [0, 0, 0]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 7924948409341274333
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 9808449523095979089
+            tint_color: [1, 1, 1, 1]
+      - name: Libros
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-33.74, 37.65, -88.99]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 14339369637863150077
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11681277828628043276
+            tint_color: [1, 1, 1, 1]
+      - name: Lego9
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-38.13, 4.793, 19.73]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 14451548469663844900
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 16961567145180726462
+            tint_color: [1, 1, 1, 1]
+      - name: Lego8
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-38.27, 2.403, 19.73]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 3405700811368466697
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1894418077506102663
+            tint_color: [1, 1, 1, 1]
+      - name: Lego7
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-38.33, 0.7505, 19.73]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1717012964253528010
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 14024084682255198257
+            tint_color: [1, 1, 1, 1]
+      - name: Lego6
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-40.09, -2.118, 19.73]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8349202366341397970
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11244038913977329107
+            tint_color: [1, 1, 1, 1]
+      - name: Lego5
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-36.54, -2.118, 19.73]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 7937018435100139710
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 16961567145180726462
+            tint_color: [1, 1, 1, 1]
+      - name: Lego4
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-39.67, -2.926, 3.548]
+            rotation: [-180, 45.75, 166.5]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 12184528476716165725
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1894418077506102663
+            tint_color: [1, 1, 1, 1]
+      - name: Lego3
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-38.33, -4.188, 5.003]
+            rotation: [0, 46.5, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 10085327308178478377
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 16961567145180726462
+            tint_color: [1, 1, 1, 1]
+      - name: Lego2
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-30.85, -3.625, 13.32]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 4784535313339011245
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11244038913977329107
+            tint_color: [1, 1, 1, 1]
+      - name: Lego1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-34.22, -2.634, 12.75]
+            rotation: [0, 0, -60.75]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 11090739529529463951
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1894418077506102663
+            tint_color: [1, 1, 1, 1]
+      - name: Lego
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-40.09, -3.7, 12.75]
+            rotation: [90, -0, -27]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1108713860576498304
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 16961567145180726462
+            tint_color: [1, 1, 1, 1]
+      - name: Lapiz
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-7.597, 11.58, 3.935]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 17620958230964608314
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1632296474585645105
+            tint_color: [1, 1, 1, 1]
+      - name: Iris3
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [15.8, -2.349, -44.68]
+            rotation: [0, -10.5, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 15546931059166869866
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 6393888560382744998
+            tint_color: [1, 1, 1, 1]
+      - name: Iris2
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [8.765, -2.349, -43.18]
+            rotation: [0, -27.75, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 16745391594141361512
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 9394216216659086802
+            tint_color: [1, 1, 1, 1]
+      - name: Iris1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [4.657, -2.349, -45.34]
+            rotation: [0, -27.75, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 9840462514376842640
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11491570795218196836
+            tint_color: [1, 1, 1, 1]
+      - name: Iris
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-1.708, -2.349, -48.69]
+            rotation: [0, -41.25, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 12579976447769859287
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 9394216216659086802
+            tint_color: [1, 1, 1, 1]
+      - name: Floor
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-1.925, -1.247, -0]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 9759685125337842773
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 3623049697148977581
+            tint_color: [1, 1, 1, 1]
+      - name: Estrellas
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-2.454, 10.26, -4.48]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 927777962864762626
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4299238324781252063
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8864640150481239907
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 8765120584523682834
+            tint_color: [1, 1, 1, 1]
+      - name: Estanteria
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-2.643, 19.47, -89.53]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8823416940500605305
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 7381132272470858812
+            tint_color: [1, 1, 1, 1]
+      - name: Cuadro
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-57.69, 26.94, 0]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1410770532155041862
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 12983641526304447059
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 2485212468580178061
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5588728582041650566
+            tint_color: [1, 1, 1, 1]
+      - name: CrucesVentanas
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-42.71, 76.95, -0.0963]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 15380071290059025414
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 9808449523095979089
+            tint_color: [1, 1, 1, 1]
+      - name: CortinaPalo
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [0, 0, 0]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8027936035451787958
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4299238324781252063
+            tint_color: [1, 1, 1, 1]
+      - name: Cortina
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [0, 0, 0]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 4235362204433433042
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5330705538505244411
+            tint_color: [1, 1, 1, 1]
+      - name: ColumnasTecho
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-1.302, 58.09, -0.3225]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 14435734953289252211
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 9808449523095979089
+            tint_color: [1, 1, 1, 1]
+      - name: Columnas3
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-55.37, -2.081, 90.51]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8547131856786317952
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1726584614218657224
+            tint_color: [1, 1, 1, 1]
+      - name: Columnas2
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [51.41, -2.081, 90.51]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 12061042450190180744
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1726584614218657224
+            tint_color: [1, 1, 1, 1]
+      - name: Columnas1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [51.41, -2.081, -90.61]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 611537824999736289
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1726584614218657224
+            tint_color: [1, 1, 1, 1]
+      - name: Columnas
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-55.37, -2.081, -90.61]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 15803822056481263078
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1726584614218657224
+            tint_color: [1, 1, 1, 1]
+      - name: Chimenea
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [3.424, 107.2, 65.58]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 4907588521132008640
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 15388390085621016978
+            tint_color: [1, 1, 1, 1]
+      - name: CantonerasTop1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [53.93, 60.57, -0.2893]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1573710444902158531
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 12795323381224734039
+            tint_color: [1, 1, 1, 1]
+      - name: CantonerasTop
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-57.84, 60.47, -19.1]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 16871801567424544109
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 12795323381224734039
+            tint_color: [1, 1, 1, 1]
+      - name: Cantonera1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [53.93, -4.169, 6.56]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 15708588523788408547
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 12795323381224734039
+            tint_color: [1, 1, 1, 1]
+      - name: Cantonera
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-57.84, -4.169, -19.1]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 15882289220014950877
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 12795323381224734039
+            tint_color: [1, 1, 1, 1]
+      - name: Canasta
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-32.08, -3.4, -10.83]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 6629185120827392757
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11244038913977329107
+            tint_color: [1, 1, 1, 1]
+      - name: camiseta
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [18.35, -1.707, 58.15]
+            rotation: [-104.6, -8.5, -138.6]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1141029514744638271
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 7312087962831712646
+            tint_color: [1, 1, 1, 1]
+      - name: Alfombra
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-29.39, -4.652, -48.93]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 16914533662843172434
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 2778769247357432540
+            tint_color: [1, 1, 1, 1]
+      - name: MuroFijo:MuroFijo
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [53.84, 27.87, 0.0196]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+        child:
+          - name: MuroFijo:Pared
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [3.413, 2.562, 6.676]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 17734117483672845997
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 17419185099918521376
+                tint_color: [1, 1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 197018835541656017
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 5964143535811711836
+                tint_color: [1, 1, 1, 1]
+          - name: MuroFijo:Techo
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-14.48, 49.1, -0.0196]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 7547397042019641430
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 3413830770448342416
+                tint_color: [1, 1, 1, 1]
+          - name: MuroFijo:PuertaMarco2
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [2.883, -12.71, 1.608]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 14501093792902160654
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 4299238324781252063
+                tint_color: [1, 1, 1, 1]
+          - name: MuroFijo:PuertaMarco1
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [2.879, 5.809, 13.43]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 11234313086445243773
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 4299238324781252063
+                tint_color: [1, 1, 1, 1]
+          - name: MuroFijo:PuertaMarco
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [2.883, -12.71, 25.18]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 15324117220701746985
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 4299238324781252063
+                tint_color: [1, 1, 1, 1]
+          - name: MuroFijo:Door
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [2.421, -13.94, 13.38]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 16181257894180064660
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 8311298784013463036
+                tint_color: [1, 1, 1, 1]
+          - name: MuroFijo:Ventanal
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-14.4, 49.44, 0.1407]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 10639132970425043966
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 9808449523095979089
+                tint_color: [1, 1, 1, 1]
+      - name: Lamp4:Lamp4
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-44.02, 13, 80.3]
+            rotation: [180, 47.25, 180]
+            scale: [2.337, 2.337, 2.337]
+        child:
+          - name: Lamp4:Metal
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-0.0086, -0.3324, -0.2509]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 111010452705950163
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 9979285570737925659
+                tint_color: [1, 1, 1, 1]
+          - name: Lamp4:Lamps
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.0086, 0.3324, 0.2509]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 16136971923945474685
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 11366842736179167888
+                tint_color: [1, 1, 1, 1]
+      - name: Lamp3:Lamp3
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-57.52, 43.45, 0.3493]
+            rotation: [0, 0, -90]
+            scale: [1, 1, 1]
+        child:
+          - name: Lamp3:CuboLamp
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.0064, 0.0408, -0.0003]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 18411559434554089508
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 12101806764916067054
+                tint_color: [1, 1, 1, 1]
+          - name: Lamp3:CuboLampInt
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-0.0064, -0.0408, 0.0003]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 11431860143894608719
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 2219136893260860408
+                tint_color: [1, 1, 1, 1]
+      - name: Lamp2:Lamp2
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [38.87, 13.62, -77.39]
+            rotation: [0, 0, 0]
+            scale: [2.231, 2.231, 2.231]
+        child:
+          - name: Lamp2:Cristal
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.2938, 4.608, 0.0016]
+                rotation: [0, 0, 0]
+                scale: [1.147, 1.147, 1.147]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 15543498870472376154
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 17324778013115833470
+                tint_color: [1, 1, 1, 1]
+          - name: Lamp2:Iron
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.3258, -2.199, -0.0021]
+                rotation: [0, 0, 0]
+                scale: [1.147, 1.147, 1.147]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 4713988051325912845
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 14503475993840375253
+                tint_color: [1, 1, 1, 1]
+      - name: Lamp1:Lamp1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-49.48, 22.68, -31.83]
+            rotation: [0, 0, 0]
+            scale: [2.109, 2.109, 2.109]
+        child:
+          - name: Lamp1:Hierro
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-0.0178, -3.245, 0.0175]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 12915161022535286863
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 17795900728473580828
+                tint_color: [1, 1, 1, 1]
+          - name: Lamp1:Bombilla
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.0178, 3.245, -0.0175]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 18301079806702752571
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 15719191309352980418
+                tint_color: [1, 1, 1, 1]
+      - name: LunaLunera
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-53.06, 14.6, 37.26]
+            rotation: [-133.8, 43.61, 144.3]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 5951076244323560101
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 6690325001100861306
+            tint_color: [1, 1, 1, 1]
+      - name: Tumbona
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-5.955, 2.666, 74.86]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 2821359140101736348
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 10769616754743658140
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 9263495233571206494
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 1806279475196005854
+            tint_color: [1, 1, 1, 1]
+      - name: Sofa
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [44.81, 4.404, -42.57]
+            rotation: [180, -0, -180]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 15143269849201095071
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 3137325879467630798
+            tint_color: [1, 1, 1, 1]
+      - name: Taburete5
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [14.39, -1.988, 9.345]
+            rotation: [0, -27.75, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 10796993967457019886
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5569224421179788742
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8561516740736119799
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 18385375228320555318
+            tint_color: [1, 1, 1, 1]
+      - name: Taburete6
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [38.61, -1.988, 51.88]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 5051871476972372891
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5569224421179788742
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 17149087333137694338
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 18385375228320555318
+            tint_color: [1, 1, 1, 1]
+      - name: Taburete7
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-4.833, -1.988, -24.3]
+            rotation: [0, 36, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 14796214740294056859
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5569224421179788742
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 13262311416310974709
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 18385375228320555318
+            tint_color: [1, 1, 1, 1]
+      - name: Taburete8
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-17.69, -1.988, -62.98]
+            rotation: [0, 30.75, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 5253222668918777635
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 5569224421179788742
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 12220651413245121436
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 18385375228320555318
+            tint_color: [1, 1, 1, 1]
+      - name: MAME:MAME
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [40.08, 14.11, 75.56]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+        child:
+          - name: MAME:Laterales
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-0.0906, 3.246, -0.155]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 11944594252479802302
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 18219337108804729436
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:Marquee_frontal
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.4072, 7.64, 0.6897]
+                rotation: [-0, -59.25, -24.5]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 17716015529514530611
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 5504313084787890821
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:MarqueeSuperior
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-1.253, 15.75, -2.094]
+                rotation: [0, -59.25, 62.5]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 13158723992227703
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 11303218662243234147
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:Screen
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.0172, 8.071, 0.0341]
+                rotation: [-77.69, 7.23, 29.97]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 14180990981284909663
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 1736729035382054162
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:mame_maderas
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.2387, 6.298, 0.4141]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 15985255172593175208
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 12464026371637501490
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:Ruedas
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [0.0212, -18.24, 0.011]
+                rotation: [0, 0, 0]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 11440015369526809254
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 12546134904894504030
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:Base
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-2.73, 2.549, -4.331]
+                rotation: [161.8, -29.48, 170.8]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 8410645515114530182
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 17229348962338282126
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:Botones
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-3.243, 2.791, -3.83]
+                rotation: [161.8, -29.48, 170.8]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 5614585971219471558
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 14067545609397714127
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:BotonesBase
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-2.998, 2.767, -3.754]
+                rotation: [161.8, -29.48, 170.8]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 8527889334403726105
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 10207366128150512900
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:Mando2
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [1.099, 3.59, -5.83]
+                rotation: [161.8, -29.48, 170.8]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 3743635813758759060
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 5013660332223223656
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:Mando3
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-3.451, 3.588, -3.13]
+                rotation: [161.8, -29.48, 170.8]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 11923769773554899059
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 2429810314437813001
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:Players
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-1.5, 3.187, -3.234]
+                rotation: [161.8, -29.48, 170.8]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 5844015738675381647
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 7674217569660319602
+                tint_color: [1, 1, 1, 1]
+          - name: MAME:InsertCoin
+            enabled: true
+            component:
+              - !<transform>
+                type: 1
+                enabled: true
+                position: [-5.267, -1.129, -4.725]
+                rotation: [-90, -0, 30.75]
+                scale: [1, 1, 1]
+              - !<mesh_renderer>
+                type: 2
+                enabled: true
+                mesh_id: 2659368966656872174
+                navigable: false
+                visible: true
+                casting_shadow: true
+                outline_type: 2
+                material_id: 5287684539969857229
+                tint_color: [1, 1, 1, 1]
+      - name: Estrellas1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-2.454, 9.741, -4.48]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8489953807810298980
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 12740197056304755093
+            tint_color: [1, 1, 1, 1]
+      - name: Xbox360_box
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [29.45, 11.26, -90.41]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 11947499254935915863
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 6813321023759084154
+            tint_color: [1, 1, 1, 1]
+      - name: TVplana
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-2.509, 7.488, -88.68]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 15940455963226885848
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 3802196845947842339
+            tint_color: [1, 1, 1, 1]
+      - name: Tintin1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [25.53, 34.37, -89.8]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 5280616558278945824
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 16898111373584864510
+            tint_color: [1, 1, 1, 1]
+      - name: SnesGames
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-33.74, 24.09, -90.41]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 3162725177644963859
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 17777164785679723791
+            tint_color: [1, 1, 1, 1]
+      - name: Nintendo
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [28.89, 22.27, -89.99]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1139528251258782596
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11549717249839822220
+            tint_color: [1, 1, 1, 1]
+      - name: NESmando
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [23.97, 20.88, -87.21]
+            rotation: [-9.251, -13.33, -2.151]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 14438150570328672780
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11549717249839822220
+            tint_color: [1, 1, 1, 1]
+      - name: KatanaBase
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-49.03, 14.35, -56.12]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 14327984739059232603
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 12464026371637501490
+            tint_color: [1, 1, 1, 1]
+      - name: Katana
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-49.03, 16.15, -51.72]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 13940984990258966364
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 9717481249741625950
+            tint_color: [1, 1, 1, 1]
+      - name: Dvds
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-4.753, 37.64, -90.41]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 17264606454786657764
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 7257176628725525219
+            tint_color: [1, 1, 1, 1]
+      - name: CuadroIndy
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [53.61, 30.69, -39.89]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 2143670082187296185
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4299238324781252063
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 5970239806314866640
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4686507030851558450
+            tint_color: [1, 1, 1, 1]
+      - name: CuadroChunli
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-57.47, 34.3, -55.03]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8746075816080275582
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4299238324781252063
+            tint_color: [1, 1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 7893479519623532693
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11278071191221251576
+            tint_color: [1, 1, 1, 1]
+      - name: Atari2600pack
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-33.69, 13.34, -90.93]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 13753182852111863788
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 6077316688397008941
+            tint_color: [1, 1, 1, 1]
+      - name: Atari2600
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-30.72, 11.46, -87.84]
+            rotation: [-7.941, 19.35, 2.252]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1529420791131932202
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 696849328184459085
+            tint_color: [1, 1, 1, 1]
+      - name: Pegatina
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [55.6, 19.2, 18.52]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 14772302332245441173
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 8112644112560438443
+            tint_color: [1, 1, 1, 1]
+  - name: Colgador:Colgador
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [-0.0159, 0.4392, -0.0037]
+        rotation: [0, 0, 0]
+        scale: [0.01, 0.01, 0.01]
+    child:
+      - name: Colgador:Madera
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.1215, 4.359, 0.0436]
+            rotation: [0, 89.98, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 6359070516769010987
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4299238324781252063
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Madera1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.1215, 3.969, 0.0436]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 16491074241024272648
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4299238324781252063
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Cuerda5
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.033, 8.497, 0.0436]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 8198285186598688715
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4409366981428511555
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Planeta2
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [8.083, -1.772, 0.0857]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 12648567048003600658
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 14332962887869965122
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Planeta3
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.0267, -0.1479, -8.278]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 6179478204744070860
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 11215397077312846742
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Planeta1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-7.877, -3.899, 0.0857]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 3538023722269816059
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 9989867468491920359
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Planeta
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.0267, -2.474, 8.026]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 13626869345563213943
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 10877942998959387445
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Tintin
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.0037, -13.17, -0.0249]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 5609017412644612196
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 16898111373584864510
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Cuerda2
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.033, -1.618, 0.0436]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 4227613394806427650
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4409366981428511555
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Cuerda1
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-7.867, 0.5539, 0.0921]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 13220761258768535584
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4409366981428511555
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Cuerda
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.033, 1.471, 8.027]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 12770316854158573332
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4409366981428511555
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Cuerda3
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [8.092, 1.556, 0.0921]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 2755508960888733740
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4409366981428511555
+            tint_color: [1, 1, 1, 1]
+      - name: Colgador:Cuerda4
+        enabled: true
+        component:
+          - !<transform>
+            type: 1
+            enabled: true
+            position: [-0.033, 2.675, -8.28]
+            rotation: [0, 0, 0]
+            scale: [1, 1, 1]
+          - !<mesh_renderer>
+            type: 2
+            enabled: true
+            mesh_id: 1161289675750300902
+            navigable: false
+            visible: true
+            casting_shadow: true
+            outline_type: 2
+            material_id: 4409366981428511555
+            tint_color: [1, 1, 1, 1]

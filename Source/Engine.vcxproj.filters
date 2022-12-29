@@ -691,9 +691,6 @@
       <Filter>Helpers</Filter>
     </ClInclude>
     <ClInclude Include="Header.h" />
-    <ClInclude Include="TextureBatch.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="tinyspline\include\tinyspline.h">
       <Filter>3rd Party\tinyspline</Filter>
     </ClInclude>
@@ -1294,9 +1291,6 @@
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="BilinearBlur.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureBatch.cpp">
       <Filter>Helpers</Filter>
     </ClCompile>
     <ClCompile Include="tinyspline\include\tinyspline.c">

@@ -1077,7 +1077,7 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
         App->fs->SplitFilePath(texture->GetFile(), nullptr, &file);
 
         ImGui::Text("%s", file.c_str());
-        ImGui::Text("(%u,%u) %s (%u Mb) %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->GetMemSize() >> 20, texture->IsCompressed() ? "compressed" : "");
+        ImGui::Text("(%u,%u) %s (%u Kb) %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->GetMemSize() >> 10, texture->IsCompressed() ? "compressed" : "");
         ImGui::PopStyleColor();
 
         ImGui::SameLine();

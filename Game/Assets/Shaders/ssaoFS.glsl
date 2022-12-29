@@ -12,12 +12,12 @@
 out vec4 result;
 in vec2 uv;
 
-uniform sampler2D positions;
-uniform sampler2D normals;
+layout(binding = SSAO_POSITIONS_BINDING)uniform sampler2D positions;
+layout(binding = SSAO_NORMALS_BINDING) uniform sampler2D normals;
 
-uniform vec2      screenSize;
-uniform float     radius;
-uniform float     bias;
+layout(location = SSAO_SCREENSIZE_LOCATION) uniform vec2 screenSize;
+layout(location = SSAO_RADIUS_LOCATION)uniform float radius;
+layout(location = SSAO_BIAS_LOCATION)uniform float bias;
 
 layout(std140,binding = SSAO_KERNEL_BINDING) uniform Kernel
 {

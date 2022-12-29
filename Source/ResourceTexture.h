@@ -29,6 +29,14 @@ public:
 
     enum CompressType
     {
+        Compress_Colour, 
+        Compress_Grayscale,
+        Compress_Normals,
+        Compress_HDR,
+        Compress_Colour_HQ,
+        Compress_Colour_HQ_Fast,
+
+        /*
         Compress_BC1 = 0, // Color RGB
         Compress_BC3, // Color RGBA
         Compress_BC4, // Greyscale
@@ -36,6 +44,7 @@ public:
         Compress_BC6, // half-floats
         Compress_BC7, // Color RGB or RGBA high quality
         Compress_BC7_FAST,  // Prev Faster
+        */
         Compress_Count
     };
 
@@ -109,7 +118,6 @@ private:
 	TextureType textype = Texture2D;
 
     std::unique_ptr<Texture> glTexture;
-
 };
 
 #endif // __RESOURCE_TEXTURE_H__

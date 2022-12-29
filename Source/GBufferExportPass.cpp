@@ -29,6 +29,7 @@ GBufferExportPass::~GBufferExportPass()
 
 void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height)
 {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "ExportGBuffer");
     resizeFrameBuffer(width, height);
 
     glDisable(GL_BLEND);
@@ -36,8 +37,6 @@ void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height
     useProgram();
 
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
-
-    bindShadows();
 
     float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     frameBuffer->ClearColor(0, clearColor);
@@ -53,6 +52,7 @@ void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height
     App->renderer->GetBatchManager()->Render(nodes.GetOpaques(), false);
 
     frameBuffer->Unbind();
+    glPopDebugGroup();
 }
 
 void GBufferExportPass::useProgram()
@@ -169,25 +169,3 @@ bool GBufferExportPass::generatePrograms()
 	return ok;
 }
 
-void GBufferExportPass::bindShadows()
-{
-    if(App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
-    {
-        CascadeShadowPass* shadowMap = App->renderer->GetCascadeShadowPass();
-
-        for (uint i = 0; i < CascadeShadowPass::CASCADE_COUNT; ++i)
-        {
-            program->BindUniform(SHADOW_VIEWPROJ_LOCATION + i, shadowMap->getFrustum(i).ViewProjMatrix());
-            shadowMap->getDepthTex(i)->Bind(SHADOWMAP_TEX_BINDING + i);
-        }
-
-        program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
-    }
-    else
-    {
-        ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
-        program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
-        program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
-        shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
-    }
-}

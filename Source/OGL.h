@@ -12,6 +12,7 @@ protected:
 
     uint tex_target = 0;
     uint texture = 0;
+    uint64_t handle = 0;
 
 public:
 
@@ -31,6 +32,10 @@ public:
 
     uint Id() const { return texture; }
     uint Target() const { return tex_target; }
+
+    uint64_t GetBindlessHandle();
+    void     MakeBindlessResident();
+    void     MakeBindlessNonResident();
 };
 
 
@@ -188,6 +193,7 @@ public:
     VertexArray(const VertexArray& rhs) = delete;
     VertexArray& operator=(const VertexArray& rhs) = delete;
 
+    VertexArray();
     VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint count);
     ~VertexArray();
 

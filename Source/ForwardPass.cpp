@@ -72,7 +72,7 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    App->renderer->GetBatchManager()->Render(objects.GetTransparents(), true);
+    App->renderer->GetBatchManager()->Render(objects.GetTransparents(), BR_FLAG_KEEP_ORDER | BR_FLAG_AVOID_UPDATE_MODEL_MATRIX);
 
     glDisable(GL_BLEND);
 

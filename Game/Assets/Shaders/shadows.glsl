@@ -14,13 +14,22 @@ layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2DShadow shadow_map[NUM_CAS
 layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2D shadow_map[NUM_CASCADES];
 #endif
 
+layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj[NUM_CASCADES];
+
 layout(location=SHADOW_BIAS_LOCATION) uniform float shadow_bias;
 
-float ComputeShadow(in ShadowData shadow)
+struct ShadowData
 {
-    for(uint i=0; i< 3; ++i)
+    vec3 shadowCoord[NUM_CASCADES];
+};
+
+float computeShadow(in vec3 position)
+{
+    for(uint i=0; i< NUM_CASCADES; ++i)
     {
-        vec3 coord = shadow.shadowCoord[i];
+        vec4 coord = shadowViewProj[i]*vec4(position, 1.0);
+        coord.xyz /= coord.w;
+        coord.xy = coord.xy*0.5+0.5;
 
         if(coord.x >= 0.0 && coord.x <= 1.0 && 
            coord.y >= 0.0 && coord.y <= 1.0 &&
@@ -61,7 +70,12 @@ float ComputeShadow(in ShadowData shadow)
     return 1.0;
 }
 
-#else 
+#else  /* CASCADE */
+
+struct ShadowData
+{
+    vec3 shadowCoord;
+};
 
 #ifdef SHADOW_PCF
 layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2DShadow shadow_map;
@@ -70,9 +84,14 @@ layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2D shadow_map;
 #endif 
 layout(location=SHADOW_BIAS_LOCATION) uniform float shadow_bias;
 
-float ComputeShadow(in ShadowData shadow)
+layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj;
+
+float computeShadow(in vec3 position)
 {
-    vec3 coord = shadow.shadowCoord;
+    vec4 coord = shadowViewProj*vec4(position, 1.0);
+    coord.xyz /= coord.w;
+    coord.xy = coord.xy*0.5+0.5;
+
 
     if(coord.x >= 0.0 && coord.x <= 1.0 && 
        coord.y >= 0.0 && coord.y <= 1.0 &&

@@ -1,0 +1,40 @@
+prefab_name: Clock
+name: RootNode
+enabled: true
+component:
+  - !<transform>
+    type: 1
+    enabled: true
+    position: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+child:
+  - name: Clock
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [0, 0, 0]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 9347653161227075847
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 8747387090855393022
+        tint_color: [1, 1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 15463763080300145403
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 9810413112605437340
+        tint_color: [1, 1, 1, 1]

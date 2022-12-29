@@ -8,6 +8,7 @@ class Texture2D;
 class Buffer;
 class Program;
 class GaussianBlur;
+class VertexArray;
 
 class ScreenSpaceAO
 {
@@ -17,6 +18,7 @@ class ScreenSpaceAO
     std::unique_ptr<Buffer>       kernel;
     std::unique_ptr<Program>      program;
     std::unique_ptr<GaussianBlur> blur;
+    std::unique_ptr<VertexArray>  vao;
 
     uint                         fbWidth = 0;
     uint                         fbHeight = 0;

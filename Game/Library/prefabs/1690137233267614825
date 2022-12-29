@@ -1,0 +1,49 @@
+prefab_name: Wall
+name: RootNode
+enabled: true
+component:
+  - !<transform>
+    type: 1
+    enabled: true
+    position: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+child:
+  - name: Wall
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [0, 0, 0]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 2646115380607076148
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 4226107431390732492
+        tint_color: [1, 1, 1, 1]
+  - name: Stars
+    enabled: true
+    component:
+      - !<transform>
+        type: 1
+        enabled: true
+        position: [0, 0, 0]
+        rotation: [0, 0, 0]
+        scale: [1, 1, 1]
+      - !<mesh_renderer>
+        type: 2
+        enabled: true
+        mesh_id: 14092794165363731600
+        navigable: false
+        visible: true
+        casting_shadow: true
+        outline_type: 2
+        material_id: 17449849609444201609
+        tint_color: [1, 1, 1, 1]
