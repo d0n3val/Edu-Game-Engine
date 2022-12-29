@@ -1,3 +1,8 @@
+#extension GL_ARB_shading_language_include : require
+
+#include "/shaders/common.glsl"
+#include "/shaders/LocationsAndBindings.h"
+
 layout(location=0) out vec4 color;
 layout(location=1) out vec4 bloom;
 
@@ -5,9 +10,9 @@ in vec2 uv;
 
 #if MSAA 
 
-uniform sampler2DMS image;
-uniform sampler2DMS depth;
-uniform sampler2DMS emissive;
+layout(binding = BLOOM_IMAGE_BINDING) uniform sampler2DMS image;
+layout(binding = BLOOM_DEPTH_BINDING) uniform sampler2DMS depth;
+layout(binding = BLOOM_EMISSIVE_BINDING) uniform sampler2DMS emissive;
 
 vec3 GetTexel(in vec2 uv, sampler2DMS img)
 {
@@ -24,9 +29,9 @@ vec3 GetTexel(in vec2 uv, sampler2DMS img)
 
 #else
 
-uniform sampler2D image;
-uniform sampler2D depth;
-uniform sampler2D emissive;
+layout(binding = BLOOM_IMAGE_BINDING) uniform sampler2D image;
+layout(binding = BLOOM_DEPTH_BINDING) uniform sampler2D depth;
+layout(binding = BLOOM_EMISSIVE_BINDING)uniform sampler2D emissive;
 
 vec3 GetTexel(in vec2 uv, sampler2D img)
 {

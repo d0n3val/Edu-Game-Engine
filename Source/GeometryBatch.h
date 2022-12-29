@@ -48,6 +48,8 @@ class GeometryBatch
         uint baseInstance  = 0;
     }; 
 
+    enum { NUM_BUFFERS = 2 };
+
     typedef std::vector<DrawCommand>                                CommandList;
     typedef std::unordered_map<UID, MeshData>                       MeshList;
     typedef std::unordered_map<const ComponentMeshRenderer*, uint>  ObjectList; // second is the instance index
@@ -60,19 +62,19 @@ class GeometryBatch
     std::unique_ptr<Buffer>         ibo;
     std::unique_ptr<Buffer>         vbo;
     std::unique_ptr<Buffer>         drawIdVBO;
-    std::unique_ptr<Buffer>         transformSSBO[2];
+    std::unique_ptr<Buffer>         transformSSBO[NUM_BUFFERS];
     std::unique_ptr<Buffer>         materialSSBO;
     std::unique_ptr<Buffer>         instanceSSBO;
-    std::unique_ptr<Buffer>         skinning[2];
+    std::unique_ptr<Buffer>         skinning[NUM_BUFFERS];
     std::unique_ptr<Buffer>         morphBuffer;
     std::unique_ptr<TextureBuffer>  morphTexture;
-    std::unique_ptr<Buffer>         morphWeights[2];
+    std::unique_ptr<Buffer>         morphWeights[NUM_BUFFERS];
     std::unique_ptr<Buffer>         commandBuffer;
 
-    float4x4*                       transformsData[2];
-    float4x4*                       skinningData[2];
-    float*                          morphWeightsData[2];
-    void*                           sync[2] = { nullptr, nullptr };
+    float4x4*                       transformsData[NUM_BUFFERS];
+    float4x4*                       skinningData[NUM_BUFFERS];
+    float*                          morphWeightsData[NUM_BUFFERS];
+    void*                           sync[NUM_BUFFERS] = { nullptr, nullptr };
 
     uint                            commandBufferSize = 0;
     uint                            totalBones = 0;

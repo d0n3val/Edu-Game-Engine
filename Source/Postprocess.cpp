@@ -13,6 +13,8 @@
 #include "OpenGL.h"
 #include "OGL.h"
 
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
+
 #include "Leaks.h"
 
 Postprocess::Postprocess()
@@ -130,9 +132,9 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
     {
         glClear(GL_COLOR_BUFFER_BIT);
         App->programs->UseProgram("bloom", msaa ? 1 : 0);
-        screen->Bind(0, App->programs->GetUniformLocation("image"));
-        depth->Bind(1, App->programs->GetUniformLocation("depth"));
-        App->renderer->GetGBufferExportPass()->getEmissive()->Bind(2, App->programs->GetUniformLocation("emissive"));
+        screen->Bind(BLOOM_IMAGE_BINDING);
+        depth->Bind(BLOOM_DEPTH_BINDING);
+        App->renderer->GetGBufferExportPass()->getEmissive()->Bind(BLOOM_EMISSIVE_BINDING);
 
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }

@@ -5,6 +5,8 @@
 #include "OGL.h"
 #include "OpenGL.h"
 
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
+
 #include "Leaks.h"
 
 GaussianBlur::GaussianBlur()
@@ -56,7 +58,7 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
 
     // horizontal pass
     horizontal->Use();
-    horizontal->BindTextureFromName("image", 0, input);
+    input->Bind(GAUSSIAN_BLUR_IMAGE_BINDING);
     vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -65,7 +67,7 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
     glViewport(0, 0, width, height);
     // vertical pass
     vertical->Use();
-    vertical->BindTextureFromName("image", 0, result.get());
+    result->Bind(GAUSSIAN_BLUR_IMAGE_BINDING);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     vao->Unbind();
 }

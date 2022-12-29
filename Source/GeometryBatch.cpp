@@ -188,11 +188,11 @@ void GeometryBatch::CreateVertexBuffers()
 
 void GeometryBatch::CreateTransformBuffer()
 {
-    transformSSBO[0] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, objects.size()*sizeof(float4x4), nullptr, true);
-    transformsData[0] = reinterpret_cast<float4x4*>(transformSSBO[0]->MapRange(GL_MAP_WRITE_BIT, 0, uint(objects.size() * sizeof(float4x4))));
-
-    transformSSBO[1] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, objects.size()*sizeof(float4x4), nullptr, true);
-    transformsData[1] = reinterpret_cast<float4x4*>(transformSSBO[1]->MapRange(GL_MAP_WRITE_BIT, 0, uint(objects.size() * sizeof(float4x4))));
+    for (uint i = 0; i < NUM_BUFFERS; ++i)
+    {
+        transformSSBO[i] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, objects.size() * sizeof(float4x4), nullptr, true);
+        transformsData[i] = reinterpret_cast<float4x4*>(transformSSBO[i]->MapRange(GL_MAP_WRITE_BIT, 0, uint(objects.size() * sizeof(float4x4))));
+    }
 }
 
 void GeometryBatch::CreateCommandBuffer()
@@ -294,20 +294,20 @@ void GeometryBatch::CreateInstanceBuffer()
 
     if (totalBones > 0)
     {
-        skinning[0] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalBones * sizeof(float4x4), nullptr, true);
-        skinningData[0] = reinterpret_cast<float4x4*>(skinning[0]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalBones * sizeof(float4x4))));
-
-        skinning[1] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalBones * sizeof(float4x4), nullptr, true);
-        skinningData[1] = reinterpret_cast<float4x4*>(skinning[1]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalBones * sizeof(float4x4))));
+        for (uint i = 0; i < NUM_BUFFERS; ++i)
+        {
+            skinning[i] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalBones * sizeof(float4x4), nullptr, true);
+            skinningData[i] = reinterpret_cast<float4x4*>(skinning[i]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalBones * sizeof(float4x4))));
+        }
     }
 
     if (totalTargets > 0)
     {
-        morphWeights[0] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalTargets * sizeof(float), nullptr, true);
-        morphWeightsData[0] = reinterpret_cast<float*>(morphWeights[0]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalTargets * sizeof(float))));
-
-        morphWeights[1] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalTargets * sizeof(float), nullptr, true);
-        morphWeightsData[1] = reinterpret_cast<float*>(morphWeights[1]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalTargets * sizeof(float))));
+        for (uint i = 0; i < NUM_BUFFERS; ++i)
+        {
+            morphWeights[i] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalTargets * sizeof(float), nullptr, true);
+            morphWeightsData[i] = reinterpret_cast<float*>(morphWeights[i]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalTargets * sizeof(float))));
+        }
     }
 }
 
@@ -519,7 +519,7 @@ void GeometryBatch::UpdateModels()
 {
     if(!modelUpdates.empty())
     {
-        frameCount = (frameCount + 1) % 2;
+        frameCount = (frameCount + 1) % NUM_BUFFERS;
 
         if(sync[frameCount])
         {

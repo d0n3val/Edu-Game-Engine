@@ -1,9 +1,13 @@
 #version 440
+#extension GL_ARB_shading_language_include : require
+
+#include "/shaders/common.glsl"
+#include "/shaders/LocationsAndBindings.h"
 
 out vec4 color;
 in vec2 uv;
 
-uniform sampler2D image;
+layout(binding = GAUSSIAN_BLUR_IMAGE_BINDING) uniform sampler2D image;
 
 float weight[3] = float[] (0.38774,	0.24477, 0.06136);
 
