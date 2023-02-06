@@ -176,9 +176,9 @@ void PanelConfiguration::DrawApplication()
 
 		char title[25];
 		sprintf_s(title, 25, "Framerate %.1f", fps_log[fps_log.size()-1]);
-		ImGui::PlotHistogram("##framerate", &fps_log[0], fps_log.size(), 0, title, 0.0f, 100.0f, ImVec2(310, 100));
+		ImGui::PlotHistogram("##framerate", &fps_log[0], int(fps_log.size()), 0, title, 0.0f, 100.0f, ImVec2(310, 100));
 		sprintf_s(title, 25, "Milliseconds %0.1f", ms_log[ms_log.size()-1]);
-		ImGui::PlotHistogram("##milliseconds", &ms_log[0], ms_log.size(), 0, title, 0.0f, 40.0f, ImVec2(310, 100));
+		ImGui::PlotHistogram("##milliseconds", &ms_log[0], int(ms_log.size()), 0, title, 0.0f, 40.0f, ImVec2(310, 100));
 
 		// Memory --------------------
 		/*

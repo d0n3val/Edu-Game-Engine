@@ -16,7 +16,7 @@
 
 #include "Leaks.h"
 
-#pragma comment (lib, "Assimp/lib/assimp-vc141-mt.lib")
+#pragma comment (lib, "Assimp/lib/assimp-vc142-mt.lib")
 
 
 ResourceModel::ResourceModel(UID id) : Resource(id, Resource::Type::model)

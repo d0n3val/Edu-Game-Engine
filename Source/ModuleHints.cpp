@@ -233,7 +233,7 @@ bool ModuleHints::Init(Config* config)
     Config dHintsCfg = config->GetSection("DHits");
     json_object_t* dHintsRoot = dHintsCfg.GetRoot();
 
-    for(int i=0, count = json_object_get_count(dHintsRoot) ; i< count; ++i)
+    for(int i=0, count = int(json_object_get_count(dHintsRoot)) ; i< count; ++i)
     {
         const char *name = json_object_get_name(dHintsRoot, i);
         dhints[std::string(name)] = ParseDValue(json_object_get_value_at(dHintsRoot, i));

@@ -50,7 +50,7 @@ size_t Config::Save(char** buf, const char* title_comment) const
 
 int Config::Size() const
 {
-	return (root) ? json_object_get_count(root) : 0;
+	return (root) ? int(json_object_get_count(root)) : 0;
 }
 
 Config Config::GetSection(const char * section_name) const
@@ -209,7 +209,7 @@ int Config::GetArrayCount(const char * field) const
 	int ret = 0;
 	JSON_Array* array = json_object_get_array(root, field);
 	if (array != nullptr)
-		ret = json_array_get_count(array);
+		ret = int(json_array_get_count(array));
 	return ret;
 }
 

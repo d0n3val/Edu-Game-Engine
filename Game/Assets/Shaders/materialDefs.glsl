@@ -47,7 +47,6 @@ struct Material
     float     normalStrength;
     float     alphaTest;
     uint      mapMask;
-    //TexHandle handles[MAP_COUNT];
     sampler2D handles[MAP_COUNT];
 };
 

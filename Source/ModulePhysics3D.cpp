@@ -199,7 +199,7 @@ PhysBody3D*	ModulePhysics3D::AddHeighField(const char* filename, int width, int 
 	fopen_s(&heightfieldFile, filename, "r");
 	if(heightfieldFile)
 	{
-		int numBytes = fread(heightfieldData, 1, width*length, heightfieldFile);
+		int numBytes = int(fread(heightfieldData, 1, width*length, heightfieldFile));
 		//btAssert(numBytes);
 		if(!numBytes)
 		{
