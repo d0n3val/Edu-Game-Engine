@@ -106,20 +106,10 @@ bool ResourceMesh::LoadInMemory()
             read_stream >> vertex_size;
             read_stream >> attrib_flags;
 
-            attrib_flags = attrib_flags << 1;
-
-            attrib_flags = (attrib_flags & (1 << ATTRIB_BONE_WEIGHTS)) != 0 ? attrib_flags | (1 << ATTRIB_TEX_COORDS_1) : attrib_flags & ~(1 << ATTRIB_TEX_COORDS_1);
-            attrib_flags = (attrib_flags & (1 << ATTRIB_BONE_INDICES)) != 0 ? attrib_flags | (1 << ATTRIB_BONE_WEIGHTS)  : attrib_flags & ~(1 << ATTRIB_BONE_WEIGHTS);
-
-            attrib_flags |= (1 << ATTRIB_POSITIONS);
-
-
-            offsets[0] = 0;
-            for(uint i=0; i< ATTRIB_COUNT-2; ++i)
+            for(uint i=0; i< ATTRIB_COUNT; ++i)
             {
-                read_stream >> offsets[i+1];
+                read_stream >> offsets[i];
             }            
-
 
             read_stream >> num_vertices;
 
