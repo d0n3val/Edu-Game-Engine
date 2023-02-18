@@ -195,6 +195,7 @@ public:
 
     VertexArray();
     VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint count);
+    VertexArray(Buffer* vbo[], Buffer* ibo, VertexAttrib attribs[], uint count);
     ~VertexArray();
 
     void Bind();

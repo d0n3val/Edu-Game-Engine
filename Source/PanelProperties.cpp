@@ -1052,7 +1052,7 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
     if(texture != nullptr)
     {
 		ImGui::PushID(texture);
-        if(texture->GetTexType() == ResourceTexture::Texture2D && ImGui::ImageButton((ImTextureID)texture->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+        if(texture->GetTexType() == ResourceTexture::Texture2D && ImGui::ImageButton(ImTextureID(size_t(texture->GetID())), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
 
@@ -1346,7 +1346,7 @@ void PanelProperties::DrawMesh(const ResourceMesh* res)
         {
             strcat_s(attributes, "\n\tTangents");
         }
-        if (res->HasAttrib(ATTRIB_BONES))
+        if (res->HasAttrib(ATTRIB_BONE_INDICES))
         {
             strcat_s(attributes, "\n\tBones");
         }
@@ -1482,7 +1482,7 @@ void DrawTrailComponent(ComponentTrail* component)
 
         if (info != nullptr)
         {
-            if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+            if(ImGui::ImageButton((ImTextureID) (ImTextureID)size_t(info->GetID()), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
             {
                 ImGui::OpenPopup("texture");
             }
@@ -1603,7 +1603,7 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
 
         if (info != nullptr)
         {
-            if(ImGui::ImageButton((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+            if(ImGui::ImageButton((ImTextureID) size_t(info->GetID()), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
             {
                 ImGui::OpenPopup("texture");
             }

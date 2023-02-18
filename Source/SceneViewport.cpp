@@ -222,11 +222,11 @@ void SceneViewport::ShowTexture()
     void *id;
     if (std::get<bool>(App->hints->GetDHint(std::string("Enable Fxaa"), true)))
     {
-        id = (void *)App->renderer->GetFxaaPass()->getOutput()->Id();
+        id = (void *)size_t(App->renderer->GetFxaaPass()->getOutput()->Id());
     }
     else
     {
-        id = (void*)framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->Id();
+        id = (void*)size_t(framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->Id());
     }
 
     ImGui::GetWindowDrawList()->AddImage(

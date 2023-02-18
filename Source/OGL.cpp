@@ -536,11 +536,11 @@ VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint 
 
         if (attribs[i].type == GL_INT || attribs[i].type == GL_UNSIGNED_INT)
         {
-            glVertexAttribIPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].stride, (const void*)(attribs[i].offset));
+            glVertexAttribIPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].stride, (const void*)size_t(attribs[i].offset));
         }
         else
         {
-            glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (const void*)(attribs[i].offset));
+            glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (const void*)size_t(attribs[i].offset));
         }
 
         glVertexAttribDivisor(attribs[i].index, attribs[i].divisor);
@@ -553,6 +553,40 @@ VertexArray::VertexArray(Buffer* vbo, Buffer* ibo, VertexAttrib attribs[], uint 
 
     glBindVertexArray(0);
 }
+
+VertexArray::VertexArray(Buffer* vbo[], Buffer* ibo, VertexAttrib attribs[], uint count)
+{
+    glGenVertexArrays(1, &id);
+    glBindVertexArray(id);
+
+    for (uint32_t i = 0; i < count; i++)
+    {
+        if (vbo[i])
+        {
+            vbo[i]->Bind();
+            glEnableVertexAttribArray(attribs[i].index);
+
+            if (attribs[i].type == GL_INT || attribs[i].type == GL_UNSIGNED_INT)
+            {
+                glVertexAttribIPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].stride, (const void*)size_t(attribs[i].offset));
+            }
+            else
+            {
+                glVertexAttribPointer(attribs[i].index, attribs[i].num_elements, attribs[i].type, attribs[i].normalize, attribs[i].stride, (const void*)size_t(attribs[i].offset));
+            }
+
+            glVertexAttribDivisor(attribs[i].index, attribs[i].divisor);
+        }
+    }
+
+    if (ibo)
+    {
+        ibo->Bind();
+    }
+
+    glBindVertexArray(0);
+}
+
 
 VertexArray::~VertexArray()
 {

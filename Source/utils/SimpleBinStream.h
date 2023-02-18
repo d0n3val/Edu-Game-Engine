@@ -933,7 +933,7 @@ template<typename same_endian_type, typename T>
 template<typename same_endian_type>
  mem_ostream<same_endian_type>& operator << ( mem_ostream<same_endian_type>& ostm, const std::string& val)
 {
-	int size = val.size();
+	int size = int(val.size());
 	ostm.write(size);
 
 	if(val.size()<=0)
@@ -947,7 +947,7 @@ template<typename same_endian_type>
 template<typename same_endian_type>
  mem_ostream<same_endian_type>& operator << ( mem_ostream<same_endian_type>& ostm, const char* val)
 {
-	int size = std::strlen(val);
+	int size = int(std::strlen(val));
 	ostm.write(size);
 
 	if(size<=0)

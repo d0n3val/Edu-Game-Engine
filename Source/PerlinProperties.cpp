@@ -52,7 +52,7 @@ void PerlinProperties::Draw(FractalNoiseCfg& info)
     // show info
     if(ImGui::CollapsingHeader("Perlin noise", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::Image((ImTextureID) perlin_text->Id(), ImVec2(256, 256), ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+        ImGui::Image((ImTextureID) size_t(perlin_text->Id()), ImVec2(256, 256), ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
         ImGui::PushID("Perlin");
         ImGui::BeginGroup();
         ImGui::InputFloat("Duration", &info.duration, 0.01f);

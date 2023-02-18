@@ -685,7 +685,7 @@ void ComponentSteering::DrawEditor()
 	else
 		rot_velocities.push_back(fabsf(rot_velocity));
 	
-	ImGui::PlotHistogram("##rot_velocity", &rot_velocities[0], rot_velocities.size(), 0, "Angular Velocity", 0.0f, max_rot_speed, ImVec2(310,75));
+	ImGui::PlotHistogram("##rot_velocity", &rot_velocities[0], int(rot_velocities.size()), 0, "Angular Velocity", 0.0f, max_rot_speed, ImVec2(310,75));
 
 	// Others stuff --------------------
 	ImGui::Separator();

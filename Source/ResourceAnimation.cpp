@@ -126,12 +126,12 @@ bool ResourceAnimation::Save()
 
 		sprintf_s(full_path, 250, "%s%s", LIBRARY_ANIMATION_FOLDER, exported_file.c_str());
 
-        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+        return App->fs->Save(full_path, &data[0], uint(data.size())) > 0;
     }
 
 	std::string output;
 
-	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_ANIMATION_FOLDER, "anim", "eduanim"))
+	if (App->fs->SaveUnique(output, &data[0], uint(data.size()), LIBRARY_ANIMATION_FOLDER, "anim", "eduanim"))
 	{
         App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
 
@@ -150,7 +150,7 @@ bool ResourceAnimation::Save(std::string& output) const
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 
-	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_ANIMATION_FOLDER, "anim", "eduanim");
+	return App->fs->SaveUnique(output, &data[0], uint(data.size()), LIBRARY_ANIMATION_FOLDER, "anim", "eduanim");
 }
 
 // ---------------------------------------------------------

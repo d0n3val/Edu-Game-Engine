@@ -60,8 +60,7 @@ class GeometryBatch
 
     std::unique_ptr<VertexArray>    vao;
     std::unique_ptr<Buffer>         ibo;
-    std::unique_ptr<Buffer>         vbo;
-    std::unique_ptr<Buffer>         drawIdVBO;
+    std::unique_ptr<Buffer>         vbo[ATTRIB_COUNT];
     std::unique_ptr<Buffer>         transformSSBO[NUM_BUFFERS];
     std::unique_ptr<Buffer>         materialSSBO;
     std::unique_ptr<Buffer>         instanceSSBO;
@@ -113,10 +112,8 @@ public:
 private:
 
     void ClearRenderData      ();
-    void GetVertexAttribs     (VertexAttrib* attribs, uint& count, uint& vertex_size) const;
 
     void CreateVertexBuffers  ();
-    void CreateDrawIdBuffer   ();
     void CreateMaterialBuffer ();
     void CreateInstanceBuffer ();
     void CreateMorphBuffer    ();

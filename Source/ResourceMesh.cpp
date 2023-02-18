@@ -9,6 +9,7 @@
 #include "Assimp/mesh.h"
 #include "utils/SimpleBinStream.h"
 #include "thekla_atlas/src/thekla/thekla_atlas.h"
+#include <SDL_assert.h>
 
 #pragma warning(push)
 #pragma warning(disable : 4996)  
@@ -73,7 +74,7 @@ bool ResourceMesh::Save()
 
     sprintf_s(full_path, 250, "%s%s", LIBRARY_MESH_FOLDER, exported_file.c_str());
 
-    return App->fs->Save(full_path, &data[0], data.size()) > 0;
+    return App->fs->Save(full_path, &data[0], uint(data.size())) > 0;
 }
 
 // ---------------------------------------------------------
@@ -105,12 +106,26 @@ bool ResourceMesh::LoadInMemory()
             read_stream >> vertex_size;
             read_stream >> attrib_flags;
 
-            for(uint i=0; i< ATTRIB_COUNT; ++i)
+            attrib_flags = attrib_flags << 1;
+
+            attrib_flags = (attrib_flags & (1 << ATTRIB_BONE_WEIGHTS)) != 0 ? attrib_flags | (1 << ATTRIB_TEX_COORDS_1) : attrib_flags & ~(1 << ATTRIB_TEX_COORDS_1);
+            attrib_flags = (attrib_flags & (1 << ATTRIB_BONE_INDICES)) != 0 ? attrib_flags | (1 << ATTRIB_BONE_WEIGHTS)  : attrib_flags & ~(1 << ATTRIB_BONE_WEIGHTS);
+
+            attrib_flags |= (1 << ATTRIB_POSITIONS);
+
+
+            offsets[0] = 0;
+            for(uint i=0; i< ATTRIB_COUNT-2; ++i)
             {
-                read_stream >> offsets[i];
-            }
+                read_stream >> offsets[i+1];
+            }            
+
 
             read_stream >> num_vertices;
+
+            offsets[ATTRIB_TEX_COORDS_1] = offsets[ATTRIB_BONE_WEIGHTS];
+            offsets[ATTRIB_BONE_WEIGHTS] = offsets[ATTRIB_BONE_INDICES] + sizeof(int)*3*num_vertices;
+
 
             src_vertices = std::make_unique<float3[]>(num_vertices);
 
@@ -167,7 +182,7 @@ bool ResourceMesh::LoadInMemory()
                 read_stream >> src_indices[i];
             }
 
-            if(HasAttrib(ATTRIB_BONES))
+            if(HasAttrib(ATTRIB_BONE_INDICES))
             {
                 read_stream >> num_bones;
 
@@ -352,7 +367,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
         write_stream << src_indices[i];
     }
 
-    if(HasAttrib(ATTRIB_BONES))
+    if(HasAttrib(ATTRIB_BONE_INDICES))
     {
         write_stream << num_bones;
 
@@ -419,7 +434,7 @@ bool ResourceMesh::Save(std::string& output) const
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 
-	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MESH_FOLDER, "mesh", "edumesh");
+	return App->fs->SaveUnique(output, &data[0], uint(data.size()), LIBRARY_MESH_FOLDER, "mesh", "edumesh");
 }
 
 // ---------------------------------------------------------
@@ -497,7 +512,7 @@ void ResourceMesh::GenerateAttribInfo()
 {
     morph_vertex_size   = sizeof(float3);
     vertex_size         = sizeof(float3);
-    attrib_flags        = 0;
+    attrib_flags        = ATTRIB_POSITIONS;
 
     for(uint i=0; i< ATTRIB_COUNT; ++i) 
     {
@@ -536,9 +551,11 @@ void ResourceMesh::GenerateAttribInfo()
 
     if(src_bone_indices != nullptr && src_bone_weights != nullptr)
     {
-        attrib_flags |= (1 << ATTRIB_BONES);
-        offsets[ATTRIB_BONES] = vertex_size*num_vertices;
+        attrib_flags |= (1 << ATTRIB_BONE_INDICES);
+        attrib_flags |= (1 << ATTRIB_BONE_WEIGHTS);
+        offsets[ATTRIB_BONE_INDICES] = vertex_size*num_vertices;
         vertex_size += sizeof(unsigned)*4;
+        offsets[ATTRIB_BONE_WEIGHTS] = vertex_size*num_vertices;
         vertex_size += sizeof(float)*4;
     }
 }
@@ -675,7 +692,7 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh, float scale)
                 }
             }
 
-            data.num_indices = tmp_indices.size();
+            data.num_indices = uint(tmp_indices.size());
             if(data.num_indices)
             {
                 data.src_indices = std::make_unique<uint[]>(tmp_indices.size());
@@ -773,10 +790,10 @@ void ResourceMesh::GenerateVBO()
         glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_TANGENTS], sizeof(float3)*num_vertices, src_tangents.get());
     }
 
-    if(HasAttrib(ATTRIB_BONES))
+    if(HasAttrib(ATTRIB_BONE_INDICES))
     {
-        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_BONES], sizeof(unsigned)*num_vertices*4, src_bone_indices.get());
-        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_BONES]+GetBoneWeightOffset(), sizeof(float4)*num_vertices, src_bone_weights.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_BONE_INDICES], sizeof(unsigned)*num_vertices*4, src_bone_indices.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_BONE_WEIGHTS], sizeof(float4)*num_vertices, src_bone_weights.get());
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -926,33 +943,35 @@ void ResourceMesh::GenerateVAO()
 	if (HasAttrib(ATTRIB_NORMALS))
 	{
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(offsets[ATTRIB_NORMALS]));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)size_t(offsets[ATTRIB_NORMALS]));
 	}
 
 	if (HasAttrib(ATTRIB_TEX_COORDS_0))
 	{
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(offsets[ATTRIB_TEX_COORDS_0]));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)size_t(offsets[ATTRIB_TEX_COORDS_0]));
 	}
 
-    if(HasAttrib(ATTRIB_BONES))
+    if(HasAttrib(ATTRIB_BONE_INDICES))
 	{
+        SDL_assert(HasAttrib(ATTRIB_BONE_WEIGHTS));
+
 		glEnableVertexAttribArray(3);
-		glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT, sizeof(unsigned)*4, (void*)offsets[ATTRIB_BONES]);
+		glVertexAttribIPointer(3, 4, GL_UNSIGNED_INT, sizeof(unsigned)*4, (void*)size_t(offsets[ATTRIB_BONE_INDICES]));
 		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)(offsets[ATTRIB_BONES]+GetBoneWeightOffset()));
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)size_t(offsets[ATTRIB_BONE_WEIGHTS]));
 	}
 
     if(HasAttrib(ATTRIB_TANGENTS))
     {
 		glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)(offsets[ATTRIB_TANGENTS]));
+        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)size_t(offsets[ATTRIB_TANGENTS]));
     }
 
 	if (HasAttrib(ATTRIB_TEX_COORDS_1))
 	{
 		glEnableVertexAttribArray(6);
-		glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)(offsets[ATTRIB_TEX_COORDS_1]));
+		glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(float2), (void*)size_t(offsets[ATTRIB_TEX_COORDS_1]));
 	}
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -1150,7 +1169,7 @@ void ResourceMesh::UpdateUniforms(const float4x4* skin_palette, const float* mor
 {
     unsigned vertex_indices[1];
 
-    if(HasAttrib(ATTRIB_BONES))
+    if(HasAttrib(ATTRIB_BONE_INDICES))
     {
         glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), num_bones, GL_TRUE, reinterpret_cast<const float*>(skin_palette));
         vertex_indices[0] = 1;

@@ -17,11 +17,13 @@ namespace Thekla { struct Atlas_Output_Mesh; }
 
 enum VertexAttribs
 {
-    ATTRIB_TEX_COORDS_0 = 0, //1 << 0,
-    ATTRIB_NORMALS      = 1, //1 << 1,
-    ATTRIB_TANGENTS     = 2, //1 << 2,
-    ATTRIB_BONES        = 3, //1 << 3,
-    ATTRIB_TEX_COORDS_1 = 4, //1 << 4,
+    ATTRIB_POSITIONS     = 0,
+    ATTRIB_TEX_COORDS_0  = 1, //1 << 0,
+    ATTRIB_NORMALS       = 2, //1 << 1,
+    ATTRIB_TANGENTS      = 3, //1 << 2,
+    ATTRIB_BONE_INDICES  = 4, //1 << 3,
+    ATTRIB_BONE_WEIGHTS  = 5, //1 << 3,
+    ATTRIB_TEX_COORDS_1  = 6, //1 << 4,
     ATTRIB_COUNT
 };
 
@@ -97,7 +99,6 @@ public:
 
 private:
 
-    uint                GetBoneWeightOffset () const { return sizeof(uint)*4*num_vertices; }
     static UID          Generate            (const char* shape_name, par_shapes_mesh_s* shape, UID uid = 0);
     void                GenerateAttribInfo  ();
     void                GenerateCPUBuffers  (const Thekla::Atlas_Output_Mesh* atlas);
