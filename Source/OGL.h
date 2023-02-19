@@ -239,6 +239,7 @@ public:
     Program& operator=(const Program& rhs) = delete;
 
     Program(const Shader* vs, const Shader* fs, const char* log_name = nullptr);
+    Program(const Shader* shader);
     Program(const Shader** shaders, unsigned count, const char* log_name = nullptr);
     ~Program();
 
@@ -289,6 +290,7 @@ public:
     void     BindUniformBlock(const char* name, uint blockIndex);
 
     void     BindSSBO   (unsigned binding, const Buffer* buffer);
+    void     BindSSBO   (unsigned binding, const Buffer* buffer, uint offset, uint size);
 
 private:
 

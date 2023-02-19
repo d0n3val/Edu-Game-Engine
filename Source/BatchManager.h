@@ -3,6 +3,7 @@
 
 #include "RenderList.h"
 #include "HashString.h"
+#include "OGL.h"
 
 #include <vector>
 #include <memory>
@@ -20,6 +21,7 @@ class BatchManager
     typedef std::vector<std::unique_ptr<GeometryBatch> > BatchPool;
 
     BatchPool batches;
+    std::unique_ptr<Program> skinningProgram;
 
 public:
     BatchManager();
@@ -34,6 +36,8 @@ public:
 
     void FillBatchNames(std::vector<HashString>& names) const;
     void OnMaterialModified(UID materialID);
+private:
+    void CreateSkinningProgram();
 };
 
 #endif /* _BATCHMANAGER_H_ */

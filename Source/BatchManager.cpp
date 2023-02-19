@@ -5,7 +5,7 @@
 #include "ComponentMeshRenderer.h"
 #include "GameObject.h"
 
-#include "Leaks.h"
+#include "OpenGL.h"
 
 BatchManager::BatchManager()
 {
@@ -17,6 +17,11 @@ BatchManager::~BatchManager()
 
 uint BatchManager::Add(const ComponentMeshRenderer* object, const HashString& tag)
 {
+    if(!skinningProgram)
+    {
+        CreateSkinningProgram();
+    }
+
     uint batch_index = 0;
 
     for (; batch_index < batches.size(); ++batch_index)
@@ -31,7 +36,7 @@ uint BatchManager::Add(const ComponentMeshRenderer* object, const HashString& ta
 
     if (batch_index == batches.size())
     {
-        batches.push_back(std::make_unique<GeometryBatch>(tag));
+        batches.push_back(std::make_unique<GeometryBatch>(tag, skinningProgram.get()));
         batches.back()->Add(object);
     }
 
@@ -126,5 +131,23 @@ void BatchManager::OnMaterialModified(UID materialID)
     for(const std::unique_ptr<GeometryBatch>& batch : batches)
     {
         batch->OnMaterialModified(materialID);
+    }
+}
+
+void BatchManager::CreateSkinningProgram()
+{
+    std::unique_ptr<Shader> shader = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/skinning.glsl");
+    bool ok = shader->Compiled();
+
+    if(ok)
+    {        
+        skinningProgram = std::make_unique<Program>(shader.get());
+
+        ok = skinningProgram->Linked();
+    }
+
+    if(!ok)
+    {
+        skinningProgram.release();
     }
 }

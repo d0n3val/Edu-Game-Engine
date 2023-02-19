@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include <unordered_set>
+#include <set>
 
 class ComponentMeshRenderer;
 
@@ -53,7 +53,7 @@ class GeometryBatch
     typedef std::vector<DrawCommand>                                CommandList;
     typedef std::unordered_map<UID, MeshData>                       MeshList;
     typedef std::unordered_map<const ComponentMeshRenderer*, uint>  ObjectList; // second is the instance index
-    typedef std::vector<const ComponentMeshRenderer*>               UpdateList;
+    typedef std::set<const ComponentMeshRenderer*>                  UpdateList;
     typedef std::vector<PerInstance>                                InstanceList;
 
     uint                            attrib_flags = 0;
@@ -61,6 +61,9 @@ class GeometryBatch
     std::unique_ptr<VertexArray>    vao;
     std::unique_ptr<Buffer>         ibo;
     std::unique_ptr<Buffer>         vbo[ATTRIB_COUNT];
+    std::unique_ptr<Buffer>         tpose_positions;
+    std::unique_ptr<Buffer>         tpose_normals;
+    std::unique_ptr<Buffer>         tpose_tangents;
     std::unique_ptr<Buffer>         transformSSBO[NUM_BUFFERS];
     std::unique_ptr<Buffer>         materialSSBO;
     std::unique_ptr<Buffer>         instanceSSBO;
@@ -89,10 +92,11 @@ class GeometryBatch
 
     HashString                      tagName;
     bool                            bufferDirty = false;
+    Program*                        skinningProgram = nullptr;
 
 public:
 
-    explicit GeometryBatch(const HashString& tag);
+    explicit GeometryBatch(const HashString& tag, Program* program);
     ~GeometryBatch() = default;
    
     bool               CanAdd            (const ComponentMeshRenderer* object) const;
@@ -122,6 +126,7 @@ private:
     void CreateTransformBuffer();
     void CreateCommandBuffer();
     void UpdateModels();
+    void UpdateSkinning();
 };
 
 #endif /* _GEOMETRY_BATCH_H_ */

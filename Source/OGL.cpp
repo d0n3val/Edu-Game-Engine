@@ -734,6 +734,11 @@ Program::Program(const Shader** shaders, unsigned count, const char* log_name)
     Init(shaders, count, log_name);
 }
 
+Program::Program(const Shader* shader)
+{
+    Init(&shader, 1, nullptr);
+}
+
 void Program::Init(const Shader** shaders, unsigned count, const char* log_name)
 {
     id = glCreateProgram();
@@ -965,3 +970,7 @@ void Program::BindSSBO(unsigned binding, const Buffer* buffer)
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, buffer->Id());
 }
 
+void Program::BindSSBO(unsigned binding, const Buffer* buffer, uint offset, uint size)
+{
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding, buffer->Id(), offset, size);
+}

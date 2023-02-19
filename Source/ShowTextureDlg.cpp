@@ -62,7 +62,7 @@ void ShowTextureDlg::Display()
         {
             ImVec2 size = ImVec2(width * zoom * 0.01f, height * zoom * 0.01f);
 
-            ImGui::Image((ImTextureID)target->Id(), size, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((ImTextureID)size_t(target->Id()), size, ImVec2(0, 1), ImVec2(1, 0));
         }
 
         ImGui::EndChild();

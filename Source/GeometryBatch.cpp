@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <SDL_assert.h>
 
-GeometryBatch::GeometryBatch(const HashString& tag) : tagName(tag)
+GeometryBatch::GeometryBatch(const HashString& tag, Program* program) : tagName(tag), skinningProgram(program)
 {
 }
 
@@ -476,9 +476,24 @@ void GeometryBatch::DoUpdate()
         CreateRenderData();
     }
 
-    UpdateModels();
-}
+    frameCount = (frameCount + 1) % NUM_BUFFERS;
 
+    if (sync[frameCount])
+    {
+        GLenum waitReturn;
+
+        do
+        {
+            waitReturn = glClientWaitSync((GLsync)sync[frameCount], GL_SYNC_FLUSH_COMMANDS_BIT, 1000);
+        } while (waitReturn == GL_TIMEOUT_EXPIRED);
+    }
+
+    UpdateModels();
+
+#if 0
+    if(totalBones > 0) UpdateSkinning();
+#endif 
+}
 
 void GeometryBatch::DoRender(uint flags)
 {
@@ -506,6 +521,9 @@ void GeometryBatch::DoRender(uint flags)
         {
             morphTexture->Bind(MORPH_TARGET_TBO_BINDING);
         }
+
+        // due to skinning compute
+        if(totalBones > 0) glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
         vao->Bind();
         glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, int(commands.size()), 0);
@@ -539,33 +557,69 @@ void GeometryBatch::Remove(const ComponentMeshRenderer* object)
 
 void GeometryBatch::MarkForUpdate(const ComponentMeshRenderer *object)
 {
-    modelUpdates.push_back(object);
+    SDL_assert(objects.find(object) != objects.end());
+    modelUpdates.insert(object);
+}
+
+void GeometryBatch::UpdateSkinning()
+{
+    SDL_assert(totalBones > 0);
+
+    float4x4 *palette = skinningData[frameCount];
+
+    for (const ComponentMeshRenderer *object : modelUpdates)
+    {
+        auto it = objects.find(object);
+        SDL_assert(it != objects.end());
+
+        if(it != objects.end())
+        {
+            const PerInstance& instanceData = instances[it->second];
+
+            if (instanceData.numBones > 0)
+            {
+                const MeshData &meshData = meshes[object->GetMeshUID()];
+
+                object->UpdateSkinPalette(&palette[instanceData.baseBone]);
+
+                // Bind buffers
+                skinningProgram->BindSSBO(SKINNING_PALETTE_BINDING, skinning[frameCount].get(), instanceData.baseBone * sizeof(float4x4), instanceData.numBones * sizeof(float4x4));
+                skinningProgram->BindSSBO(SKINNING_INDICES_BINDING, vbo[ATTRIB_BONE_INDICES].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(int) * 4);
+                skinningProgram->BindSSBO(SKINNING_WEIGHTS_BINDING, vbo[ATTRIB_BONE_WEIGHTS].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float) * 4);
+
+                skinningProgram->BindSSBO(SKINNING_POSITIONS_BINDING, tpose_positions.get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
+                skinningProgram->BindSSBO(SKINNING_INNORMALS_BINDING, tpose_normals.get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
+                skinningProgram->BindSSBO(SKINNING_INTANGENTS_BINDING, tpose_tangents.get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
+
+                skinningProgram->BindSSBO(SKINNING_OUTPOSITIONS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
+                skinningProgram->BindSSBO(SKINNING_OUTNORMALS_BINDING, vbo[ATTRIB_NORMALS].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
+                skinningProgram->BindSSBO(SKINNING_OUTTANGENTS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
+
+                skinningProgram->BindUniform(SKINNING_NUM_VERTICES_LOCATION, int(meshData.vertexCount));
+                skinningProgram->Use();
+
+                int numWorkGroups = (meshData.vertexCount + (SKINNING_GROUP_SIZE - 1)) / SKINNING_GROUP_SIZE;
+
+                glDispatchCompute(numWorkGroups, 1, 1);
+            }
+        }
+    }
 }
 
 void GeometryBatch::UpdateModels()
 {
     if(!modelUpdates.empty())
     {
-        frameCount = (frameCount + 1) % NUM_BUFFERS;
-
-        if(sync[frameCount])
-        {
-            GLenum waitReturn;
-            
-            do
-            {
-                waitReturn = glClientWaitSync((GLsync)sync[frameCount], GL_SYNC_FLUSH_COMMANDS_BIT, 1000);
-            }while(waitReturn == GL_TIMEOUT_EXPIRED);
-        }
-
         float4x4* transforms = transformsData[frameCount]; 
         float4x4* palette    = nullptr;
         float* weights       = nullptr;
 
+#if 1
         if (totalBones > 0)
         {
             palette = skinningData[frameCount]; 
         }
+#endif 
 
         if (totalTargets > 0)
         {
@@ -578,15 +632,15 @@ void GeometryBatch::UpdateModels()
             if (it != objects.end())
             {
                 transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
-
-                static bool stop = false;
-
-                // skinning update
                 const PerInstance& instanceData = instances[it->second];
-                if(instanceData.numBones > 0 && !stop)
+
+#if 1
+                // skinning update
+                if(instanceData.numBones > 0)
                 {
                     object->UpdateSkinPalette(&palette[instanceData.baseBone]);
                 }
+#endif 
 
                 // morph targets
                 if (totalTargets)

@@ -50,18 +50,23 @@ writeonly layout(std430, row_major, binding = SKINNING_OUTTANGENTS_BINDING) buff
     vec3 out_tangents[];
 };
 
-layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+layout(location = SKINNING_NUM_VERTICES_LOCATION) uniform int numVertices;
+
+layout(local_size_x = SKINNING_GROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
 void main()
 {
     int index = gl_GlobalInvocationID.x;
 
-    mat4 skin_transform = palette[indices[index][0]]*weights[index][0]+
-                          palette[indices[index][1]]*weights[index][1]+
-                          palette[indices[index][2]]*weights[index][2]+
-                          palette[indices[index][3]]*weights[index][3];
+    if(index < numVertices)
+    {
+        mat4 skin_transform = palette[indices[index][0]]*weights[index][0]+
+                            palette[indices[index][1]]*weights[index][1]+
+                            palette[indices[index][2]]*weights[index][2]+
+                            palette[indices[index][3]]*weights[index][3];
 
-    out_positions[index] = (skin_transform*vec4(in_positions[index], 1.0)).xyz;
-    out_normals[index]   = mat3(skin_transform)*in_normals[index];
-    out_tangents[index]  = mat3(skin_transform)*in_tangents[index];
+        out_positions[index] = (skin_transform*vec4(in_positions[index], 1.0)).xyz;
+        out_normals[index]   = mat3(skin_transform)*in_normals[index];
+        out_tangents[index]  = mat3(skin_transform)*in_tangents[index];
+    }
 }
