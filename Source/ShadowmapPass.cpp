@@ -35,14 +35,12 @@ ShadowmapPass::~ShadowmapPass()
 
 }
 
-void ShadowmapPass::execute(const Frustum& culling, uint width, uint height)
+void ShadowmapPass::execute(uint width, uint height)
 {
     createFramebuffer(width, height);
     createProgram();
 
-    updateFrustum(culling);
     updateCameraUBO();
-    updateRenderList();
 
     render();
 }
@@ -175,8 +173,10 @@ void ShadowmapPass::updateCameraUBO()
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
 }
 
-void ShadowmapPass::updateRenderList()
+void ShadowmapPass::updateRenderList(const Frustum& culling)
 {
+    updateFrustum(culling);
+
     Plane obbPlanes[6];
     lightOBB.GetFacePlanes(obbPlanes);
 
@@ -193,5 +193,5 @@ void ShadowmapPass::render()
     glViewport(0, 0, fbWidth, fbHeight);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), BR_FLAG_AVOID_UPDATE_MODEL_MATRIX);
+    App->renderer->GetBatchManager()->DoRender(objects.GetOpaques(), 0);
 }

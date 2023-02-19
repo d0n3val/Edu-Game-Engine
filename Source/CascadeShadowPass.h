@@ -20,11 +20,14 @@ public:
     CascadeShadowPass();
     ~CascadeShadowPass();
 
-    void execute(const Frustum& culling);
+    void updateRenderList(const Frustum& culling);
+    void execute();
     void debugDraw();
 
     const Texture2D* getDepthTex(uint index) const {return cascades[index].getDepthTex();}
     const Frustum& getFrustum(uint index) const {return cascades[index].getFrustum();}
+
+    const RenderList& getRenderList(uint index) const { return cascades[index].getRenderList(); }
 
 
 };

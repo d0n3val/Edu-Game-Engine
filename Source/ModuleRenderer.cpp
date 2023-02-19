@@ -139,8 +139,31 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
 
     render_list.UpdateFrom(culling->frustum, App->level->GetRoot()); 
 
-    batch_manager->UpdateModel(render_list.GetOpaques());
-    batch_manager->UpdateModel(render_list.GetTransparents());
+    batch_manager->MarkForUpdate(render_list.GetOpaques());
+    batch_manager->MarkForUpdate(render_list.GetTransparents());
+
+    if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
+    {
+        cascadeShadowPass->updateRenderList(culling->frustum);
+
+        for (uint i = 0; i < CascadeShadowPass::CASCADE_COUNT; ++i)
+        {
+            const RenderList& renderList = cascadeShadowPass->getRenderList(i);
+
+            batch_manager->MarkForUpdate(renderList.GetOpaques());
+            batch_manager->MarkForUpdate(renderList.GetTransparents());
+        }
+    }
+    else
+    {
+        shadowmapPass->updateRenderList(culling->frustum);
+        batch_manager->MarkForUpdate(shadowmapPass->getRenderList().GetOpaques());
+        batch_manager->MarkForUpdate(shadowmapPass->getRenderList().GetTransparents());
+    }
+
+
+    batch_manager->DoUpdate();
+
 
     // General Buffer bindings 
     cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
@@ -159,6 +182,7 @@ void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBu
     forward->executeTransparent(render_list, nullptr, width, height);
     frameBuffer->Unbind();
 
+
     // Skybox
     frameBuffer->Bind();
     App->level->GetSkyBox()->Render(camera->GetProjectionMatrix(), camera->GetViewMatrix());
@@ -174,11 +198,11 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
     if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
     {
-        cascadeShadowPass->execute(culling->frustum);
+        cascadeShadowPass->execute();
     }
     else
     {
-        shadowmapPass->execute(culling->frustum, 4096, 4096);
+        shadowmapPass->execute( 4096, 4096);
     }
 
     decalPass->execute(camera, render_list, width, height);

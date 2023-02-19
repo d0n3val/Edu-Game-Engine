@@ -13,7 +13,6 @@ class ComponentMeshRenderer;
 enum BATCH_RENDER_FLAGS
 {
     BR_FLAG_KEEP_ORDER = 1 << 0,
-    BR_FLAG_AVOID_UPDATE_MODEL_MATRIX = 1 << 1
 };
 
 class BatchManager
@@ -29,8 +28,9 @@ public:
     uint Add(const ComponentMeshRenderer* object, const HashString& tag);
     void Remove(const ComponentMeshRenderer* object);
 
-    void UpdateModel(const NodeList& objects);
-    void Render(const NodeList& objects, uint flags);
+    void MarkForUpdate(const NodeList& objects);
+    void DoUpdate();
+    void DoRender(const NodeList& objects, uint flags);
 
     void FillBatchNames(std::vector<HashString>& names) const;
     void OnMaterialModified(UID materialID);

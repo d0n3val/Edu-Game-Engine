@@ -29,19 +29,21 @@ public:
     ShadowmapPass();
     ~ShadowmapPass();
 
-    void execute(const Frustum& culling, uint width, uint height);
+
+    void updateRenderList(const Frustum& culling);
+    void execute(uint width, uint height);
 
     void debugDraw();
 
     const Texture2D* getDepthTex() const {return depthTex.get();}
     const Frustum& getFrustum() const {return frustum;}
+    const RenderList& getRenderList() const { return objects; }
 
 private:
     void updateFrustum(const Frustum& culling);
     void createFramebuffer(uint width, uint height);
     void createProgram();
     void updateCameraUBO();
-    void updateRenderList();
     void render();
 
 };

@@ -43,7 +43,7 @@ void BatchManager::Remove(const ComponentMeshRenderer* object)
     batches[object->GetBatchIndex()]->Remove(object);
 }
 
-void BatchManager::Render(const NodeList &objects, uint flags)
+void BatchManager::DoRender(const NodeList &objects, uint flags)
 {
     if((flags & BR_FLAG_KEEP_ORDER) != 0)
     {
@@ -89,15 +89,24 @@ void BatchManager::Render(const NodeList &objects, uint flags)
     }
 }
 
-void BatchManager::UpdateModel(const NodeList& objects)
+void BatchManager::MarkForUpdate(const NodeList& objects)
 {
     for(const TRenderInfo& info : objects)
     {
         if(info.mesh && info.mesh->GetBatchIndex() != UINT_MAX)
         {
-            batches[info.mesh->GetBatchIndex()]->UpdateModel(info.mesh);
+            batches[info.mesh->GetBatchIndex()]->MarkForUpdate(info.mesh);
         }
     }
+}
+
+void BatchManager::DoUpdate()
+{
+    for (std::unique_ptr<GeometryBatch>& batch : batches)
+    {
+        batch->DoUpdate();
+    }
+
 }
 
 void BatchManager::FillBatchNames(std::vector<HashString>& names) const

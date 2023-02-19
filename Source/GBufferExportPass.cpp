@@ -49,7 +49,7 @@ void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height
     frameBuffer->Bind();
     glViewport(0, 0, width, height);
     
-    App->renderer->GetBatchManager()->Render(nodes.GetOpaques(), false);
+    App->renderer->GetBatchManager()->DoRender(nodes.GetOpaques(), 0);
 
     frameBuffer->Unbind();
     glPopDebugGroup();

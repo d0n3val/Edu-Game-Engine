@@ -46,7 +46,7 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
         glViewport(0, 0, width, height);
     }
 
-    App->renderer->GetBatchManager()->Render(objects.GetOpaques(), true);
+    App->renderer->GetBatchManager()->DoRender(objects.GetOpaques(), BR_FLAG_KEEP_ORDER);
 
     if (target)
     {
@@ -72,7 +72,7 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    App->renderer->GetBatchManager()->Render(objects.GetTransparents(), BR_FLAG_KEEP_ORDER | BR_FLAG_AVOID_UPDATE_MODEL_MATRIX);
+    App->renderer->GetBatchManager()->DoRender(objects.GetTransparents(), BR_FLAG_KEEP_ORDER);
 
     glDisable(GL_BLEND);
 

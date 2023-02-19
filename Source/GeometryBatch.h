@@ -99,9 +99,10 @@ public:
     void               Add               (const ComponentMeshRenderer* object);
     void               Remove            (const ComponentMeshRenderer* object);
 
-    void               UpdateModel       (const ComponentMeshRenderer* object);
+    void               MarkForUpdate     (const ComponentMeshRenderer* object);
     void               Render            (const ComponentMeshRenderer* object);
     void               DoRender          (uint flags);
+    void               DoUpdate          ();
 
     bool               HasCommands       () const { return !commands.empty();  }
     bool               IsEmpty           () const { return objects.empty(); }
@@ -109,6 +110,7 @@ public:
 
     void               CreateRenderData  ();
     void               OnMaterialModified(UID materialID);
+    
 private:
 
     void ClearRenderData      ();

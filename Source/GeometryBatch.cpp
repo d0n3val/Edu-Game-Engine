@@ -51,7 +51,7 @@ void GeometryBatch::Add(const ComponentMeshRenderer* object)
         attrib_flags = object->GetMeshRes()->GetAttribs();
     }
 
-    uint index = objects.size();
+    uint index = uint(objects.size());
     meshes[object->GetMeshUID()].refCount++;
     objects[object] = index;
 
@@ -469,16 +469,22 @@ void GeometryBatch::Render(const ComponentMeshRenderer* object)
     }
 }
 
+void GeometryBatch::DoUpdate()
+{
+    if (bufferDirty)
+    {
+        CreateRenderData();
+    }
+
+    UpdateModels();
+}
+
+
 void GeometryBatch::DoRender(uint flags)
 {
     if (!commands.empty())
     {
         CreateCommandBuffer();
-
-        if((flags & BR_FLAG_AVOID_UPDATE_MODEL_MATRIX) == 0)
-        {
-            UpdateModels();
-        }
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MODEL_SSBO_BINDING, transformSSBO[frameCount]->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PERINSTANCE_SSBO_BINDING, instanceSSBO->Id());
@@ -531,7 +537,7 @@ void GeometryBatch::Remove(const ComponentMeshRenderer* object)
 	ClearRenderData();
 }
 
-void GeometryBatch::UpdateModel(const ComponentMeshRenderer *object)
+void GeometryBatch::MarkForUpdate(const ComponentMeshRenderer *object)
 {
     modelUpdates.push_back(object);
 }
