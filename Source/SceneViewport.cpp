@@ -240,19 +240,19 @@ void SceneViewport::ShowTexture()
         if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
         {
             ImGui::GetWindowDrawList()->AddImage(
-                (ImTextureID)App->renderer->GetCascadeShadowPass()->getDepthTex(0)->Id(),
+                (ImTextureID)size_t(App->renderer->GetCascadeShadowPass()->getDepthTex(0)->Id()),
                 ImVec2(screenPos),
                 ImVec2(screenPos.x + fb_width * 0.2f, screenPos.y + fb_height * 0.2f),
                 ImVec2(0, 1), ImVec2(1, 0));
 
             ImGui::GetWindowDrawList()->AddImage(
-                (ImTextureID)App->renderer->GetCascadeShadowPass()->getDepthTex(1)->Id(),
+                (ImTextureID)size_t(App->renderer->GetCascadeShadowPass()->getDepthTex(1)->Id()),
                 ImVec2(screenPos.x + fb_width * 0.2f, screenPos.y),
                 ImVec2(screenPos.x + fb_width * 0.4f, screenPos.y + fb_height * 0.2f),
                 ImVec2(0, 1), ImVec2(1, 0));
 
             ImGui::GetWindowDrawList()->AddImage(
-                (ImTextureID)App->renderer->GetCascadeShadowPass()->getDepthTex(2)->Id(),
+                (ImTextureID)size_t(App->renderer->GetCascadeShadowPass()->getDepthTex(2)->Id()),
                 ImVec2(screenPos.x + fb_width * 0.4f, screenPos.y),
                 ImVec2(screenPos.x + fb_width * 0.6f, screenPos.y + fb_height * 0.2f),
                 ImVec2(0, 1), ImVec2(1, 0));
@@ -260,7 +260,7 @@ void SceneViewport::ShowTexture()
         else
         {
             ImGui::GetWindowDrawList()->AddImage(
-                (ImTextureID)App->renderer->GetShadowmapPass()->getDepthTex()->Id(),
+                (ImTextureID)size_t(App->renderer->GetShadowmapPass()->getDepthTex()->Id()),
                 ImVec2(screenPos),
                 ImVec2(screenPos.x + fb_width * 0.4f, screenPos.y + fb_height * 0.4f),
                 ImVec2(0, 1), ImVec2(1, 0));

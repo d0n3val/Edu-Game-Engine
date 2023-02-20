@@ -64,9 +64,10 @@ class GeometryBatch
     std::unique_ptr<Buffer>         tpose_positions;
     std::unique_ptr<Buffer>         tpose_normals;
     std::unique_ptr<Buffer>         tpose_tangents;
+    std::unique_ptr<Buffer>         bone_indices;
+    std::unique_ptr<Buffer>         bone_weights;
     std::unique_ptr<Buffer>         transformSSBO[NUM_BUFFERS];
     std::unique_ptr<Buffer>         materialSSBO;
-    std::unique_ptr<Buffer>         instanceSSBO;
     std::unique_ptr<Buffer>         skinning[NUM_BUFFERS];
     std::unique_ptr<Buffer>         morphBuffer;
     std::unique_ptr<TextureBuffer>  morphTexture;

@@ -779,7 +779,7 @@ void Program::Unuse()
     glUseProgram(0); 
 }
 
-void Program::BindTexture(uint location, uint unit, const Texture* texture)
+void Program::BindTexture(uint location, uint unit, const Texture *texture)
 {
     glActiveTexture(GL_TEXTURE0+unit);
     glBindTexture(texture->Target(), texture->Id());

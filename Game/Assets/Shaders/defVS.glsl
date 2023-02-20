@@ -8,8 +8,6 @@
 layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
 layout(location = NORMAL_ATTRIB_LOCATION) in vec3 vertex_normal;
 layout(location = UV0_ATTRIB_LOCATION) in vec2 vertex_uv0;
-layout(location = BONE_INDEX_ATTRIB_LOCATION) in ivec4 bone_indices;
-layout(location = BONE_WEIGHT_ATTRIB_LOCATION) in vec4 bone_weights;
 layout(location = TANGENT_ATTRIB_LOCATION) in vec3 vertex_tangent;
 layout(location = UV1_ATTRIB_LOCATION) in vec2 vertex_uv1;
 
@@ -19,36 +17,8 @@ readonly layout(std430, row_major, binding = MODEL_SSBO_BINDING) buffer Transfor
     mat4 models[];
 };
 
-struct PerInstance
-{
-    uint  numBones;
-    uint  baseBone;
-    uint  numTargets;
-    uint  baseTarget;
-    uint  baseTargetWeight;
-    uint  targetStride;
-    uint  normalsStride;
-    uint  tangentsStride;
-};
-
-readonly layout(std430, binding = PERINSTANCE_SSBO_BINDING) buffer PerInstances
-{
-    PerInstance instanceInfo[];
-};
-
-layout(std430, binding = MORPH_WEIGHT_SSBO_BINDING) buffer MorphWeights
-{
-    float morphWeights[];
-};
-
-layout(binding=MORPH_TARGET_TBO_BINDING) uniform samplerBuffer morphData;
-
 out VertexOut fragment;
 out flat int draw_id;
-
-vec3 MorphPosition(vec3 position);
-vec3 MorphNormal(vec3 position);
-vec3 MorphTangent(vec3 position);
 
 void TransformOutput(out GeomData geom);
 
@@ -65,69 +35,13 @@ void main()
     draw_id       = gl_BaseInstance;
 }
 
-vec3 MorphPosition(vec3 position)
-{
-    PerInstance instance = instanceInfo[gl_BaseInstance];
-
-    vec3 res = position;
-    for(int i=0; i< instance.numTargets; ++i)
-    {
-        int texelIndex = int(instance.baseTarget+instance.targetStride*i+gl_VertexID);
-        res += texelFetch(morphData, texelIndex).xyz*morphWeights[i];
-    }
-
-    return res;
-}
-
-vec3 MorphNormal(vec3 normal)
-{
-    PerInstance instance = instanceInfo[gl_BaseInstance];
-
-    vec3 res = normal;
-    for(int i=0; i< instance.numTargets; ++i)
-    {
-        int texelIndex = int(instance.baseTarget+instance.targetStride*i+instance.normalsStride+gl_VertexID);
-        res = normalize(res+texelFetch(morphData, texelIndex).xyz*morphWeights[i]);
-    }
-
-    return res;
-}
-
-vec3 MorphTangent(vec3 tangent)
-{
-    PerInstance instance = instanceInfo[gl_BaseInstance];
-
-    vec3 res = tangent;
-    for(int i=0; i< instance.numTargets; ++i)
-    {
-        int texelIndex = int(instance.baseTarget+instance.targetStride*i+instance.tangentsStride+gl_VertexID);
-        res = normalize(res+texelFetch(morphData, texelIndex).xyz*morphWeights[i]);
-    }
-
-    return res;
-}
 
 void TransformOutput(out GeomData geom)
 {
-    PerInstance instance = instanceInfo[gl_BaseInstance];
     mat4 model = models[gl_BaseInstance];
-
     mat3 normalMat = transpose(inverse(mat3(model)));
 
-    if(instance.numTargets > 0) // MorphTargets
-    {
-        geom.position = MorphPosition(vertex_position);
-        geom.normal   = MorphNormal(vertex_normal);
-        geom.tangent  = MorphTangent(vertex_tangent);
-    }
-    else // No MorphTargets
-    {
-        geom.position = vertex_position;
-        geom.normal   = vertex_normal;
-        geom.tangent  = vertex_tangent;
-    }
-
-    geom.position = (model*vec4(geom.position, 1.0)).xyz;
-    geom.normal   = normalMat*geom.normal;
-    geom.tangent  = normalMat*geom.tangent;
+    geom.position = (model*vec4(vertex_position, 1.0)).xyz;
+    geom.normal   = normalMat*vertex_normal;
+    geom.tangent  = normalMat*vertex_tangent;
 }
