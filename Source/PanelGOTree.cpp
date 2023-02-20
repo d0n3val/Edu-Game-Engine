@@ -355,6 +355,7 @@ bool PanelGOTree::RecursiveDraw(GameObject* go)
                 if (ImGui::MenuItem("Remove"))
                 {
                     App->editor->ClearSelected();
+                    drag = nullptr;
                     go->Remove();
                     stop = true;
                 }

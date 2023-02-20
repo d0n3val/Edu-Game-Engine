@@ -25,6 +25,18 @@ GeometryBatch::GeometryBatch(const HashString& tag, Program* program) : tagName(
 {
 }
 
+
+GeometryBatch::~GeometryBatch()
+{
+    for(int i=0; i< NUM_BUFFERS; ++i)
+    {
+        if (sync[frameCount])
+        {
+            glDeleteSync((GLsync)sync[frameCount]);
+        }
+    }
+}
+
 bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
 {
     if(objects.empty())
@@ -51,20 +63,29 @@ void GeometryBatch::Add(const ComponentMeshRenderer* object)
         attrib_flags = object->GetMeshRes()->GetAttribs();
     }
 
-    uint index = uint(objects.size());
     meshes[object->GetMeshUID()].refCount++;
-    objects[object] = index;
+    objects[object] = -1;
 
     ClearRenderData();
 }
 
 void GeometryBatch::CreateRenderData()
 {
+    uint index = 0;
+    for (auto& object : objects) object.second = index++;
+
     CreateVertexBuffers();
+
     CreateMaterialBuffer();
     CreateMorphBuffer();
     CreateInstanceBuffer();
     CreateTransformBuffer();
+
+    if (totalBones > 0)
+    {
+        CreateSkinningBuffers();
+    }
+
     bufferDirty = false;
     modelUpdates.clear();
 }
@@ -74,36 +95,100 @@ void GeometryBatch::ClearRenderData()
     vao.reset();
     for(uint i=0; i< ATTRIB_COUNT+1; ++i)
     {
-        vbo[i].reset();
+        vbo[i].release();
     }
-    ibo.reset();
+    ibo.release();
+    tpose_positions.release();
+    tpose_normals.release();
+    tpose_tangents.release();;
     commands.clear();
 
     bufferDirty = true;
+}
+
+void GeometryBatch::CreateSkinningBuffers()
+{
+    SDL_assert(totalBones > 0);
+
+    tpose_positions.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float4) * totalVertices, nullptr));
+    float4* positions = reinterpret_cast<float4*>(tpose_positions->Map(GL_WRITE_ONLY));
+    uint offset = 0;
+
+    for (const std::pair<const UID, MeshData> &meshData : meshes)
+    {
+        const ResourceMesh *mesh = static_cast<const ResourceMesh *>(App->resources->Get(meshData.first));
+
+        for(uint i=0; i < mesh->GetNumVertices(); ++i)
+        {
+            const float3& vtx = mesh->src_vertices[i];
+            positions[offset+i].Set(vtx.x, vtx.y, vtx.z, 1.0);
+        }
+        offset += mesh->GetNumVertices();
+    }
+
+    tpose_positions->Unmap();
+
+    tpose_normals.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float4) * totalVertices, nullptr));
+    float4* normals = reinterpret_cast<float4*>(tpose_normals->Map(GL_WRITE_ONLY));
+    offset = 0;
+
+    for (const std::pair<const UID, MeshData> &meshData : meshes)
+    {
+        const ResourceMesh *mesh = static_cast<const ResourceMesh *>(App->resources->Get(meshData.first));
+
+        for(uint i=0; i < mesh->GetNumVertices(); ++i)
+        {
+            const float3& vtx = mesh->src_normals[i];
+            normals[offset+i].Set(vtx.x, vtx.y, vtx.z, 0.0);
+        }
+
+        offset += mesh->GetNumVertices();
+    }
+
+    tpose_normals->Unmap();
+
+    tpose_tangents.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float4) * totalVertices, nullptr));
+    float4* tangents = reinterpret_cast<float4*>(tpose_tangents->Map(GL_WRITE_ONLY));
+    offset = 0;
+
+    for (const std::pair<const UID, MeshData> &meshData : meshes)
+    {
+        const ResourceMesh *mesh = static_cast<const ResourceMesh *>(App->resources->Get(meshData.first));
+
+        for(uint i=0; i < mesh->GetNumVertices(); ++i)
+        {
+            const float3& vtx = mesh->src_tangents[i];
+            tangents[offset+i].Set(vtx.x, vtx.y, vtx.z, 0.0);
+        }
+
+        offset += mesh->GetNumVertices();
+    }
+
+    tpose_tangents->Unmap();
 }
 
 void GeometryBatch::CreateVertexBuffers()
 {
     SDL_assert(!objects.empty());
 
-    uint numIndices  = 0;
-    uint numVertices = 0;
-
     Buffer* vbo_ptr[ATTRIB_COUNT];
 
     for (int i = 0; i < ATTRIB_COUNT; ++i) vbo_ptr[i] = nullptr;
+
+    totalVertices = 0;
+    totalIndices = 0;
 
     for(std::pair<const UID, MeshData>& meshData  : meshes)
     {
         const ResourceMesh *mesh = static_cast<const ResourceMesh *>(App->resources->Get(meshData.first));
 
-        meshData.second.baseVertex = numVertices;
-        meshData.second.baseIndex = numIndices;
+        meshData.second.baseVertex = totalVertices;
+        meshData.second.baseIndex = totalIndices;
         meshData.second.vertexCount = mesh->num_vertices;
         meshData.second.indexCount = mesh->num_indices;
 
-        numVertices += mesh->num_vertices;
-        numIndices += mesh->num_indices;
+        totalVertices += mesh->num_vertices;
+        totalIndices += mesh->num_indices;
     }
 
     // Vertex attributes 
@@ -114,22 +199,27 @@ void GeometryBatch::CreateVertexBuffers()
 
     if (mesh->HasAttrib(ATTRIB_POSITIONS))
     {
-        uint dataOffset = 0;
-        vbo_ptr[ATTRIB_POSITIONS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float3) * numVertices, nullptr);
+        uint offset = 0;
+        vbo_ptr[ATTRIB_POSITIONS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float4) * totalVertices, nullptr);
         glObjectLabel(GL_BUFFER, vbo_ptr[ATTRIB_POSITIONS]->Id(), -1, "GeometryBatch-POSITION");
 
         vbo[ATTRIB_POSITIONS].reset(vbo_ptr[ATTRIB_POSITIONS]);
-        uint8_t* data = reinterpret_cast<uint8_t*>(vbo[ATTRIB_POSITIONS]->Map(GL_WRITE_ONLY));
+        float4* data = reinterpret_cast<float4*>(vbo[ATTRIB_POSITIONS]->Map(GL_WRITE_ONLY));
         for (const std::pair<const UID, MeshData>& meshData : meshes)
         {
             const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
 
-            memcpy(&data[dataOffset], &mesh->src_vertices[0], sizeof(float3) * mesh->GetNumVertices());
-            dataOffset += sizeof(float3) * mesh->GetNumVertices();
+            for (uint i = 0; i < mesh->GetNumVertices(); ++i)
+            {
+                const float3 &vtx = mesh->src_vertices[i];
+                data[offset + i].Set(vtx.x, vtx.y, vtx.z, 1.0);
+            }
+
+            offset += mesh->GetNumVertices();
         }
         vbo[ATTRIB_POSITIONS]->Unmap();
 
-        attribs[ATTRIB_POSITIONS] = { POSITION_ATTRIB_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, 0 };
+        attribs[ATTRIB_POSITIONS] = { POSITION_ATTRIB_LOCATION, 3, GL_FLOAT, false, sizeof(float4), 0, 0};
     }
     else
     {
@@ -141,7 +231,7 @@ void GeometryBatch::CreateVertexBuffers()
     {
         uint dataOffset = 0;
 
-        vbo_ptr[ATTRIB_TEX_COORDS_0] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float2) * numVertices, nullptr);
+        vbo_ptr[ATTRIB_TEX_COORDS_0] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float2) * totalVertices, nullptr);
         vbo[ATTRIB_TEX_COORDS_0].reset(vbo_ptr[ATTRIB_TEX_COORDS_0]);
         uint8_t* data = reinterpret_cast<uint8_t*>(vbo[ATTRIB_TEX_COORDS_0]->Map(GL_WRITE_ONLY));
         for (const std::pair<const UID, MeshData>& meshData : meshes)
@@ -153,7 +243,7 @@ void GeometryBatch::CreateVertexBuffers()
         }
         vbo[ATTRIB_TEX_COORDS_0]->Unmap();
 
-        attribs[ATTRIB_TEX_COORDS_0] = { UV0_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0, 0 };
+        attribs[ATTRIB_TEX_COORDS_0] = { UV0_ATTRIB_LOCATION, 2, GL_FLOAT, false, 0, 0 , 0};
     }
     else
     {
@@ -163,21 +253,26 @@ void GeometryBatch::CreateVertexBuffers()
 
     if (mesh->HasAttrib(ATTRIB_NORMALS))
     {
-        uint dataOffset = 0;
+        uint offset = 0;
 
-        vbo_ptr[ATTRIB_NORMALS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float3) * numVertices, nullptr);
+        vbo_ptr[ATTRIB_NORMALS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float4) * totalVertices, nullptr);
         vbo[ATTRIB_NORMALS].reset(vbo_ptr[ATTRIB_NORMALS]);
-        uint8_t* data = reinterpret_cast<uint8_t*>(vbo[ATTRIB_NORMALS]->Map(GL_WRITE_ONLY));
+        float4* data = reinterpret_cast<float4*>(vbo[ATTRIB_NORMALS]->Map(GL_WRITE_ONLY));
         for (const std::pair<const UID, MeshData>& meshData : meshes)
         {
             const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
          
-            memcpy(&data[dataOffset], &mesh->src_normals[0], sizeof(float3) * mesh->GetNumVertices());
-            dataOffset += sizeof(float3) * mesh->GetNumVertices();
+            for (uint i = 0; i < mesh->GetNumVertices(); ++i)
+            {
+                const float3 &vtx = mesh->src_normals[i];
+                data[offset + i].Set(vtx.x, vtx.y, vtx.z, 0.0);
+            }
+
+            offset += mesh->GetNumVertices();
         }
         vbo[ATTRIB_NORMALS]->Unmap();
 
-        attribs[ATTRIB_NORMALS] = { NORMAL_ATTRIB_LOCATION, 3, GL_FLOAT, GL_TRUE, 0, 0 };
+        attribs[ATTRIB_NORMALS] = { NORMAL_ATTRIB_LOCATION, 3, GL_FLOAT, false, sizeof(float4), 0, 0};
     }
     else
     {
@@ -187,20 +282,25 @@ void GeometryBatch::CreateVertexBuffers()
 
     if (mesh->HasAttrib(ATTRIB_TANGENTS))
     {
-        uint dataOffset = 0;
-        vbo_ptr[ATTRIB_TANGENTS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float3) * numVertices, nullptr);
+        uint offset = 0;
+        vbo_ptr[ATTRIB_TANGENTS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float4) * totalVertices, nullptr);
         vbo[ATTRIB_TANGENTS].reset(vbo_ptr[ATTRIB_TANGENTS]);
-        uint8_t* data = reinterpret_cast<uint8_t*>(vbo[ATTRIB_TANGENTS]->Map(GL_WRITE_ONLY));
+        float4* data = reinterpret_cast<float4*>(vbo[ATTRIB_TANGENTS]->Map(GL_WRITE_ONLY));
         for (const std::pair<const UID, MeshData>& meshData : meshes)
         {
             const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
 
-            memcpy(&data[dataOffset], &mesh->src_tangents[0], sizeof(float3) * mesh->GetNumVertices());
-            dataOffset += sizeof(float3) * mesh->GetNumVertices();
+            for (uint i = 0; i < mesh->GetNumVertices(); ++i)
+            {
+                const float3 &vtx = mesh->src_tangents[i];
+                data[offset + i].Set(vtx.x, vtx.y, vtx.z, 0.0);
+            }
+
+            offset += mesh->GetNumVertices();
         }
         vbo[ATTRIB_TANGENTS]->Unmap();
 
-        attribs[ATTRIB_TANGENTS] = { TANGENT_ATTRIB_LOCATION, 3, GL_FLOAT, GL_TRUE, 0, 0 };
+        attribs[ATTRIB_TANGENTS] = { TANGENT_ATTRIB_LOCATION, 3, GL_FLOAT, false, sizeof(float4), 0, 0};
     }
     else
     {
@@ -211,7 +311,7 @@ void GeometryBatch::CreateVertexBuffers()
     if (mesh->HasAttrib(ATTRIB_BONE_INDICES))
     {
         uint dataOffset = 0;
-        vbo_ptr[ATTRIB_BONE_INDICES] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(int) * 4 * numVertices, nullptr);
+        vbo_ptr[ATTRIB_BONE_INDICES] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(int) * 4 * totalVertices, nullptr);
         vbo[ATTRIB_BONE_INDICES].reset(vbo_ptr[ATTRIB_BONE_INDICES]);
         uint8_t* data = reinterpret_cast<uint8_t*>(vbo[ATTRIB_BONE_INDICES]->Map(GL_WRITE_ONLY));
         for (const std::pair<const UID, MeshData>& meshData : meshes)
@@ -221,7 +321,7 @@ void GeometryBatch::CreateVertexBuffers()
             dataOffset += sizeof(int) * 4 * mesh->GetNumVertices();
         }
         vbo[ATTRIB_BONE_INDICES]->Unmap();
-        attribs[ATTRIB_BONE_INDICES] = { BONE_INDEX_ATTRIB_LOCATION, 4, GL_UNSIGNED_INT, GL_FALSE, 0, 0 };
+        attribs[ATTRIB_BONE_INDICES] = { BONE_INDEX_ATTRIB_LOCATION, 4, GL_UNSIGNED_INT, false, 0, 0, 0};
     }
     else
     {
@@ -232,7 +332,7 @@ void GeometryBatch::CreateVertexBuffers()
     if (mesh->HasAttrib(ATTRIB_BONE_WEIGHTS))
     {
         uint dataOffset = 0;
-        vbo_ptr[ATTRIB_BONE_WEIGHTS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float) * 4 * numVertices, nullptr);
+        vbo_ptr[ATTRIB_BONE_WEIGHTS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float) * 4 * totalVertices, nullptr);
         vbo[ATTRIB_BONE_WEIGHTS].reset(vbo_ptr[ATTRIB_BONE_WEIGHTS]);
         uint8_t* data = reinterpret_cast<uint8_t*>(vbo[ATTRIB_BONE_WEIGHTS]->Map(GL_WRITE_ONLY));
         for (const std::pair<const UID, MeshData>& meshData : meshes)
@@ -242,7 +342,7 @@ void GeometryBatch::CreateVertexBuffers()
             dataOffset += sizeof(float4) * mesh->GetNumVertices();
         }
         vbo[ATTRIB_BONE_WEIGHTS]->Unmap();
-        attribs[ATTRIB_BONE_WEIGHTS] = { BONE_WEIGHT_ATTRIB_LOCATION, 4, GL_FLOAT, GL_FALSE, 0, 0 };
+        attribs[ATTRIB_BONE_WEIGHTS] = { BONE_WEIGHT_ATTRIB_LOCATION, 4, GL_FLOAT, false, 0, 0, 0};
     }
     else
     {
@@ -251,7 +351,7 @@ void GeometryBatch::CreateVertexBuffers()
     }
 
     // Indices
-    ibo.reset(Buffer::CreateIBO(GL_STATIC_DRAW, sizeof(unsigned) * numIndices, nullptr));
+    ibo.reset(Buffer::CreateIBO(GL_STATIC_DRAW, sizeof(unsigned) * totalIndices, nullptr));
     glObjectLabel(GL_BUFFER, ibo->Id(), -1, "GeometryBatch-INDICES");
 
     unsigned* indices = reinterpret_cast<unsigned*>(ibo->Map(GL_WRITE_ONLY));
@@ -490,9 +590,12 @@ void GeometryBatch::DoUpdate()
 
     UpdateModels();
 
-#if 0
-    if(totalBones > 0) UpdateSkinning();
-#endif 
+    if(totalBones > 0) 
+    {
+        UpdateSkinning();
+    }
+
+    modelUpdates.clear();
 }
 
 void GeometryBatch::DoRender(uint flags)
@@ -523,7 +626,10 @@ void GeometryBatch::DoRender(uint flags)
         }
 
         // due to skinning compute
-        if(totalBones > 0) glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+        if(totalBones > 0 ) 
+        {
+            glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+        }
 
         vao->Bind();
         glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, int(commands.size()), 0);
@@ -582,21 +688,22 @@ void GeometryBatch::UpdateSkinning()
 
                 object->UpdateSkinPalette(&palette[instanceData.baseBone]);
 
+                skinningProgram->Use();
+
                 // Bind buffers
                 skinningProgram->BindSSBO(SKINNING_PALETTE_BINDING, skinning[frameCount].get(), instanceData.baseBone * sizeof(float4x4), instanceData.numBones * sizeof(float4x4));
-                skinningProgram->BindSSBO(SKINNING_INDICES_BINDING, vbo[ATTRIB_BONE_INDICES].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(int) * 4);
-                skinningProgram->BindSSBO(SKINNING_WEIGHTS_BINDING, vbo[ATTRIB_BONE_WEIGHTS].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float) * 4);
+                skinningProgram->BindSSBO(SKINNING_INDICES_BINDING, vbo[ATTRIB_BONE_INDICES].get(), meshData.baseVertex * sizeof(int)*4, meshData.vertexCount * sizeof(int) * 4);
+                skinningProgram->BindSSBO(SKINNING_WEIGHTS_BINDING, vbo[ATTRIB_BONE_WEIGHTS].get(), meshData.baseVertex * sizeof(float)*4, meshData.vertexCount * sizeof(float) * 4);
 
-                skinningProgram->BindSSBO(SKINNING_POSITIONS_BINDING, tpose_positions.get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
-                skinningProgram->BindSSBO(SKINNING_INNORMALS_BINDING, tpose_normals.get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
-                skinningProgram->BindSSBO(SKINNING_INTANGENTS_BINDING, tpose_tangents.get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
+                skinningProgram->BindSSBO(SKINNING_POSITIONS_BINDING, tpose_positions.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+                skinningProgram->BindSSBO(SKINNING_INNORMALS_BINDING, tpose_normals.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+                skinningProgram->BindSSBO(SKINNING_INTANGENTS_BINDING, tpose_tangents.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
 
-                skinningProgram->BindSSBO(SKINNING_OUTPOSITIONS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
-                skinningProgram->BindSSBO(SKINNING_OUTNORMALS_BINDING, vbo[ATTRIB_NORMALS].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
-                skinningProgram->BindSSBO(SKINNING_OUTTANGENTS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float3), meshData.vertexCount * sizeof(float3));
+                skinningProgram->BindSSBO(SKINNING_OUTPOSITIONS_BINDING, vbo[ATTRIB_POSITIONS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+                skinningProgram->BindSSBO(SKINNING_OUTNORMALS_BINDING, vbo[ATTRIB_NORMALS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+                skinningProgram->BindSSBO(SKINNING_OUTTANGENTS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
 
                 skinningProgram->BindUniform(SKINNING_NUM_VERTICES_LOCATION, int(meshData.vertexCount));
-                skinningProgram->Use();
 
                 int numWorkGroups = (meshData.vertexCount + (SKINNING_GROUP_SIZE - 1)) / SKINNING_GROUP_SIZE;
 
@@ -614,13 +721,6 @@ void GeometryBatch::UpdateModels()
         float4x4* palette    = nullptr;
         float* weights       = nullptr;
 
-#if 1
-        if (totalBones > 0)
-        {
-            palette = skinningData[frameCount]; 
-        }
-#endif 
-
         if (totalTargets > 0)
         {
             weights = morphWeightsData[frameCount]; 
@@ -634,14 +734,6 @@ void GeometryBatch::UpdateModels()
                 transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
                 const PerInstance& instanceData = instances[it->second];
 
-#if 1
-                // skinning update
-                if(instanceData.numBones > 0)
-                {
-                    object->UpdateSkinPalette(&palette[instanceData.baseBone]);
-                }
-#endif 
-
                 // morph targets
                 if (totalTargets)
                 {
@@ -649,8 +741,6 @@ void GeometryBatch::UpdateModels()
                 }
             }
         }
-
-        modelUpdates.clear();
     }
 }
 

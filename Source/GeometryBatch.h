@@ -79,6 +79,8 @@ class GeometryBatch
     void*                           sync[NUM_BUFFERS] = { nullptr, nullptr };
 
     uint                            commandBufferSize = 0;
+    uint                            totalVertices = 0;
+    uint                            totalIndices = 0;
     uint                            totalBones = 0;
     uint                            totalTargets = 0;
     uint                            frameCount = 0;
@@ -97,7 +99,7 @@ class GeometryBatch
 public:
 
     explicit GeometryBatch(const HashString& tag, Program* program);
-    ~GeometryBatch() = default;
+    ~GeometryBatch();
    
     bool               CanAdd            (const ComponentMeshRenderer* object) const;
     void               Add               (const ComponentMeshRenderer* object);
@@ -120,6 +122,7 @@ private:
     void ClearRenderData      ();
 
     void CreateVertexBuffers  ();
+    void CreateSkinningBuffers();
     void CreateMaterialBuffer ();
     void CreateInstanceBuffer ();
     void CreateMorphBuffer    ();

@@ -21,33 +21,32 @@ readonly layout(std430, row_major, binding = SKINNING_WEIGHTS_BINDING) buffer We
 
 readonly layout(std430, row_major, binding = SKINNING_POSITIONS_BINDING) buffer InPositions
 {
-    vec3 in_positions[];
+    vec4 in_positions[];
 };
 
 readonly layout(std430, row_major, binding = SKINNING_INNORMALS_BINDING) buffer InNormals
 {
-    vec3 in_normals[];
+    vec4 in_normals[];
 };
 
 readonly layout(std430, row_major, binding = SKINNING_INTANGENTS_BINDING) buffer InTangents
 {
-    vec3 in_tangents[];
+    vec4 in_tangents[];
 };
 
 writeonly layout(std430, row_major, binding = SKINNING_OUTPOSITIONS_BINDING) buffer OutPositions
 {
-    vec3 out_positions[];
+    vec4 out_positions[];
 };
-
 
 writeonly layout(std430, row_major, binding = SKINNING_OUTNORMALS_BINDING) buffer OutNormals
 {
-    vec3 out_normals[];
+    vec4 out_normals[];
 };
 
 writeonly layout(std430, row_major, binding = SKINNING_OUTTANGENTS_BINDING) buffer OutTangents
 {
-    vec3 out_tangents[];
+    vec4 out_tangents[];
 };
 
 layout(location = SKINNING_NUM_VERTICES_LOCATION) uniform int numVertices;
@@ -56,7 +55,7 @@ layout(local_size_x = SKINNING_GROUP_SIZE, local_size_y = 1, local_size_z = 1) i
 
 void main()
 {
-    int index = gl_GlobalInvocationID.x;
+    uint index = gl_GlobalInvocationID.x;
 
     if(index < numVertices)
     {
@@ -65,8 +64,8 @@ void main()
                             palette[indices[index][2]]*weights[index][2]+
                             palette[indices[index][3]]*weights[index][3];
 
-        out_positions[index] = (skin_transform*vec4(in_positions[index], 1.0)).xyz;
-        out_normals[index]   = mat3(skin_transform)*in_normals[index];
-        out_tangents[index]  = mat3(skin_transform)*in_tangents[index];
+        out_positions[index] = skin_transform*in_positions[index];
+        out_normals[index] = skin_transform*in_normals[index];
+        out_tangents[index] = skin_transform*in_tangents[index];
     }
 }

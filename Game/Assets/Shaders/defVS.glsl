@@ -36,11 +36,6 @@ readonly layout(std430, binding = PERINSTANCE_SSBO_BINDING) buffer PerInstances
     PerInstance instanceInfo[];
 };
 
-layout(std430, row_major, binding = PALETTE_SSBO_BINDING) buffer Skinning 
-{
-    mat4 palette[];
-};
-
 layout(std430, binding = MORPH_WEIGHT_SSBO_BINDING) buffer MorphWeights
 {
     float morphWeights[];
@@ -132,19 +127,7 @@ void TransformOutput(out GeomData geom)
         geom.tangent  = vertex_tangent;
     }
 
-    if(instance.numBones > 0) // Skinning 
-    {
-        mat4 skin_transform = palette[instance.baseBone+bone_indices[0]]*bone_weights[0]+palette[instance.baseBone+bone_indices[1]]*bone_weights[1]+
-                              palette[instance.baseBone+bone_indices[2]]*bone_weights[2]+palette[instance.baseBone+bone_indices[3]]*bone_weights[3];
-
-        geom.position = (model*skin_transform*vec4(geom.position, 1.0)).xyz;
-        geom.normal   = normalMat*mat3(skin_transform)*geom.normal;
-        geom.tangent  = normalMat*mat3(skin_transform)*geom.tangent;
-    }
-    else // No Skinning
-    {
-        geom.position = (model*vec4(geom.position, 1.0)).xyz;
-        geom.normal   = normalMat*geom.normal;
-        geom.tangent  = normalMat*geom.tangent;
-    }
+    geom.position = (model*vec4(geom.position, 1.0)).xyz;
+    geom.normal   = normalMat*geom.normal;
+    geom.tangent  = normalMat*geom.tangent;
 }
