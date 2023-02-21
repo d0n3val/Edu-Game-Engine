@@ -565,7 +565,7 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 	{
 		const ResourceTexture* info = (const ResourceTexture*) (*it);
 
-		ImGui::Image((ImTextureID) info->GetID(), ImVec2(50.f, 50.f), ImVec2(0,1), ImVec2(1,0));
+		ImGui::Image((ImTextureID) size_t(info->GetID()), ImVec2(50.f, 50.f), ImVec2(0,1), ImVec2(1,0));
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
@@ -590,7 +590,7 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 				}
 			}
 
-			ImGui::Image((ImTextureID) info->GetID(), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
+			ImGui::Image((ImTextureID) size_t(info->GetID()), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128));
 			ImGui::EndTooltip();
 		}
         if ((i++ % 5) < 4) ImGui::SameLine();

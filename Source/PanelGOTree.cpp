@@ -118,7 +118,8 @@ void PanelGOTree::Draw()
         // Draw the tree
         GameObject* root = App->level->GetRoot();
         for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
-            RecursiveDraw(*it);
+            if (RecursiveDraw(*it) == true)
+                break;
 
         ImGui::TreePop();
     }

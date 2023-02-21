@@ -154,12 +154,12 @@ bool ResourceModel::Save()
 
 		sprintf_s(full_path, 250, "%s%s", LIBRARY_MODEL_FOLDER, exported_file.c_str());
 
-        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+        return App->fs->Save(full_path, &data[0], int(data.size())) > 0;
     }
 
 	std::string output;
 
-	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MODEL_FOLDER, "model", "edumodel"))
+	if (App->fs->SaveUnique(output, &data[0], int(data.size()), LIBRARY_MODEL_FOLDER, "model", "edumodel"))
 	{
         App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
 
@@ -178,7 +178,7 @@ bool ResourceModel::Save(std::string& output) const
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 
-	return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_MODEL_FOLDER, "model", "edumodel");
+	return App->fs->SaveUnique(output, &data[0], int(data.size()), LIBRARY_MODEL_FOLDER, "model", "edumodel");
 }
 
 void ResourceModel::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
@@ -283,7 +283,7 @@ void ResourceModel::GenerateNodes(const aiScene* model, const aiNode* node, uint
         dst.renderers.push_back(renderer);
     }
 
-    parent = nodes.size();
+    parent = uint(nodes.size());
 
     nodes.push_back(std::move(dst));
 

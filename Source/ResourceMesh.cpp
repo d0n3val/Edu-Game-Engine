@@ -106,6 +106,10 @@ bool ResourceMesh::LoadInMemory()
             read_stream >> vertex_size;
             read_stream >> attrib_flags;
 
+            attrib_flags |= (1 << ATTRIB_POSITIONS);
+
+            //SDL_assert((attrib_flags & (1 << ATTRIB_POSITIONS)) != 0);
+
             for(uint i=0; i< ATTRIB_COUNT; ++i)
             {
                 read_stream >> offsets[i];
@@ -302,6 +306,8 @@ void ResourceMesh::ReleaseFromMemory()
 // ---------------------------------------------------------
 void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_stream) const
 {
+    SDL_assert((attrib_flags & (1 << ATTRIB_POSITIONS)) != 0);
+
     write_stream << name;
     write_stream << vertex_size;
     write_stream << attrib_flags;
@@ -502,7 +508,7 @@ void ResourceMesh::GenerateAttribInfo()
 {
     morph_vertex_size   = sizeof(float3);
     vertex_size         = sizeof(float3);
-    attrib_flags        = ATTRIB_POSITIONS;
+    attrib_flags        = (1 << ATTRIB_POSITIONS);
 
     for(uint i=0; i< ATTRIB_COUNT; ++i) 
     {
