@@ -11,6 +11,8 @@ class PointLight;
 class SpotLight;
 class DirLight;
 class AmbientLight;
+class QuadLight;
+class SphereLight;
 class Skybox;
 class Config;
 
@@ -37,6 +39,8 @@ public:
     void                DrawGuizmoProperties(GameObject* go);
     void                DrawGuizmoProperties(PointLight* point);
     void                DrawGuizmoProperties(SpotLight* spot);
+    void                DrawGuizmoProperties(SphereLight* spot);
+    void                DrawGuizmoProperties(QuadLight* spot);
 
 
 private:
@@ -51,6 +55,8 @@ private:
     void    DrawGuizmo      (ComponentCamera* camera, PointLight* point);
     void    DrawGuizmo      (ComponentCamera* camera, SpotLight* spot);
     void    DrawGuizmo      (ComponentCamera* camera, DirLight* light);
+    void    DrawGuizmo      (ComponentCamera* camera, SphereLight* light);
+    void    DrawGuizmo      (ComponentCamera* camera, QuadLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, AmbientLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, Skybox* skybox);
 
@@ -102,4 +108,5 @@ private:
 };
 
 #endif /* _VIEWPORT_H_ */
+
 

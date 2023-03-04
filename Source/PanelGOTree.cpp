@@ -104,6 +104,13 @@ void PanelGOTree::Draw()
         if(ImGui::MenuItem("New Spot Light"))
             App->level->GetLightManager()->AddSpotLight();
 
+        if(ImGui::MenuItem("New Quad Light"))
+            App->level->GetLightManager()->AddQuadLight();
+
+        if(ImGui::MenuItem("New Sphere Light"))
+            App->level->GetLightManager()->AddSphereLight();
+
+
 		if (ImGui::MenuItem("Clear Scene", "!"))
 			App->level->GetRoot()->Remove();
 
@@ -271,6 +278,106 @@ void PanelGOTree::DrawLights()
                             }
 
                             App->level->GetLightManager()->RemoveSpotLight(i);
+                        }
+                        ImGui::EndPopup();
+                    }
+
+
+                    ImGui::TreePop();
+                }
+            }
+
+            ImGui::TreePop();
+        }
+
+        if(ImGui::TreeNodeEx("Quad", 0))
+        {
+            bool remove = false;
+            char number[16];
+
+            QuadLight* const* quad = std::get_if<QuadLight*>(&App->editor->GetSelection());
+
+            for(uint i=0, count = App->level->GetLightManager()->GetNumQuadLights(); !remove && i < count; ++i)
+            {
+                sprintf_s(number, 15, "[%d]", i);
+
+                flags = ImGuiTreeNodeFlags_Leaf;
+
+                if(quad && *quad == App->level->GetLightManager()->GetQuadLight(i))
+                {
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                }
+
+                if(ImGui::TreeNodeEx(number, flags))
+                {
+                    if (ImGui::IsItemClicked(0)) 
+                    {
+                        App->editor->SetSelected(App->level->GetLightManager()->GetQuadLight(i));
+                    }
+
+                    if (ImGui::IsItemClicked(1))
+                        ImGui::OpenPopup("QuadLight Options");
+
+                    if (ImGui::BeginPopup("QuadLight Options"))
+                    {
+                        if (true == (remove = ImGui::MenuItem("Remove")))
+                        {
+                            if(quad && *quad == App->level->GetLightManager()->GetQuadLight(i))
+                            {
+                                App->editor->ClearSelected();
+                            }
+
+                            App->level->GetLightManager()->RemoveQuadLight(i);
+                        }
+                        ImGui::EndPopup();
+                    }
+
+
+                    ImGui::TreePop();
+                }
+            }
+
+            ImGui::TreePop();
+        }
+
+        if(ImGui::TreeNodeEx("Sphere", 0))
+        {
+            bool remove = false;
+            char number[16];
+
+            SphereLight* const* sphere = std::get_if<SphereLight*>(&App->editor->GetSelection());
+
+            for(uint i=0, count = App->level->GetLightManager()->GetNumSphereLights(); !remove && i < count; ++i)
+            {
+                sprintf_s(number, 15, "[%d]", i);
+
+                flags = ImGuiTreeNodeFlags_Leaf;
+
+                if(sphere && *sphere == App->level->GetLightManager()->GetSphereLight(i))
+                {
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                }
+
+                if(ImGui::TreeNodeEx(number, flags))
+                {
+                    if (ImGui::IsItemClicked(0)) 
+                    {
+                        App->editor->SetSelected(App->level->GetLightManager()->GetSphereLight(i));
+                    }
+
+                    if (ImGui::IsItemClicked(1))
+                        ImGui::OpenPopup("SphereLight Options");
+
+                    if (ImGui::BeginPopup("SphereLight Options"))
+                    {
+                        if (true == (remove = ImGui::MenuItem("Remove")))
+                        {
+                            if(sphere && *sphere == App->level->GetLightManager()->GetSphereLight(i))
+                            {
+                                App->editor->ClearSelected();
+                            }
+
+                            App->level->GetLightManager()->RemoveSphereLight(i);
                         }
                         ImGui::EndPopup();
                     }

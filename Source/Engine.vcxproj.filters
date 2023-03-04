@@ -748,6 +748,12 @@
     <ClInclude Include="CompressTextureDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="SphereLight.h">
+      <Filter>Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="QuadLight.h">
+      <Filter>Lights</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1349,6 +1355,12 @@
     </ClCompile>
     <ClCompile Include="CompressTextureDlg.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="SphereLight.cpp">
+      <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="QuadLight.cpp">
+      <Filter>Lights</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -48,6 +48,8 @@
 #include "DirLight.h"
 #include "PointLight.h"
 #include "SpotLight.h"
+#include "QuadLight.h"
+#include "SphereLight.h"
 
 #include "OpenGL.h"
 
@@ -88,6 +90,8 @@ void PanelProperties::Draw()
         [this](DirLight* light)     { DrawDirLight(light);     },
         [this](PointLight* light)   { DrawPointLight(light);   },
         [this](SpotLight* light)    { DrawSpotLight(light);    },
+        [this](QuadLight* light)    { DrawQuadLight(light);    },
+        [this](SphereLight* light)  { DrawSphereLight(light);    },
         [this](Skybox* sky)         { skybox->DrawProperties(sky);    }
         }, App->editor->GetSelection());
 
@@ -226,6 +230,75 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
         if(ImGui::InputFloat("distance", &distance, 0.1f, 0.1f, "%.9f"))
         {
             light->SetDistance(distance);
+        }
+
+        bool enabled = light->GetEnabled();
+        if(ImGui::Checkbox("Enabled", &enabled))
+        {
+            light->SetEnabled(enabled);
+        }
+    }
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawQuadLight(QuadLight *light)
+{
+    if (ImGui::CollapsingHeader("Quad light", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        float3 color = light->GetColor();
+        if(ImGui::ColorEdit3("color", (float*)&color))
+        {
+            light->SetColor(color);
+        }
+
+        float intensity = light->GetIntensity();
+        if(ImGui::SliderFloat("intensity", &intensity, 0.0f, 100.0f))
+        {
+            light->SetIntensity(intensity);
+        }
+
+        ImGui::Separator();
+
+        App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
+
+        ImGui::Separator();
+
+        bool enabled = light->GetEnabled();
+        if(ImGui::Checkbox("Enabled", &enabled))
+        {
+            light->SetEnabled(enabled);
+        }
+    }
+
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawSphereLight(SphereLight *light)
+{
+    if (ImGui::CollapsingHeader("Sphere light", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        float3 color = light->GetColor();
+        if(ImGui::ColorEdit3("color", (float*)&color))
+        {
+            light->SetColor(color);
+        }
+
+        float intensity = light->GetIntensity();
+        if(ImGui::SliderFloat("intensity", &intensity, 0.0f, 100.0f))
+        {
+            light->SetIntensity(intensity);
+        }
+
+        ImGui::Separator();
+
+        App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
+
+        ImGui::Separator();
+
+        float radius = light->GetRadius();
+        if(ImGui::InputFloat("radius", &radius, 0.01f, 0.1f, "%.9f"))
+        {
+            light->SetRadius(radius);
         }
 
         bool enabled = light->GetEnabled();

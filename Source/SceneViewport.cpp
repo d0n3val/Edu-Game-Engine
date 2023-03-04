@@ -550,6 +550,14 @@ void SceneViewport::DrawGuizmoProperties(SpotLight* spot)
     }
 }
 
+void SceneViewport::DrawGuizmoProperties(SphereLight *sphere)
+{
+}
+
+void SceneViewport::DrawGuizmoProperties(QuadLight *quad)
+{
+}
+
 void SceneViewport::DrawGuizmo(ComponentCamera* camera)
 {
     std::visit([this, camera](auto ptr) {DrawGuizmo(camera, ptr); }, App->editor->GetSelection());
@@ -728,6 +736,16 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
         dd::line(pos, pos+(dir+axis[i]*tan_a)*distance, color);
         dd::line(pos, pos+(dir*distance-axis[i]*tan_a)*distance, color);
     }
+}
+
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, SphereLight* light)
+{
+
+}
+
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, QuadLight* light)
+{
+
 }
 
 void SceneViewport::DrawGrid(ComponentCamera* camera)

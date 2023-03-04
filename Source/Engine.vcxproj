@@ -397,6 +397,7 @@
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Postprocess.h" />
     <ClInclude Include="Primitive.h" />
+    <ClInclude Include="QuadLight.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="RenderList.h" />
     <ClInclude Include="ResHandle.h" />
@@ -414,6 +415,7 @@
     <ClInclude Include="ShowTextureDlg.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="SkyboxRollout.h" />
+    <ClInclude Include="SphereLight.h" />
     <ClInclude Include="spotlight.h" />
     <ClInclude Include="StateViewport.h" />
     <ClInclude Include="Timer.h" />
@@ -549,6 +551,7 @@
     <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Postprocess.cpp" />
     <ClCompile Include="Primitive.cpp" />
+    <ClCompile Include="QuadLight.cpp" />
     <ClCompile Include="QuadTree.cpp" />
     <ClCompile Include="RenderList.cpp" />
     <ClCompile Include="ResHandle.cpp" />
@@ -567,6 +570,7 @@
     <ClCompile Include="ShowTextureDlg.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="SkyboxRollout.cpp" />
+    <ClCompile Include="SphereLight.cpp" />
     <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="StateViewport.cpp" />
     <ClCompile Include="thekla_atlas\extern\poshlib\posh.c" />

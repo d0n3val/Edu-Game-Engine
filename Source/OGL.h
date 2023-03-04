@@ -26,6 +26,7 @@ public:
     void SetMinMaxFiler(uint min_filter, uint max_filter);
     void GenerateMipmaps(uint base, uint max);
 
+    void BindImage(uint unit, int level, bool layered, int layer, int access, int format);
     void Bind(uint unit, uint uniform_location) const;
     void Bind(uint unit) const ;
     void Unbind(uint unit) const ;

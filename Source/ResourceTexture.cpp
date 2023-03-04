@@ -85,6 +85,22 @@ namespace
         return ResourceTexture::unknown;
     }
 
+    HRESULT ConvertToSupportedFormat(const DirectX::ScratchImage& src, DirectX::ScratchImage& dst)
+    {
+        DXGI_FORMAT target;
+        switch (src.GetMetadata().format)
+        {
+        case DXGI_FORMAT_R16G16B16A16_UNORM:
+            target = DXGI_FORMAT_B8G8R8A8_UNORM;
+            break;
+        default:
+            SDL_assert(false && "Unsupported format");
+            return E_FAIL;
+        }
+
+        return DirectX::Convert(src.GetImages(), src.GetImageCount(), src.GetMetadata(), target, DirectX::TEX_FILTER_DEFAULT, 0.0, dst);
+    }
+
 }
 
 // ---------------------------------------------------------
@@ -118,15 +134,29 @@ bool ResourceTexture::LoadInMemory()
 
         DirectX::ScratchImage image;
         HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size-sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);       
+        DirectX::ScratchImage* finalImg = &image;
+        DirectX::ScratchImage converted;
 
         if (res == S_OK)
         {
-            const DirectX::TexMetadata& metadata = image.GetMetadata();
-            width  = metadata.width;
-            height = metadata.height;
-            depth  = metadata.depth;
-            arraySize = metadata.arraySize;
-            format = GetFormatFromDXGI(metadata.format, formatColorSpace);
+            format = GetFormatFromDXGI(image.GetMetadata().format, formatColorSpace);
+
+            if (format == unknown)
+            {
+                res = ConvertToSupportedFormat(image, converted);
+                finalImg = &converted;
+                format = GetFormatFromDXGI(finalImg->GetMetadata().format, formatColorSpace);
+            }
+        }
+
+        if(res == S_OK)
+        {
+            const DirectX::TexMetadata& metadata = finalImg->GetMetadata();
+
+            width  = uint(metadata.width);
+            height = uint(metadata.height);
+            depth  = uint(metadata.depth);
+            arraySize = uint(metadata.arraySize);
 
             switch(metadata.dimension) 
             {
@@ -134,11 +164,11 @@ bool ResourceTexture::LoadInMemory()
                     textype = Texture2D;
                     if (IsCompressed())
                     {
-                        glTexture = std::make_unique<::Texture2D>(width, height, GetGLInternalFormat(), uint(image.GetPixelsSize()), image.GetPixels(), mipMaps);
+                        glTexture = std::make_unique<::Texture2D>(width, height, GetGLInternalFormat(), uint(finalImg->GetPixelsSize()), finalImg->GetPixels(), mipMaps);
                     }
                     else
                     {
-                        glTexture = std::make_unique<::Texture2D>(width, height, GetGLInternalFormat(), GetGLFormat(), GetGLType(), image.GetPixels(), mipMaps);
+                        glTexture = std::make_unique<::Texture2D>(width, height, GetGLInternalFormat(), GetGLFormat(), GetGLType(), finalImg->GetPixels(), mipMaps);
                     }
                     break;
                 case DirectX::TEX_DIMENSION_TEXTURE3D:
@@ -146,7 +176,7 @@ bool ResourceTexture::LoadInMemory()
                     {
                         textype = TextureCube;
                         //glTexture = std::make_unique<::TextureCube>(resource->width, resource->height, 
-                          //                                      GetGLInternalFormat(), GetGLType(),image.GetPixelsSize(), image.GetPixels(), resource->has_mips);
+                          //                                      GetGLInternalFormat(), GetGLType(),finalImg->GetPixelsSize(), finalImg->GetPixels(), resource->has_mips);
                     }
                     else
                     {
@@ -158,7 +188,7 @@ bool ResourceTexture::LoadInMemory()
                     break;
             }
 
-            memSize = image.GetPixelsSize();
+            memSize = uint(finalImg->GetPixelsSize());
         }
     }
 

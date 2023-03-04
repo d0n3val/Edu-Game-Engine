@@ -73,6 +73,11 @@ void Texture::GenerateMipmaps(uint base, uint max)
     glBindTexture(tex_target, 0);
 }
 
+void Texture::BindImage(uint unit, int level, bool layered, int layer, int access, int format)
+{
+    glBindImageTexture(unit, texture, level, layered, layer, access, format);
+}
+
 void Texture::Bind(uint unit, uint uniform_location) const 
 {
     glActiveTexture(GL_TEXTURE0+unit);

@@ -73,6 +73,7 @@ private:
     bool LoadDefaultSkybox();
 	bool LoadDefaultBox();
 	bool LoadDefaultSphere();
+    bool LoadDefaultRedImage();
 
 private:
 	std::string asset_folder;
@@ -88,6 +89,7 @@ private:
 	ResourceMesh* cylinder = nullptr;
 	ResourceTexture* checkers = nullptr;
 	ResourceTexture* skybox = nullptr;
+    ResourceTexture* redImage = nullptr;
     ResourceTexture* white_fallback = nullptr;
     ResourceTexture* black_fallback = nullptr;
 };

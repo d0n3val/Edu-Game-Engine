@@ -11,6 +11,8 @@
 
 #include "DirectXTex/DirectXTex.h"
 
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
+
 #include "Leaks.h"
 
 #include <assert.h>
@@ -533,6 +535,47 @@ bool ModuleTextures::LoadFallback(ResourceTexture* resource, const float3& color
 	return true;
 }
 
+bool ModuleTextures::LoadRedImage(ResourceTexture* resource, uint width, uint height)
+{
+    if (!resource->glTexture)
+    {
+        resource->glTexture = std::make_unique<Texture2D>(width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+        resource->textype = ResourceTexture::Texture2D;
+        resource->width = width;
+        resource->height = height;
+        resource->depth = 1;
+        resource->arraySize = 1;
+        resource->format = ResourceTexture::rgba;
+        resource->colorSpace = ResourceTexture::linear;
+    }
+
+    std::unique_ptr<Shader> shader = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/redImage.glsl");
+    std::unique_ptr<Program> program;
+
+    bool ok = shader->Compiled();
+
+    if (ok)
+    {
+        program = std::make_unique<Program>(shader.get());
+        ok = program->Linked();
+    }
+
+    if (ok)
+    {
+        program->Use();
+        program->BindUniform(REDIMAGE_WIDHT_LOCATION, int(width));
+        program->BindUniform(REDIMAGE_HEIGHT_LOCATION, int(height));
+
+        resource->glTexture->BindImage(REDIMAGE_IMAGE_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_RGBA8);
+        
+        uint numGroupsX = (width+(REDIMAGE_GROUP_WIDTH-1))/REDIMAGE_GROUP_WIDTH;
+        uint numGroupsY = (height+(REDIMAGE_GROUP_HEIGHT-1))/REDIMAGE_GROUP_HEIGHT;
+        glDispatchCompute(numGroupsX, numGroupsY, 1);
+        //glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+    }
+
+    return ok;
+}
 
 bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], const char* path)
 {

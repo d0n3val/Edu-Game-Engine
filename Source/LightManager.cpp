@@ -3,6 +3,8 @@
 #include "DirLight.h"
 #include "PointLight.h"
 #include "SpotLight.h"
+#include "QuadLight.h"
+#include "SphereLight.h"
 
 #include "Config.h"
 
@@ -42,6 +44,24 @@ void LightManager::LoadLights(const Config &config)
 
         spots.push_back(std::move(spot));
     }
+
+    count = config.GetArrayCount("Quads");
+    for(uint i=0; i < count; ++i)
+    {
+        std::unique_ptr<QuadLight> quad = std::make_unique<QuadLight>();
+        quad->Load(config.GetArray("Quads", i));
+
+        quads.push_back(std::move(quad));
+    }
+
+    count = config.GetArrayCount("Spheres");
+    for(uint i=0; i< count; ++i)
+    {
+        std::unique_ptr<SphereLight> sphere = std::make_unique<SphereLight>();
+        sphere->Load(config.GetArray("Spheres", 1));
+
+        spheres.push_back(std::move(sphere));
+    }
 }
 
 void LightManager::SaveLights(Config& config) const
@@ -66,6 +86,26 @@ void LightManager::SaveLights(Config& config) const
         spot->Save(spotConfig);
 
         config.AddArrayEntry(spotConfig);
+    }
+
+    config.AddArray("Quads");
+
+    for(const std::unique_ptr<QuadLight>& quad: quads)
+    {
+        Config quadConfig;
+        quad->Save(quadConfig);
+
+        config.AddArrayEntry(quadConfig);
+    }
+
+    config.AddArray("Spheres");
+
+    for(const std::unique_ptr<SphereLight>& sphere : spheres)
+    {
+        Config sphereConfig;
+        sphere->Save(sphereConfig);
+
+        config.AddArrayEntry(sphereConfig);
     }
 }
 
@@ -92,6 +132,33 @@ uint LightManager::AddSpotLight()
 void LightManager::RemoveSpotLight(uint index)
 {
     spots.erase(spots.begin()+index);
+}
+
+uint LightManager::AddQuadLight()
+{
+    uint index = uint(quads.size());
+    quads.push_back(std::make_unique<QuadLight>());
+
+    return index;
+}
+
+void LightManager::RemoveQuadLight(uint index)
+{
+    quads.erase(quads.begin()+index);
+}
+
+uint LightManager::AddSphereLight()
+{
+    uint index = uint(spheres.size());
+    spheres.push_back(std::make_unique<SphereLight>());
+
+    return index;
+
+}
+
+void LightManager::RemoveSphereLight(uint index)
+{
+    spheres.erase(spheres.begin()+index);
 }
 
 void LightManager::UpdateGPUBuffers()
@@ -167,6 +234,62 @@ void LightManager::UpdateGPUBuffers()
     }
 
     spotPtr->count = index;
+
+
+    if(uint(quads.size()) > quadBufferSize || !quadLightSSBO[frameCount])
+    {
+        quadBufferSize = uint(quads.size());
+        quadLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, quadBufferSize * sizeof(QuadLightData) + sizeof(int) * 4, nullptr, true);
+        quadLightData[frameCount] = reinterpret_cast<QuadLightSet*>(quadLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, quadBufferSize * sizeof(QuadLightData) + sizeof(int) * 4));
+    }
+
+    QuadLightSet* quadPtr = quadLightData[frameCount]; 
+
+    // quad lights
+    index = 0;
+
+    for(const std::unique_ptr<QuadLight>& light : quads)
+    {
+        if(light->GetEnabled())
+        {
+            quadPtr->quads[index].position      = float4(light->GetPosition(), 0.0);
+            quadPtr->quads[index].up            = float4(light->GetUp(), 0.0f);
+            quadPtr->quads[index].right         = float4(light->GetRight(), 0.0f);
+            quadPtr->quads[index].colour        = float4(light->GetColor(), 0.0f);
+            quadPtr->quads[index].size          = light->GetSize();
+
+            ++index;
+        }
+    }
+
+    quadPtr->count = index;
+
+    if(uint(spheres.size()) > sphereBufferSize || !sphereLightSSBO[frameCount])
+    {
+        sphereBufferSize = uint(spheres.size());
+        sphereLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sphereBufferSize * sizeof(SphereLightData) + sizeof(int) * 4, nullptr, true);
+        sphereLightData[frameCount] = reinterpret_cast<SphereLightSet*>(sphereLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, sphereBufferSize * sizeof(SphereLightData) + sizeof(int) * 4));
+    }
+
+    SphereLightSet* spherePtr = sphereLightData[frameCount]; 
+
+    // sphere lights
+    index = 0;
+
+    for(const std::unique_ptr<SphereLight>& light : spheres)
+    {
+        if(light->GetEnabled())
+        {
+            spherePtr->spheres[index].position  = light->GetPosition();
+            spherePtr->spheres[index].radius    = light->GetRadius();
+            spherePtr->spheres[index].colour    = float4(light->GetColor(), 0.0f);
+
+            ++index;
+        }
+    }
+
+    spherePtr->count = index;
+
 }
 
 void LightManager::Bind()
@@ -174,4 +297,6 @@ void LightManager::Bind()
     directionalSSBO[frameCount]->BindToPoint(DIRLIGHT_SSBO_BINDING);
     pointLightSSBO[frameCount]->BindToPoint(POINTLIGHT_SSBO_BINDING);
     spotLightSSBO[frameCount]->BindToPoint(SPOTLIGHT_SSBO_BINDING);
+    quadLightSSBO[frameCount]->BindToPoint(QUADLIGHT_SSBO_BINDING);
+    sphereLightSSBO[frameCount]->BindToPoint(SPHERELIGHT_SSBO_BINDING);
 }

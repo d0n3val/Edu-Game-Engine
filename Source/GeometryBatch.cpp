@@ -417,7 +417,7 @@ void GeometryBatch::CreateMaterialBuffer()
         for(uint i=0; i< TextureCount; ++i)
         {
             const ResourceTexture* texture = material->GetTextureRes(MaterialTexture(i));
-            if (texture != nullptr)
+            if (texture != nullptr && texture->GetTexture() != nullptr)
             {
                 out.handles[i] = texture->GetTexture()->GetBindlessHandle();
             }

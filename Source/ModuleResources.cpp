@@ -57,6 +57,7 @@ bool ModuleResources::Start(Config * config)
 
 	LoadDefaultSkybox();
     LoadDefaultSphere();
+    LoadDefaultRedImage();
 
 	//LoadDefaultBox();
 
@@ -693,6 +694,23 @@ bool ModuleResources::LoadDefaultSkybox()
     }
 
 	return false;
+}
+
+bool ModuleResources::LoadDefaultRedImage()
+{
+    redImage = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture, 5));
+    
+    if (App->tex->LoadRedImage(redImage, 1024, 1024))
+    {
+        redImage->file = "*Test redimage*";
+        redImage->exported_file = "*Test redimage*";
+        redImage->user_name = "*Test redimage*";
+        redImage->loaded = 1;        
+
+        return true;
+    }
+
+    return false;
 }
 
 bool ModuleResources::LoadDefaultBox()

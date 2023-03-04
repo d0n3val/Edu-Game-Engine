@@ -31,6 +31,8 @@ class AmbientLight;
 class DirLight;
 class PointLight;
 class SpotLight;
+class QuadLight;
+class SphereLight;
 class PerlinProperties;
 class Skybox;
 class SkyboxRollout;
@@ -67,6 +69,8 @@ private:
     void DrawDirLight(DirLight* light);
     void DrawPointLight(PointLight* light);
     void DrawSpotLight(SpotLight* light);
+    void DrawQuadLight(QuadLight* light);
+    void DrawSphereLight(SphereLight* light);
 	// TODO move editor code as a component method like component rigidbody
     void DrawParticleSystemComponent(ComponentParticleSystem* component);
 	void DrawBatchProperties(ComponentMeshRenderer* component);

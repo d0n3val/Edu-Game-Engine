@@ -33,6 +33,7 @@ public:
 	bool LoadCheckers(ResourceTexture* resource);
     bool LoadFallback(ResourceTexture* resource, const float3& color);
     bool LoadCube(ResourceTexture* resource, const char* files [], const char* path);
+    bool LoadRedImage(ResourceTexture* resource, uint widht, uint height);
 
 private:
 	bool Import(const void* buffer, uint size, uint header_size, void*& output_buffer, uint& output_size);
