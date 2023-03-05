@@ -39,9 +39,9 @@ private:
 
     float3 color     = float3::one;
     float3 position  = float3::zero;
-    float3 up        = float3::zero;
-    float3 right     = float3::zero;
-    float2 size      = float2::zero;
+    float3 up        = float3::unitY;
+    float3 right     = float3::unitX;
+    float2 size      = float2::one;
 
     float  intensity = 1.0f;
     bool  enabled    = true;

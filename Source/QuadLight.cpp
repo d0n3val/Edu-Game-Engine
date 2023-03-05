@@ -29,7 +29,7 @@ void QuadLight::Load(Config &config)
 	color     = config.GetFloat3("color", float3::one);
     intensity = config.GetFloat("intensity", 1.0f);
     enabled   = config.GetBool("Enabled", true);
-	up        = config.GetFloat3("up", float3::zero);
-	right     = config.GetFloat3("right", float3::zero);
-	size      = config.GetFloat2("size", float2::zero);
+	up        = config.GetFloat3("up", float3::unitY);
+	right     = config.GetFloat3("right", float3::unitX);
+	size      = config.GetFloat2("size", float2::one);
 }

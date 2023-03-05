@@ -836,10 +836,12 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
         const QuadLight* light = lightManager->GetQuadLight(i);
 
         float4x4 model = float4x4::identity;
+        model.SetCol3(0, light->GetRight()*light->GetSize().x);
+        model.SetCol3(1, light->GetUp()*light->GetSize().y);
+        model.SetCol3(2, light->GetRight().Cross(light->GetUp()));
         model.SetTranslatePart(light->GetPosition());
-        model.Transpose();
 
-        areaProgram->BindUniformFromName("model", model);
+        areaProgram->BindUniformFromName("model", model, true);
         areaProgram->BindUniformFromName("color", float4(light->GetColor()*light->GetIntensity(), 1.0));
 
         glBindVertexArray(plane->GetVAO());

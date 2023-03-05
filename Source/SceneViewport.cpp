@@ -576,6 +576,53 @@ void SceneViewport::DrawGuizmoProperties(SphereLight *sphere)
 
 void SceneViewport::DrawGuizmoProperties(QuadLight *quad)
 {
+    float4x4 model = float4x4::identity;
+    model.SetCol3(0, quad->GetRight()*quad->GetSize().x);
+    model.SetCol3(1, quad->GetUp()*quad->GetSize().y);
+    model.SetCol3(2, quad->GetRight().Cross(quad->GetUp()));
+    model.SetTranslatePart(quad->GetPosition());
+    model.Transpose();
+
+    ImGui::RadioButton("Translate", (int*)&guizmo_op, (int)ImGuizmo::TRANSLATE);
+    ImGui::SameLine();
+    ImGui::RadioButton("Rotate", (int*)&guizmo_op, ImGuizmo::ROTATE);
+    ImGui::SameLine();
+    ImGui::RadioButton("Scale", (int*)&guizmo_op, (int)ImGuizmo::SCALE);
+
+    float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+    ImGuizmo::DecomposeMatrixToComponents((float*)&model, matrixTranslation, matrixRotation, matrixScale);
+    if(ImGui::DragFloat3("Tr", matrixTranslation, 3))
+    {
+        quad->SetPosition(float3(matrixTranslation[0], matrixTranslation[1], matrixTranslation[2]));
+    }
+    if(ImGui::DragFloat3("Rt", matrixRotation, 3))
+    {
+        ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, (float*)&model);
+        float3 right = model.Row3(0).Normalized();
+        float3 up = model.Row3(1).Normalized();
+        
+        quad->SetRight(right);
+        quad->SetUp(up);        
+    }
+    if(ImGui::DragFloat3("Sc", matrixScale, 3))
+    {
+        quad->SetSize(float2(matrixScale[0], matrixScale[1]));
+    }
+
+    ImGui::PushID("snap");
+    ImGui::Checkbox("", &guizmo_useSnap);
+    ImGui::PopID();
+    ImGui::SameLine();
+
+    switch (guizmo_op)
+    {
+        case ImGuizmo::TRANSLATE:
+            ImGui::InputFloat3("Snap", &guizmo_snap.x);
+            break;
+        case ImGuizmo::ROTATE:
+            ImGui::InputFloat("Angle Snap", &guizmo_snap.x);
+            break;
+    }
 }
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera)
@@ -785,5 +832,36 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SphereLight* light)
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, QuadLight* light)
 {
+    float4x4 view = camera->GetOpenGLViewMatrix();
+    float4x4 proj = camera->GetOpenGLProjectionMatrix();
 
+    ImGuizmo::BeginFrame();
+    ImGuizmo::Enable(true);
+
+    float4x4 model = float4x4::identity;
+    model.SetCol3(0, light->GetRight()*light->GetSize().x);
+    model.SetCol3(1, light->GetUp()*light->GetSize().y);
+    model.SetCol3(2, light->GetRight().Cross(light->GetUp()));
+
+    model.SetTranslatePart(light->GetPosition());
+    model.Transpose();
+
+    float4x4 delta;
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
+    ImGuizmo::SetDrawlist();
+    ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
+
+    if (ImGuizmo::IsUsing() && !delta.IsIdentity())
+    {
+        float3 right = model.Row3(0);
+        float3 up = model.Row3(1);
+        float2 size(right.Length(), up.Length());
+        
+        light->SetRight(right/size.x);
+        light->SetUp(up/size.y);        
+        light->SetSize(size);
+        light->SetPosition(model.Row3(3));
+    }
 }
