@@ -95,18 +95,18 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
         ImGui::Text("Diffuse IBL");
         ImGui::SameLine(0, 127);
         ImGui::Text("Prefiltered IBL");
-        ImGui::Image((ImTextureID)environmentTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::Image((ImTextureID)size_t(environmentTex->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
         ImGui::SameLine();
-        ImGui::Image((ImTextureID)diffuseIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::Image((ImTextureID)size_t(diffuseIBLTex->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
         ImGui::SameLine();
-        ImGui::Image((ImTextureID)prefilteredIBLTex->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        ImGui::Image((ImTextureID)size_t(prefilteredIBLTex->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
         ImGui::SliderFloat("Roughness", &roughness, 0.0, 1.0f);
         ImGui::SliderFloat("Azimuthal", &azimuthal, 0.0f , 2.0f*math::pi);
         ImGui::SliderFloat("Polar", &polar, -0.5f*math::pi, 0.5f*math::pi);
         ImGui::Text("Environment BRDF");
         if (skybox->GetEnvironmentBRDF())
         {
-            ImGui::Image((ImTextureID)skybox->GetEnvironmentBRDF()->Id(), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+            ImGui::Image((ImTextureID)size_t(skybox->GetEnvironmentBRDF()->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
         }
     }
 

@@ -57,6 +57,7 @@ bool ModuleResources::Start(Config * config)
 
 	LoadDefaultSkybox();
     LoadDefaultSphere();
+	LoadDefaultPlane();
     LoadDefaultRedImage();
 
 	//LoadDefaultBox();
@@ -726,4 +727,11 @@ bool ModuleResources::LoadDefaultSphere()
 	sphere = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadSphere("DefaultSphere", 1.0f, 20, 20, UID(4))));
 
 	return sphere != nullptr;
+}
+
+bool ModuleResources::LoadDefaultPlane()
+{
+	plane = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadPlane("DefaultPlane", 1.0f, 1.0f, 1, 1, UID(5))));
+
+	return plane != nullptr;
 }

@@ -836,9 +836,9 @@ void Program::BindUniform(int location, const float3x3& value)
     glUniformMatrix3fv(location, 1, GL_TRUE, reinterpret_cast<const float*>(&value));
 }
 
-void Program::BindUniform(int location, const float4x4& value)
+void Program::BindUniform(int location, const float4x4& value, bool transpose /*= true*/)
 {
-    glUniformMatrix4fv(location, 1, GL_TRUE, reinterpret_cast<const float*>(&value));
+    glUniformMatrix4fv(location, 1, transpose ? GL_TRUE : GL_FALSE, reinterpret_cast<const float*>(&value));
 }
 
 void Program::BindUniform(int location, int count, int* value)
@@ -916,9 +916,9 @@ void Program::BindUniformFromName(const char* name, const float3x3& value)
     BindUniform(glGetUniformLocation(id, name), value);
 }
 
-void Program::BindUniformFromName(const char* name, const float4x4& value)
+void Program::BindUniformFromName(const char* name, const float4x4& value, bool transpose /*= true*/)
 {
-    BindUniform(glGetUniformLocation(id, name), value);
+    BindUniform(glGetUniformLocation(id, name), value, transpose);
 }
 
 void Program::BindUniformFromName(const char* name, int count, int* value)

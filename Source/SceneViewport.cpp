@@ -11,6 +11,7 @@
 #include "ModuleEditorCamera.h"
 #include "ModuleHints.h"
 #include "ModulePrograms.h"
+#include "ModuleResources.h"
 #include "ModuleLevelManager.h"
 #include "Postprocess.h"
 #include "DepthPrepass.h"
@@ -24,6 +25,9 @@
 
 #include "PointLight.h"
 #include "SpotLight.h"
+#include "SphereLight.h"
+#include "QuadLight.h"
+#include "LightManager.h"
 
 #include "ComponentCamera.h"
 #include "ComponentMeshRenderer.h"
@@ -111,13 +115,12 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 
         glStencilMask(0x01);
 
-        //glClear(/*GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT*/);
-
         glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         glStencilMask(0x00);
         glStencilFunc(GL_ALWAYS, 0, 0XFF);
 
         App->renderer->Draw(camera, culling, framebuffer, fb_width, fb_height);
+
         App->debug_draw->Draw(camera, framebuffer->Id(), fb_width, fb_height);
 
         App->renderer->GetPostprocess()->Execute(texture_color, App->renderer->GetGBufferExportPass()->getDepth(), framebuffers[FRAMEBUFFER_POSTPROCESS].framebuffer.get(), fb_width, fb_height);
@@ -128,8 +131,8 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
         }
 
         ShowTexture();
-
         DrawGuizmo(camera);
+
 
     }
     ImGui::EndChild();
@@ -552,6 +555,23 @@ void SceneViewport::DrawGuizmoProperties(SpotLight* spot)
 
 void SceneViewport::DrawGuizmoProperties(SphereLight *sphere)
 {
+    bool local = guizmo_mode == ImGuizmo::LOCAL && guizmo_op != ImGuizmo::SCALE;
+
+    guizmo_mode = ImGuizmo::WORLD;
+    guizmo_op = ImGuizmo::TRANSLATE;
+
+    float3 position = sphere->GetPosition();
+
+    if (ImGui::DragFloat3("Position", (float*)&position, 3))
+    {
+        sphere->SetPosition(position);
+    }
+
+    ImGui::PushID("snap");
+    ImGui::Checkbox("", &guizmo_useSnap);
+    ImGui::PopID();
+    ImGui::SameLine();
+    ImGui::InputFloat3("Snap", &guizmo_snap.x);
 }
 
 void SceneViewport::DrawGuizmoProperties(QuadLight *quad)
@@ -740,31 +760,30 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, SphereLight* light)
 {
+    float4x4 view = camera->GetOpenGLViewMatrix();
+    float4x4 proj = camera->GetOpenGLProjectionMatrix();
 
+    ImGuizmo::BeginFrame();
+    ImGuizmo::Enable(true);
+    
+    float4x4 model = float4x4::identity;
+    model.SetTranslatePart(light->GetPosition());
+    model.Transpose();
+
+    float4x4 delta;
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
+    ImGuizmo::SetDrawlist();
+    ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
+
+    if (ImGuizmo::IsUsing() && !delta.IsIdentity())
+    {
+        light->SetPosition(model.Row3(3));
+    }
 }
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, QuadLight* light)
 {
 
-}
-
-void SceneViewport::DrawGrid(ComponentCamera* camera)
-{
-    // bind matGeo and matVP
-    App->programs->UseProgram("grid", 0);
-
-    float4x4 proj = camera->GetProjectionMatrix();
-    float4x4 view = camera->GetViewMatrix();
-
-    float proportion   = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-    float4x4 transform = float4x4::Scale(proportion, proportion, proportion);
-
-    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("model"), 1, GL_TRUE, reinterpret_cast<const float*>(&transform));
-
-    grid_vao->Bind();
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-    App->programs->UnuseProgram();
 }

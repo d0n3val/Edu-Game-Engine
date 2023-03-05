@@ -73,6 +73,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<ShadowmapPass>        shadowmapPass;
     std::unique_ptr<CascadeShadowPass>    cascadeShadowPass;
     std::unique_ptr<Buffer>               cameraUBO;
+    std::unique_ptr<Program>              areaProgram;
 
 public:
 
@@ -133,6 +134,9 @@ private:
     float4x4            SetFrustum                  (float left, float right, float bottom, float top, float _near, float _far);
     float4x4            ComputePerspShadowMtx       (const float3& view_pos, const float3& view_dir, const float3& light_dir, const float3x3& light_view);
     void                UpdateCameraUBO             (ComponentCamera *camera);
+
+    void                DrawAreaLights              (ComponentCamera* camera, Framebuffer* frameBuffer);
+    bool                CreateAreaLightProgram      ();
 };
 
 #endif /* _RENDERER_H_ */

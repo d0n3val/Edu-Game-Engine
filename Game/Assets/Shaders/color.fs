@@ -1,3 +1,5 @@
+#version 460
+
 uniform vec4 color;
 
 out vec4 out_color;

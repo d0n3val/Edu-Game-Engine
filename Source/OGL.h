@@ -261,7 +261,7 @@ public:
     void     BindUniform(int location, const float4& value);
     void     BindUniform(int location, const float2x2& value);
     void     BindUniform(int location, const float3x3& value);
-    void     BindUniform(int location, const float4x4& value);
+    void     BindUniform(int location, const float4x4& value, bool transpose = true);
     void     BindUniform(int location, int count, int* value);
     void     BindUniform(int location, int count, float* value);
     void     BindUniform(int location, int count, const float2* value);
@@ -278,7 +278,7 @@ public:
     void     BindUniformFromName(const char* name, const float4& value);
     void     BindUniformFromName(const char* name, const float2x2& value);
     void     BindUniformFromName(const char* name, const float3x3& value);
-    void     BindUniformFromName(const char* name, const float4x4& value);
+    void     BindUniformFromName(const char* name, const float4x4& value, bool trasnpose = true);
     void     BindUniformFromName(const char* name, int count, int* value);
     void     BindUniformFromName(const char* name, int count, float* value);
     void     BindUniformFromName(const char* name, int count, const float2* value);

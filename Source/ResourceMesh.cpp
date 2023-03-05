@@ -1083,7 +1083,7 @@ UID ResourceMesh::LoadCube(const char* cube_name, float size)
 	return 0;
 }
 
-UID  ResourceMesh::LoadPlane(const char* plane_name, float width, float height, unsigned slices, unsigned stacks)
+UID  ResourceMesh::LoadPlane(const char* plane_name, float width, float height, unsigned slices, unsigned stacks, UID uid)
 {
     par_shapes_mesh* mesh = par_shapes_create_plane(slices, stacks);
 	par_shapes_translate(mesh, -0.5f, -0.5f, 0.0f);
@@ -1092,7 +1092,7 @@ UID  ResourceMesh::LoadPlane(const char* plane_name, float width, float height, 
 	{
         par_shapes_scale(mesh, width, height, 1.0f);
 
-        UID uid = Generate(plane_name, mesh);
+        uid = Generate(plane_name, mesh, uid);
 
 		par_shapes_free_mesh(mesh);
 
@@ -1199,12 +1199,8 @@ void ResourceMesh::Draw() const
         glUniform1i(App->programs->GetUniformLocation("morph"), 6);
     }
 
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, nullptr);
-
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    //glBindTexture(GL_TEXTURE_BUFFER, 0);
 }
 
 void ResourceMesh::GenerateTexCoord1()

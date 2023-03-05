@@ -39,8 +39,8 @@ public:
     void                DrawGuizmoProperties(GameObject* go);
     void                DrawGuizmoProperties(PointLight* point);
     void                DrawGuizmoProperties(SpotLight* spot);
-    void                DrawGuizmoProperties(SphereLight* spot);
-    void                DrawGuizmoProperties(QuadLight* spot);
+    void                DrawGuizmoProperties(SphereLight* sphere);
+    void                DrawGuizmoProperties(QuadLight* quad);
 
 
 private:
@@ -60,10 +60,11 @@ private:
     void    DrawGuizmo      (ComponentCamera* camera, AmbientLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, Skybox* skybox);
 
+
     void    PickSelection   (ComponentCamera* camera, int mouse_x, int mouse_y);
     void    DrawSelection   (ComponentCamera* camera, Framebuffer* framebuffer);
     void    ShowTexture     ();
-    void    DrawGrid        (ComponentCamera* camera);
+
 
 private:
 
@@ -108,5 +109,4 @@ private:
 };
 
 #endif /* _VIEWPORT_H_ */
-
 

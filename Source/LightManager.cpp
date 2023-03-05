@@ -58,7 +58,7 @@ void LightManager::LoadLights(const Config &config)
     for(uint i=0; i< count; ++i)
     {
         std::unique_ptr<SphereLight> sphere = std::make_unique<SphereLight>();
-        sphere->Load(config.GetArray("Spheres", 1));
+        sphere->Load(config.GetArray("Spheres", i));
 
         spheres.push_back(std::move(sphere));
     }

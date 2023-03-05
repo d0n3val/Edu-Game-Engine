@@ -36,6 +36,8 @@
 #include "Skybox.h"
 #include "LightManager.h"
 #include "DirLight.h"
+#include "SphereLight.h"
+#include "QuadLight.h"
 
 #include "Application.h"
 
@@ -219,13 +221,14 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     forward->executeTransparent(render_list, nullptr, width, height);
     frameBuffer->Unbind();
 
+    DrawAreaLights(camera, frameBuffer);
+
     // Skybox
     frameBuffer->Bind();
     App->level->GetSkyBox()->Render(camera->GetProjectionMatrix(), camera->GetViewMatrix());
     frameBuffer->Unbind();
 
     fogPass->execute(frameBuffer, width, height);
-
 }
 
 
@@ -318,7 +321,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const unsigned num_uv_macros  = sizeof(show_uv_macros)/sizeof(const char*);
     App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros);
     App->programs->Load("selection", "Assets/Shaders/selection.vs", "Assets/Shaders/selection.fs", nullptr, 0);
-    App->programs->Load("color", "Assets/Shaders/color.vs", "Assets/Shaders/color.fs", nullptr, 0);
+    //App->programs->Load("color", "Assets/Shaders/color.vs", "Assets/Shaders/color.fs", nullptr, 0);
     App->programs->Load("grid", "Assets/Shaders/gridVS.glsl", "Assets/Shaders/gridPS.glsl", nullptr, 0);
     App->programs->Load("showtexture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/fullscreenTextureFS.glsl", nullptr, 0);
     App->programs->Load("convert_texture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/convertMetallicTextureFS.glsl", nullptr, 0);
@@ -794,3 +797,87 @@ void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned 
     }
 }
 
+void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameBuffer)
+{
+    if(!CreateAreaLightProgram()) return ;
+
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Area Lights");
+    frameBuffer->Bind();
+
+    float4x4 view = camera->GetOpenGLViewMatrix();
+    float4x4 proj = camera->GetOpenGLProjectionMatrix();
+
+    const ResourceMesh *sphere = App->resources->GetDefaultSphere();
+    const ResourceMesh *plane = App->resources->GetDefaultPlane();
+
+    areaProgram->Use();
+    areaProgram->BindUniformFromName("view", view, false);
+    areaProgram->BindUniformFromName("proj", proj, false);
+
+    LightManager* lightManager = App->level->GetLightManager();
+
+    for (uint i = 0, count = lightManager->GetNumSphereLights(); i < count; ++i)
+    {
+        const SphereLight* light = lightManager->GetSphereLight(i);
+
+        float4x4 model = float4x4::UniformScale(light->GetRadius());
+        model.SetTranslatePart(light->GetPosition());
+
+        areaProgram->BindUniformFromName("model", model, true);
+        areaProgram->BindUniformFromName("color", float4(light->GetColor()*light->GetIntensity(), 1.0));
+
+        glBindVertexArray(sphere->GetVAO());
+        glDrawElements(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
+    }
+
+    for (uint i = 0, count = lightManager->GetNumQuadLights(); i < count; ++i)
+    {
+        const QuadLight* light = lightManager->GetQuadLight(i);
+
+        float4x4 model = float4x4::identity;
+        model.SetTranslatePart(light->GetPosition());
+        model.Transpose();
+
+        areaProgram->BindUniformFromName("model", model);
+        areaProgram->BindUniformFromName("color", float4(light->GetColor()*light->GetIntensity(), 1.0));
+
+        glBindVertexArray(plane->GetVAO());
+        glDrawElements(GL_TRIANGLES, plane->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
+    }
+
+    glPopDebugGroup();
+}
+
+bool ModuleRenderer::CreateAreaLightProgram()
+{
+	if(areaProgram) return true;
+
+	std::unique_ptr<Shader> vertex, fragment;
+
+    vertex.reset(Shader::CreateVSFromFile("assets/shaders/rigid.glsl", 0, 0));
+
+    bool ok = vertex->Compiled();
+
+	if (ok)
+	{
+		fragment.reset(Shader::CreateFSFromFile("assets/shaders/color.fs", 0, 0));
+
+		ok = fragment->Compiled();
+	}
+
+	if (ok)
+	{
+		areaProgram = std::make_unique<Program>(vertex.get(), fragment.get(), "AreaLightProgram");
+
+		ok = areaProgram->Linked();
+	}
+
+    if(!ok)
+    {
+        areaProgram.release();
+    }
+
+    return ok;
+}
