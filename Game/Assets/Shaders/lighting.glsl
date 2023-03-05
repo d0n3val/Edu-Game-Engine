@@ -34,6 +34,12 @@ struct SpotLight
     float intensity;
 };
 
+struct SphereLight
+{
+    vec4 position; // position+radius
+    vec4 color;    // rgb+light radius
+};
+
 readonly layout(std430, binding = DIRLIGHT_SSBO_BINDING) buffer DirLightBuffer
 {
     DirLight directional;
@@ -50,6 +56,13 @@ readonly layout(std430, binding = SPOTLIGHT_SSBO_BINDING) buffer SpotLights
     uint      num_spot;
     SpotLight spots[];
 };
+
+readonly layout(std430, binding = SPHERELIGHT_SSBO_BINDING) buffer SphereLights
+{
+    uint        num_sphere;
+    SphereLight spheres[];
+};
+
 
 float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
 {
@@ -98,6 +111,25 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
 
     return GGXShading(normal, view_dir, light_dir, light.color.rgb*intensity, diffuseColor, specularColor, roughness, att*cone);
 }
+
+vec3 Sphere(const vec3 pos, const vec3 normal, const vec3 view_dir, const SphereLight light, 
+            const vec3 diffuseColor, const vec3 specularColor, float roughness)
+{
+    // Compute closest point to sphere
+    float radius      = light.position.w;
+    vec3 reflect_dir  = normalize(reflect(-view_dir, normal));
+    vec3 light_dir    = light.position.xyz-pos;
+    vec3 centerToRay  = pos+reflect_dir*max(0.0, dot(light_dir, reflect_dir))-light.position.xyz;
+    vec3 closestPoint = light.position.xyz+(centerToRay)*min(radius/length(centerToRay), 1.0);
+
+    float distance    = length(closestPoint-pos);
+    light_dir         = (closestPoint-pos)/distance;
+    // epic falloff
+    float att         = Sq(max(1.0-Sq(Sq(distance/(light.color.a))), 0.0))/(Sq(distance)+1);
+
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att);
+}
+
 
 vec3 ShadingDirectional(in PBR pbr)
 {
@@ -177,12 +209,31 @@ vec3 ShadingSpot(in PBR pbr)
     return color;
 }
 
+vec3 ShadingSphere(in PBR pbr)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = Sq(1.0-pbr.smoothness); 
+
+    vec3 color = vec3(0.0);
+
+    float shadow = min(1.0, pbr.shadow+0.5);
+
+    for(uint i=0; i< num_sphere; ++i)
+    {
+        color += Sphere(pbr.position, pbr.normal, V, spheres[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+    }
+
+    return color;
+}
+
+
 vec4 Shading(in PBR pbr)
 {
     vec3 color = ShadingAmbient(pbr);
     color += ShadingDirectional(pbr);
     color += ShadingPoint(pbr);
     color += ShadingSpot(pbr);
+    //color += ShadingSphere(pbr);
 
     //return vec4(color, pbr.alpha);
     return vec4(pbr.specular, pbr.alpha);
@@ -190,9 +241,11 @@ vec4 Shading(in PBR pbr)
 
 vec4 ShadingNoPoint(in PBR pbr)
 {
-    vec3 color = ShadingAmbient(pbr);
+    vec3 color = vec3(0.0); //ShadingAmbient(pbr);
     color += ShadingDirectional(pbr);
     color += ShadingSpot(pbr);
+    //color += ShadingPoint(pbr);
+    color += ShadingSphere(pbr);
 
     return vec4(color, pbr.alpha);
     //return vec4(pbr.specular, pbr.alpha);

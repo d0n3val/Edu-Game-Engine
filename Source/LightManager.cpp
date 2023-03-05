@@ -208,7 +208,7 @@ void LightManager::UpdateGPUBuffers()
     if(uint(spots.size()) > spotBufferSize || !spotLightSSBO[frameCount])
     {
         spotBufferSize = uint(spots.size());
-        spotLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, spotBufferSize * sizeof(SpotLightData) + sizeof(int) * 4, nullptr, true);
+        spotLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, spotBufferSize * sizeof(SpotLightData) + sizeof(int) * 4, nullptr, true);
         spotLightData[frameCount] = reinterpret_cast<SpotLightSet*>(spotLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, spotBufferSize * sizeof(SpotLightData) + sizeof(int) * 4));
     }
 
@@ -239,7 +239,7 @@ void LightManager::UpdateGPUBuffers()
     if(uint(quads.size()) > quadBufferSize || !quadLightSSBO[frameCount])
     {
         quadBufferSize = uint(quads.size());
-        quadLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, quadBufferSize * sizeof(QuadLightData) + sizeof(int) * 4, nullptr, true);
+        quadLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, quadBufferSize * sizeof(QuadLightData) + sizeof(int) * 4, nullptr, true);
         quadLightData[frameCount] = reinterpret_cast<QuadLightSet*>(quadLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, quadBufferSize * sizeof(QuadLightData) + sizeof(int) * 4));
     }
 
@@ -267,7 +267,7 @@ void LightManager::UpdateGPUBuffers()
     if(uint(spheres.size()) > sphereBufferSize || !sphereLightSSBO[frameCount])
     {
         sphereBufferSize = uint(spheres.size());
-        sphereLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sphereBufferSize * sizeof(SphereLightData) + sizeof(int) * 4, nullptr, true);
+        sphereLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, sphereBufferSize * sizeof(SphereLightData) + sizeof(int) * 4, nullptr, true);
         sphereLightData[frameCount] = reinterpret_cast<SphereLightSet*>(sphereLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, sphereBufferSize * sizeof(SphereLightData) + sizeof(int) * 4));
     }
 
@@ -280,9 +280,8 @@ void LightManager::UpdateGPUBuffers()
     {
         if(light->GetEnabled())
         {
-            spherePtr->spheres[index].position  = light->GetPosition();
-            spherePtr->spheres[index].radius    = light->GetRadius();
-            spherePtr->spheres[index].colour    = float4(light->GetColor(), 0.0f);
+            spherePtr->spheres[index].position  = float4(light->GetPosition(), light->GetRadius());
+            spherePtr->spheres[index].colour    = float4(light->GetColor()*light->GetIntensity(), light->GetLightRadius());
 
             ++index;
         }

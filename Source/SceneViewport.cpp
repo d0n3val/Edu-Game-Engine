@@ -43,6 +43,13 @@
 
 #include "Leaks.h"
 
+#include <algorithm>
+
+
+#ifdef max 
+#undef max
+#endif 
+
 SceneViewport::SceneViewport()
 {        
     // first row ==> positions, second row ==> uv�s
@@ -565,6 +572,24 @@ void SceneViewport::DrawGuizmoProperties(SphereLight *sphere)
     if (ImGui::DragFloat3("Position", (float*)&position, 3))
     {
         sphere->SetPosition(position);
+    }
+
+    float radius = sphere->GetRadius();
+    if(ImGui::DragFloat("Radius", (float*)&radius, 0.01f, 0.0f, std::numeric_limits<float>::max()))
+    {
+        radius = std::max(radius, 0.0f);
+        sphere->SetRadius(radius);
+        if(radius > sphere->GetLightRadius())
+        {
+            sphere->SetLightRadius(radius);
+        }
+    }
+
+    radius = sphere->GetLightRadius();
+    if(ImGui::DragFloat("Light radius", (float*)&radius, 0.01f, 0.0f, std::numeric_limits<float>::max()))
+    {
+        radius = std::max(radius, 0.0f);
+        sphere->SetLightRadius(radius);
     }
 
     ImGui::PushID("snap");

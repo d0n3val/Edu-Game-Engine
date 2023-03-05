@@ -15,8 +15,7 @@ class LightManager
 {
     struct SphereLightData
     {
-        float3 position;
-        float  radius; 
+        float4 position;
         float4 colour;
     };
 
