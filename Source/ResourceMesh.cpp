@@ -993,7 +993,7 @@ UID ResourceMesh::LoadSphere(const char* sphere_name, float size, unsigned slice
 	return 0;
 }
 
-UID ResourceMesh::LoadCylinder(const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks)
+UID ResourceMesh::LoadCylinder(const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks, UID uid)
 {
     par_shapes_mesh* mesh = par_shapes_create_cylinder(int(slices), int(stacks));
     par_shapes_rotate(mesh, -float(PAR_PI*0.5), (float*)&float3::unitX);
@@ -1009,7 +1009,7 @@ UID ResourceMesh::LoadCylinder(const char* cylinder_name, float height, float ra
             mesh->tcoords[i*2]*=2.0f;
         }
 
-        UID uid = Generate(cylinder_name, mesh);
+        uid = Generate(cylinder_name, mesh, uid);
 
 		par_shapes_free_mesh(mesh);
 

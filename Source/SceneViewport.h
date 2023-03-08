@@ -13,6 +13,7 @@ class DirLight;
 class AmbientLight;
 class QuadLight;
 class SphereLight;
+class TubeLight;
 class Skybox;
 class Config;
 
@@ -41,6 +42,7 @@ public:
     void                DrawGuizmoProperties(SpotLight* spot);
     void                DrawGuizmoProperties(SphereLight* sphere);
     void                DrawGuizmoProperties(QuadLight* quad);
+    void                DrawGuizmoProperties(TubeLight* quad);
 
 
 private:
@@ -57,6 +59,7 @@ private:
     void    DrawGuizmo      (ComponentCamera* camera, DirLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, SphereLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, QuadLight* light);
+    void    DrawGuizmo      (ComponentCamera* camera, TubeLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, AmbientLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, Skybox* skybox);
 

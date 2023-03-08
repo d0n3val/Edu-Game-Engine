@@ -38,6 +38,7 @@
 #include "DirLight.h"
 #include "SphereLight.h"
 #include "QuadLight.h"
+#include "TubeLight.h"
 
 #include "Application.h"
 
@@ -809,6 +810,7 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
 
     const ResourceMesh *sphere = App->resources->GetDefaultSphere();
     const ResourceMesh *plane = App->resources->GetDefaultPlane();
+    const ResourceMesh *cylinder = App->resources->GetDefaultCylinder();
 
     areaProgram->Use();
     areaProgram->BindUniformFromName("view", view, false);
@@ -820,33 +822,59 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
     {
         const SphereLight* light = lightManager->GetSphereLight(i);
 
-        float4x4 model = float4x4::UniformScale(light->GetRadius());
-        model.SetTranslatePart(light->GetPosition());
+        if (light->GetEnabled())
+        {
+            float4x4 model = float4x4::UniformScale(light->GetRadius());
+            model.SetTranslatePart(light->GetPosition());
 
-        areaProgram->BindUniformFromName("model", model, true);
-        areaProgram->BindUniformFromName("color", float4(light->GetColor()*light->GetIntensity(), 1.0));
+            areaProgram->BindUniformFromName("model", model, true);
+            areaProgram->BindUniformFromName("color", float4(light->GetColor() * light->GetIntensity(), 1.0));
 
-        glBindVertexArray(sphere->GetVAO());
-        glDrawElements(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
-        glBindVertexArray(0);
+            glBindVertexArray(sphere->GetVAO());
+            glDrawElements(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
+            glBindVertexArray(0);
+        }
     }
 
     for (uint i = 0, count = lightManager->GetNumQuadLights(); i < count; ++i)
     {
         const QuadLight* light = lightManager->GetQuadLight(i);
 
-        float4x4 model = float4x4::identity;
-        model.SetCol3(0, light->GetRight()*light->GetSize().x);
-        model.SetCol3(1, light->GetUp()*light->GetSize().y);
-        model.SetCol3(2, light->GetRight().Cross(light->GetUp()));
-        model.SetTranslatePart(light->GetPosition());
+        if (light->GetEnabled())
+        {
+            float4x4 model = float4x4::identity;
+            model.SetCol3(0, light->GetRight() * light->GetSize().x);
+            model.SetCol3(1, light->GetUp() * light->GetSize().y);
+            model.SetCol3(2, light->GetRight().Cross(light->GetUp()));
+            model.SetTranslatePart(light->GetPosition());
 
-        areaProgram->BindUniformFromName("model", model, true);
-        areaProgram->BindUniformFromName("color", float4(light->GetColor()*light->GetIntensity(), 1.0));
+            areaProgram->BindUniformFromName("model", model, true);
+            areaProgram->BindUniformFromName("color", float4(light->GetColor() * light->GetIntensity(), 1.0));
 
-        glBindVertexArray(plane->GetVAO());
-        glDrawElements(GL_TRIANGLES, plane->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
-        glBindVertexArray(0);
+            glBindVertexArray(plane->GetVAO());
+            glDrawElements(GL_TRIANGLES, plane->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
+            glBindVertexArray(0);
+
+        }
+    }
+
+    for (uint i = 0, count = lightManager->GetNumTubeLights(); i < count; ++i)
+    {
+        const TubeLight* light = lightManager->GetTubeLight(i);
+
+        if (light->GetEnabled())
+        {
+            float4x4 model = float4x4::identity;
+            // \todo: compute model from two points and radius
+
+            areaProgram->BindUniformFromName("model", model, true);
+            areaProgram->BindUniformFromName("color", float4(light->GetColor() * light->GetIntensity(), 1.0));
+
+            glBindVertexArray(cylinder->GetVAO());
+            glDrawElements(GL_TRIANGLES, cylinder->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
+            glBindVertexArray(0);
+
+        }
     }
 
     glPopDebugGroup();

@@ -55,7 +55,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 	App->level->GetSkyBox()->BindIBL();
 
     glBindVertexArray(sphere->GetVAO());
-	glDrawElementsInstanced(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetNumPointLights());
+	glDrawElementsInstanced(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledPointLights());
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
@@ -68,7 +68,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 	useDebug();
     glPolygonMode(GL_FRONT, GL_LINE);
     glBindVertexArray(sphere->GetVAO());
-	glDrawElementsInstanced(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetNumPointLights());
+	glDrawElementsInstanced(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledPointLights()());
     glPolygonMode(GL_FRONT, GL_FILL);
 	glDisable(GL_BLEND);
 #endif 
@@ -170,7 +170,7 @@ bool DeferredResolveProxy::generateProgram()
 void DeferredResolveProxy::createDrawIdVBO()
 {
 	LightManager* lightManager = App->level->GetLightManager();
-	uint pointCount = lightManager->GetNumPointLights();
+	uint pointCount = lightManager->GetEnabledPointLights();
 
 	if(drawIdCount < pointCount)
 	{

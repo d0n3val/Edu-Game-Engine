@@ -10,6 +10,7 @@ class SpotLight;
 class Config;
 class QuadLight;
 class SphereLight;
+class TubeLight;
 
 class LightManager
 {
@@ -25,7 +26,14 @@ class LightManager
         float4 up;
         float4 right;
         float4 colour;
-        float2 size;
+        float4 size;
+    };
+
+    struct TubeLightData
+    {
+        float4 pos0; // position + radius
+        float4 pos1;
+        float4 colour; 
     };
 
     struct DirLightData
@@ -79,6 +87,15 @@ class LightManager
         QuadLightData quads[1];
     };
 
+    struct TubeLightSet
+    {
+        int count = 0;
+        int padding0;
+        int padding1;
+        int padding2;
+        TubeLightData tubes[1];
+    };
+
     struct SphereLightSet
     {
         int count = 0;
@@ -92,30 +109,40 @@ class LightManager
     typedef std::vector<std::unique_ptr<SpotLight> > SpotLightList;
     typedef std::vector<std::unique_ptr<QuadLight> > QuadLightList;
     typedef std::vector<std::unique_ptr<SphereLight> > SphereLightList;
+    typedef std::vector<std::unique_ptr<TubeLight> > TubeLightList;
 
     std::unique_ptr<DirLight>   directional;
     PointLightList              points;
     SpotLightList               spots;
     QuadLightList               quads;
     SphereLightList             spheres;
+    TubeLightList               tubes;
 
     std::unique_ptr<Buffer>     directionalSSBO[2];
     std::unique_ptr<Buffer>     spotLightSSBO[2];
     std::unique_ptr<Buffer>     pointLightSSBO[2];
     std::unique_ptr<Buffer>     sphereLightSSBO[2];
     std::unique_ptr<Buffer>     quadLightSSBO[2];
+    std::unique_ptr<Buffer>     tubeLightSSBO[2];
    
     DirLightData*               directionalData[2];
     PointLightSet*              pointLightData[2];
     SpotLightSet*               spotLightData[2];
     QuadLightSet*               quadLightData[2];
     SphereLightSet*             sphereLightData[2];
+    TubeLightSet*               tubeLightData[2];
 
     uint                        pointBufferSize = 0;
     uint                        spotBufferSize = 0;
     uint                        quadBufferSize = 0;
     uint                        sphereBufferSize = 0;
+    uint                        tubeBufferSize = 0;
     uint                        frameCount = 0;
+    uint                        enabledPointSize = 0;
+    uint                        enabledSpotSize = 0;
+    uint                        enabledQuadSize = 0;
+    uint                        enabledSphereSize = 0;
+    uint                        enabledTubeSize = 0;
 public:
 
     LightManager();
@@ -138,24 +165,35 @@ public:
     uint                AddPointLight           ();
     void                RemovePointLight        (uint index);
     uint                GetNumPointLights       () const { return uint(points.size()); }
+    uint                GetEnabledPointLights   () const {return enabledPointSize;}
     const PointLight*   GetPointLight           (uint index) const { return points[index].get(); }
     PointLight*         GetPointLight           (uint index) { return points[index].get(); }
 
     uint                AddSpotLight            ();
     void                RemoveSpotLight         (uint index);
     uint                GetNumSpotLights        () const { return uint(spots.size()); }
+    uint                GetEnabledSpotLights   () const {return enabledSpotSize;}
     const SpotLight*    GetSpotLight            (uint index) const { return spots[index].get(); }
     SpotLight*          GetSpotLight            (uint index) { return spots[index].get(); }
 
     uint                AddQuadLight            ();
     void                RemoveQuadLight         (uint index);
     uint                GetNumQuadLights        () const { return uint(quads.size()); }
+    uint                GetEnabledQuadLights   () const {return enabledQuadSize;}
     const QuadLight*    GetQuadLight            (uint index) const { return quads[index].get(); }
     QuadLight*          GetQuadLight            (uint index) { return quads[index].get(); }
 
     uint                AddSphereLight            ();
     void                RemoveSphereLight         (uint index);
     uint                GetNumSphereLights        () const { return uint(spheres.size()); }
+    uint                GetEnabledSphereLights   () const {return enabledSphereSize;}
     const SphereLight*  GetSphereLight            (uint index) const { return spheres[index].get(); }
     SphereLight*        GetSphereLight            (uint index) { return spheres[index].get(); }
+
+    uint                AddTubeLight            ();
+    void                RemoveTubeLight         (uint index);
+    uint                GetNumTubeLights        () const { return uint(tubes.size()); }
+    uint                GetEnabledTubeLights    () const {return enabledTubeSize;}
+    const TubeLight*    GetTubeLight            (uint index) const { return tubes[index].get(); }
+    TubeLight*          GetTubeLight            (uint index) { return tubes[index].get(); }
 };

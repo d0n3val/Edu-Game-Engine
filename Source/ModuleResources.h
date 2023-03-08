@@ -63,6 +63,7 @@ public:
 	const ResourceMesh*    GetDefaultBox() const { return cube; }
 	const ResourceMesh*    GetDefaultSphere() const { return sphere; }
 	const ResourceMesh*    GetDefaultPlane() const { return plane; }
+	const ResourceMesh*    GetDefaultCylinder() const { return cylinder; }
 
     const char* GetDirByType(Resource::Type type) const;
 
@@ -76,6 +77,8 @@ private:
 	bool LoadDefaultSphere();
     bool LoadDefaultRedImage();
 	bool LoadDefaultPlane();
+    bool LoadDefaultCylinder();
+
 
 private:
 	std::string asset_folder;

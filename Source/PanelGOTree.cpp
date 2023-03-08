@@ -110,6 +110,8 @@ void PanelGOTree::Draw()
         if(ImGui::MenuItem("New Sphere Light"))
             App->level->GetLightManager()->AddSphereLight();
 
+        if(ImGui::MenuItem("New Tube Light"))
+            App->level->GetLightManager()->AddTubeLight();
 
 		if (ImGui::MenuItem("Clear Scene", "!"))
 			App->level->GetRoot()->Remove();
@@ -378,6 +380,56 @@ void PanelGOTree::DrawLights()
                             }
 
                             App->level->GetLightManager()->RemoveSphereLight(i);
+                        }
+                        ImGui::EndPopup();
+                    }
+
+
+                    ImGui::TreePop();
+                }
+            }
+
+            ImGui::TreePop();
+        }
+
+        if(ImGui::TreeNodeEx("Tube", 0))
+        {
+            bool remove = false;
+            char number[16];
+
+            TubeLight* const* tube = std::get_if<TubeLight*>(&App->editor->GetSelection());
+
+            for(uint i=0, count = App->level->GetLightManager()->GetNumTubeLights(); !remove && i < count; ++i)
+            {
+                sprintf_s(number, 15, "[%d]", i);
+
+                flags = ImGuiTreeNodeFlags_Leaf;
+
+                if(tube && *tube == App->level->GetLightManager()->GetTubeLight(i))
+                {
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                }
+
+                if(ImGui::TreeNodeEx(number, flags))
+                {
+                    if (ImGui::IsItemClicked(0)) 
+                    {
+                        App->editor->SetSelected(App->level->GetLightManager()->GetTubeLight(i));
+                    }
+
+                    if (ImGui::IsItemClicked(1))
+                        ImGui::OpenPopup("TubeLight Options");
+
+                    if (ImGui::BeginPopup("TubeLight Options"))
+                    {
+                        if (true == (remove = ImGui::MenuItem("Remove")))
+                        {
+                            if(tube && *tube == App->level->GetLightManager()->GetTubeLight(i))
+                            {
+                                App->editor->ClearSelected();
+                            }
+
+                            App->level->GetLightManager()->RemoveTubeLight(i);
                         }
                         ImGui::EndPopup();
                     }

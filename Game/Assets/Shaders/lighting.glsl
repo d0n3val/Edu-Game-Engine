@@ -40,6 +40,15 @@ struct SphereLight
     vec4 color;    // rgb+light radius
 };
 
+struct QuadLight
+{
+    vec4 position;
+    vec4 up;
+    vec4 right;
+    vec4 color;
+    vec4 size;
+};
+
 readonly layout(std430, binding = DIRLIGHT_SSBO_BINDING) buffer DirLightBuffer
 {
     DirLight directional;
@@ -61,6 +70,12 @@ readonly layout(std430, binding = SPHERELIGHT_SSBO_BINDING) buffer SphereLights
 {
     uint        num_sphere;
     SphereLight spheres[];
+};
+
+readonly layout(std430, binding = QUADLIGHT_SSBO_BINDING) buffer QuadLights
+{
+    uint      num_quad;
+    QuadLight quads[];
 };
 
 
@@ -130,7 +145,20 @@ vec3 Sphere(const vec3 pos, const vec3 normal, const vec3 view_dir, const Sphere
     return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att);
 }
 
+vec3 Quad(const vec3 pos, const vec3 normal, const vec3 view_dir, const QuadLight light, 
+          const vec3 diffuseColor, const vec3 specularColor, float roughness)
+{
+    vec3 light_dir    = light.position.xyz-pos;
+    float distance    = length(light_dir);
+    light_dir         = light_dir/distance;
+    //float radius      = light.position.w;
+    //float intensity   = light.color.a;
 
+    // epic falloff
+    float att         = 1.0;
+
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att);
+}
 vec3 ShadingDirectional(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
@@ -226,6 +254,23 @@ vec3 ShadingSphere(in PBR pbr)
     return color;
 }
 
+vec3 ShadingQuad(in PBR pbr)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = Sq(1.0-pbr.smoothness); 
+
+    vec3 color = vec3(0.0);
+
+    float shadow = min(1.0, pbr.shadow+0.5);
+
+    for(uint i=0; i< num_quad; ++i)
+    {
+        color += Quad(pbr.position, pbr.normal, V, quads[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+    }
+
+    return color;
+}
+
 
 vec4 Shading(in PBR pbr)
 {
@@ -233,7 +278,8 @@ vec4 Shading(in PBR pbr)
     color += ShadingDirectional(pbr);
     color += ShadingPoint(pbr);
     color += ShadingSpot(pbr);
-    //color += ShadingSphere(pbr);
+    color += ShadingSphere(pbr);
+    color += ShadingQuad(pbr);
 
     //return vec4(color, pbr.alpha);
     return vec4(pbr.specular, pbr.alpha);
@@ -244,8 +290,8 @@ vec4 ShadingNoPoint(in PBR pbr)
     vec3 color = vec3(0.0); //ShadingAmbient(pbr);
     color += ShadingDirectional(pbr);
     color += ShadingSpot(pbr);
-    //color += ShadingPoint(pbr);
     color += ShadingSphere(pbr);
+    color += ShadingQuad(pbr);
 
     return vec4(color, pbr.alpha);
     //return vec4(pbr.specular, pbr.alpha);

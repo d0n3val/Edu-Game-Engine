@@ -50,6 +50,7 @@
 #include "SpotLight.h"
 #include "QuadLight.h"
 #include "SphereLight.h"
+#include "TubeLight.h"
 
 #include "OpenGL.h"
 
@@ -92,6 +93,7 @@ void PanelProperties::Draw()
         [this](SpotLight* light)    { DrawSpotLight(light);    },
         [this](QuadLight* light)    { DrawQuadLight(light);    },
         [this](SphereLight* light)  { DrawSphereLight(light);    },
+        [this](TubeLight* light) { DrawTubeLight(light);    },
         [this](Skybox* sky)         { skybox->DrawProperties(sky);    }
         }, App->editor->GetSelection());
 
@@ -294,6 +296,45 @@ void PanelProperties::DrawSphereLight(SphereLight *light)
         App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
 
         ImGui::Separator();
+
+        float radius = light->GetRadius();
+        if(ImGui::InputFloat("radius", &radius, 0.01f, 0.1f, "%.9f"))
+        {
+            light->SetRadius(radius);
+        }
+
+        bool enabled = light->GetEnabled();
+        if(ImGui::Checkbox("Enabled", &enabled))
+        {
+            light->SetEnabled(enabled);
+        }
+    }
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawTubeLight(TubeLight *light)
+{
+    if (ImGui::CollapsingHeader("Tube light", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        float3 color = light->GetColor();
+        if(ImGui::ColorEdit3("color", (float*)&color))
+        {
+            light->SetColor(color);
+        }
+
+        float intensity = light->GetIntensity();
+        if(ImGui::SliderFloat("intensity", &intensity, 0.0f, 100.0f))
+        {
+            light->SetIntensity(intensity);
+        }
+
+        ImGui::Separator();
+
+        App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
+
+        ImGui::Separator();
+
+        // Position and rotation ??? 
 
         float radius = light->GetRadius();
         if(ImGui::InputFloat("radius", &radius, 0.01f, 0.1f, "%.9f"))

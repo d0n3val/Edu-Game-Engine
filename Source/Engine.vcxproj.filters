@@ -754,6 +754,9 @@
     <ClInclude Include="QuadLight.h">
       <Filter>Lights</Filter>
     </ClInclude>
+    <ClInclude Include="TubeLight.h">
+      <Filter>Lights</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1360,6 +1363,9 @@
       <Filter>Lights</Filter>
     </ClCompile>
     <ClCompile Include="QuadLight.cpp">
+      <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="TubeLight.cpp">
       <Filter>Lights</Filter>
     </ClCompile>
   </ItemGroup>

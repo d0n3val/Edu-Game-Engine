@@ -422,6 +422,7 @@
     <ClInclude Include="PhysVehicle3D.h" />
     <ClInclude Include="tinyspline\include\tinyspline.h" />
     <ClInclude Include="tinyspline\include\tinysplinecpp.h" />
+    <ClInclude Include="TubeLight.h" />
     <ClInclude Include="Viewport.h" />
   </ItemGroup>
   <ItemGroup>
@@ -626,6 +627,7 @@
     <ClCompile Include="PhysVehicle3D.cpp" />
     <ClCompile Include="tinyspline\include\tinyspline.c" />
     <ClCompile Include="tinyspline\include\tinysplinecpp.cpp" />
+    <ClCompile Include="TubeLight.cpp" />
     <ClCompile Include="Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -5,6 +5,7 @@
 #include "SpotLight.h"
 #include "QuadLight.h"
 #include "SphereLight.h"
+#include "TubeLight.h"
 
 #include "Config.h"
 
@@ -62,6 +63,15 @@ void LightManager::LoadLights(const Config &config)
 
         spheres.push_back(std::move(sphere));
     }
+
+    count = config.GetArrayCount("Tubes");
+    for(uint i=0; i< count; ++i)
+    {
+        std::unique_ptr<TubeLight> tube = std::make_unique<TubeLight>();
+        tube->Load(config.GetArray("Tubes", i));
+
+        tubes.push_back(std::move(tube));
+    }
 }
 
 void LightManager::SaveLights(Config& config) const
@@ -106,6 +116,16 @@ void LightManager::SaveLights(Config& config) const
         sphere->Save(sphereConfig);
 
         config.AddArrayEntry(sphereConfig);
+    }
+
+    config.AddArray("Tubes");
+
+    for(const std::unique_ptr<TubeLight>& tube : tubes)
+    {
+        Config tubeConfig;
+        tube->Save(tubeConfig);
+
+        config.AddArrayEntry(tubeConfig);
     }
 }
 
@@ -161,6 +181,20 @@ void LightManager::RemoveSphereLight(uint index)
     spheres.erase(spheres.begin()+index);
 }
 
+uint LightManager::AddTubeLight()
+{
+    uint index = uint(tubes.size());
+    tubes.push_back(std::make_unique<TubeLight>());
+
+    return index;
+
+}
+
+void LightManager::RemoveTubeLight(uint index)
+{
+    tubes.erase(tubes.begin()+index);
+}
+
 void LightManager::UpdateGPUBuffers()
 {
     static bool needsUpdate = true;
@@ -190,20 +224,20 @@ void LightManager::UpdateGPUBuffers()
     PointLightSet* pointPtr = pointLightData[frameCount]; 
 
     // point lights
-    uint index = 0;
+    enabledPointSize = 0;
 
     for(const std::unique_ptr<PointLight>& light : points)
     {
         if(light->GetEnabled())
         {
-            pointPtr->points[index].position = light->GetPosition();
-            pointPtr->points[index].radius   = light->GetRadius();
-            pointPtr->points[index].color    = float4(light->GetColor(), light->GetIntensity());
+            pointPtr->points[enabledPointSize].position = light->GetPosition();
+            pointPtr->points[enabledPointSize].radius   = light->GetRadius();
+            pointPtr->points[enabledPointSize].color    = float4(light->GetColor(), light->GetIntensity());
 
-            ++index;
+            ++enabledPointSize;
         }
     }
-    pointPtr->count = index;
+    pointPtr->count = enabledPointSize;
 
     if(uint(spots.size()) > spotBufferSize || !spotLightSSBO[frameCount])
     {
@@ -215,25 +249,25 @@ void LightManager::UpdateGPUBuffers()
     SpotLightSet* spotPtr = spotLightData[frameCount]; 
 
     // spot lights
-    index = 0;
+    enabledSpotSize = 0;
 
     for(const std::unique_ptr<SpotLight>& light : spots)
     {
         if(light->GetEnabled())
         {
-            spotPtr->spots[index].position    = float4(light->GetPosition(), 0.0);
-            spotPtr->spots[index].direction   = float4(light->GetDirection(), 0.0f);
-            spotPtr->spots[index].color       = float4(light->GetColor(), 0.0f);
-            spotPtr->spots[index].distance    = light->GetDistance();
-            spotPtr->spots[index].inner       = cosf(light->GetInnerCutoff());
-            spotPtr->spots[index].outer       = cosf(light->GetOutterCutoff());
-            spotPtr->spots[index].intensity   = light->GetIntensity();
+            spotPtr->spots[enabledSpotSize].position    = float4(light->GetPosition(), 0.0);
+            spotPtr->spots[enabledSpotSize].direction   = float4(light->GetDirection(), 0.0f);
+            spotPtr->spots[enabledSpotSize].color       = float4(light->GetColor(), 0.0f);
+            spotPtr->spots[enabledSpotSize].distance    = light->GetDistance();
+            spotPtr->spots[enabledSpotSize].inner       = cosf(light->GetInnerCutoff());
+            spotPtr->spots[enabledSpotSize].outer       = cosf(light->GetOutterCutoff());
+            spotPtr->spots[enabledSpotSize].intensity   = light->GetIntensity();
 
-            ++index;
+            ++enabledSpotSize;
         }
     }
 
-    spotPtr->count = index;
+    spotPtr->count = enabledSpotSize;
 
 
     if(uint(quads.size()) > quadBufferSize || !quadLightSSBO[frameCount])
@@ -246,23 +280,23 @@ void LightManager::UpdateGPUBuffers()
     QuadLightSet* quadPtr = quadLightData[frameCount]; 
 
     // quad lights
-    index = 0;
+    enabledQuadSize = 0;
 
     for(const std::unique_ptr<QuadLight>& light : quads)
     {
         if(light->GetEnabled())
         {
-            quadPtr->quads[index].position      = float4(light->GetPosition(), 0.0);
-            quadPtr->quads[index].up            = float4(light->GetUp(), 0.0f);
-            quadPtr->quads[index].right         = float4(light->GetRight(), 0.0f);
-            quadPtr->quads[index].colour        = float4(light->GetColor(), 0.0f);
-            quadPtr->quads[index].size          = light->GetSize();
+            quadPtr->quads[enabledQuadSize].position      = float4(light->GetPosition(), 0.0);
+            quadPtr->quads[enabledQuadSize].up            = float4(light->GetUp(), 0.0f);
+            quadPtr->quads[enabledQuadSize].right         = float4(light->GetRight(), 0.0f);
+            quadPtr->quads[enabledQuadSize].colour        = float4(light->GetColor(), 0.0f);
+            quadPtr->quads[enabledQuadSize].size          = float4(light->GetSize().x, light->GetSize().y, 0.0f, 0.0f);
 
-            ++index;
+            ++enabledQuadSize;
         }
     }
 
-    quadPtr->count = index;
+    quadPtr->count = enabledQuadSize;
 
     if(uint(spheres.size()) > sphereBufferSize || !sphereLightSSBO[frameCount])
     {
@@ -274,21 +308,46 @@ void LightManager::UpdateGPUBuffers()
     SphereLightSet* spherePtr = sphereLightData[frameCount]; 
 
     // sphere lights
-    index = 0;
+    enabledSphereSize = 0;
 
     for(const std::unique_ptr<SphereLight>& light : spheres)
     {
         if(light->GetEnabled())
         {
-            spherePtr->spheres[index].position  = float4(light->GetPosition(), light->GetRadius());
-            spherePtr->spheres[index].colour    = float4(light->GetColor()*light->GetIntensity(), light->GetLightRadius());
+            spherePtr->spheres[enabledSphereSize].position  = float4(light->GetPosition(), light->GetRadius());
+            spherePtr->spheres[enabledSphereSize].colour    = float4(light->GetColor()*light->GetIntensity(), light->GetLightRadius());
 
-            ++index;
+            ++enabledSphereSize;
         }
     }
 
-    spherePtr->count = index;
+    spherePtr->count = enabledSphereSize;
 
+    if(uint(tubes.size()) > tubeBufferSize || !tubeLightSSBO[frameCount])
+    {
+        tubeBufferSize = uint(tubes.size());
+        tubeLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, tubeBufferSize * sizeof(tubeLightData) + sizeof(int) * 4, nullptr, true);
+        tubeLightData[frameCount] = reinterpret_cast<TubeLightSet*>(tubeLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, tubeBufferSize * sizeof(tubeLightData) + sizeof(int) * 4));
+    }
+
+    TubeLightSet* tubePtr = tubeLightData[frameCount]; 
+
+    // tube lights
+    enabledTubeSize = 0;
+
+    for(const std::unique_ptr<TubeLight>& light : tubes)
+    {
+        if(light->GetEnabled())
+        {
+            tubePtr->tubes[enabledTubeSize].pos0   = float4(light->GetPosition0(), light->GetRadius());
+            tubePtr->tubes[enabledTubeSize].pos1   = float4(light->GetPosition1(), 1.0);
+            tubePtr->tubes[enabledTubeSize].colour = float4(light->GetColor()*light->GetIntensity(), 1.0);
+
+            ++enabledTubeSize;
+        }
+    }
+
+    tubePtr->count = enabledTubeSize;
 }
 
 void LightManager::Bind()
@@ -298,4 +357,5 @@ void LightManager::Bind()
     spotLightSSBO[frameCount]->BindToPoint(SPOTLIGHT_SSBO_BINDING);
     quadLightSSBO[frameCount]->BindToPoint(QUADLIGHT_SSBO_BINDING);
     sphereLightSSBO[frameCount]->BindToPoint(SPHERELIGHT_SSBO_BINDING);
+    tubeLightSSBO[frameCount]->BindToPoint(SPHERELIGHT_SSBO_BINDING);
 }
