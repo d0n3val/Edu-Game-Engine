@@ -649,34 +649,22 @@ void SceneViewport::DrawGuizmoProperties(QuadLight *quad)
 
 void SceneViewport::DrawGuizmoProperties(TubeLight *tube)
 {
-    float4x4 model = float4x4::identity;
-    model.Transpose();
 
     ImGui::RadioButton("Translate", (int*)&guizmo_op, (int)ImGuizmo::TRANSLATE);
     ImGui::SameLine();
     ImGui::RadioButton("Rotate", (int*)&guizmo_op, ImGuizmo::ROTATE);
-    ImGui::SameLine();
-    ImGui::RadioButton("Scale", (int*)&guizmo_op, (int)ImGuizmo::SCALE);
 
-    float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-    ImGuizmo::DecomposeMatrixToComponents((float*)&model, matrixTranslation, matrixRotation, matrixScale);
-    /*if (ImGui::DragFloat3("Tr", matrixTranslation, 3))
+    float3 translation = tube->GetPosition();
+    if (ImGui::DragFloat3("Tr", &translation[0], 0.01f))
     {
-        quad->SetPosition(float3(matrixTranslation[0], matrixTranslation[1], matrixTranslation[2]));
+        tube->SetPosition(translation); 
     }
-    if(ImGui::DragFloat3("Rt", matrixRotation, 3))
+    
+    float3 euler = QuatToEuler(tube->GetRotation());
+    if (ImGui::SliderAngle3("Rt", &euler[0]))
     {
-        ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, (float*)&model);
-        float3 right = model.Row3(0).Normalized();
-        float3 up = model.Row3(1).Normalized();
-        
-        quad->SetRight(right);
-        quad->SetUp(up);        
+        tube->SetRotation(QuatFromEuler(euler));
     }
-    if(ImGui::DragFloat3("Sc", matrixScale, 3))
-    {
-        quad->SetSize(float2(matrixScale[0], matrixScale[1]));
-    }*/
 
     ImGui::PushID("snap");
     ImGui::Checkbox("", &guizmo_useSnap);
@@ -945,6 +933,8 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, TubeLight* light)
     ImGuizmo::Enable(true);
 
     float4x4 model = float4x4::identity;
+    model.SetRotatePart(light->GetRotation());
+    model.SetTranslatePart(light->GetPosition());
     model.Transpose();
 
     float4x4 delta;
@@ -956,13 +946,9 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, TubeLight* light)
 
     if (ImGuizmo::IsUsing() && !delta.IsIdentity())
     {
-        float3 right = model.Row3(0);
-        float3 up = model.Row3(1);
-        float2 size(right.Length(), up.Length());
+        model.Transpose();
 
-        /*light->SetRight(right / size.x);
-        light->SetUp(up / size.y);
-        light->SetSize(size);
-        light->SetPosition(model.Row3(3));*/
+        light->SetPosition(model.Col3(3));
+        light->SetRotation(Quat(model));
     }
 }

@@ -858,6 +858,7 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
         }
     }
 
+    glDisable(GL_CULL_FACE);
     for (uint i = 0, count = lightManager->GetNumTubeLights(); i < count; ++i)
     {
         const TubeLight* light = lightManager->GetTubeLight(i);
@@ -865,6 +866,10 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
         if (light->GetEnabled())
         {
             float4x4 model = float4x4::identity;
+            model.SetRotatePart(light->GetRotation());
+            model.SetTranslatePart(light->GetPosition());
+            model.ScaleCol(0, light->GetRadius());
+            model.ScaleCol(2, light->GetRadius());
             // \todo: compute model from two points and radius
 
             areaProgram->BindUniformFromName("model", model, true);
@@ -876,6 +881,7 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
 
         }
     }
+    glEnable(GL_CULL_FACE);
 
     glPopDebugGroup();
 }
