@@ -224,7 +224,12 @@ vec3 Tube(const vec3 pos, const vec3 normal, const vec3 view_dir, const TubeLigh
     vec3 closest     = ClosestToLine(pos, reflect_dir, light.p0.xyz, light.p1.xyz);
     vec3 specular    = SphereSpec(pos, normal, view_dir, closest, light.p0.w, light.color.a, light.color.rgb, specularColor, roughness);
 
-    vec3 light_to_pos = (light.p0.xyz+light.p1.xyz)*0.5-pos;
+    //vec3 light_to_pos = (light.p0.xyz+light.p1.xyz)*0.5-pos;
+
+    vec3 p0 = light.p0.xyz-pos;
+    vec3 p1 = light.p1.xyz-pos;
+    vec3 light_to_pos = ClosestToLine(pos, normalize(p0+p1), light.p0.xyz, light.p1.xyz)-pos;
+
     vec3 light_dir   = normalize(light_to_pos);
     float distance   = length(light_to_pos);
     float att        = Sq(max(1.0-Sq(Sq(distance/light.color.a)), 0.0))/(Sq(distance)+1);
