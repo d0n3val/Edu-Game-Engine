@@ -342,6 +342,13 @@ void PanelProperties::DrawTubeLight(TubeLight *light)
             light->SetRadius(radius);
         }
 
+        radius = light->GetAttRadius();
+        if(ImGui::InputFloat("attenuation radius", &radius, 0.01f, 0.1f, "%.9f"))
+        {
+            light->SetAttRadius(radius);
+        }
+
+
         bool enabled = light->GetEnabled();
         if(ImGui::Checkbox("Enabled", &enabled))
         {

@@ -6,7 +6,7 @@
 
 inline float3 QuatToEuler(const Quat& q)
 {
-    float3 res;
+    float3 res; 
 
     // roll 
     res.z = atan2(2.0f * (q.w * q.z + q.x * q.y), 1.0f - 2.0f * (q.z*q.z+q.x*q.x) );

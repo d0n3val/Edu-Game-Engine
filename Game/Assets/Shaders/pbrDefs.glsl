@@ -45,6 +45,28 @@ float SMITHVSF(float NdotL, float NdotV, float roughness)
     return 0.5/mix(2.0*NdotL*NdotV, NdotL+NdotV, roughness);
 }
 
+vec3 GGXShadingSpec(const vec3 normal, const vec3 view_dir, const vec3 light_dir, 
+                    const vec3 light_color, const vec3 specularColor, float roughness, 
+                    float att)
+{
+    float dotNL      = max(dot(normal, light_dir), 0.001);
+    float dotNV      = max(dot(normal, view_dir), 0.001);
+
+    vec3 half_dir    = normalize(view_dir+light_dir);
+    vec3 fresnel     = GetFresnel(light_dir, half_dir, specularColor);
+    float ndf        = GGXNDF(roughness, max(0.001, dot(half_dir, normal)));
+    float vsf        = SMITHVSF(dotNL, dotNV, roughness);
+
+    return fresnel*ndf*vsf*light_color*dotNL*att;
+}
+
+vec3 Lambert(const vec3 normal, const vec3 light_dir, const vec3 light_color, const vec3 diffuseColor, const vec3 specularColor, float att)
+{
+    float dotNL = max(dot(normal, light_dir), 0.001);
+
+    return diffuseColor*(1-specularColor)*light_color*dotNL*att;
+}
+
 vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, const vec3 light_color, 
                 const vec3 diffuseColor, const vec3 specularColor, float roughness, float att)
 {
@@ -58,7 +80,5 @@ vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, co
 
     return (diffuseColor*(1-specularColor)+(fresnel*ndf*vsf))*light_color*dotNL*att;
 }
-
-
 
 #endif /* _PBR_DEFS_GLSL_ */

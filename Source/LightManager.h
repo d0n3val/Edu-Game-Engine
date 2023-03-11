@@ -33,7 +33,7 @@ class LightManager
     {
         float4 pos0; // position + radius
         float4 pos1;
-        float4 colour; 
+        float4 colour; // color + attenuation radius
     };
 
     struct DirLightData

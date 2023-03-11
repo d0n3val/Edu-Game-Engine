@@ -326,8 +326,8 @@ void LightManager::UpdateGPUBuffers()
     if(uint(tubes.size()) > tubeBufferSize || !tubeLightSSBO[frameCount])
     {
         tubeBufferSize = uint(tubes.size());
-        tubeLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, tubeBufferSize * sizeof(tubeLightData) + sizeof(int) * 4, nullptr, true);
-        tubeLightData[frameCount] = reinterpret_cast<TubeLightSet*>(tubeLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, tubeBufferSize * sizeof(tubeLightData) + sizeof(int) * 4));
+        tubeLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, tubeBufferSize * sizeof(TubeLightData) + sizeof(int) * 4, nullptr, true);
+        tubeLightData[frameCount] = reinterpret_cast<TubeLightSet*>(tubeLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, tubeBufferSize * sizeof(TubeLightData) + sizeof(int) * 4));
     }
 
     TubeLightSet* tubePtr = tubeLightData[frameCount]; 
@@ -339,9 +339,9 @@ void LightManager::UpdateGPUBuffers()
     {
         if(light->GetEnabled())
         {
-            tubePtr->tubes[enabledTubeSize].pos0   = float4(light->GetPosition0(), light->GetRadius());
-            tubePtr->tubes[enabledTubeSize].pos1   = float4(light->GetPosition1(), 1.0);
-            tubePtr->tubes[enabledTubeSize].colour = float4(light->GetColor()*light->GetIntensity(), 1.0);
+            tubePtr->tubes[enabledTubeSize].pos0 = float4(light->GetPosition0(), light->GetRadius());
+            tubePtr->tubes[enabledTubeSize].pos1 = float4(light->GetPosition1(), 1.0);
+            tubePtr->tubes[enabledTubeSize].colour = float4(light->GetColor()*light->GetIntensity(), light->GetAttRadius());
 
             ++enabledTubeSize;
         }
@@ -357,5 +357,5 @@ void LightManager::Bind()
     spotLightSSBO[frameCount]->BindToPoint(SPOTLIGHT_SSBO_BINDING);
     quadLightSSBO[frameCount]->BindToPoint(QUADLIGHT_SSBO_BINDING);
     sphereLightSSBO[frameCount]->BindToPoint(SPHERELIGHT_SSBO_BINDING);
-    tubeLightSSBO[frameCount]->BindToPoint(SPHERELIGHT_SSBO_BINDING);
+    tubeLightSSBO[frameCount]->BindToPoint(TUBELIGHT_SSBO_BINDING);
 }

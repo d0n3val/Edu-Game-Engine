@@ -11,6 +11,7 @@
 #include "Skybox.h"
 #include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"
+#include "LightManager.h"
 #include "OGL.h"
 #include "OpenGL.h"
 
@@ -33,6 +34,7 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
 
     bindShadows();
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->level->GetLightManager()->Bind();
     target->Bind();
     glViewport(0, 0, width, height);
 

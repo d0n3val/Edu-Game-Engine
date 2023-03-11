@@ -49,6 +49,13 @@ struct QuadLight
     vec4 size;
 };
 
+struct TubeLight
+{
+    vec4 p0; // pos + radius
+    vec4 p1;
+    vec4 color;
+};
+
 readonly layout(std430, binding = DIRLIGHT_SSBO_BINDING) buffer DirLightBuffer
 {
     DirLight directional;
@@ -78,6 +85,16 @@ readonly layout(std430, binding = QUADLIGHT_SSBO_BINDING) buffer QuadLights
     QuadLight quads[];
 };
 
+readonly layout(std430, binding = TUBELIGHT_SSBO_BINDING) buffer TubeLights
+{
+    uint num_tube;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+    TubeLight tubes[];
+};
+
+
 
 float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
 {
@@ -93,8 +110,7 @@ vec3 Directional(const vec3 normal, const vec3 view_dir, const DirLight light, c
 }
 
 vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLight light, 
-           const vec3 diffuseColor, const vec3 specularColor, float roughness)
-{
+           const vec3 diffuseColor, const vec3 specularColor, float roughness) {
     vec3 light_dir    = light.position.xyz-pos;
     float distance    = length(light_dir);
     light_dir         = light_dir/distance;
@@ -127,22 +143,49 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
     return GGXShading(normal, view_dir, light_dir, light.color.rgb*intensity, diffuseColor, specularColor, roughness, att*cone);
 }
 
-vec3 Sphere(const vec3 pos, const vec3 normal, const vec3 view_dir, const SphereLight light, 
-            const vec3 diffuseColor, const vec3 specularColor, float roughness)
+vec3 SphereSpec(const vec3 pos, const vec3 normal, const vec3 view_dir, const vec3 light_pos, float sphere_radius, 
+                float attenuation_radius, const vec3 light_color, const vec3 specularColor, float roughness)
 {
-    // Compute closest point to sphere
-    float radius      = light.position.w;
     vec3 reflect_dir  = normalize(reflect(-view_dir, normal));
-    vec3 light_dir    = light.position.xyz-pos;
-    vec3 centerToRay  = pos+reflect_dir*max(0.0, dot(light_dir, reflect_dir))-light.position.xyz;
-    vec3 closestPoint = light.position.xyz+(centerToRay)*min(radius/length(centerToRay), 1.0);
+    vec3 light_dir    = light_pos-pos;
+    vec3 centerToRay  = pos+reflect_dir*max(0.0, dot(light_dir, reflect_dir))-light_pos;
+    vec3 closestPoint = light_pos+(centerToRay)*min(sphere_radius/length(centerToRay), 1.0);
 
     float distance    = length(closestPoint-pos);
     light_dir         = (closestPoint-pos)/distance;
     // epic falloff
-    float att         = Sq(max(1.0-Sq(Sq(distance/(light.color.a))), 0.0))/(Sq(distance)+1);
+    float att         = Sq(max(1.0-Sq(Sq(distance/attenuation_radius)), 0.0))/(Sq(distance)+1);
 
-    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att);
+    return GGXShadingSpec(normal, view_dir, light_dir, light_color, specularColor, roughness, att);
+}
+
+vec3 Sphere(const vec3 pos, const vec3 normal, const vec3 view_dir, const vec3 light_pos, float sphere_radius, 
+            float attenuation_radius, const vec3 light_color, const vec3 diffuseColor, const vec3 specularColor, float roughness)
+{
+    vec3 reflect_dir  = normalize(reflect(-view_dir, normal));
+    vec3 light_dir    = light_pos-pos;
+    vec3 centerToRay  = pos+reflect_dir*max(0.0, dot(light_dir, reflect_dir))-light_pos;
+    vec3 closestPoint = light_pos+(centerToRay)*min(sphere_radius/length(centerToRay), 1.0);
+
+    float distance    = length(closestPoint-pos);
+    light_dir         = (closestPoint-pos)/distance;
+    // epic falloff
+    float att         = Sq(max(1.0-Sq(Sq(distance/attenuation_radius)), 0.0))/(Sq(distance)+1);
+
+    vec3 specular     = GGXShadingSpec(normal, view_dir, light_dir, light_color, specularColor, roughness, att);
+
+    light_dir    = normalize(light_pos-pos);
+    distance     = length(light_pos-pos);
+    att          = Sq(max(1.0-Sq(Sq(distance/attenuation_radius)), 0.0))/(Sq(distance)+1);
+    vec3 diffuse = Lambert(normal, light_dir, light_color, diffuseColor, specularColor, att);
+
+    return diffuse+specular;
+}
+
+vec3 Sphere(const vec3 pos, const vec3 normal, const vec3 view_dir, const SphereLight light, 
+            const vec3 diffuseColor, const vec3 specularColor, float roughness)
+{
+    return Sphere(pos, normal, view_dir, light.position.xyz, light.position.w, light.color.a, light.color.rgb, diffuseColor, specularColor, roughness);
 }
 
 vec3 Quad(const vec3 pos, const vec3 normal, const vec3 view_dir, const QuadLight light, 
@@ -159,6 +202,37 @@ vec3 Quad(const vec3 pos, const vec3 normal, const vec3 view_dir, const QuadLigh
 
     return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att);
 }
+
+vec3 ClosestToLine(vec3 pos, vec3 dir, vec3 a, vec3 b)
+{
+    vec3 pa = a-pos;
+    vec3 ab = b-a;
+    
+    float dotABDir = dot(ab, dir);
+    float num = dot(dir, pa)* dotABDir-dot(ab, pa);
+    float denom = dot(ab, ab)-dotABDir*dotABDir;
+    float t = clamp(num/denom, 0.0f, 1.0f);
+
+    return a+ab*t;
+}
+
+vec3 Tube(const vec3 pos, const vec3 normal, const vec3 view_dir, const TubeLight light, 
+          const vec3 diffuseColor, const vec3 specularColor, float roughness)
+{
+
+    vec3 reflect_dir = normalize(reflect(-view_dir, normal));
+    vec3 closest     = ClosestToLine(pos, reflect_dir, light.p0.xyz, light.p1.xyz);
+    vec3 specular    = SphereSpec(pos, normal, view_dir, closest, light.p0.w, light.color.a, light.color.rgb, specularColor, roughness);
+
+    vec3 light_to_pos = (light.p0.xyz+light.p1.xyz)*0.5-pos;
+    vec3 light_dir   = normalize(light_to_pos);
+    float distance   = length(light_to_pos);
+    float att        = Sq(max(1.0-Sq(Sq(distance/light.color.a)), 0.0))/(Sq(distance)+1);
+    vec3 diffuse     = Lambert(normal, light_dir, light.color.rgb, diffuseColor, specularColor, att);
+
+    return diffuse+specular;
+}
+
 vec3 ShadingDirectional(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
@@ -271,6 +345,23 @@ vec3 ShadingQuad(in PBR pbr)
     return color;
 }
 
+vec3 ShadingTube(in PBR pbr)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = Sq(1.0-pbr.smoothness); 
+
+    vec3 color = vec3(0.0);
+
+    float shadow = min(1.0, pbr.shadow+0.5);
+
+    for(uint i=0; i< num_tube; ++i)
+    {
+        color += Tube(pbr.position, pbr.normal, V, tubes[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+    }
+
+    return color;
+}
+
 
 vec4 Shading(in PBR pbr)
 {
@@ -280,6 +371,7 @@ vec4 Shading(in PBR pbr)
     color += ShadingSpot(pbr);
     color += ShadingSphere(pbr);
     color += ShadingQuad(pbr);
+    color += ShadingTube(pbr);
 
     //return vec4(color, pbr.alpha);
     return vec4(pbr.specular, pbr.alpha);
@@ -292,6 +384,7 @@ vec4 ShadingNoPoint(in PBR pbr)
     color += ShadingSpot(pbr);
     color += ShadingSphere(pbr);
     color += ShadingQuad(pbr);
+    color += ShadingTube(pbr);
 
     return vec4(color, pbr.alpha);
     //return vec4(pbr.specular, pbr.alpha);

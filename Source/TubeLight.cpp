@@ -20,6 +20,7 @@ void TubeLight::Save(Config &config) const
 	config.AddFloat3("colour", colour);
 	config.AddFloat("intensity", intensity);
 	config.AddFloat("radius", radius);
+	config.AddFloat("attenuation_radius", attRadius);
 	config.AddBool("Enabled", enabled);
 }
 
@@ -33,15 +34,16 @@ void TubeLight::Load(Config &config)
 	colour     = config.GetFloat3("colour", float3::zero);
     intensity  = config.GetFloat("intensity", 0.0f);
     radius     = config.GetFloat("radius", radius);
+    attRadius  = config.GetFloat("attenuation_radius", attRadius);
     enabled    = config.GetBool("Enabled", true);
 }
 
 float3 TubeLight::GetPosition0() const
 {
-	return rotation*(float3(0.0f, 0.0f, 0.5f)*height)+position;
+	return rotation*(float3(0.0f, 0.5f, 0.0f)*height)+position;
 }
 
 float3 TubeLight::GetPosition1() const
 {
-	return rotation*(float3(0.0f, 0.0f, -0.5f)*height)+position;
+	return rotation*(float3(0.0f, -0.5f, 0.0f)*height)+position;
 }

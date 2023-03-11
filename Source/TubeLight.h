@@ -33,6 +33,10 @@ public:
     float           GetRadius       () const { return radius; }
     void            SetRadius       (float r)  { radius = r; }
 
+    float           GetAttRadius () const {return attRadius; }
+    void            SetAttRadius (float attR) { attRadius = attR; }
+
+
     bool            GetEnabled      () const { return enabled; }
     void            SetEnabled      (bool e) { enabled = e; }
 
@@ -47,5 +51,6 @@ private:
     float3 colour = float3::zero;
     float intensity = 0.0f;
     float radius = 0.0f;
+    float attRadius = 0.0f;
     bool enabled = true;
 };
