@@ -314,14 +314,15 @@ void LightManager::UpdateGPUBuffers()
     {
         if(light->GetEnabled())
         {
-            spherePtr->spheres[enabledSphereSize].position  = float4(light->GetPosition(), light->GetRadius());
-            spherePtr->spheres[enabledSphereSize].colour    = float4(light->GetColor()*light->GetIntensity(), light->GetLightRadius());
+            spherePtr->spheres[enabledSphereSize].position    = float4(light->GetPosition(), light->GetRadius());
+            spherePtr->spheres[enabledSphereSize].colour      = float4(light->GetColor(), light->GetLightRadius());
 
             ++enabledSphereSize;
         }
     }
 
     spherePtr->count = enabledSphereSize;
+
 
     if(uint(tubes.size()) > tubeBufferSize || !tubeLightSSBO[frameCount])
     {

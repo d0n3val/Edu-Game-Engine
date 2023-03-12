@@ -148,7 +148,7 @@ vec3 SphereSpec(const vec3 pos, const vec3 normal, const vec3 view_dir, const ve
 {
     vec3 reflect_dir  = normalize(reflect(-view_dir, normal));
     vec3 light_dir    = light_pos-pos;
-    vec3 centerToRay  = pos+reflect_dir*max(0.0, dot(light_dir, reflect_dir))-light_pos;
+    vec3 centerToRay  = pos+reflect_dir*dot(light_dir, reflect_dir)-light_pos;
     vec3 closestPoint = light_pos+(centerToRay)*min(sphere_radius/length(centerToRay), 1.0);
 
     float distance    = length(closestPoint-pos);
@@ -216,6 +216,18 @@ vec3 ClosestToLine(vec3 pos, vec3 dir, vec3 a, vec3 b)
     return a+ab*t;
 }
 
+vec3 BisectionIntersection(vec3 P, vec3 A, vec3 B)
+{
+    float a = length(A-P);
+    float b = length(B-P);
+    vec3 AB = B-A;
+    float c = length(AB);
+
+    float x = (c*a)/(b+a);
+
+    return A + (AB)*x;
+}
+
 vec3 Tube(const vec3 pos, const vec3 normal, const vec3 view_dir, const TubeLight light, 
           const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
@@ -224,11 +236,9 @@ vec3 Tube(const vec3 pos, const vec3 normal, const vec3 view_dir, const TubeLigh
     vec3 closest     = ClosestToLine(pos, reflect_dir, light.p0.xyz, light.p1.xyz);
     vec3 specular    = SphereSpec(pos, normal, view_dir, closest, light.p0.w, light.color.a, light.color.rgb, specularColor, roughness);
 
-    //vec3 light_to_pos = (light.p0.xyz+light.p1.xyz)*0.5-pos;
-
     vec3 p0 = light.p0.xyz-pos;
     vec3 p1 = light.p1.xyz-pos;
-    vec3 light_to_pos = ClosestToLine(pos, normalize(p0+p1), light.p0.xyz, light.p1.xyz)-pos;
+    vec3 light_to_pos = BisectionIntersection(pos, light.p0.xyz, light.p1.xyz)-pos; 
 
     vec3 light_dir   = normalize(light_to_pos);
     float distance   = length(light_to_pos);
@@ -384,7 +394,7 @@ vec4 Shading(in PBR pbr)
 
 vec4 ShadingNoPoint(in PBR pbr)
 {
-    vec3 color = vec3(0.0); //ShadingAmbient(pbr);
+    vec3 color = ShadingAmbient(pbr)*0.25;
     color += ShadingDirectional(pbr);
     color += ShadingSpot(pbr);
     color += ShadingSphere(pbr);
