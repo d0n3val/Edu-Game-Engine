@@ -4,6 +4,7 @@
 
 class Program;
 class RenderList;
+class Framebuffer;
 
 class LinePass
 {
@@ -13,7 +14,7 @@ public:
     LinePass();
     ~LinePass();
 
-    void execute(const RenderList& objects);
+    void execute(const RenderList& objects, Framebuffer* frameBuffer, uint width, uint height);
     
 private:
 

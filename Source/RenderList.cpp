@@ -15,6 +15,7 @@ void RenderList::UpdateFrom(const Frustum& frustum, QuadtreeNode* quadtree, uint
     transparent_nodes.clear();
     particles.clear();
     trails.clear();
+    lines.clear();
     decals.clear();
 
     Plane planes[6];
@@ -31,6 +32,7 @@ void RenderList::UpdateFrom(const Frustum& frustum, GameObject* go, uint objType
     transparent_nodes.clear();
     particles.clear();
     trails.clear();
+    lines.clear();
     decals.clear();
 
     Plane cameraPlanes[8];

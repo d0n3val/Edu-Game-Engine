@@ -36,7 +36,7 @@ ComponentLine::ComponentLine(GameObject* go) : Component(go, Types::Line)
     for(uint i=0; i<ATTRIB_COUNT; ++i) vbo[i].reset(vbo_ptr[i]);
 
 
-    ebo.reset(Buffer::CreateIBO(GL_STATIC_DRAW, sizeof(indices)/sizeof(unsigned), indices));
+    ebo.reset(Buffer::CreateIBO(GL_STATIC_DRAW, sizeof(indices), indices));
 
     vao = std::make_unique<VertexArray>(vbo_ptr, ebo.get(), attribs, ATTRIB_COUNT);
 }

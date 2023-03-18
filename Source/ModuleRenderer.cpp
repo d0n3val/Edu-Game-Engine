@@ -176,7 +176,6 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     App->level->GetLightManager()->Bind();
 
     RenderDeferred(camera, culling, frameBuffer, width, height);
-    RenderVFX(camera, culling ,frameBuffer, width, height);
 }
 
 void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
@@ -226,6 +225,8 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     forward->executeTransparent(render_list, nullptr, width, height);
     frameBuffer->Unbind();
 
+    RenderVFX(camera, culling, frameBuffer, width, height);
+
     DrawAreaLights(camera, frameBuffer);
 
     // Skybox
@@ -238,8 +239,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
 void ModuleRenderer::RenderVFX(ComponentCamera *camera, ComponentCamera *culling, Framebuffer *frameBuffer, unsigned width, unsigned height)
 {
-    linePass->execute(render_list);
-
+    linePass->execute(render_list, frameBuffer, width, height);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)

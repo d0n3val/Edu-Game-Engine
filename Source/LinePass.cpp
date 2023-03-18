@@ -18,15 +18,22 @@ LinePass::~LinePass()
 
 }
 
-void LinePass::execute(const RenderList& objects)
+void LinePass::execute(const RenderList& objects, Framebuffer* frameBuffer, uint width, uint height)
 {
-    UseProgram();
-
-    for(const TRenderInfo& info : objects.GetLines())
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "LinePass");
+    if(!objects.GetLines().empty())
     {
-        info.line->GetVAO()->Bind();
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        frameBuffer->Bind();
+        glViewport(0, 0, width, height);
+        UseProgram();
+
+        for(const TRenderInfo& info : objects.GetLines())
+        {
+            info.line->GetVAO()->Bind();
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        }
     }
+    glPopDebugGroup();
 }
 
 void LinePass::UseProgram()
