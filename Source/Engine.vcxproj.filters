@@ -757,6 +757,12 @@
     <ClInclude Include="TubeLight.h">
       <Filter>Lights</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentLine.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="LinePass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1367,6 +1373,12 @@
     </ClCompile>
     <ClCompile Include="TubeLight.cpp">
       <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentLine.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="LinePass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -199,8 +199,8 @@ public:
     VertexArray(Buffer* vbo[], Buffer* ibo, VertexAttrib attribs[], uint count);
     ~VertexArray();
 
-    void Bind();
-    void Unbind();
+    void Bind() const;
+    void Unbind() const;
 };
 
 class Shader

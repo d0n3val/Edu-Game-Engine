@@ -30,6 +30,7 @@ class ShadowmapPass;
 class CascadeShadowPass;
 class FxaaPass;
 class FogPass;
+class LinePass;
 
 class ModuleRenderer : public Module
 {
@@ -72,6 +73,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<FogPass>              fogPass;
     std::unique_ptr<ShadowmapPass>        shadowmapPass;
     std::unique_ptr<CascadeShadowPass>    cascadeShadowPass;
+    std::unique_ptr<LinePass>             linePass;
     std::unique_ptr<Buffer>               cameraUBO;
     std::unique_ptr<Program>              areaProgram;
 
@@ -102,18 +104,15 @@ private:
 
     void                RenderForward               (ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height);
     void                RenderDeferred              (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
+    void                RenderVFX                   (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
 
 
     void                SelectionPass               (const float4x4& proj, const float4x4& view);
 
     void                LoadDefaultShaders          ();
 
-    void                DrawShadow                  (const TRenderInfo& render_info);
-    void                DrawParticles               (ComponentParticleSystem* particles);
-    void                DrawTrails                  (ComponentTrail* trail);
     void                DrawSelection               (const TRenderInfo& render_info);
 
-    void                BlurShadow                  (uint index);
     void                ComputeDirLightShadowVolume (ComponentCamera* camera, uint index);
     void                CalcLightCameraBBox         (const Quat& light_rotation, const ComponentCamera* camera, float near_distance, float far_distance, AABB& aabb);
     void                CalcLightObjectsBBox        (const Quat& light_rotation, const float3& light_dir, AABB& aabb, NodeList& casters);

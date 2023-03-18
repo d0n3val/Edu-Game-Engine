@@ -27,6 +27,7 @@ public:
 		CharacterController,
         ParticleSystem,
         Trail,
+		Line,
         Grass,
 		Decal,
 		Unknown

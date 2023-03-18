@@ -5,6 +5,7 @@
 #include "ComponentMeshRenderer.h"
 #include "ComponentParticleSystem.h"
 #include "ComponentTrail.h"
+#include "ComponentLine.h"
 #include "ComponentDecal.h"
 #include "GameObject.h"
 
@@ -83,6 +84,11 @@ void RenderList::CollectObjects(const Plane* camera_planes, const float3& camera
                     CollectTrails(camera_pos, go);
                 }
 
+                if((objTypes & RENDERLIST_OBJ_LINES) != 0)
+                {
+                    CollectLines(camera_pos, go);
+                }
+
                 if((objTypes & RENDERLIST_OBJ_DECALS) != 0)
                 {
                     CollectDecals(camera_pos, go);
@@ -158,6 +164,10 @@ void RenderList::CollectObjects(const Plane* camera_planes, const float3& camera
         if((objTypes & RENDERLIST_OBJ_TRAILS) != 0)
         {
             CollectTrails(camera_pos, go);
+        }
+        if((objTypes & RENDERLIST_OBJ_LINES) != 0)
+        {
+            CollectLines(camera_pos, go);
         }
         if ((objTypes & RENDERLIST_OBJ_DECALS) != 0)
         {
@@ -261,12 +271,37 @@ void RenderList::CollectTrails(const float3& camera_pos, GameObject* go)
         render.distance = distance;
         render.trail = static_cast<ComponentTrail*>(comp);
 
-        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, 
+        NodeList::iterator it = std::lower_bound(trails.begin(), trails.end(), render, 
                         [](const TRenderInfo& info, const TRenderInfo& new_info) 
                         { 
                             return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
                         });
         trails.insert(it, render);
+    }
+}
+
+void RenderList::CollectLines(const float3 &camera_pos, GameObject *go)
+{
+    std::vector<Component*> components;
+    go->FindComponents(Component::Line, components);
+
+    float distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
+
+    for(Component* comp : components)
+    {
+        TRenderInfo render;
+        render.name = go->name.c_str();
+        render.go   = go;
+
+        render.distance = distance;
+        render.line = static_cast<ComponentLine*>(comp);
+
+        NodeList::iterator it = std::lower_bound(lines.begin(), lines.end(), render, 
+                        [](const TRenderInfo& info, const TRenderInfo& new_info) 
+                        { 
+                            return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
+                        });
+        lines.insert(it, render);
     }
 }
 
@@ -289,6 +324,7 @@ void RenderList::CollectDecals(const float3& camera_pos, GameObject* go)
         decals.push_back(render);
     }
 }
+
 
 
 

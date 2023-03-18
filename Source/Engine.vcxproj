@@ -245,6 +245,7 @@
     <ClInclude Include="ComponentCamera.h" />
     <ClInclude Include="ComponentDecal.h" />
     <ClInclude Include="ComponentGrass.h" />
+    <ClInclude Include="ComponentLine.h" />
     <ClInclude Include="ComponentMeshRenderer.h" />
     <ClInclude Include="componentparticlesystem.h" />
     <ClInclude Include="ComponentPath.h" />
@@ -296,6 +297,7 @@
     <ClInclude Include="ImportTextureDlg.h" />
     <ClInclude Include="KawaseBlur.h" />
     <ClInclude Include="LightManager.h" />
+    <ClInclude Include="LinePass.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="MathGeoLib\include\Algorithm\Random\LCG.h" />
     <ClInclude Include="MathGeoLib\include\Geometry\AABB.h" />
@@ -439,6 +441,7 @@
     <ClCompile Include="ComponentCamera.cpp" />
     <ClCompile Include="ComponentDecal.cpp" />
     <ClCompile Include="ComponentGrass.cpp" />
+    <ClCompile Include="ComponentLine.cpp" />
     <ClCompile Include="ComponentMeshRenderer.cpp" />
     <ClCompile Include="ComponentParticleSystem.cpp" />
     <ClCompile Include="ComponentPath.cpp" />
@@ -483,6 +486,7 @@
     <ClCompile Include="ImportTextureDlg.cpp" />
     <ClCompile Include="KawaseBlur.cpp" />
     <ClCompile Include="LightManager.cpp" />
+    <ClCompile Include="LinePass.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathGeoLib\include\Algorithm\Random\LCG.cpp" />
     <ClCompile Include="MathGeoLib\include\Geometry\AABB.cpp" />

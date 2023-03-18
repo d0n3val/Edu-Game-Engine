@@ -8,6 +8,7 @@ class GameObject;
 class ComponentMeshRenderer;
 class ComponentParticleSystem;
 class ComponentTrail;
+class ComponentLine;
 class ComponentDecal;
 
 struct TRenderInfo
@@ -20,6 +21,7 @@ struct TRenderInfo
         ComponentParticleSystem *particles;
         ComponentDecal* decal;
         ComponentTrail *trail;
+        ComponentLine *line;
     };
     float distance     = 0.0f;
     float layer        = 0.0f;
@@ -31,10 +33,11 @@ enum RenderListObjTypes
     RENDERLIST_OBJ_TRANSPARENT = 1 << 1,
     RENDERLIST_OBJ_PARTICLES = 1 << 2,
     RENDERLIST_OBJ_TRAILS = 1 << 3,
-    RENDERLIST_OBJ_DECALS = 1 << 4,
+    RENDERLIST_OBJ_LINES = 1 << 4,
+    RENDERLIST_OBJ_DECALS = 1 << 5,
     RENDERLIST_OBJ_MESH = (RENDERLIST_OBJ_OPAQUE | RENDERLIST_OBJ_TRANSPARENT),
     RENDERLIST_OBJ_ALL = (RENDERLIST_OBJ_OPAQUE | RENDERLIST_OBJ_TRANSPARENT | RENDERLIST_OBJ_PARTICLES | 
-                          RENDERLIST_OBJ_TRAILS | RENDERLIST_OBJ_DECALS)
+                          RENDERLIST_OBJ_TRAILS | RENDERLIST_OBJ_LINES | RENDERLIST_OBJ_DECALS)
 };
 
 typedef std::vector<TRenderInfo> NodeList;
@@ -47,6 +50,7 @@ private:
     NodeList transparent_nodes;
     NodeList particles;
     NodeList trails;
+    NodeList lines;
     NodeList decals;
 
 public:
@@ -67,6 +71,9 @@ public:
     NodeList&       GetTrails() { return trails; }
     const NodeList& GetTrails() const { return trails; }
 
+    NodeList&       GetLines() { return lines; }
+    const NodeList& GetLines() const { return lines; }
+
     NodeList&       GetDecals() { return decals; }
     const NodeList& GetDecals() const { return decals; }
 
@@ -81,6 +88,7 @@ private:
     void CollectMeshRenderers        (const float3& camera_pos, GameObject* go, uint objTypes);
     void CollectParticleSystems      (const float3& camera_pos, GameObject* go);
     void CollectTrails               (const float3& camera_pos, GameObject* go);
+    void CollectLines                (const float3& camera_pos, GameObject* go);
     void CollectDecals               (const float3& camera_pos, GameObject* go);
 
 public:

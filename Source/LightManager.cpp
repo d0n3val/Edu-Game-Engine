@@ -269,7 +269,6 @@ void LightManager::UpdateGPUBuffers()
 
     spotPtr->count = enabledSpotSize;
 
-
     if(uint(quads.size()) > quadBufferSize || !quadLightSSBO[frameCount])
     {
         quadBufferSize = uint(quads.size());
@@ -286,11 +285,11 @@ void LightManager::UpdateGPUBuffers()
     {
         if(light->GetEnabled())
         {
-            quadPtr->quads[enabledQuadSize].position      = float4(light->GetPosition(), 0.0);
-            quadPtr->quads[enabledQuadSize].up            = float4(light->GetUp(), 0.0f);
-            quadPtr->quads[enabledQuadSize].right         = float4(light->GetRight(), 0.0f);
-            quadPtr->quads[enabledQuadSize].colour        = float4(light->GetColor(), 0.0f);
-            quadPtr->quads[enabledQuadSize].size          = float4(light->GetSize().x, light->GetSize().y, 0.0f, 0.0f);
+            quadPtr->quads[enabledQuadSize].position    = float4(light->GetPosition(), 0.0);
+            quadPtr->quads[enabledQuadSize].up          = float4(light->GetUp(), 0.0f);
+            quadPtr->quads[enabledQuadSize].right       = float4(light->GetRight(), 0.0f);
+            quadPtr->quads[enabledQuadSize].colour      = float4(light->GetColor(), 0.0f);
+            quadPtr->quads[enabledQuadSize].size        = float4(light->GetSize(), 0.0f ,0.0f);
 
             ++enabledQuadSize;
         }

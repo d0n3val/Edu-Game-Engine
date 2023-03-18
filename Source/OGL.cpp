@@ -598,12 +598,12 @@ VertexArray::~VertexArray()
     glDeleteVertexArrays(1, &id);
 }
 
-void VertexArray::Bind()
+void VertexArray::Bind() const
 {
     glBindVertexArray(id);
 }
 
-void VertexArray::Unbind()
+void VertexArray::Unbind() const
 {
     glBindVertexArray(0);
 }

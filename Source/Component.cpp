@@ -42,7 +42,7 @@ Component::Types Component::GetType() const
 // ---------------------------------------------------------
 const char * Component::GetTypeStr() const
 {
-	static_assert(Component::Types::Unknown == 14, "String list needs update");
+	static_assert(Component::Types::Unknown == 15, "String list needs update");
 
 	static const char* names[] = {
 	"MeshRenderer",
@@ -57,6 +57,7 @@ const char * Component::GetTypeStr() const
 	"CharacterController",
 	"ParticleSystem",
 	"Trail",
+    "Line",
     "Grass",
     "Decal",
 	"Invalid" };

@@ -15,6 +15,7 @@
 #include "ShadowmapPass.h"
 #include "CascadeShadowPass.h"
 #include "FogPass.h"
+#include "LinePass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -26,6 +27,7 @@
 #include "ComponentAnimation.h"
 #include "ComponentParticleSystem.h"
 #include "ComponentTrail.h"
+#include "ComponentLine.h"
 #include "BatchManager.h"
 #include "Postprocess.h"
 
@@ -68,6 +70,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     shadowmapPass = std::make_unique<ShadowmapPass>();
     cascadeShadowPass = std::make_unique<CascadeShadowPass>();
     fogPass = std::make_unique<FogPass>();
+    linePass = std::make_unique<LinePass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -173,6 +176,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     App->level->GetLightManager()->Bind();
 
     RenderDeferred(camera, culling, frameBuffer, width, height);
+    RenderVFX(camera, culling ,frameBuffer, width, height);
 }
 
 void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
@@ -232,6 +236,11 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     fogPass->execute(frameBuffer, width, height);
 }
 
+void ModuleRenderer::RenderVFX(ComponentCamera *camera, ComponentCamera *culling, Framebuffer *frameBuffer, unsigned width, unsigned height)
+{
+    linePass->execute(render_list);
+
+}
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
 {
@@ -275,18 +284,6 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
 
     //DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawSelection);
     //DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawSelection);
-}
-
-void ModuleRenderer::DrawParticles(ComponentParticleSystem* particles)
-{
-    App->programs->UseProgram("particles", 0);
-    particles->Draw(App->hints->GetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS));
-}
-
-void ModuleRenderer::DrawTrails(ComponentTrail* trail)
-{
-    App->programs->UseProgram("trails", 0);
-    trail->Draw();
 }
 
 void ModuleRenderer::LoadDefaultShaders()
@@ -452,51 +449,6 @@ void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float
 
         dd::axisTriad(tbn, metric_proportion*0.1f*0.1f, metric_proportion*0.1f, 0);
     }
-}
-
-void ModuleRenderer::BlurShadow(uint index)
-{
-    glBindVertexArray(0);
-
-
-    glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].sq_fbo);
-    {
-        App->programs->UseProgram("chebyshev", 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, cascades[index].tex);
-        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-    }
-
-    float weights[] = { 0.38774f,	0.24477f, 0.06136f };
-
-
-    glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].blur_fbo_0);
-    {
-        App->programs->UseProgram("gaussian", 1);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, cascades[index].sq_tex);
-        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
-        glUniform1fv(App->programs->GetUniformLocation("weight"), sizeof(weights)/sizeof(float), weights);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, cascades[index].blur_fbo_1);
-    {
-        App->programs->UseProgram("gaussian", 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, cascades[index].blur_tex_0);
-        glUniform1i(App->programs->GetUniformLocation("image"), 0); 
-        glUniform1fv(App->programs->GetUniformLocation("weight"), sizeof(weights)/sizeof(float), weights);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-    }
-
-
-    glBindVertexArray(0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    App->programs->UnuseProgram();
 }
 
 void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint index)

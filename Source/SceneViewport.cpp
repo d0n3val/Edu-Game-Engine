@@ -613,11 +613,11 @@ void SceneViewport::DrawGuizmoProperties(QuadLight *quad)
 
     float matrixTranslation[3], matrixRotation[3], matrixScale[3];
     ImGuizmo::DecomposeMatrixToComponents((float*)&model, matrixTranslation, matrixRotation, matrixScale);
-    if(ImGui::DragFloat3("Tr", matrixTranslation, 3))
+    if(ImGui::DragFloat3("Tr", matrixTranslation, 0.01f))
     {
         quad->SetPosition(float3(matrixTranslation[0], matrixTranslation[1], matrixTranslation[2]));
     }
-    if(ImGui::DragFloat3("Rt", matrixRotation, 3))
+    if(ImGui::DragFloat3("Rt", matrixRotation, 0.01f))
     {
         ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, (float*)&model);
         float3 right = model.Row3(0).Normalized();
@@ -626,7 +626,7 @@ void SceneViewport::DrawGuizmoProperties(QuadLight *quad)
         quad->SetRight(right);
         quad->SetUp(up);        
     }
-    if(ImGui::DragFloat3("Sc", matrixScale, 3))
+    if(ImGui::DragFloat3("Sc", matrixScale, 0.01f))
     {
         quad->SetSize(float2(matrixScale[0], matrixScale[1]));
     }

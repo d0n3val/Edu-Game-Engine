@@ -15,6 +15,7 @@
 #include "ComponentRootMotion.h"
 #include "ComponentParticleSystem.h"
 #include "ComponentTrail.h"
+#include "ComponentLine.h"
 #include "ComponentGrass.h"
 #include "ComponentDecal.h"
 #include "ModuleLevelManager.h"
@@ -369,7 +370,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
             go->SetLocalRotation(Quat::identity);
         }
 
-        static_assert(Component::Types::Unknown == 14, "code needs update");
+        static_assert(Component::Types::Unknown == 15, "code needs update");
         if (ImGui::BeginMenu("New Component", (go != nullptr)))
         {
             if (ImGui::MenuItem("Audio Listener"))
@@ -396,6 +397,8 @@ void PanelProperties::DrawGameObject(GameObject* go)
 				go->CreateComponent(Component::Types::ParticleSystem);
 			if (ImGui::MenuItem("Trail"))
 				go->CreateComponent(Component::Types::Trail);
+            if (ImGui::MenuItem("Line"))
+                go->CreateComponent(Component::Types::Line);
 			if (ImGui::MenuItem("Grass"))
 				go->CreateComponent(Component::Types::Grass);
 			if (ImGui::MenuItem("Decal"))
@@ -449,7 +452,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         }
 
         // Iterate all components and draw
-        static_assert(Component::Types::Unknown == 14, "code needs update");
+        static_assert(Component::Types::Unknown == 15, "code needs update");
         for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
         {
             ImGui::PushID(*it);
@@ -490,6 +493,9 @@ void PanelProperties::DrawGameObject(GameObject* go)
                         break;
 					case Component::Types::Trail:
 						DrawTrailComponent(static_cast<ComponentTrail*>(*it));
+                        break;
+                    case Component::Types::Line:
+                        DrawLineComponent(static_cast<ComponentLine*>(*it));
                         break;
 					case Component::Types::Grass:
 						DrawGrassComponent(static_cast<ComponentGrass*>(*it));
@@ -1579,6 +1585,11 @@ void PanelProperties::DrawGrassComponent(ComponentGrass* component)
 
     ImGui::PlotLines("Random Noise", random_getter, component, noise_count, 0, nullptr, 0.0f, 1.0f, ImVec2((float)noise_count, 200.0f));
     ImGui::PlotLines("Value Noise", values_getter, component, noise_count, 0, nullptr, 0.0f, 1.0f, ImVec2((float)noise_count, 200.0f));
+}
+
+void DrawLineComponent(ComponentLine* component)
+{
+
 }
 
 void DrawTrailComponent(ComponentTrail* component)

@@ -394,7 +394,7 @@ vec4 Shading(in PBR pbr)
 
 vec4 ShadingNoPoint(in PBR pbr)
 {
-    vec3 color = ShadingAmbient(pbr)*0.25;
+    vec3 color = ShadingAmbient(pbr);
     color += ShadingDirectional(pbr);
     color += ShadingSpot(pbr);
     color += ShadingSphere(pbr);

@@ -24,8 +24,8 @@ public:
 
     void                    Draw            ();
 
-    virtual void            OnSave          (Config& config) const;
-    virtual void            OnLoad          (Config* config);
+    virtual void            OnSave          (Config& config) const override;
+    virtual void            OnLoad          (Config* config) override;
 
     static Types            GetClassType    () { return Trail; }
 

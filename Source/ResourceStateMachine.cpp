@@ -142,12 +142,12 @@ bool ResourceStateMachine::Save()
 
 		sprintf_s(full_path, 250, "%s%s", LIBRARY_STATE_MACHINE_FOLDER, exported_file.c_str());
 
-        return App->fs->Save(full_path, &data[0], data.size()) > 0;
+        return App->fs->Save(full_path, &data[0], uint(data.size())) > 0;
     }
 
 	std::string output;
 
-	if (App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_STATE_MACHINE_FOLDER, "states", "edustates"))
+	if (App->fs->SaveUnique(output, &data[0], uint(data.size()), LIBRARY_STATE_MACHINE_FOLDER, "states", "edustates"))
 	{
         App->fs->SplitFilePath(output.c_str(), nullptr, &exported_file);
 
@@ -166,7 +166,7 @@ bool ResourceStateMachine::Save(std::string& output) const
 
     const std::vector<char>& data = write_stream.get_internal_vec();
 
-    return App->fs->SaveUnique(output, &data[0], data.size(), LIBRARY_STATE_MACHINE_FOLDER, "states", "edustates");
+    return App->fs->SaveUnique(output, &data[0], uint(data.size()), LIBRARY_STATE_MACHINE_FOLDER, "states", "edustates");
 }
 
 // ---------------------------------------------------------
@@ -244,7 +244,7 @@ uint ResourceStateMachine::FindClip(const HashString& name) const
 {
     uint i=0;
 
-    for(uint count = clips.size(); i < count; ++i)
+    for(uint count = uint(clips.size()); i < count; ++i)
     {
         if(clips[i].name == name)
             break;
@@ -299,7 +299,7 @@ uint ResourceStateMachine::FindNode(const HashString& name) const
 {
     uint i=0;
 
-    for(uint count = nodes.size(); i < count; ++i)
+    for(uint count = uint(nodes.size()); i < count; ++i)
     {
         if(nodes[i].name == name)
             break;
@@ -325,7 +325,7 @@ uint ResourceStateMachine::FindTransition(const HashString& source, const HashSt
 {
     uint i=0;
 
-    for(uint count = transitions.size(); i < count; ++i)
+    for(uint count = uint(transitions.size()); i < count; ++i)
     {
         if(transitions[i].source == source && transitions[i].trigger == trigger)
             break;
