@@ -59,7 +59,7 @@ bool ModuleResources::Start(Config * config)
     LoadDefaultSphere();
 	LoadDefaultPlane();
     LoadDefaultCylinder();
-    LoadDefaultRedImage();
+    //LoadDefaultRedImage();
 
 	//LoadDefaultBox();
 

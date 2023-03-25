@@ -409,6 +409,21 @@ void GameObject::SetLocalTransform(const float4x4 & transform)
 }
 
 // ---------------------------------------------------------
+void GameObject::SetGlobalTransform(const float4x4 &transform)
+{
+	if(parent)
+	{
+		float4x4 parentTransf = parent->GetGlobalTransformation();
+		parentTransf.InverseColOrthogonal();
+		SetLocalTransform(parentTransf*transform);
+	}
+	else
+	{
+		SetLocalTransform(transform);
+	}
+}
+
+// ---------------------------------------------------------
 void GameObject::SetLocalPosition(const float3 & position)
 {
 	translation = position;

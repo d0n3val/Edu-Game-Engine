@@ -3,6 +3,7 @@
 #include "LinePass.h"
 
 #include "ComponentLine.h"
+#include "ResourceTexture.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -27,11 +28,23 @@ void LinePass::execute(const RenderList& objects, Framebuffer* frameBuffer, uint
         glViewport(0, 0, width, height);
         UseProgram();
 
+        // additive blending
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+
         for(const TRenderInfo& info : objects.GetLines())
         {
+            program->BindUniformFromName("model", info.line->GetModelMatrix());
+            program->BindUniformFromName("time", info.line->GetTime());
+            program->BindUniformFromName("tiling", info.line->GetTiling());
+            program->BindUniformFromName("offset", info.line->GetOffset());
+            program->BindTextureFromName("colorTex", 0, info.line->GetTexture().GetPtr<ResourceTexture>()->GetTexture());
+
             info.line->GetVAO()->Bind();
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         }
+
+        glDisable(GL_BLEND);
     }
     glPopDebugGroup();
 }

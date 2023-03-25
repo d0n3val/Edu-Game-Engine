@@ -1589,6 +1589,128 @@ void PanelProperties::DrawGrassComponent(ComponentGrass* component)
 
 void DrawLineComponent(ComponentLine* component)
 {
+    bool modified = false;
+    ResourceTexture* info = component->GetTexture().GetPtr<ResourceTexture>();
+
+    if(ImGui::CollapsingHeader("Texture", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImVec2 size(64.0f, 64.0f);
+
+        if (info != nullptr)
+        {
+            if(ImGui::ImageButton((ImTextureID) (ImTextureID)size_t(info->GetID()), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+            {
+                ImGui::OpenPopup("texture");
+            }
+            else 
+            {
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("%s", info->GetFile());
+                }
+            }
+        }
+        else
+        {
+            if(ImGui::ImageButton((ImTextureID) 0, size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128)))
+            {
+                ImGui::OpenPopup("texture");
+            }
+        }
+
+        ImGui::SameLine();
+        ImGui::BeginGroup();
+        if(info != nullptr)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
+
+            std::string file;
+            App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+
+            ImGui::Text("%s", file.c_str());
+            ImGui::Text("(%u,%u) %s %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->IsCompressed() ? "compressed" : "");
+            ImGui::PopStyleColor();
+
+            bool mips = info->GetMipmaps();
+            if(ImGui::Checkbox("Mipmaps", &mips))
+            {
+                info->GenerateMipmaps(mips);
+            }
+
+            ImGui::SameLine();
+            bool linear = info->GetColorSpace() == ResourceTexture::linear;
+            if(ImGui::Checkbox("sRGB", &linear))
+            {
+                info->SetColorSpace(linear ? ResourceTexture::linear : ResourceTexture::gamma);
+            }
+
+            if(ImGui::SmallButton("Delete"))
+            {
+                component->SetTexture(0);
+            }
+        }
+        ImGui::EndGroup();
+
+        UID new_res = App->editor->props->OpenResourceModal(Resource::texture, "texture");
+
+        if(new_res != 0)
+        {
+            component->SetTexture(new_res);
+        }
+    }
+
+    float speed = component->GetSpeedMult();
+    if(ImGui::DragFloat("Speed", &speed, 0.01f, 0.0f, 50.0f))
+    {
+        component->SetSpeedMult(speed);
+    }
+
+    float2 tiling = component->GetTiling();
+    if(ImGui::DragFloat2("Tiling", &tiling.x, 0.1f, 0.0f, 50.0f))
+    {
+        component->SetTiling(tiling);
+    }
+
+    float2 offset = component->GetOffset();
+    if(ImGui::DragFloat2("Offset", &offset.x, 0.1f, 0.0f, 50.0f))
+    {
+        component->SetOffset(offset);
+    }
+
+    if (ImGui::CollapsingHeader("Size", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        float4 sizePoints = component->GetSizeOverTimePoints();
+
+        if (ImGui::Bezier("Size", (float*)&sizePoints.x))
+        {
+            component->SetSizeOverTimePoints(sizePoints);
+        }
+
+        if (ImGui::Button("EaseIn", ImVec2(55, 20))) component->SetSizeOverTimePoints(float4(0.0f, 0.0f, 1.0f, 0.0f));
+        ImGui::SameLine();
+        if (ImGui::Button("EaseOut", ImVec2(60, 20))) component->SetSizeOverTimePoints(float4(0.0f, 0.0f, 0.0f, 1.f));
+        ImGui::SameLine();
+        if (ImGui::Button("EaseInOut", ImVec2(70, 20))) component->SetSizeOverTimePoints(float4(0.0, 1.0f, 1.0f, 0.0f));
+
+        float2 sizeRange = component->GetSizeOverTimeRange();
+        if (ImGui::DragFloat("init", &sizeRange.x)) component->SetSizeOverTimeRange(sizeRange);
+        if (ImGui::DragFloat("end", &sizeRange.x)) component->SetSizeOverTimeRange(sizeRange);
+    }
+
+    
+    if (ImGui::CollapsingHeader("Color", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (ImGui::GradientButton(&component->GetColorGradient().gradient))
+        {
+            ImGui::OpenPopup("Show color gradient");
+        }
+
+        if (ImGui::BeginPopup("Show color gradient"))
+        {
+            ImGui::GradientEditor(&component->GetColorGradient().gradient, component->GetColorGradient().draggingMark, component->GetColorGradient().selectedMark);
+            ImGui::EndPopup();
+        }
+    }
 
 }
 

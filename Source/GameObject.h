@@ -56,6 +56,7 @@ public:
 	void SetLocalRotation(const Quat& rotation);
 	void SetLocalScale(const float3& scale);
 	void SetLocalTransform(const float4x4& transform);
+    void SetGlobalTransform(const float4x4& transform);
 
 	const float4x4& GetGlobalTransformation() const;
 	const float4x4& GetLocalTransform() const;
