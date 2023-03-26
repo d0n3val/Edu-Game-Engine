@@ -1677,6 +1677,12 @@ void DrawLineComponent(ComponentLine* component)
         component->SetOffset(offset);
     }
 
+    int numBillboards = int(component->GetNumBillboards());
+    if(ImGui::SliderInt("Num billboards", &numBillboards, 1, 100))
+    {
+        component->SetNumBillboards(uint(numBillboards));
+    }
+
     if (ImGui::CollapsingHeader("Size", ImGuiTreeNodeFlags_DefaultOpen))
     {
         float4 sizePoints = component->GetSizeOverTimePoints();
@@ -1693,8 +1699,8 @@ void DrawLineComponent(ComponentLine* component)
         if (ImGui::Button("EaseInOut", ImVec2(70, 20))) component->SetSizeOverTimePoints(float4(0.0, 1.0f, 1.0f, 0.0f));
 
         float2 sizeRange = component->GetSizeOverTimeRange();
-        if (ImGui::DragFloat("init", &sizeRange.x)) component->SetSizeOverTimeRange(sizeRange);
-        if (ImGui::DragFloat("end", &sizeRange.x)) component->SetSizeOverTimeRange(sizeRange);
+        if (ImGui::DragFloat("init", &sizeRange.x, 0.01f, 0.0f, 100.0f)) component->SetSizeOverTimeRange(sizeRange);
+        if (ImGui::DragFloat("end", &sizeRange.y, 0.01f, 0.0f, 100.0f)) component->SetSizeOverTimeRange(sizeRange);
     }
 
     
@@ -1711,6 +1717,8 @@ void DrawLineComponent(ComponentLine* component)
             ImGui::EndPopup();
         }
     }
+
+
 
 }
 

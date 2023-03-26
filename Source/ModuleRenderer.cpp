@@ -239,7 +239,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
 void ModuleRenderer::RenderVFX(ComponentCamera *camera, ComponentCamera *culling, Framebuffer *frameBuffer, unsigned width, unsigned height)
 {
-    linePass->execute(render_list, frameBuffer, width, height);
+    linePass->execute(camera, render_list, frameBuffer, width, height);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)

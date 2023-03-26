@@ -19,7 +19,7 @@ LinePass::~LinePass()
 
 }
 
-void LinePass::execute(const RenderList& objects, Framebuffer* frameBuffer, uint width, uint height)
+void LinePass::execute(const ComponentCamera* camera, const RenderList& objects, Framebuffer* frameBuffer, uint width, uint height)
 {
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "LinePass");
     if(!objects.GetLines().empty())
@@ -31,19 +31,23 @@ void LinePass::execute(const RenderList& objects, Framebuffer* frameBuffer, uint
         // additive blending
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
+        glFrontFace(GL_CW);
 
         for(const TRenderInfo& info : objects.GetLines())
         {
-            program->BindUniformFromName("model", info.line->GetModelMatrix());
+            info.line->UpdateBuffers();
+
+            program->BindUniformFromName("model", info.line->GetModelMatrix(camera));
             program->BindUniformFromName("time", info.line->GetTime());
             program->BindUniformFromName("tiling", info.line->GetTiling());
             program->BindUniformFromName("offset", info.line->GetOffset());
             program->BindTextureFromName("colorTex", 0, info.line->GetTexture().GetPtr<ResourceTexture>()->GetTexture());
 
             info.line->GetVAO()->Bind();
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+            glDrawElements(GL_TRIANGLE_STRIP, info.line->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
         }
 
+        glFrontFace(GL_CCW);
         glDisable(GL_BLEND);
     }
     glPopDebugGroup();
