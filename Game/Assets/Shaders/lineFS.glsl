@@ -6,10 +6,12 @@
 uniform sampler2D colorTex;
 
 in vec2 uv;
+in vec3 incolor;
 
 out vec4 color;
 
 void main()
 {
     color = texture(colorTex, uv);
+    color.rgb *= incolor;
 }

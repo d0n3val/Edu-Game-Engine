@@ -79,6 +79,7 @@ private:
     {
         ATTRIB_POS = 0,
         ATTRIB_TEXCOORD,
+        ATTRIB_COLOR,
         ATTRIB_COUNT
     };
 

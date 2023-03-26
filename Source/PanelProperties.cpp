@@ -1678,7 +1678,7 @@ void DrawLineComponent(ComponentLine* component)
     }
 
     int numBillboards = int(component->GetNumBillboards());
-    if(ImGui::SliderInt("Num billboards", &numBillboards, 1, 100))
+    if(ImGui::SliderInt("Num billboards", &numBillboards, 1, 500))
     {
         component->SetNumBillboards(uint(numBillboards));
     }

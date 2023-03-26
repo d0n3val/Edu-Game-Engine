@@ -10,12 +10,9 @@
 #include "OGL.h"
 #include "OpenGL.h"
 
-#include "imgui/imgui_color_gradient.h"
-#include "imgui/imgui_bezier.h"
-
 ComponentLine::ComponentLine(GameObject* go) : Component(go, Types::Line)
 {
-    UpdateBuffers();
+    colorGradient.gradient.setEditAlpha(false);
 }
 
 ComponentLine::~ComponentLine()
@@ -42,11 +39,13 @@ void ComponentLine::UpdateBuffers()
     if(bufferDirty && numBillboards > 0)
     {
         VertexAttrib attribs[]   = { {0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, 0 }, 
-                                     {1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, 0 } };
+                                     {1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, 0 },
+                                     {2, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, 0 } };
                                     
         Buffer *vbo_ptr[ATTRIB_COUNT];
         vbo_ptr[ATTRIB_POS] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float3)*(numBillboards*2+2), nullptr);
         vbo_ptr[ATTRIB_TEXCOORD] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float2)*(numBillboards*2+2), nullptr);
+        vbo_ptr[ATTRIB_COLOR] = Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float3)*(numBillboards*2+2), nullptr);
 
         for (uint i = 0; i < ATTRIB_COUNT; ++i)
             vbo[i].reset(vbo_ptr[i]);
@@ -56,10 +55,8 @@ void ComponentLine::UpdateBuffers()
         float step = 1.0f/float(numBillboards);
 
         float3* posPtr = reinterpret_cast<float3*>(vbo[ATTRIB_POS]->Map(GL_WRITE_ONLY));
-
-        float lambda = 0;
-        float size = sizeOverTimeRange[0] + (sizeOverTimeRange[1] - sizeOverTimeRange[0]) * ImGui::BezierValue(lambda, reinterpret_cast<float*>(&sizeOverTimePoints));
-
+        float lambda = 0.0f;
+        float size = sizeOverTimeRange[0];
         posPtr[0] = float3(0.0f, size*-0.5f, 0.0f);
         posPtr[1] = float3(0.0f, size*0.5f, 0.0f);
 
@@ -84,6 +81,22 @@ void ComponentLine::UpdateBuffers()
         }
         
         vbo[ATTRIB_TEXCOORD]->Unmap();
+        float3* colorPtr = reinterpret_cast<float3*>(vbo[ATTRIB_COLOR]->Map(GL_WRITE_ONLY));
+        lambda = 0.0f;
+        float3 color; 
+        colorGradient.gradient.getColorAt(lambda, (float*)&color);
+        colorPtr[0] = color;
+        colorPtr[1] = color;
+
+        for(uint i=0; i <numBillboards; ++i)
+        {
+            lambda = step*float(i+1);
+            colorGradient.gradient.getColorAt(lambda, (float*)&color);
+            colorPtr[i * 2 + 2 + 0] = color;
+            colorPtr[i * 2 + 2 + 1] = color;
+        }
+        
+        vbo[ATTRIB_COLOR]->Unmap();
 
         unsigned* indexPtr = reinterpret_cast<unsigned*>(ebo->Map(GL_WRITE_ONLY));
         indexPtr[0] = 0;
@@ -194,4 +207,6 @@ void ComponentLine::OnLoad(Config *config)
     }
 
     numBillboards = config->GetInt("NumBillboards", 1);
+
+    bufferDirty = true;
 }
