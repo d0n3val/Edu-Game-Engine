@@ -457,9 +457,9 @@ void SceneViewport::DrawGuizmoProperties(GameObject* go)
 
     float matrixTranslation[3], matrixRotation[3], matrixScale[3];
     ImGuizmo::DecomposeMatrixToComponents((float*)&model, matrixTranslation, matrixRotation, matrixScale);
-    bool transform_changed = ImGui::DragFloat3("Tr", matrixTranslation, 3);
-    transform_changed = transform_changed || ImGui::DragFloat3("Rt", matrixRotation, 3);
-    transform_changed = transform_changed || ImGui::DragFloat3("Sc", matrixScale, 3);
+    bool transform_changed = ImGui::DragFloat3("Tr", matrixTranslation, 0.01f);
+    transform_changed = transform_changed || ImGui::DragFloat3("Rt", matrixRotation, 0.01f);
+    transform_changed = transform_changed || ImGui::DragFloat3("Sc", matrixScale, 0.01f);
 
     if(transform_changed)
     {
@@ -735,17 +735,17 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
             }
             else
             {
-                float4x4 parent = go->GetParent()->GetGlobalTransformation();
-                parent.InverseOrthonormal();
-                go->SetLocalTransform(parent * model);
+                go->SetGlobalTransform(model);
             }
 
+            /*
             App->level->GetRoot()->RecursiveCalcGlobalTransform(float4x4::identity, false);
-
-            if (go_camera)
+            */
+             
+            /*if (go_camera)
             {
                 go_camera->OnUpdateTransform();
-            }
+            }*/
         }
 
 

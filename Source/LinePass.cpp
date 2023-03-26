@@ -35,16 +35,23 @@ void LinePass::execute(const ComponentCamera* camera, const RenderList& objects,
 
         for(const TRenderInfo& info : objects.GetLines())
         {
-            info.line->UpdateBuffers();
+            if(info.line->GetState() != ComponentLine::STOPPED)
+            {
+                info.line->UpdateBuffers();
+                program->BindUniformFromName("model", info.line->GetModelMatrix(camera));
+                program->BindUniformFromName("time", info.line->GetTime());
+                program->BindUniformFromName("state", int(info.line->GetState()));
 
-            program->BindUniformFromName("model", info.line->GetModelMatrix(camera));
-            program->BindUniformFromName("time", info.line->GetTime());
-            program->BindUniformFromName("tiling", info.line->GetTiling());
-            program->BindUniformFromName("offset", info.line->GetOffset());
-            program->BindTextureFromName("colorTex", 0, info.line->GetTexture().GetPtr<ResourceTexture>()->GetTexture());
+                if(info.line->GetState() == ComponentLine::STARTING) program->BindUniformFromName("fadeTime", info.line->GetFadeInTime());
+                else if(info.line->GetState() == ComponentLine::STOPPING) program->BindUniformFromName("fadeTime", info.line->GetFadeOutTime());
 
-            info.line->GetVAO()->Bind();
-            glDrawElements(GL_TRIANGLE_STRIP, info.line->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
+                program->BindUniformFromName("tiling", info.line->GetTiling());
+                program->BindUniformFromName("offset", info.line->GetOffset());
+                program->BindTextureFromName("colorTex", 0, info.line->GetTexture().GetPtr<ResourceTexture>()->GetTexture());
+
+                info.line->GetVAO()->Bind();
+                glDrawElements(GL_TRIANGLE_STRIP, info.line->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
+            }
         }
 
         glFrontFace(GL_CCW);

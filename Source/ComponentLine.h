@@ -26,6 +26,13 @@ public:
         ImGradientMark* selectedMark = nullptr;
     };
 
+    enum State
+    {
+        STARTING = 0,
+        PLAYING,
+        STOPPING,
+        STOPPED
+    };
 
 public:
 
@@ -52,6 +59,12 @@ public:
     float                   GetSpeedMult    () const { return speedMult; }
     void                    SetSpeedMult    (float mult) { speedMult = mult; }
 
+    float                   GetFadeInTime   () const { return fadeInTime; }
+    void                    SetFadeInTime   (float time) { fadeInTime = time;}
+
+    float                   GetFadeOutTime   () const { return fadeOutTime; }
+    void                    SetFadeOutTime   (float time) { fadeOutTime = time;}
+
     const float2&           GetTiling       () const {return tiling;}
     const float2&           GetOffset       () const {return offset;}
     
@@ -70,6 +83,10 @@ public:
     uint                    GetNumBillboards() const { return numBillboards; }
     void                    SetNumBillboards(uint num) { numBillboards = num; bufferDirty = true; }
 
+    void                    Start();
+    void                    Stop();
+
+    State                   GetState() const {return state; }
 
 private:
 
@@ -83,7 +100,6 @@ private:
         ATTRIB_COUNT
     };
 
-
     ResHandle texture;
     std::unique_ptr<Buffer> vbo[ATTRIB_COUNT];
     std::unique_ptr<Buffer> ebo;
@@ -91,6 +107,8 @@ private:
     float time = 0.0f;
 
     float speedMult = 1.0f;
+    float fadeInTime = 0.0f;
+    float fadeOutTime = 0.0f;
     float2 tiling = float2::one;
     float2 offset = float2::zero;
     float4 sizeOverTimePoints = float4::zero;
@@ -98,4 +116,5 @@ private:
     ColorGradient colorGradient;
     uint numBillboards = 1;
     bool bufferDirty = true;
+    State state = PLAYING;
 };

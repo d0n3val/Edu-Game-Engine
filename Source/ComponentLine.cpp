@@ -22,16 +22,37 @@ ComponentLine::~ComponentLine()
 void ComponentLine::OnPlay() 
 {
     time = 0.0f;
+    state = STOPPED;
 }
 
 void ComponentLine::OnStop() 
 {
     time = 0.0f;
+    state = PLAYING;
+}
+
+void ComponentLine::Start()
+{
+    state = STARTING;
+}
+
+void ComponentLine::Stop()
+{
+    state = STOPPING;
+    time = 0.0f;
 }
 
 void ComponentLine::OnUpdate(float dt) 
 {
-    time += dt*speedMult;
+    if (state == STOPPING && time > fadeOutTime)
+    {
+        state = STOPPED;
+    }
+    
+    if(state != STOPPED)
+    {
+        time += dt*speedMult;
+    }
 }
 
 void ComponentLine::UpdateBuffers()
@@ -143,6 +164,8 @@ void ComponentLine::OnSave(Config &config) const
 {
 	config.AddUID("Texture", texture.GetUID());
     config.AddFloat("SpeedMult", speedMult);
+    config.AddFloat("FadeInTime", fadeInTime);
+    config.AddFloat("FadeOutTime", fadeOutTime);
     config.AddFloat2("Tiling", tiling);
     config.AddFloat2("Offset", offset);
     config.AddFloat4("SizeOverTimePoints", sizeOverTimePoints);
@@ -175,6 +198,8 @@ void ComponentLine::OnLoad(Config *config)
 {
     texture = config->GetUID("Texture", 0);
     speedMult = config->GetFloat("SpeedMult", 1.0f);
+    fadeInTime = config->GetFloat("FadeInTime", 0.0f);
+    fadeOutTime = config->GetFloat("FadeOutTime", 0.0f);
     tiling = config->GetFloat2("Tiling", float2::one);
     offset = config->GetFloat2("Offset", float2::zero);
     sizeOverTimePoints = config->GetFloat4("SizeOverTimePoints", float4::zero);

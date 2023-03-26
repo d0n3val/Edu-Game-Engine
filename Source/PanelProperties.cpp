@@ -1665,6 +1665,18 @@ void DrawLineComponent(ComponentLine* component)
         component->SetSpeedMult(speed);
     }
 
+    float fadeInTime = component->GetFadeInTime();
+    if(ImGui::DragFloat("Fade In Time", &fadeInTime, 0.01f, 0.0f, 10.0f))
+    {
+        component->SetFadeInTime(fadeInTime);
+    }
+
+    float fadeOutTime = component->GetFadeOutTime();
+    if(ImGui::DragFloat("Fade Out Time", &fadeOutTime, 0.01f, 0.0f, 10.0f))
+    {
+        component->SetFadeOutTime(fadeOutTime);
+    }
+
     float2 tiling = component->GetTiling();
     if(ImGui::DragFloat2("Tiling", &tiling.x, 0.1f, 0.0f, 50.0f))
     {
@@ -1718,7 +1730,11 @@ void DrawLineComponent(ComponentLine* component)
         }
     }
 
+    if(ImGui::Button("Start"))
+        component->Start();
 
+    if(ImGui::Button("Stop"))
+        component->Stop();
 
 }
 
