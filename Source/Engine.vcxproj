@@ -394,6 +394,7 @@
     <ClInclude Include="PanelProperties.h" />
     <ClInclude Include="PanelResources.h" />
     <ClInclude Include="parson.h" />
+    <ClInclude Include="ParticlePass.h" />
     <ClInclude Include="PerlinProperties.h" />
     <ClInclude Include="PhysBody3D.h" />
     <ClInclude Include="PointLight.h" />
@@ -551,6 +552,7 @@
     <ClCompile Include="PanelProperties.cpp" />
     <ClCompile Include="PanelResources.cpp" />
     <ClCompile Include="parson.c" />
+    <ClCompile Include="ParticlePass.cpp" />
     <ClCompile Include="PerlinProperties.cpp" />
     <ClCompile Include="PhysBody3D.cpp" />
     <ClCompile Include="PointLight.cpp" />

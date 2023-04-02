@@ -1,3 +1,8 @@
+#version 460 
+#extension GL_ARB_shading_language_include : require
+
+#include "/shaders/common.glsl"
+#include "/shaders/cameraDefs.glsl"
 
 layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_normal;
@@ -10,8 +15,6 @@ layout(location = 6) in vec3 instance_translation;
 layout(location = 7) in vec4 instance_color;
 layout(location = 8) in float instance_frame;
 
-uniform mat4 proj;
-uniform mat4 view;
 uniform mat4 model;
 
 struct Sheet

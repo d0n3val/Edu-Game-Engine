@@ -9,6 +9,8 @@
 #include "OpenGL.h"
 #include "RenderList.h"
 
+#define SHOW_BILLOARD 0
+
 LinePass::LinePass()
 {
 
@@ -29,9 +31,14 @@ void LinePass::execute(const ComponentCamera* camera, const RenderList& objects,
         UseProgram();
 
         // additive blending
+#if !SHOW_BILLOARD
         glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+#else
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+#endif 
         glFrontFace(GL_CW);
+        glDepthMask(GL_FALSE);
 
         for(const TRenderInfo& info : objects.GetLines())
         {
@@ -56,6 +63,11 @@ void LinePass::execute(const ComponentCamera* camera, const RenderList& objects,
 
         glFrontFace(GL_CCW);
         glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+
+#if SHOW_BILLOARD
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#endif 
     }
     glPopDebugGroup();
 }

@@ -1,3 +1,5 @@
+#version 460 
+
 struct Material
 {
     sampler2D diffuse_map;
@@ -30,7 +32,8 @@ void main()
     vec4 diffuse  = diffuse0*fragment.color;
     //vec4 diffuse  = mix(diffuse0, diffuse1, fragment.lambda)*fragment.color;
 
-    color = diffuse;
+    color.rgb = diffuse.rgb*diffuse.a;
+    color.a = 1.0f;
 
 	// gamma correction
     color.rgb   = pow(color.rgb, vec3(2.2));

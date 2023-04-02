@@ -16,6 +16,7 @@
 #include "CascadeShadowPass.h"
 #include "FogPass.h"
 #include "LinePass.h"
+#include "ParticlePass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -71,6 +72,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     cascadeShadowPass = std::make_unique<CascadeShadowPass>();
     fogPass = std::make_unique<FogPass>();
     linePass = std::make_unique<LinePass>();
+    particlePass = std::make_unique<ParticlePass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -239,7 +241,8 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
 void ModuleRenderer::RenderVFX(ComponentCamera *camera, ComponentCamera *culling, Framebuffer *frameBuffer, unsigned width, unsigned height)
 {
-    linePass->execute(camera, render_list, frameBuffer, width, height);
+    //linePass->execute(camera, render_list, frameBuffer, width, height);
+    //particlePass->execute(camera, render_list, frameBuffer, width , height);
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
@@ -300,8 +303,8 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros);
     //App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0);
     //App->programs->Load("equirectangular", "Assets/Shaders/skybox.vs", "Assets/Shaders/equirectangular.fs", nullptr, 0);
-    App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0);
-    App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0);
+    //App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0);
+    //App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0);
     //App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0);
 
     const char* gaussian_macros[]       = { "#define HORIZONTAL 1 \n" }; 

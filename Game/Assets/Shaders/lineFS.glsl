@@ -31,4 +31,6 @@ void main()
     {
         if(uv.x*fadeTime < time) color = vec4(0.0);
     }
+
+    //color.rgb = vec3(1.0);
 }

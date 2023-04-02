@@ -763,6 +763,9 @@
     <ClInclude Include="LinePass.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="ParticlePass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1378,6 +1381,9 @@
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
     <ClCompile Include="LinePass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticlePass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>

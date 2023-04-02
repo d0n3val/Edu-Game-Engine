@@ -28,6 +28,7 @@ class DeferredResolveProxy;
 class DeferredDecalPass;
 class ShadowmapPass;
 class CascadeShadowPass;
+class ParticlePass;
 class FxaaPass;
 class FogPass;
 class LinePass;
@@ -74,6 +75,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<ShadowmapPass>        shadowmapPass;
     std::unique_ptr<CascadeShadowPass>    cascadeShadowPass;
     std::unique_ptr<LinePass>             linePass;
+    std::unique_ptr<ParticlePass>         particlePass;
     std::unique_ptr<Buffer>               cameraUBO;
     std::unique_ptr<Program>              areaProgram;
 

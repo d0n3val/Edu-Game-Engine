@@ -248,7 +248,7 @@ void RenderList::CollectParticleSystems(const float3& camera_pos, GameObject* go
         render.particles= static_cast<ComponentParticleSystem*>(comp);
         render.layer = render.particles->GetLayer();
 
-        NodeList::iterator it = std::lower_bound(transparent_nodes.begin(), transparent_nodes.end(), render, 
+        NodeList::iterator it = std::lower_bound(particles.begin(), particles.end(), render,
                         [](const TRenderInfo& info, const TRenderInfo& new_info) 
                         { 
                             return info.distance > new_info.distance || (info.distance == new_info.distance && info.layer <= new_info.layer);
