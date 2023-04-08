@@ -30,7 +30,7 @@ public:
     ~ShadowmapPass();
 
 
-    void updateRenderList(const Frustum& culling);
+    void updateRenderList(const Frustum& culling, const float2& depthRange);
     void execute(uint width, uint height);
 
     void debugDraw();
@@ -40,7 +40,7 @@ public:
     const RenderList& getRenderList() const { return objects; }
 
 private:
-    void updateFrustum(const Frustum& culling);
+    void updateFrustum(const Frustum& culling, const float2& depthRange);
     void createFramebuffer(uint width, uint height);
     void createProgram();
     void updateCameraUBO();

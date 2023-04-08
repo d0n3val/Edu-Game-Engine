@@ -474,6 +474,12 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
             module->SetFloatValue(ModuleHints::SHADOW_BIAS, bias);
         }
 
+        float slopebias = module->GetFloatValue(ModuleHints::SHADOW_SLOPEBIAS);
+        if(ImGui::InputFloat("Shadow slope bias", &slopebias, 0.001f, 0.1f, "%.5f"))
+        {
+            module->SetFloatValue(ModuleHints::SHADOW_SLOPEBIAS, slopebias);
+        }
+
 		ImGui::Separator();
 
         float2 cascade0_depth = module->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH);

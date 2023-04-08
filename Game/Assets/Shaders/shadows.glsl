@@ -17,6 +17,7 @@ layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2D shadow_map[NUM_CASCADES]
 layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj[NUM_CASCADES];
 
 layout(location=SHADOW_BIAS_LOCATION) uniform float shadow_bias;
+layout(location=SHADOW_SLOPEBIAS_LOCATION) uniform float shadow_slopebias;
 
 struct ShadowData
 {
@@ -30,6 +31,9 @@ float computeShadow(in vec3 position)
         vec4 coord = shadowViewProj[i]*vec4(position, 1.0);
         coord.xyz /= coord.w;
         coord.xy = coord.xy*0.5+0.5;
+
+        float m = max(dFdx(coord.z), dFdy(coord.z));
+        float bias = m*shadow_slopebias+shadow_bias;
 
         if(coord.x >= 0.0 && coord.x <= 1.0 && 
            coord.y >= 0.0 && coord.y <= 1.0 &&
@@ -49,14 +53,14 @@ float computeShadow(in vec3 position)
                 for (int x = -1 ; x <= 1; x++) 
                 {
                     vec2 offsets = vec2(x * xOffset, y * yOffset);
-                    shadow_factor += texture(shadow_map[i], vec3(coord.xy+offsets, coord.z-shadow_bias));
+                    shadow_factor += texture(shadow_map[i], vec3(coord.xy+offsets, coord.z-bias));
                 }
             }
 
             return shadow_factor/9.0;
 #else     
             float mapDepth = texture(shadow_map[i], coord.xy).r;
-            if(coord.z > mapDepth+shadow_bias)
+            if(coord.z > mapDepth+bias)
             {
                 return 0.0;
             }
@@ -83,6 +87,7 @@ layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2DShadow shadow_map;
 layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2D shadow_map;
 #endif 
 layout(location=SHADOW_BIAS_LOCATION) uniform float shadow_bias;
+layout(location=SHADOW_SLOPEBIAS_LOCATION) uniform float shadow_slopebias;
 
 layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj;
 
@@ -92,6 +97,8 @@ float computeShadow(in vec3 position)
     coord.xyz /= coord.w;
     coord.xy = coord.xy*0.5+0.5;
 
+    float m = max(abs(dFdx(coord.z)), abs(dFdy(coord.z)));
+    float bias = m*shadow_slopebias+shadow_bias;
 
     if(coord.x >= 0.0 && coord.x <= 1.0 && 
        coord.y >= 0.0 && coord.y <= 1.0 &&
@@ -110,14 +117,14 @@ float computeShadow(in vec3 position)
             for (int x = -1 ; x <= 1; x++) 
             {
                 vec2 offsets = vec2(x * xOffset, y * yOffset);
-                shadow_factor += texture(shadow_map, vec3(coord.xy+offsets, coord.z-shadow_bias));
+                shadow_factor += texture(shadow_map, vec3(coord.xy+offsets, coord.z-bias));
             }
         }
 
         return shadow_factor/9.0;
 #else     
         float mapDepth = texture(shadow_map, coord.xy).r;
-        if(coord.z > mapDepth+shadow_bias)
+        if(coord.z > mapDepth+bias)
         {
             return 0.0;
         }

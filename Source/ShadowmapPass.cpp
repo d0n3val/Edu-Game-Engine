@@ -37,12 +37,14 @@ ShadowmapPass::~ShadowmapPass()
 
 void ShadowmapPass::execute(uint width, uint height)
 {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "ShadowmapPass");
     createFramebuffer(width, height);
     createProgram();
 
     updateCameraUBO();
 
     render();
+    glPopDebugGroup();
 }
 
 void ShadowmapPass::debugDraw()
@@ -58,12 +60,38 @@ void ShadowmapPass::debugDraw()
     dd::sphere(sphereCenter, dd::colors::AntiqueWhite, sphereRadius);
 }
 
-void ShadowmapPass::updateFrustum(const Frustum& culling)
+void ShadowmapPass::updateFrustum(const Frustum& culling, const float2& depthRange)
 {
     float3 corner[8];
 
-    culling.GetCornerPoints(corner);
-    sphereCenter = culling.CenterPoint();
+    float range = culling.farPlaneDistance - culling.nearPlaneDistance;
+
+    Frustum newFrustum = culling;
+
+    // From: https://ogldev.org/www/tutorial46/tutorial46.html
+
+    float n_plus_f = culling.nearPlaneDistance + culling.farPlaneDistance;
+    float n_minus_f = culling.nearPlaneDistance - culling.farPlaneDistance;
+    float nf = culling.nearPlaneDistance * culling.farPlaneDistance;
+
+    float T = n_plus_f / n_minus_f;
+    float S = 2.0f * nf / n_minus_f;
+
+    float4 pos = float4(0.0f, 0.0f, -100.0f, 1.0f);
+    
+    //depth = (Z* T + S) / (-Z) ;
+    //- depth* Z = Z * T + S;
+    //Z* (-T - depth) = S
+    //    Z = -S / (T + depth);
+    // z are negative in view space so distance => Dist = S/(T+depth)
+    
+    float newNear = S / (T + depthRange[0]);
+    float newFar = S / (T + depthRange[1]);
+
+    newFrustum.nearPlaneDistance = newNear;
+    newFrustum.farPlaneDistance = newFar;
+    newFrustum.GetCornerPoints(corner);
+    sphereCenter = newFrustum.CenterPoint();
 
     sphereRadius = 0.0f;
 
@@ -173,9 +201,9 @@ void ShadowmapPass::updateCameraUBO()
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
 }
 
-void ShadowmapPass::updateRenderList(const Frustum& culling)
+void ShadowmapPass::updateRenderList(const Frustum& culling, const float2& depthRange)
 {
-    updateFrustum(culling);
+    updateFrustum(culling, depthRange);
 
     Plane obbPlanes[6];
     lightOBB.GetFacePlanes(obbPlanes);

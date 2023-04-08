@@ -264,6 +264,7 @@
     <ClInclude Include="DeferredResolvePass.h" />
     <ClInclude Include="DeferredResolveProxy.h" />
     <ClInclude Include="DepthPrepass.h" />
+    <ClInclude Include="DepthRangePass.h" />
     <ClInclude Include="DirLight.h" />
     <ClInclude Include="dxgi1_4.h" />
     <ClInclude Include="Event.h" />
@@ -459,6 +460,7 @@
     <ClCompile Include="DeferredResolvePass.cpp" />
     <ClCompile Include="DeferredResolveProxy.cpp" />
     <ClCompile Include="DepthPrepass.cpp" />
+    <ClCompile Include="DepthRangePass.cpp" />
     <ClCompile Include="DirLight.cpp" />
     <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="ForwardPass.cpp" />

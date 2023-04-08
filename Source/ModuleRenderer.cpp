@@ -17,6 +17,7 @@
 #include "FogPass.h"
 #include "LinePass.h"
 #include "ParticlePass.h"
+#include "DepthRangePass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -73,6 +74,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     fogPass = std::make_unique<FogPass>();
     linePass = std::make_unique<LinePass>();
     particlePass = std::make_unique<ParticlePass>();
+    depthRangePass = std::make_unique<DepthRangePass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -82,62 +84,11 @@ bool ModuleRenderer::Init(Config* config /*= nullptr*/)
     LoadDefaultShaders();
     postProcess->Init();
 
-    for(uint i=0; i< CASCADE_COUNT; ++i)
-    {
-        glGenFramebuffers(1, &cascades[i].fbo);
-        glGenFramebuffers(1, &cascades[i].sq_fbo);
-        glGenFramebuffers(1, &cascades[i].blur_fbo_0);
-        glGenFramebuffers(1, &cascades[i].blur_fbo_1);
-    }
-
     return true;
 }
 
 ModuleRenderer::~ModuleRenderer()
 {
-    for(uint i=0; i< CASCADE_COUNT; ++i)
-    {
-        if(cascades[i].fbo != 0)
-        {
-            glDeleteFramebuffers(1, &cascades[i].fbo);
-        }
-
-        if(cascades[i].tex != 0)
-        {
-            glDeleteTextures(1, &cascades[i].tex);
-        }
-
-        if(cascades[i].sq_fbo != 0)
-        {
-            glDeleteFramebuffers(1, &cascades[i].sq_fbo);
-        }
-
-        if(cascades[i].sq_tex != 0)
-        {
-            glDeleteTextures(1, &cascades[i].sq_tex);
-        }
-
-        if(cascades[i].blur_fbo_0 != 0)
-        {
-            glDeleteFramebuffers(1, &cascades[i].blur_fbo_0);
-        }
-
-        if(cascades[i].blur_tex_0 != 0)
-        {
-            glDeleteTextures(1, &cascades[i].blur_tex_0);
-        }
-
-        if(cascades[i].blur_fbo_1 != 0)
-        {
-            glDeleteFramebuffers(1, &cascades[i].blur_fbo_1);
-        }
-
-        if(cascades[i].blur_tex_1 != 0)
-        {
-            glDeleteTextures(1, &cascades[i].blur_tex_1);
-        }
-    }
-
 }
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
@@ -164,7 +115,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     }
     else
     {
-        shadowmapPass->updateRenderList(culling->frustum);
+        shadowmapPass->updateRenderList(culling->frustum, float2(-1.0f, 1.0f));
         batch_manager->MarkForUpdate(shadowmapPass->getRenderList().GetOpaques());
         batch_manager->MarkForUpdate(shadowmapPass->getRenderList().GetTransparents());
     }
@@ -204,12 +155,15 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     // Deferred
     exportGBuffer->execute(render_list, width, height);
 
+    depthRangePass->execute(exportGBuffer->getDepth(), width, height);
+
     if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
     {
         cascadeShadowPass->execute();
     }
     else
     {
+        shadowmapPass->updateRenderList(culling->frustum, depthRangePass->getMinMaxDepth());
         shadowmapPass->execute( 4096, 4096);
     }
 
@@ -454,102 +408,6 @@ void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float
     }
 }
 
-void ModuleRenderer::ComputeDirLightShadowVolume(ComponentCamera* camera, uint index)
-{
-    float2 depth(0, 0);
-
-    switch(index)
-    {
-        case 2:
-            depth.x = App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH).y+
-                      App->hints->GetFloatValue(ModuleHints::SHADOW_CASCADE_1_DEPTH);
-            depth.y = depth.x+App->hints->GetFloatValue(ModuleHints::SHADOW_CASCADE_2_DEPTH);
-            break;
-        case 1:
-            depth.x = App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH).y;
-            depth.y += depth.x+App->hints->GetFloatValue(ModuleHints::SHADOW_CASCADE_1_DEPTH);
-            break;
-        case 0:
-            depth = App->hints->GetFloat2Value(ModuleHints::SHADOW_CASCADE_0_DEPTH);
-            break;
-    }
-
-    const DirLight* light = App->level->GetLightManager()->GetDirLight();
-
-	if (light == nullptr)
-    {
-        cascades[index].proj = float4x4::identity;
-        cascades[index].view = float4x4::identity;
-    }
-    else
-	{
-        float3 front        = light->GetDir();
-        float3 up           = light->GetUp();
-        Quat light_rotation = Quat::LookAt(-float3::unitZ, front, float3::unitY, up); 
-
-        cascades[index].casters.clear();
-        cascades[index].frustum = camera->frustum;
-        cascades[index].frustum.nearPlaneDistance = depth[0];
-        cascades[index].frustum.farPlaneDistance = depth[1];
-
-        CalcLightCameraBBox(light_rotation, camera, depth[0], depth[1], cascades[index].aabb);
-        CalcLightObjectsBBox(light_rotation, front, cascades[index].aabb, cascades[index].casters);
-
-        cascades[index].world_bb = cascades[index].aabb.Transform(light_rotation);
-        float3 center = cascades[index].aabb.CenterPoint();
-
-        // \note: Orthographic projection is invalid z [0..1] like DirectX
-        Frustum frustum; 
-        frustum.type               = FrustumType::OrthographicFrustum;
-        frustum.pos                = light_rotation.Transform(float3(center.x, center.y, cascades[index].aabb.maxPoint.z));
-        frustum.front              = front;
-        frustum.up                 = up;
-        frustum.nearPlaneDistance  = 0.0f;
-        frustum.farPlaneDistance   = (cascades[index].aabb.maxPoint.z - cascades[index].aabb.minPoint.z);
-        frustum.orthographicWidth  = (cascades[index].aabb.maxPoint.x - cascades[index].aabb.minPoint.x);
-        frustum.orthographicHeight = (cascades[index].aabb.maxPoint.y - cascades[index].aabb.minPoint.y);
-
-        //float4x4 persp_mtx = ComputePerspShadowMtx(camera->GetPos(), camera->GetFront(), front, frustum.ViewMatrix().RotatePart());
-
-        /*
-        cascades[index].proj = SetOrtho(-frustum.orthographicWidth/2, frustum.orthographicWidth/2,
-                                        -frustum.orthographicHeight/2, frustum.orthographicHeight/2, 
-                                        frustum.nearPlaneDistance, frustum.farPlaneDistance);*/
-
-        cascades[index].proj = frustum.ProjectionMatrix();
-        cascades[index].view = frustum.ViewMatrix();
-    }
-}
-
-float4x4 ModuleRenderer::ComputePerspShadowMtx(const float3& view_pos, const float3& view_dir, const float3& light_dir, const float3x3& light_view)
-{
-    // Apply gl frustum
-    
-    float3 left_dir = light_dir.Cross(view_dir);
-    float3 up_dir = left_dir.Cross(light_dir).Normalized();
-    
-    float4x4 view_transform = float4x4::LookAt(-float3::unitZ, light_dir, float3::unitY, up_dir);
-    float4x4 warp = float4x4::identity;
-    float _far = 20.0f;
-    float _near = 2.0f;
-
-    warp.At(1, 1) = (_far + _near) / (_far - _near);
-    warp.At(1, 3) = -2.0f * _far * _near / (_far - _near);
-    warp.At(3, 1) = 1.0f;
-    warp.At(3, 3) = 0.0f;
-
-    float3 f = view_pos; // -(2.0f * up_dir);
-
-    view_transform.SetTranslatePart(float3(f.Dot(view_transform.Row3(0)), f.Dot(view_transform.Row3(1)), -f.Dot(view_transform.Row3(2))));
-
-    return warp*view_transform;
-
-    //return SetFrustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 20.0f)*float4x4::LookAt(-float3::unitZ, light_dir, float3::unitY, up_dir);
-    //persp_mtx = float4x4::LookAt(-float3::unitZ, view_dir, float3::unitY, light_dir);
-    
-    //persp_mtx.SetTranslatePart(-view_dir*8.0f);
-}
-
 float4x4 ModuleRenderer::SetFrustum(float left, float right, float bottom, float top, float _near, float _far)
 {
     float rl = right-left;
@@ -582,175 +440,6 @@ float4x4 ModuleRenderer::SetOrtho(float left, float right, float bottom, float t
     projection.SetRow(3, math::float4(tx, ty, tz, 1.0f));
 
     return projection;
-}
-
-void ModuleRenderer::CalcLightCameraBBox(const Quat& light_rotation, const ComponentCamera* camera, float near_distance, float far_distance, AABB& aabb)
-{
-    float3 camera_points[8];
-    float3 light_points[8];
-
-    aabb.SetNegativeInfinity();
-
-    float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
-
-    Frustum f = camera->frustum;
-    f.farPlaneDistance = far_distance;
-    f.nearPlaneDistance = near_distance;
-    f.GetCornerPoints(camera_points);
-    std::swap(camera_points[2], camera_points[5]);
-    std::swap(camera_points[3], camera_points[4]);
-    std::swap(camera_points[4], camera_points[5]);
-    std::swap(camera_points[6], camera_points[7]);
-
-    for(uint i=0; i< 8; ++i)
-    {
-        light_points[i] = light_mat.TransformPos(camera_points[i]);
-    }
-
-    aabb.Enclose(light_points, 8);
-}
-
-void ModuleRenderer::CalcLightObjectsBBox(const float4x4& light_mat, const AABB& camera_aabb, AABB& aabb, NodeList& casters, const NodeList& objects)
-{
-    for(const TRenderInfo& render_info : objects)
-    {
-        if(render_info.mesh->CastShadows())
-        {
-			render_info.go->RecalculateBoundingBox();
-            AABB bbox = render_info.go->GetLocalBBox();
-
-            if(bbox.IsFinite())
-            {
-                float4x4 transform = light_mat*render_info.go->GetGlobalTransformation();
-
-                bbox.TransformAsAABB(transform);
-
-                bbox.Scale(bbox.CenterPoint(), 1.5f);
-
-                if(camera_aabb.Intersects(bbox))
-                {
-                    aabb.Enclose(bbox);
-                    casters.push_back(render_info);
-                }
-            }
-        }
-    }
-}
-
-void ModuleRenderer::CalcLightObjectsBBox(const Quat& light_rotation, const float3& light_dir, AABB& aabb, NodeList& casters)
-{
-    float4x4 light_mat = light_rotation.Inverted().ToFloat3x3();
-    AABB camera_aabb = aabb;
-    AABB big_camera_aabb = aabb;
-	//camera_aabb.maxPoint.z = FLOAT_INF;
-    aabb.SetNegativeInfinity();
-
-
-    // Make camera frustum bigger in light direction
-
-    static const float expand_amount = 30.0f;
-
-    for (uint i = 0; i < 3; ++i)
-    {
-        if (light_dir[i] > 0.0f)
-            big_camera_aabb.minPoint[i] -= expand_amount;
-        else if (light_dir[i] < 0.0f)
-            big_camera_aabb.maxPoint[i] += expand_amount;
-    }
-
-    CalcLightObjectsBBox(light_mat, big_camera_aabb, aabb, casters, render_list.GetOpaques());
-    CalcLightObjectsBBox(light_mat, big_camera_aabb, aabb, casters, render_list.GetTransparents());
-
-	aabb = aabb.Intersection(camera_aabb);
-
-    // \todo: for transparents
-
-    // \todo: 
-    // En una situaci�n real faltaria meter objetos que, estando fuera del frustum estan dentro de los dos planos laterales de volumen ortogonal en
-    // direcci�n a la luz. Estos objetos, a pesar de no estar en el frustum, prodr�an arrojar sombras sobre otros que si lo est�n.
-    // Ojo!!!!!!!!!!!!!!!
-}
-
-void ModuleRenderer::GenerateShadowFBO(ShadowMap& map, unsigned width, unsigned height)
-{
-    if(width != map.width || height != map.height)
-    {
-        if(map.tex != 0)
-        {
-            glDeleteTextures(1, &map.tex);
-        }
-
-        if(width != 0 && height != 0)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, map.fbo);
-            glGenTextures(1, &map.tex);
-            glBindTexture(GL_TEXTURE_2D, map.tex);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, map.tex, 0);
-
-            glDrawBuffer(GL_NONE);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, map.sq_fbo);
-            glGenTextures(1, &map.sq_tex);
-            glBindTexture(GL_TEXTURE_2D, map.sq_tex);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.sq_tex, 0);
-
-            glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, map.blur_fbo_0);
-            glGenTextures(1, &map.blur_tex_0);
-            glBindTexture(GL_TEXTURE_2D, map.blur_tex_0);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.blur_tex_0, 0);
-
-            glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, map.blur_fbo_1);
-            glGenTextures(1, &map.blur_tex_1);
-            glBindTexture(GL_TEXTURE_2D, map.blur_tex_1);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, map.blur_tex_1, 0);
-
-            glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
-
-		map.width  = width;
-		map.height = height;
-    }
 }
 
 void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameBuffer)

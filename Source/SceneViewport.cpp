@@ -51,6 +51,8 @@
 #undef max
 #endif 
 
+const char* SceneViewport::displayNames[eDisplayCount] = { "Render", "Albedo", "Normals"};
+
 SceneViewport::SceneViewport()
 {        
     // first row ==> positions, second row ==> uv�s
@@ -278,24 +280,6 @@ void SceneViewport::ShowTexture()
         }
 
     }
-    else
-    {
-        
-        /*
-        ImGui::GetWindowDrawList()->AddImage(
-            (ImTextureID)App->renderer->GetDepthPrepass()->getPositionTexture()->Id(),
-            ImVec2(screenPos),
-            ImVec2(screenPos.x + fb_width*0.4f, screenPos.y + fb_height*0.4f),
-            ImVec2(0, 1), ImVec2(1, 0));
-            
-        
-        ImGui::GetWindowDrawList()->AddImage(
-            (ImTextureID)App->renderer->GetScreenSpaceAO()->getResult()->Id(),
-            ImVec2(screenPos),
-            ImVec2(screenPos.x + fb_width , screenPos.y + fb_height ),
-            ImVec2(0, 1), ImVec2(1, 0));
-            */
-    }
 
 }
 
@@ -429,6 +413,13 @@ void SceneViewport::DrawQuickBar(ComponentCamera* camera)
                 camera->frustum.farPlaneDistance *= adapt;
             }
         }
+    }
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+    if (ImGui::BeginChild("DisplayCanvas", ImVec2(245, 38), true, ImGuiWindowFlags_NoMove))
+    {
+        ImGui::Combo("Display", &displayIdx, displayNames, sizeof(displayNames) / (sizeof(const char*)));
     }
     ImGui::EndChild();
 

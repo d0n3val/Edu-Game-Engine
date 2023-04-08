@@ -123,12 +123,14 @@ void DeferredResolvePass::bindShadows()
         }
 
         program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+        program->BindUniform(SHADOW_SLOPEBIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_SLOPEBIAS));
     }
     else
     {
         ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
         program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
         program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+        program->BindUniform(SHADOW_SLOPEBIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_SLOPEBIAS));
         shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
     }
 }

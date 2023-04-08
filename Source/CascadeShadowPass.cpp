@@ -41,7 +41,7 @@ void CascadeShadowPass::updateRenderList(const Frustum& culling)
         frustum.nearPlaneDistance = depth.x;
         frustum.farPlaneDistance = depth.y;
 
-        cascades[i].updateRenderList(frustum);
+        cascades[i].updateRenderList(frustum, float2(0.0f, 1.0f));
     }
 }
 

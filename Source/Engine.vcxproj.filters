@@ -766,6 +766,9 @@
     <ClInclude Include="ParticlePass.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="DepthRangePass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1384,6 +1387,9 @@
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
     <ClCompile Include="ParticlePass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthRangePass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>

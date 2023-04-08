@@ -679,6 +679,10 @@ Shader::Shader(unsigned type, const char* path, const char** defines, unsigned c
             free(data);
         }
 	}
+    else
+    {
+        error = "File not found";
+    }
 
     if(!compiled)
     {

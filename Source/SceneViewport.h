@@ -109,6 +109,17 @@ private:
     std::unique_ptr<Buffer>      grid_ibo;
     std::unique_ptr<VertexArray> grid_vao;
 
+    enum EDisplayViews
+    {
+        eDisplayRender = 0,
+        eDisplayAlbedo,
+        eDisplayNormals,
+        eDisplayCount
+    };
+
+    int displayIdx = 0;
+    static const char* displayNames[eDisplayCount];
+
 };
 
 #endif /* _VIEWPORT_H_ */

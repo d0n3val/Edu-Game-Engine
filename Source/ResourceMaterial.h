@@ -30,8 +30,8 @@ private:
     typedef std::unique_ptr<Buffer> BufferPtr;
 
     float4      diffuse_color          = float4::one;
-    float3      specular_color         = float4::one;
-    float3      emissive_color         = float4::zero;
+    float3      specular_color         = float3::one;
+    float3      emissive_color         = float3::zero;
     float       emissive_intensity     = 1.0;
     UID         textures[TextureCount] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float       smoothness             = 1.0f;

@@ -64,17 +64,20 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[SHOW_SHADOW_CLIPPING].type              = TYPE_BOOL; 
     hints[SHOW_SHADOW_CLIPPING].value.bvalue      = false;
 
-    hints[ENABLE_CASCADE_SHADOW].type          = TYPE_BOOL; 
-    hints[ENABLE_CASCADE_SHADOW].value.bvalue  = true;
+    hints[ENABLE_CASCADE_SHADOW].type             = TYPE_BOOL; 
+    hints[ENABLE_CASCADE_SHADOW].value.bvalue     = true;
 
-    hints[UPDATE_SHADOW_VOLUME].type                 = TYPE_BOOL; 
-    hints[UPDATE_SHADOW_VOLUME].value.bvalue         = true;
+    hints[UPDATE_SHADOW_VOLUME].type              = TYPE_BOOL; 
+    hints[UPDATE_SHADOW_VOLUME].value.bvalue      = true;
 
-    hints[SHOW_SHADOW_MAP].type                     = TYPE_BOOL; 
-    hints[SHOW_SHADOW_MAP].value.bvalue             = false;
+    hints[SHOW_SHADOW_MAP].type                   = TYPE_BOOL; 
+    hints[SHOW_SHADOW_MAP].value.bvalue           = false;
 
     hints[SHADOW_BIAS].type                       = TYPE_FLOAT;
     hints[SHADOW_BIAS].value.fvalue               = 0.05f;
+
+    hints[SHADOW_SLOPEBIAS].type                  = TYPE_FLOAT;
+    hints[SHADOW_SLOPEBIAS].value.fvalue          = 0.05f;
 
     hints[SHADOW_CASCADE_0_DEPTH].type            = TYPE_FLOAT2;
     SetFloat2Value(SHADOW_CASCADE_0_DEPTH, float2(0.01f, 15.0f));
@@ -167,6 +170,7 @@ void ModuleHints::Save(Config* config) const
     config->AddInt("Shadow pcf size", GetIntValue(SHADOW_PCF_SIZE));
 
     config->AddFloat("Shadow bias", hints[SHADOW_BIAS].value.fvalue);
+    config->AddFloat("Shadow slope bias", hints[SHADOW_SLOPEBIAS].value.fvalue);
     config->AddFloat("Metric proprotion", hints[METRIC_PROPORTION].value.fvalue);
     config->AddFloat("Fresnel", hints[ENABLE_FRESNEL].value.bvalue);
 
@@ -203,6 +207,7 @@ bool ModuleHints::Init(Config* config)
     hints[SHOW_SHADOW_MAP].value.bvalue = config->GetBool("Show shadow map", true);
 
     hints[SHADOW_BIAS].value.fvalue = config->GetFloat("Shadow bias", 0.05f);
+    hints[SHADOW_SLOPEBIAS].value.fvalue = config->GetFloat("Shadow slope bias", 0.05f);
     hints[METRIC_PROPORTION].value.fvalue = config->GetFloat("Metric proprotion", 1.0f);
     hints[ENABLE_FRESNEL].value.bvalue = config->GetBool("Fresnel", true);
 
