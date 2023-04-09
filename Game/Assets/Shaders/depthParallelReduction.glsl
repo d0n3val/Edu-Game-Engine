@@ -3,10 +3,8 @@
 
 #include "/shaders/LocationsAndBindings.h"
 
-#define KERNEL_SIZE 32  
-
 uniform layout(binding=DEPTH_INTEXTURE_BINDING) sampler2D inTexture;
-uniform layout(binding=DEPTH_OUTIMAGE_BINDING, rg32f) writeonly image2D outImage; 
+uniform layout(binding=DEPTH_OUTIMAGE_BINDING, rg32f) restrict writeonly image2D outImage; 
 uniform layout(location=DEPTH_WIDTH_LOCATION) int inWidth;
 uniform layout(location=DEPTH_HEIGHT_LOCATION) int inHeight;
 
@@ -20,36 +18,41 @@ layout(local_size_x = DEPTHREDUCTION_GROUP_WIDTH, local_size_y = DEPTHREDUCTION_
 #define GETMAXCHANNEL(color) color.g
 #endif 
 
+shared vec2 values[gl_WorkGroupSize.x*gl_WorkGroupSize.y];
+
 void main()
 {
     // ensure work item is not out of work domain
-    if(gl_GlobalInvocationID.x < (inWidth+(KERNEL_SIZE-1))/KERNEL_SIZE && gl_GlobalInvocationID.y < (inHeight+(KERNEL_SIZE-1))/KERNEL_SIZE)
+    if(gl_GlobalInvocationID.x < inWidth && gl_GlobalInvocationID.y < inHeight)
     {
-        ivec2 outCoord = ivec2(gl_GlobalInvocationID.xy);
-        ivec2 inCoord  = outCoord*KERNEL_SIZE;
-        ivec2 clampMax = ivec2(inWidth-1, inHeight-1);
+        ivec2 inCoord = ivec2(gl_GlobalInvocationID.xy);
+        vec4 value    = texelFetch(inTexture, inCoord, 0);
 
-        vec4 value = texelFetchOffset(inTexture, inCoord, 0, ivec2(0, 0));
-        float minValue = GETMINCHANNEL(value);
         float maxValue = GETMAXCHANNEL(value);
+        if(maxValue == 1.0) maxValue = 0.0;
 
-        for(int x = 0;  x < KERNEL_SIZE; ++x)
+        values[gl_LocalInvocationIndex] = vec2(GETMINCHANNEL(value), maxValue);
+    }
+    else
+    {
+        values[gl_LocalInvocationIndex] = vec2(1.0, 0.0);
+    }
+
+    memoryBarrierShared(); // ensure memory is visible
+    barrier(); // ensure all barriers arrived to here
+
+    if(gl_LocalInvocationIndex == 0)
+    {
+        float minValue = 1.0;
+        float maxValue = 0.0;
+
+        int totalSize = int(gl_WorkGroupSize.x*gl_WorkGroupSize.y);
+        for(int i=0; i< totalSize; ++i)
         {
-            for(int y=0; y < KERNEL_SIZE; ++y)
-            {
-                ivec2 coord = min(inCoord+ivec2(x, y), clampMax);
-                value = texelFetch(inTexture, coord, 0);
-
-                minValue = min(GETMINCHANNEL(value), minValue);
-
-                // avoid 1.0 max (corresponding to skybox)
-                float maxChannel = GETMAXCHANNEL(value);
-                if(maxValue == 1.0) maxValue = maxChannel;
-                if(maxChannel != 1.0) maxValue = max(GETMAXCHANNEL(value), maxValue);
-
-                imageStore(outImage, outCoord, vec4(minValue, maxValue, 0.0, 0.0));
-            }
+            minValue = min(minValue, values[i].x);
+            maxValue = max(maxValue, values[i].y);
         }
-        
+
+        imageStore(outImage, ivec2(gl_WorkGroupID.xy), vec4(minValue, maxValue, 0.0, 0.0));
     }
 }

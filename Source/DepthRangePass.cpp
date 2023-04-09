@@ -9,8 +9,6 @@
 
 #include <algorithm>
 
-#define KERNEL_SIZE 32
-
 DepthRangePass::DepthRangePass()
 {
 }
@@ -27,37 +25,31 @@ void DepthRangePass::execute(Texture *depthBuffer, uint width, uint height)
 
     // Parallel reduction 
 
-    int reductionWidth = int((width+(KERNEL_SIZE-1))/KERNEL_SIZE);
-    int reductionHeight = int((height+(KERNEL_SIZE-1))/KERNEL_SIZE);
-
     programRed->Use();
     depthBuffer->Bind(DEPTH_INTEXTURE_BINDING);
     texture0->BindImage(DEPTH_OUTIMAGE_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_RG32F);
     programRed->BindUniformFromName("inWidth", int(width));
     programRed->BindUniformFromName("inHeight", int(height));
 
-    uint numGroupsX = (reductionWidth + (DEPTHREDUCTION_GROUP_WIDTH - 1)) / DEPTHREDUCTION_GROUP_WIDTH;
-    uint numGroupsY = (reductionHeight + (DEPTHREDUCTION_GROUP_HEIGHT - 1)) / DEPTHREDUCTION_GROUP_HEIGHT;
+    uint numGroupsX = (width + (DEPTHREDUCTION_GROUP_WIDTH - 1)) / DEPTHREDUCTION_GROUP_WIDTH;
+    uint numGroupsY = (height + (DEPTHREDUCTION_GROUP_HEIGHT - 1)) / DEPTHREDUCTION_GROUP_HEIGHT;
     glDispatchCompute(numGroupsX, numGroupsY, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     
     Texture* srcTexture = texture0.get();
     Texture* dstTexture = texture1.get();
-    while(reductionWidth > 1 || reductionHeight > 1)
+    while(numGroupsX > 1 || numGroupsY > 1)
     {
 
         programRedGreen->Use();
         srcTexture->Bind(DEPTH_INTEXTURE_BINDING);
         dstTexture->BindImage(DEPTH_OUTIMAGE_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_RG32F);
-        programRedGreen->BindUniformFromName("inWidth", reductionWidth);
-        programRedGreen->BindUniformFromName("inHeight", reductionHeight);
+        programRedGreen->BindUniformFromName("inWidth", int(numGroupsX));
+        programRedGreen->BindUniformFromName("inHeight", int(numGroupsY));
 
-        reductionWidth  = int((reductionWidth + (KERNEL_SIZE-1)) / KERNEL_SIZE);
-        reductionHeight = int((reductionHeight + (KERNEL_SIZE-1)) / KERNEL_SIZE);
-
-        numGroupsX = (reductionWidth + (DEPTHREDUCTION_GROUP_WIDTH - 1)) / DEPTHREDUCTION_GROUP_WIDTH;
-        numGroupsY = (reductionHeight + (DEPTHREDUCTION_GROUP_HEIGHT - 1)) / DEPTHREDUCTION_GROUP_HEIGHT;
+        numGroupsX = (numGroupsX + (DEPTHREDUCTION_GROUP_WIDTH - 1)) / DEPTHREDUCTION_GROUP_WIDTH;
+        numGroupsY = (numGroupsY + (DEPTHREDUCTION_GROUP_HEIGHT - 1)) / DEPTHREDUCTION_GROUP_HEIGHT;
         glDispatchCompute(numGroupsX, numGroupsY, 1);
 
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -65,9 +57,8 @@ void DepthRangePass::execute(Texture *depthBuffer, uint width, uint height)
         std::swap(srcTexture, dstTexture);
     }
     
-    glGetTextureSubImage(srcTexture->Id(), 0, 0, 0, 0, 1, 1, 1, GL_RG, GL_FLOAT, sizeof(float2), reinterpret_cast<void*>(&minMax));
     glPopDebugGroup();
-
+    glGetTextureSubImage(srcTexture->Id(), 0, 0, 0, 0, 1, 1, 1, GL_RG, GL_FLOAT, sizeof(float2), reinterpret_cast<void*>(&minMax));
 }
 
 
