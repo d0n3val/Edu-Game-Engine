@@ -10,6 +10,8 @@
 
 #include "ComponentCamera.h"
 
+#include "GaussianBlur.h"
+
 #include "OGL.h"
 #include "OpenGL.h"
 #include "DebugDraw.h"
@@ -22,12 +24,13 @@
 #undef max
 #endif 
 
+#define VARIANCE
+
 #include <algorithm>
 
 
 ShadowmapPass::ShadowmapPass()
 {
-
 }
 
 ShadowmapPass::~ShadowmapPass()
@@ -44,6 +47,12 @@ void ShadowmapPass::execute(uint width, uint height)
     updateCameraUBO();
 
     render();
+
+#ifdef VARIANCE
+    if(!blur) blur = std::make_unique<GaussianBlur>();
+
+    blur->execute(varianceTex.get(), blurredTex.get(), GL_RG32F, GL_RG, GL_FLOAT, width, height);
+#endif 
     glPopDebugGroup();
 }
 
@@ -77,8 +86,6 @@ void ShadowmapPass::updateFrustum(const Frustum& culling, const float2& depthRan
     float T = n_plus_f / n_minus_f;
     float S = 2.0f * nf / n_minus_f;
 
-    float4 pos = float4(0.0f, 0.0f, -100.0f, 1.0f);
-    
     //depth = (Z* T + S) / (-Z) ;
     //- depth* Z = Z * T + S;
     //Z* (-T - depth) = S
@@ -130,13 +137,20 @@ void ShadowmapPass::createFramebuffer(uint width, uint height)
 
         frameBuffer->ClearAttachments();
 
-        depthTex = std::make_unique<Texture2D>(width, height, GL_DEPTH_COMPONENT16_ARB, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
-
+        depthTex = std::make_unique<Texture2D>(width, height, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+#ifdef VARIANCE
+        varianceTex = std::make_unique<Texture2D>(width, height, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
+        blurredTex = std::make_unique<Texture2D>(width, height, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
+#else
         depthTex->Bind(0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
         depthTex->Unbind(0);
+#endif 
 
+#ifdef VARIANCE
+        frameBuffer->AttachColor(varianceTex.get(), 0, 0);
+#endif 
         frameBuffer->AttachDepthStencil(depthTex.get(), GL_DEPTH_ATTACHMENT);
 
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);

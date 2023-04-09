@@ -35,6 +35,7 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
     program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
     program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS)); 
     shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
+    shadowMap->getVarianceTex()->Bind(VARIANCE_TEX_BINDING);
 
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetSkyBox()->BindIBL();

@@ -43,6 +43,8 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
 
     createResult(internal_format, format, type, width, height);
 
+    float2 invSize(1.0f / width, 1.0f / height);
+
     // first output should be result, second input should be result
 
     frameBufferH->ClearAttachments();
@@ -59,6 +61,7 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
     // horizontal pass
     horizontal->Use();
     input->Bind(GAUSSIAN_BLUR_IMAGE_BINDING);
+    horizontal->BindUniform(GAUSSIAN_BLUR_INVIMAGE_SIZE_LOCATION, invSize);
     vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -68,6 +71,7 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
     // vertical pass
     vertical->Use();
     result->Bind(GAUSSIAN_BLUR_IMAGE_BINDING);
+    vertical->BindUniform(GAUSSIAN_BLUR_INVIMAGE_SIZE_LOCATION, invSize);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     vao->Unbind();
 }

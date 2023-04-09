@@ -4,12 +4,18 @@
 
 layout(early_fragment_tests) in;
 
+#define VARIANCE
+
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/materialDefs.glsl"
 #include "/shaders/vertexDefs.glsl"
 
 in VertexOut fragment;
 in flat int draw_id;
+
+#ifdef VARIANCE
+out vec4 colour;
+#endif 
 
 void main()
 {
@@ -23,4 +29,8 @@ void main()
             discard;
         }
     }
+
+#ifdef VARIANCE
+    colour = vec4(gl_FragCoord.z, gl_FragCoord.z*gl_FragCoord.z, 0.0, 0.0);
+#endif 
 }

@@ -1,7 +1,7 @@
 #ifndef _SHADOWS_GLSL_
 #define _SHADOWS_GLSL_
 
-#define SHADOW_PCF
+//#define SHADOW_PCF
 
 #include "/shaders/LocationsAndBindings.h"
 #include "/shaders/vertexDefs.glsl"
@@ -85,6 +85,7 @@ struct ShadowData
 layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2DShadow shadow_map;
 #else
 layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2D shadow_map;
+layout(binding=VARIANCE_TEX_BINDING) uniform sampler2D variance_map;
 #endif 
 layout(location=SHADOW_BIAS_LOCATION) uniform float shadow_bias;
 layout(location=SHADOW_SLOPEBIAS_LOCATION) uniform float shadow_slopebias;
@@ -123,11 +124,23 @@ float computeShadow(in vec3 position)
 
         return shadow_factor/9.0;
 #else     
+        vec2 moments = texture(variance_map, coord.xy).rg;
+
+        if(coord.z > moments.r)
+        {
+            float variance = max(moments.g - (moments.r*moments.r), 0.00002);
+            float d = moments.r - coord.z;
+            float p_max = variance / (variance + d*d); // factor used to interpolate between ambient and full litted 
+
+            return p_max;
+        }
+/*
         float mapDepth = texture(shadow_map, coord.xy).r;
         if(coord.z > mapDepth+bias)
         {
             return 0.0;
         }
+*/
 
 #endif 
     }

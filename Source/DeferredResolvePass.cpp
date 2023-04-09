@@ -132,6 +132,7 @@ void DeferredResolvePass::bindShadows()
         program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
         program->BindUniform(SHADOW_SLOPEBIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_SLOPEBIAS));
         shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
+        shadowMap->getVarianceTex()->Bind(VARIANCE_TEX_BINDING);
     }
 }
 

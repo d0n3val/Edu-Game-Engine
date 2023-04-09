@@ -7,29 +7,43 @@
 out vec4 color;
 in vec2 uv;
 
-layout(binding = GAUSSIAN_BLUR_IMAGE_BINDING) uniform sampler2D image;
+layout(binding = GAUSSIAN_BLUR_IMAGE_BINDING) uniform sampler2D sourceTexture;
+layout(location = GAUSSIAN_BLUR_INVIMAGE_SIZE_LOCATION ) uniform vec2 invSize;
 
-float weight[3] = float[] (0.38774,	0.24477, 0.06136);
+const int SAMPLE_COUNT = 5;
+
+const float OFFSETS[5] = float[5](
+    -3.365259304013324,
+    -1.4410698177487775,
+    0.4802756349569519,
+    2.402584067538288,
+    4
+);
+
+const float WEIGHTS[5] = float[5](
+    0.13222689205342525,
+    0.2823767989937012,
+    0.3286215336308134,
+    0.20847767275878126,
+    0.04829710256327899
+);
+
+#if HORIZONTAL
+const vec2 blurDirection = vec2(1, 0);
+#else
+const vec2 blurDirection = vec2(0, 1);
+#endif 
 
 void main()
 {
-    vec2 tex_offset = 1.0 / textureSize(image, 0); 
-    vec3 result = texture(image, uv).rgb * weight[0]; // current fragment's contribution
-
-#if HORIZONTAL
-    for(int i = 1; i < 3; ++i)
+    vec4 result = vec4(0.0);
+    for (int i = 0; i < SAMPLE_COUNT; ++i)
     {
-        result += texture(image, uv + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
-        result += texture(image, uv - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+        vec2 offset = blurDirection * OFFSETS[i] *invSize;
+        float weight = WEIGHTS[i];
+        result += texture(sourceTexture, uv + offset) * weight;
     }
-#else
-    for(int i = 1; i < 3; ++i)
-    {
-        result += texture(image, uv + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-        result += texture(image, uv - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-    }
-#endif
-
-    color = vec4(result, 1.0);
+    
+    color = vec4(result.rgb, 1.0);
 }
 

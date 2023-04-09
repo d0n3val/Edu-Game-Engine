@@ -10,20 +10,24 @@ class Framebuffer;
 class Texture2D;
 class Program;
 class Buffer;
+class GaussianBlur;
 
 class ShadowmapPass
 {
-    std::unique_ptr<Framebuffer> frameBuffer;
-    std::unique_ptr<Texture2D>   depthTex;
-    std::unique_ptr<Program>     program;
-    RenderList                   objects;
-    Frustum                      frustum;
-    OBB                          lightOBB;
-    float3                       sphereCenter;
-    float                        sphereRadius;
-    std::unique_ptr<Buffer>      cameraUBO;
-    uint                         fbWidth = 0;
-    uint                         fbHeight = 0;
+    std::unique_ptr<Framebuffer>    frameBuffer;
+    std::unique_ptr<Texture2D>      depthTex;
+    std::unique_ptr<Texture2D>      varianceTex;
+    std::unique_ptr<Texture2D>      blurredTex;
+    std::unique_ptr<Program>        program;
+    std::unique_ptr<GaussianBlur>   blur;
+    RenderList                      objects;
+    Frustum                         frustum;
+    OBB                             lightOBB;
+    float3                          sphereCenter;
+    float                           sphereRadius;
+    std::unique_ptr<Buffer>         cameraUBO;
+    uint                            fbWidth = 0;
+    uint                            fbHeight = 0;
 
 public:
     ShadowmapPass();
@@ -36,6 +40,7 @@ public:
     void debugDraw();
 
     const Texture2D* getDepthTex() const {return depthTex.get();}
+    const Texture2D* getVarianceTex() const {return blurredTex.get(); }
     const Frustum& getFrustum() const {return frustum;}
     const RenderList& getRenderList() const { return objects; }
 
