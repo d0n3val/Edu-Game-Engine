@@ -29,11 +29,11 @@ SkyboxRollout::SkyboxRollout()
     screenshot_fb = std::make_unique<Framebuffer>();
     postprocess_fb = std::make_unique<Framebuffer>();
 
-    screenshotTex  = std::move(std::unique_ptr<Texture2D>(new Texture2D(4, SCREENSHOT_SIZE, SCREENSHOT_SIZE, GL_RGBA16F, true)));
+    screenshotTex  = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
     environmentTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
     diffuseIBLTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
     prefilteredIBLTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
-    screenshotDepthTex = std::make_unique<Texture2D>(4, SCREENSHOT_SIZE, SCREENSHOT_SIZE, GL_DEPTH24_STENCIL8, true);
+    screenshotDepthTex = std::make_unique<Texture2D>(4, SCREENSHOT_SIZE, SCREENSHOT_SIZE, GL_DEPTH_COMPONENT, true);
 
     screenshot_fb->AttachColor(screenshotTex.get());
     screenshot_fb->AttachDepthStencil(screenshotDepthTex.get(), GL_DEPTH_ATTACHMENT);
@@ -121,6 +121,8 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
 
 void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
 {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SkyboxRollout::TakeScreenshot");
+
 	Frustum frustum;
 	frustum.type  = FrustumType::PerspectiveFrustum;
 
@@ -144,7 +146,8 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
 
     screenshot_fb->Bind();
     glViewport(0, 0, SCREENSHOT_SIZE, SCREENSHOT_SIZE);
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     switch(type)
     {
         case Environment:
@@ -167,4 +170,7 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
     assert(postprocess_fb->Check() == GL_FRAMEBUFFER_COMPLETE);
 
     postProcess->Execute(screenshotTex.get(), screenshotDepthTex.get(), postprocess_fb.get(), SCREENSHOT_SIZE, SCREENSHOT_SIZE);
+
+
+    glPopDebugGroup();
 }

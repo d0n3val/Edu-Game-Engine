@@ -582,8 +582,10 @@ bool ModuleTextures::LoadCube(ResourceTexture* resource, const char* files [], c
     std::string sPath(path);
 
     TextureCube* cube = new TextureCube();
+    
     resource->glTexture = std::unique_ptr<TextureCube>(cube);
     resource->textype = ResourceTexture::TextureCube;
+    resource->colorSpace = ResourceTexture::gamma;
 
     bool ret = true;
 
