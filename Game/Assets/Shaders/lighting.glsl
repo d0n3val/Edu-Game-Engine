@@ -262,18 +262,13 @@ vec3 ShadingAmbient(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
     vec3 R           = reflect(-V, pbr.normal);
-    float NdotV      = dot(pbr.normal, V);
+    float NdotV      = max(dot(pbr.normal, V), 0.0);
     float roughness  = Sq(1.0-pbr.smoothness); 
 
-    vec3 indirect = vec3(0.0);
-
-    if(NdotV >= 0.0)
-    {
-        vec3 irradiance = texture(diffuseIBL, pbr.normal).rgb;
-        vec3 radiance   = textureLod(prefilteredIBL, R, roughness*(prefilteredLevels-1)).rgb;
-        vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
-        indirect        = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
-    }
+    vec3 irradiance = texture(diffuseIBL, pbr.normal).rgb;
+    vec3 radiance   = textureLod(prefilteredIBL, R, roughness*(prefilteredLevels-1)).rgb;
+    vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
+    vec3 indirect   = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
 
     float shadow = min(1.0, pbr.shadow+0.25);
 
@@ -388,8 +383,8 @@ vec4 Shading(in PBR pbr)
     color += ShadingQuad(pbr);
     color += ShadingTube(pbr);
 
-    //return vec4(color, pbr.alpha);
-    return vec4(pbr.specular, pbr.alpha);
+    return vec4(color, pbr.alpha);
+    //return vec4(pbr.specular, pbr.alpha);
 }
 
 vec4 ShadingNoPoint(in PBR pbr)
