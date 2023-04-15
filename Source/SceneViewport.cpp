@@ -142,8 +142,6 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 
         ShowTexture();
         DrawGuizmo(camera);
-
-
     }
     ImGui::EndChild();
 }
@@ -756,7 +754,22 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
             float4x4 inv_clip = go_proj * go_view;
             inv_clip.Inverse();
 
-            dd::frustum(inv_clip, dd::colors::Gray);
+
+            float3 nearCenter = go_camera->frustum.NearPlanePos(float2::zero);
+            dd::line(go_camera->frustum.NearPlanePos(float2(-1.0, -1.0)), go_camera->frustum.NearPlanePos(float2(1.0, -1.0)), dd::colors::Blue);
+            dd::line(go_camera->frustum.NearPlanePos(float2(1.0, -1.0)), go_camera->frustum.NearPlanePos(float2(1.0, 1.0)), dd::colors::Blue);
+            dd::line(go_camera->frustum.NearPlanePos(float2(1.0, 1.0)), go_camera->frustum.NearPlanePos(float2(-1.0, 1.0)), dd::colors::Blue);
+            dd::line(go_camera->frustum.NearPlanePos(float2(-1.0, 1.0)), go_camera->frustum.NearPlanePos(float2(-1.0, -1.0)), dd::colors::Blue);
+
+            dd::line(go_camera->frustum.FarPlanePos(float2(-1.0, -1.0)), go_camera->frustum.FarPlanePos(float2(1.0, -1.0)), dd::colors::Green);
+            dd::line(go_camera->frustum.FarPlanePos(float2(1.0, -1.0)), go_camera->frustum.FarPlanePos(float2(1.0, 1.0)), dd::colors::Green);
+            dd::line(go_camera->frustum.FarPlanePos(float2(1.0, 1.0)), go_camera->frustum.FarPlanePos(float2(-1.0, 1.0)), dd::colors::Green);
+            dd::line(go_camera->frustum.FarPlanePos(float2(-1.0, 1.0)), go_camera->frustum.FarPlanePos(float2(-1.0, -1.0)), dd::colors::Green);
+
+            dd::line(go_camera->frustum.NearPlanePos(float2(-1.0, -1.0)), go_camera->frustum.FarPlanePos(float2(-1.0, -1.0)), dd::colors::Gray);
+            dd::line(go_camera->frustum.NearPlanePos(float2(-1.0, 1.0)), go_camera->frustum.FarPlanePos(float2(-1.0, 1.0)), dd::colors::Gray);
+            dd::line(go_camera->frustum.NearPlanePos(float2(1.0, -1.0)), go_camera->frustum.FarPlanePos(float2(1.0, -1.0)), dd::colors::Gray);
+            dd::line(go_camera->frustum.NearPlanePos(float2(1.0, 1.0)), go_camera->frustum.FarPlanePos(float2(1.0, 1.0)), dd::colors::Gray);            
         }
     }
 }

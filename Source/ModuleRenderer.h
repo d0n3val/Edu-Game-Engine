@@ -54,7 +54,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<ParticlePass>         particlePass;
     std::unique_ptr<DepthRangePass>       depthRangePass;
     std::unique_ptr<Buffer>               cameraUBO;
-    std::unique_ptr<Program>              areaProgram;
+    std::unique_ptr<Program>              primitiveProgram;
 
 public:
 
@@ -75,6 +75,8 @@ public:
     ShadowmapPass*      GetShadowmapPass            () const { return shadowmapPass.get(); }
     CascadeShadowPass*  GetCascadeShadowPass        () const { return cascadeShadowPass.get(); }
     Buffer*             GetCameraUBO                () const { return cameraUBO.get(); }
+
+    Program*            GetPrimitivesProgram        () const { return primitiveProgram.get(); }
 
 private:
 

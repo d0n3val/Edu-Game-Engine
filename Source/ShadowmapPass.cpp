@@ -79,12 +79,12 @@ void ShadowmapPass::updateFrustum(const Frustum& culling, const float2& depthRan
 
     // From: https://ogldev.org/www/tutorial46/tutorial46.html
 
-    float n_plus_f = culling.nearPlaneDistance + culling.farPlaneDistance;
-    float n_minus_f = culling.nearPlaneDistance - culling.farPlaneDistance;
+    float n_plus_f = -(culling.nearPlaneDistance + culling.farPlaneDistance);
+    float n_minus_f = -(culling.nearPlaneDistance - culling.farPlaneDistance);
     float nf = culling.nearPlaneDistance * culling.farPlaneDistance;
 
     float T = n_plus_f / n_minus_f;
-    float S = 2.0f * nf / n_minus_f;
+    float S = -2.0f * nf / n_minus_f;
 
     //depth = (Z* T + S) / (-Z) ;
     //- depth* Z = Z * T + S;

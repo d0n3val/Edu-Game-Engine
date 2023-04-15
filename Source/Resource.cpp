@@ -12,7 +12,8 @@ Resource::Resource(UID uid, Resource::Type type) : uid(uid), type(type)
 
 // ---------------------------------------------------------
 Resource::~Resource()
-{}
+{
+}
 Resource::Type Resource::GetType() const
 {
 	return type;

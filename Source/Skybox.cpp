@@ -52,7 +52,7 @@ bool Skybox::Render(const float4x4& proj, const float4x4& view)
     if(cubemap)
     {
         ResourceTexture* res = App->resources->GetTexture(cubemap);
-        if (res && res->GetType() == ResourceTexture::TextureCube)
+        if (res && res->GetTexType() == ResourceTexture::TextureCube)
         {
             utils.RenderSkybox(static_cast<TextureCube*>(res->GetTexture()), proj, view);
 
@@ -93,7 +93,7 @@ void Skybox::SetCubemap(UID uid)
     }
 
     ResourceTexture* res = App->resources->GetTexture(uid);
-    if(res && res->LoadToMemory() && res->GetType() == ResourceTexture::TextureCube)
+    if(res && res->LoadToMemory() && res->GetTexType() == ResourceTexture::TextureCube)
     {      
         cubemap = uid;
     }

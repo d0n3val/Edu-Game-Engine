@@ -687,7 +687,8 @@ bool ModuleResources::LoadDefaultSkybox()
 	skybox = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture, 3));
     skybox->SetColorSpace(ResourceTexture::linear);
     if (App->tex->LoadCube(skybox, files, "Assets/Textures/Cubemaps/"))
-    {
+    {        
+        skybox->loaded++;
 		skybox->file = "*Default Skybox*";
 		skybox->exported_file = "*Default Skybox*";
 		skybox->user_name = "*Default skybox*";

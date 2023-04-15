@@ -10,22 +10,18 @@ in vec2 uv;
 layout(binding = GAUSSIAN_BLUR_IMAGE_BINDING) uniform sampler2D sourceTexture;
 layout(location = GAUSSIAN_BLUR_INVIMAGE_SIZE_LOCATION ) uniform vec2 invSize;
 
-const int SAMPLE_COUNT = 5;
+const int SAMPLE_COUNT = 3;
 
-const float OFFSETS[5] = float[5](
-    -3.365259304013324,
-    -1.4410698177487775,
-    0.4802756349569519,
-    2.402584067538288,
-    4
+const float OFFSETS[3] = float[3](
+    -1.3446745248463534,
+    0.4466722983756714,
+    2
 );
 
-const float WEIGHTS[5] = float[5](
-    0.13222689205342525,
-    0.2823767989937012,
-    0.3286215336308134,
-    0.20847767275878126,
-    0.04829710256327899
+const float WEIGHTS[3] = float[3](
+    0.35564374091247164,
+    0.5217749216739427,
+    0.1225813374135857
 );
 
 #if HORIZONTAL
