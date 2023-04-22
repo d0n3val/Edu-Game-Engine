@@ -3,9 +3,14 @@
 #include "CubemapUtils.h"
 
 #include "Application.h"
+#include "ModuleRenderer.h"
 #include "ModuleResources.h"
 #include "ModulePrograms.h"
+#include "ModuleLevelManager.h"
+#include "IBLData.h"
 #include "ResourceTexture.h"
+
+#include "ComponentCamera.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -73,7 +78,7 @@ CubemapUtils::CubemapUtils()
 {
 }
 
-void CubemapUtils::RenderSkybox(TextureCube* cubeMap, const float4x4& proj, const float4x4& view)
+void CubemapUtils::RenderCubemap(const TextureCube* cubeMap, const float4x4& proj, const float4x4& view)  
 {
     if(!vao) Init();
 
@@ -82,16 +87,13 @@ void CubemapUtils::RenderSkybox(TextureCube* cubeMap, const float4x4& proj, cons
     skybox->BindUniformFromName("proj", proj);
     skybox->BindUniformFromName("view", view);
 
-    //glDepthFunc(GL_ALWAYS);
-    //glDepthMask(GL_TRUE);
-    //glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 6*6);
-    //glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LESS);
 }
 
-void CubemapUtils::RenderSkyboxLod(TextureCube* cubeMap, const float4x4& proj, const float4x4& view, float lod)
+void CubemapUtils::RenderCubemapLod(const TextureCube* cubeMap, const float4x4& proj, const float4x4& view, float lod) 
 {
     if(!vao) Init();
 
@@ -107,7 +109,54 @@ void CubemapUtils::RenderSkyboxLod(TextureCube* cubeMap, const float4x4& proj, c
     glDepthFunc(GL_LESS);
 }
 
-TextureCube* CubemapUtils::DiffuseIBL(TextureCube* texture, uint width, uint height)
+TextureCube* CubemapUtils::LocalIBL(const float3& position, uint width, uint height)
+{
+    ComponentCamera camera(nullptr);
+	camera.frustum.type = FrustumType::PerspectiveFrustum;
+
+	camera.frustum.pos  = position;
+
+	camera.frustum.nearPlaneDistance = 0.1f; // TODO: Change it
+	camera.frustum.farPlaneDistance  = 100.0f; // TODO: change it
+	camera.frustum.verticalFov       = math::pi/2.0f; 
+	camera.frustum.horizontalFov     = math::pi/2.0f; 
+
+    Framebuffer frameBuffer;
+    TextureCube* cubeMap = new TextureCube();
+
+    // initialize each cubemap plane
+    for(uint i=0; i< 6; ++i)
+    {
+        cubeMap->SetData(i, 0, width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
+    }
+
+    // Render each cube plane
+    for(uint i=0; i<6; ++i)
+    {
+        frameBuffer.ClearAttachments();
+        frameBuffer.AttachColor(cubeMap, i, 0, 0);
+        assert(frameBuffer.Check());
+        frameBuffer.Bind();
+        glViewport(0, 0, width, height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        camera.frustum.front = front[i];
+        camera.frustum.up = up[i];
+
+        /*
+        frameBuffer.Bind();
+        App->level->GetSkyBox()->DrawEnvironment(camera.GetProjectionMatrix(), camera.GetViewMatrix());
+        frameBuffer.Unbind();
+        */
+
+        App->renderer->Draw(&camera, &camera, &frameBuffer, width, height);
+    }
+
+    return cubeMap;
+
+}
+
+TextureCube *CubemapUtils::DiffuseIBL(TextureCube *texture, uint width, uint height)
 {
     if (!vao) Init();
 
@@ -234,6 +283,7 @@ TextureCube* CubemapUtils::RenderCube(Program* program, Texture* texture, uint w
     {
         frameBuffer.ClearAttachments();
         frameBuffer.AttachColor(cubeMap, i, 0, 0);
+        assert(frameBuffer.Check());
         frameBuffer.Bind();
         glViewport(0, 0, width, height);
 

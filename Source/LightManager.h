@@ -11,6 +11,7 @@ class Config;
 class QuadLight;
 class SphereLight;
 class TubeLight;
+class LocalIBLLight;
 
 class LightManager
 {
@@ -47,6 +48,13 @@ class LightManager
         float3 position;
         float  radius;
         float4 color;
+    };
+
+    struct IBLLightData
+    {
+        uint64_t diffuse;
+        uint64_t prefiltered;
+        float4   position;
     };
 
     struct PointLightSet
@@ -105,11 +113,21 @@ class LightManager
         SphereLightData spheres[1];
     };
 
+    struct IBLLightSet
+    {
+        int count = 0;
+        int padding0;
+        int padding1;
+        int padding2;
+        IBLLightData ibls[1];
+    };
+
     typedef std::vector<std::unique_ptr<PointLight> > PointLightList;
     typedef std::vector<std::unique_ptr<SpotLight> > SpotLightList;
     typedef std::vector<std::unique_ptr<QuadLight> > QuadLightList;
     typedef std::vector<std::unique_ptr<SphereLight> > SphereLightList;
     typedef std::vector<std::unique_ptr<TubeLight> > TubeLightList;
+    typedef std::vector<std::unique_ptr<LocalIBLLight> > LocalIBLLightList;
 
     std::unique_ptr<DirLight>   directional;
     PointLightList              points;
@@ -117,6 +135,7 @@ class LightManager
     QuadLightList               quads;
     SphereLightList             spheres;
     TubeLightList               tubes;
+    LocalIBLLightList           ibls;
 
     std::unique_ptr<Buffer>     directionalSSBO[2];
     std::unique_ptr<Buffer>     spotLightSSBO[2];
@@ -124,6 +143,7 @@ class LightManager
     std::unique_ptr<Buffer>     sphereLightSSBO[2];
     std::unique_ptr<Buffer>     quadLightSSBO[2];
     std::unique_ptr<Buffer>     tubeLightSSBO[2];
+    std::unique_ptr<Buffer>     iblLightSSBO[2];
    
     DirLightData*               directionalData[2];
     PointLightSet*              pointLightData[2];
@@ -131,18 +151,21 @@ class LightManager
     QuadLightSet*               quadLightData[2];
     SphereLightSet*             sphereLightData[2];
     TubeLightSet*               tubeLightData[2];
+    IBLLightSet*                iblLightData[2];
 
     uint                        pointBufferSize = 0;
     uint                        spotBufferSize = 0;
     uint                        quadBufferSize = 0;
     uint                        sphereBufferSize = 0;
     uint                        tubeBufferSize = 0;
+    uint                        iblBufferSize = 0;
     uint                        frameCount = 0;
     uint                        enabledPointSize = 0;
     uint                        enabledSpotSize = 0;
     uint                        enabledQuadSize = 0;
     uint                        enabledSphereSize = 0;
     uint                        enabledTubeSize = 0;
+    uint                        enablediblSize  = 0;
 public:
 
     LightManager();
@@ -196,4 +219,12 @@ public:
     uint                GetEnabledTubeLights    () const {return enabledTubeSize;}
     const TubeLight*    GetTubeLight            (uint index) const { return tubes[index].get(); }
     TubeLight*          GetTubeLight            (uint index) { return tubes[index].get(); }
+
+
+    uint                 AddLocalIBLLight        ();
+    void                 RemoveLocalIBLLight     (uint index);
+    uint                 GetNumLocalIBLLights    () const {return uint(ibls.size());}
+    uint                 GetEnabledLocalIBLLists () const {return enablediblSize; }
+    const LocalIBLLight* GetLocalIBLLight        (uint index) const {return ibls[index].get(); }
+    LocalIBLLight*       GetLocalIBLLight        (uint index) {return ibls[index].get(); }
 };

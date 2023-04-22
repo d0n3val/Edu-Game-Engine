@@ -20,9 +20,6 @@ ComponentCamera::ComponentCamera(GameObject* container) : Component(container, T
 	frustum.farPlaneDistance = 10000.0f;
 	frustum.verticalFov = DEGTORAD * 60.0f;
 	SetAspectRatio(1.3f);
-
-	background = Color(0.1f, 0.1f, 0.1f, 1.0f);
-	projection_changed = true;
 }
 
 // ---------------------------------------------------------
@@ -32,15 +29,11 @@ ComponentCamera::~ComponentCamera()
 // ---------------------------------------------------------
 void ComponentCamera::OnStart()
 {
-	if (looking_at_uid != 0)
-		looking_at = App->level->Find(looking_at_uid);
 }
 
 // ---------------------------------------------------------
 void ComponentCamera::OnUpdate(float dt)
 {
-	if (looking_at != nullptr)
-		Look(looking_at->GetGlobalPosition());
 }
 
 // ---------------------------------------------------------
@@ -57,8 +50,6 @@ void ComponentCamera::OnDebugDraw(bool selected) const
 // ---------------------------------------------------------
 void ComponentCamera::OnSave(Config& config) const
 {
-	config.AddUInt("Looking At", (looking_at) ? looking_at->GetUID() : 0);
-	config.AddArrayFloat("Background", (float*) &background, 4);
 	config.AddArrayFloat("Frustum", (float*)&frustum.pos.x, 13);
 }
 
@@ -66,11 +57,6 @@ void ComponentCamera::OnSave(Config& config) const
 void ComponentCamera::OnLoad(Config * config)
 {
 	uint looking_at_uid = config->GetUInt("Looking At", 0);
-
-	background.r = config->GetFloat("Background", 0.1f, 0);
-	background.g = config->GetFloat("Background", 0.1f, 1);
-	background.b = config->GetFloat("Background", 0.1f, 2);
-	background.a = config->GetFloat("Background", 1.f, 3);
 
 	frustum.pos.x = config->GetFloat("Frustum", 0.f, 0);
 	frustum.pos.y = config->GetFloat("Frustum", 0.f, 1);
@@ -89,8 +75,6 @@ void ComponentCamera::OnLoad(Config * config)
 
 	frustum.horizontalFov = config->GetFloat("Frustum", 1.f, 11);
 	frustum.verticalFov = config->GetFloat("Frustum", 1.f, 12);
-
-	projection_changed = true;
 }
 
 // -----------------------------------------------------------------
@@ -141,7 +125,6 @@ void ComponentCamera::SetNearPlaneDist(float dist)
 	if (dist > 0.0f && dist < frustum.farPlaneDistance)
 	{
 		frustum.nearPlaneDistance = dist;
-		projection_changed = true;
 	}
 }
 
@@ -151,7 +134,6 @@ void ComponentCamera::SetFarPlaneDist(float dist)
 	if (dist > 0.0f && dist > frustum.nearPlaneDistance)
 	{
 		frustum.farPlaneDistance = dist;
-		projection_changed = true;
 	}
 }
 
@@ -170,7 +152,6 @@ void ComponentCamera::SetAspectRatio(float aspect_ratio)
 	// More about FOV: http://twgljs.org/examples/fov-checker.html
 	// fieldOfViewX = 2 * atan(tan(fieldOfViewY * 0.5) * aspect)
 	frustum.horizontalFov = 2.f * atanf(tanf(frustum.verticalFov * 0.5f) * aspect_ratio);
-	projection_changed = true;
 }
 
 // -----------------------------------------------------------------

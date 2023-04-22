@@ -7,7 +7,7 @@
 #include "QuadTree.h"
 
 class GameObject;
-class Skybox;
+class IBLData;
 class LightManager;
 
 class ModuleLevelManager : public Module
@@ -51,7 +51,7 @@ public:
 
     GameObject*         AddModel                (UID model);
 
-	Skybox*		        GetSkyBox()			    { return skybox.get(); }
+	IBLData*		    GetSkyBox()			    { return skybox.get(); }
 	LightManager* 		GetLightManager() 		{ return lightManager.get(); }
     
 private:
@@ -74,7 +74,7 @@ private:
 
 	std::string name;
 
-    std::unique_ptr<Skybox> skybox;
+    std::unique_ptr<IBLData> skybox;
     std::unique_ptr<LightManager> lightManager;
 };
 

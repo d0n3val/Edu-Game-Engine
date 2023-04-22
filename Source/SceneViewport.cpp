@@ -28,6 +28,7 @@
 #include "SphereLight.h"
 #include "QuadLight.h"
 #include "TubeLight.h"
+#include "LocalIBLLight.h"
 #include "LightManager.h"
 
 #include "ComponentCamera.h"
@@ -120,7 +121,7 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 
         glEnable(GL_STENCIL_TEST);
         glViewport(0, 0, fb_width, fb_height);
-        glClearColor(camera->background.r, camera->background.g, camera->background.b, camera->background.a);
+        glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
         
 
         glStencilMask(0x01);
@@ -355,7 +356,7 @@ void SceneViewport::DrawQuickBar(ComponentCamera* camera)
 {
     Application::State state = App->GetState();
 
-    if(ImGui::BeginChild("ToolCanvas", ImVec2(405, 38), true, ImGuiWindowFlags_NoMove))
+    if (ImGui::BeginChild("ToolCanvas", ImVec2(405, 38), true, ImGuiWindowFlags_NoMove))
     {
         if (state != Application::play && state != Application::pause)
         {
@@ -375,7 +376,7 @@ void SceneViewport::DrawQuickBar(ComponentCamera* camera)
             if (ImGui::Button("PAUSE", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
                 App->Pause();
         }
-        else if(state == Application::pause)
+        else if (state == Application::pause)
         {
             if (ImGui::Button("CONTINUE", ImVec2(60, 22)) || App->input->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
                 App->UnPause();
@@ -388,47 +389,44 @@ void SceneViewport::DrawQuickBar(ComponentCamera* camera)
         ImGui::SameLine();
         ImGui::Checkbox("Dbg Draw", &debug_draw);
 
+        ImGui::EndChild();
+
         ImGui::SameLine();
-        ImGui::ColorEdit3("Bg", (float*)&camera->background, ImGuiColorEditFlags_NoInputs);
-    }
-    ImGui::EndChild();
-
-	ImGui::SameLine();
-    if(ImGui::BeginChild("ScaleCanvas", ImVec2(145, 38), true, ImGuiWindowFlags_NoMove))
-    {
-        float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
-        float prev = metric_proportion;
-        if(ImGui::DragFloat("Scale", &metric_proportion) && metric_proportion > 0.0f)
+        if (ImGui::BeginChild("ScaleCanvas", ImVec2(145, 38), true, ImGuiWindowFlags_NoMove))
         {
-            App->hints->SetFloatValue(ModuleHints::METRIC_PROPORTION, metric_proportion);
-            ComponentCamera* camera = App->camera->GetDummy();
-
-            if(prev > 0.0f)
+            float metric_proportion = App->hints->GetFloatValue(ModuleHints::METRIC_PROPORTION);
+            float prev = metric_proportion;
+            if (ImGui::DragFloat("Scale", &metric_proportion) && metric_proportion > 0.0f)
             {
-                float adapt = (metric_proportion/prev);
-                camera->frustum.pos *= adapt;
-                camera->frustum.nearPlaneDistance *= adapt;
-                camera->frustum.farPlaneDistance *= adapt;
+                App->hints->SetFloatValue(ModuleHints::METRIC_PROPORTION, metric_proportion);
+                ComponentCamera* camera = App->camera->GetDummy();
+
+                if (prev > 0.0f)
+                {
+                    float adapt = (metric_proportion / prev);
+                    camera->frustum.pos *= adapt;
+                    camera->frustum.nearPlaneDistance *= adapt;
+                    camera->frustum.farPlaneDistance *= adapt;
+                }
             }
         }
-    }
-    ImGui::EndChild();
+        ImGui::EndChild();
 
-    ImGui::SameLine();
-    if (ImGui::BeginChild("DisplayCanvas", ImVec2(245, 38), true, ImGuiWindowFlags_NoMove))
-    {
-        ImGui::Combo("Display", &displayIdx, displayNames, sizeof(displayNames) / (sizeof(const char*)));
-    }
-    ImGui::EndChild();
-
-	ImGui::SameLine();
-    if(ImGui::BeginChild("TextCanvas", ImVec2(350, 38), true, ImGuiWindowFlags_NoMove))
-    {
         ImGui::SameLine();
-        ImGui::Text("Avg %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    }
-    ImGui::EndChild();
+        if (ImGui::BeginChild("DisplayCanvas", ImVec2(245, 38), true, ImGuiWindowFlags_NoMove))
+        {
+            ImGui::Combo("Display", &displayIdx, displayNames, sizeof(displayNames) / (sizeof(const char*)));
+        }
+        ImGui::EndChild();
 
+        ImGui::SameLine();
+        if (ImGui::BeginChild("TextCanvas", ImVec2(350, 38), true, ImGuiWindowFlags_NoMove))
+        {
+            ImGui::SameLine();
+            ImGui::Text("Avg %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        }
+        ImGui::EndChild();
+    }
 }
 
 void SceneViewport::DrawGuizmoProperties(GameObject* go) 
@@ -688,7 +686,7 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, DirLight* dir_light)
     // Intentionally blank
 }
 
-void SceneViewport::DrawGuizmo(ComponentCamera* camera, Skybox* skybox)
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, IBLData* skybox)
 {
 
 }
@@ -773,6 +771,34 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, GameObject* go)
         }
     }
 }
+
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, LocalIBLLight* light)
+{
+    float4x4 view = camera->GetOpenGLViewMatrix();
+    float4x4 proj = camera->GetOpenGLProjectionMatrix();
+
+    ImGuizmo::BeginFrame();
+    ImGuizmo::Enable(true);
+
+    float4x4 model = float4x4::identity;
+    model.SetTranslatePart(light->GetPosition());
+    model.Transpose();
+
+    float4x4 delta;
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(float(ImGui::GetCursorScreenPos().x), float(ImGui::GetCursorScreenPos().y), float(fb_width), float(fb_height));
+    ImGuizmo::SetDrawlist();
+    ImGuizmo::Manipulate((const float*)&view, (const float*)&proj, guizmo_op, guizmo_mode, (float*)&model, (float*)&delta, guizmo_useSnap ? &guizmo_snap.x : NULL);
+
+    model.Transpose();
+
+    if (ImGuizmo::IsUsing() && !delta.IsIdentity())
+    {
+        light->SetPosition(model.TranslatePart());
+    }
+}
+
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, PointLight* point)
 {

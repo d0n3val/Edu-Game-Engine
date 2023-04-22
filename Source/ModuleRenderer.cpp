@@ -32,17 +32,20 @@
 #include "ComponentLine.h"
 #include "BatchManager.h"
 #include "Postprocess.h"
+#include "SkyboxRollout.h"
+#include "PanelProperties.h"
 
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
 #include "ResourceTexture.h"
 
-#include "Skybox.h"
+#include "IBLData.h"
 #include "LightManager.h"
 #include "DirLight.h"
 #include "SphereLight.h"
 #include "QuadLight.h"
 #include "TubeLight.h"
+#include "LocalIBLLight.h"
 
 #include "Application.h"
 
@@ -144,7 +147,7 @@ void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBu
 
     // Skybox
     frameBuffer->Bind();
-    App->level->GetSkyBox()->Render(camera->GetProjectionMatrix(), camera->GetViewMatrix());
+    App->level->GetSkyBox()->DrawEnvironment(camera->GetProjectionMatrix(), camera->GetViewMatrix());
     frameBuffer->Unbind();
 }
 
@@ -167,7 +170,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
         shadowmapPass->execute( 3000, 3000);
     }
 
-    decalPass->execute(camera, render_list, width, height);
+    //decalPass->execute(camera, render_list, width, height);
     ssao->execute(width, height);
 
     deferredResolve->execute(frameBuffer, width, height);
@@ -175,6 +178,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+    
 
     // Forward Transparent
     frameBuffer->Bind();
@@ -184,10 +188,11 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     RenderVFX(camera, culling, frameBuffer, width, height);
 
     DrawAreaLights(camera, frameBuffer);
+    
 
     // Skybox
     frameBuffer->Bind();
-    App->level->GetSkyBox()->Render(camera->GetProjectionMatrix(), camera->GetViewMatrix());
+    App->level->GetSkyBox()->DrawEnvironment(camera->GetProjectionMatrix(), camera->GetViewMatrix());
     frameBuffer->Unbind();
 
     fogPass->execute(frameBuffer, width, height);
@@ -255,11 +260,6 @@ void ModuleRenderer::LoadDefaultShaders()
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
 
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros);
-    //App->programs->Load("skybox", "Assets/Shaders/skybox.vs", "Assets/Shaders/skybox.fs", nullptr, 0);
-    //App->programs->Load("equirectangular", "Assets/Shaders/skybox.vs", "Assets/Shaders/equirectangular.fs", nullptr, 0);
-    //App->programs->Load("particles", "Assets/Shaders/particles.vs", "Assets/Shaders/particles.fs", nullptr, 0);
-    //App->programs->Load("trails", "Assets/Shaders/trails.vs", "Assets/Shaders/trails.fs", nullptr, 0);
-    //App->programs->Load("shadow", "Assets/Shaders/shadow.vs", "Assets/Shaders/shadow.fs", nullptr, 0);
 
     const char* gaussian_macros[]       = { "#define HORIZONTAL 1 \n" }; 
     const unsigned num_gaussian_macros  = sizeof(gaussian_macros)/sizeof(const char*);
@@ -276,11 +276,8 @@ void ModuleRenderer::LoadDefaultShaders()
     const unsigned num_uv_macros  = sizeof(show_uv_macros)/sizeof(const char*);
     App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros);
     App->programs->Load("selection", "Assets/Shaders/selection.vs", "Assets/Shaders/selection.fs", nullptr, 0);
-    //App->programs->Load("color", "Assets/Shaders/color.vs", "Assets/Shaders/color.fs", nullptr, 0);
-    App->programs->Load("grid", "Assets/Shaders/gridVS.glsl", "Assets/Shaders/gridPS.glsl", nullptr, 0);
     App->programs->Load("showtexture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/fullscreenTextureFS.glsl", nullptr, 0);
     App->programs->Load("convert_texture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/convertMetallicTextureFS.glsl", nullptr, 0);
-    //App->programs->Load("postprocess", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/postprocess.glsl", nullptr, 0);
 }
 
 void ModuleRenderer::DrawDebug()
@@ -445,6 +442,7 @@ float4x4 ModuleRenderer::SetOrtho(float left, float right, float bottom, float t
 void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameBuffer)
 {
     if(!CreateAreaLightProgram()) return ;
+    if(!CreateProbeProgram()) return ;
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Area Lights");
     frameBuffer->Bind();
@@ -527,7 +525,103 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
     }
     glEnable(GL_CULL_FACE);
 
+    Program* program = nullptr;
+    switch (App->editor->props->getSkyboxEditor()->getSelected())
+    {
+    case SkyboxRollout::Environment:
+        program = probeProgram.get();
+        break;
+    case SkyboxRollout::DiffuseIBL:
+        program = probeProgram.get();
+        break;
+    case SkyboxRollout::PrefilteredIBL:
+        program = probeLodProgram.get();
+        break;
+    }
+
+    program->Use();
+    program->BindUniformFromName("view", view, false);
+    program->BindUniformFromName("proj", proj, false);
+
+    for (uint i = 0, count = lightManager->GetNumLocalIBLLights(); i < count; ++i)
+    {
+        const LocalIBLLight *light = lightManager->GetLocalIBLLight(i);
+
+        if (light->GetEnabled())
+        {
+            const IBLData &ibl = light->getIBLData();
+
+            const TextureCube *texture = nullptr;
+            switch (App->editor->props->getSkyboxEditor()->getSelected())
+            {
+            case SkyboxRollout::Environment:
+                texture = ibl.GetEnvironment();
+                break;
+            case SkyboxRollout::DiffuseIBL:
+                texture = ibl.GetDiffuseIBL();
+                break;
+            case SkyboxRollout::PrefilteredIBL:
+                texture = ibl.GetPrefilterdIBL();
+                program->BindUniformFromName("lod", App->editor->props->getSkyboxEditor()->getRoughness()* (ibl.GetPrefilterdLevels()-1));
+                break;
+            }
+
+            // \todo: render with environment brdf
+
+            if (texture)
+            {
+                float4x4 model = float4x4::UniformScale(0.1f);
+                model.SetTranslatePart(light->GetPosition());
+
+                program->BindUniformFromName("model", model, true);
+                program->BindTextureFromName("cubemap", 0, texture);
+
+                glBindVertexArray(sphere->GetVAO());
+                glDrawElements(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr);
+                glBindVertexArray(0);
+            }
+        }
+    }
+
     glPopDebugGroup();
+}
+
+bool ModuleRenderer::CreateProbeProgram()
+{
+	if(probeProgram && probeLodProgram) return true;
+
+	std::unique_ptr<Shader> vertex, fragment, fragmentLod;
+
+    vertex.reset(Shader::CreateVSFromFile("assets/shaders/probeVS.glsl", 0, 0));
+
+    bool ok = vertex->Compiled();
+
+	if (ok)
+	{
+		fragment.reset(Shader::CreateFSFromFile("assets/shaders/probeFS.glsl", 0, 0));
+
+        const char *skyboxLodMacros[] = {"#define USE_LOD\n"};
+
+		fragmentLod.reset(Shader::CreateFSFromFile("assets/shaders/probeFS.glsl", &skyboxLodMacros[0], 1));
+
+        ok = fragment->Compiled();
+	}
+
+	if (ok)
+	{
+		probeProgram = std::make_unique<Program>(vertex.get(), fragment.get(), "ProbeProgram");
+		probeLodProgram = std::make_unique<Program>(vertex.get(), fragmentLod.get(), "ProbeLodProgram");
+
+		ok = probeProgram->Linked() && probeLodProgram->Linked();
+	}
+
+    if(!ok)
+    {
+        probeProgram.release();
+        probeLodProgram.release();
+    }
+
+    return ok;
 }
 
 bool ModuleRenderer::CreateAreaLightProgram()

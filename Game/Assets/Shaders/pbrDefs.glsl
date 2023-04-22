@@ -27,7 +27,7 @@ vec3 GetFresnel(vec3 dir0, vec3 dir1, const vec3 f0)
 float GGXNDF(float roughness, float NdotH)
 {
     float a = NdotH*roughness;
-    float k = roughness/(1.0-NdotH*NdotH+a*a);
+    float k = roughness/max(1.0-NdotH*NdotH+a*a, 0.001);
     return k*k*(1.0/PI);
 }
 
@@ -78,7 +78,7 @@ vec3 GGXShading(const vec3 normal, const vec3 view_dir, const vec3 light_dir, co
     float ndf        = GGXNDF(roughness, max(0.001, dot(half_dir, normal)));
     float vsf        = SMITHVSF(dotNL, dotNV, roughness);
 
-    return (diffuseColor*(1-specularColor)+(fresnel*ndf*vsf))*light_color*dotNL*att;
+    return (diffuseColor*(1-specularColor)+(0.25*fresnel*ndf*vsf))*light_color*dotNL*att;
 }
 
 #endif /* _PBR_DEFS_GLSL_ */

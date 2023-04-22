@@ -5,6 +5,8 @@
 #include "/shaders/pbrDefs.glsl"
 #include "/shaders/cameraDefs.glsl"
 
+#define MIN_ROUGHNESS 0.001
+
 layout(binding = AO_TEX_BINDING) uniform sampler2D ambientOcclusion;
 layout(binding = DIFFUSE_IBL_TEX_BINDING) uniform samplerCube     diffuseIBL;
 layout(binding = PREFILTERED_IBL_TEX_BINDING) uniform samplerCube prefilteredIBL;
@@ -56,6 +58,13 @@ struct TubeLight
     vec4 color;
 };
 
+struct IBLLight
+{
+    samplerCube diffuse;
+    samplerCube prefiltered;
+    vec4 pos;
+};
+
 readonly layout(std430, binding = DIRLIGHT_SSBO_BINDING) buffer DirLightBuffer
 {
     DirLight directional;
@@ -88,12 +97,14 @@ readonly layout(std430, binding = QUADLIGHT_SSBO_BINDING) buffer QuadLights
 readonly layout(std430, binding = TUBELIGHT_SSBO_BINDING) buffer TubeLights
 {
     uint num_tube;
-    uint padding0;
-    uint padding1;
-    uint padding2;
     TubeLight tubes[];
 };
 
+readonly layout(std430, binding = IBLLIGHT_SSBO_BINDING) buffer IBLLights
+{
+    uint num_ibl;
+    IBLLight ibls[];
+};
 
 
 float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
@@ -159,20 +170,21 @@ vec3 SphereSpec(const vec3 pos, const vec3 normal, const vec3 view_dir, const ve
     return GGXShadingSpec(normal, view_dir, light_dir, light_color, specularColor, roughness, att);
 }
 
-vec3 Sphere(const vec3 pos, const vec3 normal, const vec3 view_dir, const vec3 light_pos, float sphere_radius, 
+vec3 Sphere(const vec3 pos, const vec3 normal, vec3 view_dir, const vec3 light_pos, float sphere_radius, 
             float attenuation_radius, const vec3 light_color, const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
-    vec3 reflect_dir  = normalize(reflect(-view_dir, normal));
+    vec3 reflect_dir  = reflect(-view_dir, normal);
     vec3 light_dir    = light_pos-pos;
     vec3 centerToRay  = pos+reflect_dir*max(0.0, dot(light_dir, reflect_dir))-light_pos;
-    vec3 closestPoint = light_pos+(centerToRay)*min(sphere_radius/length(centerToRay), 1.0);
+    vec3 closestPoint = light_pos+centerToRay*min(sphere_radius/length(centerToRay), 1.0);
 
     float distance    = length(closestPoint-pos);
     light_dir         = (closestPoint-pos)/distance;
-    // epic falloff
-    float att         = Sq(max(1.0-Sq(Sq(distance/attenuation_radius)), 0.0))/(Sq(distance)+1);
 
-    vec3 specular     = GGXShadingSpec(normal, view_dir, light_dir, light_color, specularColor, roughness, att);
+    // epic falloff
+    float att     = Sq(max(1.0-Sq(Sq(distance/attenuation_radius)), 0.0))/(Sq(distance)+1);
+
+    vec3 specular = GGXShadingSpec(normal, view_dir, light_dir, light_color, specularColor, roughness, att);
 
     light_dir    = normalize(light_pos-pos);
     distance     = length(light_pos-pos);
@@ -251,22 +263,45 @@ vec3 Tube(const vec3 pos, const vec3 normal, const vec3 view_dir, const TubeLigh
 vec3 ShadingDirectional(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
-    float roughness  = Sq(1.0-pbr.smoothness); 
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
     vec3 color = Directional(pbr.normal, V, directional, pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*pbr.shadow;
 
     return color;
 }
 
+void getNearestIBL(const vec3 position, out samplerCube diffuse, out samplerCube prefiltered)
+{
+    diffuse = diffuseIBL;
+    prefiltered = prefilteredIBL;
+    float minDist = 0;
+
+    for(uint i=0; i< num_ibl; ++i)
+    {
+        IBLLight ibl = ibls[i];
+        float dist = distance(ibl.pos.xyz, position);
+        if(i == 0 || dist < minDist)
+        {
+            minDist = dist;
+            diffuse = ibl.diffuse;
+            prefiltered = ibl.prefiltered;
+        }
+    }
+}
+
 vec3 ShadingAmbient(in PBR pbr)
 {
+    samplerCube difIBL, prefIBL;
+
+    getNearestIBL(pbr.position, difIBL, prefIBL);
+
     vec3 V           = normalize(view_pos.xyz-pbr.position);
     vec3 R           = reflect(-V, pbr.normal);
     float NdotV      = max(dot(pbr.normal, V), 0.0);
-    float roughness  = Sq(1.0-pbr.smoothness); 
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
-    vec3 irradiance = texture(diffuseIBL, pbr.normal).rgb;
-    vec3 radiance   = textureLod(prefilteredIBL, R, roughness*(prefilteredLevels-1)).rgb;
+    vec3 irradiance = texture(difIBL, pbr.normal).rgb;
+    vec3 radiance   = textureLod(prefIBL, R, roughness*(prefilteredLevels-1)).rgb;
     vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
     vec3 indirect   = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
 
@@ -280,7 +315,7 @@ vec3 ShadingAmbient(in PBR pbr)
 vec3 ShadingPoint(in PBR pbr, uint index)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
-    float roughness  = Sq(1.0-pbr.smoothness); 
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
     float shadow = min(1.0, pbr.shadow+0.5);
 
@@ -290,7 +325,7 @@ vec3 ShadingPoint(in PBR pbr, uint index)
 vec3 ShadingPoint(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
-    float roughness  = Sq(1.0-pbr.smoothness); 
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
     vec3 color = vec3(0.0);
 
@@ -307,7 +342,7 @@ vec3 ShadingPoint(in PBR pbr)
 vec3 ShadingSpot(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
-    float roughness  = Sq(1.0-pbr.smoothness); 
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
     vec3 color = vec3(0.0);
 
@@ -324,7 +359,7 @@ vec3 ShadingSpot(in PBR pbr)
 vec3 ShadingSphere(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
-    float roughness  = Sq(1.0-pbr.smoothness); 
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
     vec3 color = vec3(0.0);
 
@@ -341,7 +376,7 @@ vec3 ShadingSphere(in PBR pbr)
 vec3 ShadingQuad(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
-    float roughness  = Sq(1.0-pbr.smoothness); 
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
     vec3 color = vec3(0.0);
 
@@ -358,7 +393,7 @@ vec3 ShadingQuad(in PBR pbr)
 vec3 ShadingTube(in PBR pbr)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
-    float roughness  = Sq(1.0-pbr.smoothness); 
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
     vec3 color = vec3(0.0);
 
@@ -397,6 +432,7 @@ vec4 ShadingNoPoint(in PBR pbr)
     color += ShadingTube(pbr);
 
     return vec4(color, pbr.alpha);
+    //return vec4(pbr.normal, pbr.alpha);
     //return vec4(pbr.specular, pbr.alpha);
 }
 

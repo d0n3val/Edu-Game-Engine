@@ -26,7 +26,8 @@ class SpotLight;
 class QuadLight;
 class SphereLight;
 class TubeLight;
-class Skybox;
+class IBLData;
+class LocalIBLLight;
 
 class ModuleEditor : public Module
 {
@@ -49,7 +50,7 @@ public:
         SelSkybox
     };
 
-    typedef std::variant<GameObject*, DirLight*, PointLight*, SpotLight*, QuadLight*, SphereLight*, TubeLight*, Skybox*> SelectionVariant;
+    typedef std::variant<GameObject*, DirLight*, PointLight*, SpotLight*, QuadLight*, SphereLight*, TubeLight*, LocalIBLLight*, IBLData*> SelectionVariant;
 
 
     enum TabPanelEnum

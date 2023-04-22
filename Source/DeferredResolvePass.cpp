@@ -8,7 +8,7 @@
 #include "modulehints.h"
 #include "CascadeShadowPass.h"
 #include "ShadowmapPass.h"
-#include "Skybox.h"
+#include "IBLData.h"
 #include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"
 #include "LightManager.h"
@@ -49,7 +49,7 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     
 	ssao->getResult()->Bind(SSAO_TEX_BINDING);
 
-	App->level->GetSkyBox()->BindIBL();
+	App->level->GetSkyBox()->Bind();
 
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
 

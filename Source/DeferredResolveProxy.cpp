@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "ModuleLevelManager.h"
-#include "Skybox.h"
+#include "IBLData.h"
 #include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"
 #include "LightManager.h"
@@ -52,7 +52,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
     exportPass->getNormal()->Bind(GBUFFER_NORMAL_TEX_BINDING);
     
 	ssao->getResult()->Bind(SSAO_TEX_BINDING);
-	App->level->GetSkyBox()->BindIBL();
+	App->level->GetSkyBox()->Bind();
 
     glBindVertexArray(sphere->GetVAO());
 	glDrawElementsInstanced(GL_TRIANGLES, sphere->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledPointLights());

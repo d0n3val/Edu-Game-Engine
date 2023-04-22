@@ -6,7 +6,7 @@
 #include "ModuleRenderer.h"
 #include "ModuleLevelManager.h"
 #include "ModuleHints.h"
-#include "Skybox.h"
+#include "IBLData.h"
 #include "ScreenSpaceAO.h"
 #include "ShadowmapPass.h"
 
@@ -38,7 +38,7 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
     shadowMap->getVarianceTex()->Bind(VARIANCE_TEX_BINDING);
 
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
-    App->level->GetSkyBox()->BindIBL();
+    App->level->GetSkyBox()->Bind();
     App->renderer->GetScreenSpaceAO()->getResult()->Bind(SSAO_TEX_BINDING);
 
     if (target)
@@ -60,7 +60,7 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
     UseProgram();
 
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
-    App->level->GetSkyBox()->BindIBL();
+    App->level->GetSkyBox()->Bind();
     App->renderer->GetScreenSpaceAO()->getResult()->Bind(SSAO_TEX_BINDING);
 
     if (target)

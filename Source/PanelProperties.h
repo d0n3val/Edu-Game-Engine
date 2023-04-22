@@ -34,8 +34,9 @@ class SpotLight;
 class QuadLight;
 class SphereLight;
 class TubeLight;
+class LocalIBLLight;
 class PerlinProperties;
-class Skybox;
+class IBLData;
 class SkyboxRollout;
 
 class Texture2D;
@@ -65,6 +66,8 @@ public:
 	bool InitComponentDraw(Component* component, const char * name);
 
 	void DrawCameraComponent(ComponentCamera * component);
+
+    const SkyboxRollout* getSkyboxEditor() const { return skybox.get(); }
 private:
     void DrawGameObject(GameObject* go);
     void DrawDirLight(DirLight* light);
@@ -73,6 +76,7 @@ private:
     void DrawQuadLight(QuadLight* light);
     void DrawSphereLight(SphereLight* light);
     void DrawTubeLight(TubeLight* light);
+    void DrawLocalIBLLight(LocalIBLLight* light);
 	// TODO move editor code as a component method like component rigidbody
     void DrawParticleSystemComponent(ComponentParticleSystem* component);
 	void DrawBatchProperties(ComponentMeshRenderer* component);

@@ -1,6 +1,6 @@
 #version 440 
 
-#define NUM_SAMPLES 1024
+#define NUM_SAMPLES 2048
 #define PI 3.1415926
 #define TWO_PI 2.0*PI
 #define HALF_PI 0.5*PI
@@ -67,8 +67,9 @@ void main()
 
 vec3 hemisphereSampleGGX(in vec2 rand, float roughness)
 {
+    float a = roughness*roughness;
     float phi = 2.0*PI*rand.x;
-    float cos_theta = sqrt((1.0-rand.y)/(rand.y*(roughness*roughness-1)+1));
+    float cos_theta = sqrt((1.0-rand.y)/(rand.y*(a*a-1)+1));
     float sin_theta = sqrt(1-cos_theta*cos_theta);
 
     // spherical to cartesian conversion
@@ -95,7 +96,7 @@ void main()
 
     for( int i = 0; i < NUM_SAMPLES; ++i ) 
     {
-        vec3 H = tangentSpace*hemisphereSampleGGX( hammersley2D(i, NUM_SAMPLES), roughness);
+        vec3 H = normalize(tangentSpace*hemisphereSampleGGX( hammersley2D(i, NUM_SAMPLES), roughness));
         vec3 L = reflect(-V, H); 
         float NdotL = dot( N, L );
         if( NdotL > 0 ) 

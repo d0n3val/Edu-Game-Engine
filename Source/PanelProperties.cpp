@@ -52,6 +52,7 @@
 #include "QuadLight.h"
 #include "SphereLight.h"
 #include "TubeLight.h"
+#include "LocalIBLLight.h"
 
 #include "OpenGL.h"
 
@@ -94,8 +95,9 @@ void PanelProperties::Draw()
         [this](SpotLight* light)    { DrawSpotLight(light);    },
         [this](QuadLight* light)    { DrawQuadLight(light);    },
         [this](SphereLight* light)  { DrawSphereLight(light);    },
-        [this](TubeLight* light) { DrawTubeLight(light);    },
-        [this](Skybox* sky)         { skybox->DrawProperties(sky);    }
+        [this](TubeLight* light)       { DrawTubeLight(light);     },
+        [this](LocalIBLLight* light)   { DrawLocalIBLLight(light); },
+        [this](IBLData* sky)         { skybox->DrawProperties(sky);}
         }, App->editor->GetSelection());
 
     show_texture.Display();
@@ -356,6 +358,20 @@ void PanelProperties::DrawTubeLight(TubeLight *light)
             light->SetEnabled(enabled);
         }
     }
+}
+
+// ---------------------------------------------------------
+void PanelProperties::DrawLocalIBLLight(LocalIBLLight *light)
+{
+    if (ImGui::CollapsingHeader("Local IBL light", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        skybox->DrawProperties(&light->getIBLData());
+        if(ImGui::Button("Generate"))
+        {
+            light->generate();
+        }
+    }
+
 }
 
 // ---------------------------------------------------------
@@ -928,12 +944,6 @@ void PanelProperties::DrawCameraComponent(ComponentCamera * component)
 	float aspect_ratio = component->GetAspectRatio();
 	if (ImGui::DragFloat("Aspect Ratio", &aspect_ratio, 0.1f, 0.1f, 10000.0f))
 		component->SetAspectRatio(aspect_ratio);
-
-	ImGui::ColorEdit3("Background", &component->background);
-
-	const GameObject* go = PickGameObject(component->looking_at);
-	if (go != nullptr)
-		component->looking_at = go;
 
 	bool is_active = App->renderer3D->active_camera == component;
 	if (ImGui::Checkbox("Is Active Camera", &is_active))

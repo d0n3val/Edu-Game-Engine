@@ -14,7 +14,8 @@ class AmbientLight;
 class QuadLight;
 class SphereLight;
 class TubeLight;
-class Skybox;
+class LocalIBLLight;
+class IBLData;
 class Config;
 
 class SceneViewport
@@ -61,7 +62,8 @@ private:
     void    DrawGuizmo      (ComponentCamera* camera, QuadLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, TubeLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, AmbientLight* light);
-    void    DrawGuizmo      (ComponentCamera* camera, Skybox* skybox);
+    void    DrawGuizmo      (ComponentCamera* camera, LocalIBLLight* light);
+    void    DrawGuizmo      (ComponentCamera* camera, IBLData* skybox);
 
 
     void    PickSelection   (ComponentCamera* camera, int mouse_x, int mouse_y);

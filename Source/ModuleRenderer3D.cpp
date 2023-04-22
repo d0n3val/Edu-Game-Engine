@@ -174,8 +174,7 @@ update_status ModuleRenderer3D::PreUpdate(float dt)
 {
 	ComponentCamera* cam = (App->IsPlay()) ? active_camera : App->camera->GetDummy();
 
-	Color c = cam->background;
-	glClearColor(c.r, c.g, c.b, c.a);
+	glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	return UPDATE_CONTINUE;

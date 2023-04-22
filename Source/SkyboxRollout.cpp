@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "SkyboxRollout.h"
 
-#include "Skybox.h"
+#include "IBLData.h"
 #include "PostprocessShaderLocations.h"
 #include "Application.h"
 #include "ModulePrograms.h"
@@ -24,22 +24,25 @@
 
 #define SCREENSHOT_SIZE 192
 
+const char* SelectionName[SkyboxRollout::Count] = { "Environment", "Diffuse", "Prefiltered" };
+
 SkyboxRollout::SkyboxRollout()
 {
     screenshot_fb = std::make_unique<Framebuffer>();
     postprocess_fb = std::make_unique<Framebuffer>();
 
     screenshotTex  = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
-    environmentTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
-    diffuseIBLTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
-    prefilteredIBLTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
+    postprocessedTex = std::move(std::unique_ptr<Texture2D>(Texture2D::CreateDefaultRGBA(SCREENSHOT_SIZE, SCREENSHOT_SIZE)));
     screenshotDepthTex = std::make_unique<Texture2D>(4, SCREENSHOT_SIZE, SCREENSHOT_SIZE, GL_DEPTH_COMPONENT, true);
 
     screenshot_fb->AttachColor(screenshotTex.get());
     screenshot_fb->AttachDepthStencil(screenshotDepthTex.get(), GL_DEPTH_ATTACHMENT);
 
+    postprocess_fb->AttachColor(postprocessedTex.get());
+
     postProcess = std::make_unique<Postprocess>();
     postProcess->Init();
+
 
     assert(screenshot_fb->Check() == GL_FRAMEBUFFER_COMPLETE);
 }
@@ -48,63 +51,55 @@ SkyboxRollout::~SkyboxRollout()
 {
 }
 
-void SkyboxRollout::DrawProperties(Skybox* skybox)
+void SkyboxRollout::DrawProperties(IBLData* skybox)
 {
     if (ImGui::CollapsingHeader("Skybox", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        TakeScreenshot(skybox, Environment);
-        TakeScreenshot(skybox, DiffuseIBL);
-        TakeScreenshot(skybox, PrefilteredIBL);
+        TakeScreenshot(skybox, selected);
 
-        ResourceTexture* info = App->resources->GetTexture(skybox->GetCubemap());
-
-        ImGui::BeginGroup();
-        ImGui::Text("Texture:");
-        ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
-
-        ImGui::SameLine();
-        std::string file;
-        App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
-        ImGui::Text("%s", file.c_str());
-        ImGui::PopStyleColor();
-
-        bool mips = info->GetMipmaps();
-        if(ImGui::Checkbox("Mipmaps", &mips))
+        ResourceTexture* info = skybox->GetEnvironmentRes().GetPtr<ResourceTexture>();
+        if (info)
         {
-            info->GenerateMipmaps(mips);
+            ImGui::BeginGroup();
+            ImGui::Text("Texture:");
+            ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
+
+            ImGui::SameLine();
+            std::string file;
+            App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
+            ImGui::Text("%s", file.c_str());
+            ImGui::PopStyleColor();
+
+            bool mips = info->GetMipmaps();
+            if (ImGui::Checkbox("Mipmaps", &mips))
+            {
+                info->GenerateMipmaps(mips);
+            }
+
+            ImGui::SameLine();
+
+            bool linear = info->GetColorSpace() == ResourceTexture::linear;
+            if (ImGui::Checkbox("sRGB", &linear))
+            {
+                info->SetColorSpace(linear ? ResourceTexture::linear : ResourceTexture::gamma);
+            }
+
+            if (ImGui::SmallButton("Select Texture"))
+            {
+                selectTexture.Open(Resource::texture, "Skybox texture", 0);
+            }
+
+            ImGui::EndGroup();
         }
-
-        ImGui::SameLine();
-
-        bool linear = info->GetColorSpace() == ResourceTexture::linear;
-        if(ImGui::Checkbox("sRGB", &linear))
-        {
-            info->SetColorSpace(linear ? ResourceTexture::linear : ResourceTexture::gamma);
-        }
-
-        if(ImGui::SmallButton("Select Texture"))
-        {
-            selectTexture.Open(Resource::texture, "Skybox texture", 0);
-        }
-
-        ImGui::EndGroup();
-
         ImGui::Separator();
-        ImGui::Text("Texture");
-        ImGui::SameLine(0, 152);
-        ImGui::Text("Diffuse IBL");
-        ImGui::SameLine(0, 127);
-        ImGui::Text("Prefiltered IBL");
-        ImGui::Image((ImTextureID)size_t(environmentTex->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
-        ImGui::SameLine();
-        ImGui::Image((ImTextureID)size_t(diffuseIBLTex->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
-        ImGui::SameLine();
-        ImGui::Image((ImTextureID)size_t(prefilteredIBLTex->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
-        ImGui::SliderFloat("Roughness", &roughness, 0.0, 1.0f);
+        ImGui::Combo("Cubemap", (int*)&selected, "Environment\0Diffuse\0Prefiltered\0");
+        ImGui::Text(SelectionName[selected]);
+        ImGui::Image((ImTextureID)size_t(postprocessedTex->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        if(selected == PrefilteredIBL) ImGui::SliderFloat("Roughness", &roughness, 0.0, 1.0f);
         ImGui::SliderFloat("Azimuthal", &azimuthal, 0.0f , 2.0f*math::pi);
         ImGui::SliderFloat("Polar", &polar, -0.5f*math::pi, 0.5f*math::pi);
         ImGui::Text("Environment BRDF");
-        if (skybox->GetEnvironmentBRDF())
+        if (skybox->GetEnvironmentBRDF() && selected == PrefilteredIBL)
         {
             ImGui::Image((ImTextureID)size_t(skybox->GetEnvironmentBRDF()->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
         }
@@ -114,12 +109,12 @@ void SkyboxRollout::DrawProperties(Skybox* skybox)
 
     if(selectTexture.HasSelection(0))
     {
-        skybox->SetCubemap(selectTexture.GetResource());
+        skybox->SetEnvironmentRes(selectTexture.GetResource());
         selectTexture.ClearSelection();
     }
 }
 
-void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
+void SkyboxRollout::TakeScreenshot(IBLData* skybox, CubemapType type)
 {
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SkyboxRollout::TakeScreenshot");
 
@@ -150,21 +145,15 @@ void SkyboxRollout::TakeScreenshot(Skybox* skybox, ScreenshoType type)
     
     switch(type)
     {
-        case Environment:
-            skybox->Render(proj, view);
-            postprocess_fb->ClearAttachments();
-            postprocess_fb->AttachColor(environmentTex.get());
-            break;
-        case DiffuseIBL:
-            skybox->DrawDiffuseIBL(proj, view);
-            postprocess_fb->ClearAttachments();
-            postprocess_fb->AttachColor(diffuseIBLTex.get());
-            break;
-        case PrefilteredIBL:
-            skybox->DrawPrefilteredIBL(proj, view, roughness);
-            postprocess_fb->ClearAttachments();
-            postprocess_fb->AttachColor(prefilteredIBLTex.get());
-            break;
+    case Environment:
+        skybox->DrawEnvironment(proj, view);
+        break;
+    case DiffuseIBL:
+        skybox->DrawDiffuseIBL(proj, view);
+        break;
+    case PrefilteredIBL:
+        skybox->DrawPrefilteredIBL(proj, view, roughness);
+        break;
     }
 
     assert(postprocess_fb->Check() == GL_FRAMEBUFFER_COMPLETE);

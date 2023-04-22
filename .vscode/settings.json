@@ -5,6 +5,13 @@
         "vector": "cpp",
         "filesystem": "cpp",
         "chrono": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "algorithm": "cpp",
+        "bit": "cpp",
+        "charconv": "cpp",
+        "functional": "cpp",
+        "random": "cpp",
+        "xlocale": "cpp",
+        "xlocnum": "cpp"
     }
 }

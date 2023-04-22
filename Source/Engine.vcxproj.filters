@@ -666,9 +666,6 @@
     <ClInclude Include="ImportCubemapDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Skybox.h">
-      <Filter>Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="ImportModelDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -768,6 +765,12 @@
     </ClInclude>
     <ClInclude Include="DepthRangePass.h">
       <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="IBLData.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalIBLLight.h">
+      <Filter>Lights</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1290,9 +1293,6 @@
     <ClCompile Include="ImportCubemapDlg.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Skybox.cpp">
-      <Filter>Helpers</Filter>
-    </ClCompile>
     <ClCompile Include="ImportModelDlg.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -1391,6 +1391,12 @@
     </ClCompile>
     <ClCompile Include="DepthRangePass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="IBLData.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalIBLLight.cpp">
+      <Filter>Lights</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -7,7 +7,7 @@
 #include "ModuleLevelManager.h"
 #include "ModuleHints.h"
 #include "LightManager.h"
-#include "Skybox.h"
+#include "IBLData.h"
 #include "BatchManager.h"
 #include "RenderList.h"
 #include "ShadowmapPass.h"

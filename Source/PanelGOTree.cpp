@@ -113,6 +113,10 @@ void PanelGOTree::Draw()
         if(ImGui::MenuItem("New Tube Light"))
             App->level->GetLightManager()->AddTubeLight();
 
+        if (ImGui::MenuItem("New Local IBL Light"))
+            App->level->GetLightManager()->AddLocalIBLLight();
+
+
 		if (ImGui::MenuItem("Clear Scene", "!"))
 			App->level->GetRoot()->Remove();
 
@@ -147,7 +151,7 @@ void PanelGOTree::Draw()
 // ---------------------------------------------------------
 void PanelGOTree::DrawSkybox()
 {
-    Skybox* const* skybox = std::get_if<Skybox*>(&App->editor->GetSelection());
+    IBLData* const* skybox = std::get_if<IBLData*>(&App->editor->GetSelection());
 
     uint flags = ImGuiTreeNodeFlags_Leaf;
     if(skybox != nullptr && *skybox == App->level->GetSkyBox())
@@ -441,6 +445,56 @@ void PanelGOTree::DrawLights()
 
             ImGui::TreePop();
         }
+
+        if(ImGui::TreeNodeEx("LocalIBL", 0))
+        {
+            bool remove = false;
+            char number[16];
+
+            LocalIBLLight* const* localIBL = std::get_if<LocalIBLLight*>(&App->editor->GetSelection());
+
+            for(uint i=0, count = App->level->GetLightManager()->GetNumLocalIBLLights(); !remove && i < count; ++i)
+            {
+                sprintf_s(number, 15, "[%d]", i);
+
+                flags = ImGuiTreeNodeFlags_Leaf;
+
+                if(localIBL && *localIBL == App->level->GetLightManager()->GetLocalIBLLight(i))
+                {
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                }
+
+                if(ImGui::TreeNodeEx(number, flags))
+                {
+                    if (ImGui::IsItemClicked(0)) 
+                    {
+                        App->editor->SetSelected(App->level->GetLightManager()->GetLocalIBLLight(i));
+                    }
+
+                    if (ImGui::IsItemClicked(1))
+                        ImGui::OpenPopup("LocalIBLLight Options");
+
+                    if (ImGui::BeginPopup("LocalIBLLight Options"))
+                    {
+                        if (true == (remove = ImGui::MenuItem("Remove")))
+                        {
+                            if(localIBL && *localIBL == App->level->GetLightManager()->GetLocalIBLLight(i))
+                            {
+                                App->editor->ClearSelected();
+                            }
+
+                            App->level->GetLightManager()->RemoveLocalIBLLight(i);
+                        }
+                        ImGui::EndPopup();
+                    }
+
+                    ImGui::TreePop();
+                }
+            }
+
+            ImGui::TreePop();
+        }
+
         ImGui::TreePop();
         ImGui::PopStyleColor();
     }

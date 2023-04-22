@@ -19,7 +19,7 @@
 
 #include "Event.h"
 
-#include "Skybox.h"
+#include "IBLData.h"
 #include "LightManager.h"
 
 #include "OpenGL.h"
@@ -46,7 +46,7 @@ bool ModuleLevelManager::Init(Config* config)
 	root = new GameObject(nullptr, "root");
 	quadtree.SetBoundaries(AABB(float3(-500,0,-500), float3(500,30,500)));
 
-    skybox = std::make_unique<Skybox>();
+    skybox = std::make_unique<IBLData>();
 	lightManager = std::make_unique<LightManager>();
 
 	return ret;

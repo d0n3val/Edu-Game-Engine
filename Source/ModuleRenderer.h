@@ -55,6 +55,8 @@ class ModuleRenderer : public Module
     std::unique_ptr<DepthRangePass>       depthRangePass;
     std::unique_ptr<Buffer>               cameraUBO;
     std::unique_ptr<Program>              primitiveProgram;
+    std::unique_ptr<Program>              probeProgram;
+    std::unique_ptr<Program>              probeLodProgram;
 
 public:
 
@@ -105,6 +107,7 @@ private:
 
     void                DrawAreaLights              (ComponentCamera* camera, Framebuffer* frameBuffer);
     bool                CreateAreaLightProgram      ();
+    bool                CreateProbeProgram          ();
 };
 
 #endif /* _RENDERER_H_ */

@@ -6,6 +6,7 @@
 #include "QuadLight.h"
 #include "SphereLight.h"
 #include "TubeLight.h"
+#include "LocalIBLLight.h"
 
 #include "Config.h"
 
@@ -72,6 +73,16 @@ void LightManager::LoadLights(const Config &config)
 
         tubes.push_back(std::move(tube));
     }
+
+    count = config.GetArrayCount("LocalIBLs");
+    for(uint i=0; i<count; ++i)
+    {
+        std::unique_ptr<LocalIBLLight> ibl = std::make_unique<LocalIBLLight>();
+        ibl->Load(config.GetArray("LocalIBLs", i));
+
+        ibls.push_back(std::move(ibl));
+    }
+
 }
 
 void LightManager::SaveLights(Config& config) const
@@ -126,6 +137,16 @@ void LightManager::SaveLights(Config& config) const
         tube->Save(tubeConfig);
 
         config.AddArrayEntry(tubeConfig);
+    }
+
+    config.AddArray("LocalIBLs");
+
+    for(const std::unique_ptr<LocalIBLLight>& ibl : ibls)
+    {
+        Config iblConfig;
+        ibl->Save(iblConfig);
+
+        config.AddArrayEntry(iblConfig);
     }
 }
 
@@ -187,12 +208,24 @@ uint LightManager::AddTubeLight()
     tubes.push_back(std::make_unique<TubeLight>());
 
     return index;
-
 }
 
 void LightManager::RemoveTubeLight(uint index)
 {
     tubes.erase(tubes.begin()+index);
+}
+
+uint LightManager::AddLocalIBLLight()
+{
+    uint index = uint(ibls.size());
+    ibls.push_back(std::make_unique<LocalIBLLight>());
+
+    return index;
+}
+
+void LightManager::RemoveLocalIBLLight(uint index)
+{
+    ibls.erase(ibls.begin()+index);
 }
 
 void LightManager::UpdateGPUBuffers()
@@ -348,6 +381,36 @@ void LightManager::UpdateGPUBuffers()
     }
 
     tubePtr->count = enabledTubeSize;
+
+    if(uint(ibls.size()) > iblBufferSize || !iblLightSSBO[frameCount])
+    {
+        iblBufferSize = uint(ibls.size());
+        iblLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, iblBufferSize * sizeof(iblLightData) + sizeof(int) * 4, nullptr, true);
+        iblLightData[frameCount] = reinterpret_cast<IBLLightSet*>(iblLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, iblBufferSize * sizeof(iblLightData) + sizeof(int) * 4));
+    }
+
+    IBLLightSet* iblPtr = iblLightData[frameCount];
+
+
+    // ibl lights
+    enablediblSize = 0;
+
+    for(const std::unique_ptr<LocalIBLLight>& light : ibls)
+    {
+        IBLData& iblData = light->getIBLData();
+
+        if(light->GetEnabled() && iblData.GetDiffuseIBL() && iblData.GetPrefilterdIBL())
+        {
+
+            iblPtr->ibls[enablediblSize].position = float4(light->GetPosition(), 0.0);
+            iblPtr->ibls[enablediblSize].diffuse = iblData.GetDiffuseIBL()->GetBindlessHandle();
+            iblPtr->ibls[enablediblSize].prefiltered = iblData.GetPrefilterdIBL()->GetBindlessHandle();
+
+            ++enablediblSize;
+        }
+    }
+
+    iblPtr->count = enablediblSize;
 }
 
 void LightManager::Bind()
@@ -358,4 +421,5 @@ void LightManager::Bind()
     quadLightSSBO[frameCount]->BindToPoint(QUADLIGHT_SSBO_BINDING);
     sphereLightSSBO[frameCount]->BindToPoint(SPHERELIGHT_SSBO_BINDING);
     tubeLightSSBO[frameCount]->BindToPoint(TUBELIGHT_SSBO_BINDING);
+    iblLightSSBO[frameCount]->BindToPoint(IBLLIGHT_SSBO_BINDING);
 }

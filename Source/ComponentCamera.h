@@ -10,7 +10,7 @@ class ComponentCamera : public Component
 {
 	friend class ModuleAudio;
 public:
-	ComponentCamera (GameObject* container);
+	explicit ComponentCamera (GameObject* container);
 	~ComponentCamera ();
 
 	void OnSave(Config& config) const override;
@@ -46,10 +46,6 @@ public:
 
 public:
 	Frustum frustum;
-	Color background;
-	bool projection_changed = false;
-	const GameObject* looking_at = nullptr;
-	uint looking_at_uid = 0;
 };
 
 #endif // __COMPONENT_CAMERA_H__

@@ -22,9 +22,10 @@ class CubemapUtils
 public:
     CubemapUtils();
 
-    void         RenderSkybox           (TextureCube* cubemap, const float4x4& proj, const float4x4& view);
-    void         RenderSkyboxLod        (TextureCube* cubemap, const float4x4& proj, const float4x4& view, float lod);
+    void         RenderCubemap          (const TextureCube* cubemap, const float4x4& proj, const float4x4& view) ;
+    void         RenderCubemapLod       (const TextureCube* cubemap, const float4x4& proj, const float4x4& view, float lod) ;
 
+    TextureCube* LocalIBL               (const float3& position, uint width, uint height);
     TextureCube* DiffuseIBL             (TextureCube* texture, uint width, uint height);
     TextureCube* PrefilteredSpecular    (TextureCube* texture, uint width, uint height, uint prefilteredLevels);
     Texture2D*   EnvironmentBRDF        (uint width, uint height);
