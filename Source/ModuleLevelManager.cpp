@@ -71,6 +71,9 @@ update_status ModuleLevelManager::PreUpdate(float dt)
 
 update_status ModuleLevelManager::Update(float dt)
 {
+    if (lightManager->isIBLDirty())
+        lightManager->generateIBLs();
+
 	if(App->IsPlay())
 		RecursiveUpdate(root, dt);
 
@@ -213,9 +216,9 @@ bool ModuleLevelManager::Load(const char * file)
 			//App->camera->Load(&desc);
 
             lightManager->LoadLights(config.GetSection("Lights"));
-			LoadGameObjects(config);
+            LoadGameObjects(config);
 			skybox->Load(config.GetSection("Skybox"));
-		}
+        }
 
 		RELEASE_ARRAY(buffer); 
 	}

@@ -63,6 +63,8 @@ struct IBLLight
     samplerCube diffuse;
     samplerCube prefiltered;
     vec4 pos;
+    vec4 minPoint;
+    vec4 maxPoint;
 };
 
 readonly layout(std430, binding = DIRLIGHT_SSBO_BINDING) buffer DirLightBuffer
@@ -270,7 +272,20 @@ vec3 ShadingDirectional(in PBR pbr)
     return color;
 }
 
-void getNearestIBL(const vec3 position, out samplerCube diffuse, out samplerCube prefiltered)
+void parallaxCorrection(const vec3 position, const vec3 probePos, inout vec3 R, const vec3 minBox, const vec3 maxBox)
+{
+    vec3 first = (maxBox-position)/R;
+    vec3 second = (minBox-position)/R;
+
+    vec3 furthest = max(first, second);
+
+    float dist = min(min(furthest.x, furthest.y), furthest.z);
+
+    vec3 intersect = position+R*dist;
+    R = intersect-probePos;
+}
+
+void getNearestIBL(const vec3 position, out samplerCube diffuse, out samplerCube prefiltered, inout vec3 R)
 {
     diffuse = diffuseIBL;
     prefiltered = prefilteredIBL;
@@ -285,6 +300,7 @@ void getNearestIBL(const vec3 position, out samplerCube diffuse, out samplerCube
             minDist = dist;
             diffuse = ibl.diffuse;
             prefiltered = ibl.prefiltered;
+            parallaxCorrection(position, ibl.pos.xyz, R, ibl.minPoint.xyz, ibl.maxPoint.xyz);
         }
     }
 }
@@ -293,12 +309,12 @@ vec3 ShadingAmbient(in PBR pbr)
 {
     samplerCube difIBL, prefIBL;
 
-    getNearestIBL(pbr.position, difIBL, prefIBL);
-
     vec3 V           = normalize(view_pos.xyz-pbr.position);
     vec3 R           = reflect(-V, pbr.normal);
     float NdotV      = max(dot(pbr.normal, V), 0.0);
     float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
+
+    getNearestIBL(pbr.position, difIBL, prefIBL, R);
 
     vec3 irradiance = texture(difIBL, pbr.normal).rgb;
     vec3 radiance   = textureLod(prefIBL, R, roughness*(prefilteredLevels-1)).rgb;
@@ -308,6 +324,8 @@ vec3 ShadingAmbient(in PBR pbr)
     float shadow = min(1.0, pbr.shadow+0.25);
 
     vec3 color = indirect*pbr.occlusion*shadow;
+
+    //if(found) color = textureLod(prefIBL, R, 0).rgb;
 
     return color;
 }
@@ -426,10 +444,10 @@ vec4 ShadingNoPoint(in PBR pbr)
 {
     vec3 color = ShadingAmbient(pbr);
     color += ShadingDirectional(pbr);
-    color += ShadingSpot(pbr);
-    color += ShadingSphere(pbr);
-    color += ShadingQuad(pbr);
-    color += ShadingTube(pbr);
+    //color += ShadingSpot(pbr);
+    //color += ShadingSphere(pbr);
+    //color += ShadingQuad(pbr);
+    //color += ShadingTube(pbr);
 
     return vec4(color, pbr.alpha);
     //return vec4(pbr.normal, pbr.alpha);

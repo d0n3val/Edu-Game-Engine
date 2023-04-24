@@ -370,6 +370,23 @@ void PanelProperties::DrawLocalIBLLight(LocalIBLLight *light)
         {
             light->generate();
         }
+
+        float radius = light->GetRadius();
+        if (ImGui::InputFloat("radius", &radius, 0.01f, 0.1f, "%.9f"))
+        {
+            light->SetRadius(radius);
+        }
+
+        AABB aabb = light->GetAABB();
+        if(ImGui::DragFloat3("AABB min", (float*)& aabb.minPoint, 0.001f))
+        {
+            light->SetAABB(aabb);
+        }
+
+        if(ImGui::DragFloat3("AABB max", (float*) & aabb.maxPoint, 0.001f))
+        {
+            light->SetAABB(aabb);
+        }
     }
 
 }

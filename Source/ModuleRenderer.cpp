@@ -562,7 +562,9 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
                 break;
             case SkyboxRollout::PrefilteredIBL:
                 texture = ibl.GetPrefilterdIBL();
-                program->BindUniformFromName("lod", App->editor->props->getSkyboxEditor()->getRoughness()* (ibl.GetPrefilterdLevels()-1));
+                program->BindUniformFromName("roughness", App->editor->props->getSkyboxEditor()->getRoughness());
+                program->BindUniformFromName("prefilteredLevels", int(ibl.GetPrefilterdLevels()));
+                program->BindTextureFromName("environmentBRDF", 1, ibl.GetEnvironmentBRDF());
                 break;
             }
 
@@ -600,7 +602,7 @@ bool ModuleRenderer::CreateProbeProgram()
 	{
 		fragment.reset(Shader::CreateFSFromFile("assets/shaders/probeFS.glsl", 0, 0));
 
-        const char *skyboxLodMacros[] = {"#define USE_LOD\n"};
+        const char *skyboxLodMacros[] = {"#define PREFILTERED\n"};
 
 		fragmentLod.reset(Shader::CreateFSFromFile("assets/shaders/probeFS.glsl", &skyboxLodMacros[0], 1));
 

@@ -797,6 +797,13 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, LocalIBLLight* light)
     {
         light->SetPosition(model.TranslatePart());
     }
+
+    dd::circle(light->GetPosition(), float3::unitY, dd::colors::Gray, light->GetRadius(), 25.0f);
+    dd::circle(light->GetPosition(), float3::unitX, dd::colors::Gray, light->GetRadius(), 25.0f);
+    dd::circle(light->GetPosition(), float3::unitZ, dd::colors::Gray, light->GetRadius(), 25.0f);
+
+    const AABB &aabb = light->GetAABB();
+    dd::aabb(aabb.minPoint+light->GetPosition(), aabb.maxPoint+light->GetPosition(), dd::colors::Red);
 }
 
 

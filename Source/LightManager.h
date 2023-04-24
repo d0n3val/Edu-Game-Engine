@@ -55,6 +55,8 @@ class LightManager
         uint64_t diffuse;
         uint64_t prefiltered;
         float4   position;
+        float4   minPoint;
+        float4   maxPoint;
     };
 
     struct PointLightSet
@@ -166,6 +168,7 @@ class LightManager
     uint                        enabledSphereSize = 0;
     uint                        enabledTubeSize = 0;
     uint                        enablediblSize  = 0;
+    bool                        dirtyIBL = false;
 public:
 
     LightManager();
@@ -227,4 +230,7 @@ public:
     uint                 GetEnabledLocalIBLLists () const {return enablediblSize; }
     const LocalIBLLight* GetLocalIBLLight        (uint index) const {return ibls[index].get(); }
     LocalIBLLight*       GetLocalIBLLight        (uint index) {return ibls[index].get(); }
+
+    bool                 isIBLDirty              () const { return dirtyIBL; }
+    void                 generateIBLs            ();
 };

@@ -16,6 +16,8 @@
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
+#include <SDL_assert.h>
+
 LightManager::LightManager()
 {
     directional = std::make_unique<DirLight>();
@@ -82,6 +84,8 @@ void LightManager::LoadLights(const Config &config)
 
         ibls.push_back(std::move(ibl));
     }
+
+    dirtyIBL = count > 0;
 
 }
 
@@ -219,6 +223,7 @@ uint LightManager::AddLocalIBLLight()
 {
     uint index = uint(ibls.size());
     ibls.push_back(std::make_unique<LocalIBLLight>());
+    dirtyIBL = true;
 
     return index;
 }
@@ -226,6 +231,19 @@ uint LightManager::AddLocalIBLLight()
 void LightManager::RemoveLocalIBLLight(uint index)
 {
     ibls.erase(ibls.begin()+index);
+    dirtyIBL = true;
+}
+
+void LightManager::generateIBLs()
+{
+    SDL_assert(dirtyIBL);
+
+    for(std::unique_ptr<LocalIBLLight>& light : ibls)
+    {
+        light->generate();
+    }
+
+    dirtyIBL = false;
 }
 
 void LightManager::UpdateGPUBuffers()
@@ -385,8 +403,11 @@ void LightManager::UpdateGPUBuffers()
     if(uint(ibls.size()) > iblBufferSize || !iblLightSSBO[frameCount])
     {
         iblBufferSize = uint(ibls.size());
-        iblLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, iblBufferSize * sizeof(iblLightData) + sizeof(int) * 4, nullptr, true);
-        iblLightData[frameCount] = reinterpret_cast<IBLLightSet*>(iblLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, iblBufferSize * sizeof(iblLightData) + sizeof(int) * 4));
+        iblLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, iblBufferSize * sizeof(IBLLightData) + sizeof(int) * 4, nullptr, true);
+        iblLightData[frameCount] = reinterpret_cast<IBLLightSet*>(iblLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, iblBufferSize * sizeof(IBLLightData) + sizeof(int) * 4));
+
+        glObjectLabel(GL_BUFFER, iblLightSSBO[frameCount]->Id(), -1, "iblLightSSBO");
+
     }
 
     IBLLightSet* iblPtr = iblLightData[frameCount];
@@ -402,8 +423,10 @@ void LightManager::UpdateGPUBuffers()
         if(light->GetEnabled() && iblData.GetDiffuseIBL() && iblData.GetPrefilterdIBL())
         {
 
-            iblPtr->ibls[enablediblSize].position = float4(light->GetPosition(), 0.0);
-            iblPtr->ibls[enablediblSize].diffuse = iblData.GetDiffuseIBL()->GetBindlessHandle();
+            iblPtr->ibls[enablediblSize].position    = float4(light->GetPosition(), light->GetRadius());
+            iblPtr->ibls[enablediblSize].minPoint    = float4(light->GetPosition()+light->GetAABB().minPoint, 0.0f);
+            iblPtr->ibls[enablediblSize].maxPoint    = float4(light->GetPosition()+light->GetAABB().maxPoint, 0.0f);
+            iblPtr->ibls[enablediblSize].diffuse     = iblData.GetDiffuseIBL()->GetBindlessHandle();
             iblPtr->ibls[enablediblSize].prefiltered = iblData.GetPrefilterdIBL()->GetBindlessHandle();
 
             ++enablediblSize;
