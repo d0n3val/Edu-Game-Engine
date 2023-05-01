@@ -54,9 +54,12 @@ class LightManager
     {
         uint64_t diffuse;
         uint64_t prefiltered;
+        float4x4 toLocal;
         float4   position;
-        float4   minPoint;
-        float4   maxPoint;
+        float4   minParallax;
+        float4   maxParallax;
+        float4   minInfluence;
+        float4   maxInfluence;
     };
 
     struct PointLightSet
@@ -168,7 +171,6 @@ class LightManager
     uint                        enabledSphereSize = 0;
     uint                        enabledTubeSize = 0;
     uint                        enablediblSize  = 0;
-    bool                        dirtyIBL = false;
 public:
 
     LightManager();
@@ -178,7 +180,7 @@ public:
     void SaveLights(Config& config) const;
     void RemoveLights();
 
-    void UpdateGPUBuffers();
+    void UpdateGPUBuffers(bool disableIBL = false);
     void Bind();
 
     const Buffer*       GetDirectionalBuffer    () const { return directionalSSBO[frameCount].get(); }
@@ -231,6 +233,5 @@ public:
     const LocalIBLLight* GetLocalIBLLight        (uint index) const {return ibls[index].get(); }
     LocalIBLLight*       GetLocalIBLLight        (uint index) {return ibls[index].get(); }
 
-    bool                 isIBLDirty              () const { return dirtyIBL; }
     void                 generateIBLs            ();
 };

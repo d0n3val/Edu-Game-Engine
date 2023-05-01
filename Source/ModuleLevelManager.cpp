@@ -71,13 +71,15 @@ update_status ModuleLevelManager::PreUpdate(float dt)
 
 update_status ModuleLevelManager::Update(float dt)
 {
-    if (lightManager->isIBLDirty())
-        lightManager->generateIBLs();
-
 	if(App->IsPlay())
 		RecursiveUpdate(root, dt);
 
 	return UPDATE_CONTINUE;
+}
+
+update_status ModuleLevelManager::PostUpdate(float dt)
+{
+    return UPDATE_CONTINUE;
 }
 
 // Called before quitting

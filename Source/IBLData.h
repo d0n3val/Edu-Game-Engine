@@ -37,12 +37,12 @@ public:
 
     void    Bind                ();
 
-    void               generateEnvironment(const float3& position);
+    void               generateEnvironment(const float3& position, const Quat& rotation, float farPlane, uint resolution, uint numSamples, uint roughnessLevels);
 
     void               SetEnvironmentRes    (UID uid);
     ResHandle          GetEnvironmentRes() const { return envRes;  }
     
-    void               SetEnvironment       (TextureCube* env);
+    void               SetEnvironment       (TextureCube* env, uint resolution = 512, uint numSamples = 2048, uint roughnessLevels = 8);
     TextureCube*       GetEnvironment       ()        { return environment; }
     const TextureCube* GetEnvironment       () const  { return environment; } 
 

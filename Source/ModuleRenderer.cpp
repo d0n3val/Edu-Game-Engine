@@ -94,10 +94,10 @@ ModuleRenderer::~ModuleRenderer()
 {
 }
 
-void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
+void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags)
 {
     UpdateCameraUBO(camera);
-    App->level->GetLightManager()->UpdateGPUBuffers();
+    App->level->GetLightManager()->UpdateGPUBuffers((flags & DRAW_IBL) != 0);
 
     render_list.UpdateFrom(culling->frustum, App->level->GetRoot()); 
 
@@ -131,7 +131,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetLightManager()->Bind();
 
-    RenderDeferred(camera, culling, frameBuffer, width, height);
+    RenderDeferred(camera, culling, frameBuffer, width, height, flags);
 }
 
 void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
@@ -151,7 +151,7 @@ void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBu
     frameBuffer->Unbind();
 }
 
-void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
+void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags)
 {
     // TODO: Update batch transforms and skinning / morphing for 2 cameras, render and shadows
     
@@ -187,7 +187,10 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
     RenderVFX(camera, culling, frameBuffer, width, height);
 
-    DrawAreaLights(camera, frameBuffer);
+    if((flags & DRAW_IBL) == 0)
+    {
+        DrawAreaLights(camera, frameBuffer);
+    }
     
 
     // Skybox

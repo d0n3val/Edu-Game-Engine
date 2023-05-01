@@ -1,6 +1,6 @@
 #version 440 
 
-#define NUM_SAMPLES 2048
+#define ENVBRDF_NUM_SAMPLES 2048
 #define PI 3.1415926
 #define TWO_PI 2.0*PI
 #define HALF_PI 0.5*PI
@@ -37,6 +37,8 @@ mat3 computeTangetSpace(in vec3 normal)
 
 #ifdef DIFFUSE_IBL
 
+uniform int numSamples;
+
 vec3 hemisphereCosineSample(in vec2 rand)
 {
      float phi = rand[0] * 2.0 * PI;
@@ -53,14 +55,14 @@ void main()
     vec3 normal       = normalize(coords);
     mat3 tangentSpace = computeTangetSpace(normal);
 
-    for(int i = 0;  i < NUM_SAMPLES; ++i)
+    for(int i = 0;  i < numSamples; ++i)
     {
-        vec3 dir = tangentSpace*hemisphereCosineSample(hammersley2D(i, NUM_SAMPLES));
+        vec3 dir = tangentSpace*hemisphereCosineSample(hammersley2D(i, numSamples));
 
         irradiance += texture(skybox, dir).rgb;
     }
 
-    fragColor = vec4(irradiance/float(NUM_SAMPLES), 1.0);
+    fragColor = vec4(irradiance/float(numSamples), 1.0);
 }
 
 #else
@@ -84,6 +86,7 @@ vec3 hemisphereSampleGGX(in vec2 rand, float roughness)
 #ifdef PREFILTERED_IBL
 
 uniform float roughness;
+uniform int numSamples;
 
 void main()
 {
@@ -94,9 +97,9 @@ void main()
     float weight      = 0.0;
     mat3 tangentSpace = computeTangetSpace(N);
 
-    for( int i = 0; i < NUM_SAMPLES; ++i ) 
+    for( int i = 0; i < numSamples; ++i ) 
     {
-        vec3 H = normalize(tangentSpace*hemisphereSampleGGX( hammersley2D(i, NUM_SAMPLES), roughness));
+        vec3 H = normalize(tangentSpace*hemisphereSampleGGX( hammersley2D(i, numSamples), roughness));
         vec3 L = reflect(-V, H); 
         float NdotL = dot( N, L );
         if( NdotL > 0 ) 
@@ -135,9 +138,9 @@ void main()
     float fa = 0.0;
     float fb = 0.0;
 
-    for (uint i = 0; i < NUM_SAMPLES; i++) 
+    for (uint i = 0; i < ENVBRDF_NUM_SAMPLES; i++) 
     {
-        vec3 H = hemisphereSampleGGX(hammersley2D(i, NUM_SAMPLES), roughness);
+        vec3 H = hemisphereSampleGGX(hammersley2D(i, ENVBRDF_NUM_SAMPLES), roughness);
 
         // Get the light direction
         vec3 L = reflect(-V, H); 
@@ -155,7 +158,7 @@ void main()
         }
     }
 
-    fragColor = vec4(4.0*fa/float(NUM_SAMPLES), 4.0*fb/float(NUM_SAMPLES), 1.0, 1.0);
+    fragColor = vec4(4.0*fa/float(ENVBRDF_NUM_SAMPLES), 4.0*fb/float(ENVBRDF_NUM_SAMPLES), 1.0, 1.0);
 }
 
 #endif 

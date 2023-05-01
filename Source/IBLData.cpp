@@ -97,14 +97,14 @@ void IBLData::SetEnvironmentRes(UID uid)
     }
 }
 
-void IBLData::generateEnvironment(const float3& position)
+void IBLData::generateEnvironment(const float3& position, const Quat& rotation, float farPlane, uint resolution, uint numSamples, uint roughnessLevels)
 {
     const int DEFAULT_IBL_SIZE = 512;
 
-    SetEnvironment(utils.LocalIBL(position, DEFAULT_IBL_SIZE, DEFAULT_IBL_SIZE));
+    SetEnvironment(utils.LocalIBL(position, rotation, farPlane, resolution));
 }
 
-void IBLData::SetEnvironment(TextureCube* env)
+void IBLData::SetEnvironment(TextureCube* env, uint resolution, uint numSamples, uint roughnessLevels)
 {
     const int ENVIRONMENT_BRDF_RESOLUTION = 512;
     const int DIFFUSE_IBL_RESOLUTION = 512;
@@ -115,8 +115,8 @@ void IBLData::SetEnvironment(TextureCube* env)
     environment = env;
     prefilteredLevels = PREFILTERED_IBL_LEVELS; 
 
-    prefilteredIBL.reset(utils.PrefilteredSpecular(environment, PREFILTERED_IBL_RESOLUTION, PREFILTERED_IBL_RESOLUTION, prefilteredLevels));
-    diffuseIBL.reset(utils.DiffuseIBL(environment, DIFFUSE_IBL_RESOLUTION, DIFFUSE_IBL_RESOLUTION));
+    prefilteredIBL.reset(utils.PrefilteredSpecular(environment, resolution, numSamples, roughnessLevels));
+    diffuseIBL.reset(utils.DiffuseIBL(environment, resolution, numSamples));
 
     if(!environmentBRDF)
     {

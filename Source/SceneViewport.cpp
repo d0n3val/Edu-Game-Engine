@@ -670,6 +670,40 @@ void SceneViewport::DrawGuizmoProperties(TubeLight *tube)
 
 }
 
+void SceneViewport::DrawGuizmoProperties(LocalIBLLight* ibl)
+{
+    ImGui::RadioButton("Translate", (int*)&guizmo_op, (int)ImGuizmo::TRANSLATE);
+    ImGui::SameLine();
+    ImGui::RadioButton("Rotate", (int*)&guizmo_op, ImGuizmo::ROTATE);
+
+    float3 translation = ibl->GetPosition();
+    if (ImGui::DragFloat3("Tr", &translation[0], 0.01f))
+    {
+        ibl->SetPosition(translation);
+    }
+
+    float3 euler = QuatToEuler(ibl->GetRotation());
+    if (ImGui::SliderAngle3("Rt", &euler[0]))
+    {
+        ibl->SetRotation(QuatFromEuler(euler));
+    }
+
+    ImGui::PushID("snap");
+    ImGui::Checkbox("", &guizmo_useSnap);
+    ImGui::PopID();
+    ImGui::SameLine();
+
+    switch (guizmo_op)
+    {
+    case ImGuizmo::TRANSLATE:
+        ImGui::InputFloat3("Snap", &guizmo_snap.x);
+        break;
+    case ImGuizmo::ROTATE:
+        ImGui::InputFloat("Angle Snap", &guizmo_snap.x);
+        break;
+    }
+}
+
 void SceneViewport::DrawGuizmo(ComponentCamera* camera)
 {
     std::visit([this, camera](auto ptr) {DrawGuizmo(camera, ptr); }, App->editor->GetSelection());
@@ -782,7 +816,9 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, LocalIBLLight* light)
 
     float4x4 model = float4x4::identity;
     model.SetTranslatePart(light->GetPosition());
+    model.SetRotatePart(light->GetRotation());
     model.Transpose();
+
 
     float4x4 delta;
 
@@ -796,14 +832,33 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, LocalIBLLight* light)
     if (ImGuizmo::IsUsing() && !delta.IsIdentity())
     {
         light->SetPosition(model.TranslatePart());
+        light->SetRotation(Quat(model));
     }
 
-    dd::circle(light->GetPosition(), float3::unitY, dd::colors::Gray, light->GetRadius(), 25.0f);
-    dd::circle(light->GetPosition(), float3::unitX, dd::colors::Gray, light->GetRadius(), 25.0f);
-    dd::circle(light->GetPosition(), float3::unitZ, dd::colors::Gray, light->GetRadius(), 25.0f);
+    const AABB &parallax = light->GetParallaxAABB();
+    float3 points[8];
+    parallax.GetCornerPoints(points);
+    for (uint i = 0; i < 8; ++i)
+    {
+        points[i] = light->GetRotation() * points[i] + light->GetPosition();
+    }
+    std::swap(points[2], points[5]);
+    std::swap(points[3], points[4]);
+    std::swap(points[4], points[5]);
+    std::swap(points[6], points[7]);
+    dd::box(points, dd::colors::Red);
 
-    const AABB &aabb = light->GetAABB();
-    dd::aabb(aabb.minPoint+light->GetPosition(), aabb.maxPoint+light->GetPosition(), dd::colors::Red);
+    const AABB &influence = light->GetInfluenceAABB();
+    influence.GetCornerPoints(points);
+    for (uint i = 0; i < 8; ++i)
+    {
+        points[i] = light->GetRotation() * points[i] + light->GetPosition();
+    }
+    std::swap(points[2], points[5]);
+    std::swap(points[3], points[4]);
+    std::swap(points[4], points[5]);
+    std::swap(points[6], points[7]);
+    dd::box(points, dd::colors::Green);
 }
 
 

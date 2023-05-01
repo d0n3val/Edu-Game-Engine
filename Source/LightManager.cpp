@@ -84,9 +84,6 @@ void LightManager::LoadLights(const Config &config)
 
         ibls.push_back(std::move(ibl));
     }
-
-    dirtyIBL = count > 0;
-
 }
 
 void LightManager::SaveLights(Config& config) const
@@ -223,7 +220,6 @@ uint LightManager::AddLocalIBLLight()
 {
     uint index = uint(ibls.size());
     ibls.push_back(std::make_unique<LocalIBLLight>());
-    dirtyIBL = true;
 
     return index;
 }
@@ -231,22 +227,17 @@ uint LightManager::AddLocalIBLLight()
 void LightManager::RemoveLocalIBLLight(uint index)
 {
     ibls.erase(ibls.begin()+index);
-    dirtyIBL = true;
 }
 
 void LightManager::generateIBLs()
 {
-    SDL_assert(dirtyIBL);
-
     for(std::unique_ptr<LocalIBLLight>& light : ibls)
     {
         light->generate();
     }
-
-    dirtyIBL = false;
 }
 
-void LightManager::UpdateGPUBuffers()
+void LightManager::UpdateGPUBuffers(bool disableIBL)
 {
     static bool needsUpdate = true;
 
@@ -416,20 +407,31 @@ void LightManager::UpdateGPUBuffers()
     // ibl lights
     enablediblSize = 0;
 
-    for(const std::unique_ptr<LocalIBLLight>& light : ibls)
+    if(!disableIBL)
     {
-        IBLData& iblData = light->getIBLData();
-
-        if(light->GetEnabled() && iblData.GetDiffuseIBL() && iblData.GetPrefilterdIBL())
+        for (const std::unique_ptr<LocalIBLLight> &light : ibls)
         {
+            IBLData &iblData = light->getIBLData();
 
-            iblPtr->ibls[enablediblSize].position    = float4(light->GetPosition(), light->GetRadius());
-            iblPtr->ibls[enablediblSize].minPoint    = float4(light->GetPosition()+light->GetAABB().minPoint, 0.0f);
-            iblPtr->ibls[enablediblSize].maxPoint    = float4(light->GetPosition()+light->GetAABB().maxPoint, 0.0f);
-            iblPtr->ibls[enablediblSize].diffuse     = iblData.GetDiffuseIBL()->GetBindlessHandle();
-            iblPtr->ibls[enablediblSize].prefiltered = iblData.GetPrefilterdIBL()->GetBindlessHandle();
+            if (light->GetEnabled() && iblData.GetDiffuseIBL() && iblData.GetPrefilterdIBL())
+            {
 
-            ++enablediblSize;
+                float4x4 toGlobal = light->GetTransform();
+                float4x4 toLocal = toGlobal;
+                toLocal.InverseOrthonormal();
+
+                iblPtr->ibls[enablediblSize].position = float4(light->GetPosition(), 0.0f);
+                iblPtr->ibls[enablediblSize].toLocal = toLocal;
+
+                iblPtr->ibls[enablediblSize].minParallax = float4(light->GetParallaxAABB().minPoint, 0.0f);
+                iblPtr->ibls[enablediblSize].maxParallax = float4(light->GetParallaxAABB().maxPoint, 0.0f);
+                iblPtr->ibls[enablediblSize].minInfluence = float4(light->GetInfluenceAABB().minPoint, 0.0f);
+                iblPtr->ibls[enablediblSize].maxInfluence = float4(light->GetInfluenceAABB().maxPoint, 0.0f);
+                iblPtr->ibls[enablediblSize].diffuse = iblData.GetDiffuseIBL()->GetBindlessHandle();
+                iblPtr->ibls[enablediblSize].prefiltered = iblData.GetPrefilterdIBL()->GetBindlessHandle();
+
+                ++enablediblSize;
+            }
         }
     }
 

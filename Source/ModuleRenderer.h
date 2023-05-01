@@ -34,6 +34,8 @@ class FogPass;
 class LinePass;
 class DepthRangePass;
 
+
+
 class ModuleRenderer : public Module
 {
     RenderList render_list;
@@ -60,11 +62,18 @@ class ModuleRenderer : public Module
 
 public:
 
+    enum DrawFlags
+    {
+        DRAW_IBL = 1 << 0
+    };
+
+public:
+
     explicit ModuleRenderer();
     ~ModuleRenderer();
 
 	bool                Init                        (Config* config = nullptr) override;
-    void                Draw                        (ComponentCamera* camera, ComponentCamera* culling,  Framebuffer* frameBuffer, unsigned width, unsigned height);
+    void                Draw                        (ComponentCamera* camera, ComponentCamera* culling,  Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags = 0);
     void                DrawForSelection            (ComponentCamera* camera);
 
 	void                DrawDebug                   () override;
@@ -83,7 +92,7 @@ public:
 private:
 
     void                RenderForward               (ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height);
-    void                RenderDeferred              (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
+    void                RenderDeferred              (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags);
     void                RenderVFX                   (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
 
 

@@ -44,6 +44,7 @@ public:
     void                DrawGuizmoProperties(SphereLight* sphere);
     void                DrawGuizmoProperties(QuadLight* quad);
     void                DrawGuizmoProperties(TubeLight* quad);
+    void                DrawGuizmoProperties(LocalIBLLight* ibl);
 
 
 private:

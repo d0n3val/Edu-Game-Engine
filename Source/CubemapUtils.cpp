@@ -109,15 +109,15 @@ void CubemapUtils::RenderCubemapLod(const TextureCube* cubeMap, const float4x4& 
     glDepthFunc(GL_LESS);
 }
 
-TextureCube* CubemapUtils::LocalIBL(const float3& position, uint width, uint height)
+TextureCube* CubemapUtils::LocalIBL(const float3& position, const Quat& rotation, float farPlane, uint resolution)
 {
     ComponentCamera camera(nullptr);
 	camera.frustum.type = FrustumType::PerspectiveFrustum;
 
 	camera.frustum.pos  = position;
 
-	camera.frustum.nearPlaneDistance = 0.1f; // TODO: Change it
-	camera.frustum.farPlaneDistance  = 100.0f; // TODO: change it
+	camera.frustum.nearPlaneDistance = 0.1f; 
+	camera.frustum.farPlaneDistance  = farPlane; 
 	camera.frustum.verticalFov       = math::pi/2.0f; 
 	camera.frustum.horizontalFov     = math::pi/2.0f; 
 
@@ -127,7 +127,7 @@ TextureCube* CubemapUtils::LocalIBL(const float3& position, uint width, uint hei
     // initialize each cubemap plane
     for(uint i=0; i< 6; ++i)
     {
-        cubeMap->SetData(i, 0, width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
+        cubeMap->SetData(i, 0, resolution, resolution, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
     }
 
     // Render each cube plane
@@ -137,33 +137,74 @@ TextureCube* CubemapUtils::LocalIBL(const float3& position, uint width, uint hei
         frameBuffer.AttachColor(cubeMap, i, 0, 0);
         assert(frameBuffer.Check());
         frameBuffer.Bind();
-        glViewport(0, 0, width, height);
+        glViewport(0, 0, resolution, resolution);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        camera.frustum.front = front[i];
-        camera.frustum.up = up[i];
+        camera.frustum.front = rotation * front[i];
+        camera.frustum.up = rotation * up[i];
 
-        /*
-        frameBuffer.Bind();
-        App->level->GetSkyBox()->DrawEnvironment(camera.GetProjectionMatrix(), camera.GetViewMatrix());
-        frameBuffer.Unbind();
-        */
-
-        App->renderer->Draw(&camera, &camera, &frameBuffer, width, height);
+        App->renderer->Draw(&camera, &camera, &frameBuffer, resolution, resolution, ModuleRenderer::DRAW_IBL);
     }
 
     return cubeMap;
 
 }
 
-TextureCube *CubemapUtils::DiffuseIBL(TextureCube *texture, uint width, uint height)
+TextureCube *CubemapUtils::DiffuseIBL(TextureCube *texture, uint resolution, uint numSamples)
 {
     if (!vao) Init();
 
-    return RenderCube(diffuseIBL.get(), texture, width, height);
+	Frustum frustum;
+	frustum.type = FrustumType::PerspectiveFrustum;
+
+	frustum.pos  = float3::zero;
+
+	frustum.nearPlaneDistance = 0.1f;
+	frustum.farPlaneDistance  = 100.0f;
+	frustum.verticalFov       = math::pi/2.0f; 
+	frustum.horizontalFov     = math::pi/2.0f; 
+
+    Framebuffer frameBuffer;
+    TextureCube* cubeMap = new TextureCube();
+
+    // initialize each cubemap plane
+    for(uint i=0; i< 6; ++i)
+    {
+        cubeMap->SetData(i, 0, resolution, resolution, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr);
+    }
+
+    diffuseIBL->Use();
+    diffuseIBL->BindTextureFromName("skybox", 0, texture);
+    diffuseIBL->BindUniformFromName("numSamples", int(numSamples));
+
+    // Render each cube plane
+    for(uint i=0; i<6; ++i)
+    {
+        frameBuffer.ClearAttachments();
+        frameBuffer.AttachColor(cubeMap, i, 0, 0);
+        assert(frameBuffer.Check());
+        frameBuffer.Bind();
+        glViewport(0, 0, resolution, resolution);
+
+        frustum.front = front[i];
+        frustum.up = up[i];
+
+        float4x4 proj = frustum.ProjectionMatrix();
+        float4x4 view = frustum.ViewMatrix();
+
+        diffuseIBL->BindUniformFromName("proj", proj);
+        diffuseIBL->BindUniformFromName("view", view);
+
+        glDepthFunc(GL_ALWAYS);
+        vao->Bind();
+        glDrawArrays(GL_TRIANGLES, 0, 6*6);
+        glDepthFunc(GL_LESS);
+    }
+
+    return cubeMap;
 }
 
-TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width, uint height, uint prefilteredLevels)
+TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint resolution, uint numSamples, uint prefilteredLevels)
 {
     if (!vao) Init();
 
@@ -183,7 +224,7 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width,
     // initialize each cubemap plane
     for (uint i = 0; i < 6; ++i)
     {
-        cubeMap->SetData(i, 0, width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr);
+        cubeMap->SetData(i, 0, resolution, resolution, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr);
     }
 
     cubeMap->SetMinMaxFiler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
@@ -191,11 +232,11 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width,
 
     for (uint roughness = 0; roughness < prefilteredLevels; ++roughness)
     {
-        assert(width > 0);
-        assert(height > 0);
+        assert(resolution > 0);
 
         prefilteredIBL->Use();
         prefilteredIBL->BindTextureFromName("skybox", 0, texture);
+        prefilteredIBL->BindUniformFromName("numSamples", int(numSamples));
 
         // Render each cube plane
         for (uint i = 0; i < 6; ++i)
@@ -203,7 +244,7 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width,
             frameBuffer.ClearAttachments();
             frameBuffer.AttachColor(cubeMap, i, 0, roughness);
             frameBuffer.Bind();
-            glViewport(0, 0, width, height);
+            glViewport(0, 0, resolution, resolution);
 
             frustum.front = front[i];
             frustum.up = up[i];
@@ -221,8 +262,7 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint width,
             glDepthFunc(GL_LESS);
         }
 
-        width = width >> 1;
-        height = height >> 1;
+        resolution = resolution >> 1;
     }
 
     return cubeMap;
@@ -251,11 +291,6 @@ TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint
 {
     if (!vao) Init();
 
-    return RenderCube(equirectangular.get(), texture, width, height);
-}
-
-TextureCube* CubemapUtils::RenderCube(Program* program, Texture* texture, uint width, uint height)
-{
 	Frustum frustum;
 	frustum.type = FrustumType::PerspectiveFrustum;
 
@@ -275,8 +310,8 @@ TextureCube* CubemapUtils::RenderCube(Program* program, Texture* texture, uint w
         cubeMap->SetData(i, 0, width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr);
     }
 
-    program->Use();
-    program->BindTextureFromName("skybox", 0, texture);
+    equirectangular->Use();
+    equirectangular->BindTextureFromName("skybox", 0, texture);
 
     // Render each cube plane
     for(uint i=0; i<6; ++i)
@@ -293,8 +328,8 @@ TextureCube* CubemapUtils::RenderCube(Program* program, Texture* texture, uint w
         float4x4 proj = frustum.ProjectionMatrix();
         float4x4 view = frustum.ViewMatrix();
 
-        program->BindUniformFromName("proj", proj);
-        program->BindUniformFromName("view", view);
+        equirectangular->BindUniformFromName("proj", proj);
+        equirectangular->BindUniformFromName("view", view);
 
         glDepthFunc(GL_ALWAYS);
         vao->Bind();

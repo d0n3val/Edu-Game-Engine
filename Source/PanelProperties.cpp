@@ -365,27 +365,52 @@ void PanelProperties::DrawLocalIBLLight(LocalIBLLight *light)
 {
     if (ImGui::CollapsingHeader("Local IBL light", ImGuiTreeNodeFlags_DefaultOpen))
     {
+        bool enable = light->GetEnabled();
+        if(ImGui::Checkbox("Enabled", &enable))
+        {
+            light->SetEnabled(enable);
+        }
+
+        App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
         skybox->DrawProperties(&light->getIBLData());
         if(ImGui::Button("Generate"))
         {
             light->generate();
         }
 
-        float radius = light->GetRadius();
-        if (ImGui::InputFloat("radius", &radius, 0.01f, 0.1f, "%.9f"))
+        AABB parallax = light->GetParallaxAABB();
+        if(ImGui::DragFloat3("Parallax min", (float*)& parallax.minPoint, 0.001f))
         {
-            light->SetRadius(radius);
+            light->SetParallaxAABB(parallax);
         }
 
-        AABB aabb = light->GetAABB();
-        if(ImGui::DragFloat3("AABB min", (float*)& aabb.minPoint, 0.001f))
+        if(ImGui::DragFloat3("Parallax max", (float*) & parallax.maxPoint, 0.001f))
         {
-            light->SetAABB(aabb);
+            light->SetParallaxAABB(parallax);
         }
 
-        if(ImGui::DragFloat3("AABB max", (float*) & aabb.maxPoint, 0.001f))
+        AABB influence = light->GetInfluenceAABB();
+        if(ImGui::DragFloat3("Influence min", (float*)& influence.minPoint, 0.001f))
         {
-            light->SetAABB(aabb);
+            light->SetInfluenceAABB(influence);
+        }
+
+        if(ImGui::DragFloat3("Influence max", (float*) & influence.maxPoint, 0.001f))
+        {
+            light->SetInfluenceAABB(influence);
+        }
+        
+        float3 roominess = light->GetRoominess();
+        if (ImGui::DragFloat3("Roominess", (float*)&roominess, 0.001f))
+        {
+            light->SetRoominess(roominess);
+        }
+
+
+        float farPlane = light->GetFarPlane();
+        if(ImGui::DragFloat("Far plane", &farPlane, 0.1f, 0.0f, 10000000.0f))
+        {
+            light->SetFarPlane(farPlane);
         }
     }
 

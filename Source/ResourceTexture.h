@@ -14,6 +14,7 @@ public:
 
     enum Format {
         rgba = 0,
+        rgba32f,
         bgra,
         bgr,
         red,

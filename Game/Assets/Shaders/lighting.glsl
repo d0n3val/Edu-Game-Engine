@@ -62,9 +62,12 @@ struct IBLLight
 {
     samplerCube diffuse;
     samplerCube prefiltered;
-    vec4 pos;
-    vec4 minPoint;
-    vec4 maxPoint;
+    mat4 toLocal;
+    vec4 position;
+    vec4 minParallax;
+    vec4 maxParallax;
+    vec4 minInfluence;
+    vec4 maxInfluence;
 };
 
 readonly layout(std430, binding = DIRLIGHT_SSBO_BINDING) buffer DirLightBuffer
@@ -102,7 +105,7 @@ readonly layout(std430, binding = TUBELIGHT_SSBO_BINDING) buffer TubeLights
     TubeLight tubes[];
 };
 
-readonly layout(std430, binding = IBLLIGHT_SSBO_BINDING) buffer IBLLights
+readonly layout(std430, row_major, binding = IBLLIGHT_SSBO_BINDING) buffer IBLLights
 {
     uint num_ibl;
     IBLLight ibls[];
@@ -272,60 +275,73 @@ vec3 ShadingDirectional(in PBR pbr)
     return color;
 }
 
-void parallaxCorrection(const vec3 position, const vec3 probePos, inout vec3 R, const vec3 minBox, const vec3 maxBox)
+vec3 parallaxCorrection(const vec3 localPos, const vec3 localR, const vec3 minBox, const vec3 maxBox)
 {
-    vec3 first = (maxBox-position)/R;
-    vec3 second = (minBox-position)/R;
+    vec3 first = (maxBox-localPos)/localR;
+    vec3 second = (minBox-localPos)/localR;
 
     vec3 furthest = max(first, second);
 
     float dist = min(min(furthest.x, furthest.y), furthest.z);
 
-    vec3 intersect = position+R*dist;
-    R = intersect-probePos;
+    return localPos+localR*dist;
 }
 
-void getNearestIBL(const vec3 position, out samplerCube diffuse, out samplerCube prefiltered, inout vec3 R)
+vec3 evaluateIBL(in PBR pbr, in samplerCube difIBL, in samplerCube prefIBL, in float roughness, in float NdotV, in vec3 R, in vec3 coord)
 {
-    diffuse = diffuseIBL;
-    prefiltered = prefilteredIBL;
-    float minDist = 0;
-
-    for(uint i=0; i< num_ibl; ++i)
-    {
-        IBLLight ibl = ibls[i];
-        float dist = distance(ibl.pos.xyz, position);
-        if(i == 0 || dist < minDist)
-        {
-            minDist = dist;
-            diffuse = ibl.diffuse;
-            prefiltered = ibl.prefiltered;
-            parallaxCorrection(position, ibl.pos.xyz, R, ibl.minPoint.xyz, ibl.maxPoint.xyz);
-        }
-    }
-}
-
-vec3 ShadingAmbient(in PBR pbr)
-{
-    samplerCube difIBL, prefIBL;
-
-    vec3 V           = normalize(view_pos.xyz-pbr.position);
-    vec3 R           = reflect(-V, pbr.normal);
-    float NdotV      = max(dot(pbr.normal, V), 0.0);
-    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
-
-    getNearestIBL(pbr.position, difIBL, prefIBL, R);
-
     vec3 irradiance = texture(difIBL, pbr.normal).rgb;
-    vec3 radiance   = textureLod(prefIBL, R, roughness*(prefilteredLevels-1)).rgb;
+    vec3 radiance   = textureLod(prefIBL, coord, roughness*(prefilteredLevels-1)).rgb;
     vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
     vec3 indirect   = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
 
     float shadow = min(1.0, pbr.shadow+0.25);
 
-    vec3 color = indirect*pbr.occlusion*shadow;
+    return indirect*pbr.occlusion*shadow;
+}
 
-    //if(found) color = textureLod(prefIBL, R, 0).rgb;
+bool insideBox(const vec3 localPos, const vec3 minBox, const vec3 maxBox)
+{
+    return  localPos.x >= minBox.x && localPos.x <= maxBox.x && 
+            localPos.y >= minBox.y && localPos.y <= maxBox.y && 
+            localPos.z >= minBox.z && localPos.z <= maxBox.z;
+}
+
+vec3 ShadingAmbient(in PBR pbr)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    vec3 R           = reflect(-V, pbr.normal);
+    float NdotV      = max(dot(pbr.normal, V), 0.0);
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
+
+    vec3 color = vec3(0.0);
+
+    float totalWeight = 0.0;
+    for(uint i=0; i< num_ibl; ++i)
+    {
+        IBLLight ibl = ibls[i];
+
+        vec3 localPos = (ibl.toLocal*vec4(pbr.position, 1.0)).xyz;
+
+        if(insideBox(localPos, ibl.minInfluence.xyz, ibl.maxInfluence.xyz))
+        {
+            vec3 closer = min(localPos-ibl.minInfluence.xyz, ibl.maxInfluence.xyz-localPos);
+            float weight = min(closer.x, min(closer.y, closer.z));
+
+            vec3 localR = mat3(ibl.toLocal)*R;
+            vec3 coord = parallaxCorrection(localPos, localR, ibl.minParallax.xyz, ibl.maxParallax.xyz);
+            color += evaluateIBL(pbr, ibl.diffuse, ibl.prefiltered, roughness, NdotV, R, coord)*weight;
+            totalWeight += weight;
+        }
+    }
+
+    if(totalWeight == 0.0)
+    {
+        color = evaluateIBL(pbr, diffuseIBL, prefilteredIBL, roughness, NdotV, R, R);
+    }
+    else
+    {
+        color /= totalWeight;
+    }
 
     return color;
 }
@@ -444,10 +460,10 @@ vec4 ShadingNoPoint(in PBR pbr)
 {
     vec3 color = ShadingAmbient(pbr);
     color += ShadingDirectional(pbr);
-    //color += ShadingSpot(pbr);
-    //color += ShadingSphere(pbr);
-    //color += ShadingQuad(pbr);
-    //color += ShadingTube(pbr);
+    color += ShadingSpot(pbr);
+    color += ShadingSphere(pbr);
+    color += ShadingQuad(pbr);
+    color += ShadingTube(pbr);
 
     return vec4(color, pbr.alpha);
     //return vec4(pbr.normal, pbr.alpha);

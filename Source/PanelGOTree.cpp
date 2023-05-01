@@ -120,6 +120,9 @@ void PanelGOTree::Draw()
 		if (ImGui::MenuItem("Clear Scene", "!"))
 			App->level->GetRoot()->Remove();
 
+        if (ImGui::MenuItem("Generate Local IBLs"))
+            App->level->GetLightManager()->generateIBLs();
+
 
 		ImGui::EndMenu();
 	}

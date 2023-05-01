@@ -49,6 +49,8 @@ namespace
         case DXGI_FORMAT_R8G8B8A8_UNORM:
             return ResourceTexture::rgba;
             break;
+        case DXGI_FORMAT_R32G32B32A32_FLOAT:
+            return ResourceTexture::rgba32f;
         case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
             colorSpace = ResourceTexture::gamma;
         case DXGI_FORMAT_B8G8R8A8_UNORM:
@@ -115,7 +117,7 @@ ResourceTexture::~ResourceTexture()
 // ---------------------------------------------------------
 const char * ResourceTexture::GetFormatStr() const
 {
-	static const char* formats[] = { "RGBA", "BGRA", "BGR", "RED", "BC1", "BC3", "BC4", "BC5", "BC6s", "BC6u", "BC7"};
+	static const char* formats[] = { "RGBA", "RGBA", "BGRA", "BGR", "RED", "BC1", "BC3", "BC4", "BC5", "BC6s", "BC6u", "BC7"};
 
 	return formats[format];
 }
@@ -208,8 +210,8 @@ void ResourceTexture::GenerateMipmaps(bool generate)
 // ---------------------------------------------------------
 uint ResourceTexture::GetGLInternalFormat() const 
 {
-    static uint gl_internal[] = { GL_RGBA8, GL_RGBA8, GL_RGB8, GL_R8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM };
-    static uint gl_internal_gamma[] = { GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8 , GL_SRGB8, GL_R8, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2 , GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM };
+    static uint gl_internal[] = { GL_RGBA8, GL_RGBA32F, GL_RGBA8, GL_RGB8, GL_R8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM };
+    static uint gl_internal_gamma[] = { GL_SRGB8_ALPHA8, GL_RGBA32F, GL_SRGB8_ALPHA8 , GL_SRGB8, GL_R8, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2 , GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM };
 
     return GetColorSpace() == linear ? gl_internal[uint(format)] : gl_internal_gamma[uint(format)];
 }
@@ -217,7 +219,7 @@ uint ResourceTexture::GetGLInternalFormat() const
 // ---------------------------------------------------------
 uint ResourceTexture::GetGLFormat() const 
 {
-    static uint gl_format[] = { GL_RGBA, GL_BGRA, GL_BGR, GL_RED };
+    static uint gl_format[] = { GL_RGBA, GL_RGBA, GL_BGRA, GL_BGR, GL_RED };
     assert(uint(format) < 4);
 
     return gl_format[uint(format)];
@@ -227,7 +229,7 @@ uint ResourceTexture::GetGLFormat() const
 // ---------------------------------------------------------
 uint ResourceTexture::GetGLType() const 
 {
-    static uint gl_type[] = { GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE };
+    static uint gl_type[] = { GL_UNSIGNED_BYTE, GL_FLOAT, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE };
     assert(uint(format) < 4);
 
     return gl_type[uint(format)];
