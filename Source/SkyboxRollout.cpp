@@ -95,7 +95,7 @@ void SkyboxRollout::DrawProperties(IBLData* skybox)
         ImGui::Combo("Cubemap", (int*)&selected, "Environment\0Diffuse\0Prefiltered\0");
         ImGui::Text(SelectionName[selected]);
         ImGui::Image((ImTextureID)size_t(postprocessedTex->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
-        if(selected == PrefilteredIBL) ImGui::SliderFloat("Roughness", &roughness, 0.0, 1.0f);
+        ImGui::SliderFloat("Roughness", &roughness, 0.0, 1.0f);
         ImGui::SliderFloat("Azimuthal", &azimuthal, 0.0f , 2.0f*math::pi);
         ImGui::SliderFloat("Polar", &polar, -0.5f*math::pi, 0.5f*math::pi);
         ImGui::Text("Environment BRDF");

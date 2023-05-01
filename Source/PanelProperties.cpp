@@ -400,17 +400,28 @@ void PanelProperties::DrawLocalIBLLight(LocalIBLLight *light)
             light->SetInfluenceAABB(influence);
         }
         
-        float3 roominess = light->GetRoominess();
-        if (ImGui::DragFloat3("Roominess", (float*)&roominess, 0.001f))
-        {
-            light->SetRoominess(roominess);
-        }
-
-
         float farPlane = light->GetFarPlane();
         if(ImGui::DragFloat("Far plane", &farPlane, 0.1f, 0.0f, 10000000.0f))
         {
             light->SetFarPlane(farPlane);
+        }
+
+        uint resolution = light->GetResolution();
+        if (ImGui::DragInt("Resolution", (int*) & resolution))
+        {
+            light->SetResolution(resolution);
+        }
+
+        uint numSamples = light->GetNumSamples();
+        if (ImGui::DragInt("Num samples", (int*)&numSamples))
+        {
+            light->SetNumSamples(numSamples);
+        }
+
+        uint roughnessLevels = light->GetNumRoughnessLevels();
+        if (ImGui::DragInt("Roughness levels", (int*)&roughnessLevels))
+        {
+            light->SetNumRoughnessLevels(roughnessLevels);
         }
     }
 
