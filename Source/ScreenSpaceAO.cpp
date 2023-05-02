@@ -77,7 +77,7 @@ void ScreenSpaceAO::execute(uint width, uint height)
     
     if(std::get<bool>(App->hints->GetDHint(std::string("SSAO blur"), true)))
     {
-        blur->execute(result.get(), blurred.get(), GL_R8, GL_RED, GL_FLOAT, width, height);
+        blur->execute(result.get(), blurred.get(), GL_R8, GL_RED, GL_FLOAT, 0, width, height, 0, width, height);
     }
     
     glPopDebugGroup();

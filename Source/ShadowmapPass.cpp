@@ -51,7 +51,7 @@ void ShadowmapPass::execute(uint width, uint height)
 #ifdef VARIANCE
     if(!blur) blur = std::make_unique<GaussianBlur>();
 
-    blur->execute(varianceTex.get(), blurredTex.get(), GL_RG32F, GL_RG, GL_FLOAT, width, height);
+    blur->execute(varianceTex.get(), blurredTex.get(), GL_RG32F, GL_RG, GL_FLOAT, 0, width, height, 0, width, height);
 #endif 
     glPopDebugGroup();
 }

@@ -14,6 +14,7 @@ layout(binding = ENVIRONMENT_BRDF_TEX_BINDING) uniform sampler2D  environmentBRD
 layout(location = PREFILTERED_LOD_LEVELS_LOCATION) uniform int    prefilteredLevels;
 layout(binding = PLANAR_REFLECTION_BINDING) uniform sampler2D planarReflections;
 layout(location = PLANAR_REFLECTION_VIEWPROJ_LOCATION) uniform mat4 planarViewProj;
+layout(location = PLANAR_REFLECTION_LOD_LEVELS_LOCATION) uniform int planarLevels;
 
 struct DirLight
 {
@@ -355,11 +356,12 @@ vec3 ShadingAmbient(in PBR pbr)
     {
         vec4 clipPos = planarViewProj*vec4(pbr.position, 1.0);
         vec2 planarUV = (clipPos.xy/clipPos.w)*0.5+0.5;
+        float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
-        //if(planarUV.x >= 0.0 && planarUV.x <= 1.0 && 
-         //  planarUV.y >= 0.0 && planarUV.y <= 1.0 )
+        if(planarUV.x >= 0.0 && planarUV.x <= 1.0 && 
+           planarUV.y >= 0.0 && planarUV.y <= 1.0 )
         {
-            planarColor.rgb = texture(planarReflections, planarUV).rgb;
+            planarColor.rgb = textureLod(planarReflections, planarUV, roughness*(planarLevels-1)).rgb).rgb;
             planarColor.a = 1.0;
         }
     }

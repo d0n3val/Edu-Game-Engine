@@ -9,6 +9,7 @@ in vec2 uv;
 
 layout(binding = GAUSSIAN_BLUR_IMAGE_BINDING) uniform sampler2D sourceTexture;
 layout(location = GAUSSIAN_BLUR_INVIMAGE_SIZE_LOCATION ) uniform vec2 invSize;
+layout(location = GAUSSIAN_BLUR_SOURCE_LOD) uniform float sourceLod;
 
 const int SAMPLE_COUNT = 3;
 
@@ -37,7 +38,7 @@ void main()
     {
         vec2 offset = blurDirection * OFFSETS[i] *invSize;
         float weight = WEIGHTS[i];
-        result += texture(sourceTexture, uv + offset) * weight;
+        result += textureLod(sourceTexture, uv + offset, sourceLod) * weight;
     }
     
     color = vec4(result.rgb, 1.0);

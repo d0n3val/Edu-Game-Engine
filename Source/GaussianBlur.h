@@ -28,7 +28,8 @@ public:
 
     GaussianBlur();
 
-    void execute(const Texture2D *input, const Texture2D* output, uint internal_format, uint format, uint type, uint width, uint height);
+    void execute(const Texture2D *input, const Texture2D* output, uint internal_format, uint format, uint type, 
+                 uint inMip, uint inWidth, uint inHeight, uint outMip, uint outWidth, uint outHeight);
 
 private:
     void createResult(uint internal_format, uint format, uint type, uint width, uint height);

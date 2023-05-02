@@ -2,6 +2,8 @@
 
 #include "PlanarReflectionPass.h"
 
+#include "GaussianBlur.h"
+
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "ModuleHints.h"
@@ -16,7 +18,7 @@
 
 #define DEFAULT_PLANAR_WIDTH 1024
 #define DEFAULT_PLANAR_HEIGHT 512
-
+#define DEFAULT_ROUGHNESS_LEVELS 3
 
 PlanarReflectionPass::PlanarReflectionPass() : planarCamera(nullptr)
 {
@@ -48,7 +50,7 @@ void PlanarReflectionPass::execute(ComponentCamera* camera)
         float3 newFront = planarCamera.frustum.front - planeNormal * frontAmount;
         newFront.Normalize();
 
-        // reflect normal
+        // reflect up
         float upAmount = (planeNormal.Dot(planarCamera.frustum.up) * 2.0f);
         float3 newUp = planarCamera.frustum.up - planeNormal * upAmount;
         newUp.Normalize();
@@ -56,9 +58,21 @@ void PlanarReflectionPass::execute(ComponentCamera* camera)
         planarCamera.frustum.front = newFront;
         planarCamera.frustum.up = newUp;
 
-        dd::axisTriad(planarCamera.frustum.WorldMatrix(), 0.1, 0.1, 0, false);
-
         App->renderer->Draw(&planarCamera, &planarCamera, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, ModuleRenderer::DRAW_PLANAR);
+
+        // Compute mip chain for roughness
+        uint inWidth = DEFAULT_PLANAR_WIDTH;
+        uint inHeight = DEFAULT_PLANAR_HEIGHT;
+        for(uint i=0; i< DEFAULT_ROUGHNESS_LEVELS; ++i)
+        {
+            uint outWidth = inWidth >> 1;
+            uint outHeight = inHeight >> 1;
+
+            gaussian[i]->execute(planarTex.get(), planarTex.get(), GL_RGB8, GL_RGB, GL_UNSIGNED_INT, i, inWidth, inHeight, i+1, outWidth, outHeight);
+
+            inWidth = outWidth;
+            inHeight = outHeight;
+        }
 
         glPopDebugGroup();
     }
@@ -69,12 +83,19 @@ void PlanarReflectionPass::createFrameBuffer()
     if(!frameBuffer)
     {
 		frameBuffer = std::make_unique<Framebuffer>();
-        planarTex = std::make_unique<Texture2D>(DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, GL_RGB8, GL_RGB, GL_UNSIGNED_INT, nullptr, false);
+        planarTex = std::make_unique<Texture2D>(DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, GL_RGB8, GL_RGB, GL_UNSIGNED_INT, nullptr, true);
         planarDepthTex = std::make_unique<Texture2D>(DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         
         frameBuffer->AttachColor(planarTex.get(), 0, 0);
         frameBuffer->AttachDepthStencil(planarDepthTex.get(), GL_DEPTH_ATTACHMENT);
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+        gaussian.reserve(DEFAULT_ROUGHNESS_LEVELS);
+        for(uint i=0;i<DEFAULT_ROUGHNESS_LEVELS; ++i)
+        {
+            gaussian.push_back(std::make_unique<GaussianBlur>());
+        }
+
     }
 }
 
@@ -84,4 +105,5 @@ void PlanarReflectionPass::Bind()
     
     float4x4 viewProj = planarCamera.frustum.ViewProjMatrix();
     glUniformMatrix4fv(PLANAR_REFLECTION_VIEWPROJ_LOCATION, 1, GL_TRUE, reinterpret_cast<float*>(&viewProj));
+    glUniform1i(PLANAR_REFLECTION_LOD_LEVELS_LOCATION, int(DEFAULT_ROUGHNESS_LEVELS));
 }

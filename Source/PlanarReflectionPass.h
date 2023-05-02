@@ -9,12 +9,16 @@
 class Framebuffer;
 class Texture2D;
 class ComponentCamera;
+class GaussianBlur;
 
 class PlanarReflectionPass
 {
+    typedef std::vector<std::unique_ptr<GaussianBlur> > GaussianChain;
+
     std::unique_ptr<Framebuffer> frameBuffer;
     std::unique_ptr<Texture2D> planarTex;
     std::unique_ptr<Texture2D> planarDepthTex;
+    GaussianChain gaussian;
 
 public:
     PlanarReflectionPass();

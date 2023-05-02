@@ -29,7 +29,8 @@ GaussianBlur::GaussianBlur()
     }
 }
 
-void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint internal_format, uint format, uint type, uint width, uint height)
+void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint internal_format, uint format, uint type, 
+                           uint inMip, uint inWidth, uint inHeight, uint outMip, uint outWidth, uint outHeight)
 {
     if (!frameBufferH)
     {
@@ -41,9 +42,9 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
         frameBufferV = std::make_unique<Framebuffer>();
     }
 
-    createResult(internal_format, format, type, width, height);
+    createResult(internal_format, format, type, outWidth, outHeight);
 
-    float2 invSize(1.0f / width, 1.0f / height);
+    float2 invSize(1.0f / inWidth, 1.0f / inHeight);
 
     // first output should be result, second input should be result
 
@@ -52,26 +53,28 @@ void GaussianBlur::execute(const Texture2D *input, const Texture2D* output, uint
     assert(frameBufferH->Check() == GL_FRAMEBUFFER_COMPLETE);
 
     frameBufferV->ClearAttachments();
-    frameBufferV->AttachColor(output, 0, 0);
+    frameBufferV->AttachColor(output, 0, outMip);
     assert(frameBufferV->Check() == GL_FRAMEBUFFER_COMPLETE);
 
     frameBufferH->Bind();
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, outWidth, outHeight);
 
     // horizontal pass
     horizontal->Use();
     input->Bind(GAUSSIAN_BLUR_IMAGE_BINDING);
     horizontal->BindUniform(GAUSSIAN_BLUR_INVIMAGE_SIZE_LOCATION, invSize);
+    horizontal->BindUniform(GAUSSIAN_BLUR_SOURCE_LOD, float(inMip));
     vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
     frameBufferV->Bind();
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, outWidth, outHeight);
     // vertical pass
     vertical->Use();
     result->Bind(GAUSSIAN_BLUR_IMAGE_BINDING);
     vertical->BindUniform(GAUSSIAN_BLUR_INVIMAGE_SIZE_LOCATION, invSize);
+    horizontal->BindUniform(GAUSSIAN_BLUR_SOURCE_LOD, float(inMip));
     glDrawArrays(GL_TRIANGLES, 0, 3);
     vao->Unbind();
 }
