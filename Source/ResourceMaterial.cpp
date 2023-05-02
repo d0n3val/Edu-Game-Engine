@@ -15,7 +15,7 @@
 
 #include "Leaks.h"
 
-#define MATERIAL_VERSION 0.3f
+#define MATERIAL_VERSION 0.4f
 //#define FORCE_COMPRESS_ON_LOAD
 
 // ---------------------------------------------------------
@@ -127,6 +127,11 @@ bool ResourceMaterial::LoadInMemory()
                 read_stream >> uv_offset;
                 read_stream >> scnd_uv_tiling;
                 read_stream >> scnd_uv_offset;
+            }
+
+            if(version >= 0.4f)
+            {
+                read_stream >> planarReflections;
             }
 
             delete[] buffer;
@@ -277,6 +282,7 @@ void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_s
     write_stream << uv_offset;
     write_stream << scnd_uv_tiling;
     write_stream << scnd_uv_offset;
+    write_stream << planarReflections;
 }
 
 // ---------------------------------------------------------

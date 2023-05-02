@@ -1070,6 +1070,13 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
             material->SetSmoothness(smoothness);
             modified = true;
         }
+
+        bool planar = material->GetPlanarReflections();
+        if(ImGui::Checkbox("Use planar reflections", &planar))
+        {
+            material->SetPlanarReflections(planar);
+            modified = true; 
+        }
     }
 
     if(ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))

@@ -8,6 +8,7 @@
 
 #include "OGL.h"
 #include "OpenGL.h"
+#include "DebugDraw.h"
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
@@ -43,21 +44,21 @@ void PlanarReflectionPass::execute(ComponentCamera* camera)
 
         // reflect front
         planarCamera.frustum.front.Normalize();
-        float3 newFront = planarCamera.frustum.front-planeNormal*(planeNormal.Dot(planarCamera.frustum.front)*2.0f);
+        float frontAmount = (planeNormal.Dot(planarCamera.frustum.front) * 2.0f);
+        float3 newFront = planarCamera.frustum.front - planeNormal * frontAmount;
         newFront.Normalize();
 
-        float3 cross = newFront.Cross(planarCamera.frustum.front);
-        float rotateAmount = cross.Length();
+        // reflect normal
+        float upAmount = (planeNormal.Dot(planarCamera.frustum.up) * 2.0f);
+        float3 newUp = planarCamera.frustum.up - planeNormal * upAmount;
+        newUp.Normalize();
+        
+        planarCamera.frustum.front = newFront;
+        planarCamera.frustum.up = newUp;
 
-        // rotate amount means plane is parallel to camera front
-        if (abs(rotateAmount) != 0.0001f)
-        {
-            Quat rotation(cross/rotateAmount, asinf(rotateAmount));
+        dd::axisTriad(planarCamera.frustum.WorldMatrix(), 0.1, 0.1, 0, false);
 
-            planarCamera.frustum.front = newFront;
-            planarCamera.frustum.up = rotation.Transform(planarCamera.frustum.up);
-            App->renderer->Draw(&planarCamera, &planarCamera, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, ModuleRenderer::DRAW_PLANAR);
-        }
+        App->renderer->Draw(&planarCamera, &planarCamera, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, ModuleRenderer::DRAW_PLANAR);
 
         glPopDebugGroup();
     }

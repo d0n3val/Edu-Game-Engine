@@ -356,8 +356,8 @@ vec3 ShadingAmbient(in PBR pbr)
         vec4 clipPos = planarViewProj*vec4(pbr.position, 1.0);
         vec2 planarUV = (clipPos.xy/clipPos.w)*0.5+0.5;
 
-        if(planarUV.x >= 0.0 && planarUV.x <= 1.0 && 
-           planarUV.y >= 0.0 && planarUV.y <= 1.0 )
+        //if(planarUV.x >= 0.0 && planarUV.x <= 1.0 && 
+         //  planarUV.y >= 0.0 && planarUV.y <= 1.0 )
         {
             planarColor.rgb = texture(planarReflections, planarUV).rgb;
             planarColor.a = 1.0;
