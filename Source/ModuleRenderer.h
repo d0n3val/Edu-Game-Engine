@@ -33,7 +33,7 @@ class FxaaPass;
 class FogPass;
 class LinePass;
 class DepthRangePass;
-
+class PlanarReflectionPass;
 
 
 class ModuleRenderer : public Module
@@ -55,6 +55,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<LinePass>             linePass;
     std::unique_ptr<ParticlePass>         particlePass;
     std::unique_ptr<DepthRangePass>       depthRangePass;
+    std::unique_ptr<PlanarReflectionPass> planarPass;
     std::unique_ptr<Buffer>               cameraUBO;
     std::unique_ptr<Program>              primitiveProgram;
     std::unique_ptr<Program>              probeProgram;
@@ -64,7 +65,8 @@ public:
 
     enum DrawFlags
     {
-        DRAW_IBL = 1 << 0
+        DRAW_IBL = 1 << 0,
+        DRAW_PLANAR = 1 << 1
     };
 
 public:
@@ -72,22 +74,23 @@ public:
     explicit ModuleRenderer();
     ~ModuleRenderer();
 
-	bool                Init                        (Config* config = nullptr) override;
-    void                Draw                        (ComponentCamera* camera, ComponentCamera* culling,  Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags = 0);
-    void                DrawForSelection            (ComponentCamera* camera);
+	bool                    Init                        (Config* config = nullptr) override;
+    void                    Draw                        (ComponentCamera* camera, ComponentCamera* culling,  Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags = 0);
+    void                    DrawForSelection            (ComponentCamera* camera);
 
-	void                DrawDebug                   () override;
+	void                    DrawDebug                   () override;
 
-    BatchManager*       GetBatchManager             () const { return batch_manager.get(); }
-    Postprocess*        GetPostprocess              () const { return postProcess.get(); }
-    ScreenSpaceAO*      GetScreenSpaceAO            () const { return ssao.get(); }
-    GBufferExportPass*  GetGBufferExportPass        () const { return exportGBuffer.get(); }
-    FxaaPass*           GetFxaaPass                 () const { return fxaa.get(); }
-    ShadowmapPass*      GetShadowmapPass            () const { return shadowmapPass.get(); }
-    CascadeShadowPass*  GetCascadeShadowPass        () const { return cascadeShadowPass.get(); }
-    Buffer*             GetCameraUBO                () const { return cameraUBO.get(); }
+    BatchManager*           GetBatchManager             () const { return batch_manager.get(); }
+    Postprocess*            GetPostprocess              () const { return postProcess.get(); }
+    ScreenSpaceAO*          GetScreenSpaceAO            () const { return ssao.get(); }
+    GBufferExportPass*      GetGBufferExportPass        () const { return exportGBuffer.get(); }
+    FxaaPass*               GetFxaaPass                 () const { return fxaa.get(); }
+    ShadowmapPass*          GetShadowmapPass            () const { return shadowmapPass.get(); }
+    CascadeShadowPass*      GetCascadeShadowPass        () const { return cascadeShadowPass.get(); }
+    PlanarReflectionPass*   GetPlanarPass               () const { return planarPass.get(); }
+    Buffer*                 GetCameraUBO                () const { return cameraUBO.get(); }
 
-    Program*            GetPrimitivesProgram        () const { return primitiveProgram.get(); }
+    Program*                GetPrimitivesProgram        () const { return primitiveProgram.get(); }
 
 private:
 

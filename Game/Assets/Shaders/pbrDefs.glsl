@@ -14,6 +14,7 @@ struct PBR
     float occlusion;
     float alpha;
     float shadow;
+    int   planarReflections;
 };
 
 vec3 GetFresnel(vec3 dir0, vec3 dir1, const vec3 f0)

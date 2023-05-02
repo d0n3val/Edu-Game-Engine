@@ -22,7 +22,7 @@ void main()
     // Discard shadows from alpha fragments
     Material material = materials[draw_id]; 
 
-    if((material.mapMask & DIFFUSE_MAP_FLAG) != 0)
+    if((material.mask & DIFFUSE_MAP_FLAG) != 0)
     {
         if(sampleTexture(DIFFUSE_MAP_INDEX, fragment.uv0, draw_id).a < material.alphaTest)
         {

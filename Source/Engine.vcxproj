@@ -400,6 +400,7 @@
     <ClInclude Include="ParticlePass.h" />
     <ClInclude Include="PerlinProperties.h" />
     <ClInclude Include="PhysBody3D.h" />
+    <ClInclude Include="PlanarReflectionPass.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Postprocess.h" />
     <ClInclude Include="Primitive.h" />
@@ -560,6 +561,7 @@
     <ClCompile Include="ParticlePass.cpp" />
     <ClCompile Include="PerlinProperties.cpp" />
     <ClCompile Include="PhysBody3D.cpp" />
+    <ClCompile Include="PlanarReflectionPass.cpp" />
     <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Postprocess.cpp" />
     <ClCompile Include="Primitive.cpp" />

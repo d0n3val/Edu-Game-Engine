@@ -18,6 +18,7 @@
 #include "LinePass.h"
 #include "ParticlePass.h"
 #include "DepthRangePass.h"
+#include "PlanarReflectionPass.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -78,6 +79,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     linePass = std::make_unique<LinePass>();
     particlePass = std::make_unique<ParticlePass>();
     depthRangePass = std::make_unique<DepthRangePass>();
+    planarPass = std::make_unique<PlanarReflectionPass>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -96,8 +98,13 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags)
 {
+    if((flags & (DRAW_IBL | DRAW_PLANAR)) == 0)
+    {
+        planarPass->execute(camera);
+    }
+
     UpdateCameraUBO(camera);
-    App->level->GetLightManager()->UpdateGPUBuffers((flags & DRAW_IBL) != 0);
+    App->level->GetLightManager()->UpdateGPUBuffers((flags & (DRAW_IBL | DRAW_PLANAR)) != 0);
 
     render_list.UpdateFrom(culling->frustum, App->level->GetRoot()); 
 
@@ -187,7 +194,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
     RenderVFX(camera, culling, frameBuffer, width, height);
 
-    if((flags & DRAW_IBL) == 0)
+    if((flags & (DRAW_IBL | DRAW_PLANAR)) == 0)
     {
         DrawAreaLights(camera, frameBuffer);
     }

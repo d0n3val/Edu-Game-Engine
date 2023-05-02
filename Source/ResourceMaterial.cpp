@@ -181,7 +181,7 @@ void ResourceMaterial::GenerateUBO()
         materialData.smoothness = smoothness;
         materialData.normal_strength = normal_strength;
         materialData.alpha_test = alpha_test;
-        materialData.mapMask = GetMapMask();
+        materialData.mapMask = GetMask();
 
 
         materialUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(MaterialData), nullptr));
@@ -442,13 +442,13 @@ ResourceTexture* ResourceMaterial::GetTextureRes(MaterialTexture t)
     return static_cast<ResourceTexture*>(App->resources->Get(textures[t]));
 }
 
-uint ResourceMaterial::GetMapMask() const
+uint ResourceMaterial::GetMask() const
 {
-    uint mapMask = 0;
+    uint mask = 0;
 
     if(GetTextureRes(TextureLightmap))
     {
-        mapMask = 1 << TextureLightmap;
+        mask = 1 << TextureLightmap;
     }
     else
     {
@@ -458,11 +458,16 @@ uint ResourceMaterial::GetMapMask() const
             {
                 if(GetTextureRes(MaterialTexture(i)))
                 {
-                    mapMask |= 1 << i;
+                    mask |= 1 << i;
                 }
             }
         }
     }
 
-    return mapMask;
+    if(planarReflections)
+    {
+        mask |= 1 << TextureCount;
+    }
+
+    return mask;
 }

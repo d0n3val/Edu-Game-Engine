@@ -42,6 +42,7 @@ private:
     float2      uv_offset              = float2(0, 0);
     float2      scnd_uv_tiling         = float2(1, 1);
     float2      scnd_uv_offset         = float2(0, 0);
+    bool        planarReflections   = false;
     BufferPtr   materialUBO;
     bool        uboDirty               = true;
 
@@ -88,7 +89,7 @@ public:
     float                   GetAlphaTest        () const { return alpha_test; }
     void                    SetAlphaTest        (float atest)  { alpha_test = atest; uboDirty = true;}
 
-    uint                    GetMapMask          () const;
+    uint                    GetMask             () const;
 
     float2                  GetUVTiling         () const { return uv_tiling; }
     float2                  GetSecondUVTiling   () const { return scnd_uv_tiling; }
@@ -99,6 +100,9 @@ public:
     void                    SetSecondUVTiling   (const float2& tiling) { scnd_uv_tiling = tiling; uboDirty = true;}
     void                    SetUVOffset         (const float2& offset) { uv_offset = offset; uboDirty = true;}
     void                    SetSecondUVOffset   (const float2& offset) { scnd_uv_offset = offset; uboDirty = true;}
+
+    bool                    GetPlanarReflections() const {return planarReflections;}                    
+    void                    SetPlanarReflections(bool active) { planarReflections = active; }
     
     static Resource::Type   GetClassType        () {return Resource::material;}
 

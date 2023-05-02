@@ -412,7 +412,7 @@ void GeometryBatch::CreateMaterialBuffer()
         out.smoothness       = material->GetSmoothness();
         out.normal_strength  = material->GetNormalStrength();
         out.alpha_test       = material->GetAlphaTest();
-        out.mapMask          = material->GetMapMask();       
+        out.mapMask          = material->GetMask();       
 
         for(uint i=0; i< TextureCount; ++i)
         {

@@ -18,6 +18,7 @@
 #include "GBufferExportPass.h"
 #include "ShadowmapPass.h"
 #include "CascadeShadowPass.h"
+#include "PlanarReflectionPass.h"
 #include "ScreenSpaceAO.h"
 #include "FxaaPass.h"
 
@@ -279,7 +280,15 @@ void SceneViewport::ShowTexture()
         }
 
     }
-
+    else if(std::get<bool>(App->hints->GetDHint(std::string("Planar reflection enabled"), false)) && 
+            std::get<bool>(App->hints->GetDHint(std::string("Show planar reflection"), false)))
+    {
+            ImGui::GetWindowDrawList()->AddImage(
+                (ImTextureID)size_t(App->renderer->GetPlanarPass()->getPlanarTex()->Id()),
+                ImVec2(screenPos),
+                ImVec2(screenPos.x + fb_width * 0.4f, screenPos.y + fb_height * 0.4f),
+                ImVec2(0, 1), ImVec2(1, 0));
+    }
 }
 
 void SceneViewport::Save(Config* config) const

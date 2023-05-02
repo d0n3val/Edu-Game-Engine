@@ -772,6 +772,9 @@
     <ClInclude Include="LocalIBLLight.h">
       <Filter>Lights</Filter>
     </ClInclude>
+    <ClInclude Include="PlanarReflectionPass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1397,6 +1400,9 @@
     </ClCompile>
     <ClCompile Include="LocalIBLLight.cpp">
       <Filter>Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="PlanarReflectionPass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

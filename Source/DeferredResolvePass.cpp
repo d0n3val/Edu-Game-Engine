@@ -8,6 +8,7 @@
 #include "modulehints.h"
 #include "CascadeShadowPass.h"
 #include "ShadowmapPass.h"
+#include "PlanarReflectionPass.h"
 #include "IBLData.h"
 #include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"
@@ -35,6 +36,7 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     bindShadows();
     App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
     App->level->GetLightManager()->Bind();
+    App->renderer->GetPlanarPass()->Bind();
     target->Bind();
     glViewport(0, 0, width, height);
 

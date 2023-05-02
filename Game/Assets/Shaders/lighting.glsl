@@ -12,6 +12,8 @@ layout(binding = DIFFUSE_IBL_TEX_BINDING) uniform samplerCube     diffuseIBL;
 layout(binding = PREFILTERED_IBL_TEX_BINDING) uniform samplerCube prefilteredIBL;
 layout(binding = ENVIRONMENT_BRDF_TEX_BINDING) uniform sampler2D  environmentBRDF;
 layout(location = PREFILTERED_LOD_LEVELS_LOCATION) uniform int    prefilteredLevels;
+layout(binding = PLANAR_REFLECTION_BINDING) uniform sampler2D planarReflections;
+layout(location = PLANAR_REFLECTION_VIEWPROJ_LOCATION) uniform mat4 planarViewProj;
 
 struct DirLight
 {
@@ -287,10 +289,10 @@ vec3 parallaxCorrection(const vec3 localPos, const vec3 localR, const vec3 minBo
     return localPos+localR*dist;
 }
 
-vec3 evaluateIBL(in PBR pbr, in samplerCube difIBL, in samplerCube prefIBL, in float roughness, in float NdotV, in vec3 R, in vec3 coord)
+vec3 evaluateIBL(in PBR pbr, in samplerCube difIBL, in samplerCube prefIBL, in float roughness, in float NdotV, in vec3 R, in vec3 coord, in vec4 planarColor)
 {
     vec3 irradiance = texture(difIBL, pbr.normal).rgb;
-    vec3 radiance   = textureLod(prefIBL, coord, roughness*(prefilteredLevels-1)).rgb;
+    vec3 radiance   = mix(textureLod(prefIBL, coord, roughness*(prefilteredLevels-1)).rgb, planarColor.rgb, planarColor.a);
     vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
     vec3 indirect   = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
 
@@ -306,7 +308,7 @@ bool insideBox(const vec3 localPos, const vec3 minBox, const vec3 maxBox)
             localPos.z >= minBox.z && localPos.z <= maxBox.z;
 }
 
-vec3 ShadingAmbient(in PBR pbr)
+vec3 ShadingAmbientIBL(in PBR pbr, in vec4 planarColor)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
     vec3 R           = reflect(-V, pbr.normal);
@@ -329,14 +331,14 @@ vec3 ShadingAmbient(in PBR pbr)
 
             vec3 localR = mat3(ibl.toLocal)*R;
             vec3 coord = parallaxCorrection(localPos, localR, ibl.minParallax.xyz, ibl.maxParallax.xyz);
-            color += evaluateIBL(pbr, ibl.diffuse, ibl.prefiltered, roughness, NdotV, R, coord)*weight;
+            color += evaluateIBL(pbr, ibl.diffuse, ibl.prefiltered, roughness, NdotV, R, coord, planarColor)*weight;
             totalWeight += weight;
         }
     }
 
     if(totalWeight == 0.0)
     {
-        color = evaluateIBL(pbr, diffuseIBL, prefilteredIBL, roughness, NdotV, R, R);
+        color = evaluateIBL(pbr, diffuseIBL, prefilteredIBL, roughness, NdotV, R, R, planarColor);
     }
     else
     {
@@ -344,6 +346,25 @@ vec3 ShadingAmbient(in PBR pbr)
     }
 
     return color;
+}
+
+vec3 ShadingAmbient(in PBR pbr)
+{
+    vec4 planarColor = vec4(0.0);
+    if(pbr.planarReflections != 0)
+    {
+        vec4 clipPos = planarViewProj*vec4(pbr.position, 1.0);
+        vec2 planarUV = (clipPos.xy/clipPos.w)*0.5+0.5;
+
+        if(planarUV.x >= 0.0 && planarUV.x <= 1.0 && 
+           planarUV.y >= 0.0 && planarUV.y <= 1.0 )
+        {
+            planarColor.rgb = texture(planarReflections, planarUV).rgb;
+            planarColor.a = 1.0;
+        }
+    }
+
+    return ShadingAmbientIBL(pbr, planarColor);
 }
 
 vec3 ShadingPoint(in PBR pbr, uint index)

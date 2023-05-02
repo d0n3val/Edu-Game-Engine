@@ -1,0 +1,22 @@
+Microsoft (R) Build Engine version 4.8.4084.0
+[Microsoft .NET Framework, version 4.0.30319.42000]
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+MSBUILD : error MSB1009: Project file does not exist.
+Switch: C:\Users\Carlos\Documents\GitHub\Edu-Game-Engine\Edu\ Game\ Engine.sln
+Microsoft (R) Build Engine version 4.8.4084.0
+[Microsoft .NET Framework, version 4.0.30319.42000]
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+MSBUILD : error MSB1008: Only one project can be specified.
+Switch: Game\
+
+For switch syntax, type "MSBuild /help"
+Microsoft (R) Build Engine version 4.8.4084.0
+[Microsoft .NET Framework, version 4.0.30319.42000]
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+MSBUILD : error MSB1008: Only one project can be specified.
+Switch: Game\
+
+For switch syntax, type "MSBuild /help"

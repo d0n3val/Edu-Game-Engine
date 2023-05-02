@@ -27,6 +27,7 @@
 #define SECOND_DIFFUSE_FLAG     0x00000080u
 #define SECOND_SPECULAR_FLAG    0x00000100u
 #define SECOND_NORMAL_FLAG      0x00000200u
+#define PLANAR_REFLECTION_FLAG  0x00000400u
 
 struct TexHandle
 {
@@ -46,7 +47,7 @@ struct Material
     float     smoothness;
     float     normalStrength;
     float     alphaTest;
-    uint      mapMask;
+    uint      mask;
     sampler2D handles[MAP_COUNT];
 };
 
@@ -84,26 +85,26 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom)
     uv0      = uv0*material.uv_tiling+material.uv_offset;
     vec2 uv1 = uv0*material.uv_secondary_tiling+material.uv_secondary_offset;
 
-    if((material.mapMask & DIFFUSE_MAP_FLAG) != 0)
+    if((material.mask & DIFFUSE_MAP_FLAG) != 0)
     {
         vec4 diffuse = sampleTexture(DIFFUSE_MAP_INDEX, uv0, matIndex);
         pbr.diffuse *= diffuse.rgb;
         pbr.alpha    = diffuse.a;
     }
 
-    if((material.mapMask & SPECULAR_MAP_FLAG) != 0)
+    if((material.mask & SPECULAR_MAP_FLAG) != 0)
     {
         vec4 tmp = sampleTexture(SPECULAR_MAP_INDEX, uv0, matIndex);
         pbr.specular   *= tmp.rgb;
         pbr.smoothness = tmp.a;
     }
 
-    if((material.mapMask & OCCLUSION_MAP_FLAG) != 0)
+    if((material.mask & OCCLUSION_MAP_FLAG) != 0)
     {
         pbr.occlusion *= sampleTexture(OCCLUSION_MAP_INDEX, uv0, matIndex).r;
     }
 
-    if((material.mapMask & EMISSIVE_MAP_FLAG) != 0)
+    if((material.mask & EMISSIVE_MAP_FLAG) != 0)
     {
         pbr.emissive *= sampleTexture(EMISSIVE_MAP_INDEX, uv0, matIndex).rgb;
     }
@@ -111,7 +112,7 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom)
     vec3 tex_normal = vec3(0.0);
     bool has_tex_normal = false;
 
-    if((material.mapMask & NORMAL_MAP_FLAG) != 0)
+    if((material.mask & NORMAL_MAP_FLAG) != 0)
     {
         tex_normal = sampleTexture(NORMAL_MAP_INDEX, uv0, matIndex).xyz*2.0-1.0;
         tex_normal.z = sqrt(clamp(1-dot(tex_normal.xy, tex_normal.xy), 0.0, 1.0)); // unpack from two channel texture
@@ -122,23 +123,23 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom)
     }
     
 
-    if((material.mapMask & DETAIL_MASK_FLAG) != 0)
+    if((material.mask & DETAIL_MASK_FLAG) != 0)
     {
         float blend = sampleTexture(DETAIL_MASK_MAP_INDEX, uv0, matIndex).a;
 
-        if((material.mapMask & SECOND_DIFFUSE_FLAG) != 0)
+        if((material.mask & SECOND_DIFFUSE_FLAG) != 0)
         {
             pbr.diffuse = mix(pbr.diffuse, sampleTexture(SECOND_DIFFUSE_MAP_INDEX, uv1, matIndex).rgb, blend);
         }
 
-        if((material.mapMask & SECOND_SPECULAR_FLAG) != 0)
+        if((material.mask & SECOND_SPECULAR_FLAG) != 0)
         {
             vec4 spec  = sampleTexture(SECOND_SPECULAR_MAP_INDEX, uv1, matIndex);
             pbr.specular   = mix(pbr.specular, spec.rgb, blend);
             pbr.smoothness = mix(pbr.smoothness, spec.a, blend);
         }
 
-        if((material.mapMask & SECOND_NORMAL_FLAG) != 0)
+        if((material.mask & SECOND_NORMAL_FLAG) != 0)
         {
             vec3 second_tex_normal = sampleTexture(SECOND_NORMAL_MAP_INDEX, uv1, matIndex).xyz*2.0-1.0;
             // \todo: second_tex_normal.xy *= material.normalStrength;
@@ -168,6 +169,7 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom)
     }
 
     pbr.position = geom.position;
+    pbr.planarReflections = (material.mask & PLANAR_REFLECTION_FLAG) != 0 ? 1 : 0;
 }
 
 #endif /* _MATERIAL_DEFS_GLSL_ */

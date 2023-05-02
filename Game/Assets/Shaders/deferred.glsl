@@ -36,6 +36,7 @@ void unpackGBuffer(out PBR pbr)
     pbr.position   = positionSmp.rgb;
     pbr.smoothness = specularSmp.a;
     pbr.occlusion  = emissiveSmp.a;
+    pbr.planarReflections = albedoSmp.a != 0.0 ? 1 : 0;
 }
 
 void sampleSSAO(inout PBR pbr)

@@ -1106,7 +1106,8 @@ UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape, UID u
 {
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh, uid));
 
-    m->name = HashString(shape_name);
+    m->name = HashString(shape_name);    
+    m->user_name = shape_name;
 
     m->GenerateCPUBuffers(shape);
     m->GenerateAttribInfo();
@@ -1121,6 +1122,7 @@ UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape, UID u
     }
     else
     {
+        m->loaded++;
         m->GenerateVBO();
         m->GenerateVAO();
     }
