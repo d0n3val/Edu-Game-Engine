@@ -6,7 +6,7 @@
 class Program;
 class Texture2D;
 class Framebuffer;
-class KawaseBlur;
+class DualKawaseBlur;
 
 class Postprocess
 {
@@ -21,7 +21,7 @@ class Postprocess
     uint bloom_blur_tex_1 = 0;
     uint bloom_width      = 0;
     uint bloom_height     = 0;
-    std::unique_ptr<KawaseBlur> kawase;
+    std::unique_ptr<DualKawaseBlur> kawase;
 
 public:
 

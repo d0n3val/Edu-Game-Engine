@@ -4,7 +4,7 @@
 
 #include "/shaders/LocationsAndBindings.h"
 
-layout(binding = KAWASE_INPUT_BINDING ) uniform sampler2D inputTex;
+layout(binding = DUALKAWASE_INPUT_BINDING ) uniform sampler2D inputTex;
 
 in vec2 uv;
 

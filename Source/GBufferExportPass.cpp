@@ -14,6 +14,7 @@
 #include "CascadeShadowPass.h"
 #include "OGL.h"
 #include "OpenGL.h"
+#include "CameraUBO.h"
 
 #include <assert.h>
 
@@ -36,7 +37,7 @@ void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height
 
     useProgram();
 
-    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->renderer->GetCameraUBO()->Bind();
 
     float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     frameBuffer->ClearColor(0, clearColor);

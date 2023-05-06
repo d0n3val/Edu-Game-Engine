@@ -9,6 +9,8 @@
 #include "IBLData.h"
 #include "ScreenSpaceAO.h"
 #include "ShadowmapPass.h"
+#include "CascadeShadowPass.h"
+#include "CameraUBO.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -34,10 +36,9 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
 
     program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
     program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS)); 
-    shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
-    shadowMap->getVarianceTex()->Bind(VARIANCE_TEX_BINDING);
+    bindShadows();
 
-    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->renderer->GetCameraUBO()->Bind();
     App->level->GetSkyBox()->Bind();
     App->renderer->GetScreenSpaceAO()->getResult()->Bind(SSAO_TEX_BINDING);
 
@@ -59,7 +60,7 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
 {
     UseProgram();
 
-    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->renderer->GetCameraUBO()->Bind();
     App->level->GetSkyBox()->Bind();
     App->renderer->GetScreenSpaceAO()->getResult()->Bind(SSAO_TEX_BINDING);
 
@@ -124,4 +125,30 @@ bool ForwardPass::GenerateProgram()
 	}
 
 	return ok;
+}
+
+void ForwardPass::bindShadows()
+{
+    if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
+    {
+        CascadeShadowPass* shadowMap = App->renderer->GetCascadeShadowPass();
+
+        for (uint i = 0; i < CascadeShadowPass::CASCADE_COUNT; ++i)
+        {
+            program->BindUniform(SHADOW_VIEWPROJ_LOCATION + i, shadowMap->getFrustum(i).ViewProjMatrix());
+            shadowMap->getDepthTex(i)->Bind(SHADOWMAP_TEX_BINDING + i);
+        }
+
+        program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+        program->BindUniform(SHADOW_SLOPEBIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_SLOPEBIAS));
+    }
+    else
+    {
+        ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
+        program->BindUniform(SHADOW_VIEWPROJ_LOCATION, shadowMap->getFrustum().ViewProjMatrix());
+        program->BindUniform(SHADOW_BIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_BIAS));
+        program->BindUniform(SHADOW_SLOPEBIAS_LOCATION, App->hints->GetFloatValue(ModuleHints::SHADOW_SLOPEBIAS));
+        shadowMap->getDepthTex()->Bind(SHADOWMAP_TEX_BINDING);
+        shadowMap->getVarianceTex()->Bind(VARIANCE_TEX_BINDING);
+    }
 }

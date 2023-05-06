@@ -236,6 +236,7 @@
     <ClInclude Include="BilinearBlur.h" />
     <ClInclude Include="Bullet\include\btBulletCollisionCommon.h" />
     <ClInclude Include="Bullet\include\btBulletDynamicsCommon.h" />
+    <ClInclude Include="CameraUBO.h" />
     <ClInclude Include="CascadeShadowPass.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
@@ -266,6 +267,7 @@
     <ClInclude Include="DepthPrepass.h" />
     <ClInclude Include="DepthRangePass.h" />
     <ClInclude Include="DirLight.h" />
+    <ClInclude Include="DualKawaseBlur.h" />
     <ClInclude Include="dxgi1_4.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="FogPass.h" />
@@ -436,6 +438,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="BatchManager.cpp" />
     <ClCompile Include="BilinearBlur.cpp" />
+    <ClCompile Include="CameraUBO.cpp" />
     <ClCompile Include="CascadeShadowPass.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
@@ -464,6 +467,7 @@
     <ClCompile Include="DepthPrepass.cpp" />
     <ClCompile Include="DepthRangePass.cpp" />
     <ClCompile Include="DirLight.cpp" />
+    <ClCompile Include="DualKawaseBlur.cpp" />
     <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="ForwardPass.cpp" />
     <ClCompile Include="FxaaPass.cpp" />

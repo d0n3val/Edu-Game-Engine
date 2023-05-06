@@ -11,6 +11,7 @@
 #include "ComponentCamera.h"
 #include "GameObject.h"
 #include "GBufferExportPass.h"
+#include "CameraUBO.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -117,7 +118,7 @@ void DeferredDecalPass::execute(ComponentCamera* camera, const RenderList& objec
             decal->GetNormalRes()->GetTexture()->Bind(DECAL_NORMAL_TEX_BINDING);
             decal->GetSpecularRes()->GetTexture()->Bind(DECAL_SPECULAR_TEX_BINDING);
 
-            App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+            App->renderer->GetCameraUBO()->Bind();
 
             frameBuffer->Bind();
             glViewport(0, 0, width, height);

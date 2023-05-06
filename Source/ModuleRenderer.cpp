@@ -19,6 +19,7 @@
 #include "ParticlePass.h"
 #include "DepthRangePass.h"
 #include "PlanarReflectionPass.h"
+#include "CameraUBO.h"
 
 #include "PostprocessShaderLocations.h"
 
@@ -80,6 +81,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     particlePass = std::make_unique<ParticlePass>();
     depthRangePass = std::make_unique<DepthRangePass>();
     planarPass = std::make_unique<PlanarReflectionPass>();
+    cameraUBO = std::make_unique<CameraUBO>();
 }
 
 bool ModuleRenderer::Init(Config* config /*= nullptr*/)
@@ -98,12 +100,8 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags)
 {
-    if((flags & (DRAW_IBL | DRAW_PLANAR)) == 0)
-    {
-        planarPass->execute(camera);
-    }
 
-    UpdateCameraUBO(camera);
+    cameraUBO->Update(camera);
     App->level->GetLightManager()->UpdateGPUBuffers((flags & (DRAW_IBL | DRAW_PLANAR)) != 0);
 
     render_list.UpdateFrom(culling->frustum, App->level->GetRoot()); 
@@ -130,12 +128,19 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
         batch_manager->MarkForUpdate(shadowmapPass->getRenderList().GetTransparents());
     }
 
+    if(std::get<bool>(App->hints->GetDHint(std::string("Planar reflection enabled"), true)))
+    {
+        planarPass->updateRenderList(camera);
+        batch_manager->MarkForUpdate(planarPass->getRenderList().GetOpaques());
+        batch_manager->MarkForUpdate(planarPass->getRenderList().GetTransparents());
+    }
 
     batch_manager->DoUpdate();
 
+    planarPass->execute();
 
     // General Buffer bindings 
-    cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
+    cameraUBO->Bind();
     App->level->GetLightManager()->Bind();
 
     RenderDeferred(camera, culling, frameBuffer, width, height, flags);
@@ -222,28 +227,6 @@ void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
     render_list.UpdateFrom(camera->frustum, App->level->GetRoot());
 
     SelectionPass(proj, view);
-}
-
-void ModuleRenderer::UpdateCameraUBO(ComponentCamera *camera)
-{
-    struct CameraData
-    {
-        float4x4 proj     = float4x4::identity;
-        float4x4 view     = float4x4::identity;
-        float4   view_pos = float4::zero;
-    } cameraData;
-
-    if(!cameraUBO)
-    {
-        cameraUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(cameraData), nullptr));
-    }
-
-    cameraData.proj     = camera->GetProjectionMatrix();  
-    cameraData.view     = camera->GetViewMatrix();
-    cameraData.view_pos = float4(cameraData.view.RotatePart().Transposed().Transform(-cameraData.view.TranslatePart()), 1.0);
-
-    cameraUBO->InvalidateData();
-    cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
 }
 
 void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)

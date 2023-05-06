@@ -6,7 +6,12 @@
 
 #include "Application.h"
 #include "ModuleRenderer.h"
+#include "ModuleLevelManager.h"
 #include "ModuleHints.h"
+#include "BatchManager.h"
+#include "IBLData.h"
+#include "CameraUBO.h"
+#include "LightManager.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -16,49 +21,48 @@
 
 #include<math.h>
 
-#define DEFAULT_PLANAR_WIDTH 1024
-#define DEFAULT_PLANAR_HEIGHT 512
-#define DEFAULT_ROUGHNESS_LEVELS 3
+#define DEFAULT_PLANAR_WIDTH 512
+#define DEFAULT_PLANAR_HEIGHT 256
+#define DEFAULT_ROUGHNESS_LEVELS 7
 
 PlanarReflectionPass::PlanarReflectionPass() : planarCamera(nullptr)
 {
+    cameraUBO = std::make_unique<CameraUBO>();
 }
 
 PlanarReflectionPass::~PlanarReflectionPass()
 {
 }
 
-void PlanarReflectionPass::execute(ComponentCamera* camera)
+void PlanarReflectionPass::execute()
 {
     if(std::get<bool>(App->hints->GetDHint(std::string("Planar reflection enabled"), true)))
     {
-        createFrameBuffer();
-
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Planar Reflection");
 
-        float3 planePos    = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane pos"), float3::zero));
-        float3 planeNormal = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane normal"), float3::unitY));
+        createFrameBuffer();
+        generateProgram();
 
-        planarCamera.frustum = camera->frustum;
+        //App->renderer->Draw(&planarCamera, &planarCamera, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, ModuleRenderer::DRAW_PLANAR);
 
-        float moveAmount         = (planarCamera.frustum.pos-planePos).Dot(planeNormal)*2.0f;
-        planarCamera.frustum.pos = planarCamera.frustum.pos-planeNormal*moveAmount;
+        //forward->executeOpaque(objects, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT);
+        //forward->executeTransparent(objects, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT);
 
-        // reflect front
-        planarCamera.frustum.front.Normalize();
-        float frontAmount = (planeNormal.Dot(planarCamera.frustum.front) * 2.0f);
-        float3 newFront = planarCamera.frustum.front - planeNormal * frontAmount;
-        newFront.Normalize();
+        // \todo: CAMERA UBO, LightManager
+        program->Use();
 
-        // reflect up
-        float upAmount = (planeNormal.Dot(planarCamera.frustum.up) * 2.0f);
-        float3 newUp = planarCamera.frustum.up - planeNormal * upAmount;
-        newUp.Normalize();
-        
-        planarCamera.frustum.front = newFront;
-        planarCamera.frustum.up = newUp;
+        cameraUBO->Update(&planarCamera);
+        cameraUBO->Bind();
+        App->level->GetLightManager()->Bind();
 
-        App->renderer->Draw(&planarCamera, &planarCamera, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, ModuleRenderer::DRAW_PLANAR);
+        frameBuffer->Bind();
+        glViewport(0, 0, DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        App->renderer->GetBatchManager()->DoRender(objects.GetOpaques(), 0);
+        App->renderer->GetBatchManager()->DoRender(objects.GetTransparents(), BR_FLAG_KEEP_ORDER);
+
+        App->level->GetSkyBox()->DrawEnvironment(planarCamera.GetProjectionMatrix(), planarCamera.GetViewMatrix());
 
         // Compute mip chain for roughness
         uint inWidth = DEFAULT_PLANAR_WIDTH;
@@ -68,7 +72,7 @@ void PlanarReflectionPass::execute(ComponentCamera* camera)
             uint outWidth = inWidth >> 1;
             uint outHeight = inHeight >> 1;
 
-            gaussian[i]->execute(planarTex.get(), planarTex.get(), GL_RGB8, GL_RGB, GL_UNSIGNED_INT, i, inWidth, inHeight, i+1, outWidth, outHeight);
+            gaussian[i]->execute(planarTex.get(), planarTex.get(), GL_RGB8, GL_RGB, GL_UNSIGNED_INT, i, inWidth, inHeight, i + 1, outWidth, outHeight);
 
             inWidth = outWidth;
             inHeight = outHeight;
@@ -78,12 +82,41 @@ void PlanarReflectionPass::execute(ComponentCamera* camera)
     }
 }
 
+void PlanarReflectionPass::updateRenderList(ComponentCamera *camera)
+{
+    float3 planePos = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane pos"), float3::zero));
+    float3 planeNormal = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane normal"), float3::unitY));
+
+    planarCamera.frustum = camera->frustum;
+
+    float moveAmount = (planarCamera.frustum.pos - planePos).Dot(planeNormal) * 2.0f;
+    planarCamera.frustum.pos = planarCamera.frustum.pos - planeNormal * moveAmount;
+
+    // reflect front
+    planarCamera.frustum.front.Normalize();
+    float frontAmount = (planeNormal.Dot(planarCamera.frustum.front) * 2.0f);
+    float3 newFront = planarCamera.frustum.front - planeNormal * frontAmount;
+    newFront.Normalize();
+
+    // reflect up
+    float upAmount = (planeNormal.Dot(planarCamera.frustum.up) * 2.0f);
+    float3 newUp = planarCamera.frustum.up - planeNormal * upAmount;
+    newUp.Normalize();
+
+    planarCamera.frustum.front = newFront;
+    planarCamera.frustum.up = newUp;
+
+    objects.UpdateFrom(planarCamera.frustum, App->level->GetRoot());
+}
+
 void PlanarReflectionPass::createFrameBuffer()
 {
     if(!frameBuffer)
     {
 		frameBuffer = std::make_unique<Framebuffer>();
         planarTex = std::make_unique<Texture2D>(DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, GL_RGB8, GL_RGB, GL_UNSIGNED_INT, nullptr, true);
+        planarTex->SetTextureLodLevels(0, DEFAULT_ROUGHNESS_LEVELS-1);
+
         planarDepthTex = std::make_unique<Texture2D>(DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
         
         frameBuffer->AttachColor(planarTex.get(), 0, 0);
@@ -95,7 +128,6 @@ void PlanarReflectionPass::createFrameBuffer()
         {
             gaussian.push_back(std::make_unique<GaussianBlur>());
         }
-
     }
 }
 
@@ -106,4 +138,40 @@ void PlanarReflectionPass::Bind()
     float4x4 viewProj = planarCamera.frustum.ViewProjMatrix();
     glUniformMatrix4fv(PLANAR_REFLECTION_VIEWPROJ_LOCATION, 1, GL_TRUE, reinterpret_cast<float*>(&viewProj));
     glUniform1i(PLANAR_REFLECTION_LOD_LEVELS_LOCATION, int(DEFAULT_ROUGHNESS_LEVELS));
+}
+
+bool PlanarReflectionPass::generateProgram()
+{
+    bool ok = true;
+    if(!program)
+    {
+        std::unique_ptr<Shader> vertex, fragment;
+
+        vertex.reset(Shader::CreateVSFromFile("assets/shaders/defVS.glsl", 0, 0));
+
+        ok = vertex->Compiled();
+
+        if (ok)
+        {
+            const char* defines[] = {"#define DISABLE_SHADOW\n",  "#define DISABLE_SSAO\n"};
+            fragment.reset(Shader::CreateFSFromFile("assets/shaders/defFS.glsl", defines, 2));
+
+            ok = fragment->Compiled();
+        }
+
+        if (ok)
+        {
+            program = std::make_unique<Program>(vertex.get(), fragment.get(), "Planar Reflections");
+
+            ok = program->Linked();
+        }
+
+        if (!ok)
+        {
+            program.release();
+        }
+
+    }
+
+    return ok;
 }

@@ -8,6 +8,7 @@
 #include "ModuleRenderer.h"
 #include "OpenGL.h"
 #include "OGL.h"
+#include "CameraUBO.h"
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
@@ -30,7 +31,7 @@ void FogPass::execute(Framebuffer *target, uint width, uint height)
 
 
     exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
-    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->renderer->GetCameraUBO()->Bind();
 
     target->Bind();
     glViewport(0, 0, width, height);

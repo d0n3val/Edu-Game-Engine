@@ -775,6 +775,12 @@
     <ClInclude Include="PlanarReflectionPass.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="DualKawaseBlur.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraUBO.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1403,6 +1409,12 @@
     </ClCompile>
     <ClCompile Include="PlanarReflectionPass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="DualKawaseBlur.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraUBO.cpp">
+      <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

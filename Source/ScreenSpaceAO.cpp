@@ -5,6 +5,7 @@
 #include "ModuleHints.h"
 #include "GBufferExportPass.h"
 #include "GaussianBlur.h"
+#include "CameraUBO.h"
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
@@ -67,7 +68,7 @@ void ScreenSpaceAO::execute(uint width, uint height)
     program->BindUniform(SSAO_RADIUS_LOCATION, std::get<float>(App->hints->GetDHint(std::string("SSAO radius"), 2.0f))); 
     program->BindUniform(SSAO_BIAS_LOCATION, -std::get<float>(App->hints->GetDHint(std::string("SSAO bias"), 0.1f))); 
 
-    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->renderer->GetCameraUBO()->Bind();
 
 
 

@@ -15,6 +15,7 @@
 #include "LightManager.h"
 #include "OGL.h"
 #include "OpenGL.h"
+#include "CameraUBO.h"
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
@@ -34,7 +35,7 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     useProgram();
 
     bindShadows();
-    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->renderer->GetCameraUBO()->Bind();
     App->level->GetLightManager()->Bind();
     App->renderer->GetPlanarPass()->Bind();
     target->Bind();
@@ -53,7 +54,7 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
 
 	App->level->GetSkyBox()->Bind();
 
-    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->renderer->GetCameraUBO()->Bind();
 
     if(!vao) vao = std::make_unique<VertexArray>();
 

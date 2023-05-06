@@ -361,7 +361,7 @@ vec3 ShadingAmbient(in PBR pbr)
         if(planarUV.x >= 0.0 && planarUV.x <= 1.0 && 
            planarUV.y >= 0.0 && planarUV.y <= 1.0 )
         {
-            planarColor.rgb = textureLod(planarReflections, planarUV, roughness*(planarLevels-1)).rgb).rgb;
+            planarColor.rgb = textureLod(planarReflections, planarUV, roughness*(planarLevels-1)).rgb;
             planarColor.a = 1.0;
         }
     }
@@ -476,7 +476,6 @@ vec4 Shading(in PBR pbr)
     color += ShadingTube(pbr);
 
     return vec4(color, pbr.alpha);
-    //return vec4(pbr.specular, pbr.alpha);
 }
 
 vec4 ShadingNoPoint(in PBR pbr)
@@ -489,8 +488,6 @@ vec4 ShadingNoPoint(in PBR pbr)
     color += ShadingTube(pbr);
 
     return vec4(color, pbr.alpha);
-    //return vec4(pbr.normal, pbr.alpha);
-    //return vec4(pbr.specular, pbr.alpha);
 }
 
 

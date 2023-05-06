@@ -7,7 +7,7 @@
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "GBufferExportPass.h"
-#include "KawaseBlur.h"
+#include "DualKawaseBlur.h"
 
 #include "PostProcessShaderLocations.h"
 #include "OpenGL.h"
@@ -19,7 +19,7 @@
 
 Postprocess::Postprocess()
 {
-    kawase = std::make_unique<KawaseBlur>();
+    kawase = std::make_unique<DualKawaseBlur>();
 }
 
 Postprocess::~Postprocess()

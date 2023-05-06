@@ -34,6 +34,7 @@ class FogPass;
 class LinePass;
 class DepthRangePass;
 class PlanarReflectionPass;
+class CameraUBO;
 
 
 class ModuleRenderer : public Module
@@ -56,7 +57,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<ParticlePass>         particlePass;
     std::unique_ptr<DepthRangePass>       depthRangePass;
     std::unique_ptr<PlanarReflectionPass> planarPass;
-    std::unique_ptr<Buffer>               cameraUBO;
+    std::unique_ptr<CameraUBO>            cameraUBO;
     std::unique_ptr<Program>              primitiveProgram;
     std::unique_ptr<Program>              probeProgram;
     std::unique_ptr<Program>              probeLodProgram;
@@ -88,7 +89,7 @@ public:
     ShadowmapPass*          GetShadowmapPass            () const { return shadowmapPass.get(); }
     CascadeShadowPass*      GetCascadeShadowPass        () const { return cascadeShadowPass.get(); }
     PlanarReflectionPass*   GetPlanarPass               () const { return planarPass.get(); }
-    Buffer*                 GetCameraUBO                () const { return cameraUBO.get(); }
+    CameraUBO*              GetCameraUBO                () const { return cameraUBO.get(); }
 
     Program*                GetPrimitivesProgram        () const { return primitiveProgram.get(); }
 

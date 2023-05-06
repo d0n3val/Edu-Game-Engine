@@ -7,6 +7,7 @@
 #include "/shaders/materialDefs.glsl"
 #include "/shaders/lighting.glsl"
 #include "/shaders/vertexDefs.glsl"
+#include "/shaders/shadows.glsl"
 
 layout(binding = SSAO_TEX_BINDING) uniform sampler2D ssao;
 
@@ -17,11 +18,24 @@ out vec4 color;
 
 void sampleSSAO(inout PBR pbr)
 {
+#ifndef DISABLE_SSAO
     vec4 projectedPos = proj*view*vec4(fragment.geom.position, 1.0);
     vec2 uv  = (projectedPos.xy/projectedPos.w)*0.5+0.5;
 
     float ssao = texture(ambientOcclusion, uv).r;
     pbr.occlusion *= ssao;
+#else
+    pbr.occlusion = 1.0;
+#endif 
+}
+
+void sampleShadow(inout PBR pbr)
+{
+#ifndef DISABLE_SHADOW
+    pbr.shadow = computeShadow(pbr.position);
+#else
+    pbr.shadow = 1.0;
+#endif 
 }
 
 void main()
@@ -30,6 +44,7 @@ void main()
     getMaterial(pbr, draw_id, fragment.uv0, fragment.geom);
 
     sampleSSAO(pbr);
+    sampleShadow(pbr);
 
     color = Shading(pbr);
 }

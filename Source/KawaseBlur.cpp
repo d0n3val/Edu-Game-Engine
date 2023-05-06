@@ -9,81 +9,50 @@
 
 #include "Leaks.h"
 
+#include <SDL_assert.h>
+
 KawaseBlur::KawaseBlur()
 {
+    vao = std::make_unique<VertexArray>();
 }
 
 KawaseBlur::~KawaseBlur()
 {
 }
 
-void KawaseBlur::execute(const Texture2D *input, uint internal_format, uint format, uint type, uint width, uint height)
-{
-    createPrograms();
-    createFramebuffers(internal_format, format, type, width, height);
+void KawaseBlur::execute(const Texture2D *input, const Texture2D* output, uint inMip, uint inWidth, uint inHeight,
+                         uint outMip, uint outWidth, uint outHeight, uint step)
+{    
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "KawaseBlur");
+    createProgram();
 
-    // downscale
-    downscaleProg->Use();
+    if(!frameBuffer) frameBuffer = std::make_unique<Framebuffer>();
 
-    // 1
-    glViewport(0, 0, width / 2, height / 2);
-    intermediateFB->Bind();
+    frameBuffer->ClearAttachments();
+    frameBuffer->AttachColor(output, 0, outMip);
+    SDL_assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+    frameBuffer->Bind();
+    glViewport(0, 0, outWidth, outHeight);
+
+    float2 invInputSize(1.0f / float(inWidth), 1.0f / float(inHeight));
+
+    program->Use();
+    program->BindUniform(KAWASE_INV_INPUT_SIZE_LOCATION, invInputSize);
+    program->BindUniform(KAWASE_INPUT_LOD, int(inMip));
+    program->BindUniform(KAWASE_STEP, int(step));
+
     input->Bind(KAWASE_INPUT_BINDING);
+    vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-
-    // upscale
-    upscaleProg->Use();
-
-    // 1
-    glViewport(0, 0, width, height);
-    resultFB->Bind();
-    intermediate->Bind(KAWASE_INPUT_BINDING);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glPopDebugGroup();
 }
 
-void KawaseBlur::createFramebuffers(uint internal_format, uint format, uint type, uint width, uint height)
+void KawaseBlur::createProgram()
 {
-    if (internal_format != rInternal || format != rFormat || type != rType || width != rWidth || height != rHeight)
-    {
-        uint intermediateW = width /2;
-        uint intermediateH = height /2 ;
-
-        intermediate = std::make_unique<Texture2D>(intermediateW, intermediateH, internal_format, format, type, nullptr, false);
-
-        if (!intermediateFB)
-        {
-            intermediateFB = std::make_unique<Framebuffer>();
-        }
-
-        intermediateFB->ClearAttachments();
-        intermediateFB->AttachColor(intermediate.get(), 0, 0);
-        assert(intermediateFB->Check() == GL_FRAMEBUFFER_COMPLETE);
-
-        result = std::make_unique<Texture2D>(width, height, internal_format, format, type, nullptr, false);
-
-        if (!resultFB)
-        {
-            resultFB = std::make_unique<Framebuffer>();
-        }
-
-        resultFB->ClearAttachments();
-        resultFB->AttachColor(result.get(), 0, 0);
-        assert(resultFB->Check() == GL_FRAMEBUFFER_COMPLETE);
-
-        rInternal = internal_format;
-        rFormat = format;
-        rType = type;
-        rWidth = width;
-        rHeight = height;
-    }
-}
-
-void KawaseBlur::createPrograms()
-{
-	if(!downscaleProg || !upscaleProg)
+	if(!program)
 	{
-        std::unique_ptr<Shader> vertex, downFrag, upFrag;
+        std::unique_ptr<Shader> vertex, fragment;
 
         vertex.reset(Shader::CreateVSFromFile("assets/shaders/fullscreenVS.glsl", 0, 0));
 
@@ -91,24 +60,21 @@ void KawaseBlur::createPrograms()
 
         if (ok)
         {
-            downFrag.reset(Shader::CreateFSFromFile("assets/shaders/kawaseDownFS.glsl", 0, 0));
-            upFrag.reset(Shader::CreateFSFromFile("assets/shaders/kawaseUpFS.glsl", 0, 0));
+            fragment.reset(Shader::CreateFSFromFile("assets/shaders/kawaseFS.glsl", 0, 0));
 
-            ok = downFrag->Compiled() && upFrag->Compiled();
+            ok = fragment->Compiled();
         }
 
         if (ok)
         {
-            downscaleProg = std::make_unique<Program>(vertex.get(), downFrag.get(), "kawase downscale");
-            upscaleProg = std::make_unique<Program>(vertex.get(), upFrag.get(), "kawase upscale");
+            program = std::make_unique<Program>(vertex.get(), fragment.get(), "kawase");
 
-            ok = downscaleProg->Linked() && upscaleProg->Linked();
+            ok = program->Linked();
         }
 
         if (!ok)
         {
-            downscaleProg.release();
-            upscaleProg.release();
+            program.release();
         }
     }
 }

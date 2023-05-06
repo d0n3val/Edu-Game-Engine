@@ -24,6 +24,7 @@ public:
 
     void SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r);
     void SetMinMaxFiler(uint min_filter, uint max_filter);
+    void SetTextureLodLevels(uint baseLevel, uint maxLevel);
     void GenerateMipmaps(uint base, uint max);
 
     void BindImage(uint unit, int level, bool layered, int layer, int access, int format);

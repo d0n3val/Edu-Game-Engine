@@ -26,6 +26,8 @@ private:
 
 	void UseProgram();
 	bool GenerateProgram();
+    void bindShadows();
+
 };
 
 #endif /*_FORWARD_PASS_H_*/

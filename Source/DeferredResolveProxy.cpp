@@ -13,6 +13,7 @@
 #include "ResourceMesh.h"
 #include "OGL.h"
 #include "OpenGL.h"
+#include "CameraUBO.h"
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
@@ -33,7 +34,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 
     useProgram();
 
-    App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+    App->renderer->GetCameraUBO()->Bind();
 
 	// Additive Blend
 	glEnable(GL_BLEND);
@@ -42,7 +43,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
     glDisable(GL_DEPTH_TEST);
     glFrontFace(GL_CW);
 
-	App->renderer->GetCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+	App->renderer->GetCameraUBO()->Bind();
     glViewport(0, 0, width, height);
 
     exportPass->getAlbedo()->Bind(GBUFFER_ALBEDO_TEX_BINDING);

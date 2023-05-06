@@ -47,6 +47,14 @@ void Texture::DefaultInitializeTexture(bool mipmaps)
     glTexParameteri(tex_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
+void Texture::SetTextureLodLevels(uint baseLevel, uint maxLevel)
+{
+    glBindTexture(tex_target, texture);
+    glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, baseLevel);
+    glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, maxLevel);
+    glBindTexture(tex_target, 0);
+}
+
 void Texture::SetWrapping(uint wrap_s, uint wrap_t, uint wrap_r)
 {
     glBindTexture(tex_target, texture);
