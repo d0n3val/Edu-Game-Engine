@@ -21,8 +21,8 @@
 
 #include<math.h>
 
-#define DEFAULT_PLANAR_WIDTH 512
-#define DEFAULT_PLANAR_HEIGHT 256
+#define DEFAULT_PLANAR_WIDTH 1024
+#define DEFAULT_PLANAR_HEIGHT 512
 #define DEFAULT_ROUGHNESS_LEVELS 7
 
 PlanarReflectionPass::PlanarReflectionPass() : planarCamera(nullptr)
@@ -36,7 +36,7 @@ PlanarReflectionPass::~PlanarReflectionPass()
 
 void PlanarReflectionPass::execute()
 {
-    if(std::get<bool>(App->hints->GetDHint(std::string("Planar reflection enabled"), true)))
+    if(std::get<bool>(App->hints->GetDHint(std::string("Planar reflection enabled"), true)) )
     {
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Planar Reflection");
 
@@ -84,29 +84,32 @@ void PlanarReflectionPass::execute()
 
 void PlanarReflectionPass::updateRenderList(ComponentCamera *camera)
 {
-    float3 planePos = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane pos"), float3::zero));
-    float3 planeNormal = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane normal"), float3::unitY));
+    if(std::get<bool>(App->hints->GetDHint(std::string("Planar reflection enabled"), true)) )
+    {
+        float3 planePos = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane pos"), float3::zero));
+        float3 planeNormal = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane normal"), float3::unitY));
 
-    planarCamera.frustum = camera->frustum;
+        planarCamera.frustum = camera->frustum;
 
-    float moveAmount = (planarCamera.frustum.pos - planePos).Dot(planeNormal) * 2.0f;
-    planarCamera.frustum.pos = planarCamera.frustum.pos - planeNormal * moveAmount;
+        float moveAmount = (planarCamera.frustum.pos - planePos).Dot(planeNormal) * 2.0f;
+        planarCamera.frustum.pos = planarCamera.frustum.pos - planeNormal * moveAmount;
 
-    // reflect front
-    planarCamera.frustum.front.Normalize();
-    float frontAmount = (planeNormal.Dot(planarCamera.frustum.front) * 2.0f);
-    float3 newFront = planarCamera.frustum.front - planeNormal * frontAmount;
-    newFront.Normalize();
+        // reflect front
+        planarCamera.frustum.front.Normalize();
+        float frontAmount = (planeNormal.Dot(planarCamera.frustum.front) * 2.0f);
+        float3 newFront = planarCamera.frustum.front - planeNormal * frontAmount;
+        newFront.Normalize();
 
-    // reflect up
-    float upAmount = (planeNormal.Dot(planarCamera.frustum.up) * 2.0f);
-    float3 newUp = planarCamera.frustum.up - planeNormal * upAmount;
-    newUp.Normalize();
+        // reflect up
+        float upAmount = (planeNormal.Dot(planarCamera.frustum.up) * 2.0f);
+        float3 newUp = planarCamera.frustum.up - planeNormal * upAmount;
+        newUp.Normalize();
 
-    planarCamera.frustum.front = newFront;
-    planarCamera.frustum.up = newUp;
+        planarCamera.frustum.front = newFront;
+        planarCamera.frustum.up = newUp;
 
-    objects.UpdateFrom(planarCamera.frustum, App->level->GetRoot());
+        objects.UpdateFrom(planarCamera.frustum, App->level->GetRoot(), RENDERLIST_OBJ_ALL | RENDERLIST_OBJ_AVOID_PLANAR_REFLECTIONS);
+    }
 }
 
 void PlanarReflectionPass::createFrameBuffer()

@@ -102,7 +102,7 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
 {
 
     cameraUBO->Update(camera);
-    App->level->GetLightManager()->UpdateGPUBuffers((flags & (DRAW_IBL | DRAW_PLANAR)) != 0);
+    App->level->GetLightManager()->UpdateGPUBuffers((flags & (DRAW_IBL)) != 0);
 
     render_list.UpdateFrom(culling->frustum, App->level->GetRoot()); 
 
@@ -199,7 +199,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
     RenderVFX(camera, culling, frameBuffer, width, height);
 
-    if((flags & (DRAW_IBL | DRAW_PLANAR)) == 0)
+    if((flags & (DRAW_IBL)) == 0)
     {
         DrawAreaLights(camera, frameBuffer);
     }

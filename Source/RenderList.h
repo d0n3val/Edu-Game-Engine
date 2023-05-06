@@ -35,6 +35,7 @@ enum RenderListObjTypes
     RENDERLIST_OBJ_TRAILS = 1 << 3,
     RENDERLIST_OBJ_LINES = 1 << 4,
     RENDERLIST_OBJ_DECALS = 1 << 5,
+    RENDERLIST_OBJ_AVOID_PLANAR_REFLECTIONS = 1 << 6,
     RENDERLIST_OBJ_MESH = (RENDERLIST_OBJ_OPAQUE | RENDERLIST_OBJ_TRANSPARENT),
     RENDERLIST_OBJ_ALL = (RENDERLIST_OBJ_OPAQUE | RENDERLIST_OBJ_TRANSPARENT | RENDERLIST_OBJ_PARTICLES | 
                           RENDERLIST_OBJ_TRAILS | RENDERLIST_OBJ_LINES | RENDERLIST_OBJ_DECALS)
@@ -55,6 +56,7 @@ private:
 
 public:
 
+    void Clear();
     void UpdateFrom(const Frustum& frustum, QuadtreeNode* quadtree, uint objTypes = RENDERLIST_OBJ_ALL);
     void UpdateFrom(const Frustum& frustum, GameObject* go, uint objTypes = RENDERLIST_OBJ_ALL);
     void UpdateFrom(const Plane* cameraPlanes, const float3& cameraPos, GameObject* go, uint objTypes = RENDERLIST_OBJ_ALL);

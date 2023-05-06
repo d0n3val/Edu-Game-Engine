@@ -24,7 +24,7 @@ class PlanarReflectionPass
     std::unique_ptr<Texture2D>   planarDepthTex;
     std::unique_ptr<CameraUBO>   cameraUBO;
     RenderList                   objects;
-    GaussianChain gaussian;
+    GaussianChain                gaussian;
 
 public:
 

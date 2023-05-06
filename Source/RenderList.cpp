@@ -8,15 +8,11 @@
 #include "ComponentLine.h"
 #include "ComponentDecal.h"
 #include "GameObject.h"
+#include "ResourceMaterial.h"
 
 void RenderList::UpdateFrom(const Frustum& frustum, QuadtreeNode* quadtree, uint objTypes /*= RENDERLIST_OBJ_ALL*/)
 {
-    opaque_nodes.clear();
-    transparent_nodes.clear();
-    particles.clear();
-    trails.clear();
-    lines.clear();
-    decals.clear();
+    Clear();
 
     Plane planes[6];
     frustum.GetPlanes(planes);
@@ -28,13 +24,8 @@ void RenderList::UpdateFrom(const Frustum& frustum, QuadtreeNode* quadtree, uint
 
 void RenderList::UpdateFrom(const Frustum& frustum, GameObject* go, uint objTypes /*= RENDERLIST_OBJ_ALL*/)
 {
-    opaque_nodes.clear();
-    transparent_nodes.clear();
-    particles.clear();
-    trails.clear();
-    lines.clear();
-    decals.clear();
-
+    Clear();
+    
     Plane cameraPlanes[8];
     frustum.GetPlanes(cameraPlanes);
 
@@ -43,11 +34,7 @@ void RenderList::UpdateFrom(const Frustum& frustum, GameObject* go, uint objType
 
 void RenderList::UpdateFrom(const Plane *cameraPlanes, const float3 &cameraPos, GameObject *go, uint objTypes /*= RENDERLIST_OBJ_ALL*/)
 {
-    opaque_nodes.clear();
-    transparent_nodes.clear();
-    particles.clear();
-    trails.clear();
-    decals.clear();
+    Clear();
 
     CollectObjects(cameraPlanes, cameraPos, go, objTypes);
 }
@@ -198,9 +185,10 @@ void RenderList::CollectMeshRenderers(const float3& camera_pos, GameObject* go, 
         render.mesh = static_cast<ComponentMeshRenderer*>(comp);
         render.distance = distance;
 
-        if(render.mesh->GetVisible())
+        if(render.mesh->GetVisible() && ((objType & RENDERLIST_OBJ_AVOID_PLANAR_REFLECTIONS) == 0 || !render.mesh->GetMaterialRes()->GetPlanarReflections()))
         {
-            if(render.mesh->RenderMode() == ComponentMeshRenderer::RENDER_OPAQUE)
+            if(render.mesh->RenderMode() == ComponentMeshRenderer::RENDER_OPAQUE )
+              
             {
                 if((objType & RENDERLIST_OBJ_OPAQUE) != 0)
                 {
@@ -327,6 +315,12 @@ void RenderList::CollectDecals(const float3& camera_pos, GameObject* go)
     }
 }
 
-
-
-
+void RenderList::Clear()
+{
+    opaque_nodes.clear();
+    transparent_nodes.clear();
+    particles.clear();
+    trails.clear();
+    lines.clear();
+    decals.clear();
+}
