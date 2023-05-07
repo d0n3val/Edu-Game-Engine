@@ -15,6 +15,14 @@ layout(location = PREFILTERED_LOD_LEVELS_LOCATION) uniform int    prefilteredLev
 layout(binding = PLANAR_REFLECTION_BINDING) uniform sampler2D planarReflections;
 layout(location = PLANAR_REFLECTION_VIEWPROJ_LOCATION) uniform mat4 planarViewProj;
 layout(location = PLANAR_REFLECTION_LOD_LEVELS_LOCATION) uniform int planarLevels;
+layout(location = PLANAR_REFLECTION_NORMAL) uniform vec3 planarNormal;
+layout(location = PLANAR_REFLECTION_DISTORITION) uniform float planarDistortion;
+
+struct DirLight
+{
+    vec4 dir;
+    vec4 color;
+};
 
 struct DirLight
 {
@@ -349,6 +357,15 @@ vec3 ShadingAmbientIBL(in PBR pbr, in vec4 planarColor)
     return color;
 }
 
+mat3 computeTangetSpace(in vec3 normal)
+{
+    vec3 up    = abs(normal.y) > 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+    vec3 right = normalize(cross(up, normal));
+    up         = cross(normal, right);
+
+    return mat3(right, up, normal);
+}
+
 vec3 ShadingAmbient(in PBR pbr)
 {
     vec4 planarColor = vec4(0.0);
@@ -361,7 +378,9 @@ vec3 ShadingAmbient(in PBR pbr)
         if(planarUV.x >= 0.0 && planarUV.x <= 1.0 && 
            planarUV.y >= 0.0 && planarUV.y <= 1.0 )
         {
-            planarColor.rgb = textureLod(planarReflections, planarUV, roughness*(planarLevels-1)).rgb;
+            mat3 tangent = computeTangetSpace(planarNormal);
+            vec3 local = transpose(tangent)*pbr.normal;
+            planarColor.rgb = textureLod(planarReflections, planarUV+local.xy*planarDistortion, roughness*(planarLevels-1)).rgb;
             planarColor.a = 1.0;
         }
     }

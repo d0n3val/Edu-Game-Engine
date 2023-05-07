@@ -1064,8 +1064,8 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         }
         ImGui::PopID();
 
-        float smoothness = min(max(material->GetSmoothness(), 0.0f), 1.0f);
-        if(ImGui::SliderFloat("Smoothness", &smoothness, 0.0f, 1.0f))
+        float smoothness = material->GetSmoothness();
+        if(ImGui::SliderFloat("Smoothness", &smoothness, 0.0f, 10.0f))
         {
             material->SetSmoothness(smoothness);
             modified = true;

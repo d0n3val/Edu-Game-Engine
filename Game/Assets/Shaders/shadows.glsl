@@ -129,7 +129,7 @@ float computeShadow(in vec3 position)
         if(coord.z > moments.r)
         {
             float variance = max(moments.g - (moments.r*moments.r), 0.00002);
-            float d = moments.r - coord.z;
+            float d = coord.z - moments.r;
             float p_max = variance / (variance + d*d); // factor used to interpolate between ambient and full litted 
 
             return p_max;

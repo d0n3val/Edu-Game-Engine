@@ -141,6 +141,12 @@ void PlanarReflectionPass::Bind()
     float4x4 viewProj = planarCamera.frustum.ViewProjMatrix();
     glUniformMatrix4fv(PLANAR_REFLECTION_VIEWPROJ_LOCATION, 1, GL_TRUE, reinterpret_cast<float*>(&viewProj));
     glUniform1i(PLANAR_REFLECTION_LOD_LEVELS_LOCATION, int(DEFAULT_ROUGHNESS_LEVELS));
+
+    float3 planeNormal = std::get<float3>(App->hints->GetDHint(std::string("Planar reflection plane normal"), float3::unitY));
+    glUniform3fv(PLANAR_REFLECTION_NORMAL, 1, reinterpret_cast<float*>(&planeNormal));
+
+    float distortion = std::get<float>(App->hints->GetDHint(std::string("Planar reflection distortion"), 0.0f));
+    glUniform1f(PLANAR_REFLECTION_DISTORITION, distortion);
 }
 
 bool PlanarReflectionPass::generateProgram()
