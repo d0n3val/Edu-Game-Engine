@@ -15,7 +15,7 @@
 
 #include "Leaks.h"
 
-#define MATERIAL_VERSION 0.4f
+#define MATERIAL_VERSION 0.5f
 //#define FORCE_COMPRESS_ON_LOAD
 
 // ---------------------------------------------------------
@@ -69,6 +69,11 @@ bool ResourceMaterial::LoadInMemory()
             if(version >= 0.3f)
             {
                 read_stream >> emissive_intensity;
+            }
+
+            if(version >= 0.5f)
+            {
+                read_stream >> specular_intensity;
             }
 
             for (uint i = 0; i < TextureCount; ++i)
@@ -266,6 +271,7 @@ void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_s
     write_stream << specular_color.x << specular_color.y << specular_color.z;
     write_stream << emissive_color.x << emissive_color.y << emissive_color.z;
     write_stream << emissive_intensity;
+    write_stream << specular_intensity;
 
     for(uint i=0; i< TextureCount; ++i)
     {

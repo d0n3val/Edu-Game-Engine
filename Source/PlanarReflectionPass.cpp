@@ -43,12 +43,6 @@ void PlanarReflectionPass::execute()
         createFrameBuffer();
         generateProgram();
 
-        //App->renderer->Draw(&planarCamera, &planarCamera, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT, ModuleRenderer::DRAW_PLANAR);
-
-        //forward->executeOpaque(objects, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT);
-        //forward->executeTransparent(objects, frameBuffer.get(), DEFAULT_PLANAR_WIDTH, DEFAULT_PLANAR_HEIGHT);
-
-        // \todo: CAMERA UBO, LightManager
         program->Use();
 
         cameraUBO->Update(&planarCamera);

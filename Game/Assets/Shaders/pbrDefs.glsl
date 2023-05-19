@@ -34,14 +34,6 @@ float GGXNDF(float roughness, float NdotH)
 
 float SMITHVSF(float NdotL, float NdotV, float roughness)
 {
-    /*
-    // from filament (note: no opt)
-    float a2 = roughness * roughness;
-    float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - a2) + a2);
-    float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - a2) + a2);
-    return 0.5 / (GGXV + GGXL);
-    */
-
     // optimized version
     return 0.5/mix(2.0*NdotL*NdotV, NdotL+NdotV, roughness);
 }

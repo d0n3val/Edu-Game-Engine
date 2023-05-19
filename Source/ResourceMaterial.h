@@ -33,6 +33,7 @@ private:
     float3      specular_color         = float3::one;
     float3      emissive_color         = float3::zero;
     float       emissive_intensity     = 1.0;
+    float       specular_intensity     = 1.0;
     UID         textures[TextureCount] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float       smoothness             = 1.0f;
     float       normal_strength        = 1.0f;
@@ -71,6 +72,9 @@ public:
 
     float                   GetEmissiveIntensity () const { return emissive_intensity; }
     void                    SetEmissiveIntensity (float intensity) { emissive_intensity = intensity; }
+
+    float                   GetSpecularIntensity () const { return specular_intensity; }
+    void                    SetSpecularIntensity (float intensity) { specular_intensity = intensity; }
 
     UID                     GetTexture          (MaterialTexture texture) const { return textures[texture]; }
     const ResourceTexture*  GetTextureRes       (MaterialTexture texture) const;

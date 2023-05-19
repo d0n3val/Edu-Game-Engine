@@ -337,6 +337,7 @@ vec3 ShadingAmbientIBL(in PBR pbr, in vec4 planarColor)
         {
             vec3 closer = min(localPos-ibl.minInfluence.xyz, ibl.maxInfluence.xyz-localPos);
             float weight = min(closer.x, min(closer.y, closer.z));
+            weight = weight * weight;
 
             vec3 localR = mat3(ibl.toLocal)*R;
             vec3 coord = parallaxCorrection(localPos, localR, ibl.minParallax.xyz, ibl.maxParallax.xyz);

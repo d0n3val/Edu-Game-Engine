@@ -1062,6 +1062,14 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
             material->SetSpecularColor(color);
             modified = true;
         }
+
+        float intensity = material->GetSpecularIntensity();
+        if(ImGui::SliderFloat("Intensity", &intensity, 1.0f, 50.0f))
+        {
+            material->SetSpecularIntensity(intensity);
+            modified  = true;
+        }
+
         ImGui::PopID();
 
         float smoothness = material->GetSmoothness();
@@ -1075,7 +1083,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         if(ImGui::Checkbox("Use planar reflections", &planar))
         {
             material->SetPlanarReflections(planar);
-            modified = true; 
+            modified = true;
         }
     }
 

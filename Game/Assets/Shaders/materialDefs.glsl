@@ -95,7 +95,7 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom)
     if((material.mask & SPECULAR_MAP_FLAG) != 0)
     {
         vec4 tmp = sampleTexture(SPECULAR_MAP_INDEX, uv0, matIndex);
-        pbr.specular   *= tmp.rgb;
+        pbr.specular   = min(vec3(1.0), pbr.specular*tmp.rgb);
         pbr.smoothness = min(max(pbr.smoothness*tmp.a, 0.0), 1.0);
     }
 
