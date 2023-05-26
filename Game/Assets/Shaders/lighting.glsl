@@ -170,22 +170,6 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
     return GGXShading(normal, view_dir, light_dir, light.color.rgb*intensity, diffuseColor, specularColor, roughness, att*cone);
 }
 
-vec3 SphereSpec(const vec3 pos, const vec3 normal, const vec3 view_dir, const vec3 light_pos, float sphere_radius, 
-                float attenuation_radius, const vec3 light_color, const vec3 specularColor, float roughness)
-{
-    vec3 reflect_dir  = normalize(reflect(-view_dir, normal));
-    vec3 light_dir    = light_pos-pos;
-    vec3 centerToRay  = pos+reflect_dir*dot(light_dir, reflect_dir)-light_pos;
-    vec3 closestPoint = light_pos+(centerToRay)*min(sphere_radius/length(centerToRay), 1.0);
-
-    float distance    = length(closestPoint-pos);
-    light_dir         = (closestPoint-pos)/distance;
-    // epic falloff
-    float att         = Sq(max(1.0-Sq(Sq(distance/attenuation_radius)), 0.0))/(Sq(distance)+1);
-
-    return GGXShadingSpec(normal, view_dir, light_dir, light_color, specularColor, roughness, att);
-}
-
 vec3 Sphere(const vec3 pos, const vec3 normal, vec3 view_dir, const vec3 light_pos, float sphere_radius, 
             float attenuation_radius, const vec3 light_color, const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
@@ -244,6 +228,14 @@ vec3 ClosestToLine(vec3 pos, vec3 dir, vec3 a, vec3 b)
     return a+ab*t;
 }
 
+vec3 ClosestToSphere(in vec3 pos, in vec3 dir, in vec3 lightPos, in float radius)
+{
+    vec3 light_dir    = lightPos-pos;
+    vec3 centerToRay  = pos+dir*dot(light_dir, dir)-lightPos;
+    return lightPos+(centerToRay)*min(radius/length(centerToRay), 1.0);
+}
+
+
 vec3 BisectionIntersection(vec3 P, vec3 A, vec3 B)
 {
     float a = length(A-P);
@@ -253,25 +245,28 @@ vec3 BisectionIntersection(vec3 P, vec3 A, vec3 B)
 
     float x = (c*a)/(b+a);
 
-    return A + (AB)*x;
+    return A + normalize(AB)*x;
 }
 
 vec3 Tube(const vec3 pos, const vec3 normal, const vec3 view_dir, const TubeLight light, 
           const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
-
     vec3 reflect_dir = normalize(reflect(-view_dir, normal));
     vec3 closest     = ClosestToLine(pos, reflect_dir, light.p0.xyz, light.p1.xyz);
-    vec3 specular    = SphereSpec(pos, normal, view_dir, closest, light.p0.w, light.color.a, light.color.rgb, specularColor, roughness);
+    vec3 closestToSphere = ClosestToSphere(pos, reflect_dir, closest, light.p0.w);
 
-    vec3 p0 = light.p0.xyz-pos;
-    vec3 p1 = light.p1.xyz-pos;
+    float dist        = length(closestToSphere-pos);
+    vec3 light_dir    = (closestToSphere-pos)/dist;
+
+    // epic falloff
+    float att         = Sq(max(1.0-Sq(Sq(dist/light.color.a)), 0.0))/(Sq(dist)+1);
+
+    vec3 specular     = GGXShadingSpec(normal, view_dir, light_dir, light.color.rgb, specularColor, roughness, att);
+
     vec3 light_to_pos = BisectionIntersection(pos, light.p0.xyz, light.p1.xyz)-pos; 
+    light_dir         = normalize(light_to_pos);
 
-    vec3 light_dir   = normalize(light_to_pos);
-    float distance   = length(light_to_pos);
-    float att        = Sq(max(1.0-Sq(Sq(distance/light.color.a)), 0.0))/(Sq(distance)+1);
-    vec3 diffuse     = Lambert(normal, light_dir, light.color.rgb, diffuseColor, specularColor, att);
+    vec3 diffuse      = Lambert(normal, light_dir, light.color.rgb, diffuseColor, specularColor, att);
 
     return diffuse+specular;
 }

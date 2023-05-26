@@ -50,7 +50,7 @@ vec3 GGXShadingSpec(const vec3 normal, const vec3 view_dir, const vec3 light_dir
     float ndf        = GGXNDF(roughness, max(0.001, dot(half_dir, normal)));
     float vsf        = SMITHVSF(dotNL, dotNV, roughness);
 
-    return fresnel*ndf*vsf*light_color*dotNL*att;
+    return 0.25*fresnel*ndf*vsf*light_color*dotNL*att;
 }
 
 vec3 Lambert(const vec3 normal, const vec3 light_dir, const vec3 light_color, const vec3 diffuseColor, const vec3 specularColor, float att)

@@ -338,6 +338,12 @@ void PanelProperties::DrawTubeLight(TubeLight *light)
         ImGui::Separator();
 
         // Position and rotation ??? 
+        float height = light->GetHeight();
+        if (ImGui::InputFloat("height", &height, 0.01f, 0.1f, "%.9f"))
+        {
+            light->SetHeight(height);
+        }
+
 
         float radius = light->GetRadius();
         if(ImGui::InputFloat("radius", &radius, 0.01f, 0.1f, "%.9f"))

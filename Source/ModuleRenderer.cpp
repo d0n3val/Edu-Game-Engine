@@ -505,6 +505,7 @@ void ModuleRenderer::DrawAreaLights(ComponentCamera* camera, Framebuffer* frameB
             model.SetTranslatePart(light->GetPosition());
             model.ScaleCol(0, light->GetRadius());
             model.ScaleCol(2, light->GetRadius());
+            model.ScaleCol(1, light->GetHeight());
             // \todo: compute model from two points and radius
 
             primitiveProgram->BindUniformFromName("model", model, true);
