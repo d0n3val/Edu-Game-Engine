@@ -172,6 +172,9 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
     depthRangePass->execute(exportGBuffer->getDepth(), width, height);
 
+    //decalPass->execute(camera, render_list, width, height);
+    ssao->execute(width, height);
+
     if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
     {
         cascadeShadowPass->execute();
@@ -181,9 +184,6 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
         shadowmapPass->updateRenderList(culling->frustum, depthRangePass->getMinMaxDepth());
         shadowmapPass->execute( 3000, 3000);
     }
-
-    //decalPass->execute(camera, render_list, width, height);
-    ssao->execute(width, height);
 
     deferredResolve->execute(frameBuffer, width, height);
     deferredProxy->execute(frameBuffer, width, height);

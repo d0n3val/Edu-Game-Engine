@@ -72,7 +72,7 @@ public:
 	bool WasDirty() const;
 	bool WasBBoxDirty() const;
 	void Remove();
-	const AABB& GetLocalBBox() const;
+	const AABB& GetLocalBBox() const {return local_bbox; }
 
 	bool IsUnder(const GameObject* go) const;
 	void FindComponents(Component::Types type, std::vector<Component*>& results) const;

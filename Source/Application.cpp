@@ -18,16 +18,17 @@
 #include "ModuleAI.h"
 #include "Event.h"
 #include "Config.h"
-
-
-#include "Leaks.h"
+#include "ThreadPool.h"
 
 using namespace std;
 
 // ---------------------------------------------
 Application::Application()
 {
-	frames = 0;
+    threadPool = std::make_unique<ThreadPool>();
+    threadPool->init(32);
+
+    frames = 0;
 	last_frame_ms = -1;
 	last_fps = -1;
 	capped_ms = 1000 / 60;
@@ -84,7 +85,7 @@ void Application::SaveConfiguration(Config& config) const
 bool Application::Init()
 {
 	bool ret = true;
-			
+
 	char* buffer = nullptr;
 	fs->Load(SETTINGS_FOLDER "config.json", &buffer);
 
@@ -192,7 +193,7 @@ bool Application::CleanUp()
 {
 	bool ret = true;
 
-	fs->Save(SETTINGS_FOLDER "Engine.log", log.c_str(), uint(log.size()));
+    fs->Save(SETTINGS_FOLDER "Engine.log", log.c_str(), uint(log.size()));
 	SavePrefs();
 
 	for(list<Module*>::reverse_iterator it = modules.rbegin(); it != modules.rend() && ret; ++it)

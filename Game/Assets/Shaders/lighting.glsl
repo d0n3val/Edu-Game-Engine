@@ -235,7 +235,6 @@ vec3 ClosestToSphere(in vec3 pos, in vec3 dir, in vec3 lightPos, in float radius
     return lightPos+(centerToRay)*min(radius/length(centerToRay), 1.0);
 }
 
-
 vec3 BisectionIntersection(vec3 P, vec3 A, vec3 B)
 {
     float a = length(A-P);
@@ -243,9 +242,9 @@ vec3 BisectionIntersection(vec3 P, vec3 A, vec3 B)
     vec3 AB = B-A;
     float c = length(AB);
 
-    float x = (c*a)/(b+a);
+    float x = a/(b+a);
 
-    return A + normalize(AB)*x;
+    return A + AB*x;
 }
 
 vec3 Tube(const vec3 pos, const vec3 normal, const vec3 view_dir, const TubeLight light, 

@@ -465,19 +465,19 @@ const float* GameObject::GetOpenGLGlobalTransform() const
 // ---------------------------------------------------------
 void GameObject::RecursiveCalcGlobalTransform(const float4x4& parent, bool force_recalc)
 {
-	if (local_trans_dirty == true || force_recalc)
+    if (local_trans_dirty)
+    {
+        transform_cache = float4x4::FromTRS(translation, rotation, scale);
+        local_trans_dirty = false;
+        force_recalc = true;
+    }
+
+    if ((was_dirty = force_recalc) == true)
 	{
-		force_recalc = true;
-		was_dirty = true;
-		local_trans_dirty = false;
-		transform_cache = float4x4::FromTRS(translation, rotation, scale);
 		transform_global = parent * transform_cache;
 		for (list<Component*>::const_iterator it = components.begin(); it != components.end(); ++it)
 			(*it)->OnUpdateTransform();
-
 	}
-	else
-		was_dirty = false;
 
 	for(list<GameObject*>::iterator it = childs.begin(); it != childs.end(); ++it)
 		(*it)->RecursiveCalcGlobalTransform(transform_global, force_recalc);
@@ -560,12 +560,6 @@ void GameObject::Remove()
         }
     }
 
-}
-
-// ---------------------------------------------------------
-const AABB& GameObject::GetLocalBBox() const
-{
-	return local_bbox;
 }
 
 // ---------------------------------------------------------

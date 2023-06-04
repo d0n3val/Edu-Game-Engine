@@ -4,6 +4,7 @@
 #include "Globals.h"
 #include <list>
 #include <string>
+#include <memory>
 #include "Timer.h"
 #include "MathGeoLib/include/Algorithm/Random/LCG.h"
 
@@ -26,6 +27,7 @@ class ModulePrograms;
 class ModuleRenderer;
 class ModuleHints;
 class ModuleDebugDraw;
+class ThreadPool;
 
 struct Event;
 
@@ -75,6 +77,7 @@ public:
 	bool IsPause() const;
 	bool IsStop() const;
 
+	ThreadPool* getThreadPool() {return threadPool.get(); }
 private:
 
 	void PrepareUpdate();
@@ -117,6 +120,8 @@ private:
 	std::string log;
 	std::string app_name;
 	std::string organization_name;
+
+	std::unique_ptr<ThreadPool> threadPool;
 
 	State state = State::stop;
 };

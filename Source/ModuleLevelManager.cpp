@@ -18,6 +18,7 @@
 #include "ComponentMeshRenderer.h"
 
 #include "Event.h"
+#include "ThreadPool.h"
 
 #include "IBLData.h"
 #include "LightManager.h"
@@ -26,6 +27,8 @@
 #include "Leaks.h"
 
 using namespace std;
+
+#define USE_THREAD_POOL
 
 ModuleLevelManager::ModuleLevelManager( bool start_enabled) : Module("LevelManager", start_enabled)
 {
@@ -56,25 +59,57 @@ bool ModuleLevelManager::Start(Config * config)
 {
 	// Load a default map
 	Load("default.eduscene");
-
+	
 	return true;
 }
 
 update_status ModuleLevelManager::PreUpdate(float dt)
 {
-	// Update transformations tree for this frame
-	root->RecursiveCalcGlobalTransform(float4x4::identity, false);
-	root->RecursiveCalcBoundingBoxes();
 
 	return UPDATE_CONTINUE;
 }
 
 update_status ModuleLevelManager::Update(float dt)
 {
-	if(App->IsPlay())
-		RecursiveUpdate(root, dt);
+    if (App->IsPlay())
+    {
+#ifdef USE_THREAD_POOL
+        root->OnUpdate(dt);
 
-	return UPDATE_CONTINUE;
+        ThreadPool* pool = App->getThreadPool();
+        std::vector<std::future<void> > futures;
+        futures.reserve(root->childs.size());
+
+        for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
+        {
+            GameObject* child = *it;
+            futures.push_back(pool->submitTask([=]() 
+                { 
+                    RecursiveUpdate(child, dt); 
+                    root->RecursiveCalcGlobalTransform(float4x4::identity, false);
+                    root->RecursiveCalcBoundingBoxes();
+                }));
+        }
+
+        for (auto& ft : futures) ft.wait();
+
+#else
+        RecursiveUpdate(root, dt);
+        // Update transformations tree for this frame
+        root->RecursiveCalcGlobalTransform(float4x4::identity, false);
+        root->RecursiveCalcBoundingBoxes();
+#endif 
+        
+    }
+    else
+    {
+        // Update transformations tree for this frame
+        root->RecursiveCalcGlobalTransform(float4x4::identity, false);
+        root->RecursiveCalcBoundingBoxes();
+    }
+
+    
+    return UPDATE_CONTINUE;
 }
 
 update_status ModuleLevelManager::PostUpdate(float dt)

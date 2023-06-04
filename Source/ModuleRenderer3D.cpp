@@ -123,10 +123,10 @@ bool ModuleRenderer3D::Init(Config* config)
 #if _DEBUG
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-#endif
 
         glDebugMessageCallback(&DebugMessageGL, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+#endif
 
 		//Use Vsync
 		bool set_vsync = config->GetBool("Vertical Sync", false);

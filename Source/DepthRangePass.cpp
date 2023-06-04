@@ -8,6 +8,7 @@
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 #include <algorithm>
+#include <SDL_assert.h>
 
 DepthRangePass::DepthRangePass()
 {
@@ -58,7 +59,7 @@ void DepthRangePass::execute(Texture *depthBuffer, uint width, uint height)
     }
     
     glPopDebugGroup();
-    glGetTextureSubImage(srcTexture->Id(), 0, 0, 0, 0, 1, 1, 1, GL_RG, GL_FLOAT, sizeof(float2), reinterpret_cast<void*>(&minMax));
+    result = srcTexture;
 }
 
 
@@ -92,6 +93,13 @@ void DepthRangePass::generatePrograms()
             programRedGreen.release();
         }
     }
+}
+
+void DepthRangePass::updateMinMax() const
+{
+    SDL_assert(result);
+    glGetTextureSubImage(result->Id(), 0, 0, 0, 0, 1, 1, 1, GL_RG, GL_FLOAT, sizeof(float2), reinterpret_cast<void*>(&minMax));
+    result = nullptr;
 }
 
 void DepthRangePass::createTextures(uint width, uint height)

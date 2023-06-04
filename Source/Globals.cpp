@@ -5,10 +5,14 @@
 #include <stdio.h>
 #include "Application.h"
 
-#include "Leaks.h"
+#include <mutex>
+
+std::mutex logMutex;
 
 void _log(const char file[], int line, const char* format, ...)
 {
+    std::unique_lock<std::mutex> lock(logMutex);
+
 	static char tmp_string[64000];
 	static char tmp_string2[64000];
 	static va_list  ap;

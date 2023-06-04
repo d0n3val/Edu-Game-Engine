@@ -129,7 +129,7 @@ bool RenderList::Intersects(const Plane* camera_planes, const float3* points)
 
 void RenderList::CollectObjects(const Plane* camera_planes, const float3& camera_pos, GameObject* go, uint objTypes)
 {
-    AABB local_bounding = go->GetLocalBBox();
+    const AABB& local_bounding = go->GetLocalBBox();
 
     bool inside = true;
     if (local_bounding.IsFinite())
