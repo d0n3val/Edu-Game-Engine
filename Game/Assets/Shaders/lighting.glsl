@@ -178,17 +178,15 @@ vec3 Sphere(const vec3 pos, const vec3 normal, vec3 view_dir, const vec3 light_p
     vec3 centerToRay  = pos+reflect_dir*max(0.0, dot(light_dir, reflect_dir))-light_pos;
     vec3 closestPoint = light_pos+centerToRay*min(sphere_radius/length(centerToRay), 1.0);
 
-    float distance    = length(closestPoint-pos);
-    light_dir         = (closestPoint-pos)/distance;
+    float dist        = distance(pos, light_pos);
+    light_dir         = normalize(closestPoint-pos);
 
     // epic falloff
-    float att     = Sq(max(1.0-Sq(Sq(distance/attenuation_radius)), 0.0))/(Sq(distance)+1);
+    float att     = Sq(max(1.0-Sq(Sq(dist/attenuation_radius)), 0.0))/(Sq(dist)+1);
 
     vec3 specular = GGXShadingSpec(normal, view_dir, light_dir, light_color, specularColor, roughness, att);
 
     light_dir    = normalize(light_pos-pos);
-    distance     = length(light_pos-pos);
-    att          = Sq(max(1.0-Sq(Sq(distance/attenuation_radius)), 0.0))/(Sq(distance)+1);
     vec3 diffuse = Lambert(normal, light_dir, light_color, diffuseColor, specularColor, att);
 
     return diffuse+specular;
@@ -228,6 +226,16 @@ vec3 ClosestToLine(vec3 pos, vec3 dir, vec3 a, vec3 b)
     return a+ab*t;
 }
 
+vec3 ClosestToLine(vec3 pos, vec3 a, vec3 b, float radius)
+{
+    vec3 ab  = (b-a);
+    float len = length(ab);
+    ab = ab/len;
+    vec3 pointInLine = a+ab*clamp(dot(pos-a, ab), 0.0, len);
+
+	return pointInLine+normalize(pos-pointInLine)*min(radius, distance(pointInLine, pos));
+}
+
 vec3 ClosestToSphere(in vec3 pos, in vec3 dir, in vec3 lightPos, in float radius)
 {
     vec3 light_dir    = lightPos-pos;
@@ -253,9 +261,10 @@ vec3 Tube(const vec3 pos, const vec3 normal, const vec3 view_dir, const TubeLigh
     vec3 reflect_dir = normalize(reflect(-view_dir, normal));
     vec3 closest     = ClosestToLine(pos, reflect_dir, light.p0.xyz, light.p1.xyz);
     vec3 closestToSphere = ClosestToSphere(pos, reflect_dir, closest, light.p0.w);
+    vec3 closestAtt  = ClosestToLine(pos, light.p0.xyz, light.p1.xyz, light.p0.w);
 
-    float dist        = length(closestToSphere-pos);
-    vec3 light_dir    = (closestToSphere-pos)/dist;
+    float dist        = distance(closestAtt, pos);
+    vec3 light_dir    = normalize(closestToSphere-pos);
 
     // epic falloff
     float att         = Sq(max(1.0-Sq(Sq(dist/light.color.a)), 0.0))/(Sq(dist)+1);
