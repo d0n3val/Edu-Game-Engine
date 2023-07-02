@@ -4,26 +4,24 @@
 
 #include <chrono>
 
-ThreadPool::~ThreadPool()
+ThreadPool::ThreadPool()
 {
-    end();
-}
-
-void ThreadPool::init(uint numThreads)
-{
+    uint numThreads = uint(std::thread::hardware_concurrency());
     workers.reserve(numThreads);
 
     for (uint i = 0; i < numThreads; ++i)
     {
         workers.push_back(std::thread(std::bind(&ThreadPool::WorkerFunc, this, i)));
-        workers.back().detach();
     }
 }
 
-void ThreadPool::end()
+ThreadPool::~ThreadPool() 
 {
     finish = true;
     cond.notify_all();
+
+    for (std::thread& th : workers)
+        th.join();
 }
 
 std::future<void> ThreadPool::submitTask(const std::function<void()>& function)
@@ -38,8 +36,6 @@ std::future<void> ThreadPool::submitTask(const std::function<void()>& function)
 
 void ThreadPool::WorkerFunc(uint id)
 {
-    using namespace std::chrono_literals;
-
     while (!finish)
     {
         std::unique_lock<std::mutex> lock(condMutex);

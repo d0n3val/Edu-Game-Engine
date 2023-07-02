@@ -26,7 +26,6 @@ using namespace std;
 Application::Application()
 {
     threadPool = std::make_unique<ThreadPool>();
-    threadPool->init(32);
 
     frames = 0;
 	last_frame_ms = -1;

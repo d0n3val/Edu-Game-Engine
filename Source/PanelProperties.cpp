@@ -18,6 +18,7 @@
 #include "ComponentLine.h"
 #include "ComponentGrass.h"
 #include "ComponentDecal.h"
+#include "ComponentSpotCone.h"
 #include "ModuleLevelManager.h"
 #include "ModuleTextures.h"
 #include "ModuleEditor.h"
@@ -103,6 +104,7 @@ void PanelProperties::Draw()
     show_texture.Display();
     selectTexture.Display();
     compressTexture.Display();
+    newMeshDlg.Display();
 }
 
 // ---------------------------------------------------------
@@ -445,7 +447,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
             go->SetLocalRotation(Quat::identity);
         }
 
-        static_assert(Component::Types::Unknown == 15, "code needs update");
+        static_assert(Component::Types::Unknown == 16, "code needs update");
         if (ImGui::BeginMenu("New Component", (go != nullptr)))
         {
             if (ImGui::MenuItem("Audio Listener"))
@@ -478,6 +480,8 @@ void PanelProperties::DrawGameObject(GameObject* go)
 				go->CreateComponent(Component::Types::Grass);
 			if (ImGui::MenuItem("Decal"))
 				go->CreateComponent(Component::Types::Decal);
+            if (ImGui::MenuItem("SpotCone"))
+                go->CreateComponent(Component::Types::SpotCone);
             ImGui::EndMenu();
         }
 
@@ -527,7 +531,7 @@ void PanelProperties::DrawGameObject(GameObject* go)
         }
 
         // Iterate all components and draw
-        static_assert(Component::Types::Unknown == 15, "code needs update");
+        static_assert(Component::Types::Unknown == 16, "code needs update");
         for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
         {
             ImGui::PushID(*it);
@@ -577,6 +581,9 @@ void PanelProperties::DrawGameObject(GameObject* go)
                         break;
 					case Component::Types::Decal:
 						DrawDecalComponent(static_cast<ComponentDecal*>(*it));
+                        break;
+                    case Component::Types::SpotCone:
+                        DrawSpotConeComponent(static_cast<ComponentSpotCone*>(*it));
                         break;
 				}
             }
@@ -634,6 +641,16 @@ UID PanelProperties::PickResourceModal(int type)
     }
 
     return OpenResourceModal(type, tmp);
+}
+
+UID PanelProperties::CreateNewMesh()
+{
+    if (ImGui::Button("Create New Mesh"))
+    {
+        newMeshDlg.Open();
+    }
+
+    return newMeshDlg.getMesh();
 }
 
 UID PanelProperties::OpenResourceModal(int type, const char* popup_name)
@@ -866,6 +883,14 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
     {
         component->SetMeshRes(new_res);
     }
+
+    new_res = CreateNewMesh();
+
+    if (new_res > 0)
+    {
+        component->SetMeshRes(new_res);
+    }
+
 
     ImGui::Separator();
 
@@ -1564,6 +1589,21 @@ void PanelProperties::DrawMesh(const ResourceMesh* res)
         strcat_s(attributes, "\n\n");
 
         ImGui::TextColored(ImVec4(1, 1, 0, 1), attributes);
+    }
+}
+
+void PanelProperties::DrawSpotConeComponent(ComponentSpotCone *spotCone)
+{
+    float height = spotCone->getHeight();
+    if(ImGui::DragFloat("Height", &height, 0.01, 0.0f, 1000.0f))
+    {
+        spotCone->setHeight(height);
+    }
+
+    float radius = spotCone->getRadius();
+    if(ImGui::DragFloat("Radius", &radius, 0.01f, 0.0f, 1000.0f))
+    {
+        spotCone->setRadius(radius);
     }
 }
 

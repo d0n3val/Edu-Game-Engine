@@ -18,6 +18,7 @@
 #include "LinePass.h"
 #include "ParticlePass.h"
 #include "DepthRangePass.h"
+#include "SpotConePass.h"
 #include "PlanarReflectionPass.h"
 #include "CameraUBO.h"
 
@@ -81,6 +82,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     particlePass = std::make_unique<ParticlePass>();
     depthRangePass = std::make_unique<DepthRangePass>();
     planarPass = std::make_unique<PlanarReflectionPass>();
+    spotConePass = std::make_unique<SpotConePass>();
     cameraUBO = std::make_unique<CameraUBO>();
 }
 
@@ -191,7 +193,6 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
     
-
     // Forward Transparent
     frameBuffer->Bind();
     forward->executeTransparent(render_list, nullptr, width, height);
@@ -209,6 +210,14 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     frameBuffer->Bind();
     App->level->GetSkyBox()->DrawEnvironment(camera->GetProjectionMatrix(), camera->GetViewMatrix());
     frameBuffer->Unbind();
+
+    // cone
+    Texture2D nullTex(GL_TEXTURE_2D, 0);
+    frameBuffer->AttachDepthStencil(&nullTex, GL_DEPTH_ATTACHMENT);
+    assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
+    spotConePass->execute(render_list, frameBuffer, width, height);
+    frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
+    assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
     fogPass->execute(frameBuffer, width, height);
 }

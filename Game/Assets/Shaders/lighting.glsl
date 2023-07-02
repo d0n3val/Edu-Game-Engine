@@ -178,7 +178,7 @@ vec3 Sphere(const vec3 pos, const vec3 normal, vec3 view_dir, const vec3 light_p
     vec3 centerToRay  = pos+reflect_dir*max(0.0, dot(light_dir, reflect_dir))-light_pos;
     vec3 closestPoint = light_pos+centerToRay*min(sphere_radius/length(centerToRay), 1.0);
 
-    float dist        = distance(pos, light_pos);
+    float dist        = max(distance(pos, light_pos)-sphere_radius, 0.0);
     light_dir         = normalize(closestPoint-pos);
 
     // epic falloff

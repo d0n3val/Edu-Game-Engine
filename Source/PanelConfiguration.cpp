@@ -93,8 +93,10 @@ void PanelConfiguration::Draw()
 		if (ImGui::MenuItem("Load"))
 			App->LoadPrefs();
 
-		if (ImGui::MenuItem("Save"))
-			App->SavePrefs();
+        if (ImGui::MenuItem("Save"))
+        {
+            App->SavePrefs();
+        }
 
 		ImGui::EndMenu();
 	}

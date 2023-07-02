@@ -59,6 +59,7 @@ bool ModuleResources::Start(Config * config)
     LoadDefaultSphere();
 	LoadDefaultPlane();
     LoadDefaultCylinder();
+    LoadDefaultCone();
     //LoadDefaultRedImage();
 
 	//LoadDefaultBox();
@@ -743,4 +744,11 @@ bool ModuleResources::LoadDefaultCylinder()
 	cylinder = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadCylinder("DefaultCylinder", 1.0f, 1.0f, 20, 20, UID(6))));
 
 	return cylinder != nullptr;
+}
+
+bool ModuleResources::LoadDefaultCone()
+{
+	cone = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadCone("DefaultCylinder", 1.0f, 0.1f, 20, 20, UID(7))));
+
+	return cone != nullptr;
 }

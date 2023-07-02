@@ -34,6 +34,7 @@ class FogPass;
 class LinePass;
 class DepthRangePass;
 class PlanarReflectionPass;
+class SpotConePass;
 class CameraUBO;
 
 
@@ -57,6 +58,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<ParticlePass>         particlePass;
     std::unique_ptr<DepthRangePass>       depthRangePass;
     std::unique_ptr<PlanarReflectionPass> planarPass;
+    std::unique_ptr<SpotConePass>         spotConePass;
     std::unique_ptr<CameraUBO>            cameraUBO;
     std::unique_ptr<Program>              primitiveProgram;
     std::unique_ptr<Program>              probeProgram;

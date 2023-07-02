@@ -10,6 +10,7 @@ class ComponentParticleSystem;
 class ComponentTrail;
 class ComponentLine;
 class ComponentDecal;
+class ComponentSpotCone;
 
 struct TRenderInfo
 {
@@ -22,6 +23,7 @@ struct TRenderInfo
         ComponentDecal* decal;
         ComponentTrail *trail;
         ComponentLine *line;
+        ComponentSpotCone* spotCone;
     };
     float distance     = 0.0f;
     float layer        = 0.0f;
@@ -35,10 +37,11 @@ enum RenderListObjTypes
     RENDERLIST_OBJ_TRAILS = 1 << 3,
     RENDERLIST_OBJ_LINES = 1 << 4,
     RENDERLIST_OBJ_DECALS = 1 << 5,
-    RENDERLIST_OBJ_AVOID_PLANAR_REFLECTIONS = 1 << 6,
+    RENDERLIST_OBJ_SPOTCONE = 1 << 6,
+    RENDERLIST_OBJ_AVOID_PLANAR_REFLECTIONS = 1 << 7,
     RENDERLIST_OBJ_MESH = (RENDERLIST_OBJ_OPAQUE | RENDERLIST_OBJ_TRANSPARENT),
     RENDERLIST_OBJ_ALL = (RENDERLIST_OBJ_OPAQUE | RENDERLIST_OBJ_TRANSPARENT | RENDERLIST_OBJ_PARTICLES | 
-                          RENDERLIST_OBJ_TRAILS | RENDERLIST_OBJ_LINES | RENDERLIST_OBJ_DECALS)
+                          RENDERLIST_OBJ_TRAILS | RENDERLIST_OBJ_LINES | RENDERLIST_OBJ_DECALS | RENDERLIST_OBJ_SPOTCONE)
 };
 
 typedef std::vector<TRenderInfo> NodeList;
@@ -53,6 +56,7 @@ private:
     NodeList trails;
     NodeList lines;
     NodeList decals;
+    NodeList spotCones;
 
 public:
 
@@ -79,6 +83,9 @@ public:
     NodeList&       GetDecals() { return decals; }
     const NodeList& GetDecals() const { return decals; }
 
+    NodeList&       GetSpotCones() {return spotCones; }
+    const NodeList& GetSpotCones() const {return spotCones; }
+
 private:
 
     void CollectObjects(const Plane* camera_planes, const float3& camera_pos, QuadtreeNode* quadtree, uint objTypes);
@@ -92,6 +99,7 @@ private:
     void CollectTrails               (const float3& camera_pos, GameObject* go);
     void CollectLines                (const float3& camera_pos, GameObject* go);
     void CollectDecals               (const float3& camera_pos, GameObject* go);
+    void CollectSpotCones            (const float3& camera_pos, GameObject* go);
 
 public:
 

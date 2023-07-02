@@ -63,7 +63,10 @@ public:
     static UID            LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
     static UID            LoadCube            (const char* cube_name, float size);
     static UID            LoadCylinder        (const char* cylinder_name, float height, float radius, unsigned slices, unsigned stacks, UID uid = 0);
+    static UID            LoadCone            (const char* name, float height, float radius, unsigned slices, unsigned stacks, UID uid = 0);
     static UID            LoadPlane           (const char* plane_name, float width, float height, unsigned slices, unsigned stacks, UID uid = 0);
+
+    void                  ReloadCone          (float height, float radius, unsigned slices, unsigned stacks);
 
     void                  GenerateTexCoord1   ();
 

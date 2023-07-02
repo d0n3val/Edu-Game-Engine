@@ -784,6 +784,15 @@
     <ClInclude Include="ThreadPool.h">
       <Filter>Tools</Filter>
     </ClInclude>
+    <ClInclude Include="CreateNewMeshDlg.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentSpotCone.h">
+      <Filter>Game Objects\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotConePass.h">
+      <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glmath.cpp">
@@ -1421,6 +1430,15 @@
     </ClCompile>
     <ClCompile Include="ThreadPool.cpp">
       <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="CreateNewMeshDlg.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentSpotCone.cpp">
+      <Filter>Game Objects\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="SpotConePass.cpp">
+      <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

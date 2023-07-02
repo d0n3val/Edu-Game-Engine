@@ -31,7 +31,8 @@ PanelGOTree::PanelGOTree() : Panel("Game Objects")
 
 // ---------------------------------------------------------
 PanelGOTree::~PanelGOTree()
-{}
+{
+}
 
 // ---------------------------------------------------------
 void PanelGOTree::Draw()
@@ -58,8 +59,11 @@ void PanelGOTree::Draw()
 	if (waiting_to_save_file == true && App->editor->FileDialog("eduscene"))
 	{
 		const char* file = App->editor->CloseFileDialog();
-		if (file != nullptr)
-			App->level->Save(file);
+        if (file != nullptr)
+        {
+            App->level->Save(file);
+            App->resources->SaveResources();
+        }
 		waiting_to_save_file = false;
 	}
 

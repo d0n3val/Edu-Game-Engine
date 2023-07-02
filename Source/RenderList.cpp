@@ -7,6 +7,7 @@
 #include "ComponentTrail.h"
 #include "ComponentLine.h"
 #include "ComponentDecal.h"
+#include "ComponentSpotCone.h"
 #include "GameObject.h"
 #include "ResourceMaterial.h"
 
@@ -81,6 +82,11 @@ void RenderList::CollectObjects(const Plane* camera_planes, const float3& camera
                 if((objTypes & RENDERLIST_OBJ_DECALS) != 0)
                 {
                     CollectDecals(camera_pos, go);
+                }
+                
+                if((objTypes & RENDERLIST_OBJ_SPOTCONE) != 0)
+                {
+                    CollectSpotCones(camera_pos, go);
                 }
             }
         }
@@ -162,6 +168,11 @@ void RenderList::CollectObjects(const Plane* camera_planes, const float3& camera
         {
             CollectDecals(camera_pos, go);
         }
+
+        if ((objTypes & RENDERLIST_OBJ_SPOTCONE) != 0)
+        {
+            CollectSpotCones(camera_pos, go);
+        }
     }
 
     for(auto it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
@@ -185,7 +196,7 @@ void RenderList::CollectMeshRenderers(const float3& camera_pos, GameObject* go, 
         render.mesh = static_cast<ComponentMeshRenderer*>(comp);
         render.distance = distance;
 
-        if(render.mesh->GetVisible() && ((objType & RENDERLIST_OBJ_AVOID_PLANAR_REFLECTIONS) == 0 || !render.mesh->GetMaterialRes()->GetPlanarReflections()))
+        if(render.mesh->GetVisible() && ((objType & RENDERLIST_OBJ_AVOID_PLANAR_REFLECTIONS) == 0 || (render.mesh->GetMaterialRes() && !render.mesh->GetMaterialRes()->GetPlanarReflections())))
         {
             if(render.mesh->RenderMode() == ComponentMeshRenderer::RENDER_OPAQUE )
               
@@ -315,6 +326,26 @@ void RenderList::CollectDecals(const float3& camera_pos, GameObject* go)
     }
 }
 
+void RenderList::CollectSpotCones(const float3 &camera_pos, GameObject *go)
+{
+    std::vector<Component*> components;
+    go->FindComponents(Component::SpotCone, components);
+
+    float distance = (go->GetGlobalPosition()-camera_pos).LengthSq();
+
+    for(Component* comp : components)
+    {
+        TRenderInfo render;
+        render.name = go->name.c_str();
+        render.go   = go;
+
+        render.distance = distance;
+        render.spotCone = static_cast<ComponentSpotCone*>(comp);
+
+        spotCones.push_back(render);
+    }
+}
+
 void RenderList::Clear()
 {
     opaque_nodes.clear();
@@ -323,4 +354,5 @@ void RenderList::Clear()
     trails.clear();
     lines.clear();
     decals.clear();
+    spotCones.clear();
 }

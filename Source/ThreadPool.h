@@ -18,9 +18,8 @@ class ThreadPool
     std::condition_variable cond;
 
 public:    
+    ThreadPool();
     ~ThreadPool();
-	void init(uint numThreads);
-    void end();
     std::future<void> submitTask(const std::function<void()>& function);
 
 private:

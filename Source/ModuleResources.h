@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 
-#define RESERVED_RESOURCES 6 // cube/sphere/cylinde/cone/pyramid primitives + checker texture
+#define RESERVED_RESOURCES 7 // cube/sphere/cylinde/cone/pyramid primitives + checker texture
 
 class Resource;
 class LoaderAnimation;
@@ -78,7 +78,7 @@ private:
     bool LoadDefaultRedImage();
 	bool LoadDefaultPlane();
     bool LoadDefaultCylinder();
-
+	bool LoadDefaultCone();
 
 private:
 	std::string asset_folder;

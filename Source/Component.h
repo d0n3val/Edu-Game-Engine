@@ -30,6 +30,7 @@ public:
 		Line,
         Grass,
 		Decal,
+		SpotCone,
 		Unknown
 	};
 

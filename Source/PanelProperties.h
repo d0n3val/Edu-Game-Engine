@@ -11,6 +11,7 @@
 #include "ShowTextureDlg.h"
 #include "SelectResourceDlg.h"
 #include "CompressTextureDlg.h"
+#include "CreateNewMeshDlg.h"
 
 class GameObject;
 class Component;
@@ -24,6 +25,7 @@ class ComponentMeshRenderer;
 class ComponentParticleSystem;
 class ComponentGrass;
 class ComponentDecal;
+class ComponentSpotCone;
 class ResourceMaterial;
 class ResourceTexture;
 class ResourceMesh;
@@ -83,6 +85,7 @@ private:
 	void DrawMeshRendererComponent(ComponentMeshRenderer* component);
     void DrawGrassComponent(ComponentGrass* component);
     void DrawDecalComponent(ComponentDecal* decal);
+    void DrawSpotConeComponent(ComponentSpotCone* spotCone);
 	void DrawAudioSourceComponent(ComponentAudioSource * component);
 	void DrawAudioListenerComponent(ComponentAudioListener * component);
     bool TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name);
@@ -92,6 +95,7 @@ private:
     void DrawMaterialResource(ResourceMaterial* material, ResourceMesh* mesh);
     UID DrawResourceType(Resource::Type type, bool opened);
     void DrawMesh(const ResourceMesh* mesh);
+    UID CreateNewMesh();
 
 private:
     typedef std::unique_ptr<PerlinProperties> PerlinPtr;
@@ -111,6 +115,7 @@ private:
     ShowTextureDlg      show_texture;
     SelectResourceDlg   selectTexture;
     CompressTextureDlg  compressTexture;
+    CreateNewMeshDlg    newMeshDlg;
 
 };
 

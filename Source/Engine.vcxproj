@@ -253,11 +253,13 @@
     <ClInclude Include="ComponentRigidBody.h" />
     <ClInclude Include="ComponentRootMotion.h" />
     <ClInclude Include="ComponentSimpleCharacter.h" />
+    <ClInclude Include="ComponentSpotCone.h" />
     <ClInclude Include="ComponentSteering.h" />
     <ClInclude Include="ComponentTrail.h" />
     <ClInclude Include="ComponentWithResource.h" />
     <ClInclude Include="CompressTextureDlg.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="CreateNewMeshDlg.h" />
     <ClInclude Include="CubemapUtils.h" />
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="default_icon.h" />
@@ -424,6 +426,7 @@
     <ClInclude Include="ShowTextureDlg.h" />
     <ClInclude Include="SkyboxRollout.h" />
     <ClInclude Include="SphereLight.h" />
+    <ClInclude Include="SpotConePass.h" />
     <ClInclude Include="spotlight.h" />
     <ClInclude Include="StateViewport.h" />
     <ClInclude Include="ThreadPool.h" />
@@ -456,11 +459,13 @@
     <ClCompile Include="ComponentRigidBody.cpp" />
     <ClCompile Include="ComponentRootMotion.cpp" />
     <ClCompile Include="ComponentSimpleCharacter.cpp" />
+    <ClCompile Include="ComponentSpotCone.cpp" />
     <ClCompile Include="ComponentSteering.cpp" />
     <ClCompile Include="ComponentTrail.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
     <ClCompile Include="CompressTextureDlg.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="CreateNewMeshDlg.cpp" />
     <ClCompile Include="CubemapUtils.cpp" />
     <ClCompile Include="DeferredDecalPass.cpp" />
     <ClCompile Include="DeferredResolvePass.cpp" />
@@ -589,6 +594,7 @@
     <ClCompile Include="ShowTextureDlg.cpp" />
     <ClCompile Include="SkyboxRollout.cpp" />
     <ClCompile Include="SphereLight.cpp" />
+    <ClCompile Include="SpotConePass.cpp" />
     <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="StateViewport.cpp" />
     <ClCompile Include="thekla_atlas\extern\poshlib\posh.c" />

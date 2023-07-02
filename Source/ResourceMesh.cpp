@@ -1019,6 +1019,61 @@ UID ResourceMesh::LoadCylinder(const char* cylinder_name, float height, float ra
 	return 0;
 }
 
+UID ResourceMesh::LoadCone(const char* name, float height, float radius, unsigned slices, unsigned stacks, UID uid)
+{
+    par_shapes_mesh* mesh = par_shapes_create_cone(int(slices), int(stacks));
+    par_shapes_rotate(mesh, -float(PAR_PI*0.5), (float*)&float3::unitX);
+	par_shapes_translate(mesh, 0.0f, -0.5f, 0.0f);
+
+	if (mesh)
+	{
+        par_shapes_scale(mesh, radius, height, radius);
+
+        for(uint i=0; i< uint(mesh->npoints); ++i)
+        {
+            std::swap(mesh->tcoords[i*2], mesh->tcoords[i*2+1]);
+            mesh->tcoords[i*2]*=2.0f;
+        }
+
+        uid = Generate(name, mesh, uid);
+
+		par_shapes_free_mesh(mesh);
+
+		return uid;
+	}
+
+	return 0;
+}
+
+void ResourceMesh::ReloadCone(float height, float radius, unsigned slices, unsigned stacks)
+{
+    ReleaseFromMemory();
+
+    par_shapes_mesh* mesh = par_shapes_create_cone(int(slices), int(stacks));
+    par_shapes_rotate(mesh, -float(PAR_PI * 0.5), (float*)&float3::unitX);
+    par_shapes_translate(mesh, 0.0f, -0.5f, 0.0f);
+
+    if (mesh)
+    {
+        par_shapes_scale(mesh, radius, height, radius);
+
+        for (uint i = 0; i < uint(mesh->npoints); ++i)
+        {
+            std::swap(mesh->tcoords[i * 2], mesh->tcoords[i * 2 + 1]);
+            mesh->tcoords[i * 2] *= 2.0f;
+        }
+
+        GenerateCPUBuffers(mesh);
+        GenerateAttribInfo();
+        Save();
+        ReleaseFromMemory();
+        LoadInMemory();
+
+        par_shapes_free_mesh(mesh);
+    }
+}
+
+
 UID ResourceMesh::LoadTorus(const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks)
 {
     par_shapes_mesh* mesh = par_shapes_create_torus(int(slices), int(stacks), inner_r);
@@ -1106,7 +1161,7 @@ UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape, UID u
 {
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh, uid));
 
-    m->name = HashString(shape_name);    
+    m->name = shape_name;    
     m->user_name = shape_name;
 
     m->GenerateCPUBuffers(shape);
