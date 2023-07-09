@@ -244,6 +244,7 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
         {
             light->SetEnabled(enabled);
         }
+
     }
 }
 
@@ -1595,7 +1596,7 @@ void PanelProperties::DrawMesh(const ResourceMesh* res)
 void PanelProperties::DrawSpotConeComponent(ComponentSpotCone *spotCone)
 {
     float height = spotCone->getHeight();
-    if(ImGui::DragFloat("Height", &height, 0.01, 0.0f, 1000.0f))
+    if(ImGui::DragFloat("Height", &height, 0.01f, 0.0f, 1000.0f))
     {
         spotCone->setHeight(height);
     }
@@ -1604,6 +1605,97 @@ void PanelProperties::DrawSpotConeComponent(ComponentSpotCone *spotCone)
     if(ImGui::DragFloat("Radius", &radius, 0.01f, 0.0f, 1000.0f))
     {
         spotCone->setRadius(radius);
+    }
+
+    float4 colour = spotCone->getColour();
+    if(ImGui::ColorEdit3("Colour", &colour[0]))
+    {
+        spotCone->setColour(colour);
+    }
+
+    if(ImGui::DragFloat("Intensity", &colour[3]))
+    {
+        spotCone->setColour(colour);
+    }
+
+    float transparency = spotCone->getTransparency();
+    if(ImGui::DragFloat("Transparency", &transparency, 0.01, 0.0, 1.0))
+    {
+        spotCone->setTransparency(transparency);
+    }
+
+    float smoothAmount = spotCone->getSmoothAmount();
+    if(ImGui::DragFloat("Smooth amount", &smoothAmount, 0.1f, 0.0, 100.0f))
+    {
+        spotCone->setSmoothAmount(smoothAmount);
+    }
+
+    float fresnelAmount = spotCone->getFresnelAmount();
+    if(ImGui::DragFloat("Fresnel amount", &fresnelAmount, 0.1f, 0.0f, 100.0f))
+    {
+        spotCone->setFresnelAmount(fresnelAmount);
+    }
+
+    bool modified = false;
+
+    if (ImGui::CollapsingHeader("Fog0", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        UID newUID = TextureButton(spotCone->getFog0Res(), nullptr, "Fog0", 0, modified);
+        if (newUID != spotCone->getFog0())
+        {
+            spotCone->setFog0(newUID);
+        }
+
+        float2 tiling = spotCone->getFog0Tiling();
+        if(ImGui::InputFloat2("Tiling", &tiling[0]))
+        {
+            spotCone->setFog0Tiling(tiling);
+        }
+
+        float2 offset = spotCone->getFog0Offset();
+        if(ImGui::InputFloat2("Offset", &offset[0]))
+        {
+            spotCone->setFog0Offset(offset);
+        }
+
+        float2 speed = spotCone->getFog0Speed();
+        if(ImGui::InputFloat2("Speed", &speed[0]))
+        {
+            spotCone->setFog0Speed(speed);
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Fog1", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        UID newUID = TextureButton(spotCone->getFog1Res(), nullptr, "Fog1", 1, modified);
+        if (newUID != spotCone->getFog1())
+        {
+            spotCone->setFog1(newUID);
+        }
+
+        float2 tiling = spotCone->getFog1Tiling();
+        ImGui::PushID("Tiling1");
+        if(ImGui::InputFloat2("Tiling", &tiling[0]))
+        {
+            spotCone->setFog1Tiling(tiling);
+        }
+        ImGui::PopID();
+
+        float2 offset = spotCone->getFog1Offset();
+        ImGui::PushID("Offset1");
+        if(ImGui::InputFloat2("Offset", &offset[0]))
+        {
+            spotCone->setFog1Offset(offset);
+        }
+        ImGui::PopID();
+
+        float2 speed = spotCone->getFog1Speed();
+        ImGui::PushID("Speed1");
+        if(ImGui::InputFloat2("Speed", &speed[0]))
+        {
+            spotCone->setFog1Speed(speed);
+        }
+        ImGui::PopID();
     }
 }
 

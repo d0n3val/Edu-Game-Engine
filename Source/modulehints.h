@@ -49,10 +49,15 @@ public:
         ENABLE_GAMMA,
         ENABLE_BLOOM,
         SHOW_PARTICLE_BILLBOARDS,
+        FOG_TYPE,
+        DIST_FOG_COLOUR,
+        DIST_FOG_MIN,
+        DIST_FOG_MAX,
+        DIST_FOG_CURVE,
 		COUNT
 	};
 
-    typedef std::variant<float, bool, float2, float3> DValue;
+    typedef std::variant<float, bool, int, float2, float3> DValue;
 
 private:
 
@@ -62,7 +67,8 @@ private:
         TYPE_BOOL   = 1,
         TYPE_INT    = 2,
         TYPE_FLOAT2 = 3,
-        TYPE_FLOAT3 = 4
+        TYPE_FLOAT3 = 4,
+        TYPE_FLOAT4 = 5
     };
 
     struct
@@ -74,7 +80,8 @@ private:
             float  fvalue;
             bool   bvalue;
             float  f2value[2];
-            int    i2value[2];
+            float  f3value[3];
+            float  f4value[4];
         }     value;
         EType type;
     } hints[COUNT];
@@ -98,6 +105,10 @@ public:
     void            SetDHint(const std::string& name, const DValue& value);
     const DValue&   GetDHint(const std::string& name, const DValue& defaultDValue);
 
+    template<class T>
+    T               GetDHintValue(const std::string& name, const T& defaultValue) { return std::get<T>(GetDHint(name, DValue(defaultValue))); }
+
+
     template<class Callable>
     void            EnumerateDHints(Callable&& function) const; 
 
@@ -112,6 +123,12 @@ public:
 
     float2          GetFloat2Value  (Hint hint) const;
     void            SetFloat2Value  (Hint hint, const float2& value);
+
+    float3          GetFloat3Value(Hint hint) const;
+    void            SetFloat3Value(Hint hint, const float3& value);
+
+    float4          GetFloat4Value(Hint hint) const;
+    void            SetFloat4Value(Hint hint, const float4& value);
 
 	bool            Init            (Config* config) override;
 	void            Save            (Config* config) const override;
@@ -167,6 +184,38 @@ inline void ModuleHints::SetFloat2Value  (Hint hint, const float2& value)
     {
         hints[hint].value.f2value[0] = value[0];
         hints[hint].value.f2value[1] = value[1];
+    }
+}
+
+inline float3 ModuleHints::GetFloat3Value(Hint hint) const
+{
+    return hints[hint].type == TYPE_FLOAT3 ? float3(hints[hint].value.f3value[0], hints[hint].value.f3value[1], hints[hint].value.f3value[2]) : float3(.0f, .0f, .0f);
+}
+
+inline void ModuleHints::SetFloat3Value(Hint hint, const float3& value)
+{
+    if (hints[hint].type = TYPE_FLOAT3)
+    {
+        hints[hint].value.f3value[0] = value[0];
+        hints[hint].value.f3value[1] = value[1];
+        hints[hint].value.f3value[2] = value[2];
+    }
+}
+
+inline float4 ModuleHints::GetFloat4Value(Hint hint) const
+{
+    return hints[hint].type == TYPE_FLOAT4 ? float4(hints[hint].value.f4value[0], hints[hint].value.f4value[1], 
+                                                    hints[hint].value.f4value[2], hints[hint].value.f4value[3]) : float4(.0f, .0f, .0f, .0f);
+}
+
+inline void ModuleHints::SetFloat4Value(Hint hint, const float4 &value)
+{
+    if (hints[hint].type = TYPE_FLOAT4)
+    {
+        hints[hint].value.f4value[0] = value[0];
+        hints[hint].value.f4value[1] = value[1];
+        hints[hint].value.f4value[2] = value[2];
+        hints[hint].value.f4value[3] = value[3];
     }
 }
 

@@ -24,7 +24,7 @@
 #include <variant>
 #include "visit_variant.h"
 
-#include "Leaks.h"
+#include "imgui_bezier.h"
 
 using namespace std;
 
@@ -42,6 +42,13 @@ namespace
 							   module->SetDHint(name, value);
 						   }
 					   },
+                       [name, &module](int value)
+                       {
+                           if (ImGui::InputInt(name.c_str(), &value))
+                           {
+                               module->SetDHint(name, value);
+                           }
+                       },
 					   [name, &module](bool value)
 					   { 
 						   if (ImGui::Checkbox(name.c_str(), &value))
@@ -560,6 +567,45 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 	{
 		module->SetBoolValue(ModuleHints::SHOW_PARTICLE_BILLBOARDS, show);
 	}
+
+	int fogType = module->GetIntValue(ModuleHints::FOG_TYPE);
+	if(ImGui::Combo("Fog Type", &fogType, "Distance\0Height"))
+	{
+		module->SetIntValue(ModuleHints::FOG_TYPE, fogType);
+	}
+
+    float3 fogColour = module->GetFloat3Value(ModuleHints::DIST_FOG_COLOUR);
+    if (ImGui::ColorEdit3("Distance Fog Colour", &fogColour[0]))
+    {
+        module->SetFloat3Value(ModuleHints::DIST_FOG_COLOUR, fogColour);
+    }
+
+    float fogMin = module->GetFloatValue(ModuleHints::DIST_FOG_MIN);
+    if (ImGui::DragFloat("Distance Fog Min", &fogMin))
+    {
+        module->SetFloatValue(ModuleHints::DIST_FOG_MIN, fogMin);
+    }
+
+    float fogMax = module->GetFloatValue(ModuleHints::DIST_FOG_MAX);
+    if (ImGui::DragFloat("Distance Fog Max", &fogMax))
+    {
+        module->SetFloatValue(ModuleHints::DIST_FOG_MAX, fogMax);
+    }
+
+	float4 fogCurve = module->GetFloat4Value(ModuleHints::DIST_FOG_CURVE);
+	if (ImGui::Bezier("Distance Fog Curve", (float *)&fogCurve.x))
+	{
+		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, fogCurve);
+	}
+
+	if (ImGui::Button("EaseIn", ImVec2(55, 20)))
+		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 1.0f, 0.0f));
+	ImGui::SameLine();
+	if (ImGui::Button("EaseOut", ImVec2(60, 20)))
+		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 0.0f, 1.f));
+	ImGui::SameLine();
+	if (ImGui::Button("EaseInOut", ImVec2(70, 20)))
+		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0, 1.0f, 1.0f, 0.0f));
 }
 
 void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)

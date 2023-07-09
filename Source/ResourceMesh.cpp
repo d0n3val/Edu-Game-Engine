@@ -1057,10 +1057,10 @@ void ResourceMesh::ReloadCone(float height, float radius, unsigned slices, unsig
     {
         par_shapes_scale(mesh, radius, height, radius);
 
-        for (uint i = 0; i < uint(mesh->npoints); ++i)
+        for(uint i=0; i< uint(mesh->npoints); ++i)
         {
-            std::swap(mesh->tcoords[i * 2], mesh->tcoords[i * 2 + 1]);
-            mesh->tcoords[i * 2] *= 2.0f;
+            std::swap(mesh->tcoords[i*2], mesh->tcoords[i*2+1]);
+            mesh->tcoords[i*2]*=2.0f;
         }
 
         GenerateCPUBuffers(mesh);

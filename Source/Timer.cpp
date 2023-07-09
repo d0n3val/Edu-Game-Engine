@@ -28,7 +28,7 @@ void Timer::Stop()
 }
 
 // ---------------------------------------------
-Uint32 Timer::Read()
+Uint32 Timer::Read() const
 {
 	if(running == true)
 	{

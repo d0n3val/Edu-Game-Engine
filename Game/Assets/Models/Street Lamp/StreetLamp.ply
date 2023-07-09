@@ -1,0 +1,18 @@
+ply
+format ascii 1.0
+comment Created by Blender 2.67 (sub 1) - www.blender.org, source file: 'StreetLamp.blend'
+element vertex 4
+property float x
+property float y
+property float z
+property float nx
+property float ny
+property float nz
+element face 1
+property list uchar uint vertex_indices
+end_header
+-16.899448 -16.899448 0.000000 0.000000 0.000000 1.000000
+16.899448 -16.899448 0.000000 0.000000 0.000000 1.000000
+16.899448 16.899448 0.000000 0.000000 0.000000 1.000000
+-16.899448 16.899448 0.000000 0.000000 0.000000 1.000000
+4 0 1 2 3

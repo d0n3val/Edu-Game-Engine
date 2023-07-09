@@ -136,6 +136,21 @@ ModuleHints::ModuleHints() : Module("Render Hints")
 
     hints[SHOW_PARTICLE_BILLBOARDS].type          = TYPE_BOOL;
     hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue  = false;
+
+    hints[FOG_TYPE].type          = TYPE_INT;
+    hints[FOG_TYPE].value.ivalue  = 0;
+
+    hints[DIST_FOG_COLOUR].type          = TYPE_FLOAT3;
+    hints[DIST_FOG_COLOUR].value.f3value[0] = hints[DIST_FOG_COLOUR].value.f3value[1] = hints[DIST_FOG_COLOUR].value.f3value[2] = 1;
+
+    hints[DIST_FOG_MIN].type = TYPE_FLOAT;
+    hints[DIST_FOG_MIN].value.fvalue = 0.0;
+                
+    hints[DIST_FOG_MAX].type = TYPE_FLOAT;
+    hints[DIST_FOG_MAX].value.fvalue = 1000.0;
+
+    hints[DIST_FOG_CURVE].type = TYPE_FLOAT4;
+    hints[DIST_FOG_CURVE].value.f4value[0] = hints[DIST_FOG_CURVE].value.f4value[1] = hints[DIST_FOG_CURVE].value.f4value[2] = hints[DIST_FOG_CURVE].value.f4value[3] = 1;
 }
 
 ModuleHints::~ModuleHints()
@@ -181,6 +196,13 @@ void ModuleHints::Save(Config* config) const
 
     config->AddBool("Show billboards", hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue);
 
+    config->AddInt("Fog Type", hints[FOG_TYPE].value.ivalue);
+    config->AddFloat3("Distance Fog Colour", float3(hints[DIST_FOG_COLOUR].value.f3value));
+    config->AddFloat("Distance Fog Min", hints[DIST_FOG_MIN].value.fvalue);
+    config->AddFloat("Distance Fog Max", hints[DIST_FOG_MAX].value.fvalue);
+    config->AddFloat4("Distance Fog Curve", float4(hints[DIST_FOG_CURVE].value.f4value));
+
+
     Config dHintsCfg = config->AddSection("DHits");
 
     for(auto it = dhints.begin(); it != dhints.end(); ++it)
@@ -189,6 +211,7 @@ void ModuleHints::Save(Config* config) const
         std::visit(overload {
             [name, &dHintsCfg](float value) { dHintsCfg.AddFloat(name.c_str(), value);},
             [name, &dHintsCfg](bool value)  { dHintsCfg.AddBool(name.c_str(), value);},
+            [name, &dHintsCfg](int value) { dHintsCfg.AddInt(name.c_str(), value); },
             [name, &dHintsCfg](float2 value)  { dHintsCfg.AddFloat2(name.c_str(), value); },
             [name, &dHintsCfg](float3 value) { dHintsCfg.AddFloat3(name.c_str(), value);  },            
             }, it->second);
@@ -234,6 +257,21 @@ bool ModuleHints::Init(Config* config)
     hints[ENABLE_BLOOM].value.bvalue = config->GetBool("Enable bloom", true);
 
     hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue = config->GetBool("Show billboards", false);
+    
+    hints[FOG_TYPE].value.ivalue = config->GetBool("Fog Type", 0);
+    float3 colour = config->GetFloat3("Distance Fog Colour");
+    hints[DIST_FOG_COLOUR].value.f3value[0] = colour[0];
+    hints[DIST_FOG_COLOUR].value.f3value[1] = colour[1];
+    hints[DIST_FOG_COLOUR].value.f3value[2] = colour[2];
+
+    hints[DIST_FOG_MIN].value.fvalue = config->GetFloat("Distance Fog Min");
+    hints[DIST_FOG_MAX].value.fvalue = config->GetFloat("Distance Fog Max");
+
+    float4 curve = config->GetFloat4("Distance Fog Curve");
+    hints[DIST_FOG_CURVE].value.f3value[0] = curve[0];
+    hints[DIST_FOG_CURVE].value.f3value[1] = curve[1];
+    hints[DIST_FOG_CURVE].value.f3value[2] = curve[2];
+    hints[DIST_FOG_CURVE].value.f3value[3] = curve[3];
 
     Config dHintsCfg = config->GetSection("DHits");
     json_object_t* dHintsRoot = dHintsCfg.GetRoot();

@@ -1,4 +1,5 @@
-#version 450
+#version 460
+#extension GL_ARB_shading_language_include : require
 
 in vec2 uv;
 out vec4 color;
@@ -64,21 +65,22 @@ float value_noise( in vec3 x )
                         value_random(i+vec3(1,1,1)),u.x),u.y),u.z);
 }
 
-float fbm( in vec3 x)
+float fbm( in vec3 x, in uint numOctaves, in float amplitude, in float frequency)
 {
     float f = 0.0;
     float amp = 1.0;
     float freq = 1.0;
 
-    for(uint i=0; i< octaves; ++i)
+    for(uint i=0; i< numOctaves; ++i)
     {
         f += amp*gradient_noise(x*freq);
-        amp *= ampl_scale;
-        freq  *= freq_mult;
+        amp *= amplitude;
+        freq  *= frequency;
     }
 
     return f;
 }
+
 
 void main()
 {
@@ -86,7 +88,7 @@ void main()
     v.xy = uv.xy*frequency;
     v.z  = frame;
 
-    float f = clamp(fbm(v)*0.5+0.5, 0.0, 1.0);
+    float f = clamp(fbm(v, octaves, ampl_scale, freq_mult)*0.5+0.5, 0.0, 1.0);
 
     color = vec4(f, f, f, 1.0);
 }

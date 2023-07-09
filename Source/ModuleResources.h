@@ -56,6 +56,7 @@ public:
 	void ReleaseFromMemory(UID uid);
     void RemoveResource(UID uid);
 	
+    const ResourceTexture* GetChecker() const { return checkers; }
     const ResourceTexture* GetWhiteFallback() const { return white_fallback; }
     const ResourceTexture* GetBlackFallback() const { return black_fallback; }
     const ResourceTexture* GetDefaultSkybox() const { return skybox; }
