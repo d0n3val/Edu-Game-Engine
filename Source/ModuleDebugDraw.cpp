@@ -11,8 +11,7 @@
 
 #include "Leaks.h"
 
-class DDRenderInterfaceCoreGL final
-    : public dd::RenderInterface
+class DDRenderInterfaceCoreGL final : public dd::RenderInterface
 {
 public:
 
@@ -227,8 +226,6 @@ public:
 
         setupShaderPrograms();
         setupVertexBuffers();
-
-        //std::printf("DDRenderInterfaceCoreGL ready!\n\n");
     }
 
     ~DDRenderInterfaceCoreGL()

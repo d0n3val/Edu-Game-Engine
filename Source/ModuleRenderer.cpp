@@ -102,7 +102,6 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags)
 {
-
     cameraUBO->Update(camera);
     App->level->GetLightManager()->UpdateGPUBuffers((flags & (DRAW_IBL)) != 0);
 
