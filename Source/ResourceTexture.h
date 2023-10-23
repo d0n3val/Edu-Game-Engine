@@ -7,116 +7,122 @@
 
 #include <optional>
 
+enum TextureFormat
+{
+    Texture_rgba = 0,
+    Texture_rgba32f,
+    Texture_bgra,
+    Texture_bgr,
+    Texture_red,
+    Texture_bc1,
+    Texture_bc3,
+    Texture_bc4,
+    Texture_bc5,
+    Texture_bc6s,
+    Texture_bc6u,
+    Texture_bc7,
+    Texture_unknown
+};
+
+enum CompressType
+{
+    Compress_Colour,
+    Compress_Grayscale,
+    Compress_Normals,
+    Compress_HDR,
+    Compress_Colour_HQ,
+    Compress_Colour_HQ_Fast,
+
+    /*
+    Compress_BC1 = 0, // Color RGB
+    Compress_BC3, // Color RGBA
+    Compress_BC4, // Greyscale
+    Compress_BC5, // Two Greayscale (normals?)
+    Compress_BC6, // half-floats
+    Compress_BC7, // Color RGB or RGBA high quality
+    Compress_BC7_FAST,  // Prev Faster
+    */
+    Compress_Count
+};
+
+enum TextureType
+{
+    TextureType_1D = 0,
+    TextureType_2D,
+    TextureType_3D,
+    TextureType_Cube
+};
+
+enum ColorSpace
+{
+    ColorSpace_gamma,
+    ColorSpace_linear
+};
+
+struct TextureMetadata
+{
+    TextureFormat format = Texture_rgba;
+    TextureType texType = TextureType_2D;
+    uint width = 0;
+    uint height = 0;
+    uint depth = 0;
+    uint arraySize = 0;
+    uint memSize = 0;
+    uint mipCount = 0;
+};
+
 class ResourceTexture : public Resource
 {
 	friend class ModuleTextures;
+    friend class ModuleResources;
 public:
 
-    enum Format {
-        rgba = 0,
-        rgba32f,
-        bgra,
-        bgr,
-        red,
-		bc1,
-		bc3,
-		bc4,
-		bc5,
-		bc6s,
-		bc6u,
-		bc7,
-        unknown
-	};
-
-    enum CompressType
-    {
-        Compress_Colour, 
-        Compress_Grayscale,
-        Compress_Normals,
-        Compress_HDR,
-        Compress_Colour_HQ,
-        Compress_Colour_HQ_Fast,
-
-        /*
-        Compress_BC1 = 0, // Color RGB
-        Compress_BC3, // Color RGBA
-        Compress_BC4, // Greyscale
-        Compress_BC5, // Two Greayscale (normals?)
-        Compress_BC6, // half-floats
-        Compress_BC7, // Color RGB or RGBA high quality
-        Compress_BC7_FAST,  // Prev Faster
-        */
-        Compress_Count
-    };
-
-
-	enum ColorSpace
-	{
-		gamma,
-		linear
-	};
-
-	enum TextureType
-	{
-		Texture2D = 0,
-		TextureCube = 1
-	};
 
 public:
 
 	ResourceTexture(UID id);
 	virtual ~ResourceTexture();
 
-	const char*      GetFormatStr 		() const;
+	const char*             GetFormatStr 		() const;
 
-	bool             LoadInMemory 		() override;
-    void             ReleaseFromMemory 	() override;
+	bool                    LoadInMemory 		() override;
+    void                    ReleaseFromMemory 	() override;
 
-    bool             Save         		();
-	void             Save         		(Config& config) const override;
-	void             Load         		(const Config& config) override;
+    bool                    Save            ();
+	void                    Save         	(Config& config) const override;
+	void                    Load         	(const Config& config) override;
 
-    Texture*		 GetTexture   		() const { return glTexture.get(); }
-    uint             GetID        		() const { return glTexture ? uint(glTexture->Id()) : uint(0); }
-    uint             GetWidth     		() const { return width; }
-    uint             GetHeight    		() const { return height; }
-    uint             GetDepth     		() const { return depth; }
-	ColorSpace 		 GetColorSpace 		() const { return colorSpace.value_or(formatColorSpace);; }
-	Format 		 	 GetFormat    		() const { return format; }
-    uint             GetGLInternalFormat() const;
-    TextureType      GetTexType   		() const { return textype; }
+    Texture*                GetTexture   	() const { return glTexture.get(); }
+    uint                    GetID        	() const { return glTexture ? uint(glTexture->Id()) : uint(0); }
+	ColorSpace              GetColorSpace   () const { return colorSpace.value_or(formatColorSpace);; }
+    const TextureMetadata&  GetMetadata     () const {return metadata;}
 	
-    bool             GetMipmaps 		() const { return mipMaps;  }
-    void 			 GenerateMipmaps	(bool generate);
-    void 		 	 SetColorSpace      (ColorSpace space) { colorSpace = space;}
+    void                    SetColorSpace   (ColorSpace space) { colorSpace = space;}
     
-    bool             IsCompressed 		() const;
-    void             Compress           (CompressType type);
+	static bool             Import(const char* file, std::string& output_file, bool toCubemap);
+	static bool             Import(const void* buffer, uint size, std::string& output_file, bool toCubemap);
 
-    uint             GetMemSize() const { return memSize; }
+    bool                    LoadFromBuffer(const void* buffer, uint size, ColorSpace space);
+    bool                    LoadCheckers();
+    bool                    LoadFallback(ResourceTexture* resource, const float3& color);
+    bool                    LoadRedImage(ResourceTexture* resource, uint widht, uint height);
 
-	bool 			 LoadToArray 		(Texture2DArray* texArray, uint index) const;
 
     static Type GetClassType() { return texture; }
 
 
 private:
 
-    uint GetGLFormat() const;
-	uint GetGLType() const;
+	static bool Import(const void* buffer, uint size, std::string& output_file);
+    static bool ImportToCubemap(const void* buffer, uint size, std::string& output_file);
+
+    static Texture* TextureFromMemory(const void* buffer, uint size, TextureMetadata& metadata, ColorSpace space);
 
 private:
 
-	uint width      = 0;
-	uint height     = 0;
-	uint depth      = 0;
-	uint arraySize  = 0;
-    uint memSize    = 0;
-    bool mipMaps = false;
-	std::optional<ColorSpace> colorSpace;
+    TextureMetadata metadata;
+    std::optional<ColorSpace> colorSpace;
     ColorSpace formatColorSpace;
-	Format format   = rgba;
-	TextureType textype = Texture2D;
 
     std::unique_ptr<Texture> glTexture;
 };

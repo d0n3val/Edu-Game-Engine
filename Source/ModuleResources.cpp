@@ -2,7 +2,6 @@
 #include "Application.h"
 #include "ModuleResources.h"
 #include "ModuleFileSystem.h"
-#include "ModuleTextures.h"
 #include "ModuleAudio.h"
 #include "Event.h"
 #include "ResourceTexture.h"
@@ -46,14 +45,14 @@ bool ModuleResources::Start(Config * config)
 {
 	// Load preset for checkers texture
 	checkers = (ResourceTexture*) CreateNewResource(Resource::Type::texture, 2);
-	App->tex->LoadCheckers(checkers);
+	checkers->LoadCheckers();
 	checkers->loaded = 1;
 
 	white_fallback = new ResourceTexture(0); 
     black_fallback = new ResourceTexture(1);
 
-    App->tex->LoadFallback(white_fallback, float3(1.0f));
-    App->tex->LoadFallback(black_fallback, float3(0.0f));
+    white_fallback->LoadFallback(white_fallback, float3(1.0f));
+    black_fallback->LoadFallback(black_fallback, float3(0.0f));
 
 	LoadDefaultSkybox();
     LoadDefaultSphere();
@@ -351,7 +350,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = App->tex->Import(new_file_in_assets, written_file, false);
+			import_ok = ResourceTexture::Import(new_file_in_assets, written_file, false);
 		break;
 		case Resource::audio:
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
@@ -377,20 +376,20 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	return ret;
 }
 
-UID ModuleResources::ImportTexture(const char* file_name, bool mipmaps, bool toCubemap)
+UID ModuleResources::ImportTexture(const char* file_name, bool mipmaps, bool srgb, bool toCubemap)
 {
 	UID ret = 0;
     bool import_ok = false;
     string written_file;
 
-    import_ok = App->tex->Import(file_name, written_file, toCubemap);
+    import_ok = ResourceTexture::Import(file_name, written_file, toCubemap);
 
 	// If export was successfull, create a new resource
 	if (import_ok == true)
 	{
         ret = ImportSuccess(Resource::texture, file_name, "", written_file);
         ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
-        texture->GenerateMipmaps(true);
+        texture->SetColorSpace(srgb ? ColorSpace_gamma : ColorSpace_linear);
 	}
 	else
     {
@@ -398,29 +397,6 @@ UID ModuleResources::ImportTexture(const char* file_name, bool mipmaps, bool toC
     }
 
 	SaveResources();
-
-	return ret;
-}
-
-UID ModuleResources::ImportCubemap(const std::string file_names[], const std::string& user_name, bool mipmaps)
-{
-	UID ret = 0;
-	bool import_ok = false;
-	string written_file;
-
-	import_ok = App->tex->ImportCube(file_names, written_file);
-
-	// If export was successfull, create a new resource
-	if (import_ok == true)
-	{
-		ret = ImportSuccess(Resource::texture, nullptr, user_name.c_str(), written_file);
-		ResourceTexture* texture = static_cast<ResourceTexture*>(Get(ret));
-		texture->GenerateMipmaps(true);
-	}
-	else
-	{
-		LOG("Importing of cubemap [%s %s %s %s %s %s] FAILED", file_names[0], file_names[1], file_names[2], file_names[3], file_names[4], file_names[5]);
-	}
 
 	return ret;
 }
@@ -514,7 +490,7 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = App->tex->Import(buffer, size, output, false);
+			import_ok = ResourceTexture::Import(buffer, size, output, false);
 		break;
 		case Resource::mesh:
 			// Old school trick: if it is a Mesh, buffer will be treated as an AiMesh*
@@ -681,20 +657,20 @@ void ModuleResources::RemoveResource(UID uid)
 
 bool ModuleResources::LoadDefaultSkybox()
 {
-    const char* files[] = { "right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "back.jpg", "front.jpg" };
-
-    std::string output_file;
-
 	skybox = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture, 3));
-    skybox->SetColorSpace(ResourceTexture::linear);
-    if (App->tex->LoadCube(skybox, files, "Assets/Textures/Cubemaps/"))
-    {        
-        skybox->loaded++;
-		skybox->file = "*Default Skybox*";
-		skybox->exported_file = "*Default Skybox*";
-		skybox->user_name = "*Default skybox*";
 
-		return true;
+    char* buffer = nullptr;
+    uint size = App->fs->Load("Assets/Textures/Cubemaps/cubemap.dds", &buffer);
+
+    if (buffer != nullptr)
+    {        
+        skybox->LoadFromBuffer(buffer, size, ColorSpace_gamma);
+        skybox->loaded++;
+        skybox->file = "*Default Skybox*";
+        skybox->exported_file = "*Default Skybox*";
+        skybox->user_name = "*Default skybox*";
+
+        return true;
     }
 
 	return false;
@@ -704,7 +680,7 @@ bool ModuleResources::LoadDefaultRedImage()
 {
     redImage = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture, 5));
     
-    if (App->tex->LoadRedImage(redImage, 1024, 1024))
+    if (redImage->LoadRedImage(redImage, 1024, 1024))
     {
         redImage->file = "*Test redimage*";
         redImage->exported_file = "*Test redimage*";

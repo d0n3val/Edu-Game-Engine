@@ -7,7 +7,7 @@ layout(location = 1) in vec3 vertex_normal;
 layout(location = 2) in vec2 vertex_uv0;
 layout(location = 3) in ivec4 bone_indices;
 layout(location = 4) in vec4 bone_weights;
-layout(location = 5) in vec3 vertex_tangent;
+layout(location = 5) in vec4 vertex_tangent;
 layout(location = 6) in vec2 vertex_uv1;
 
 subroutine void TransformOutput();
@@ -40,7 +40,7 @@ struct VertexOut
     vec2 uv0;
     vec2 uv1;
     vec3 normal;
-    vec3 tangent;
+    vec4 tangent;
     vec3 position;
 };
 
@@ -87,11 +87,11 @@ layout(index=0) subroutine(TransformOutput) void transform_output_rigid()
 #if BATCH
     fragment.position = (model*vec4(morph_targets_position(vertex_position), 1.0)).xyz;
     fragment.normal   = (model*vec4(morph_targets_normal(vertex_normal), 0.0)).xyz;
-    fragment.tangent  = (model*vec4(morph_targets_tangent(vertex_tangent), 0.0)).xyz;
+    fragment.tangent  = vec4((model*vec4(morph_targets_tangent(vertex_tangent), 0.0)).xyz, vertex_tangent.w);
 #else 
     fragment.position = (model*vec4(morph_targets_position(vertex_position), 1.0)).xyz;
     fragment.normal   = (model*vec4(morph_targets_normal(vertex_normal), 0.0)).xyz;
-    fragment.tangent  = (model*vec4(morph_targets_tangent(vertex_tangent), 0.0)).xyz;
+    fragment.tangent  = vec4((model*vec4(morph_targets_tangent(vertex_tangent), 0.0)).xyz, vertex_tangent.w);
 #endif
 
     fragment.uv0      = vertex_uv0;
@@ -105,7 +105,7 @@ layout(index=1) subroutine(TransformOutput) void transform_output_skinning()
 
     fragment.position = (skin_transform*vec4(morph_targets_position(vertex_position), 1.0)).xyz;
     fragment.normal   = (skin_transform*vec4(morph_targets_normal(vertex_normal), 0.0)).xyz;
-    fragment.tangent  = (skin_transform*vec4(morph_targets_tangent(vertex_tangent), 0.0)).xyz;
+    fragment.tangent  = vec4((skin_transform*vec4(morph_targets_tangent(vertex_tangent), 0.0)).xyz, vertex_tangent.w);
 
     fragment.uv0      = vertex_uv0;
     fragment.uv1      = vertex_uv1;

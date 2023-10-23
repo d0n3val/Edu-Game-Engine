@@ -126,6 +126,13 @@ void Texture::MakeBindlessNonResident()
     glMakeTextureHandleNonResidentARB(GetBindlessHandle());
 }
 
+Texture2D::Texture2D(uint target) : Texture(target)
+{
+    glBindTexture(tex_target, texture);
+    DefaultInitializeTexture(false);
+    glBindTexture(tex_target, 0);
+}
+
 Texture2D::Texture2D(uint target, uint tex) : Texture(target, tex)
 {
 }
@@ -159,10 +166,10 @@ Texture2D::Texture2D(uint width, uint height, uint internalFormat, uint compress
     glBindTexture(tex_target, 0);
 }
 
-void Texture2D::SetCompressedData(uint width, uint height, uint internalFormat, uint compressedSize, void *compressedData, bool mipMaps)
+void Texture2D::SetCompressedData(uint width, uint height, uint mip_level, uint internalFormat, uint compressedSize, void *compressedData)
 {
     glBindTexture(tex_target, texture);
-    glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, compressedSize, compressedData);
+    glCompressedTexImage2D(GL_TEXTURE_2D, mip_level, internalFormat, width, height, 0, compressedSize, compressedData);
     glBindTexture(tex_target, 0);
 }
 
@@ -172,6 +179,7 @@ void Texture2D::SetData(uint width, uint height, uint mip_level, uint internal_f
     glTexImage2D(tex_target, mip_level, internal_format, width, height, 0, format, type, data);
     glBindTexture(tex_target, 0);
 }
+
 
 void Texture2D::SetDefaultRGBAData(uint width, uint height, void* data)
 {
@@ -257,6 +265,13 @@ void TextureCube::SetData(uint face_index, uint mip_level, uint width, uint heig
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face_index, mip_level, internal_format, width, height, 0, format, type, data);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void TextureCube::SetCompressedData(uint face_index, uint mip_level, uint width, uint height, uint internalFormat, uint compressedSize, void *compressedData)
+{
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face_index, mip_level, internalFormat, width, height, 0, compressedSize, compressedData);
+    glBindTexture(tex_target, 0);
 }
 
 void TextureCube::SetDefaultRGBAData(uint face_index, uint mip_level, uint width, uint height, void* data)

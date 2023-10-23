@@ -48,12 +48,13 @@ public:
     Texture2D(const Texture2D& rhs) = delete;
     Texture2D& operator=(const Texture2D& rhs) = delete;
 
+    explicit Texture2D(uint target);
     Texture2D(uint target, uint tex);
     Texture2D(uint width, uint height, uint internal_format, uint format, uint type, void* data, bool mipmaps);
     Texture2D(uint samples, uint width, uint height, uint internal_format, bool fixed_samples);
     Texture2D(uint widht, uint height, uint internalFormat, uint compressedSize, void* compressedData, bool mipmaps);
 
-    void SetCompressedData(uint widht, uint height, uint internalFormat, uint compressedSize, void* compressedData, bool mipMaps);
+    void SetCompressedData(uint widht, uint height, uint mip_level, uint internalFormat, uint compressedSize, void* compressedData);
     void SetData(uint width, uint height, uint mip_level, uint internal_format, uint format, uint type, void* data);
     void SetDefaultRGBAData(uint width, uint height, void* data);
 
@@ -91,6 +92,7 @@ public:
     TextureCube();
 
     void SetData(uint face_index, uint mip_level, uint width, uint height, uint internal_format, uint format, uint type, void* data);
+    void SetCompressedData(uint face_index, uint mip_level, uint width, uint height, uint internal_format, uint compressed_size, void* data);
     void SetDefaultRGBAData(uint face_index, uint mip_level, uint width, uint height, void* data);
     void GetData(uint face_index, uint mip_level, uint format, uint type, void* data);
     void GetDefaultRGBAData(uint face_index, uint mip_level, void* data);

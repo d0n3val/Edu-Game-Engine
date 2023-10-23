@@ -4,9 +4,13 @@
 #include "Resource.h"
 #include "Math.h"
 #include "utils/SimpleBinStream.h"
+#include <map>
 
 struct aiScene;
 struct aiNode;
+
+namespace tinygltf { class Model; }
+
 
 class ResourceModel : public Resource
 {
@@ -26,9 +30,9 @@ public:
 		Node& operator=(const Node& o) = default;
 		Node& operator=(Node&& o) = default;
 
-        std::string               name;
-        float4x4                  transform = float4x4::identity;
-        uint                      parent    = 0;
+        std::string   name;
+        float4x4      transform = float4x4::identity;
+        uint          parent    = 0;
         std::vector<MeshRenderer> renderers;
     };
 
@@ -51,6 +55,14 @@ public:
     const Node& GetNode             (uint index) const { return nodes[index]; }
 
 private:
+
+    static bool ImportGLTF          (const char* full_path, float scale, std::string& output);
+    static bool ImportAssimp        (const char* full_path, float scale, std::string& output);
+
+    void        GenerateNodes       (const tinygltf::Model& model, int nodeIndex, int parentIndex, const std::multimap<uint, MeshRenderer>& meshes, const std::vector<UID>& materials, float scale);
+    void        GenerateMeshes      (const tinygltf::Model& model, const char* full_path, const std::vector<UID>& materials, std::multimap<uint, MeshRenderer>& meshes, float scale);
+    void        GenerateMaterials   (const tinygltf::Model& model, const char* file, std::vector<UID>& materials);
+
 
     void        GenerateNodes      (const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials, float scale);
     void        GenerateMaterials  (const aiScene* scene, const char* file, std::vector<UID>& materials);

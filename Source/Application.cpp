@@ -7,7 +7,6 @@
 #include "ModulePhysics3D.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleEditorCamera.h"
-#include "ModuleTextures.h"
 #include "ModuleEditor.h"
 #include "ModuleLevelManager.h"
 #include "ModuleResources.h"
@@ -43,7 +42,6 @@ Application::Application()
 	modules.push_back(fs = new ModuleFileSystem(ASSETS_FOLDER));
 	modules.push_back(window = new ModuleWindow());
 	modules.push_back(resources = new ModuleResources());
-	modules.push_back(tex = new ModuleTextures());
 	modules.push_back(physics3D = new ModulePhysics3D());
 	modules.push_back(camera = new ModuleEditorCamera());
 	modules.push_back(renderer3D = new ModuleRenderer3D());

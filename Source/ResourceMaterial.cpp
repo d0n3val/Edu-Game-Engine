@@ -1,4 +1,7 @@
 #include "Globals.h"
+
+#include "tiny_gltf.h"
+
 #include "ModuleFileSystem.h"
 #include "ModuleResources.h"
 #include "ResourceMaterial.h"
@@ -14,6 +17,8 @@
 #include "OpenGL.h"
 
 #include "Leaks.h"
+
+#include <filesystem>
 
 #define MATERIAL_VERSION 0.5f
 //#define FORCE_COMPRESS_ON_LOAD
@@ -292,6 +297,132 @@ void ResourceMaterial::SaveToStream(simple::mem_ostream<std::true_type>& write_s
 }
 
 // ---------------------------------------------------------
+UID ResourceMaterial::Import(const tinygltf::Model& model, const tinygltf::Material& material, const char* source_file)
+{
+    std::string base_path;
+    App->fs->SplitFilePath(source_file, &base_path, nullptr, nullptr);
+
+    // TODO: name = material.name;
+    ResourceMaterial* m = static_cast<ResourceMaterial*>(App->resources->CreateNewResource(Resource::material));
+
+    auto it = material.extensions.find("KHR_materials_pbrSpecularGlossiness");
+    if (it != material.extensions.end())
+    {
+        const tinygltf::Value& materialMap = it->second;
+
+        const tinygltf::Value& diffuseColor = materialMap.Get(std::string("diffuseFactor"));
+        if (diffuseColor.IsArray() && diffuseColor.ArrayLen() == 4)
+        {
+            m->diffuse_color = float4(float(diffuseColor.Get(0).GetNumberAsDouble()), float(diffuseColor.Get(1).GetNumberAsDouble()),
+                                      float(diffuseColor.Get(2).GetNumberAsDouble()), float(diffuseColor.Get(3).GetNumberAsDouble()));
+        }
+
+        const tinygltf::Value& specularColor = materialMap.Get(std::string("specularFactor"));
+        if (specularColor.IsArray() && specularColor.ArrayLen() == 3)
+        {
+            m->specular_color = float3(float(specularColor.Get(0).GetNumberAsDouble()), float(specularColor.Get(1).GetNumberAsDouble()), 
+                                       float(specularColor.Get(2).GetNumberAsDouble()));
+        }
+
+        const tinygltf::Value& glossiness = materialMap.Get(std::string("glossinessFactor"));
+        if (glossiness.IsNumber())
+        {
+            m->smoothness = float(glossiness.GetNumberAsDouble());
+        }
+
+        const tinygltf::Value& diffuseTex = materialMap.Get(std::string("diffuseTexture"));
+        if (diffuseTex.IsObject())
+        {
+            int index = diffuseTex.Get(std::string("index")).GetNumberAsInt();
+            const tinygltf::Texture& texture = model.textures[index];
+            const tinygltf::Image& image = model.images[texture.source];
+
+            std::filesystem::path fullPath = base_path + image.uri;
+
+            m->textures[TextureDiffuse] = App->resources->ImportTexture(fullPath.string().c_str(), true, true, false);
+        }
+
+        const tinygltf::Value& specTex = materialMap.Get(std::string("specularGlossinessTexture"));
+        if (specTex.IsObject())
+        {
+            int index = specTex.Get(std::string("index")).GetNumberAsInt();
+
+            const tinygltf::Texture& texture = model.textures[index];
+            const tinygltf::Image& image = model.images[texture.source];
+
+            std::filesystem::path fullPath = base_path + image.uri;
+
+            m->textures[TextureSpecular] = App->resources->ImportTexture(fullPath.string().c_str(), true, true, false);
+        }
+    }
+
+    if (material.normalTexture.index >= 0)
+    {
+        const tinygltf::Texture& texture = model.textures[material.normalTexture.index];
+        const tinygltf::Image& image = model.images[texture.source];
+
+        std::filesystem::path fullPath = base_path + image.uri;
+        m->textures[TextureNormal] = App->resources->ImportTexture(fullPath.string().c_str(), true, false, false);        
+        
+        m->normal_strength = float(material.normalTexture.scale);
+    }
+
+    if (material.occlusionTexture.index >= 0)
+    {
+        const tinygltf::Texture& texture = model.textures[material.occlusionTexture.index];
+        const tinygltf::Image& image = model.images[texture.source];
+
+        std::filesystem::path fullPath = base_path + image.uri;
+        m->textures[TextureOcclusion] = App->resources->ImportTexture(fullPath.string().c_str(), true, false, false);
+        m->occlusion_strength = float(material.occlusionTexture.strength);
+    }
+
+    if (material.emissiveFactor.size() == 3)
+    {
+        m->emissive_color = float3(float(material.emissiveFactor[0]), float(material.emissiveFactor[1]), float(material.emissiveFactor[2]));
+    }
+
+    if (material.emissiveTexture.index >= 0)
+    {
+        const tinygltf::Texture& texture = model.textures[material.emissiveTexture.index];
+        const tinygltf::Image& image = model.images[texture.source];
+
+        std::filesystem::path fullPath = base_path + image.uri;
+        m->textures[TextureEmissive] = App->resources->ImportTexture(fullPath.string().c_str(), true, true, false);
+    }
+
+    if (source_file != nullptr)
+    {
+        m->file = source_file;
+        App->fs->NormalizePath(m->file);
+    }
+
+    if (m->Save())
+    {
+        LOG("Imported successful from aiMaterial [%s] to [%s]", m->GetFile(), m->GetExportedFile());
+
+        App->fs->SplitFilePath(m->file.c_str(), nullptr, &m->user_name, nullptr);
+
+        if (m->user_name.empty())
+        {
+            m->user_name = m->exported_file;
+        }
+
+        size_t pos_dot = m->user_name.find_last_of(".");
+        if (pos_dot != std::string::npos)
+        {
+            m->user_name.erase(m->user_name.begin() + pos_dot, m->user_name.end());
+        }
+
+        return m->uid;
+    }
+
+    LOG("Importing of BUFFER aiMaterial [%s] FAILED", source_file);
+
+    return 0;
+}
+
+// ---------------------------------------------------------
 UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file)
 {
     std::string base_path;
@@ -344,7 +475,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureDiffuse] = App->resources->ImportTexture(full_path.C_Str(), true, false);
+        m->textures[TextureDiffuse] = App->resources->ImportTexture(full_path.C_Str(), true, true, false);
     }
 
     if (material->GetTexture(aiTextureType_NORMALS, 0, &file, &mapping, &uvindex) == AI_SUCCESS || 
@@ -356,7 +487,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureNormal] = App->resources->ImportTexture(full_path.C_Str(), true, false);
+        m->textures[TextureNormal] = App->resources->ImportTexture(full_path.C_Str(), true, false, false);
     }
 
     if (material->GetTexture(aiTextureType_SPECULAR, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -367,7 +498,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureSpecular] = App->resources->ImportTexture(full_path.C_Str(), true, false);
+        m->textures[TextureSpecular] = App->resources->ImportTexture(full_path.C_Str(), true, true, false);
     }
 
     if (material->GetTexture(aiTextureType_AMBIENT, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -378,7 +509,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureOcclusion] = App->resources->ImportTexture(full_path.C_Str(), true, false);
+        m->textures[TextureOcclusion] = App->resources->ImportTexture(full_path.C_Str(), true, false, false);
     }
 
     if (material->GetTexture(aiTextureType_EMISSIVE, 0, &file, &mapping, &uvindex) == AI_SUCCESS)
@@ -389,7 +520,7 @@ UID ResourceMaterial::Import(const aiMaterial* material, const char* source_file
         aiString full_path(base_path);
         full_path.Append(file.data);
 
-        m->textures[TextureEmissive] = App->resources->ImportTexture(full_path.C_Str(), true, false);
+        m->textures[TextureEmissive] = App->resources->ImportTexture(full_path.C_Str(), true, true, false);
     }
 
     if (source_file != nullptr) 

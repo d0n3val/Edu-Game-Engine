@@ -1,0 +1,370 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 8634,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2038,
+			"max": [
+				24.2288227081299,
+				3.37655258178711,
+				-6.34776973724365
+			],
+			"min": [
+				20.8305950164795,
+				-0.0143800219520926,
+				-7.66225147247314
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2038,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2038,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2038,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 5,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 462,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 6,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 284,
+			"max": [
+				23.9111499786377,
+				1.6830267906189,
+				-7.19116306304932
+			],
+			"min": [
+				21.4789772033691,
+				-0.0162690728902817,
+				-8.80962085723877
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 7,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 284,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 8,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 284,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 9,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 284,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sat Oct 14 19:27:31 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 17268,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24456,
+			"byteOffset": 17268,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24456,
+			"byteOffset": 41724,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 16304,
+			"byteOffset": 66180,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 16304,
+			"byteOffset": 82484,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 924,
+			"byteOffset": 98788,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 3408,
+			"byteOffset": 99712,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 3408,
+			"byteOffset": 103120,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 2272,
+			"byteOffset": 106528,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 2272,
+			"byteOffset": 108800,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 111072,
+			"uri": "Clock.bin"
+		}
+	],
+	"extensionsUsed": [
+		"KHR_materials_pbrSpecularGlossiness"
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "ClockDiffuse",
+			"uri": "ClockDiffuse.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "ClockNormals",
+			"uri": "ClockNormals.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "ClockOcclusion",
+			"uri": "ClockOcclusion.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "ClockSpecular",
+			"uri": "ClockSpecular.png"
+		}
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseFactor": [
+						1.0,
+						1.0,
+						1.0,
+						1.0
+					],
+					"diffuseTexture": {
+						"index": 0
+					},
+					"glossinessFactor": 1.0,
+					"specularFactor": [
+						1.0,
+						1.0,
+						1.0
+					],
+					"specularGlossinessTexture": {
+						"index": 3
+					}
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "ClockMaterial",
+			"normalTexture": {
+				"index": 1
+			},
+			"occlusionTexture": {
+				"index": 2,
+				"strength": 1.0
+			}
+		},
+		{
+			"alphaMode": "BLEND",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseFactor": [
+						1.0,
+						1.0,
+						1.0,
+						0.607843160629272
+					],
+					"glossinessFactor": 0.7,
+					"specularFactor": [
+						0.194613561034203,
+						0.194613561034203,
+						0.194613561034203
+					]
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "ClockGlassMaterial"
+		}
+	],
+	"meshes": [
+		{
+			"name": "Clock",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TEXCOORD_0": 3,
+						"TEXCOORD_1": 4
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"NORMAL": 7,
+						"POSITION": 6,
+						"TEXCOORD_0": 8,
+						"TEXCOORD_1": 9
+					},
+					"indices": 5,
+					"material": 1,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Clock",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{},
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "ClockDiffuse",
+			"source": 0
+		},
+		{
+			"name": "ClockNormals",
+			"sampler": 1,
+			"source": 1
+		},
+		{
+			"name": "ClockOcclusion",
+			"sampler": 2,
+			"source": 2
+		},
+		{
+			"name": "ClockSpecular",
+			"sampler": 3,
+			"source": 3
+		}
+	]
+}

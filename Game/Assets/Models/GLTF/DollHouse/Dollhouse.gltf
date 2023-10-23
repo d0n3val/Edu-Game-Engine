@@ -1,0 +1,254 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 9543,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4734,
+			"max": [
+				3.04353880882263,
+				10.5416355133057,
+				2.98990726470947
+			],
+			"min": [
+				-3.04353785514832,
+				-0.0283627305179834,
+				-2.98990726470947
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4734,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4734,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4734,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sat Oct 14 19:03:17 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 19086,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 56808,
+			"byteOffset": 19088,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 56808,
+			"byteOffset": 75896,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 37872,
+			"byteOffset": 132704,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 37872,
+			"byteOffset": 170576,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 208448,
+			"uri": "Dollhouse.bin"
+		}
+	],
+	"extensionsUsed": [
+		"KHR_materials_pbrSpecularGlossiness"
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "DollhouseDiffuse",
+			"uri": "DollhouseDiffuse.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "DollhouseNormals",
+			"uri": "DollhouseNormals.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "DollhouseOcclusion",
+			"uri": "DollhouseOcclusion.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "DollhouseSpecular",
+			"uri": "DollhouseSpecular.png"
+		}
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseTexture": {
+						"index": 0
+					},
+					"glossinessFactor": 0.7,
+					"specularFactor": [
+						1.0,
+						1.0,
+						1.0
+					],
+					"specularGlossinessTexture": {
+						"index": 3
+					}
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "DollhouseMaterial",
+			"normalTexture": {
+				"index": 1,
+				"scale": 2.0
+			},
+			"occlusionTexture": {
+				"index": 2
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Dollhouse",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TEXCOORD_0": 3,
+						"TEXCOORD_1": 4
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Dollhouse",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{},
+		{},
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "DollhouseDiffuse",
+			"sampler": 1,
+			"source": 0
+		},
+		{
+			"name": "DollhouseNormals",
+			"sampler": 2,
+			"source": 1
+		},
+		{
+			"name": "DollhouseOcclusion",
+			"sampler": 3,
+			"source": 2
+		},
+		{
+			"name": "DollhouseSpecular",
+			"sampler": 4,
+			"source": 3
+		}
+	]
+}

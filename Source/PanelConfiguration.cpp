@@ -10,7 +10,6 @@
 #include "ModulePhysics3D.h"
 #include "ModuleRenderer3D.h"
 #include "ModuleEditorCamera.h"
-#include "ModuleTextures.h"
 #include "ModuleEditor.h"
 #include "ModuleResources.h"
 #include "ModulePhysics3D.h"
@@ -125,8 +124,8 @@ void PanelConfiguration::Draw()
 	if (InitModuleDraw(App->camera))
 		DrawModuleCamera(App->camera);
 
-	if (InitModuleDraw(App->tex))
-		DrawModuleTextures(App->tex);
+	if (InitModuleDraw(App->resources))
+		DrawModuleTextures();
 
 	if (InitModuleDraw(App->audio))
 		DrawModuleAudio(App->audio);
@@ -608,7 +607,7 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0, 1.0f, 1.0f, 0.0f));
 }
 
-void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
+void PanelConfiguration::DrawModuleTextures()
 {
 	int i = 0;
 	int cols = 5;
@@ -625,9 +624,9 @@ void PanelConfiguration::DrawModuleTextures(ModuleTextures * module)
 			ImGui::BeginTooltip();
 			ImGui::TextColored(IMGUI_YELLOW, info->GetFile());
 			ImGui::Text("%s", (info->GetID() != 0) ? "Loaded in VRAM" : "Not in VRAM");
-			ImGui::Text("(%u,%u,%u) %s", info->GetWidth(), info->GetHeight(), info->GetDepth(), info->GetFormatStr());
+			ImGui::Text("(%u,%u,%u) %s", info->GetMetadata().width, info->GetMetadata().height, info->GetMetadata().depth, info->GetFormatStr());
 
-			ImVec2 size((float)info->GetWidth(), (float)info->GetHeight());
+			ImVec2 size((float)info->GetMetadata().width, (float)info->GetMetadata().height);
 			float max_size = 250.f;
 
 			if (size.x > max_size || size.y > max_size)

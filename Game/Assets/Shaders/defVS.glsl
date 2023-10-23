@@ -8,7 +8,7 @@
 layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
 layout(location = NORMAL_ATTRIB_LOCATION) in vec3 vertex_normal;
 layout(location = UV0_ATTRIB_LOCATION) in vec2 vertex_uv0;
-layout(location = TANGENT_ATTRIB_LOCATION) in vec3 vertex_tangent;
+layout(location = TANGENT_ATTRIB_LOCATION) in vec4 vertex_tangent;
 layout(location = UV1_ATTRIB_LOCATION) in vec2 vertex_uv1;
 
 
@@ -43,5 +43,6 @@ void TransformOutput(out GeomData geom)
 
     geom.position = (model*vec4(vertex_position, 1.0)).xyz;
     geom.normal   = normalMat*vertex_normal;
-    geom.tangent  = normalMat*vertex_tangent;
+    geom.tangent   = normalMat*vertex_tangent.xyz;
+    geom.sign = vertex_tangent.w;
 }

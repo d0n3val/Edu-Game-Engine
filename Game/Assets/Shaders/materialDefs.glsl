@@ -63,10 +63,9 @@ vec4 sampleTexture(in uint textureIndex, in vec2 uv, in int matIndex)
     return texture(materials[matIndex].handles[textureIndex], uv);
 }
 
-mat3 createTBN(const vec3 normal, const vec3 tangent)
+mat3 createTBN(const vec3 normal, const vec3 tangent, float sign)
 {
-    vec3 ortho_tangent = normalize(tangent-dot(tangent, normal)*normal);
-    vec3 bitangent     = cross(normal, ortho_tangent);
+    vec3 bitangent     = sign*cross(normal, tangent);
 
     return mat3(tangent, bitangent, normal);
 }
@@ -160,7 +159,7 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom)
 
     if(has_tex_normal)
     {
-        mat3 tbn = createTBN(normalize(geom.normal), normalize(geom.tangent));
+        mat3 tbn = createTBN(geom.normal, geom.tangent, geom.sign);
         pbr.normal = normalize(tbn*tex_normal);
     }
     else

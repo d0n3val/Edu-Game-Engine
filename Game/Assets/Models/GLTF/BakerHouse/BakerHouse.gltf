@@ -1,0 +1,292 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 324,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 168,
+			"max": [
+				0.0226686596870422,
+				0.0239407550543547,
+				0.00964568555355072
+			],
+			"min": [
+				0.0157118532806635,
+				0.000128974905237556,
+				-0.000354316114680842
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 168,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 168,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 2751,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 5,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 1566,
+			"max": [
+				0.0167970433831215,
+				0.0355587340891361,
+				0.0190691296011209
+			],
+			"min": [
+				-0.0153405349701643,
+				0.000128973726532422,
+				-0.0206034705042839
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 6,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 1566,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 7,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 1566,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sun Oct 15 12:51:09 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 648,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 2016,
+			"byteOffset": 648,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 2016,
+			"byteOffset": 2664,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 1344,
+			"byteOffset": 4680,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 5502,
+			"byteOffset": 6024,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 18792,
+			"byteOffset": 11528,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 18792,
+			"byteOffset": 30320,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 12528,
+			"byteOffset": 49112,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 61640,
+			"uri": "BakerHouse.bin"
+		}
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "Baker_house.png",
+			"uri": "Baker_house.png"
+		}
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "Baker_house",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.800000011920929,
+					0.800000011920929,
+					0.800000011920929,
+					1.0
+				],
+				"baseColorTexture": {
+					"index": 0,
+					"texCoord": 0
+				},
+				"metallicFactor": 0.400000005960464,
+				"roughnessFactor": 0.710598647594452
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Chimney",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TEXCOORD_0": 3
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		},
+		{
+			"name": "Baker_house",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 6,
+						"POSITION": 5,
+						"TEXCOORD_0": 7
+					},
+					"indices": 4,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1,
+				2
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Chimney",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				100.0,
+				100.0,
+				100.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 1,
+			"name": "Baker_house",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				100.0,
+				100.0,
+				100.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "Diffuse",
+			"sampler": 0,
+			"source": 0
+		}
+	]
+}

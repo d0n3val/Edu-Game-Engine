@@ -1,0 +1,508 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 6,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4,
+			"max": [
+				49.4048919677734,
+				-0.158513814210892,
+				-0.185028076171875
+			],
+			"min": [
+				-0.406501412391663,
+				-0.429383218288422,
+				-49.4012298583984
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4,
+			"type": "VEC4"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 5,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 6,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 12,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 7,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 8,
+			"max": [
+				49.4048919677734,
+				-0.429381102323532,
+				-0.185028076171875
+			],
+			"min": [
+				-0.406501412391663,
+				-23.5953006744385,
+				-49.4012298583984
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 8,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 8,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 9,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 8,
+			"type": "VEC4"
+		},
+		{
+			"bufferView": 10,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 8,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 11,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 8,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 12,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 19098,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 13,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 12691,
+			"max": [
+				49.5668830871582,
+				0.0768466368317604,
+				0.686120569705963
+			],
+			"min": [
+				-0.825224220752716,
+				-0.633071482181549,
+				-49.582633972168
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 14,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 12691,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 15,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 12691,
+			"type": "VEC4"
+		},
+		{
+			"bufferView": 16,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 12691,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 17,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 12691,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sun Oct 15 15:23:11 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 12,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 48,
+			"byteOffset": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 48,
+			"byteOffset": 60,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 64,
+			"byteOffset": 108,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 32,
+			"byteOffset": 172,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 32,
+			"byteOffset": 204,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24,
+			"byteOffset": 236,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 96,
+			"byteOffset": 260,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 96,
+			"byteOffset": 356,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 128,
+			"byteOffset": 452,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 64,
+			"byteOffset": 580,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 64,
+			"byteOffset": 644,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 38196,
+			"byteOffset": 708,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 152292,
+			"byteOffset": 38904,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 152292,
+			"byteOffset": 191196,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 203056,
+			"byteOffset": 343488,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 101528,
+			"byteOffset": 546544,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 101528,
+			"byteOffset": 648072,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 749600,
+			"uri": "Floor.bin"
+		}
+	],
+	"extensionsUsed": [
+		"KHR_materials_pbrSpecularGlossiness"
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseTexture": {
+						"index": 1
+					},
+					"specularGlossinessTexture": {
+						"index": 3
+					}
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "PlanksMaterial",
+			"normalTexture": {
+				"index": 0,
+				"scale": 3.0,
+				"texCoord": 0
+			},
+			"occlusionTexture": {
+				"index": 2
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Base",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TANGENT": 3,
+						"TEXCOORD_0": 4,
+						"TEXCOORD_1": 5
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		},
+		{
+			"name": "Sides",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 8,
+						"POSITION": 7,
+						"TANGENT": 9,
+						"TEXCOORD_0": 10,
+						"TEXCOORD_1": 11
+					},
+					"indices": 6,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		},
+		{
+			"name": "Planks",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 14,
+						"POSITION": 13,
+						"TANGENT": 15,
+						"TEXCOORD_0": 16,
+						"TEXCOORD_1": 17
+					},
+					"indices": 12,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1,
+				2,
+				3
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Base",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 1,
+			"name": "Sides",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 2,
+			"name": "Planks",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "PlanksNormals",
+            "source": 2
+		},
+		{
+			"name": "PlanksDiffuse",
+            "source": 0
+		},
+		{
+			"name": "PlanksOcclusion",
+            "source": 3
+		},
+		{
+			"name": "PlanksSpecular",
+			"source": 1
+		}
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "PlanksDiffuse",
+			"uri": "PlanksDiffuse.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "PlanksSpecular",
+			"uri": "PlanksSpecular.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "PlanksNormals",
+			"uri": "PlanksNormals.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "PlanksOcclusion",
+			"uri": "PlanksOcclusion.png"
+		}
+	]
+}

@@ -218,7 +218,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
-    fogPass->execute(frameBuffer, width, height);
+    //fogPass->execute(frameBuffer, width, height);
 }
 
 void ModuleRenderer::RenderVFX(ComponentCamera *camera, ComponentCamera *culling, Framebuffer *frameBuffer, unsigned width, unsigned height)
@@ -397,8 +397,8 @@ void ModuleRenderer::DebugDrawTangentSpace(const ResourceMesh* mesh, const float
     {
         float3 position  = transform.TransformPos(mesh->src_vertices[i]);
         float3 normal    = transform.TransformDir(mesh->src_normals[i]);
-        float3 tangent   = transform.TransformDir(mesh->src_tangents[i]);
-        float3 bitangent = normal.Cross(tangent);
+        float3 tangent   = transform.TransformDir(mesh->src_tangents[i].xyz());
+        float3 bitangent = mesh->src_tangents[i].w*normal.Cross(tangent);
 
         float4x4 tbn(float4(tangent, 0.0f), float4(bitangent, 0.0f), float4(normal, 0.0f), float4(position, 1.0f));
 

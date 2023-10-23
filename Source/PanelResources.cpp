@@ -44,7 +44,7 @@ void PanelResources::Draw()
     textures_dlg.Display();
     if(textures_dlg.HasSelection())
     {
-        App->resources->ImportTexture(textures_dlg.GetFile().c_str(), textures_dlg.GetMipmaps(), textures_dlg.GetToCubemap()); 
+        App->resources->ImportTexture(textures_dlg.GetFile().c_str(), textures_dlg.GetMipmaps(), false, textures_dlg.GetToCubemap()); 
         textures_dlg.ClearSelection();
     }
 
@@ -56,13 +56,6 @@ void PanelResources::Draw()
             App->resources->ImportAnimation(animation_dlg.GetFile().c_str(), clip.first, clip.last, clip.name, animation_dlg.GetScale()); 
         }
         animation_dlg.ClearSelection();
-    }
-
-    cubemap_dlg.Display();
-    if(cubemap_dlg.HasSelection())
-    {
-        App->resources->ImportCubemap(cubemap_dlg.GetFiles(), std::string(), cubemap_dlg.GetMipmaps());
-        cubemap_dlg.ClearSelection();
     }
 
     model_dlg.Display();
@@ -335,7 +328,6 @@ void PanelResources::DrawResourcePopup(Resource::Type type)
         if(type == Resource::texture && ImGui::MenuItem("Import Cubemap.."))
         {
             waiting_to_load = type;
-            cubemap_dlg.Open();
         }
 
         if(type == Resource::model && ImGui::MenuItem("Force save"))

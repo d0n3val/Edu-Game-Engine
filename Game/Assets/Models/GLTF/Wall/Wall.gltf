@@ -1,0 +1,428 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 3168,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2031,
+			"max": [
+				49.4187164306641,
+				41.6130561828613,
+				0.727421879768372
+			],
+			"min": [
+				-2.82929611206055,
+				-0.0343321301043034,
+				-49.4187240600586
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2031,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2031,
+			"type": "VEC4"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2031,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 5,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2031,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 6,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 4476,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 7,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3120,
+			"max": [
+				48.2385749816895,
+				34.5912742614746,
+				0.423447489738464
+			],
+			"min": [
+				-0.410417348146439,
+				4.63115787506104,
+				-48.3298263549805
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 8,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3120,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 9,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3120,
+			"type": "VEC4"
+		},
+		{
+			"bufferView": 10,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3120,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 11,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3120,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sun Oct 15 18:08:42 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 6336,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24372,
+			"byteOffset": 6336,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24372,
+			"byteOffset": 30708,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 32496,
+			"byteOffset": 55080,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 16248,
+			"byteOffset": 87576,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 16248,
+			"byteOffset": 103824,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 8952,
+			"byteOffset": 120072,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 37440,
+			"byteOffset": 129024,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 37440,
+			"byteOffset": 166464,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 49920,
+			"byteOffset": 203904,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24960,
+			"byteOffset": 253824,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24960,
+			"byteOffset": 278784,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 303744,
+			"uri": "Wall.bin"
+		}
+	],
+	"extensionsUsed": [
+		"KHR_materials_pbrSpecularGlossiness"
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseTexture": {
+						"index": 0
+					},
+					"specularGlossinessTexture": {
+						"index": 3
+					}
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "WallMaterial",
+			"normalTexture": {
+				"index": 1
+			},
+			"occlusionTexture": {
+				"index": 2
+			}
+		},
+		{
+			"alphaMode": "OPAQUE",
+			"emissiveFactor": [
+				1.0,
+				1.0,
+				0.0
+			],
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseFactor": [
+						1.0,
+						1.0,
+						0.212237730622292,
+						1.0
+					],
+					"glossinessFactor": 0.6,
+					"specularFactor": [
+						0.29613184928894,
+						0.29613184928894,
+						0.29613184928894
+					]
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "StarMaterial",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.835294187068939,
+					1.0,
+					0.517647087574005,
+					1.0
+				],
+				"metallicFactor": 0.400000005960464,
+				"roughnessFactor": 0.70710676908493
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Wall",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TANGENT": 3,
+						"TEXCOORD_0": 4,
+						"TEXCOORD_1": 5
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		},
+		{
+			"name": "Stars",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 8,
+						"POSITION": 7,
+						"TANGENT": 9,
+						"TEXCOORD_0": 10,
+						"TEXCOORD_1": 11
+					},
+					"indices": 6,
+					"material": 1,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1,
+				2
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Wall",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 1,
+			"name": "Stars",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{},
+		{},
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "WallDiffuse",
+			"sampler": 1,
+            "source" : 0
+		},
+		{
+			"name": "WallNormals",
+			"sampler": 2,
+            "source" : 1
+		},
+		{
+			"name": "WallOcclusion",
+			"sampler": 3,
+            "source" : 2
+		},
+		{
+			"name": "WallSpecular",
+			"sampler": 4,
+            "source" : 3
+		}
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "WallDiffuse",
+			"uri": "WallDiffuse.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "WallNormals",
+			"uri": "WallNormals.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "WallOcclusion",
+			"uri": "WallOcclusion.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "WallSpecular",
+			"uri": "WallSpecular.png"
+		}
+	]
+}

@@ -1,5 +1,10 @@
+#include "Globals.h"
+
+#include "tiny_gltf.h"
+
 #include "ResourceMesh.h"
 #include "Application.h"
+
 #include "ModuleFileSystem.h"
 #include "ModuleResources.h"
 #include "ModulePrograms.h"
@@ -160,11 +165,11 @@ bool ResourceMesh::LoadInMemory()
 
             if(HasAttrib(ATTRIB_TANGENTS))
             {
-                src_tangents = std::make_unique<float3[]>(num_vertices);
+                src_tangents = std::make_unique<float4[]>(num_vertices);
 
                 for(uint i=0; i< num_vertices; ++i)
                 {
-                    read_stream >> src_tangents[i].x >> src_tangents[i].y >> src_tangents[i].z;
+                    read_stream >> src_tangents[i].x >> src_tangents[i].y >> src_tangents[i].z >> src_tangents[i].w;
                 }
             }
 
@@ -231,11 +236,12 @@ bool ResourceMesh::LoadInMemory()
 
                     if(HasAttrib(ATTRIB_TANGENTS))
                     {
-                        morph.src_tangents = std::make_unique<float3[]>(num_vertices);
+                        morph.src_tangents = std::make_unique<float4[]>(num_vertices);
 
                         for(uint j=0; j< num_vertices; ++j)
                         {
                             read_stream >> morph.src_tangents[j].x >> morph.src_tangents[j].y >> morph.src_tangents[j].z;
+                            morph.src_tangents[j].w = 1.0f;
                         }
                     }
                 }
@@ -352,7 +358,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
     {
         for(uint i=0; i< num_vertices; ++i)
         {
-            write_stream << src_tangents[i].x << src_tangents[i].y << src_tangents[i].z;
+            write_stream << src_tangents[i].x << src_tangents[i].y << src_tangents[i].z << src_tangents[i].z;
         }
     }
 
@@ -431,6 +437,33 @@ bool ResourceMesh::Save(std::string& output) const
     const std::vector<char>& data = write_stream.get_internal_vec();
 
 	return App->fs->SaveUnique(output, &data[0], uint(data.size()), LIBRARY_MESH_FOLDER, "mesh", "edumesh");
+}
+
+// ---------------------------------------------------------
+UID ResourceMesh::Import(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, const char* source_file, float scale)
+{    
+    ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
+
+    m->name = mesh.name;
+    m->GenerateCPUBuffers(model, mesh, primitive, scale);
+    
+    // TODO: Bones
+    m->GenerateAttribInfo();
+
+    std::string output;
+
+    if (m->Save(source_file, output))
+    {
+        LOG("Imported successful from gltf Mesh [%s] to [%s]", m->GetFile(), m->GetExportedFile());
+    }
+    else
+    {
+        LOG("Importing gltf Mesh %s FAILED", source_file);
+    }
+
+    m->ReleaseFromMemory();
+
+    return m->uid;
 }
 
 // ---------------------------------------------------------
@@ -541,8 +574,8 @@ void ResourceMesh::GenerateAttribInfo()
     {
         attrib_flags |= (1 << ATTRIB_TANGENTS);
         offsets[ATTRIB_TANGENTS] = vertex_size*num_vertices;
-        vertex_size += sizeof(float3);
-        morph_vertex_size += sizeof(float3);
+        vertex_size += sizeof(float4);
+        morph_vertex_size += sizeof(float4);
     }
 
     if(src_bone_indices != nullptr && src_bone_weights != nullptr)
@@ -553,6 +586,134 @@ void ResourceMesh::GenerateAttribInfo()
         vertex_size += sizeof(unsigned)*4;
         offsets[ATTRIB_BONE_WEIGHTS] = vertex_size*num_vertices;
         vertex_size += sizeof(float)*4;
+    }
+}
+
+void ResourceMesh::GenerateCPUBuffers(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, float scale)
+{
+    const auto& itPos = primitive.attributes.find("POSITION");
+
+    if (primitive.indices >= 0 && itPos != primitive.attributes.end())
+    {        
+        const tinygltf::Accessor& posAcc = model.accessors[itPos->second];
+       
+        num_vertices = uint(posAcc.count);
+        src_vertices = std::make_unique<float3[]>(num_vertices);
+
+        SDL_assert(posAcc.type == TINYGLTF_TYPE_VEC3);
+
+        const tinygltf::BufferView& posView = model.bufferViews[posAcc.bufferView];
+        const uint8_t* bufferPos = reinterpret_cast<const uint8_t*>(&(model.buffers[posView.buffer].data[posAcc.byteOffset + posView.byteOffset]));
+        size_t posStride = posView.byteStride == 0 ? sizeof(float3) : posView.byteStride;
+
+        // Positions
+        for (uint i = 0; i < num_vertices; ++i)
+        {
+            src_vertices[i] = (*reinterpret_cast<const float3*>(bufferPos)) * scale;
+            bufferPos += posStride;
+        }
+
+        bbox.SetNegativeInfinity();
+        bbox.Enclose(src_vertices.get(), num_vertices);
+
+        // TexCoords
+        const auto& itTexCoord = primitive.attributes.find("TEXCOORD_0");
+        if (itTexCoord != primitive.attributes.end())
+        {
+            const tinygltf::Accessor& texCoordAcc = model.accessors[itTexCoord->second];
+            SDL_assert(texCoordAcc.type == TINYGLTF_TYPE_VEC2);
+            SDL_assert(texCoordAcc.count == posAcc.count);
+
+            src_texcoord0 = std::make_unique<float2[]>(num_vertices);
+            
+            const tinygltf::BufferView& texCoordView = model.bufferViews[texCoordAcc.bufferView];
+            const uint8_t* bufferTexCoord = reinterpret_cast<const uint8_t*>(&(model.buffers[texCoordView.buffer].data[texCoordAcc.byteOffset + texCoordView.byteOffset]));
+            size_t texCoordStride = texCoordView.byteStride == 0 ? sizeof(float2) : texCoordView.byteStride;
+
+            for (uint i = 0; i < num_vertices; ++i)
+            {
+                src_texcoord0[i] = *reinterpret_cast<const float2*>(bufferTexCoord);
+                bufferTexCoord += texCoordStride;
+            }
+        }
+
+        const auto& itNormal = primitive.attributes.find("NORMAL");
+        if (itNormal != primitive.attributes.end())
+        {
+            const tinygltf::Accessor& normalAcc = model.accessors[itNormal->second];
+            SDL_assert(posAcc.count == normalAcc.count);
+            SDL_assert(normalAcc.type == TINYGLTF_TYPE_VEC3);
+
+            src_normals = std::make_unique<float3[]>(num_vertices);
+            const tinygltf::BufferView& normalView = model.bufferViews[normalAcc.bufferView];
+
+            const uint8_t* bufferNormal = reinterpret_cast<const uint8_t*>(&(model.buffers[normalView.buffer].data[normalAcc.byteOffset + normalView.byteOffset]));
+            size_t normalStride = normalView.byteStride == 0 ? sizeof(float3) : normalView.byteStride;
+
+            for (uint i = 0; i < num_vertices; ++i)
+            {
+                src_normals[i] = *reinterpret_cast<const float3*>(bufferNormal);
+                bufferNormal += normalStride;
+            }
+        }
+        const auto& itTangent = primitive.attributes.find("TANGENT");
+        if (itTangent != primitive.attributes.end())
+        {
+            const tinygltf::Accessor& tangentAcc = model.accessors[itTangent->second];
+            SDL_assert(tangentAcc.count == posAcc.count);
+            SDL_assert(tangentAcc.type == TINYGLTF_TYPE_VEC4);
+
+            src_tangents = std::make_unique<float4[]>(num_vertices);
+
+            const tinygltf::BufferView& tangentView = model.bufferViews[tangentAcc.bufferView];
+            const uint8_t* bufferTangent = reinterpret_cast<const uint8_t*>(&(model.buffers[tangentView.buffer].data[tangentAcc.byteOffset + tangentView.byteOffset]));
+
+            size_t tangentStride = tangentView.byteStride == 0 ? sizeof(float4) : tangentView.byteStride;
+
+            for (uint i = 0; i < num_vertices; ++i)
+            {
+                src_tangents[i] = *reinterpret_cast<const float4*>(bufferTangent);
+                bufferTangent += tangentStride;
+            }
+        }
+
+        const tinygltf::Accessor& indAcc = model.accessors[primitive.indices];
+        num_indices = uint(indAcc.count);
+        src_indices = std::make_unique<unsigned[]>(num_indices);
+
+        const tinygltf::BufferView& indView = model.bufferViews[indAcc.bufferView];
+
+        // Indices
+        switch (indAcc.componentType)
+        {
+            case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT:
+            {
+                const uint32_t* bufferInd = reinterpret_cast<const uint32_t*>(&(model.buffers[indView.buffer].data[indAcc.byteOffset + indView.byteOffset]));
+                for (uint32_t i = 0; i < num_indices; ++i)
+                {
+                    src_indices[i] = bufferInd[i];
+                }
+                break;
+            }
+            case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT:
+            {
+                const uint16_t* bufferInd = reinterpret_cast<const uint16_t*>(&(model.buffers[indView.buffer].data[indAcc.byteOffset + indView.byteOffset]));
+                for (uint32_t i = 0; i < num_indices; ++i)
+                {
+                    src_indices[i] = bufferInd[i];
+                }
+                break;
+            }
+            case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE:
+            {
+                const uint8_t* bufferInd = reinterpret_cast<const uint8_t*>(&(model.buffers[indView.buffer].data[indAcc.byteOffset + indView.byteOffset]));
+                for (uint32_t i = 0; i < num_indices; ++i)
+                {
+                    src_indices[i] = bufferInd[i];
+                }
+                break;
+            }
+        }
     }
 }
 
@@ -609,8 +770,12 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh, float scale)
     if(mesh->HasTangentsAndBitangents())
     {
         // uncomment iif copy from assimp
-        src_tangents = std::make_unique<float3[]>(mesh->mNumVertices);
-        memcpy(src_tangents.get(), mesh->mTangents, sizeof(float3)*mesh->mNumVertices);
+        src_tangents = std::make_unique<float4[]>(mesh->mNumVertices);
+
+        for (uint i = 0; i < uint(mesh->mNumVertices); ++i)
+        {
+            src_tangents[i] = float4(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z, 1.0);
+        }
         //GenerateTangentSpace();
     }
 
@@ -669,21 +834,11 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh, float scale)
                 if (mesh->HasTangentsAndBitangents())
                 {
                     assert(mesh->mAnimMeshes[i]->mNormals != nullptr);
-                    data.src_tangents = std::make_unique<float3[]>(num_vertices);
+                    data.src_tangents = std::make_unique<float4[]>(num_vertices);
 
-                    if (mesh->mAnimMeshes[i]->mTangents)
+                    for (uint j = 0; j < num_vertices; ++j)
                     {
-                        for (uint j = 0; j < num_vertices; ++j)
-                        {
-                            data.src_tangents[j] = *reinterpret_cast<float3*>(&mesh->mAnimMeshes[i]->mTangents[j]) - src_tangents[j];
-                        }
-                    }
-                    else
-                    {
-                        for (uint j = 0; j < num_vertices; ++j)
-                        {
-                            data.src_tangents[j] = float3(0.0f);
-                        }
+                        data.src_tangents[j] = float4(0.0f, 0.0f, 0.0f, 1.0f);
                     }
                 }
             }
@@ -708,11 +863,11 @@ void ResourceMesh::GenerateTangentSpace()
     // edif0 = udif0*t+vidf0*edif1/vdif1-vdif0*udif1/vdif1*t;
     // edif0 - vdif0*edif1/vdif1 = t*(udif0-vdif0*udif1/vdif1);
 
-    src_tangents = std::make_unique<math::float3[]>(num_vertices);
+    src_tangents = std::make_unique<math::float4[]>(num_vertices);
 
     for(unsigned i=0; i <  num_vertices; ++i)
     {
-        src_tangents[i] = float3(0.0f);
+        src_tangents[i] = float4(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
     for(unsigned i=0; i< num_indices/3; ++i)
@@ -740,14 +895,15 @@ void ResourceMesh::GenerateTangentSpace()
             t       = (edif0-edif1*vdif0/vdif1)*f; 
         }
 
-        src_tangents[face[0]] += t;
-        src_tangents[face[1]] += t; 
-        src_tangents[face[2]] += t;
+        src_tangents[face[0]] += float4(t, 1.0f);
+        src_tangents[face[1]] += float4(t, 1.0f); 
+        src_tangents[face[2]] += float4(t, 1.0f);
     }
 
     for(unsigned i=0; i <  num_vertices; ++i)
     {
-		src_tangents[i].Normalize();
+        float3 vector = src_tangents[i].xyz().Normalized();
+        src_tangents[i] = float4(vector, 1.0f);
         // \todo: orthogonalize ?
     }
 }
@@ -783,7 +939,7 @@ void ResourceMesh::GenerateVBO()
 
     if(HasAttrib(ATTRIB_TANGENTS))
     {
-        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_TANGENTS], sizeof(float3)*num_vertices, src_tangents.get());
+        glBufferSubData(GL_ARRAY_BUFFER, offsets[ATTRIB_TANGENTS], sizeof(float4)*num_vertices, src_tangents.get());
     }
 
     if(HasAttrib(ATTRIB_BONE_INDICES))
@@ -828,7 +984,7 @@ void ResourceMesh::GenerateVBO()
 
                 if(HasAttrib(ATTRIB_TANGENTS))
                 {
-                    glBufferSubData(GL_TEXTURE_BUFFER, num_vertices*morph_size*i+num_vertices*sizeof(float3)*2, num_vertices*sizeof(float3), morph_targets[i].src_tangents.get());
+                    glBufferSubData(GL_TEXTURE_BUFFER, num_vertices*morph_size*i+num_vertices*sizeof(float3)*2, num_vertices*sizeof(float4), morph_targets[i].src_tangents.get());
                 }
             }
         }
@@ -961,7 +1117,7 @@ void ResourceMesh::GenerateVAO()
     if(HasAttrib(ATTRIB_TANGENTS))
     {
 		glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(float3), (void*)size_t(offsets[ATTRIB_TANGENTS]));
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(float4), (void*)size_t(offsets[ATTRIB_TANGENTS]));
     }
 
 	if (HasAttrib(ATTRIB_TEX_COORDS_1))

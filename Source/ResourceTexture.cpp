@@ -1,108 +1,94 @@
 #include "ResourceTexture.h"
 #include "Application.h"
-#include "ModuleTextures.h"
 #include "ModuleFileSystem.h"
+#include "CubemapUtils.h"
 #include "Config.h"
+
 
 #include "DirectXTex/DirectXTex.h"
 
 #include "OpenGL.h"
 
-#include "Leaks.h"
+#include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 #include <memory>
 #include <assert.h>
 
+//  Create checkerboard texture  
+#define CHECKERS_WIDTH 64
+#define CHECKERS_HEIGHT 64
+
 namespace
 {
-    DXGI_FORMAT GetDXGIFromCompressType(ResourceTexture::CompressType type, bool opaqueAlpha, DirectX::TEX_COMPRESS_FLAGS& flags)
+    TextureFormat GetFormatFromDXGI(DXGI_FORMAT format)
     {
-        flags = DirectX::TEX_COMPRESS_DEFAULT;
-        switch (type)
-        {
-        case ResourceTexture::Compress_Colour:
-            if (opaqueAlpha) return DXGI_FORMAT_BC1_UNORM;
-            return DXGI_FORMAT_BC3_UNORM;
-        case ResourceTexture::Compress_Grayscale:
-            return DXGI_FORMAT_BC4_UNORM;
-        case ResourceTexture::Compress_Normals:
-            return DXGI_FORMAT_BC5_UNORM;
-        case ResourceTexture::Compress_HDR:
-            return DXGI_FORMAT_BC6H_SF16;
-        case ResourceTexture::Compress_Colour_HQ_Fast:
-            flags = DirectX::TEX_COMPRESS_BC7_QUICK;
-        case ResourceTexture::Compress_Colour_HQ:
-            return DXGI_FORMAT_BC7_UNORM;
-        }
-
-        return DXGI_FORMAT_BC1_UNORM;
-    }
-
-    ResourceTexture::Format GetFormatFromDXGI(DXGI_FORMAT format, ResourceTexture::ColorSpace& colorSpace)
-    {
-        colorSpace = ResourceTexture::linear;
-
         switch (format)
         {
         case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-            colorSpace = ResourceTexture::gamma;
         case DXGI_FORMAT_R8G8B8A8_UNORM:
-            return ResourceTexture::rgba;
-            break;
+            return Texture_rgba;
         case DXGI_FORMAT_R32G32B32A32_FLOAT:
-            return ResourceTexture::rgba32f;
+            return Texture_rgba32f;
         case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-            colorSpace = ResourceTexture::gamma;
         case DXGI_FORMAT_B8G8R8A8_UNORM:
-            return ResourceTexture::bgra;
-            break;
+            return Texture_bgra;
         case DXGI_FORMAT_B5G6R5_UNORM:
-            return ResourceTexture::bgr;
-            break;
+            return Texture_bgr;
         case DXGI_FORMAT_R8_UNORM:
-            return ResourceTexture::red;
-            break;
+            return Texture_red;
         case DXGI_FORMAT_BC1_UNORM:
-            return ResourceTexture::bc1;
-            break;
+            return Texture_bc1;
         case DXGI_FORMAT_BC3_UNORM:
-            return ResourceTexture::bc3;
-            break;
+            return Texture_bc3;
         case DXGI_FORMAT_BC4_UNORM:
-            return ResourceTexture::bc4;
-            break;
+            return Texture_bc4;
         case DXGI_FORMAT_BC5_UNORM:
-            return ResourceTexture::bc5;
-            break;
+            return Texture_bc5;
         case DXGI_FORMAT_BC6H_SF16:
-            return ResourceTexture::bc6s;
-            break;
+            return Texture_bc6s;
         case DXGI_FORMAT_BC6H_UF16:
-            return ResourceTexture::bc6u;
-            break;
+            return Texture_bc6u;
         case DXGI_FORMAT_BC7_UNORM:
-            return ResourceTexture::bc7;
+            return Texture_bc7;
         }
 
-        return ResourceTexture::unknown;
+        return Texture_unknown;
     }
 
-    HRESULT ConvertToSupportedFormat(const DirectX::ScratchImage& src, DirectX::ScratchImage& dst)
+    bool IsCompressed(TextureFormat format) 
     {
-        DXGI_FORMAT target;
-        switch (src.GetMetadata().format)
-        {
-        case DXGI_FORMAT_R16G16B16A16_UNORM:
-            target = DXGI_FORMAT_B8G8R8A8_UNORM;
-            break;
-        default:
-            SDL_assert(false && "Unsupported format");
-            return E_FAIL;
-        }
-
-        return DirectX::Convert(src.GetImages(), src.GetImageCount(), src.GetMetadata(), target, DirectX::TEX_FILTER_DEFAULT, 0.0, dst);
+        return format == Texture_bc1  ||
+               format == Texture_bc3  ||
+               format == Texture_bc4  ||
+               format == Texture_bc5  ||
+               format == Texture_bc6s ||
+               format == Texture_bc6u ||
+               format == Texture_bc7;
     }
 
+    uint GetGLInternalFormat(TextureFormat format, ColorSpace colorSpace)
+    {
+        static uint gl_internal[]       = { GL_RGBA8, GL_RGBA32F, GL_RGBA8, GL_RGB8, GL_R8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM };
+        static uint gl_internal_gamma[] = { GL_SRGB8_ALPHA8, GL_RGBA32F, GL_SRGB8_ALPHA8 , GL_SRGB8, GL_R8, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2 , GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM };
+
+        return colorSpace == ColorSpace_linear ? gl_internal[uint(format)] : gl_internal_gamma[uint(format)];
+    }
+
+    uint GetGLFormat(TextureFormat format) 
+    {
+        static uint gl_format[] = { GL_RGBA, GL_RGBA, GL_BGRA, GL_BGR, GL_RED };
+        assert(uint(format) < 5);
+
+        return gl_format[uint(format)];
+    }
+
+    uint GetGLType(TextureFormat format) 
+    {
+        static uint gl_type[] = { GL_UNSIGNED_BYTE, GL_FLOAT, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE };
+        assert(uint(format) < 5);
+
+        return gl_type[uint(format)];
+    }
 }
 
 // ---------------------------------------------------------
@@ -119,7 +105,7 @@ const char * ResourceTexture::GetFormatStr() const
 {
 	static const char* formats[] = { "RGBA", "RGBA", "BGRA", "BGR", "RED", "BC1", "BC3", "BC4", "BC5", "BC6s", "BC6u", "BC7"};
 
-	return formats[format];
+	return formats[metadata.format];
 }
 
 // ---------------------------------------------------------
@@ -130,110 +116,17 @@ bool ResourceTexture::LoadInMemory()
 
     bool ret = head_buffer != nullptr && total_size > 0;
 
-	if (ret)
+    if (ret)
 	{
         char *buffer = head_buffer + sizeof(uint32_t);
 
-        DirectX::ScratchImage image;
-        HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size-sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);       
-        DirectX::ScratchImage* finalImg = &image;
-        DirectX::ScratchImage converted;
-
-        if (res == S_OK)
-        {
-            format = GetFormatFromDXGI(image.GetMetadata().format, formatColorSpace);
-
-            if (format == unknown)
-            {
-                res = ConvertToSupportedFormat(image, converted);
-                finalImg = &converted;
-                format = GetFormatFromDXGI(finalImg->GetMetadata().format, formatColorSpace);
-            }
-        }
-
-        if(res == S_OK)
-        {
-            const DirectX::TexMetadata& metadata = finalImg->GetMetadata();
-
-            width  = uint(metadata.width);
-            height = uint(metadata.height);
-            depth  = uint(metadata.depth);
-            arraySize = uint(metadata.arraySize);
-
-            switch(metadata.dimension) 
-            {
-                case DirectX::TEX_DIMENSION_TEXTURE2D:
-                    textype = Texture2D;
-                    if (IsCompressed())
-                    {
-                        glTexture = std::make_unique<::Texture2D>(width, height, GetGLInternalFormat(), uint(finalImg->GetPixelsSize()), finalImg->GetPixels(), mipMaps);
-                    }
-                    else
-                    {
-                        glTexture = std::make_unique<::Texture2D>(width, height, GetGLInternalFormat(), GetGLFormat(), GetGLType(), finalImg->GetPixels(), mipMaps);
-                    }
-                    break;
-                case DirectX::TEX_DIMENSION_TEXTURE3D:
-                    if(metadata.IsCubemap()) 
-                    {
-                        textype = TextureCube;
-                        //glTexture = std::make_unique<::TextureCube>(resource->width, resource->height, 
-                          //                                      GetGLInternalFormat(), GetGLType(),finalImg->GetPixelsSize(), finalImg->GetPixels(), resource->has_mips);
-                    }
-                    else
-                    {
-                        assert(false && "Unsupported texture");
-                    }
-                    break;
-                default:
-                    assert(false && "Unsupported texture dimension");
-                    break;
-            }
-
-            memSize = uint(finalImg->GetPixelsSize());
-        }
+        glTexture.reset(TextureFromMemory(buffer, total_size - sizeof(uint32_t), metadata, colorSpace.value_or(ColorSpace_linear)));
     }
 
     RELEASE_ARRAY(head_buffer);
-
     return ret;
 }
 
-void ResourceTexture::GenerateMipmaps(bool generate)
-{
-    mipMaps = generate;
-
-    if(glTexture)
-        glTexture->GenerateMipmaps(0, generate ? 1000 : 1);
-}
-
-// ---------------------------------------------------------
-uint ResourceTexture::GetGLInternalFormat() const 
-{
-    static uint gl_internal[] = { GL_RGBA8, GL_RGBA32F, GL_RGBA8, GL_RGB8, GL_R8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM };
-    static uint gl_internal_gamma[] = { GL_SRGB8_ALPHA8, GL_RGBA32F, GL_SRGB8_ALPHA8 , GL_SRGB8, GL_R8, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_COMPRESSED_RED_RGTC1, GL_COMPRESSED_RG_RGTC2 , GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM , GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM };
-
-    return GetColorSpace() == linear ? gl_internal[uint(format)] : gl_internal_gamma[uint(format)];
-}
-
-// ---------------------------------------------------------
-uint ResourceTexture::GetGLFormat() const 
-{
-    static uint gl_format[] = { GL_RGBA, GL_RGBA, GL_BGRA, GL_BGR, GL_RED };
-    assert(uint(format) < 4);
-
-    return gl_format[uint(format)];
-}
-
-
-// ---------------------------------------------------------
-uint ResourceTexture::GetGLType() const 
-{
-    static uint gl_type[] = { GL_UNSIGNED_BYTE, GL_FLOAT, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE };
-    assert(uint(format) < 4);
-
-    return gl_type[uint(format)];
-}
 
 // ---------------------------------------------------------
 void ResourceTexture::ReleaseFromMemory() 
@@ -276,7 +169,6 @@ void ResourceTexture::Save(Config & config) const
     {
         config.AddInt("ColorSpace", colorSpace.value());
     }
-    config.AddBool("Mipmaps", mipMaps);
 }
 
 // ---------------------------------------------------------
@@ -289,104 +181,329 @@ void ResourceTexture::Load(const Config & config)
         colorSpace = (ColorSpace)config.GetInt("ColorSpace", formatColorSpace);
     }
 
-    mipMaps = config.GetBool("Mipmaps", mipMaps);
 }
 
-bool ResourceTexture::IsCompressed() const
+bool ResourceTexture::Import(const char* file, std::string& output_file, bool toCubemap)
 {
-    return format == bc1 ||
-           format == bc3 ||
-           format == bc4 ||
-           format == bc5 ||
-           format == bc6s ||
-           format == bc6u ||
-           format == bc7;
-}
+	std::string sFile(file);
 
-bool ResourceTexture::LoadToArray(Texture2DArray* texArray, uint index) const
-{
-    assert(GetTexType() == ResourceTexture::Texture2D);
+	char* buffer = nullptr;
+	uint size = App->fs->Load(file, &buffer);
 
-	char* head_buffer = nullptr;
-	uint total_size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, GetExportedFile(), &head_buffer);
+    bool ret = Import(buffer, size, output_file, toCubemap);
 
-    bool ret = head_buffer != nullptr && total_size > 0;
-
-	if (ret)
-	{
-        char *buffer = head_buffer + sizeof(uint32_t);
-
-        DirectX::ScratchImage image;
-        HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size-sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);
-
-        if (res != S_OK) 
-        {
-            res = DirectX::LoadFromTGAMemory(buffer, total_size - sizeof(uint32_t), nullptr, image);
-        }
-
-        ret = res == S_OK;
-
-        if (ret)
-        {
-            if (IsCompressed())
-            {
-                texArray->SetCompressedSubData(0, index, GetGLInternalFormat(), uint(image.GetPixelsSize()), image.GetPixels());
-            }
-            else
-            {
-                texArray->SetSubData(0, index, GetGLFormat(), GetGLType(), image.GetPixels());
-            }
-        }
+    if (ret == false)
+    {
+        LOG("Cannot load texture %s", file);
     }
-
-    RELEASE_ARRAY(head_buffer);
 
     return ret;
 }
 
-void ResourceTexture::Compress(CompressType type)
+bool ResourceTexture::Import(const void * buffer, uint size, std::string& output_file, bool toCubemap)
 {
-    assert(IsCompressed() == false);
-    char* head_buffer = nullptr;
-    uint total_size = App->fs->Load(LIBRARY_TEXTURES_FOLDER, GetExportedFile(), &head_buffer);
+    return toCubemap ? ImportToCubemap(buffer, size, output_file) : Import(buffer, size, output_file);
+}
 
-    if (head_buffer != nullptr && total_size > 0)
+bool ResourceTexture::Import(const void * buffer, uint size, std::string& output_file)
+{   
+	bool ret = buffer != nullptr;
+
+    void *output_buffer = nullptr;
+    uint output_size = 0;
+    uint header_size = sizeof(uint32_t);
+
+    if (ret)
     {
-        char* buffer = head_buffer + sizeof(uint32_t);
 
-        DirectX::ScratchImage image, compressed;
-        HRESULT res = DirectX::LoadFromDDSMemory(buffer, total_size - sizeof(uint32_t), DirectX::DDS_FLAGS_NONE, nullptr, image);
-        if (res == S_OK)
-        {
-            DirectX::TEX_COMPRESS_FLAGS flags;
-            DXGI_FORMAT format = GetDXGIFromCompressType(type, image.IsAlphaAllOpaque(),flags);
-            res = DirectX::Compress(image.GetImages(), image.GetImageCount(), image.GetMetadata(), format, flags, 0.2f, compressed);
-        }
+        DirectX::ScratchImage image, fliped, converted;
+        DirectX::ScratchImage* result = &image;
+        HRESULT res = DirectX::LoadFromDDSMemory(buffer, size, DirectX::DDS_FLAGS_NONE, nullptr, image);
+        if (res != S_OK) res = DirectX::LoadFromHDRMemory(buffer, size, nullptr, image);
+        if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, size, DirectX::TGA_FLAGS_NONE, nullptr, image);
+        if (res != S_OK) res = DirectX::LoadFromWICMemory(buffer, size, DirectX::WIC_FLAGS_NONE, nullptr, image);
 
         if (res == S_OK)
         {
-            DirectX::Blob blob;
-            res = DirectX::SaveToDDSMemory(compressed.GetImages(), compressed.GetImageCount(), compressed.GetMetadata(), DirectX::DDS_FLAGS_NONE, blob);
-
-            if (res == S_OK)
+            DirectX::Blob blob;            
+            ret = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
+            
+            if (ret)
             {
-                uint header_size = sizeof(uint32_t);
-                uint output_size = uint(blob.GetBufferSize());
-                char* output_buffer = new char[blob.GetBufferSize() + header_size];
+                output_size = uint(blob.GetBufferSize());
+                output_buffer = new char[blob.GetBufferSize()+header_size];
                 memcpy(&reinterpret_cast<char*>(output_buffer)[header_size], blob.GetBufferPointer(), blob.GetBufferSize());
-                *reinterpret_cast<uint32_t*>(output_buffer) = uint32_t(ResourceTexture::Texture2D);
-
-                if (App->fs->Save(LIBRARY_TEXTURES_FOLDER, GetExportedFile(), output_buffer, output_size + header_size))
-                {
-                    ReleaseFromMemory();
-                    LoadInMemory();
-                }
-
-                RELEASE_ARRAY(output_buffer);
             }
         }
     }
 
-    RELEASE_ARRAY(head_buffer);
+    if (ret)
+    {
+        *reinterpret_cast<uint32_t*>(output_buffer) = uint32_t(TextureType_2D);
+        ret = App->fs->SaveUnique(output_file, output_buffer, output_size + header_size, LIBRARY_TEXTURES_FOLDER, "texture", "tex");
+
+        RELEASE_ARRAY(buffer);
+        RELEASE_ARRAY(output_buffer);
+    }
+
+	return ret;
 }
+
+bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string& output_file)
+{
+	bool ret = buffer  != nullptr;
+    uint8_t* output_buffer = nullptr;
+    uint output_size    = 0;
+
+    TextureMetadata metadata;
+    Texture* texture = TextureFromMemory(buffer, size, metadata, ColorSpace_linear);
+
+    if(metadata.texType == TextureType_2D)
+    {
+        CubemapUtils cubeUtils;
+        std::unique_ptr<TextureCube> cubeMap(cubeUtils.ConvertToCubemap(static_cast<Texture2D *>(texture), 512, 512));
+
+        output_size = sizeof(uint32_t);
+
+        std::vector<float> tmpBuffer;
+        std::vector<uint8_t> sideData[6];
+
+        tmpBuffer.resize(512 * 512 * 3);
+
+        DirectX::ScratchImage image;
+
+        image.InitializeCube(DXGI_FORMAT_R32G32B32_FLOAT, 511, 512, 1, 1);
+
+        for (uint i = 0; i < 6; ++i)
+        {
+            cubeMap->GetData(i, 0, GL_RGB, GL_FLOAT, &tmpBuffer[0]);
+
+            const DirectX::Image* face = image.GetImage(0, i, 0);
+            memcpy(face->pixels, &tmpBuffer[0], tmpBuffer.size() * sizeof(float));
+            
+            output_size += uint(sizeof(uint32_t) + sideData[i].size());
+        }
+
+        DirectX::Blob blob;
+        ret = DirectX::SaveToDDSMemory(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
+
+        if (ret == S_OK)
+        {
+            uint header_size = sizeof(uint32_t);
+            output_size = uint(blob.GetBufferSize());
+            output_buffer = new uint8_t[blob.GetBufferSize() + header_size];
+
+            *(uint32_t*)output_buffer = uint32_t(TextureType_Cube);
+            memcpy(&reinterpret_cast<char*>(output_buffer)[header_size], blob.GetBufferPointer(), blob.GetBufferSize());
+        }
+    }
+
+    if(ret)
+    {
+        ret = App->fs->SaveUnique(output_file, output_buffer, output_size, LIBRARY_TEXTURES_FOLDER, "texture", "tex");
+
+        RELEASE_ARRAY(buffer);
+        RELEASE_ARRAY(output_buffer);
+    }
+
+    delete texture;
+
+	return ret;
+}
+
+bool ResourceTexture::LoadFromBuffer(const void* buffer, uint size, ColorSpace space)
+{
+    glTexture.reset(TextureFromMemory(buffer, size, metadata, space));
+    colorSpace = space;
+
+    return true;
+}
+
+Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, TextureMetadata& metadata, ColorSpace space)
+{
+    DirectX::ScratchImage image;
+    Texture* result = nullptr;
+
+    HRESULT res = DirectX::LoadFromDDSMemory(buffer, size, DirectX::DDS_FLAGS_NONE, nullptr, image);
+    if (res != S_OK) res = DirectX::LoadFromHDRMemory(buffer, size, nullptr, image);
+    if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, size, DirectX::TGA_FLAGS_NONE, nullptr, image);
+    if (res != S_OK) res = DirectX::LoadFromWICMemory(buffer, size, DirectX::WIC_FLAGS_NONE, nullptr, image);
+
+    metadata.format = res == S_OK ? GetFormatFromDXGI(image.GetMetadata().format) : Texture_unknown;
+
+    if (metadata.format != Texture_unknown)
+    {
+        const DirectX::TexMetadata& srcMetadata = image.GetMetadata();
+
+        metadata.width = uint(srcMetadata.width);
+        metadata.height = uint(srcMetadata.height);
+        metadata.depth = uint(srcMetadata.depth);
+        metadata.arraySize = uint(srcMetadata.arraySize);
+
+        switch (srcMetadata.dimension)
+        {
+        case DirectX::TEX_DIMENSION_TEXTURE2D:
+        {
+            bool compressed = IsCompressed(metadata.format);
+            uint glInternal = GetGLInternalFormat(metadata.format, space);
+            uint glFormat = GetGLFormat(metadata.format);
+            uint glType = GetGLType(metadata.format);
+
+            if (srcMetadata.IsCubemap()) 
+            {
+                metadata.texType = TextureType_Cube;
+                TextureCube* texture = new TextureCube;
+
+                for (uint32_t i = 0; i < srcMetadata.mipLevels; ++i)
+                {
+                    for (uint32_t j = 0; j < srcMetadata.arraySize; ++j)
+                    {
+                        const DirectX::Image* mip = image.GetImage(i, j, 0);
+
+                        if (compressed)
+                        {
+                            texture->SetCompressedData(j, i, uint(mip->width), uint(mip->height), glInternal, uint(mip->rowPitch * mip->height), mip->pixels);
+                        }
+                        else
+                        {
+                            texture->SetData(j, i, uint(mip->width), uint(mip->height), glInternal, glFormat, glType, mip->pixels);
+                        }
+                    }
+                }
+
+                result = texture;
+            }
+            else 
+            {
+                metadata.texType = TextureType_2D;
+                Texture2D* texture = new Texture2D(GL_TEXTURE_2D);
+
+                for (uint32_t i = 0; i < srcMetadata.mipLevels; ++i)
+                {
+                    const DirectX::Image *mip = image.GetImage(i, 0, 0);
+
+                    if (compressed)
+                    {
+                        texture->SetCompressedData(uint(mip->width), uint(mip->height), i, glInternal, uint(mip->rowPitch * mip->height), mip->pixels);
+                    }
+                    else
+                    {
+                        texture->SetData(uint(mip->width), uint(mip->height), i, glInternal, glFormat, glType, mip->pixels);
+                    }
+                }
+
+                result = texture;
+            }
+            break;
+        }
+        case DirectX::TEX_DIMENSION_TEXTURE3D:
+            {
+                metadata.texType = TextureType_3D;
+                assert(false && "Unsupported texture");
+            }
+            break;
+        default:
+            assert(false && "Unsupported texture dimension");
+            break;
+        }
+
+        metadata.memSize = uint(image.GetPixelsSize());
+    }
+
+    return result;
+}
+
+bool ResourceTexture::LoadCheckers()
+{
+    user_name = "*Checkers Texture Preset*";
+    file = "*Checkers Texture Preset*";
+    exported_file = "*Checkers Texture Preset*";
+
+    // http://www.glprogramming.com/red/chapter09.html
+
+    GLubyte checkImage[CHECKERS_HEIGHT][CHECKERS_WIDTH][4];
+
+    for (int i = 0; i < CHECKERS_HEIGHT; i++) {
+        for (int j = 0; j < CHECKERS_WIDTH; j++) {
+            int c = ((((i & 0x8) == 0) ^ (((j & 0x8)) == 0))) * 255;
+            checkImage[i][j][0] = (GLubyte)c;
+            checkImage[i][j][1] = (GLubyte)c;
+            checkImage[i][j][2] = (GLubyte)c;
+            checkImage[i][j][3] = (GLubyte)255;
+        }
+    }
+
+    metadata.width = CHECKERS_WIDTH;
+    metadata.height = CHECKERS_HEIGHT;
+    metadata.depth = 4;
+    metadata.mipCount = 1;
+    metadata.format = Texture_rgba;
+
+    glTexture = std::make_unique<Texture2D>(CHECKERS_WIDTH, CHECKERS_HEIGHT, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, checkImage, false);
+
+    return true;
+}
+
+bool ResourceTexture::LoadFallback(ResourceTexture* resource, const float3& color)
+{
+    resource->file = "*Fallback Texture Preset*";
+    resource->exported_file = "*Fallback Texture Preset*";
+
+    GLubyte fallbackImage[3] = { GLubyte(255 * color.x), GLubyte(255 * color.y), GLubyte(255 * color.z) };
+
+    uint ImageName = 0;
+
+    resource->metadata.width = 1;
+    resource->metadata.height = 1;
+    resource->metadata.depth = 3;
+    resource->metadata.mipCount = 1; 
+    resource->metadata.format = Texture_bgr;
+
+    resource->glTexture = std::make_unique<Texture2D>(1, 1, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, fallbackImage, false);
+
+    return true;
+}
+
+bool ResourceTexture::LoadRedImage(ResourceTexture* resource, uint width, uint height)
+{
+    if (!resource->glTexture)
+    {
+        resource->glTexture = std::make_unique<Texture2D>(width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+        resource->metadata.texType = TextureType_2D;
+        resource->metadata.width = width;
+        resource->metadata.height = height;
+        resource->metadata.depth = 1;
+        resource->metadata.arraySize = 1;
+        resource->metadata.format = Texture_rgba;
+        resource->colorSpace = ColorSpace_linear;
+    }
+
+    std::unique_ptr<Shader> shader = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/redImage.glsl");
+    std::unique_ptr<Program> program;
+
+    bool ok = shader->Compiled();
+
+    if (ok)
+    {
+        program = std::make_unique<Program>(shader.get());
+        ok = program->Linked();
+    }
+
+    if (ok)
+    {
+        program->Use();
+        program->BindUniform(REDIMAGE_WIDHT_LOCATION, int(width));
+        program->BindUniform(REDIMAGE_HEIGHT_LOCATION, int(height));
+
+        resource->glTexture->BindImage(REDIMAGE_IMAGE_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_RGBA8);
+
+        uint numGroupsX = (width + (REDIMAGE_GROUP_WIDTH - 1)) / REDIMAGE_GROUP_WIDTH;
+        uint numGroupsY = (height + (REDIMAGE_GROUP_HEIGHT - 1)) / REDIMAGE_GROUP_HEIGHT;
+        glDispatchCompute(numGroupsX, numGroupsY, 1);
+        //glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+    }
+
+    return ok;
+}
+
 

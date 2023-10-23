@@ -1,0 +1,215 @@
+{
+  "asset": {
+    "generator": "glTF-Transform v3.7.0",
+    "version": "2.0",
+    "extras": {
+      "created": "Sat Oct 14 19:10:22 2023"
+    }
+  },
+  "accessors": [
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 14805,
+      "bufferView": 0,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 3247,
+      "bufferView": 1,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 3247,
+      "max": [
+        6.011292457580566,
+        13.677887916564941,
+        3.735098123550415
+      ],
+      "min": [
+        -6.011292457580566,
+        0.006881561130285263,
+        -5.938424110412598
+      ],
+      "bufferView": 1,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5126,
+      "count": 3247,
+      "bufferView": 1,
+      "byteOffset": 24
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5126,
+      "count": 3247,
+      "bufferView": 1,
+      "byteOffset": 32
+    },
+    {
+      "type": "VEC4",
+      "componentType": 5126,
+      "count": 3247,
+      "bufferView": 1,
+      "byteOffset": 40
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 29612,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 29612,
+      "byteLength": 181832,
+      "byteStride": 56,
+      "target": 34962
+    }
+  ],
+  "samplers": [
+    {
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 2,
+      "sampler": 0
+    },
+    {
+      "source": 3,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 1,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "DrawersDiffuse",
+      "mimeType": "image/png",
+      "uri": "DrawersDiffuse.png"
+    },
+    {
+      "name": "DrawersSpecular",
+      "mimeType": "image/png",
+      "uri": "DrawersSpecular.png"
+    },
+    {
+      "name": "DrawersNormals",
+      "mimeType": "image/png",
+      "uri": "DrawersNormals.png"
+    },
+    {
+      "name": "DrawersOcclusion",
+      "mimeType": "image/png",
+      "uri": "DrawersOcclusion.png"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "Drawers.bin",
+      "byteLength": 211444
+    }
+  ],
+  "materials": [
+    {
+      "name": "DrawersMaterial",
+      "extras": {
+        "fromFBX": {
+          "isTruePBR": false,
+          "shadingModel": "Phong"
+        }
+      },
+      "pbrMetallicRoughness": {},
+      "normalTexture": {
+        "index": 0,
+        "scale": 3.5
+      },
+      "occlusionTexture": {
+        "index": 1,
+        "strength": 0.6
+      },
+      "extensions": {
+        "KHR_materials_pbrSpecularGlossiness": {
+          "diffuseFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "specularFactor": [
+            0.401983678340912,
+            0.401983678340912,
+            0.401983678340912
+          ],
+          "glossinessFactor": 0.8,
+          "diffuseTexture": {
+            "index": 2
+          },
+          "specularGlossinessTexture": {
+            "index": 3
+          }
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Drawers",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 2,
+            "TEXCOORD_0": 3,
+            "TEXCOORD_1": 4,
+            "TANGENT": 5
+          },
+          "mode": 4,
+          "material": 0,
+          "indices": 0
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "RootNode",
+      "children": [
+        1
+      ]
+    },
+    {
+      "name": "Drawers",
+      "mesh": 0
+    }
+  ],
+  "scenes": [
+    {
+      "name": "Root Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "extensionsUsed": [
+    "KHR_materials_pbrSpecularGlossiness"
+  ]
+}

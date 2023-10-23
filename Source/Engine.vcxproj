@@ -124,7 +124,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnablePREfast>false</EnablePREfast>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>./DirectXTex;./Devil/include;./Bullet/include;./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./DirectXTex;./Devil/include;./Bullet/include;./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;./tinygltf;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
@@ -135,6 +135,7 @@
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <AdditionalLibraryDirectories>./glew-2.1.0/lib/Release/x64;./DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Debug;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);DirectXTex.lib</AdditionalDependencies>
     </Link>
     <PreLinkEvent>
       <Command>copy /Y "$(ProjectDir)Bullet\libx86\*.pdb"  "$(TargetDir)" </Command>
@@ -179,7 +180,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnablePREfast>false</EnablePREfast>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>./DirectXTex;./Devil/include;./Bullet/include;./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./DirectXTex;./Devil/include;./Bullet/include;./assimp/include;./SDL/include;./glew-2.1.0/include;./imgui;./soil2/incs;./NodeEditor/include;./thekla_atlas/extern/poshlib;./thekla_atlas/src/nvmesh;./thekla_atlas/src;./tinygltf;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>NDEBUG;_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <RuntimeTypeInfo>
@@ -194,6 +195,7 @@
       <DelayLoadDLLs>
       </DelayLoadDLLs>
       <AdditionalLibraryDirectories>./glew-2.1.0/lib/Release/x64;./DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);DirectXTex.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -257,7 +259,6 @@
     <ClInclude Include="ComponentSteering.h" />
     <ClInclude Include="ComponentTrail.h" />
     <ClInclude Include="ComponentWithResource.h" />
-    <ClInclude Include="CompressTextureDlg.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="CreateNewMeshDlg.h" />
     <ClInclude Include="CubemapUtils.h" />
@@ -298,7 +299,6 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="ImportAnimationDlg.h" />
-    <ClInclude Include="ImportCubemapDlg.h" />
     <ClInclude Include="ImportModelDlg.h" />
     <ClInclude Include="ImportTextureDlg.h" />
     <ClInclude Include="KawaseBlur.h" />
@@ -380,7 +380,6 @@
     <ClInclude Include="ModuleRenderer.h" />
     <ClInclude Include="ModuleRenderer3D.h" />
     <ClInclude Include="ModuleResources.h" />
-    <ClInclude Include="ModuleTextures.h" />
     <ClInclude Include="NodeEditor\Source\crude_json.h" />
     <ClInclude Include="NodeEditor\Source\imgui_bezier_math.h" />
     <ClInclude Include="NodeEditor\Source\imgui_canvas.h" />
@@ -432,6 +431,7 @@
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="PhysVehicle3D.h" />
+    <ClInclude Include="tinygltf\tiny_gltf.h" />
     <ClInclude Include="tinyspline\include\tinyspline.h" />
     <ClInclude Include="tinyspline\include\tinysplinecpp.h" />
     <ClInclude Include="TubeLight.h" />
@@ -463,7 +463,6 @@
     <ClCompile Include="ComponentSteering.cpp" />
     <ClCompile Include="ComponentTrail.cpp" />
     <ClCompile Include="ComponentWithResource.cpp" />
-    <ClCompile Include="CompressTextureDlg.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="CreateNewMeshDlg.cpp" />
     <ClCompile Include="CubemapUtils.cpp" />
@@ -497,7 +496,6 @@
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="ImportAnimationDlg.cpp" />
-    <ClCompile Include="ImportCubemapDlg.cpp" />
     <ClCompile Include="ImportModelDlg.cpp" />
     <ClCompile Include="ImportTextureDlg.cpp" />
     <ClCompile Include="KawaseBlur.cpp" />
@@ -552,7 +550,6 @@
     <ClCompile Include="ModuleRenderer.cpp" />
     <ClCompile Include="ModuleRenderer3D.cpp" />
     <ClCompile Include="ModuleResources.cpp" />
-    <ClCompile Include="ModuleTextures.cpp" />
     <ClCompile Include="ModuleWindow.cpp" />
     <ClCompile Include="NodeEditor\Source\crude_json.cpp" />
     <ClCompile Include="NodeEditor\Source\imgui_canvas.cpp" />

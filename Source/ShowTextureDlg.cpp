@@ -34,8 +34,8 @@ void ShowTextureDlg::Open(const ResourceMesh* _mesh, ResourceTexture* _texture)
         source->LoadToMemory();
     }
 
-    width     = source->GetWidth();
-    height    = source->GetHeight();
+    width = source->GetMetadata().width;
+    height    = source->GetMetadata().height;
 
     zoom = float(uint(min(CANVAS_SIZE / float(width), CANVAS_SIZE / float(height))*100.0f));
 }
@@ -47,7 +47,7 @@ void ShowTextureDlg::Display()
         ImGui::OpenPopup(open_name.c_str());
         open_flag = false;
 
-        if(source->GetTexType() == ResourceTexture::Texture2D)
+        if(source->GetMetadata().texType == TextureType_2D)
         {
             GeneratePreview();
         }
@@ -109,7 +109,7 @@ void ShowTextureDlg::Display()
         ImGui::EndPopup();
     }
 
-    generate = generate && source->GetTexType() == ResourceTexture::Texture2D;
+    generate = generate && source->GetMetadata().texType == TextureType_2D;
 
     if(generate)
     {
@@ -150,7 +150,7 @@ void ShowTextureDlg::GeneratePreview()
 void ShowTextureDlg::GenerateSourceFB()
 {
     source_fb = std::make_unique<Framebuffer>();
-    assert(source->GetTexType() == ResourceTexture::Texture2D);
+    assert(source->GetMetadata().texType == TextureType_2D);
     source_fb->AttachColor(static_cast<Texture2D*>(source->GetTexture()), 0, 0);
 }
 

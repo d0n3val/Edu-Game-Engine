@@ -1,0 +1,266 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 8478,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4096,
+			"max": [
+				1.02796220779419,
+				1.86871099472046,
+				3.24238061904907
+			],
+			"min": [
+				-1.02796220779419,
+				-4.34875460086914e-07,
+				-3.24238061904907
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4096,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4096,
+			"type": "VEC4"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4096,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 5,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 4096,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sun Oct 15 15:29:12 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 16956,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 49152,
+			"byteOffset": 16956,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 49152,
+			"byteOffset": 66108,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 65536,
+			"byteOffset": 115260,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 32768,
+			"byteOffset": 180796,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 32768,
+			"byteOffset": 213564,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 246332,
+			"uri": "Hearse.bin"
+		}
+	],
+	"extensionsUsed": [
+		"KHR_materials_pbrSpecularGlossiness"
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseTexture": {
+						"index": 0
+					},
+					"glossinessFactor": 1.0,
+					"specularFactor": [
+						1.0,
+						1.0,
+						1.0
+					],
+					"specularGlossinessTexture": {
+						"index": 3
+					}
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "HearseMaterial",
+			"normalTexture": {
+				"index": 1,
+				"scale": 1.0,
+				"texCoord": 0
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Hearse",
+			"primitives": [
+				{
+					"attributes": {
+						"COLOR_0": 3,
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TEXCOORD_0": 4,
+						"TEXCOORD_1": 5
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Hearse",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{},
+		{},
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "HearseDiffuse",
+			"sampler": 1,
+            "source" : 0
+		},
+		{
+			"name": "HearseNormals",
+			"sampler": 2,
+            "source" : 2
+		},
+		{
+			"name": "HearseOcclusion",
+			"sampler": 3,
+            "source" : 3
+		},
+		{
+			"name": "HearseSpecular",
+			"sampler": 4,
+            "source" : 1
+		}
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "HearseDiffuse",
+			"uri": "HearseDiffuse.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "HearseSpecular",
+			"uri": "HearseSpecular.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "HearseNormals",
+			"uri": "HearseNormals.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "HearseOcclusion",
+			"uri": "HearseOcclusion.png"
+		}
+	]
+}

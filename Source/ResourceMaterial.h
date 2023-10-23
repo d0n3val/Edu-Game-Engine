@@ -24,6 +24,8 @@ enum MaterialTexture
     TextureCount
 };
 
+namespace tinygltf { struct Material; class Model; }
+
 class ResourceMaterial : public Resource
 {
 private:
@@ -37,6 +39,7 @@ private:
     UID         textures[TextureCount] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float       smoothness             = 1.0f;
     float       normal_strength        = 1.0f;
+    float       occlusion_strength     = 1.0f; // TODO: Apply
     bool        double_sided           = false;
     float       alpha_test             = 0.0f;
     float2      uv_tiling              = float2(1, 1);
@@ -59,6 +62,7 @@ public:
     bool                    Save                (std::string& output) const;
     bool                    Save                ();
 
+    static UID              Import              (const tinygltf::Model& model, const tinygltf::Material& material, const char* file);
     static UID              Import              (const aiMaterial* material, const char* source_file);
 
     const float4&           GetDiffuseColor     () const { return diffuse_color;}

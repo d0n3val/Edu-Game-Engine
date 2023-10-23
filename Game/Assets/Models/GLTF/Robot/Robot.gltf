@@ -1,0 +1,261 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 12645,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2578,
+			"max": [
+				1.2822744846344,
+				1.64534080028534,
+				3.27008414268494
+			],
+			"min": [
+				-2.90029048919678,
+				-0.00661743152886629,
+				-2.86181664466858
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2578,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2578,
+			"type": "VEC4"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2578,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 5,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2578,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sun Oct 15 17:57:48 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 25290,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 30936,
+			"byteOffset": 25292,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 30936,
+			"byteOffset": 56228,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 41248,
+			"byteOffset": 87164,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 20624,
+			"byteOffset": 128412,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 20624,
+			"byteOffset": 149036,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 169660,
+			"uri": "Robot.bin"
+		}
+	],
+	"extensionsUsed": [
+		"KHR_materials_pbrSpecularGlossiness"
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseTexture": {
+						"index": 0
+					},
+					"specularGlossinessTexture": {
+						"index": 2
+					}
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "RobotMaterial",
+			"normalTexture": {
+				"index": 3
+			},
+			"occlusionTexture": {
+				"index": 1
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Robot",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TANGENT": 3,
+						"TEXCOORD_0": 4,
+						"TEXCOORD_1": 5
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Robot",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{},
+		{},
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "RobotDiffuse",
+			"sampler": 1,
+            "source" : 0
+		},
+		{
+			"name": "RobotOcclusion",
+			"sampler": 2,
+            "source" : 2
+		},
+		{
+			"name": "RobotSpecular",
+			"sampler": 3,
+            "source" : 3
+		},
+		{
+			"name": "RobotNormals",
+			"sampler": 4,
+            "source" : 1
+		}
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "RobotDiffuse",
+			"uri": "RobotDiffuse.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "RobotNormals",
+			"uri": "RobotNormals.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "RobotOcclusion",
+			"uri": "RobotOcclusion.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "RobotSpecular",
+			"uri": "RobotSpecular.png"
+		}
+	]
+}

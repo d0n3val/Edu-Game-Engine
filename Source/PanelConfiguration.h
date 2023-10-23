@@ -46,7 +46,7 @@ public:
 	void DrawModuleInput(ModuleInput * module);
 	void DrawModuleWindow(ModuleWindow * module);
 	void DrawModuleRenderer(ModuleRenderer3D * module);
-	void DrawModuleTextures(ModuleTextures * module);
+	void DrawModuleTextures();
 	void DrawModuleCamera(ModuleEditorCamera * module);
 	void DrawModulePhysics(ModulePhysics3D * module);
 	void DrawModuleLevel(ModuleLevelManager * module);

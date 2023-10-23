@@ -76,6 +76,9 @@
     <Filter Include="Helpers\RenderPasses">
       <UniqueIdentifier>{731faf38-db35-4584-96b7-9cb5730b75ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\tinygltf">
+      <UniqueIdentifier>{f0d6cd88-9115-4484-a959-1b79ec8d0883}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmath.h">
@@ -459,9 +462,6 @@
     <ClInclude Include="ResourceAudio.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleTextures.h">
-      <Filter>Resources\Loaders</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceAnimation.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -663,9 +663,6 @@
     <ClInclude Include="ImportTextureDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="ImportCubemapDlg.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
     <ClInclude Include="ImportModelDlg.h">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -742,9 +739,6 @@
     <ClInclude Include="FogPass.h">
       <Filter>Helpers\RenderPasses</Filter>
     </ClInclude>
-    <ClInclude Include="CompressTextureDlg.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
     <ClInclude Include="SphereLight.h">
       <Filter>Lights</Filter>
     </ClInclude>
@@ -792,6 +786,9 @@
     </ClInclude>
     <ClInclude Include="SpotConePass.h">
       <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="tinygltf\tiny_gltf.h">
+      <Filter>3rd Party\tinygltf</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -977,9 +974,6 @@
     </ClCompile>
     <ClCompile Include="ResourceAudio.cpp">
       <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleTextures.cpp">
-      <Filter>Resources\Loaders</Filter>
     </ClCompile>
     <ClCompile Include="ResourceAnimation.cpp">
       <Filter>Resources</Filter>
@@ -1311,9 +1305,6 @@
     <ClCompile Include="ImportTextureDlg.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="ImportCubemapDlg.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="ImportModelDlg.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -1388,9 +1379,6 @@
     </ClCompile>
     <ClCompile Include="FogPass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="CompressTextureDlg.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="SphereLight.cpp">
       <Filter>Lights</Filter>

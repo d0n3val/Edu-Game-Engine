@@ -4,7 +4,6 @@
 
 #include "Application.h"
 #include "ComponentMeshRenderer.h"
-#include "ModuleTextures.h"
 #include "ModuleRenderer.h"
 #include "ModuleResources.h"
 #include "GameObject.h"
@@ -163,8 +162,8 @@ void GeometryBatch::CreateSkinningBuffers()
 
         for(uint i=0; i < mesh->GetNumVertices(); ++i)
         {
-            const float3& vtx = mesh->src_tangents[i];
-            tangents[offset+i].Set(vtx.x, vtx.y, vtx.z, 0.0);
+            const float4& vtx = mesh->src_tangents[i];
+            tangents[offset+i].Set(vtx.x, vtx.y, vtx.z, vtx.w);
         }
 
         offset += mesh->GetNumVertices();
@@ -320,8 +319,8 @@ void GeometryBatch::CreateVertexBuffers()
 
             for (uint i = 0; i < mesh->GetNumVertices(); ++i)
             {
-                const float3 &vtx = mesh->src_tangents[i];
-                data[offset + i].Set(vtx.x, vtx.y, vtx.z, 0.0);
+                const float4 &vtx = mesh->src_tangents[i];
+                data[offset + i].Set(vtx.x, vtx.y, vtx.z, vtx.w);
             }
 
             offset += mesh->GetNumVertices();

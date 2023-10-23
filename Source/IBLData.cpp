@@ -86,7 +86,7 @@ void IBLData::SetEnvironmentRes(UID uid)
     envRes = 0;
     ResHandle handle(uid);
     ResourceTexture *textureRes = handle.GetPtr<ResourceTexture>();
-    if(textureRes && textureRes->GetTexType() == ResourceTexture::TextureCube)
+    if(textureRes && textureRes->GetMetadata().texType == TextureType_Cube)
     {
         SetEnvironment(static_cast<TextureCube*>(textureRes->GetTexture()));
         envRes = handle;

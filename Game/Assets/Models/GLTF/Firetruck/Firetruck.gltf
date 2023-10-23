@@ -1,0 +1,247 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 12498,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3022,
+			"max": [
+				34.6950988769531,
+				2.298171043396,
+				-9.77925968170166
+			],
+			"min": [
+				30.6934928894043,
+				-0.0103948973119259,
+				-15.41672706604
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3022,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3022,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 3022,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sat Oct 14 19:41:04 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 24996,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 36264,
+			"byteOffset": 24996,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 36264,
+			"byteOffset": 61260,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24176,
+			"byteOffset": 97524,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 24176,
+			"byteOffset": 121700,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 145876,
+			"uri": "Firetruck.bin"
+		}
+	],
+	"extensionsUsed": [
+		"KHR_materials_pbrSpecularGlossiness"
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "FiretruckDiffuse",
+			"uri": "FiretruckDiffuse.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "FiretruckSpecular",
+			"uri": "FiretruckSpecular.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "FiretruckNormals",
+			"uri": "FiretruckNormals.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "FiretruckOcclusion",
+			"uri": "FiretruckOcclusion.png"
+		}
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseTexture": {
+						"index": 0
+					},
+					"specularGlossinessTexture": {
+						"index": 1
+					}
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "FiretruckMaterial",
+			"normalTexture": {
+				"index": 2,
+				"scale": 3.0
+			},
+			"occlusionTexture": {
+				"index": 3,
+                "strength":0.65
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Firetruck",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TEXCOORD_0": 3,
+						"TEXCOORD_1": 4
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Firetruck",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "FiretruckDiffuse",
+			"sampler": 1,
+			"source": 0
+		},
+		{
+			"name": "FiretruckSpecular",
+			"sampler": 2,
+			"source": 1
+		},
+        {
+			"name": "FiretruckNormals",
+			"sampler": 2,
+			"source": 2
+        },
+		{
+			"name": "FiretruckOcclusion",
+			"sampler": 2,
+			"source": 3
+        }
+	]
+}

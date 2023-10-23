@@ -7,7 +7,6 @@
 #include "imgui-filebrowser/imfilebrowser.h"
 #include "ImportAnimationDlg.h"
 #include "ImportTextureDlg.h"
-#include "ImportCubemapDlg.h"
 #include "ImportModelDlg.h"
 #include "ShowTextureDlg.h"
 
@@ -40,7 +39,6 @@ private:
 
     ImportTexturesDlg   textures_dlg;
     ImportAnimationDlg  animation_dlg;
-    ImportCubemapDlg    cubemap_dlg;
     ImportModelDlg      model_dlg;
     ShowTextureDlg      show_texture;
 

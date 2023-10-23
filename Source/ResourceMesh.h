@@ -14,6 +14,7 @@ struct aiMesh;
 struct par_shapes_mesh_s;
 
 namespace Thekla { struct Atlas_Output_Mesh; }
+namespace tinygltf { class Model;  struct Mesh; struct Primitive; }
 
 enum VertexAttribs
 {
@@ -36,7 +37,7 @@ public:
     {
         std::unique_ptr<float3[]> src_vertices;
         std::unique_ptr<float3[]> src_normals;
-        std::unique_ptr<float3[]> src_tangents;
+        std::unique_ptr<float4[]> src_tangents;
         std::unique_ptr<uint[]>   src_indices;
         uint                      num_indices;
     };
@@ -58,6 +59,8 @@ public:
     bool                  Save                ();
     bool                  Save                (std::string& output) const;
     static UID            Import              (const aiMesh* mesh, const char* source_file, float scale);
+    static UID            Import              (const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, 
+                                               const char* source_file, float scale);
 
     static UID            LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks, UID uid);
     static UID            LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
@@ -94,7 +97,7 @@ public:
     const float2*         GetTexCoord0        () const {return src_texcoord0.get(); }
     const float2*         GetTexCoord1        () const {return src_texcoord1.get(); }
     const float3*         GetNormals          () const {return src_normals.get(); }
-    const float3*         GetTangents         () const {return src_tangents.get(); }
+    const float4*         GetTangents         () const {return src_tangents.get(); }
 
     const std::string&    GetName             () const { return name; }
 
@@ -106,6 +109,7 @@ private:
     void                GenerateAttribInfo  ();
     void                GenerateCPUBuffers  (const Thekla::Atlas_Output_Mesh* atlas);
     void                GenerateCPUBuffers  (const aiMesh* mesh, float scale);
+    void                GenerateCPUBuffers  (const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, float scale);
 	void                GenerateCPUBuffers  (par_shapes_mesh_s* shape);
     void                GenerateVBO         ();
     void                GenerateBoneData    (const aiMesh* mesh, float scale);
@@ -135,7 +139,7 @@ public:
     std::unique_ptr<float2[]>    src_texcoord0;
     std::unique_ptr<float2[]>    src_texcoord1;
     std::unique_ptr<float3[]>    src_normals;
-    std::unique_ptr<float3[]>    src_tangents;
+    std::unique_ptr<float4[]>    src_tangents;
 
     std::unique_ptr<unsigned[]>  src_bone_indices;
     std::unique_ptr<float4[]>    src_bone_weights;

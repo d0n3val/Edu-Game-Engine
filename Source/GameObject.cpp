@@ -1,7 +1,6 @@
 #include "Globals.h"
 #include "Application.h"
 #include "GameObject.h"
-#include "ModuleTextures.h"
 #include "ModuleLevelManager.h"
 #include "Component.h"
 #include "ComponentAudioListener.h"

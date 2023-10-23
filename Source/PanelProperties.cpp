@@ -20,7 +20,6 @@
 #include "ComponentDecal.h"
 #include "ComponentSpotCone.h"
 #include "ModuleLevelManager.h"
-#include "ModuleTextures.h"
 #include "ModuleEditor.h"
 #include "ModuleResources.h"
 #include "ModuleFileSystem.h"
@@ -103,7 +102,6 @@ void PanelProperties::Draw()
 
     show_texture.Display();
     selectTexture.Display();
-    compressTexture.Display();
     newMeshDlg.Display();
 }
 
@@ -1225,10 +1223,10 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         if(!convert_fb)
         {
             convert_fb = std::make_unique<Framebuffer>();
-            diffuse    = std::make_unique<Texture2D>(base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
-            specular   = std::make_unique<Texture2D>(base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+            diffuse    = std::make_unique<Texture2D>(base->GetMetadata().width, base->GetMetadata().height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
+            specular   = std::make_unique<Texture2D>(base->GetMetadata().width, base->GetMetadata().height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
             //occlusion  = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
-            depth      = std::make_unique<Texture2D>(base->GetWidth(), base->GetHeight(), GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+            depth      = std::make_unique<Texture2D>(base->GetMetadata().width, base->GetMetadata().height, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
             convert_fb->AttachColor(diffuse.get(), 0);
             convert_fb->AttachColor(specular.get(), 1);
@@ -1238,7 +1236,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
         convert_fb->Bind();
 
-        glViewport(0, 0, base->GetWidth(), base->GetHeight());
+        glViewport(0, 0, base->GetMetadata().width, base->GetMetadata().height);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClearDepth(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1257,12 +1255,12 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
 
         convert_fb->Unbind();
 
-        unsigned* data = new unsigned[base->GetWidth()*base->GetHeight()];
+        unsigned* data = new unsigned[base->GetMetadata().width* base->GetMetadata().height];
 
-        convert_fb->ReadColor(0, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
+        convert_fb->ReadColor(0, 0, 0, base->GetMetadata().width, base->GetMetadata().height, GL_RGBA, data);
         //SOIL_save_image_quality("diffuse.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
 
-        convert_fb->ReadColor(1, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
+        convert_fb->ReadColor(1, 0, 0, base->GetMetadata().width, base->GetMetadata().height, GL_RGBA, data);
         //SOIL_save_image_quality("specular.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
 
         //convert_fb->ReadColor(2, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
@@ -1289,7 +1287,7 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
     if(texture != nullptr)
     {
 		ImGui::PushID(texture);
-        if(texture->GetTexType() == ResourceTexture::Texture2D && ImGui::ImageButton(ImTextureID(size_t(texture->GetID())), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
+        if(texture->GetMetadata().texType == TextureType_2D && ImGui::ImageButton(ImTextureID(size_t(texture->GetID())), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
 
@@ -1312,40 +1310,23 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
 
         std::string file;
         App->fs->SplitFilePath(texture->GetFile(), nullptr, &file);
-
+#if 0
         ImGui::Text("%s", file.c_str());
         ImGui::Text("(%u,%u) %s (%u Kb) %s", texture->GetWidth(), texture->GetHeight(), texture->GetFormatStr(), texture->GetMemSize() >> 10, texture->IsCompressed() ? "compressed" : "");
+#endif 
         ImGui::PopStyleColor();
-
-        ImGui::SameLine();
-        if (!texture->IsCompressed())
-        {
-            ImGui::PushID(name);
-            if(ImGui::Button("Compress"))
-            {
-                compressTexture.Open(uniqueId);
-            }
-            ImGui::PopID();
-        }
-
-        ImGui::PushID(name);
-        bool mips = texture->GetMipmaps();
-        if(ImGui::Checkbox("Mipmaps", &mips))
-        {
-            modified = true;
-            texture->GenerateMipmaps(mips);
-        }
-        ImGui::PopID();
 
         ImGui::SameLine();
         char tmp[128];
         sprintf_s(tmp, 127, "%sLinear", name);
         ImGui::PushID(tmp);
-        bool gamma = texture->GetColorSpace() == ResourceTexture::gamma;
+        bool gamma = texture->GetColorSpace() == ColorSpace_gamma;
         if(ImGui::Checkbox("sRGB", &gamma))
         {
             modified = true;
-            texture->SetColorSpace(gamma ? ResourceTexture::gamma : ResourceTexture::linear);
+            texture->SetColorSpace(gamma ? ColorSpace_gamma : ColorSpace_linear);
+            texture->ReleaseFromMemory();
+            texture->LoadInMemory();
         }
         ImGui::PopID();
 
@@ -1388,12 +1369,6 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
     {
         res = selectTexture.GetResource();
         selectTexture.ClearSelection();
-    }
-
-    if (compressTexture.HasSelection(uniqueId))
-    {
-        texture->Compress(ResourceTexture::CompressType(compressTexture.GetType()));
-        compressTexture.ClearSelection();
     }
 
     return res;
@@ -1619,7 +1594,7 @@ void PanelProperties::DrawSpotConeComponent(ComponentSpotCone *spotCone)
     }
 
     float transparency = spotCone->getTransparency();
-    if(ImGui::DragFloat("Transparency", &transparency, 0.01, 0.0, 1.0))
+    if(ImGui::DragFloat("Transparency", &transparency, 0.01f, 0.0f, 1.0f))
     {
         spotCone->setTransparency(transparency);
     }
@@ -1842,22 +1817,19 @@ void DrawLineComponent(ComponentLine* component)
 
             std::string file;
             App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
-
+#if 0
             ImGui::Text("%s", file.c_str());
             ImGui::Text("(%u,%u) %s %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->IsCompressed() ? "compressed" : "");
+#endif
             ImGui::PopStyleColor();
 
-            bool mips = info->GetMipmaps();
-            if(ImGui::Checkbox("Mipmaps", &mips))
-            {
-                info->GenerateMipmaps(mips);
-            }
-
             ImGui::SameLine();
-            bool linear = info->GetColorSpace() == ResourceTexture::linear;
+            bool linear = info->GetColorSpace() == ColorSpace_linear;
             if(ImGui::Checkbox("sRGB", &linear))
             {
-                info->SetColorSpace(linear ? ResourceTexture::linear : ResourceTexture::gamma);
+                info->SetColorSpace(linear ? ColorSpace_linear : ColorSpace_gamma);
+                info->ReleaseFromMemory();
+                info->LoadInMemory();
             }
 
             if(ImGui::SmallButton("Delete"))
@@ -2005,21 +1977,17 @@ void DrawTrailComponent(ComponentTrail* component)
             std::string file;
             App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
 
+#if 0
             ImGui::Text("%s", file.c_str());
             ImGui::Text("(%u,%u) %s %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->IsCompressed() ? "compressed" : "");
+#endif 
             ImGui::PopStyleColor();
 
-            bool mips = info->GetMipmaps();
-            if(ImGui::Checkbox("Mipmaps", &mips))
-            {
-                info->GenerateMipmaps(mips);
-            }
-
             ImGui::SameLine();
-            bool linear = info->GetColorSpace() == ResourceTexture::linear;
+            bool linear = info->GetColorSpace() == ColorSpace_linear;
             if(ImGui::Checkbox("sRGB", &linear))
             {
-                info->SetColorSpace(linear ? ResourceTexture::linear : ResourceTexture::gamma);
+                info->SetColorSpace(linear ? ColorSpace_linear : ColorSpace_gamma);
             }
 
             if(ImGui::SmallButton("Delete"))
@@ -2125,22 +2093,17 @@ void PanelProperties::DrawParticleSystemComponent(ComponentParticleSystem* compo
 
             std::string file;
             App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
-
+#if 0
             ImGui::Text("%s", file.c_str());
             ImGui::Text("(%u,%u) %s %s", info->GetWidth(), info->GetHeight(), info->GetFormatStr(), info->IsCompressed() ? "compressed" : "");
+#endif 
             ImGui::PopStyleColor();
 
-            bool mips = info->GetMipmaps();
-            if(ImGui::Checkbox("Mipmaps", &mips))
-            {
-                info->GenerateMipmaps(mips);
-            }
-
             ImGui::SameLine();
-            bool linear = info->GetColorSpace() != ResourceTexture::linear;
+            bool linear = info->GetColorSpace() != ColorSpace_linear;
             if(ImGui::Checkbox("sRGB", &linear))
             {
-                info->SetColorSpace(linear ? ResourceTexture::gamma : ResourceTexture::linear);
+                info->SetColorSpace(linear ? ColorSpace_gamma : ColorSpace_linear);
             }
 
             if(ImGui::SmallButton("Delete"))

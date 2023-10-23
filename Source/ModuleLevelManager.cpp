@@ -537,6 +537,9 @@ GameObject* ModuleLevelManager::AddModel(UID id)
                 }
 
                 mesh->SetRootUID(gos[0]->GetUID());
+
+                mesh->SetBatchName(HashString("default"));
+
                 go->components.push_back(mesh);
             }
         }

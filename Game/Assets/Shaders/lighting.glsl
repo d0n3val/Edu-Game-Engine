@@ -301,7 +301,7 @@ vec3 parallaxCorrection(const vec3 localPos, const vec3 localR, const vec3 minBo
     return localPos+localR*dist;
 }
 
-vec3 evaluateIBL(in PBR pbr, in samplerCube difIBL, in samplerCube prefIBL, in float roughness, in float NdotV, in vec3 R, in vec3 coord, in vec4 planarColor)
+vec3 evaluateIBL(in PBR pbr, in samplerCube difIBL, in samplerCube prefIBL, in float roughness, in float NdotV, in vec3 coord, in vec4 planarColor)
 {
     vec3 irradiance = texture(difIBL, pbr.normal).rgb;
     vec3 radiance   = mix(textureLod(prefIBL, coord, roughness*(prefilteredLevels-1)).rgb, planarColor.rgb, planarColor.a);
@@ -344,14 +344,14 @@ vec3 ShadingAmbientIBL(in PBR pbr, in vec4 planarColor)
 
             vec3 localR = mat3(ibl.toLocal)*R;
             vec3 coord = parallaxCorrection(localPos, localR, ibl.minParallax.xyz, ibl.maxParallax.xyz);
-            color += evaluateIBL(pbr, ibl.diffuse, ibl.prefiltered, roughness, NdotV, R, coord, planarColor)*weight;
+            color += evaluateIBL(pbr, ibl.diffuse, ibl.prefiltered, roughness, NdotV, coord, planarColor)*weight;
             totalWeight += weight;
         }
     }
 
     if(totalWeight == 0.0)
     {
-        color = evaluateIBL(pbr, diffuseIBL, prefilteredIBL, roughness, NdotV, R, R, planarColor);
+        color = evaluateIBL(pbr, diffuseIBL, prefilteredIBL, roughness, NdotV, R, planarColor);
     }
     else
     {

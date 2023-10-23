@@ -1,0 +1,240 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 2256,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 451,
+			"max": [
+				0.343993216753006,
+				1.4780193567276,
+				-12.9749603271484
+			],
+			"min": [
+				-1.00392174720764,
+				0.00159271236043423,
+				-14.525218963623
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 451,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 451,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 451,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sun Oct 15 18:03:05 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Community",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 4512,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 5412,
+			"byteOffset": 4512,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 5412,
+			"byteOffset": 9924,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 3608,
+			"byteOffset": 15336,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 3608,
+			"byteOffset": 18944,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 22552,
+			"uri": "SpinningTop.bin"
+		}
+	],
+	"extensionsUsed": [
+		"KHR_materials_pbrSpecularGlossiness"
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"extensions": {
+				"KHR_materials_pbrSpecularGlossiness": {
+					"diffuseTexture": {
+						"index": 0
+					},
+					"glossinessFactor": 0.5,
+					"specularFactor": [
+						0.327779054641724,
+						0.327779054641724,
+						0.327779054641724
+					]
+				}
+			},
+			"extras": {
+				"fromFBX": {
+					"isTruePBR": false,
+					"shadingModel": "Phong"
+				}
+			},
+			"name": "SpinningTopMaterial",
+			"normalTexture": {
+				"index": 1,
+				"scale": 2.0
+			},
+			"occlusionTexture": {
+				"index": 2
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "SpinningTop",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TEXCOORD_0": 3,
+						"TEXCOORD_1": 4
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "SpinningTop",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"samplers": [
+		{},
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "SpinningTopDiffuse",
+			"sampler": 1,
+            "source" : 0
+		},
+		{
+			"name": "SpinningTopNormals",
+			"sampler": 2,
+            "source" : 1
+		},
+		{
+			"name": "SpinningTopOcclusion",
+			"sampler": 3,
+            "source" : 2
+		}
+	],
+	"images": [
+		{
+			"mimeType": "image/png",
+			"name": "SpinningTopDiffuse",
+			"uri": "SpinningTopDiffuse.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "SpinningTopNormals",
+			"uri": "SpinningTopNormals.png"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "SpinningTopOcclusion",
+			"uri": "SpinningTopOcclusion.png"
+		}
+	]
+}

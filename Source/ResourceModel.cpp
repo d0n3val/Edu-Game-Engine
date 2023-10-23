@@ -1,3 +1,11 @@
+#include "Globals.h"
+
+#define TINYGLTF_NO_STB_IMAGE_WRITE
+#define TINYGLTF_NO_STB_IMAGE
+#define TINYGLTF_NO_EXTERNAL_IMAGE 
+#define TINYGLTF_IMPLEMENTATION
+#include "tiny_gltf.h"
+
 #include "ResourceModel.h"
 
 #include "Application.h"
@@ -201,29 +209,141 @@ void ResourceModel::SaveToStream(simple::mem_ostream<std::true_type>& write_stre
     }
 }
 
-
-bool ResourceModel::Import(const char* full_path, float scale, std::string& output)
+void ResourceModel::GenerateMeshes(const tinygltf::Model& model, const char* full_path, const std::vector<UID>& materials, 
+                                   std::multimap<uint, MeshRenderer>& meshes, float scale)
 {
-	unsigned flags = aiProcess_CalcTangentSpace | \
-		aiProcess_GenSmoothNormals | \
-		aiProcess_JoinIdenticalVertices | \
-		aiProcess_ImproveCacheLocality | \
-		aiProcess_LimitBoneWeights | \
-		aiProcess_SplitLargeMeshes | \
-		aiProcess_Triangulate | \
-		aiProcess_GenUVCoords | \
-		aiProcess_SortByPType | \
-		aiProcess_FindDegenerates | \
-		aiProcess_FindInvalidData | 
-		0;
-	
-	aiString assimp_path;
-	assimp_path.Append(full_path);
+    for (size_t i=0, count = model.meshes.size(); i< count; ++i)
+    {
+        const tinygltf::Mesh& srcMesh = model.meshes[i];
 
-	const aiScene* scene = aiImportFile(assimp_path.data, flags);
+        for (const auto& primitive : srcMesh.primitives)
+        {
+            UID material = primitive.material >= 0 ? materials[primitive.material] : 0;
 
-	if (scene)
-	{
+            MeshRenderer renderer = { ResourceMesh::Import(model, srcMesh, primitive, full_path, scale), material };
+            
+            meshes.insert({ uint(i), renderer});
+        }
+    }
+}
+
+void ResourceModel::GenerateMaterials(const tinygltf::Model& model, const char* file, std::vector<UID>& materials)
+{
+    materials.reserve(model.materials.size());
+
+    for (const auto& srcMaterial : model.materials)
+    {
+        materials.push_back(ResourceMaterial::Import(model, srcMaterial, file));
+    }
+}
+
+void ResourceModel::GenerateNodes(const tinygltf::Model& model, int nodeIndex, int parentIndex, const std::multimap<uint, MeshRenderer>& meshes, const std::vector<UID>& materials, float scale)
+{
+    const tinygltf::Node& node = model.nodes[nodeIndex];
+
+    float4x4 local = float4x4::identity;
+
+    if (node.matrix.size() == 16)
+    {
+        float* ptr = reinterpret_cast<float*>(&local);  
+        for(uint i=0; i< 16; ++i) ptr[i] = float(node.matrix[i]);
+
+        local.Transpose();
+    }
+    else
+    {
+        float3 translation = float3::zero;
+        float3 scale = float3::one;
+        Quat rotation = Quat::identity;
+
+        if (node.translation.size() == 3) translation = float3(float(node.translation[0]), float(node.translation[1]), float(node.translation[2])) * scale;
+        if (node.rotation.size() == 4) rotation = Quat(float(node.rotation[0]), float(node.rotation[1]), float(node.rotation[2]), float(node.rotation[3]));
+        if (node.scale.size() == 3) scale = float3(float(node.scale[0]), float(node.scale[1]), float(node.scale[2]));
+
+        local = float4x4::FromTRS(translation, rotation, scale);
+    }
+
+    Node dst;
+    dst.transform = local;
+    dst.name = node.name;
+    dst.parent = parentIndex;
+
+    if (node.mesh >= 0)
+    {        
+        for (auto it = meshes.lower_bound(node.mesh); it != meshes.end() && it->first == node.mesh; ++it)
+        {
+            dst.renderers.push_back(it->second);
+        }
+    }
+
+    parentIndex = uint(nodes.size());
+
+    nodes.push_back(std::move(dst));
+
+    for (int childIndex : node.children)
+    {
+        GenerateNodes(model, childIndex, parentIndex, meshes, materials, scale);
+    }
+}
+
+bool ResourceModel::ImportGLTF(const char* full_path, float scale, std::string& output)
+{
+    tinygltf::TinyGLTF gltfContext;
+    tinygltf::Model model;
+    std::string error, warning;
+
+    if (gltfContext.LoadASCIIFromFile(&model, &error, &warning, full_path))
+    {
+        ResourceModel m(0);
+
+        std::vector<UID> materials;
+        std::multimap<uint, MeshRenderer> meshes;
+
+        m.GenerateMaterials(model, full_path, materials);
+        m.GenerateMeshes(model, full_path, materials, meshes, scale);
+       
+        m.nodes.reserve(model.nodes.size());
+
+        for (const tinygltf::Scene& scene : model.scenes)
+        {
+            for (int root : scene.nodes)
+            {
+                m.GenerateNodes(model, root, int(m.nodes.size()), meshes, materials, scale);
+            }
+        }
+
+
+        //aiReleaseImport(scene);
+
+        return m.Save(output);
+
+    }
+
+    return false;
+}
+
+bool ResourceModel::ImportAssimp(const char* full_path, float scale, std::string& output)
+{
+    unsigned flags = aiProcess_CalcTangentSpace | \
+        aiProcess_GenSmoothNormals | \
+        aiProcess_JoinIdenticalVertices | \
+        aiProcess_ImproveCacheLocality | \
+        aiProcess_LimitBoneWeights | \
+        aiProcess_SplitLargeMeshes | \
+        aiProcess_Triangulate | \
+        aiProcess_GenUVCoords | \
+        aiProcess_SortByPType | \
+        aiProcess_FindDegenerates | \
+        aiProcess_FindInvalidData |
+        0;
+
+    aiString assimp_path;
+    assimp_path.Append(full_path);
+
+    const aiScene* scene = aiImportFile(assimp_path.data, flags);
+
+    if (scene)
+    {
         ResourceModel m(0);
 
         std::vector<UID> materials, meshes;
@@ -236,7 +356,12 @@ bool ResourceModel::Import(const char* full_path, float scale, std::string& outp
         return m.Save(output);
     }
 
-	return false;
+    return false;
+}
+
+bool ResourceModel::Import(const char* full_path, float scale, std::string& output)
+{
+    return ImportGLTF(full_path, scale, output) || ImportAssimp(full_path, scale, output);
 }
 
 void ResourceModel::GenerateMaterials(const aiScene* scene, const char* file, std::vector<UID>& materials)

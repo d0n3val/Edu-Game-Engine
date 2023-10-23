@@ -52,6 +52,7 @@ void main()
     sampleSSAO(pbr);
 
     pbr.shadow = computeShadow(pbr.position);
+    pbr.shadow = 1.0;
 
     color = ShadingNoPoint(pbr);
 }

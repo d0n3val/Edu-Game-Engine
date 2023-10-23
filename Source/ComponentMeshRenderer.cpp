@@ -300,7 +300,7 @@ void ComponentMeshRenderer::UpdateCPUMorphTargets() const
                 for(uint i=0; i< mesh->GetNumMorphTargets(); ++i)
                 {
                     const ResourceMesh::MorphData& morph_target = mesh->GetMorphTarget(i);
-
+                    /* TODO
                     if (morph_weights[i] > 0.0f)
                     {
                         for(uint j=0; j< morph_target.num_indices; ++j)
@@ -310,6 +310,7 @@ void ComponentMeshRenderer::UpdateCPUMorphTargets() const
                             tangents[index].Normalize();
                         }
                     }
+                    */
                 }
 
                 glUnmapBuffer(GL_ARRAY_BUFFER);

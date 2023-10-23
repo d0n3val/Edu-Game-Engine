@@ -85,7 +85,7 @@ struct VertexOut
     vec2 uv0;
     vec2 uv1;
     vec3 normal;
-    vec3 tangent;
+    vec4 tangent;
     vec3 position;
 };
 
@@ -272,10 +272,10 @@ vec4 Shading(const in vec3 pos, const in vec3 normal)
     return vec4(color, diffuseColor.a); 
 }
 
-mat3 CreateTBN(const vec3 normal, const vec3 tangent)
+mat3 CreateTBN(const vec3 normal, const vec4 tangent)
 {
-    vec3 ortho_tangent = normalize(tangent-dot(tangent, normal)*normal); // skinning forces this
-    vec3 bitangent     = cross(normal, ortho_tangent);
+    vec3 ortho_tangent = normalize(vec3(tangent)-dot(vec3(tangent), normal)*normal); // skinning forces this
+    vec3 bitangent     = tangent.w*cross(normal, ortho_tangent);
 
     return mat3(tangent, bitangent, normal);
 }
@@ -288,7 +288,7 @@ vec3 GetNormal()
         normal.xy *= material.normalStrength;
         normal = normalize(normal);
 
-        mat3 tbn = CreateTBN(normalize(fragment.normal), normalize(fragment.tangent));
+        mat3 tbn = CreateTBN(fragment.normal, fragment.tangent);
         return normalize(tbn*normal);
     }
 
