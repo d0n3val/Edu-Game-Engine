@@ -14,6 +14,10 @@
 #include <memory>
 #include <assert.h>
 
+#ifdef max
+#undef max
+#endif 
+
 //  Create checkerboard texture  
 #define CHECKERS_WIDTH 64
 #define CHECKERS_HEIGHT 64
@@ -183,14 +187,14 @@ void ResourceTexture::Load(const Config & config)
 
 }
 
-bool ResourceTexture::Import(const char* file, std::string& output_file, bool toCubemap)
+bool ResourceTexture::Import(const char* file, std::string& output_file, bool generateCubemap, bool generateMipmaps)
 {
 	std::string sFile(file);
 
 	char* buffer = nullptr;
 	uint size = App->fs->Load(file, &buffer);
 
-    bool ret = Import(buffer, size, output_file, toCubemap);
+    bool ret = Import(buffer, size, output_file, generateCubemap, generateMipmaps);
 
     if (ret == false)
     {
@@ -200,12 +204,12 @@ bool ResourceTexture::Import(const char* file, std::string& output_file, bool to
     return ret;
 }
 
-bool ResourceTexture::Import(const void * buffer, uint size, std::string& output_file, bool toCubemap)
+bool ResourceTexture::Import(const void * buffer, uint size, std::string& output_file, bool generateCubemap, bool generateMipmaps)
 {
-    return toCubemap ? ImportToCubemap(buffer, size, output_file) : Import(buffer, size, output_file);
+    return generateCubemap ? ImportToCubemap(buffer, size, output_file, generateMipmaps) : ImportNoConvert(buffer, size, output_file, generateMipmaps);
 }
 
-bool ResourceTexture::Import(const void * buffer, uint size, std::string& output_file)
+bool ResourceTexture::ImportNoConvert(const void * buffer, uint size, std::string& output_file, bool generateMipmaps)
 {   
 	bool ret = buffer != nullptr;
 
@@ -216,12 +220,19 @@ bool ResourceTexture::Import(const void * buffer, uint size, std::string& output
     if (ret)
     {
 
-        DirectX::ScratchImage image, fliped, converted;
+        DirectX::ScratchImage image, imageMips;
         DirectX::ScratchImage* result = &image;
         HRESULT res = DirectX::LoadFromDDSMemory(buffer, size, DirectX::DDS_FLAGS_NONE, nullptr, image);
         if (res != S_OK) res = DirectX::LoadFromHDRMemory(buffer, size, nullptr, image);
         if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, size, DirectX::TGA_FLAGS_NONE, nullptr, image);
         if (res != S_OK) res = DirectX::LoadFromWICMemory(buffer, size, DirectX::WIC_FLAGS_NONE, nullptr, image);
+
+        if (res == S_OK && generateMipmaps)
+        {
+            uint32_t levels = uint32_t(std::log2(std::max(result->GetMetadata().width, result->GetMetadata().height)));
+            res = DirectX::GenerateMipMaps(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::TEX_FILTER_DEFAULT, levels, imageMips);
+            result = &imageMips;
+        }
 
         if (res == S_OK)
         {
@@ -249,7 +260,7 @@ bool ResourceTexture::Import(const void * buffer, uint size, std::string& output
 	return ret;
 }
 
-bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string& output_file)
+bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string& output_file, bool generateMipmaps)
 {
 	bool ret = buffer  != nullptr;
     uint8_t* output_buffer = nullptr;
@@ -270,7 +281,8 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
 
         tmpBuffer.resize(512 * 512 * 3);
 
-        DirectX::ScratchImage image;
+        DirectX::ScratchImage image, imageMips;
+        DirectX::ScratchImage* result = &image;
 
         image.InitializeCube(DXGI_FORMAT_R32G32B32_FLOAT, 511, 512, 1, 1);
 
@@ -284,8 +296,15 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
             output_size += uint(sizeof(uint32_t) + sideData[i].size());
         }
 
+        if (generateMipmaps)
+        {
+            uint32_t levels = uint32_t(std::log2(std::max(result->GetMetadata().width, result->GetMetadata().height)));
+            DirectX::GenerateMipMaps(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::TEX_FILTER_DEFAULT, levels, imageMips);
+            result = &imageMips;
+        }
+
         DirectX::Blob blob;
-        ret = DirectX::SaveToDDSMemory(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
+        ret = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
 
         if (ret == S_OK)
         {
@@ -331,6 +350,8 @@ Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, Textu
 
     metadata.format = res == S_OK ? GetFormatFromDXGI(image.GetMetadata().format) : Texture_unknown;
 
+    // TODO: Sampler parameters when using mipmaps
+
     if (metadata.format != Texture_unknown)
     {
         const DirectX::TexMetadata& srcMetadata = image.GetMetadata();
@@ -371,6 +392,12 @@ Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, Textu
                     }
                 }
 
+                if (srcMetadata.mipLevels > 1)
+                {
+                    texture->SetMinMaxFiler(GL_NEAREST_MIPMAP_NEAREST, GL_LINEAR);
+                    texture->SetTextureLodLevels(0, uint(srcMetadata.mipLevels - 1));
+                }
+
                 result = texture;
             }
             else 
@@ -390,6 +417,12 @@ Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, Textu
                     {
                         texture->SetData(uint(mip->width), uint(mip->height), i, glInternal, glFormat, glType, mip->pixels);
                     }
+                }
+
+                if (srcMetadata.mipLevels > 1)
+                {
+                    texture->SetMinMaxFiler(GL_NEAREST_MIPMAP_NEAREST, GL_LINEAR);
+                    texture->SetTextureLodLevels(0, uint(srcMetadata.mipLevels-1));
                 }
 
                 result = texture;

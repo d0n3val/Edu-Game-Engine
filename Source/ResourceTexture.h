@@ -99,8 +99,8 @@ public:
 	
     void                    SetColorSpace   (ColorSpace space) { colorSpace = space;}
     
-	static bool             Import(const char* file, std::string& output_file, bool toCubemap);
-	static bool             Import(const void* buffer, uint size, std::string& output_file, bool toCubemap);
+	static bool             Import(const char* file, std::string& output_file, bool generateCubemap, bool generateMipmaps);
+	static bool             Import(const void* buffer, uint size, std::string& output_file, bool toCubemap, bool generateMipmaps);
 
     bool                    LoadFromBuffer(const void* buffer, uint size, ColorSpace space);
     bool                    LoadCheckers();
@@ -113,8 +113,8 @@ public:
 
 private:
 
-	static bool Import(const void* buffer, uint size, std::string& output_file);
-    static bool ImportToCubemap(const void* buffer, uint size, std::string& output_file);
+	static bool ImportNoConvert(const void* buffer, uint size, std::string& output_file, bool generateMipmaps);
+    static bool ImportToCubemap(const void* buffer, uint size, std::string& output_file, bool generateMipmaps);
 
     static Texture* TextureFromMemory(const void* buffer, uint size, TextureMetadata& metadata, ColorSpace space);
 

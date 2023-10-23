@@ -350,7 +350,7 @@ UID ModuleResources::ImportFile(const char * new_file_in_assets, Resource::Type 
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = ResourceTexture::Import(new_file_in_assets, written_file, false);
+			import_ok = ResourceTexture::Import(new_file_in_assets, written_file, false, false);
 		break;
 		case Resource::audio:
 			import_ok = App->audio->Import(new_file_in_assets, written_file);
@@ -382,7 +382,7 @@ UID ModuleResources::ImportTexture(const char* file_name, bool mipmaps, bool srg
     bool import_ok = false;
     string written_file;
 
-    import_ok = ResourceTexture::Import(file_name, written_file, toCubemap);
+    import_ok = ResourceTexture::Import(file_name, written_file, toCubemap, mipmaps);
 
 	// If export was successfull, create a new resource
 	if (import_ok == true)
@@ -490,7 +490,7 @@ UID ModuleResources::ImportBuffer(const void * buffer, uint size, Resource::Type
 	switch (type)
 	{
 		case Resource::texture:
-			import_ok = ResourceTexture::Import(buffer, size, output, false);
+			import_ok = ResourceTexture::Import(buffer, size, output, false, false);
 		break;
 		case Resource::mesh:
 			// Old school trick: if it is a Mesh, buffer will be treated as an AiMesh*

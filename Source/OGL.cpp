@@ -31,7 +31,7 @@ void Texture::DefaultInitializeTexture(bool mipmaps)
         glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 1000);
-        glTexParameteri(tex_target, GL_TEXTURE_MAX_ANISOTROPY, 1);
+        //glTexParameteri(tex_target, GL_TEXTURE_MAX_ANISOTROPY, 1);
         glGenerateMipmap(tex_target);
     }
     else
@@ -40,7 +40,7 @@ void Texture::DefaultInitializeTexture(bool mipmaps)
         glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         //glTexParameteri(tex_target, GL_TEXTURE_BASE_LEVEL, 0);
         //glTexParameteri(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
-        glTexParameteri(tex_target, GL_TEXTURE_MAX_ANISOTROPY, 1);
+        //glTexParameteri(tex_target, GL_TEXTURE_MAX_ANISOTROPY, 1);
     }
 
     glTexParameteri(tex_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
