@@ -27,7 +27,7 @@ private:
         char**          macros        = nullptr;
         unsigned        num_macros    = 0;
         unsigned        num_bindings  = 0;
-        mutable char**  data          = nullptr;
+        mutable const char**  data    = nullptr;
         bool            add_version   = true;
     };
 
@@ -64,7 +64,7 @@ public:
 
 private:
 
-	void  Compile           (char** data, char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros, bool version) const;
+	void  Compile           (const char** data, char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros, bool version) const;
     char* LoadFile          (const char* file_name);
 };
 

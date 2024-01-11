@@ -266,7 +266,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const unsigned num_gaussian_macros  = sizeof(gaussian_macros)/sizeof(const char*);
 
     App->programs->Load("gaussian", "Assets/Shaders/postprocess.vs", "Assets/Shaders/gaussian.fs", gaussian_macros, num_gaussian_macros);
-    App->programs->Load("chebyshev", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/chebyshev.fs", nullptr, 0, nullptr);
+    App->programs->Load("chebyshev", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/chebyshev.fs", nullptr, 0, true);
 
     const char* bloom_macros[]       = { "#define MSAA 1 \n" }; 
     const unsigned num_bloom_macros  = sizeof(bloom_macros)/sizeof(const char*);

@@ -193,6 +193,23 @@ bool ComponentMeshRenderer::SetMaterialRes(UID uid)
     return false;
 }
 
+bool ComponentMeshRenderer::SetSkinInfo(const ResourceModel::Skin& skin, GameObject** gos)
+{
+    rootGO = skin.rootNode >= 0 ? gos[skin.rootNode] : nullptr;
+    numBones = uint32_t(skin.bones.size());
+    bones = std::make_unique<Bone[]>(numBones);
+
+    uint32_t index = 0;
+    for (const ResourceModel::SkinBone& srcBone : skin.bones)
+    {
+        Bone& bone = bones[index++];
+        bone.go = gos[srcBone.nodeIdx];
+        bone.bind = srcBone.bind;
+    }
+
+    return true;
+}
+
 const ResourceMaterial* ComponentMeshRenderer::GetMaterialRes () const
 {
     return static_cast<const ResourceMaterial*>(App->resources->Get(material_resource));
@@ -208,35 +225,17 @@ ResourceMaterial* ComponentMeshRenderer::GetMaterialRes ()
 void ComponentMeshRenderer::UpdateSkinPalette(float4x4* palette) const
 {
     ResourceMesh* mesh = static_cast<ResourceMesh*>(App->resources->Get(mesh_resource));
-    const GameObject* root   = GetGameObject();
 
-    while(root != nullptr && root->GetUID() != root_uid)
-    {
-        root = root->GetParent();
-    }
-
-	if(mesh && mesh->num_bones > 0)
+	if(numBones > 0)
 	{
-        float4x4 rootT = root->GetGlobalTransformation().Inverted();
+        float4x4 rootT = rootGO->GetGlobalTransformation().Inverted();
 
-		for(unsigned i=0; i < mesh->num_bones; ++i)
+		for(unsigned i=0; i < numBones; ++i)
 		{
-			const ResourceMesh::Bone& bone = mesh->bones[i];
-			const GameObject* bone_node    = node_cache[i];
+            const Bone& bone = bones[i];
+            const GameObject* bone_node = bone.go;
 
-            if(bone_node == nullptr)
-            {
-                bone_node = node_cache[i] = root ? root->FindChild(bone.name.C_str(), true) : nullptr;
-            }
-
-            if(bone_node)
-            {
-                palette[i] = rootT*bone_node->GetGlobalTransformation() *bone.bind;
-            }
-            else
-            {
-                palette[i] = float4x4::identity;
-            }
+            palette[i] = bone_node ? rootT*bone_node->GetGlobalTransformation()*bone.bind : float4x4::identity;
         }
     }
 

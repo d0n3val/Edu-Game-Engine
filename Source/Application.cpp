@@ -18,6 +18,7 @@
 #include "Event.h"
 #include "Config.h"
 #include "ThreadPool.h"
+#include "GameObject.h"
 
 using namespace std;
 
@@ -93,15 +94,19 @@ bool Application::Init()
 	// We init everything, even if not anabled
 	for (list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
-		ret = (*it)->Init(&(config.GetSection((*it)->GetName()))); 
+        Config section = config.GetSection((*it)->GetName());
+		ret = (*it)->Init(&section); 
 	}
 
 	// Another round, just before starting the Updates. Only called for "active" modules
 	// we send the configuration again in case a module needs it
 	for(list<Module*>::iterator it = modules.begin(); it != modules.end() && ret; ++it)
 	{
-		if((*it)->IsActive() == true)
-			ret = (*it)->Start(&(config.GetSection((*it)->GetName()))); 
+        if ((*it)->IsActive() == true)
+        {
+            Config section = config.GetSection((*it)->GetName());
+            ret = (*it)->Start(&section);
+        }
 	}
 
 	RELEASE_ARRAY(buffer);
@@ -304,10 +309,14 @@ void Application::SavePrefs() const
 {
 	Config config;
 
-	SaveConfiguration(config.AddSection("App"));
+    Config appCfg = config.AddSection("App");
+	SaveConfiguration(appCfg);
 
-	for (list<Module*>::const_iterator it = modules.begin(); it != modules.end(); ++it)
-		(*it)->Save(&config.AddSection((*it)->GetName()));
+    for (list<Module*>::const_iterator it = modules.begin(); it != modules.end(); ++it)
+    {
+        Config section = config.AddSection((*it)->GetName());
+        (*it)->Save(&section);
+    }
 
 	char *buf;
 	uint size = uint(config.Save(&buf, "Saved preferences for Edu Engine"));

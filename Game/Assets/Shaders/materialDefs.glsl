@@ -65,7 +65,7 @@ vec4 sampleTexture(in uint textureIndex, in vec2 uv, in int matIndex)
 
 mat3 createTBN(const vec3 normal, const vec3 tangent, float sign)
 {
-    vec3 bitangent     = sign*cross(normal, tangent);
+    vec3 bitangent = sign*cross(normal, tangent);
 
     return mat3(tangent, bitangent, normal);
 }
@@ -114,7 +114,7 @@ void getMaterial(out PBR pbr, in int matIndex, in vec2 uv0, in GeomData geom)
     if((material.mask & NORMAL_MAP_FLAG) != 0)
     {
         tex_normal = sampleTexture(NORMAL_MAP_INDEX, uv0, matIndex).xyz*2.0-1.0;
-        tex_normal.z = sqrt(clamp(1-dot(tex_normal.xy, tex_normal.xy), 0.0, 1.0)); // unpack from two channel texture
+        //tex_normal.z = sqrt(clamp(1-dot(tex_normal.xy, tex_normal.xy), 0.0, 1.0)); // unpack from two channel texture
         tex_normal.xy *= material.normalStrength;
         tex_normal = normalize(tex_normal);
 

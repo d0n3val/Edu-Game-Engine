@@ -37,7 +37,7 @@ void ShowTextureDlg::Open(const ResourceMesh* _mesh, ResourceTexture* _texture)
     width = source->GetMetadata().width;
     height    = source->GetMetadata().height;
 
-    zoom = float(uint(min(CANVAS_SIZE / float(width), CANVAS_SIZE / float(height))*100.0f));
+    zoom = float(uint(std::min(CANVAS_SIZE / float(width), CANVAS_SIZE / float(height))*100.0f));
 }
 
 void ShowTextureDlg::Display()
@@ -69,7 +69,7 @@ void ShowTextureDlg::Display()
 
         ImGui::PushItemWidth(128);
         generate = ImGui::DragFloat("Zoom", &zoom) || generate;
-        zoom = max(zoom, 0.0f);
+        zoom = std::max(zoom, 0.0f);
         ImGui::PushItemWidth(0);
 
         ImGui::SameLine();

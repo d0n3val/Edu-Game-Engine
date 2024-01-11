@@ -291,7 +291,7 @@ void ComponentParticleSystem::OnUpdate(float dt)
     {
 		Particle& particle = particles[i];
 
-        if((particle.life = max(particle.life-dt, 0.0f)) > 0.0f)
+        if((particle.life = std::max(particle.life-dt, 0.0f)) > 0.0f)
         {
             float lambda = 1.0f-particle.life/particle.init_life;
 

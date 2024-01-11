@@ -335,7 +335,7 @@ void ComponentTrail::OnUpdate(float dt)
 
     for(Segment& segment : segments)
     {
-        segment.life_time = max(segment.life_time-dt, 0.0f);
+        segment.life_time = std::max(segment.life_time-dt, 0.0f);
     }
 
     // erase segments not needed for Catmull-Rom
@@ -386,7 +386,7 @@ void ComponentTrail::OnDebugDraw(bool selected) const
             const float3& position = instances.front().position;
             const float3& normal = instances.front().normal;
             dd::line(prev_pos, position, dd::colors::Blue, 0, false);
-            float size_multiplier = size_over_time.Interpolate(1.0f - max(0.0f, instances.front().life) / config_trail.duration);
+            float size_multiplier = size_over_time.Interpolate(1.0f - std::max(0.0f, instances.front().life) / config_trail.duration);
             dd::line(position - normal * config_trail.width * size_multiplier, position + normal * config_trail.width * size_multiplier, dd::colors::Blue, 0, false);
             prev_pos = position;
         }
@@ -424,14 +424,14 @@ void ComponentTrail::GetSegmentInfo(uint index, std::vector<SegmentInstance>& in
     }
 
     float life0 = segments[index].life_time;
-    float size0 = size_over_time.Interpolate(1.0f-max(0.0f, segments[index].life_time)/config_trail.duration);
+    float size0 = size_over_time.Interpolate(1.0f-std::max(0.0f, segments[index].life_time)/config_trail.duration);
 
     instances.clear();
 
     if(add_vertices)
     {
         float life1 = segments[index+1].life_time;
-        float size1 = size_over_time.Interpolate(1.0f-max(0.0f, segments[index+1].life_time)/config_trail.duration); 
+        float size1 = size_over_time.Interpolate(1.0f-std::max(0.0f, segments[index+1].life_time)/config_trail.duration); 
 
         // CatmullRom
         CubicSegment3 curve;

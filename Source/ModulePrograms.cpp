@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <regex>
 
 #include "Leaks.h"
 
@@ -30,7 +31,7 @@ bool ModulePrograms::Init(Config* /*config = nullptr*/)
     {
         if(entry.is_regular_file())
         {
-            std::string path = entry.path().generic_u8string();
+            std::string path = entry.path().generic_string();
             std::ifstream strm(path.c_str());
             std::stringstream buffer;
             buffer << strm.rdbuf();
@@ -70,7 +71,7 @@ void ModulePrograms::Load(const char* name, const char* vertex_shader, const cha
 
     def.num_macros   = num_macros;
 
-    def.data = (char**)malloc(sizeof(char*)*(def.num_macros + (version ? 2 : 1)));
+    def.data = (const char**)malloc(sizeof(char*)*(def.num_macros + (version ? 2 : 1)));
 
 }
 
@@ -170,7 +171,7 @@ void ModulePrograms::GenerateVariation(const char* name, unsigned variations)
     }
 }
 
-void ModulePrograms::Compile(char** data,  char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros, bool version) const
+void ModulePrograms::Compile(const char** data,  char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros, bool version) const
 {
     if(version)
     {

@@ -205,7 +205,8 @@ void ModuleLevelManager::LoadGameObjects(const Config & config)
 	for (int i = 0; i < count; ++i)
 	{
 		GameObject* go = CreateGameObject();
-		go->Load(&config.GetArray("Game Objects", i), relations);
+        Config goCfg = config.GetArray("Game Objects", i);
+		go->Load(&goCfg, relations);
 	}
 
 	// Second pass to tide up the hierarchy
@@ -275,7 +276,8 @@ bool ModuleLevelManager::Save(const char * file)
     //App->hints->Save(&desc);
     //App->camera->Save(&desc);
 
-    lightManager->SaveLights(save.AddSection("Lights"));
+    Config lightsCfg = save.AddSection("Lights");
+    lightManager->SaveLights(lightsCfg);
 
 	// Serialize GameObjects recursively
 	save.AddArray("Game Objects");
@@ -283,7 +285,8 @@ bool ModuleLevelManager::Save(const char * file)
 	for (list<GameObject*>::const_iterator it = root->childs.begin(); it != root->childs.end(); ++it)
 		(*it)->Save(save);
 
-	skybox->Save(save.AddSection("Skybox"));
+    Config skyCfg = save.AddSection("Skybox");
+	skybox->Save(skyCfg);
 
 	// Finally save to file
 	char* buf = nullptr;
@@ -510,7 +513,7 @@ GameObject* ModuleLevelManager::AddModel(UID id)
 
         gos.reserve(model->GetNumNodes());
 
-        for(uint i=0, count = model->GetNumNodes(); ok && i< count; ++i)
+        for (uint i = 0, count = model->GetNumNodes(); ok && i < count; ++i)
         {
             const ResourceModel::Node& node = model->GetNode(i);
 
@@ -521,6 +524,12 @@ GameObject* ModuleLevelManager::AddModel(UID id)
 
             go->SetLocalTransform(node.transform);
             go->name = node.name.c_str();
+        }
+
+        for (uint i = 0, count = model->GetNumNodes(); ok && i < count; ++i)
+        {
+            const ResourceModel::Node& node = model->GetNode(i);
+            GameObject* go = gos[i];
 
             for(uint j=0; j < node.renderers.size(); ++j)
             {
@@ -536,7 +545,10 @@ GameObject* ModuleLevelManager::AddModel(UID id)
                     ok = mesh->SetMaterialRes(node.renderers[j].material);
                 }
 
-                mesh->SetRootUID(gos[0]->GetUID());
+                if (ok && node.renderers[j].skin >= 0)
+                {
+                    ok = mesh->SetSkinInfo(model->GetSkin(node.renderers[j].skin), gos.data());
+                }
 
                 mesh->SetBatchName(HashString("default"));
 

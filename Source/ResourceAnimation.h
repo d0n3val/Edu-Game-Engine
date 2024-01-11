@@ -21,7 +21,9 @@ public:
         Channel& operator=(const Channel& o) = default;
         Channel& operator=(Channel&& o) = default;
 
+        std::unique_ptr<float[]>  posTime;
         std::unique_ptr<float3[]> positions;
+        std::unique_ptr<float[]>  rotTime;
         std::unique_ptr<Quat[]>   rotations;
         uint                      num_positions = 0;
         uint                      num_rotations = 0;
@@ -61,7 +63,7 @@ public:
     bool            Save                (std::string& output) const;
 	static bool     Import              (const char* full_path, unsigned first, unsigned last, float scale, std::string& output);
 
-	uint            GetDuration         () const { return duration; }
+	float           GetDuration         () const { return duration; }
 
     // channels 
 
@@ -72,12 +74,14 @@ public:
 
 private:
 
+    static bool     ImportGLTF(const char* full_path, unsigned first, unsigned last, float scale, std::string& output);
+    static bool     ImportAssimp(const char* full_path, unsigned first, unsigned last, float scale, std::string& output);
     void            SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
 
     typedef std::unordered_map<std::string, Channel> ChannelList;
     typedef std::unordered_map<std::string, MorphChannel> MorphChannelList;
 
-    uint             duration = 0;
+    float            duration = 0.0f;
     ChannelList      channels;
     MorphChannelList morph_channels;
 };

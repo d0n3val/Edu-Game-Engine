@@ -18,8 +18,22 @@ public:
 
     struct MeshRenderer
     {
-        UID  mesh       = 0;
-        UID  material   = 0;
+        UID  mesh     = 0;
+        UID  material = 0;
+        int  skin     = -1;
+
+    };
+
+    struct SkinBone
+    {
+        uint nodeIdx = 0;
+        float4x4 bind = float4x4::identity;        
+    };
+
+    struct Skin
+    {
+        std::vector<SkinBone> bones;
+        int rootNode = -1;
     };
 
     struct Node
@@ -54,14 +68,19 @@ public:
     unsigned    GetNumNodes         () const { return unsigned(nodes.size()); }
     const Node& GetNode             (uint index) const { return nodes[index]; }
 
+    unsigned    GetNumSkins() const { return unsigned(skins.size()); }
+    const Skin& GetSkin(uint index) const { return skins[index]; }
+
 private:
 
     static bool ImportGLTF          (const char* full_path, float scale, std::string& output);
     static bool ImportAssimp        (const char* full_path, float scale, std::string& output);
 
-    void        GenerateNodes       (const tinygltf::Model& model, int nodeIndex, int parentIndex, const std::multimap<uint, MeshRenderer>& meshes, const std::vector<UID>& materials, float scale);
+    void        GenerateNodes       (const tinygltf::Model& model, int nodeIndex, int parentIndex, const std::multimap<uint, MeshRenderer>& meshes, 
+                                     const std::vector<UID>& materials, std::vector<int>& nodeMapping, float scale);
     void        GenerateMeshes      (const tinygltf::Model& model, const char* full_path, const std::vector<UID>& materials, std::multimap<uint, MeshRenderer>& meshes, float scale);
     void        GenerateMaterials   (const tinygltf::Model& model, const char* file, std::vector<UID>& materials);
+    void        GenerateSkins       (const tinygltf::Model& model, const std::vector<int>& nodeMapping);
 
 
     void        GenerateNodes      (const aiScene* model, const aiNode* node, uint parent, const std::vector<UID>& meshes, const std::vector<UID>& materials, float scale);
@@ -72,6 +91,7 @@ private:
 private:
 
     std::vector<Node> nodes;
+    std::vector<Skin> skins;
 
 };
 

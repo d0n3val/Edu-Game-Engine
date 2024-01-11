@@ -114,7 +114,7 @@ private:
         int height = 0; 
         int posx   = 0; 
         int posy   = 0;
-        char* name = nullptr;
+        const char* name = nullptr;
 
         std::vector<Panel *> panels;
     };

@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-#include "tiny_gltf.h"
+#include "gltf.h"
 
 #include "ModuleFileSystem.h"
 #include "ModuleResources.h"

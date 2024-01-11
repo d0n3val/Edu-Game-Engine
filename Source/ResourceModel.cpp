@@ -1,10 +1,7 @@
 #include "Globals.h"
 
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-#define TINYGLTF_NO_STB_IMAGE
-#define TINYGLTF_NO_EXTERNAL_IMAGE 
 #define TINYGLTF_IMPLEMENTATION
-#include "tiny_gltf.h"
+#include "gltf.h"
 
 #include "ResourceModel.h"
 
@@ -84,6 +81,7 @@ bool ResourceModel::LoadInMemory()
 
                 read_stream >> renderer.mesh;
                 read_stream >> renderer.material;
+                read_stream >> renderer.skin;
 
 				if (renderer.mesh != 0)
 				{
@@ -92,6 +90,33 @@ bool ResourceModel::LoadInMemory()
             }
 
 			nodes.push_back(std::move(node));
+        }
+
+        uint skinSize = 0;
+        read_stream >> skinSize;
+
+        nodes.reserve(skinSize);
+
+        for (uint i = 0; i < skinSize; ++i)
+        {
+            Skin skin;
+            read_stream >> skin.rootNode;
+
+            uint boneSize = 0;
+            read_stream >> boneSize;
+
+            skin.bones.reserve(boneSize);
+            for (uint j = 0; j < boneSize; ++j)
+            {
+                SkinBone bone;
+
+                read_stream >> bone.bind;
+                read_stream >> bone.nodeIdx;
+
+                skin.bones.push_back(bone);
+            }
+
+            skins.push_back(skin);
         }
 
         for(uint i=0; i< nodes.size(); ++i)
@@ -205,8 +230,24 @@ void ResourceModel::SaveToStream(simple::mem_ostream<std::true_type>& write_stre
         {
             write_stream << nodes[i].renderers[j].mesh;
             write_stream << nodes[i].renderers[j].material;
+            write_stream << nodes[i].renderers[j].skin;
         }
     }
+
+    write_stream << uint(skins.size());
+
+    for (const Skin& skin : skins)
+    {
+        write_stream << skin.rootNode;
+        write_stream << uint(skin.bones.size());
+
+        for (const SkinBone& bone : skin.bones)
+        {
+            write_stream << bone.bind;
+            write_stream << bone.nodeIdx;
+        }
+    }
+
 }
 
 void ResourceModel::GenerateMeshes(const tinygltf::Model& model, const char* full_path, const std::vector<UID>& materials, 
@@ -237,7 +278,48 @@ void ResourceModel::GenerateMaterials(const tinygltf::Model& model, const char* 
     }
 }
 
-void ResourceModel::GenerateNodes(const tinygltf::Model& model, int nodeIndex, int parentIndex, const std::multimap<uint, MeshRenderer>& meshes, const std::vector<UID>& materials, float scale)
+void ResourceModel::GenerateSkins(const tinygltf::Model& model, const std::vector<int>& nodeMapping)
+{    
+    skins.resize(model.skins.size());
+
+    int skinIdx = 0;
+    for (const tinygltf::Skin& srcSkin : model.skins)
+    {
+        Skin& skin = skins[skinIdx++];
+
+        skin.rootNode = srcSkin.skeleton >= 0 ? nodeMapping[srcSkin.skeleton] : -1;
+
+        skin.bones.resize(srcSkin.joints.size());
+
+        if (srcSkin.inverseBindMatrices >= 0)
+        {
+            const tinygltf::Accessor& bindAcc = model.accessors[srcSkin.inverseBindMatrices];
+            const tinygltf::BufferView& bindView = model.bufferViews[bindAcc.bufferView];
+            const uint8_t* bindPtr = reinterpret_cast<const uint8_t*>(&(model.buffers[bindView.buffer].data[bindAcc.byteOffset + bindView.byteOffset]));
+            size_t bindStride = bindView.byteStride == 0 ? sizeof(float4x4) : bindView.byteStride;
+
+            SDL_assert(bindAcc.count == srcSkin.joints.size());
+
+            for (int i = 0; i < bindAcc.count; ++i)
+            {
+                skin.bones[i].bind = *reinterpret_cast<const float4x4*>(bindPtr);
+                skin.bones[i].bind.Transpose();
+
+                bindPtr += bindStride;
+            }
+        }
+
+        int jointIdx = 0;
+        for (int jointId : srcSkin.joints)
+        {
+            if (jointId >= 0) skin.bones[jointIdx++].nodeIdx = nodeMapping[jointId];
+            else skin.bones[jointIdx++].nodeIdx = -1;
+        }
+    }
+}
+
+void ResourceModel::GenerateNodes(const tinygltf::Model& model, int nodeIndex, int parentIndex, const std::multimap<uint, MeshRenderer>& meshes, 
+                                  const std::vector<UID>& materials, std::vector<int>& nodeMapping, float scale)
 {
     const tinygltf::Node& node = model.nodes[nodeIndex];
 
@@ -272,17 +354,20 @@ void ResourceModel::GenerateNodes(const tinygltf::Model& model, int nodeIndex, i
     {        
         for (auto it = meshes.lower_bound(node.mesh); it != meshes.end() && it->first == node.mesh; ++it)
         {
-            dst.renderers.push_back(it->second);
+            MeshRenderer renderer = it->second;
+            renderer.skin = node.skin;
+            dst.renderers.push_back(renderer);
         }
     }
 
     parentIndex = uint(nodes.size());
 
+    nodeMapping[nodeIndex] = nodes.size();
     nodes.push_back(std::move(dst));
 
     for (int childIndex : node.children)
     {
-        GenerateNodes(model, childIndex, parentIndex, meshes, materials, scale);
+        GenerateNodes(model, childIndex, parentIndex, meshes, materials, nodeMapping, scale);
     }
 }
 
@@ -298,6 +383,8 @@ bool ResourceModel::ImportGLTF(const char* full_path, float scale, std::string& 
 
         std::vector<UID> materials;
         std::multimap<uint, MeshRenderer> meshes;
+        std::vector<int> nodeMapping;
+        nodeMapping.resize(model.nodes.size(), -1);
 
         m.GenerateMaterials(model, full_path, materials);
         m.GenerateMeshes(model, full_path, materials, meshes, scale);
@@ -308,12 +395,11 @@ bool ResourceModel::ImportGLTF(const char* full_path, float scale, std::string& 
         {
             for (int root : scene.nodes)
             {
-                m.GenerateNodes(model, root, int(m.nodes.size()), meshes, materials, scale);
+                m.GenerateNodes(model, root, int(m.nodes.size()), meshes, materials, nodeMapping, scale);
             }
         }
 
-
-        //aiReleaseImport(scene);
+        m.GenerateSkins(model, nodeMapping);
 
         return m.Save(output);
 

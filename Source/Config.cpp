@@ -126,74 +126,74 @@ bool Config::HasString(const char *field, int index) const
 	return value && json_value_get_type(value) == JSONString;
 }
 
-bool Config::GetBool(const char * field, bool default, int index) const
+bool Config::GetBool(const char * field, bool def, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
 
 	if (value && json_value_get_type(value) == JSONBoolean)
 		return json_value_get_boolean(value) != 0;
 
-	return default;
+	return def;
 }
 
-int Config::GetInt(const char * field, int default, int index) const
+int Config::GetInt(const char * field, int def, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
 
 	if (value && json_value_get_type(value) == JSONNumber)
 		return (int) json_value_get_number(value);
 
-	return default;
+	return def;
 }
 
-uint Config::GetUInt(const char * field, uint default, int index) const
+uint Config::GetUInt(const char * field, uint def, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
 
 	if (value && json_value_get_type(value) == JSONNumber)
 		return (uint) json_value_get_number(value);
 
-	return default;
+	return def;
 }
 
-UID Config::GetUID(const char * field, UID default, int index) const
+UID Config::GetUID(const char * field, UID def, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
 
 	if (value && json_value_get_type(value) == JSONNumber)
 		return (UID) json_value_get_number(value);
 
-	return default;
+	return def;
 }
 
-double Config::GetDouble(const char * field, double default, int index) const
+double Config::GetDouble(const char * field, double def, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
 
 	if (value && json_value_get_type(value) == JSONNumber)
 		return json_value_get_number(value);
 
-	return default;
+	return def;
 }
 
-float Config::GetFloat(const char * field, float default, int index) const
+float Config::GetFloat(const char * field, float def, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
 
 	if (value && json_value_get_type(value) == JSONNumber)
 		return (float) json_value_get_number(value);
 
-	return default;
+	return def;
 }
 
-const char* Config::GetString(const char * field, const char* default, int index) const
+const char* Config::GetString(const char * field, const char* def, int index) const
 {
 	JSON_Value* value = FindValue(field, index);
 
 	if (value && json_value_get_type(value) == JSONString)
 		return json_value_get_string(value);
 
-	return default;
+	return def;
 }
 
 Config Config::GetArray(const char * field, int index) const
@@ -378,9 +378,9 @@ bool Config::AddFloat2(const char* field, const float2& value)
 	return AddArrayFloat(field, &value.x, 2);
 }
 
-float2 Config::GetFloat2(const char* field, const float2& default /*= float2::zero*/)
+float2 Config::GetFloat2(const char* field, const float2& def /*= float2::zero*/)
 {
-	return float2(GetFloat(field, default.x, 0), GetFloat(field, default.y, 1));
+	return float2(GetFloat(field, def.x, 0), GetFloat(field, def.y, 1));
 }
 
 bool Config::AddFloat3(const char * field, const float3 & value)
@@ -388,12 +388,12 @@ bool Config::AddFloat3(const char * field, const float3 & value)
 	return AddArrayFloat(field, &value.x, 3);
 }
 
-float3 Config::GetFloat3(const char * field, const float3 & default)
+float3 Config::GetFloat3(const char * field, const float3 & def)
 {
 	return float3(
-		GetFloat(field, default.x, 0),
-		GetFloat(field, default.y, 1),
-		GetFloat(field, default.z, 2));
+		GetFloat(field, def.x, 0),
+		GetFloat(field, def.y, 1),
+		GetFloat(field, def.z, 2));
 }
 
 bool Config::AddFloat4(const char * field, const float4 & value)
@@ -401,11 +401,11 @@ bool Config::AddFloat4(const char * field, const float4 & value)
 	return AddArrayFloat(field, &value.x, 4);
 }
 
-float4 Config::GetFloat4(const char * field, const float4 & default)
+float4 Config::GetFloat4(const char * field, const float4 & def)
 {
 	return float4(
-		GetFloat(field, default.x, 0),
-		GetFloat(field, default.y, 1),
-		GetFloat(field, default.z, 2),
-		GetFloat(field, default.w, 3));
+		GetFloat(field, def.x, 0),
+		GetFloat(field, def.y, 1),
+		GetFloat(field, def.z, 2),
+		GetFloat(field, def.w, 3));
 }

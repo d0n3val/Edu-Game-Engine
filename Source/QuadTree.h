@@ -6,10 +6,10 @@
 #define __QUADTREE_H__
 
 #include "Math.h"
+#include "GameObject.h"
 #include <list>
 #include <map>
 
-class GameObject;
 
 // Tree node -------------------------------------------------------
 class QuadtreeNode

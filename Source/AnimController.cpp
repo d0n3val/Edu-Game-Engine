@@ -56,12 +56,11 @@ void AnimController::UpdateInstance(Instance* instance, unsigned elapsed)
 {
 	ResourceAnimation* anim = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
 
-
 	if (anim != nullptr && anim->GetDuration() > 0)
 	{
-        unsigned me_elapsed = unsigned(elapsed*instance->speed);
-        me_elapsed = me_elapsed % anim->GetDuration();
-		unsigned to_end = anim->GetDuration() - instance->time;
+        float me_elapsed = float(elapsed)*0.01f*instance->speed;
+        me_elapsed = fmodf(me_elapsed, anim->GetDuration());
+		float to_end = anim->GetDuration() - instance->time;
 
 		if (me_elapsed <= to_end)
 		{
@@ -252,35 +251,27 @@ bool AnimController::GetTransformInstance(Instance* instance, const std::string&
 
         if(channel != nullptr)
         {
-            assert(instance->time <= animation->GetDuration());
+            SDL_assert(instance->time <= animation->GetDuration());
 
-
-            float pos_key = float(instance->time*(channel->num_positions-1))/float(animation->GetDuration());
-            float rot_key = float(instance->time*(channel->num_rotations-1))/float(animation->GetDuration());
-
-            unsigned pos_index = unsigned(pos_key);
-            unsigned rot_index = unsigned(rot_key);
-
-            float pos_lambda = pos_key-float(pos_index);
-            float rot_lambda = rot_key-float(rot_index);
-
-            if(pos_lambda > 0.0f)
+            auto sampleAnim = []<typename T>(T & result, const std::unique_ptr<T[]>&samples, const std::unique_ptr<float[]>&times, uint count, float time)
             {
-                position = Interpolate(channel->positions[pos_index], channel->positions[pos_index+1], pos_lambda);
-            }
-            else
-            {
-                position = channel->positions[pos_index];
-            }
+                if (count > 0)
+                {
+                    uint index = uint(std::lower_bound(times.get(), times.get() + count, time) - times.get());
+                    if (index + 1 < count)
+                    {
+                        float lambda = (time - times[index]) / (times[index + 1] - times[index]);
+                        result = Interpolate(samples[index], samples[index + 1], lambda);
+                    }
+                    else
+                    {
+                        result = time >= times[count - 1] ? samples[count - 1] : samples[0];
+                    }
+                }
+            };
 
-            if(rot_lambda > 0.0f)
-            {
-                rotation = Interpolate(channel->rotations[rot_index], channel->rotations[rot_index+1], rot_lambda);
-            }
-            else
-            {
-                rotation = channel->rotations[rot_index];
-            }
+            sampleAnim(position, channel->positions, channel->posTime, channel->num_positions, instance->time);
+            sampleAnim(rotation, channel->rotations, channel->rotTime, channel->num_rotations, instance->time);
 
             if(instance->next != nullptr)
             {

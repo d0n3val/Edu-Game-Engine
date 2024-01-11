@@ -29,13 +29,15 @@ LightManager::~LightManager()
 
 void LightManager::LoadLights(const Config &config)
 {
-    directional->Load(config.GetSection("Directional"));
+    Config dirCfg = config.GetSection("Directional");
+    directional->Load(dirCfg);
 
     uint count = config.GetArrayCount("Points");
     for(uint i=0; i< count; ++i)
     {
         std::unique_ptr<PointLight> point = std::make_unique<PointLight>();
-        point->Load(config.GetArray("Points", i));
+        Config pointsCfg = config.GetArray("Points", i);
+        point->Load(pointsCfg);
 
         points.push_back(std::move(point));
     }
@@ -44,7 +46,8 @@ void LightManager::LoadLights(const Config &config)
     for(uint i=0; i< count; ++i)
     {
         std::unique_ptr<SpotLight> spot = std::make_unique<SpotLight>();
-        spot->Load(config.GetArray("Spots", i));
+        Config spotsCfg = config.GetArray("Spots", i);
+        spot->Load(spotsCfg);
 
         spots.push_back(std::move(spot));
     }
@@ -53,7 +56,8 @@ void LightManager::LoadLights(const Config &config)
     for(uint i=0; i < count; ++i)
     {
         std::unique_ptr<QuadLight> quad = std::make_unique<QuadLight>();
-        quad->Load(config.GetArray("Quads", i));
+        Config quadsCfg = config.GetArray("Quads", i);
+        quad->Load(quadsCfg);
 
         quads.push_back(std::move(quad));
     }
@@ -62,7 +66,8 @@ void LightManager::LoadLights(const Config &config)
     for(uint i=0; i< count; ++i)
     {
         std::unique_ptr<SphereLight> sphere = std::make_unique<SphereLight>();
-        sphere->Load(config.GetArray("Spheres", i));
+        Config spheresCfg = config.GetArray("Spheres", i);
+        sphere->Load(spheresCfg);
 
         spheres.push_back(std::move(sphere));
     }
@@ -71,7 +76,8 @@ void LightManager::LoadLights(const Config &config)
     for(uint i=0; i< count; ++i)
     {
         std::unique_ptr<TubeLight> tube = std::make_unique<TubeLight>();
-        tube->Load(config.GetArray("Tubes", i));
+        Config tubesCfg = config.GetArray("Tubes", i);
+        tube->Load(tubesCfg);
 
         tubes.push_back(std::move(tube));
     }
@@ -80,7 +86,8 @@ void LightManager::LoadLights(const Config &config)
     for(uint i=0; i<count; ++i)
     {
         std::unique_ptr<LocalIBLLight> ibl = std::make_unique<LocalIBLLight>();
-        ibl->Load(config.GetArray("LocalIBLs", i));
+        Config iblsCfg = config.GetArray("LocalIBLs", i);
+        ibl->Load(iblsCfg);
 
         ibls.push_back(std::move(ibl));
     }
@@ -88,7 +95,8 @@ void LightManager::LoadLights(const Config &config)
 
 void LightManager::SaveLights(Config& config) const
 {
-    directional->Save(config.AddSection("Directional"));
+    Config dirCfg = config.AddSection("Directional");
+    directional->Save(dirCfg);
 
     config.AddArray("Points");
 

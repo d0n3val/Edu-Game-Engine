@@ -277,14 +277,13 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
         output_size = sizeof(uint32_t);
 
         std::vector<float> tmpBuffer;
-        std::vector<uint8_t> sideData[6];
 
         tmpBuffer.resize(512 * 512 * 3);
 
         DirectX::ScratchImage image, imageMips;
         DirectX::ScratchImage* result = &image;
 
-        image.InitializeCube(DXGI_FORMAT_R32G32B32_FLOAT, 511, 512, 1, 1);
+        image.InitializeCube(DXGI_FORMAT_R32G32B32A32_FLOAT, 512, 512, 1, 1);
 
         for (uint i = 0; i < 6; ++i)
         {
@@ -292,8 +291,6 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
 
             const DirectX::Image* face = image.GetImage(0, i, 0);
             memcpy(face->pixels, &tmpBuffer[0], tmpBuffer.size() * sizeof(float));
-            
-            output_size += uint(sizeof(uint32_t) + sideData[i].size());
         }
 
         if (generateMipmaps)
@@ -306,10 +303,10 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
         DirectX::Blob blob;
         ret = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
 
-        if (ret == S_OK)
+        if (ret)
         {
             uint header_size = sizeof(uint32_t);
-            output_size = uint(blob.GetBufferSize());
+            output_size = uint(blob.GetBufferSize()+header_size);
             output_buffer = new uint8_t[blob.GetBufferSize() + header_size];
 
             *(uint32_t*)output_buffer = uint32_t(TextureType_Cube);
@@ -421,7 +418,7 @@ Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, Textu
 
                 if (srcMetadata.mipLevels > 1)
                 {
-                    texture->SetMinMaxFiler(GL_NEAREST_MIPMAP_NEAREST, GL_LINEAR);
+                    texture->SetMinMaxFiler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
                     texture->SetTextureLodLevels(0, uint(srcMetadata.mipLevels-1));
                 }
 

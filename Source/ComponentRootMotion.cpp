@@ -41,12 +41,12 @@ void ComponentRootMotion::OnUpdate(float dt)
     while(angle_diff > PI) angle_diff -= PI*2.0f;
 
     float max_angle  = MAX_ANGULAR_SPEED*dt;
-    float angle      = angle_diff > 0.0f ? min(max_angle, angle_diff) : max(-max_angle, angle_diff);
+    float angle      = angle_diff > 0.0f ? std::min(max_angle, angle_diff) : std::max(-max_angle, angle_diff);
 
     go->SetLocalRotation((Quat(float3::unitY, angle)*go->GetLocalRotationQ()).Normalized());
 
     float4x4 transform = go->GetGlobalTransformation();
     float3 global_dir  = transform.TransformDir(local_dir[dir_axis]);
 
-    go->SetLocalPosition(go->GetLocalPosition()+global_dir*(min(MAX_LINEAR_SPEED*metric_proportion, speed)*dt));
+    go->SetLocalPosition(go->GetLocalPosition()+global_dir*(std::min(MAX_LINEAR_SPEED*metric_proportion, speed)*dt));
 }

@@ -2,7 +2,7 @@
 #define __COMPONENT_MESHRENDERER_H__
 
 #include "Component.h"
-
+#include "ResourceModel.h"
 #include "HashString.h"
 
 class ResourceMesh;
@@ -35,6 +35,8 @@ public:
     ResourceMaterial*       GetMaterialRes          ();
     UID                     GetMaterialUID          () const {return material_resource; }
 
+    bool                    SetSkinInfo             (const ResourceModel::Skin& skin, GameObject** gos);
+
     virtual void            OnSave                  (Config& config) const override;
     virtual void            OnLoad                  (Config* config) override;
 
@@ -47,9 +49,9 @@ public:
     bool                    GetVisible              () const { return visible; }
     void                    SetVisible              (bool v) { visible = v; }
 
+    uint32_t                GetNumBones() const     { return numBones; }
     void                    UpdateSkinPalette       (float4x4* palette) const;
     void                    UpdateCPUMorphTargets   () const;
-    void                    SetRootUID              (UID r) { root_uid = r; }
 
     // material
 
@@ -88,6 +90,17 @@ private:
     ERenderMode              render_mode        = RENDER_OPAQUE;
     std::unique_ptr<float[]> morph_weights;
     mutable bool             dirty_morphs       = false;
+
+    struct Bone
+    {
+        GameObject* go;
+        float4x4	bind = float4x4::identity;
+    };
+
+    std::unique_ptr<Bone[]> bones;
+    uint32_t                numBones;
+    GameObject*             rootGO = nullptr;
+
 
     HashString               batch_name;
     uint                     batch_index        = UINT_MAX;

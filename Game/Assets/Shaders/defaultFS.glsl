@@ -274,10 +274,11 @@ vec4 Shading(const in vec3 pos, const in vec3 normal)
 
 mat3 CreateTBN(const vec3 normal, const vec4 tangent)
 {
-    vec3 ortho_tangent = normalize(vec3(tangent)-dot(vec3(tangent), normal)*normal); // skinning forces this
-    vec3 bitangent     = tangent.w*cross(normal, ortho_tangent);
+    vec3 T = normalize(vec3(tangent));
+    vec3 N = normalize(normal);
+    vec3 B = tangent.w*cross(N, T);
 
-    return mat3(tangent, bitangent, normal);
+    return mat3(T, B, N);
 }
 
 vec3 GetNormal()

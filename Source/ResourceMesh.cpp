@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-#include "tiny_gltf.h"
+#include "gltf.h"
 
 #include "ResourceMesh.h"
 #include "Application.h"
@@ -595,125 +595,36 @@ void ResourceMesh::GenerateCPUBuffers(const tinygltf::Model& model, const tinygl
 
     if (primitive.indices >= 0 && itPos != primitive.attributes.end())
     {        
-        const tinygltf::Accessor& posAcc = model.accessors[itPos->second];
+        loadAccessor(src_vertices, num_vertices, model, itPos->second);
        
-        num_vertices = uint(posAcc.count);
-        src_vertices = std::make_unique<float3[]>(num_vertices);
+        uint numTexCoord = 0;
+        loadAccessor(src_texcoord0, numTexCoord, model, primitive, "TEXCOORD_0");
+        SDL_assert(numTexCoord == num_vertices);
 
-        SDL_assert(posAcc.type == TINYGLTF_TYPE_VEC3);
+        uint numNormals = 0;
+        loadAccessor(src_normals, numNormals, model, primitive, "NORMAL");
+        SDL_assert(numNormals == num_vertices);
 
-        const tinygltf::BufferView& posView = model.bufferViews[posAcc.bufferView];
-        const uint8_t* bufferPos = reinterpret_cast<const uint8_t*>(&(model.buffers[posView.buffer].data[posAcc.byteOffset + posView.byteOffset]));
-        size_t posStride = posView.byteStride == 0 ? sizeof(float3) : posView.byteStride;
+        uint numTangents = 0;
+        loadAccessor(src_tangents, numTangents, model, primitive, "TANGENT");
+        SDL_assert(numTangents == num_vertices);
 
-        // Positions
-        for (uint i = 0; i < num_vertices; ++i)
-        {
-            src_vertices[i] = (*reinterpret_cast<const float3*>(bufferPos)) * scale;
-            bufferPos += posStride;
-        }
+        uint numJoints;
+        loadAccessor(src_bone_indices, numJoints, model, primitive, "JOINTS_0");
+        SDL_assert(numJoints == num_vertices);
+
+        uint numWeights;
+        loadAccessor(src_bone_weights, numWeights, model, primitive, "WEIGHTS_0");
+        SDL_assert(numWeights == num_vertices);
+
+        /*const tinygltf::Accessor& indAcc = model.accessors[primitive.indices];
+        num_indices = uint(indAcc.count);
+        src_indices = std::make_unique<unsigned[]>(num_indices);*/
 
         bbox.SetNegativeInfinity();
         bbox.Enclose(src_vertices.get(), num_vertices);
 
-        // TexCoords
-        const auto& itTexCoord = primitive.attributes.find("TEXCOORD_0");
-        if (itTexCoord != primitive.attributes.end())
-        {
-            const tinygltf::Accessor& texCoordAcc = model.accessors[itTexCoord->second];
-            SDL_assert(texCoordAcc.type == TINYGLTF_TYPE_VEC2);
-            SDL_assert(texCoordAcc.count == posAcc.count);
-
-            src_texcoord0 = std::make_unique<float2[]>(num_vertices);
-            
-            const tinygltf::BufferView& texCoordView = model.bufferViews[texCoordAcc.bufferView];
-            const uint8_t* bufferTexCoord = reinterpret_cast<const uint8_t*>(&(model.buffers[texCoordView.buffer].data[texCoordAcc.byteOffset + texCoordView.byteOffset]));
-            size_t texCoordStride = texCoordView.byteStride == 0 ? sizeof(float2) : texCoordView.byteStride;
-
-            for (uint i = 0; i < num_vertices; ++i)
-            {
-                src_texcoord0[i] = *reinterpret_cast<const float2*>(bufferTexCoord);
-                bufferTexCoord += texCoordStride;
-            }
-        }
-
-        const auto& itNormal = primitive.attributes.find("NORMAL");
-        if (itNormal != primitive.attributes.end())
-        {
-            const tinygltf::Accessor& normalAcc = model.accessors[itNormal->second];
-            SDL_assert(posAcc.count == normalAcc.count);
-            SDL_assert(normalAcc.type == TINYGLTF_TYPE_VEC3);
-
-            src_normals = std::make_unique<float3[]>(num_vertices);
-            const tinygltf::BufferView& normalView = model.bufferViews[normalAcc.bufferView];
-
-            const uint8_t* bufferNormal = reinterpret_cast<const uint8_t*>(&(model.buffers[normalView.buffer].data[normalAcc.byteOffset + normalView.byteOffset]));
-            size_t normalStride = normalView.byteStride == 0 ? sizeof(float3) : normalView.byteStride;
-
-            for (uint i = 0; i < num_vertices; ++i)
-            {
-                src_normals[i] = *reinterpret_cast<const float3*>(bufferNormal);
-                bufferNormal += normalStride;
-            }
-        }
-        const auto& itTangent = primitive.attributes.find("TANGENT");
-        if (itTangent != primitive.attributes.end())
-        {
-            const tinygltf::Accessor& tangentAcc = model.accessors[itTangent->second];
-            SDL_assert(tangentAcc.count == posAcc.count);
-            SDL_assert(tangentAcc.type == TINYGLTF_TYPE_VEC4);
-
-            src_tangents = std::make_unique<float4[]>(num_vertices);
-
-            const tinygltf::BufferView& tangentView = model.bufferViews[tangentAcc.bufferView];
-            const uint8_t* bufferTangent = reinterpret_cast<const uint8_t*>(&(model.buffers[tangentView.buffer].data[tangentAcc.byteOffset + tangentView.byteOffset]));
-
-            size_t tangentStride = tangentView.byteStride == 0 ? sizeof(float4) : tangentView.byteStride;
-
-            for (uint i = 0; i < num_vertices; ++i)
-            {
-                src_tangents[i] = *reinterpret_cast<const float4*>(bufferTangent);
-                bufferTangent += tangentStride;
-            }
-        }
-
-        const tinygltf::Accessor& indAcc = model.accessors[primitive.indices];
-        num_indices = uint(indAcc.count);
-        src_indices = std::make_unique<unsigned[]>(num_indices);
-
-        const tinygltf::BufferView& indView = model.bufferViews[indAcc.bufferView];
-
-        // Indices
-        switch (indAcc.componentType)
-        {
-            case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT:
-            {
-                const uint32_t* bufferInd = reinterpret_cast<const uint32_t*>(&(model.buffers[indView.buffer].data[indAcc.byteOffset + indView.byteOffset]));
-                for (uint32_t i = 0; i < num_indices; ++i)
-                {
-                    src_indices[i] = bufferInd[i];
-                }
-                break;
-            }
-            case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT:
-            {
-                const uint16_t* bufferInd = reinterpret_cast<const uint16_t*>(&(model.buffers[indView.buffer].data[indAcc.byteOffset + indView.byteOffset]));
-                for (uint32_t i = 0; i < num_indices; ++i)
-                {
-                    src_indices[i] = bufferInd[i];
-                }
-                break;
-            }
-            case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE:
-            {
-                const uint8_t* bufferInd = reinterpret_cast<const uint8_t*>(&(model.buffers[indView.buffer].data[indAcc.byteOffset + indView.byteOffset]));
-                for (uint32_t i = 0; i < num_indices; ++i)
-                {
-                    src_indices[i] = bufferInd[i];
-                }
-                break;
-            }
-        }
+        loadAccessor(src_indices, num_indices, model, primitive.indices);
     }
 }
 
@@ -1023,12 +934,12 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh, float scale)
         dst_bone.bind.SetTranslatePart(dst_bone.bind.TranslatePart() * scale);
     }
 
-    std::unique_ptr<unsigned[]> bone_indices = std::make_unique<unsigned[]>(4*mesh->mNumVertices);
+    std::unique_ptr<unsigned[]> bone_indices = std::make_unique<unsigned[]>(mesh->mNumVertices*4);
     std::unique_ptr<float[]> bone_weights    = std::make_unique<float[]>(4*mesh->mNumVertices);
 
     for(unsigned i=0; i < num_vertices*4; ++i) 
     {
-        bone_indices[i] = 0;
+        bone_indices[i] = {};
         bone_weights[i] = 0.0f;
     }
 

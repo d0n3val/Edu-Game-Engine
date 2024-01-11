@@ -41,13 +41,13 @@ public:
 	bool HasFloat(const char* field, int index = -1) const;
 	bool HasString(const char* field, int index = -1) const;
 
-	bool GetBool(const char * field, bool default = false, int index = -1) const;
-	int GetInt(const char* field, int default = 0, int index = -1) const;
-	uint GetUInt(const char* field, uint default = 0, int index = -1) const;
-	UID GetUID(const char* field, UID default = 0, int index = -1) const;
-	double GetDouble(const char * field, double default = 0.0, int index = -1) const;
-	float GetFloat(const char* field, float default = 0.f, int index = -1) const;
-	const char* GetString(const char* field, const char* default = nullptr, int index = -1) const;
+	bool GetBool(const char * field, bool def = false, int index = -1) const;
+	int GetInt(const char* field, int def = 0, int index = -1) const;
+	uint GetUInt(const char* field, uint def = 0, int index = -1) const;
+	UID GetUID(const char* field, UID def = 0, int index = -1) const;
+	double GetDouble(const char * field, double def = 0.0, int index = -1) const;
+	float GetFloat(const char* field, float def = 0.f, int index = -1) const;
+	const char* GetString(const char* field, const char* def = nullptr, int index = -1) const;
 
 	int GetArrayCount(const char * field) const;
 	Config GetArray(const char* field, int index) const;
@@ -72,11 +72,11 @@ public:
 
 	// Custom
 	bool    AddFloat2(const char* field, const float2& value);
-	float2  GetFloat2(const char* filed, const float2& default = float2::zero);
+	float2  GetFloat2(const char* filed, const float2& def = float2::zero);
 	bool    AddFloat3(const char* field, const float3& value);
-	float3  GetFloat3(const char* field, const float3& default = float3::zero);
+	float3  GetFloat3(const char* field, const float3& def = float3::zero);
 	bool    AddFloat4(const char* field, const float4& value);
-	float4  GetFloat4(const char* field, const float4& default = float4::zero);
+	float4  GetFloat4(const char* field, const float4& def = float4::zero);
 
 	JSON_Object* GetRoot() { return root; }
 

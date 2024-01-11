@@ -427,11 +427,14 @@ void ModuleAudio::UpdateListener(ComponentAudioListener * listener) const
 
 	// Update position and orientation
 	const GameObject* go = listener->GetGameObject();
+    float3 pos = go->GetGlobalTransformation().TranslatePart();
+    float3 front = go->GetGlobalTransformation().WorldZ();
+    float3 up = go->GetGlobalTransformation().WorldY();
 	BASS_Set3DPosition(
-		(BASS_3DVECTOR*)&go->GetGlobalTransformation().TranslatePart(), // position
+		(BASS_3DVECTOR*)&pos, // position
 		nullptr, // speed
-		(BASS_3DVECTOR*)&go->GetGlobalTransformation().WorldZ(), // front
-		(BASS_3DVECTOR*)&go->GetGlobalTransformation().WorldY()); // up
+		(BASS_3DVECTOR*)&front, // front
+		(BASS_3DVECTOR*)&up); // up
 }
 
 void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
@@ -464,9 +467,11 @@ void ModuleAudio::UpdateSource(ComponentAudioSource* source) const
 
 			// Update 3D position
 			const GameObject* go = source->GetGameObject();
+            float3 pos = go->GetGlobalPosition();
+            float3 front = go->GetGlobalTransformation().WorldZ();
 			BASS_ChannelSet3DPosition(id,
-				(BASS_3DVECTOR*)&go->GetGlobalPosition(), // position
-				(BASS_3DVECTOR*)&go->GetGlobalTransformation().WorldZ(), // front
+				(BASS_3DVECTOR*)&pos, // position
+				(BASS_3DVECTOR*)&front, // front
 				nullptr); // velocity
 		} break;
 

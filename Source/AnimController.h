@@ -11,7 +11,7 @@ class AnimController
 	struct Instance
 	{
 		UID      clip  = 0;
-		unsigned time  = 0;
+		float    time  = 0.0f;
 		bool     loop  = true;
         float    speed = 1.0;
 
