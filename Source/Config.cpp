@@ -409,3 +409,29 @@ float4 Config::GetFloat4(const char * field, const float4 & def)
 		GetFloat(field, def.z, 2),
 		GetFloat(field, def.w, 3));
 }
+
+bool Config::AddFloat4x4(const char *field, const float4x4 &value)
+{
+    return AddArrayFloat(field, reinterpret_cast<const float*>(&value), 16);
+}
+
+float4x4 Config::GetFloat4x4(const char *field, const float4x4 &def/* = float4x4::identity*/)
+{
+    return float4x4(
+        GetFloat(field, def.At(0, 0), 0), 
+        GetFloat(field, def.At(0, 1), 1),
+        GetFloat(field, def.At(0, 2), 2),
+        GetFloat(field, def.At(0, 3), 3),
+        GetFloat(field, def.At(1, 0), 4), 
+        GetFloat(field, def.At(1, 1), 5),
+        GetFloat(field, def.At(1, 2), 6),
+        GetFloat(field, def.At(1, 3), 7),
+        GetFloat(field, def.At(2, 0), 8), 
+        GetFloat(field, def.At(2, 1), 9),
+        GetFloat(field, def.At(2, 2), 10),
+        GetFloat(field, def.At(2, 3), 11),
+        GetFloat(field, def.At(3, 0), 12), 
+        GetFloat(field, def.At(3, 1), 13),
+        GetFloat(field, def.At(3, 2), 14),
+        GetFloat(field, def.At(3, 3), 15));
+}

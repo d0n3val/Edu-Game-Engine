@@ -54,16 +54,18 @@ bool ResourceAnimation::LoadInMemory()
                 read_stream >> channel.num_rotations;
 
                 channel.positions = std::make_unique<float3[]>(channel.num_positions);
+                channel.posTime = std::make_unique<float[]>(channel.num_positions);
                 channel.rotations = std::make_unique<Quat[]>(channel.num_rotations);
+                channel.rotTime = std::make_unique<float[]>(channel.num_rotations);
 
                 for (uint j = 0; j < channel.num_positions; ++j)
                 {
-                    read_stream >> channel.positions[j].x >> channel.positions[j].y >> channel.positions[j].z;
+                    read_stream >> channel.positions[j].x >> channel.positions[j].y >> channel.positions[j].z >> channel.posTime[j];
                 }
 
                 for (uint j = 0; j < channel.num_rotations; ++j)
                 {
-                    read_stream >> channel.rotations[j].x >> channel.rotations[j].y >> channel.rotations[j].z >> channel.rotations[j].w;
+                    read_stream >> channel.rotations[j].x >> channel.rotations[j].y >> channel.rotations[j].z >> channel.rotations[j].w >> channel.rotTime[j];
                 }
             }
 
@@ -169,12 +171,12 @@ void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_
 
         for(uint i=0; i< channel.second.num_positions; ++i)
         {
-            write_stream << channel.second.positions[i].x << channel.second.positions[i].y << channel.second.positions[i].z; 
+            write_stream << channel.second.positions[i].x << channel.second.positions[i].y << channel.second.positions[i].z << channel.second.posTime[i];
         }
 
         for(uint i=0; i< channel.second.num_rotations; ++i)
         {
-            write_stream << channel.second.rotations[i].x << channel.second.rotations[i].y << channel.second.rotations[i].z << channel.second.rotations[i].w;  
+            write_stream << channel.second.rotations[i].x << channel.second.rotations[i].y << channel.second.rotations[i].z << channel.second.rotations[i].w << channel.second.rotTime[i];
         }
     }
 

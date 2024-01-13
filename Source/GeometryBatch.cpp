@@ -440,7 +440,7 @@ void GeometryBatch::CreateInstanceBuffer()
         const MeshData& meshData = meshes[object.first->GetMeshUID()];
         const ResourceMesh* mesh = object.first->GetMeshRes();
 
-        uint numBones        = mesh->GetNumBones();
+        uint numBones        = object.first->GetNumBones();
         uint numMorphAttribs = mesh->GetMorphNumAttribs();
         uint numVertices     = mesh->GetNumVertices();
 
@@ -638,6 +638,8 @@ void GeometryBatch::UpdateSkinning()
 {
     SDL_assert(totalBones > 0);
 
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Skinning");
+
     float4x4 *palette = skinningData[frameCount];
 
     for (const ComponentMeshRenderer *object : modelUpdates)
@@ -689,6 +691,9 @@ void GeometryBatch::UpdateSkinning()
             glDispatchCompute(numWorkGroups, 1, 1);
         }
     }
+
+    glPopDebugGroup();
+
 }
 
 void GeometryBatch::UpdateModels()

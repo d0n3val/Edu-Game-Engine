@@ -4,6 +4,7 @@
 #include "ResourceMesh.h"
 #include "ResourceMaterial.h"
 #include "ModuleRenderer.h"
+#include "ModuleLevelManager.h"
 #include "BatchManager.h"
 
 #include "OpenGL.h"
@@ -49,7 +50,7 @@ void ComponentMeshRenderer::OnSave(Config& config) const
 {
 	config.AddUID("MeshResource", mesh_resource);
 	config.AddBool("Visible", visible);
-	config.AddUID("Root", root_uid);
+	config.AddUInt("Root", rootGO->GetUID());
 
 	config.AddUID("MaterialResource", material_resource);
 	config.AddBool("DebugDrawTangent", debug_draw_tangent);
@@ -57,12 +58,24 @@ void ComponentMeshRenderer::OnSave(Config& config) const
 	config.AddBool("RecvShadows", recv_shadows);
     config.AddUInt("RenderMode", render_mode);
     config.AddString("BatchName", batch_name.C_str());
+    config.AddArray("SkinInfo");
+
+    for(uint i=0; i< numBones; ++i)
+    {
+        const Bone& bone = bones[i];
+        Config boneCfg;
+        boneCfg.AddUID("go", bone.go->GetUID());
+        boneCfg.AddFloat4x4("bind", bone.bind);
+        config.AddArrayEntry(boneCfg);
+    }
 }
 
 void ComponentMeshRenderer::OnLoad(Config* config) 
 {
+    ModuleLevelManager* level = App->level;
+
     visible            = config->GetBool("Visible", true);
-    root_uid           = config->GetUID("Root", root_uid);
+    rootGO             = level->Find(config->GetUInt("Root"));
 
     debug_draw_tangent = config->GetBool("DebugDrawTangent", false);
     cast_shadows       = config->GetBool("CastShadows", true);
@@ -76,6 +89,20 @@ void ComponentMeshRenderer::OnLoad(Config* config)
     {
         HashString batchName(config->GetString("BatchName"));
         SetBatchName(batchName ? batchName : HashString("default"));
+    }
+
+    numBones = config->GetArrayCount("SkinInfo");
+
+    bones = std::make_unique<Bone[]>(numBones);
+
+    for(uint i=0; i< numBones; ++i)
+    {
+        Bone& bone = bones[i];
+
+        Config boneCfg = config->GetArray("SkinInfo", i);
+
+        bone.go   = level->Find(boneCfg.GetUInt("go"));
+        bone.bind = boneCfg.GetFloat4x4("bind");
     }
 }
 
@@ -131,6 +158,7 @@ bool ComponentMeshRenderer::SetMeshRes(UID uid)
         {
             mesh_resource = uid;
 
+#if 0 
             if(mesh->num_bones > 0)
             {
                 node_cache   = new const GameObject* [mesh->num_bones];
@@ -140,6 +168,7 @@ bool ComponentMeshRenderer::SetMeshRes(UID uid)
                     node_cache[i] = nullptr;
                 }
             }
+#endif 
 
             if(mesh->GetNumMorphTargets())
             {
@@ -195,7 +224,7 @@ bool ComponentMeshRenderer::SetMaterialRes(UID uid)
 
 bool ComponentMeshRenderer::SetSkinInfo(const ResourceModel::Skin& skin, GameObject** gos)
 {
-    rootGO = skin.rootNode >= 0 ? gos[skin.rootNode] : nullptr;
+    rootGO = skin.rootNode >= 0 ? gos[skin.rootNode] : nullptr;    
     numBones = uint32_t(skin.bones.size());
     bones = std::make_unique<Bone[]>(numBones);
 
@@ -228,14 +257,14 @@ void ComponentMeshRenderer::UpdateSkinPalette(float4x4* palette) const
 
 	if(numBones > 0)
 	{
-        float4x4 rootT = rootGO->GetGlobalTransformation().Inverted();
+        float4x4 rootT = rootGO && rootGO->GetParent() ? rootGO->GetParent()->GetGlobalTransformation().Inverted() : float4x4::identity;
 
-		for(unsigned i=0; i < numBones; ++i)
-		{
+        for(unsigned i=0; i < numBones; ++i)
+        {
             const Bone& bone = bones[i];
             const GameObject* bone_node = bone.go;
 
-            palette[i] = bone_node ? rootT*bone_node->GetGlobalTransformation()*bone.bind : float4x4::identity;
+            palette[i] = bone_node ? rootT * bone_node->GetGlobalTransformation() * bone.bind :  float4x4::identity;
         }
     }
 

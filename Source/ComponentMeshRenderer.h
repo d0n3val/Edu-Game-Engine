@@ -49,7 +49,7 @@ public:
     bool                    GetVisible              () const { return visible; }
     void                    SetVisible              (bool v) { visible = v; }
 
-    uint32_t                GetNumBones() const     { return numBones; }
+    uint32_t                GetNumBones() const { return numBones; }
     void                    UpdateSkinPalette       (float4x4* palette) const;
     void                    UpdateCPUMorphTargets   () const;
 
@@ -80,7 +80,6 @@ private:
 	UID                      mesh_resource      = 0;
     const GameObject**       node_cache         = nullptr;
     bool                     visible            = true;
-    UID                      root_uid           = 0;
 
     // material
     UID                      material_resource  = 0;
@@ -98,7 +97,7 @@ private:
     };
 
     std::unique_ptr<Bone[]> bones;
-    uint32_t                numBones;
+    uint32_t                numBones = 0;
     GameObject*             rootGO = nullptr;
 
 

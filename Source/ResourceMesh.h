@@ -76,7 +76,7 @@ public:
 
     uint                  GetNumVertices      () const { return num_vertices; }
     uint                  GetNumIndices       () const { return num_indices; }
-    uint                  GetNumBones         () const { return num_bones; }
+    //uint                  GetNumBones         () const { return num_bones; }
 
     // morph targets
     uint                  GetNumMorphTargets  () const { return num_morph_targets; }
@@ -121,11 +121,13 @@ private:
 
 public:
 
+#if 0
 	struct Bone
 	{
 		HashString	name;
 		float4x4	bind = float4x4::identity;
 	};
+#endif 
 
     std::string                  name;
 
@@ -147,8 +149,8 @@ public:
     uint                         num_indices = 0;
     std::unique_ptr<uint[]>      src_indices;
 
-	uint                         num_bones	 = 0;
-    std::unique_ptr<Bone[]>      bones;
+	//uint                         num_bones	 = 0;
+    //std::unique_ptr<Bone[]>      bones;
     bool                         static_mesh = true;
 
     uint                         vao 	= 0;

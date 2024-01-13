@@ -78,6 +78,9 @@ public:
 	bool    AddFloat4(const char* field, const float4& value);
 	float4  GetFloat4(const char* field, const float4& def = float4::zero);
 
+    bool     AddFloat4x4(const char* field, const float4x4& value);
+    float4x4 GetFloat4x4(const char* field, const float4x4& def = float4x4::identity);
+
 	JSON_Object* GetRoot() { return root; }
 
 private:

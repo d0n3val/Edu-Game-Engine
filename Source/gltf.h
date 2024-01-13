@@ -36,11 +36,12 @@ inline void loadAccessor<unsigned>(std::unique_ptr<unsigned[]>& data, uint& coun
 
     count = uint(accessor.count);
     uint numComponents = tinygltf::GetNumComponentsInType(accessor.type);
+    uint componentSize = tinygltf::GetComponentSizeInBytes(accessor.componentType);
     data = std::make_unique<unsigned[]>(count* numComponents);
 
     const tinygltf::BufferView& view = model.bufferViews[accessor.bufferView];
     const uint8_t* bufferData = reinterpret_cast<const uint8_t*>(&(model.buffers[view.buffer].data[accessor.byteOffset + view.byteOffset]));
-    size_t defaultStride = tinygltf::GetComponentSizeInBytes(accessor.componentType) * numComponents;    
+    size_t defaultStride = componentSize * numComponents;    
     size_t bufferStride = view.byteStride == 0 ? defaultStride : view.byteStride;
 
     switch (accessor.componentType)
@@ -51,9 +52,9 @@ inline void loadAccessor<unsigned>(std::unique_ptr<unsigned[]>& data, uint& coun
             {
                 for (uint j = 0; j < numComponents; ++j)
                 {
-                    data[i*numComponents+j] = *reinterpret_cast<const unsigned*>(bufferData);
-                    bufferData += bufferStride;
+                    data[i*numComponents+j] = reinterpret_cast<const unsigned*>(bufferData)[j];
                 }
+                bufferData += bufferStride;
             }
             break;
         }
@@ -63,9 +64,10 @@ inline void loadAccessor<unsigned>(std::unique_ptr<unsigned[]>& data, uint& coun
             {
                 for (uint j = 0; j < numComponents; ++j)
                 {
-                    data[i * numComponents + j] = *reinterpret_cast<const short*>(bufferData);
-                    bufferData += bufferStride;
+                    data[i * numComponents + j] = reinterpret_cast<const short*>(bufferData)[j];
                 }
+
+                bufferData += bufferStride;
             }
             break;
         }
@@ -75,9 +77,10 @@ inline void loadAccessor<unsigned>(std::unique_ptr<unsigned[]>& data, uint& coun
             {
                 for (uint j = 0; j < numComponents; ++j)
                 {
-                    data[i * numComponents + j] = *reinterpret_cast<const uint8_t*>(bufferData);
-                    bufferData += bufferStride;
+                    data[i * numComponents + j] = reinterpret_cast<const uint8_t*>(bufferData)[j];
                 }
+
+                bufferData += bufferStride;
             }
             break;
         }

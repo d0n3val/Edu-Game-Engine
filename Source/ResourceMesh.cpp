@@ -183,13 +183,13 @@ bool ResourceMesh::LoadInMemory()
 
             if(HasAttrib(ATTRIB_BONE_INDICES))
             {
-                read_stream >> num_bones;
+                //read_stream >> num_bones;
 
-                bones = std::make_unique<Bone[]>(num_bones);
+//                bones = std::make_unique<Bone[]>(num_bones);
 
                 std::string tmp;
 
-                for(uint i=0; i< num_bones; ++i)
+                /*/for (uint i = 0; i< num_bones; ++i)
                 {
                     read_stream >> tmp;
                     bones[i].name = HashString(tmp.c_str());
@@ -197,7 +197,7 @@ bool ResourceMesh::LoadInMemory()
                     {
                         read_stream >> bones[i].bind.ptr()[j];
                     }
-                }
+                }*/
 
                 src_bone_indices = std::make_unique<unsigned[]>(num_vertices*4);
                 src_bone_weights = std::make_unique<float4[]>(num_vertices);
@@ -284,7 +284,7 @@ void ResourceMesh::ReleaseFromMemory()
     src_normals.reset();
     src_tangents.reset();
     src_indices.reset();
-    bones.reset();
+    //bones.reset();
     src_bone_indices.reset();
     src_bone_weights.reset();
     morph_targets.reset();
@@ -371,13 +371,14 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
 
     if(HasAttrib(ATTRIB_BONE_INDICES))
     {
-        write_stream << num_bones;
+        /*write_stream << num_bones;
 
         for(uint i=0; i< num_bones; ++i)
         {
             write_stream << bones[i].name.C_str();
             write_stream << bones[i].bind;
         }
+        */
 
         for(uint i=0; i< num_vertices; ++i)
         {
@@ -475,10 +476,12 @@ UID ResourceMesh::Import(const aiMesh* mesh, const char* source_file, float scal
 
     m->GenerateCPUBuffers(mesh, scale);
 
+#if 0
     if(mesh->HasBones())
     {
         m->GenerateBoneData(mesh, scale);
     }
+#endif 
 
     m->GenerateAttribInfo();
 
@@ -599,27 +602,23 @@ void ResourceMesh::GenerateCPUBuffers(const tinygltf::Model& model, const tinygl
        
         uint numTexCoord = 0;
         loadAccessor(src_texcoord0, numTexCoord, model, primitive, "TEXCOORD_0");
-        SDL_assert(numTexCoord == num_vertices);
+        SDL_assert(numTexCoord == 0 || numTexCoord == num_vertices);
 
         uint numNormals = 0;
         loadAccessor(src_normals, numNormals, model, primitive, "NORMAL");
-        SDL_assert(numNormals == num_vertices);
+        SDL_assert(numNormals == 0 || numNormals == num_vertices);
 
         uint numTangents = 0;
         loadAccessor(src_tangents, numTangents, model, primitive, "TANGENT");
-        SDL_assert(numTangents == num_vertices);
+        SDL_assert(numTangents == 0 || numTangents == num_vertices);
 
         uint numJoints;
         loadAccessor(src_bone_indices, numJoints, model, primitive, "JOINTS_0");
-        SDL_assert(numJoints == num_vertices);
+        SDL_assert(numJoints == 0 || numJoints == num_vertices);
 
         uint numWeights;
         loadAccessor(src_bone_weights, numWeights, model, primitive, "WEIGHTS_0");
-        SDL_assert(numWeights == num_vertices);
-
-        /*const tinygltf::Accessor& indAcc = model.accessors[primitive.indices];
-        num_indices = uint(indAcc.count);
-        src_indices = std::make_unique<unsigned[]>(num_indices);*/
+        SDL_assert(numWeights == 0 || numWeights == num_vertices);
 
         bbox.SetNegativeInfinity();
         bbox.Enclose(src_vertices.get(), num_vertices);
@@ -915,6 +914,7 @@ void ResourceMesh::GenerateVBO()
 
 void ResourceMesh::GenerateBoneData(const aiMesh* mesh, float scale)
 {
+#if 0
     assert(mesh->HasBones());
 
     bones      = std::make_unique<Bone[]>(mesh->mNumBones);
@@ -986,7 +986,7 @@ void ResourceMesh::GenerateBoneData(const aiMesh* mesh, float scale)
             src_bone_weights[i] = src_bone_weights[i] / length;
         }
     }
-
+#endif 
 }
 
 void ResourceMesh::GenerateVAO()
@@ -1291,8 +1291,8 @@ void ResourceMesh::UpdateUniforms(const float4x4* skin_palette, const float* mor
 
     if(HasAttrib(ATTRIB_BONE_INDICES))
     {
-        glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), num_bones, GL_TRUE, reinterpret_cast<const float*>(skin_palette));
-        vertex_indices[0] = 1;
+        //glUniformMatrix4fv(App->programs->GetUniformLocation("palette"), num_bones, GL_TRUE, reinterpret_cast<const float*>(skin_palette));
+        //vertex_indices[0] = 1;
     }
     else
     {

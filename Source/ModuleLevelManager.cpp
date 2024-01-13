@@ -202,12 +202,23 @@ void ModuleLevelManager::LoadGameObjects(const Config & config)
 {
 	int count = config.GetArrayCount("Game Objects");
 	map<GameObject*, uint> relations;
+    std::vector<GameObject*> gos;
+    gos.resize(count);
+
 	for (int i = 0; i < count; ++i)
 	{
 		GameObject* go = CreateGameObject();
         Config goCfg = config.GetArray("Game Objects", i);
 		go->Load(&goCfg, relations);
+        gos[i] = go;
 	}
+
+    for (int i=0; i< count; ++i)
+    {
+        Config goCfg = config.GetArray("Game Objects", i);
+        gos[i]->LoadComponents(&goCfg);
+    }
+
 
 	// Second pass to tide up the hierarchy
 	for (map<GameObject*, uint>::iterator it = relations.begin(); it != relations.end(); ++it)

@@ -132,22 +132,27 @@ void GameObject::Load(Config * config, map<GameObject*, uint>& relations)
 
 	SetLocalRotation(r);
 
-	// Now Load all my components
-	int count = config->GetArrayCount("Components");
-
-	for (int i = 0; i < count; ++i)
-	{
-		Config component_conf(config->GetArray("Components", i));
-		Component::Types type = (Component::Types)component_conf.GetInt("Type", Component::Types::Unknown);
-		if (type != Component::Types::Unknown)
-		{
-			Component* component = CreateComponent(type);
-			component->OnLoad(&component_conf);
-		}
-		else
-			LOG("Cannot load component type UNKNOWN for gameobject %s", name.c_str());
-	}
 }
+
+void GameObject::LoadComponents(Config* config)
+{
+    // Now Load all my components
+    int count = config->GetArrayCount("Components");
+
+    for (int i = 0; i < count; ++i)
+    {
+        Config component_conf(config->GetArray("Components", i));
+        Component::Types type = (Component::Types)component_conf.GetInt("Type", Component::Types::Unknown);
+        if (type != Component::Types::Unknown)
+        {
+            Component* component = CreateComponent(type);
+            component->OnLoad(&component_conf);
+        }
+        else
+            LOG("Cannot load component type UNKNOWN for gameobject %s", name.c_str());
+    }
+}
+
 
 // ---------------------------------------------------------
 void GameObject::OnStart()

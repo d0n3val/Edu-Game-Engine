@@ -123,10 +123,11 @@ void main()
         // Do skinning if there are bones
         if(numBones > 0)
         {
-            mat4 skin_transform = palette[indices[index][0]]*weights[index][0]+
-                                palette[indices[index][1]]*weights[index][1]+
-                                palette[indices[index][2]]*weights[index][2]+
-                                palette[indices[index][3]]*weights[index][3];
+            ivec4 boneIndices = indices[index];
+            mat4 skin_transform = palette[boneIndices[0]]*weights[index][0]+
+                                palette[boneIndices[1]]*weights[index][1]+
+                                palette[boneIndices[2]]*weights[index][2]+
+                                palette[boneIndices[3]]*weights[index][3];
 
             position = skin_transform*position;
             normal = skin_transform*normal;

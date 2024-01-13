@@ -20,6 +20,7 @@ public:
 
 	bool Save(Config& config, std::map<uint,uint>* duplicate = nullptr) const;
 	void Load(Config* config, std::map<GameObject*, uint>& relations);
+    void LoadComponents(Config* config);
 
 	void OnStart();
 	void OnFinish();
