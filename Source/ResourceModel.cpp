@@ -261,7 +261,8 @@ void ResourceModel::GenerateMeshes(const tinygltf::Model& model, const char* ful
         {
             UID material = primitive.material >= 0 ? materials[primitive.material] : 0;
 
-            MeshRenderer renderer = { ResourceMesh::Import(model, srcMesh, primitive, full_path, scale), material };
+            uint32_t weightCount = 0;
+            MeshRenderer renderer = { ResourceMesh::Import(model, srcMesh, primitive, weightCount, full_path, scale), material };
             
             meshes.insert({ uint(i), renderer});
         }
@@ -456,7 +457,7 @@ void ResourceModel::GenerateMaterials(const aiScene* scene, const char* file, st
 
 	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
 	{
-        materials.push_back(ResourceMaterial::Import(scene->mMaterials[i], file));
+        //materials.push_back(ResourceMaterial::Import(scene->mMaterials[i], file));
 
 		assert(materials.back() != 0);
 	}

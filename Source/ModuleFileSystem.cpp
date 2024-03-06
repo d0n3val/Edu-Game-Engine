@@ -269,6 +269,7 @@ uint ModuleFileSystem::Load(const char* file, char** buffer) const
 {
 	uint ret = 0;
 
+    const char* sep = PHYSFS_getDirSeparator();
 	PHYSFS_file* fs_file = PHYSFS_openRead(file);
 
 	if(fs_file != nullptr)

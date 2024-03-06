@@ -278,7 +278,7 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
 
         std::vector<float> tmpBuffer;
 
-        tmpBuffer.resize(512 * 512 * 3);
+        tmpBuffer.resize(512 * 512 * 4);
 
         DirectX::ScratchImage image, imageMips;
         DirectX::ScratchImage* result = &image;
@@ -287,7 +287,7 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
 
         for (uint i = 0; i < 6; ++i)
         {
-            cubeMap->GetData(i, 0, GL_RGB, GL_FLOAT, &tmpBuffer[0]);
+            cubeMap->GetData(i, 0, GL_RGBA, GL_FLOAT, &tmpBuffer[0]);
 
             const DirectX::Image* face = image.GetImage(0, i, 0);
             memcpy(face->pixels, &tmpBuffer[0], tmpBuffer.size() * sizeof(float));

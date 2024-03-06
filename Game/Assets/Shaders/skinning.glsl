@@ -28,10 +28,12 @@ readonly layout(std430, binding = SKINNING_INNORMALS_BINDING) buffer InNormals
     vec4 in_normals[];
 };
 
+#ifndef NO_TANGENTS
 readonly layout(std430, binding = SKINNING_INTANGENTS_BINDING) buffer InTangents
 {
     vec4 in_tangents[];
 };
+#endif 
 
 writeonly layout(std430, binding = SKINNING_OUTPOSITIONS_BINDING) buffer OutPositions
 {
@@ -110,14 +112,18 @@ void main()
     {
         vec4 position = in_positions[index];
         vec4 normal = in_normals[index];
+#ifndef NO_TANGENTS
         vec4 tangent = in_tangents[index];
+#endif
 
         // Do morph targets if there are targets
         if(numTargets > 0)
         {
             position = vec4(MorphPosition(position.xyz, index), 1.0);
             normal   = vec4(MorphNormal(normal.xyz, index), 0.0);
+#ifndef NO_TANGENTS
             tangent  = vec4(MorphTangent(tangent.xyz, index), 0.0);
+#endif 
         }
 
         // Do skinning if there are bones
@@ -131,11 +137,15 @@ void main()
 
             position = skin_transform*position;
             normal = skin_transform*normal;
+#ifndef NO_TANGENTS
             tangent = skin_transform*tangent;
+#endif 
         }
 
         out_positions[index] = position;
         out_normals[index] = normal;
+#ifndef NO_TANGENTS
         out_tangents[index] = tangent;
+#endif 
     }
 }

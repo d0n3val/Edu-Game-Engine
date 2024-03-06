@@ -55,7 +55,6 @@ private:
     unsigned                 active_node = 0;
     bool                     debug_draw  = false;
     EditorContext*           context     = nullptr;
-    std::vector<float>       tmp_weights;
     std::vector<Component*>  tmp_components;
 };
 

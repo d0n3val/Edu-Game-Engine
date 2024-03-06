@@ -36,7 +36,7 @@ uint BatchManager::Add(const ComponentMeshRenderer* object, const HashString& ta
 
     if (batch_index == batches.size())
     {
-        batches.push_back(std::make_unique<GeometryBatch>(tag, skinningProgram.get()));
+        batches.push_back(std::make_unique<GeometryBatch>(tag, skinningProgram.get(), skinningProgramNoTangents.get()));
         batches.back()->Add(object);
     }
 
@@ -136,18 +136,23 @@ void BatchManager::OnMaterialModified(UID materialID)
 
 void BatchManager::CreateSkinningProgram()
 {
+    const char* defines[] = { "#define NO_TANGENTS\n"};
     std::unique_ptr<Shader> shader = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/skinning.glsl");
-    bool ok = shader->Compiled();
+    std::unique_ptr<Shader> shaderNoTangents = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/skinning.glsl", &defines[0], 1);
+
+    bool ok = shader->Compiled() && shaderNoTangents->Compiled();
 
     if(ok)
     {        
         skinningProgram = std::make_unique<Program>(shader.get());
+        skinningProgramNoTangents = std::make_unique<Program>(shaderNoTangents.get());
 
-        ok = skinningProgram->Linked();
+        ok = skinningProgram->Linked() && skinningProgramNoTangents->Linked();
     }
 
     if(!ok)
     {
         skinningProgram.release();
+        skinningProgramNoTangents.release();
     }
 }

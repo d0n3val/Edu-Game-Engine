@@ -84,8 +84,8 @@ void ComponentAnimation::UpdateGO(GameObject* go)
 {
     // Rígid update
 
-    float3 position;
-    Quat rotation;
+    float3 position = go->GetLocalPosition();
+    Quat rotation = go->GetLocalRotationQ();
 
     if(controller->GetTransform(go->name, position, rotation))
     {
@@ -106,12 +106,13 @@ void ComponentAnimation::UpdateGO(GameObject* go)
 
         if(num_morphs > 0)
         {
-            tmp_weights.resize(num_morphs, 0.0f);
-            if (controller->GetWeights(go->name, &tmp_weights[0], num_morphs))
+            std::span<const float> weights = controller->GetWeights(go->name);
+
+            if(!weights.empty())
             {
                 for (uint i=0; i< num_morphs; ++i)
                 {
-                    mesh_renderer->SetMorphTargetWeight(i, tmp_weights[i]);
+                    mesh_renderer->SetMorphTargetWeight(i, weights[i]);
                 }
             }
         }

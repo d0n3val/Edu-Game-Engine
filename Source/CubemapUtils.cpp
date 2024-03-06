@@ -64,14 +64,14 @@ const float CubemapUtils::skybox_vertices[6*6*3] = {
 
 const float3 CubemapUtils::front[6] = {
     float3(1.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f),
-    float3(0.0f, 1.0f, 0.0f), float3(0.0f, -1.0f, 0.0f),
-    float3(0.0f, 0.0f, 1.0f), float3(0.0f, 0.0f, -1.0f)
+    float3(0.0f, -1.0f, 0.0f), float3(0.0f, 1.0f, 0.0f),
+    float3(0.0f, 0.0f, -1.0f), float3(0.0f, 0.0f, 1.0f)
 };
 
 float3 CubemapUtils::up[6] = {  
-    float3(0.0f, -1.0f, 0.0f), float3(0.0f, -1.0f, 0.0f),
-    float3(0.0f, 0.0f, 1.0f), float3(0.0f, 0.0f, -1.0f),
-    float3(0.0f, -1.0f, 0.0f), float3(0.0f, -1.0f, 0.0f) 
+    float3(0.0f, 1.0f, 0.0f), float3(0.0f, 1.0f, 0.0f),
+    float3(0.0f, 0.0f, -1.0f), float3(0.0f, 0.0f, 1.0f),
+    float3(0.0f, 1.0f, 0.0f), float3(0.0f, 1.0f, 0.0f) 
 };
 
 CubemapUtils::CubemapUtils()
@@ -307,7 +307,7 @@ TextureCube* CubemapUtils::ConvertToCubemap(Texture2D* texture, uint width, uint
     // initialize each cubemap plane
     for(uint i=0; i< 6; ++i)
     {
-        cubeMap->SetData(i, 0, width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr);
+        cubeMap->SetData(i, 0, width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
     }
 
     equirectangular->Use();

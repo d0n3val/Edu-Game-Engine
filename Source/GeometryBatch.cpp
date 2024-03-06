@@ -20,7 +20,9 @@
 #include <algorithm>
 #include <SDL_assert.h>
 
-GeometryBatch::GeometryBatch(const HashString& tag, Program* program) : tagName(tag), skinningProgram(program)
+GeometryBatch::GeometryBatch(const HashString &tag, Program *program, Program *programNoTangents) : tagName(tag),
+                                                                                                    skinningProgram(program), 
+                                                                                                    skinningProgramNoTangents(programNoTangents)
 {
 }
 
@@ -43,7 +45,8 @@ bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
     }
 
     const ResourceMesh* meshRes = object->GetMeshRes();
-    if (meshRes->GetAttribs() == attrib_flags)
+    const ResourceMaterial* materialRes = object->GetMaterialRes();
+    if (meshRes->GetAttribs() == attrib_flags && materialRes->GetWorkFlow() == materialWF)
     {
         return true;
     }
@@ -59,6 +62,7 @@ void GeometryBatch::Add(const ComponentMeshRenderer* object)
     if(objects.empty())
     {
         attrib_flags = object->GetMeshRes()->GetAttribs();
+        materialWF = object->GetMaterialRes()->GetWorkFlow();
     }
 
     meshes[object->GetMeshUID()].refCount++;
@@ -85,7 +89,7 @@ void GeometryBatch::CreateRenderData()
         CreateInstanceBuffer();
         CreateTransformBuffer();
 
-        if (totalBones > 0)
+        if (totalBones > 0 || totalTargets > 0)
         {
             CreateSkinningBuffers();
         }
@@ -113,7 +117,7 @@ void GeometryBatch::ClearRenderData()
 
 void GeometryBatch::CreateSkinningBuffers()
 {
-    SDL_assert(totalBones > 0);
+    SDL_assert(totalBones > 0 || totalTargets > 0);
 
     tpose_positions.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float4) * totalVertices, nullptr));
     float4* positions = reinterpret_cast<float4*>(tpose_positions->Map(GL_WRITE_ONLY));
@@ -160,38 +164,44 @@ void GeometryBatch::CreateSkinningBuffers()
     {
         const ResourceMesh *mesh = static_cast<const ResourceMesh *>(App->resources->Get(meshData.first));
 
-        for(uint i=0; i < mesh->GetNumVertices(); ++i)
+        if (mesh->HasAttrib(ATTRIB_TANGENTS))
         {
-            const float4& vtx = mesh->src_tangents[i];
-            tangents[offset+i].Set(vtx.x, vtx.y, vtx.z, vtx.w);
-        }
+            for (uint i = 0; i < mesh->GetNumVertices(); ++i)
+            {
+                const float4& vtx = mesh->src_tangents[i];
+                tangents[offset + i].Set(vtx.x, vtx.y, vtx.z, vtx.w);
+            }
 
-        offset += mesh->GetNumVertices();
+            offset += mesh->GetNumVertices();
+        }
     }
 
     tpose_tangents->Unmap();
 
-    offset = 0;
-    bone_indices.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(int) * 4 * totalVertices, nullptr));
-    uint8_t* indices = reinterpret_cast<uint8_t*>(bone_indices->Map(GL_WRITE_ONLY));
-    for (const std::pair<const UID, MeshData>& meshData : meshes)
+    if (totalBones > 0)
     {
-        const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
-        memcpy(&indices[offset], &mesh->src_bone_indices[0], sizeof(int) * 4 * mesh->GetNumVertices());
-        offset += sizeof(int) * 4 * mesh->GetNumVertices();
-    }
-    bone_indices->Unmap();
+        offset = 0;
+        bone_indices.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(int) * 4 * totalVertices, nullptr));
+        uint8_t* indices = reinterpret_cast<uint8_t*>(bone_indices->Map(GL_WRITE_ONLY));
+        for (const std::pair<const UID, MeshData>& meshData : meshes)
+        {
+            const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
+            memcpy(&indices[offset], &mesh->src_bone_indices[0], sizeof(int) * 4 * mesh->GetNumVertices());
+            offset += sizeof(int) * 4 * mesh->GetNumVertices();
+        }
+        bone_indices->Unmap();
 
-    offset = 0;
-    bone_weights.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float) * 4 * totalVertices, nullptr));
-    uint8_t* weights = reinterpret_cast<uint8_t*>(bone_weights->Map(GL_WRITE_ONLY));
-    for (const std::pair<const UID, MeshData>& meshData : meshes)
-    {
-        const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
-        memcpy(&weights[offset], &mesh->src_bone_weights[0], sizeof(float) * 4 * mesh->GetNumVertices());
-        offset += sizeof(float4) * mesh->GetNumVertices();
+        offset = 0;
+        bone_weights.reset(Buffer::CreateVBO(GL_STATIC_DRAW, sizeof(float) * 4 * totalVertices, nullptr));
+        uint8_t* weights = reinterpret_cast<uint8_t*>(bone_weights->Map(GL_WRITE_ONLY));
+        for (const std::pair<const UID, MeshData>& meshData : meshes)
+        {
+            const ResourceMesh* mesh = static_cast<const ResourceMesh*>(App->resources->Get(meshData.first));
+            memcpy(&weights[offset], &mesh->src_bone_weights[0], sizeof(float) * 4 * mesh->GetNumVertices());
+            offset += sizeof(float4) * mesh->GetNumVertices();
+        }
+        bone_weights->Unmap();
     }
-    bone_weights->Unmap();
 }
 
 void GeometryBatch::CreateVertexBuffers()
@@ -377,53 +387,105 @@ void GeometryBatch::CreateCommandBuffer()
 
 void GeometryBatch::CreateMaterialBuffer()
 {
-    struct MaterialData
+    if(materialWF == SpecularGlossiness)
     {
-        float4               diffuse_color;
-        float4               specular_color;
-        float4               emissive_color;
-        float2               tiling;
-        float2               offset;
-        float2               secondary_tiling;
-        float2               secondary_offset;
-        float                smoothness;
-        float                normal_strength;
-        float                alpha_test;
-        uint                 mapMask;
-        uint64_t             handles[TextureCount];
-    };
-
-
-    materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(MaterialData)*objects.size(), nullptr, true);
-    MaterialData* matData = reinterpret_cast<MaterialData*>(materialSSBO->Map(GL_WRITE_ONLY));
-    for(const std::pair<const ComponentMeshRenderer*, uint>& object : objects)
-    {
-        MaterialData& out = matData[object.second];
-        const ResourceMaterial* material = reinterpret_cast<const ResourceMaterial*>(App->resources->Get(object.first->GetMaterialRes()->GetUID()));
-
-        out.diffuse_color = material->GetDiffuseColor();
-        out.specular_color   = float4(material->GetSpecularColor()*material->GetSpecularIntensity(), 0.0f);
-        out.emissive_color   = float4(material->GetEmissiveColor()*material->GetEmissiveIntensity(), 0.0f);
-        out.tiling           = material->GetUVTiling();
-        out.offset           = material->GetUVOffset();
-        out.secondary_tiling = material->GetSecondUVTiling();
-        out.secondary_offset = material->GetSecondUVOffset();
-        out.smoothness       = material->GetSmoothness();
-        out.normal_strength  = material->GetNormalStrength();
-        out.alpha_test       = material->GetAlphaTest();
-        out.mapMask          = material->GetMask();       
-
-        for(uint i=0; i< TextureCount; ++i)
+        struct MaterialData
         {
-            const ResourceTexture* texture = material->GetTextureRes(MaterialTexture(i));
-            if (texture != nullptr && texture->GetTexture() != nullptr)
-            {
-                out.handles[i] = texture->GetTexture()->GetBindlessHandle();
-            }
-        }        
-    }
+            float4 diffuse_color;
+            float4 specular_color;
+            float4 emissive_color;
+            float2 tiling;
+            float2 offset;
+            float2 secondary_tiling;
+            float2 secondary_offset;
+            uint   materialType;
+            uint pad1;
+            float alpha_test;
+            uint mapMask;
+            uint64_t handles[SG_TextureCount];
+        };
 
-    materialSSBO->Unmap();
+        materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(MaterialData) * objects.size(), nullptr, true);
+        MaterialData *matData = reinterpret_cast<MaterialData *>(materialSSBO->Map(GL_WRITE_ONLY));
+        for (const std::pair<const ComponentMeshRenderer *, uint> &object : objects)
+        {
+            MaterialData &out = matData[object.second];
+            const ResourceMaterial *material = reinterpret_cast<const ResourceMaterial *>(App->resources->Get(object.first->GetMaterialRes()->GetUID()));
+
+            const SpecularGlossData &data = material->GetSpecularGlossData();
+
+            out.diffuse_color = data.diffuse_color;
+            out.specular_color = float4(data.specular_color * data.specular_intensity, data.smoothness);
+            out.emissive_color = float4(data.emissive_color * data.emissive_intensity, data.normal_strength);
+            out.tiling = material->GetUVTiling();
+            out.offset = material->GetUVOffset();
+            out.secondary_tiling = material->GetSecondUVTiling();
+            out.secondary_offset = material->GetSecondUVOffset();
+            out.alpha_test = material->GetAlphaTest();
+            out.mapMask = material->GetMask();
+            out.materialType = SpecularGlossiness;
+
+            for (uint i = 0; i < SG_TextureCount; ++i)
+            {
+                const ResourceTexture *texture = material->GetTextureRes(SpecularGlossTextures(i));
+                if (texture != nullptr && texture->GetTexture() != nullptr)
+                {
+                    out.handles[i] = texture->GetTexture()->GetBindlessHandle();
+                }
+            }
+        }
+
+        materialSSBO->Unmap();
+    }
+    else
+    {
+        struct MaterialData
+        {
+            float4 base_color;
+            float4 matellicRoughness;
+            float4 emissive_color;
+            float2 tiling;
+            float2 offset;
+            float2 secondary_tiling;
+            float2 secondary_offset;
+            uint   materialType;
+            uint padd1;
+            uint padd2;
+            uint mapMask;
+            uint64_t handles[MR_TextureCount];
+        };
+
+        materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(MaterialData) * objects.size(), nullptr, true);
+        MaterialData *matData = reinterpret_cast<MaterialData *>(materialSSBO->Map(GL_WRITE_ONLY));
+        for (const std::pair<const ComponentMeshRenderer *, uint> &object : objects)
+        {
+            MaterialData &out = matData[object.second];
+            const ResourceMaterial *material = reinterpret_cast<const ResourceMaterial *>(App->resources->Get(object.first->GetMaterialRes()->GetUID()));
+
+            const MetallicRoughData &data = material->GetMetallicRoughData();
+
+            out.base_color = data.baseColor;
+            out.matellicRoughness = float4(data.metalness, data.roughness, data.occlusion_strength, data.normal_strength);
+            out.emissive_color = float4(data.emissive_color * data.emissive_intensity, material->GetAlphaTest());
+            out.tiling = material->GetUVTiling();
+            out.offset = material->GetUVOffset();
+            out.secondary_tiling = material->GetSecondUVTiling();
+            out.secondary_offset = material->GetSecondUVOffset();
+            out.mapMask = material->GetMask();
+            out.materialType = MetallicRoughness;
+
+            for (uint i = 0; i < MR_TextureCount; ++i)
+            {
+                const ResourceTexture *texture = material->GetTextureRes(MetallicRoughTextures(i));
+                if (texture != nullptr && texture->GetTexture() != nullptr)
+                {
+                    out.handles[i] = texture->GetTexture()->GetBindlessHandle();
+                }
+            }
+        }
+
+        materialSSBO->Unmap();
+    }
 }
 
 void GeometryBatch::CreateInstanceBuffer()
@@ -457,7 +519,7 @@ void GeometryBatch::CreateInstanceBuffer()
         totalTargets      += meshData.numTargets;
     }
 
-    if (totalBones > 0)
+    if (totalBones > 0 )
     {
         for (uint i = 0; i < NUM_BUFFERS; ++i)
         {
@@ -636,7 +698,7 @@ void GeometryBatch::MarkForUpdate(const ComponentMeshRenderer *object)
 
 void GeometryBatch::UpdateSkinning()
 {
-    SDL_assert(totalBones > 0);
+    SDL_assert(totalBones > 0 || totalTargets > 0);
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Skinning");
 
@@ -647,44 +709,55 @@ void GeometryBatch::UpdateSkinning()
         auto it = objects.find(object);
         SDL_assert(it != objects.end());
 
-        if(it != objects.end())
+        const ResourceMesh *meshRes = object->GetMeshRes();
+
+        if (it != objects.end())
         {
             const PerInstance& instanceData = instances[it->second];
             const MeshData &meshData = meshes[object->GetMeshUID()];
+            Program* program = meshRes->HasAttrib(ATTRIB_TANGENTS) ? skinningProgram : skinningProgramNoTangents;
 
-            skinningProgram->Use();
+            program->Use();
 
-            skinningProgram->BindUniform(SKINNING_NUM_VERTICES_LOCATION, int(meshData.vertexCount));
-            skinningProgram->BindUniform(SKINNING_NUM_BONES_LOCATION, int(instanceData.numBones));
-            skinningProgram->BindUniform(SKINNING_NUM_TARGETS_LOCATION, int(instanceData.numTargets));
-            skinningProgram->BindUniform(SKINNING_TARGET_STRIDE_LOCATION, int(instanceData.targetStride));
-            skinningProgram->BindUniform(SKINNING_NORMAL_STRIDE_LOCATION, int(instanceData.normalsStride));
-            skinningProgram->BindUniform(SKINNING_TANGENT_STRIDE_LOCATION, int(instanceData.tangentsStride));
+            program->BindUniform(SKINNING_NUM_VERTICES_LOCATION, int(meshData.vertexCount));
+            program->BindUniform(SKINNING_NUM_BONES_LOCATION, int(instanceData.numBones));
+            program->BindUniform(SKINNING_NUM_TARGETS_LOCATION, int(instanceData.numTargets));
+            program->BindUniform(SKINNING_TARGET_STRIDE_LOCATION, int(instanceData.targetStride));
+            program->BindUniform(SKINNING_NORMAL_STRIDE_LOCATION, int(instanceData.normalsStride));
+            program->BindUniform(SKINNING_TANGENT_STRIDE_LOCATION, int(instanceData.tangentsStride));
 
             if (instanceData.numBones > 0)
             {
                 object->UpdateSkinPalette(&palette[instanceData.baseBone]);
 
                 // Bind buffers
-                skinningProgram->BindSSBO(SKINNING_PALETTE_BINDING, skinning[frameCount].get(), instanceData.baseBone * sizeof(float4x4), instanceData.numBones * sizeof(float4x4));
-                skinningProgram->BindSSBO(SKINNING_INDICES_BINDING, bone_indices.get(), meshData.baseVertex * sizeof(int)*4, meshData.vertexCount * sizeof(int) * 4);
-                skinningProgram->BindSSBO(SKINNING_WEIGHTS_BINDING, bone_weights.get(), meshData.baseVertex * sizeof(float)*4, meshData.vertexCount * sizeof(float) * 4);
+                program->BindSSBO(SKINNING_PALETTE_BINDING, skinning[frameCount].get(), instanceData.baseBone * sizeof(float4x4), instanceData.numBones * sizeof(float4x4));
+                program->BindSSBO(SKINNING_INDICES_BINDING, bone_indices.get(), meshData.baseVertex * sizeof(int)*4, meshData.vertexCount * sizeof(int) * 4);
+                program->BindSSBO(SKINNING_WEIGHTS_BINDING, bone_weights.get(), meshData.baseVertex * sizeof(float)*4, meshData.vertexCount * sizeof(float) * 4);
 
-                skinningProgram->BindSSBO(SKINNING_POSITIONS_BINDING, tpose_positions.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-                skinningProgram->BindSSBO(SKINNING_INNORMALS_BINDING, tpose_normals.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-                skinningProgram->BindSSBO(SKINNING_INTANGENTS_BINDING, tpose_tangents.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-
-                skinningProgram->BindSSBO(SKINNING_OUTPOSITIONS_BINDING, vbo[ATTRIB_POSITIONS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-                skinningProgram->BindSSBO(SKINNING_OUTNORMALS_BINDING, vbo[ATTRIB_NORMALS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-                skinningProgram->BindSSBO(SKINNING_OUTTANGENTS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
             }
 
-            if(totalTargets > 0)
+            if(instanceData.numTargets > 0)
             {
                 memcpy(&morphWeightsData[frameCount][instanceData.baseTargetWeight], object->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
 
-                skinningProgram->BindSSBO(SKINNING_MORPH_WEIGHTS_BINDING, morphWeights[frameCount].get(), instanceData.baseTargetWeight*sizeof(float), instanceData.numTargets*sizeof(float));
+                program->BindSSBO(SKINNING_MORPH_WEIGHTS_BINDING, morphWeights[frameCount].get(), instanceData.baseTargetWeight*sizeof(float), instanceData.numTargets*sizeof(float));
                 morphTexture->Bind(SKINNING_MORPH_TARGET_BINDING);
+            }
+
+            if (instanceData.numBones > 0 || instanceData.numTargets > 0)
+            {
+                program->BindSSBO(SKINNING_POSITIONS_BINDING, tpose_positions.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+                program->BindSSBO(SKINNING_INNORMALS_BINDING, tpose_normals.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+                program->BindSSBO(SKINNING_INTANGENTS_BINDING, tpose_tangents.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+
+                program->BindSSBO(SKINNING_OUTPOSITIONS_BINDING, vbo[ATTRIB_POSITIONS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+                program->BindSSBO(SKINNING_OUTNORMALS_BINDING, vbo[ATTRIB_NORMALS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+
+                if (meshRes->HasAttrib(ATTRIB_TANGENTS))
+                {
+                    program->BindSSBO(SKINNING_OUTTANGENTS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+                }
             }
 
             int numWorkGroups = (meshData.vertexCount + (SKINNING_GROUP_SIZE - 1)) / SKINNING_GROUP_SIZE;

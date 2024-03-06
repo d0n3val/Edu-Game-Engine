@@ -37,9 +37,10 @@ public:
     {
         std::unique_ptr<float3[]> src_vertices;
         std::unique_ptr<float3[]> src_normals;
-        std::unique_ptr<float4[]> src_tangents;
+        std::unique_ptr<float3[]> src_tangents;
         std::unique_ptr<uint[]>   src_indices;
-        uint                      num_indices;
+        float                     initWeight = 0.0f;
+        uint32_t                  offset = 0;
     };
 
 public:
@@ -60,7 +61,7 @@ public:
     bool                  Save                (std::string& output) const;
     static UID            Import              (const aiMesh* mesh, const char* source_file, float scale);
     static UID            Import              (const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, 
-                                               const char* source_file, float scale);
+                                               uint32_t& weightsCount, const char* source_file, float scale);
 
     static UID            LoadSphere          (const char* sphere_name, float size, unsigned slices, unsigned stacks, UID uid);
     static UID            LoadTorus           (const char* torus_name, float inner_r, float outer_r, unsigned slices, unsigned stacks);
@@ -109,7 +110,7 @@ private:
     void                GenerateAttribInfo  ();
     void                GenerateCPUBuffers  (const Thekla::Atlas_Output_Mesh* atlas);
     void                GenerateCPUBuffers  (const aiMesh* mesh, float scale);
-    void                GenerateCPUBuffers  (const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, float scale);
+    void                GenerateCPUBuffers  (const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, uint32_t& weightsCount, float scale);
 	void                GenerateCPUBuffers  (par_shapes_mesh_s* shape);
     void                GenerateVBO         ();
     void                GenerateBoneData    (const aiMesh* mesh, float scale);

@@ -81,22 +81,21 @@ bool ResourceAnimation::LoadInMemory()
 
                 MorphChannel& morph_channel = morph_channels[name];
 
-                read_stream >> morph_channel.numKeys;
+                read_stream >> morph_channel.numTime;
+                read_stream >> morph_channel.num_weights;
 
-                morph_channel.weights = std::make_unique<ValueWeights[]>(morph_channel.numKeys);
+                SDL_assert(morph_channel.num_weights % morph_channel.numTime == 0);
 
-                for (uint i = 0; i < morph_channel.numKeys; ++i)
-                {
-                    ValueWeights& valueWeights = morph_channel.weights[i];
-                    read_stream >> valueWeights.count;
-                    valueWeights.valueWeights = std::make_unique<std::pair<uint, float>[]>(valueWeights.count);
+                morph_channel.numTargets = morph_channel.num_weights / morph_channel.numTime;
 
-                    for (uint j = 0; j < valueWeights.count; ++j)
-                    {
-                        read_stream >> valueWeights.valueWeights[j].first;
-                        read_stream >> valueWeights.valueWeights[j].second;
-                    }
-                }
+                morph_channel.weightTime = std::make_unique<float[]>(morph_channel.numTime);
+                morph_channel.weights = std::make_unique<float[]>(morph_channel.num_weights);
+
+                for (uint j = 0; j < morph_channel.numTime; ++j)
+                    read_stream >> morph_channel.weightTime[j];
+
+                for (uint j = 0; j < morph_channel.num_weights; ++j)
+                    read_stream >> morph_channel.weights[j];
             }
 
             return true;
@@ -185,35 +184,31 @@ void ResourceAnimation::SaveToStream(simple::mem_ostream<std::true_type>& write_
     for(const std::pair<const std::string, MorphChannel>& morph_channel : morph_channels)
     {
         write_stream << morph_channel.first; 
-        write_stream << morph_channel.second.numKeys;
+        write_stream << morph_channel.second.numTime;
+        write_stream << morph_channel.second.num_weights;
 
-        for(uint i=0; i< morph_channel.second.numKeys; ++i)
-        {
-            ValueWeights& valueWeights = morph_channel.second.weights[i];
+        for (uint i = 0; i < morph_channel.second.numTime; ++i)
+            write_stream << morph_channel.second.weightTime[i];
 
-            write_stream << valueWeights.count;
-
-            for (uint j = 0; j < valueWeights.count; ++j)
-            {
-                write_stream << valueWeights.valueWeights[j].first;
-                write_stream << valueWeights.valueWeights[j].second;
-            }
-            
-        }
+        for (uint i = 0; i < morph_channel.second.num_weights; ++i)
+            write_stream << morph_channel.second.weights[i];
     }
 }
 
-bool ResourceAnimation::ImportGLTF(const char* full_path, unsigned first, unsigned last, float scale, std::string& output)
+bool ResourceAnimation::ImportGLTF(const char* full_path, unsigned first, unsigned last, float scale, std::vector<std::string>& output)
 {
     tinygltf::TinyGLTF gltfContext;
     tinygltf::Model model;
     std::string error, warning;
 
-    const std::string positions("positions");
-    const std::string rotations("rotations");
+    const std::string translation("translation");
+    const std::string rotation("rotation");
+    const std::string weights("weights");
 
     if (gltfContext.LoadASCIIFromFile(&model, &error, &warning, full_path))
     {
+        output.reserve(model.animations.size());
+
         for (const tinygltf::Animation& animation : model.animations)
         {
             ResourceAnimation res(0);
@@ -224,35 +219,57 @@ bool ResourceAnimation::ImportGLTF(const char* full_path, unsigned first, unsign
                 if (animChannel.target_node >= 0)
                 {
                     const std::string& channelName = model.nodes[animChannel.target_node].name;
-                    Channel& resChannel = res.channels[channelName];
 
                     // TODO: Crop
                     const tinygltf::AnimationSampler& sampler = animation.samplers[animChannel.sampler];
-                    if (animChannel.target_path == positions)
+                    if (animChannel.target_path == translation)
                     {
+                        Channel& resChannel = res.channels[channelName];
+
                         uint numTime = 0;
                         loadAccessor(resChannel.posTime, numTime, model, sampler.input);
                         loadAccessor(resChannel.positions, resChannel.num_positions, model, sampler.output); 
                         SDL_assert(numTime == resChannel.num_positions);
-
-                        auto it = std::max_element(resChannel.posTime.get(), resChannel.posTime.get() + numTime);
-                        if (it != resChannel.posTime.get() + numTime) res.duration = std::max(res.duration, *it);
+                        
+                        if (numTime > 0)
+                        {
+                            res.duration = std::max(res.duration, resChannel.posTime[numTime - 1]);
+                        }
 
                         for (uint i = 0; i < resChannel.num_positions; ++i)  resChannel.positions[i] *= scale;
                     }
-                    else if (animChannel.target_path == rotations)
+                    else if (animChannel.target_path == rotation)
                     {
+                        Channel& resChannel = res.channels[channelName];
+
                         uint numTime = 0;
                         loadAccessor(resChannel.rotTime, numTime, model, sampler.input);
                         loadAccessor(resChannel.rotations, resChannel.num_rotations, model, sampler.output);
                         SDL_assert(numTime == resChannel.num_rotations);
 
-                        auto it = std::max_element(resChannel.posTime.get(), resChannel.posTime.get() + numTime);
-                        if (it != resChannel.posTime.get() + numTime) res.duration = std::max(res.duration, *it);
+                        if (numTime > 0)
+                        {
+                            res.duration = std::max(res.duration, resChannel.rotTime[numTime - 1]);
+                        }
+                    }
+                    else if (animChannel.target_path == weights)
+                    {
+                        MorphChannel& resChannel = res.morph_channels[channelName];
+                        loadAccessor(resChannel.weightTime, resChannel.numTime, model, sampler.input);
+                        loadAccessor(resChannel.weights, resChannel.num_weights, model, sampler.output);
+                        SDL_assert(resChannel.num_weights % resChannel.numTime == 0);
+
+                        resChannel.numTargets = resChannel.num_weights / resChannel.numTime;
+
+                        if (resChannel.numTime > 0)
+                        {
+                            res.duration = std::max(res.duration, resChannel.weightTime[resChannel.numTime - 1]);
+                        }
                     }
                 }
 
-                if (!res.Save(output))
+                output.push_back(std::string());
+                if (!res.Save(output.back()))
                     return false;
             }
         }
@@ -352,13 +369,13 @@ bool ResourceAnimation::ImportAssimp(const char* full_path, unsigned first, unsi
                 key_last = std::max(key_first, std::min(last, morph_mesh->mNumKeys));
             }
 
-            morph_channel.numKeys = key_last - key_first;
+            //morph_channel.numKeys = key_last - key_first;
             //morph_channel.num_weights = 0;
 
-            if (morph_channel.numKeys > 0)
+            //if (morph_channel.numKeys > 0)
             {
                 // \todo: num_weights should come from max num_weights
-
+#if 0
                 morph_channel.weights = std::make_unique<ValueWeights[]>(morph_channel.numKeys);
 
                 for (unsigned j = 0; j < (key_last - key_first); ++j)
@@ -375,6 +392,7 @@ bool ResourceAnimation::ImportAssimp(const char* full_path, unsigned first, unsi
                         valueWeights.valueWeights[k].second = float(morph_mesh->mKeys[key_index].mWeights[k]);
                     }
                 }
+#endif 
             }
         }
 
@@ -387,9 +405,9 @@ bool ResourceAnimation::ImportAssimp(const char* full_path, unsigned first, unsi
 }
 
 // ---------------------------------------------------------
-bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned last, float scale, std::string& output)
+bool ResourceAnimation::Import(const char* full_path, unsigned first, unsigned last, float scale, std::vector<std::string>& output)
 {
-    return ImportGLTF(full_path, first, last, scale, output) || ImportAssimp(full_path, first, last, scale, output);
+    return ImportGLTF(full_path, first, last, scale, output); // || ImportAssimp(full_path, first, last, scale, output);
 }
 
 // ---------------------------------------------------------

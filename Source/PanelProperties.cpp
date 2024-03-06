@@ -1059,215 +1059,233 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         modified = true;
     }
 
-    if (ImGui::CollapsingHeader("Ligthmap", ImGuiTreeNodeFlags_DefaultOpen))
+    if (material->GetWorkFlow() == SpecularGlossiness)
     {
-        modified = modified || TextureButton(material, mesh, TextureLightmap, "Lightmap");
-    }
+        SpecularGlossData sgData = material->GetSpecularGlossData();
 
-    if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = modified || TextureButton(material, mesh, TextureOcclusion, "Occlusion") || modified;
-    }
-
-    if(ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = TextureButton(material, mesh, TextureDiffuse, "Diffuse") || modified;
-        float4 color = material->GetDiffuseColor();
-        ImGui::PushID("diffuse");
-        if(ImGui::ColorEdit4("color", (float*)&color))
+        if (ImGui::CollapsingHeader("Ligthmap", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            material->SetDiffuseColor(color);
+            modified = TextureButton(sgData.textures[SG_TextureLightmap], mesh, "Lightmap") || modified;
+        }
+
+        if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(sgData.textures[SG_TextureOcclusion], mesh, "Occlusion") || modified;
+        }
+
+        if (ImGui::CollapsingHeader("Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(sgData.textures[SG_TextureDiffuse], mesh, "Diffuse") || modified;
+            ImGui::PushID("diffuse");
+            if (ImGui::ColorEdit4("color", (float*)&sgData.diffuse_color))
+            {
+                modified = true;
+            }
+            ImGui::PopID();
+        }
+
+        if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(sgData.textures[SG_TextureSpecular], mesh, "Specular") || modified;
+            ImGui::PushID("specular");
+            if (ImGui::ColorEdit3("color", (float*)&sgData.specular_color))
+            {
+                modified = true;
+            }
+
+            if (ImGui::SliderFloat("Intensity", &sgData.specular_intensity, 1.0f, 50.0f))
+            {
+                modified = true;
+            }
+
+            ImGui::PopID();
+
+            if (ImGui::SliderFloat("Smoothness", &sgData.smoothness, 0.0f, 10.0f))
+            {
+                modified = true;
+            }
+
+            bool planar = material->GetPlanarReflections();
+            if (ImGui::Checkbox("Use planar reflections", &planar))
+            {
+                material->SetPlanarReflections(planar);
+                modified = true;
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(sgData.textures[SG_TextureNormal], mesh, "Normal") || modified;
+
+            if (ImGui::SliderFloat("Strength", &sgData.normal_strength, 0.0f, 10.0f))
+            {
+                modified = true;
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(sgData.textures[SG_TextureEmissive], mesh, "Emissive") || modified;
+            ImGui::PushID("emissive");
+            if (ImGui::ColorEdit3("color", (float*)&sgData.emissive_color))
+            {
+                modified = true;
+            }
+
+            ImGui::PopID();
+
+            if (ImGui::SliderFloat("Intensity", &sgData.emissive_intensity, 1.0f, 50.0f))
+            {
+                modified = true;
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Detail Mask", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(sgData.textures[SG_TextureDetailMask], mesh, "Detail Mask") || modified;
+        }
+
+        float2 tiling = material->GetUVTiling();
+        if (ImGui::DragFloat2("Tiling", &tiling.x, 0.1f, 0.1f, 1000.0f))
+        {
+            material->SetUVTiling(tiling);
             modified = true;
         }
-        ImGui::PopID();
-    }
 
-    if(ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = TextureButton(material, mesh, TextureSpecular, "Specular") || modified;
-        float3 color = material->GetSpecularColor();
-        ImGui::PushID("specular");
-        if(ImGui::ColorEdit3("color", (float*)&color))
+        float2 offset = material->GetUVOffset();
+        if (ImGui::DragFloat2("Offset", &offset.x, 0.01f, 0.0f, 1.0f))
         {
-            material->SetSpecularColor(color);
+            material->SetUVOffset(offset);
             modified = true;
         }
 
-        float intensity = material->GetSpecularIntensity();
-        if(ImGui::SliderFloat("Intensity", &intensity, 1.0f, 50.0f))
+        if (ImGui::CollapsingHeader("Secondary Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            material->SetSpecularIntensity(intensity);
-            modified  = true;
+            modified = TextureButton(sgData.textures[SG_TextureScndDiffuse], mesh, "Secondary Diffuse") || modified;
         }
 
-        ImGui::PopID();
-
-        float smoothness = material->GetSmoothness();
-        if(ImGui::SliderFloat("Smoothness", &smoothness, 0.0f, 10.0f))
+        if (ImGui::CollapsingHeader("Secondary Specular", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            material->SetSmoothness(smoothness);
+            modified = TextureButton(sgData.textures[SG_TextureScndDiffuse], mesh, "Secondary Specular") || modified;
+        }
+
+        if (ImGui::CollapsingHeader("Secondary Normal", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(sgData.textures[SG_TextureScndDiffuse], mesh, "Secondary Normal") || modified;
+        }
+
+        tiling = material->GetSecondUVTiling();
+        if (ImGui::DragFloat2("Secondary Tiling", &tiling.x, 0.1f, 0.1f, 1000.0f))
+        {
+            material->SetSecondUVTiling(tiling);
             modified = true;
         }
 
-        bool planar = material->GetPlanarReflections();
-        if(ImGui::Checkbox("Use planar reflections", &planar))
+        offset = material->GetSecondUVOffset();
+        if (ImGui::DragFloat2("Secondary Offset", &offset.x, 0.01f, 0.0f, 1.0f))
         {
-            material->SetPlanarReflections(planar);
-            modified = true;
-        }
-    }
-
-    if(ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = TextureButton(material, mesh, TextureNormal, "Normal") || modified;
-
-        float strength = Clamp(material->GetNormalStrength(), 0.0f, 100.0f);
-        if(ImGui::SliderFloat("Strength", &strength, 0.0f, 10.0f))
-        {
-            material->SetNormalStrength(strength);
-            modified = true;
-        }
-    }
-
-    if(ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = TextureButton(material, mesh, TextureEmissive, "Emissive") || modified;
-        float3 color = material->GetEmissiveColor();
-        ImGui::PushID("emissive");
-        if(ImGui::ColorEdit3("color", (float*)&color))
-        {
-            material->SetEmissiveColor(color);
+            material->SetSecondUVOffset(offset);
             modified = true;
         }
 
-        ImGui::PopID();
+        bool dsided = material->GetDoubleSided();
 
-        float intensity = material->GetEmissiveIntensity();
-        if(ImGui::SliderFloat("Intensity", &intensity, 1.0f, 50.0f))
+        if (ImGui::Checkbox("Double side", &dsided))
         {
-            material->SetEmissiveIntensity(intensity);
-            modified  = true;
+            material->SetDoubleSided(dsided);
+            modified = true;
+        }
+
+        float atest = material->GetAlphaTest();
+
+        if (ImGui::SliderFloat("Alpha test", &atest, 0.0f, 1.0f))
+        {
+            material->SetAlphaTest(atest);
+            modified = true;
+        }
+
+        if (modified)
+        {
+            material->SetSpecularGlossData(sgData);
+        }
+    }
+    else
+    {
+        MetallicRoughData mrData = material->GetMetallicRoughData();
+
+        if (ImGui::CollapsingHeader("Base Colour", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(mrData.textures[MR_TextureBaseColor], mesh, "Base Colour") || modified;
+            ImGui::PushID("Base Colour");
+            if (ImGui::ColorEdit4("color", (float*)&mrData.baseColor))
+            {
+                modified = true;
+            }
+            ImGui::PopID();
+        }
+
+        if (ImGui::CollapsingHeader("MetallicRoughness", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(mrData.textures[MR_TextureMetallicRough], mesh, "MetallicRoughness") || modified;
+            ImGui::PushID("MetallilcRoughness");
+            if (ImGui::SliderFloat("Metallic", &mrData.metalness, 0.0f, 1.0f))
+            {
+                modified = true;
+            }
+
+            if (ImGui::SliderFloat("Roughness", &mrData.roughness, 0.0f, 1.0f))
+            {
+                modified = true;
+            }
+
+            ImGui::PopID();
+
+            bool planar = material->GetPlanarReflections();
+            if (ImGui::Checkbox("Use planar reflections", &planar))
+            {
+                material->SetPlanarReflections(planar);
+                modified = true;
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Normal", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(mrData.textures[MR_TextureNormal], mesh, "Normal") || modified;
+
+            if (ImGui::SliderFloat("Strength", &mrData.normal_strength, 0.0f, 10.0f))
+            {
+                modified = true;
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(mrData.textures[MR_TextureEmissive], mesh, "Emissive") || modified;
+            ImGui::PushID("emissive");
+            if (ImGui::ColorEdit3("color", (float*)&mrData.emissive_color))
+            {
+                modified = true;
+            }
+
+            ImGui::PopID();
+
+            if (ImGui::SliderFloat("Intensity", &mrData.emissive_intensity, 1.0f, 50.0f))
+            {
+                modified = true;
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Occlusion", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            modified = TextureButton(mrData.textures[MR_TextureOcclusion], mesh, "Occlusion") || modified;
+            if (ImGui::SliderFloat("Strength", &mrData.occlusion_strength, 0.0f, 50.0f))
+            {
+                modified = true;
+            }
         }
     }
 
-    if(ImGui::CollapsingHeader("Detail Mask", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = TextureButton(material, mesh, TextureDetailMask, "Detail Mask") || modified;
-    }
 
-    float2 tiling = material->GetUVTiling();
-    if(ImGui::DragFloat2("Tiling", &tiling.x, 0.1f, 0.1f, 1000.0f))
-    {
-        material->SetUVTiling(tiling);
-        modified = true;
-    }
-
-    float2 offset = material->GetUVOffset();
-    if(ImGui::DragFloat2("Offset", &offset.x, 0.01f, 0.0f, 1.0f))
-    {
-        material->SetUVOffset(offset);
-        modified = true;
-    }
-
-    if(ImGui::CollapsingHeader("Secondary Diffuse", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = TextureButton(material, mesh, TextureScndDiffuse, "Secondary Diffuse") || modified;
-    }
-
-    if(ImGui::CollapsingHeader("Secondary Specular", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = TextureButton(material, mesh, TextureScndSpecular, "Secondary Specular") || modified;
-    }
-
-    if(ImGui::CollapsingHeader("Secondary Normal", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        modified = TextureButton(material, mesh, TextureScndNormal, "Secondary Normal") || modified;
-    }
-
-    tiling = material->GetSecondUVTiling();
-    if(ImGui::DragFloat2("Secondary Tiling", &tiling.x, 0.1f, 0.1f, 1000.0f))
-    {
-        material->SetSecondUVTiling(tiling);
-        modified = true;
-    }
-
-    offset = material->GetSecondUVOffset();
-    if(ImGui::DragFloat2("Secondary Offset", &offset.x, 0.01f, 0.0f, 1.0f))
-    {
-        material->SetSecondUVOffset(offset);
-        modified = true;
-    }
-
-    bool dsided = material->GetDoubleSided();
-
-    if(ImGui::Checkbox("Double side", &dsided))
-    {
-        material->SetDoubleSided(dsided);
-        modified = true;
-    }
-
-    float atest = material->GetAlphaTest();
-
-    if(ImGui::SliderFloat("Alpha test", &atest, 0.0f, 1.0f))
-    {
-        material->SetAlphaTest(atest);
-        modified = true;
-    }
-
-    /* Code for Transform textures from metallic to specular workflow */
-    if(ImGui::Button("Transform"))
-    {
-        const ResourceTexture* base = material->GetTextureRes(TextureDiffuse);
-        const ResourceTexture* metallic = material->GetTextureRes(TextureSpecular);
-
-        if(!convert_fb)
-        {
-            convert_fb = std::make_unique<Framebuffer>();
-            diffuse    = std::make_unique<Texture2D>(base->GetMetadata().width, base->GetMetadata().height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
-            specular   = std::make_unique<Texture2D>(base->GetMetadata().width, base->GetMetadata().height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
-            //occlusion  = std::make_unique<Texture2D>(GL_TEXTURE_2D, base->GetWidth(), base->GetHeight(), GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, nullptr, false);
-            depth      = std::make_unique<Texture2D>(base->GetMetadata().width, base->GetMetadata().height, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
-
-            convert_fb->AttachColor(diffuse.get(), 0);
-            convert_fb->AttachColor(specular.get(), 1);
-            //convert_fb->AttachColor(occlusion.get(), 2);
-            convert_fb->AttachDepthStencil(depth.get(), GL_DEPTH_ATTACHMENT);
-        }
-
-        convert_fb->Bind();
-
-        glViewport(0, 0, base->GetMetadata().width, base->GetMetadata().height);
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClearDepth(1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        App->programs->UseProgram("convert_texture", 0);
-        
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, base->GetID());
-        glUniform1i(0, 0);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, metallic->GetID());
-        glUniform1i(1, 1);        
-
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        convert_fb->Unbind();
-
-        unsigned* data = new unsigned[base->GetMetadata().width* base->GetMetadata().height];
-
-        convert_fb->ReadColor(0, 0, 0, base->GetMetadata().width, base->GetMetadata().height, GL_RGBA, data);
-        //SOIL_save_image_quality("diffuse.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
-
-        convert_fb->ReadColor(1, 0, 0, base->GetMetadata().width, base->GetMetadata().height, GL_RGBA, data);
-        //SOIL_save_image_quality("specular.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
-
-        //convert_fb->ReadColor(2, 0, 0, base->GetWidth(), base->GetHeight(), GL_RGBA, data);
-        //SOIL_save_image_quality("occlusion.tga", SOIL_SAVE_TYPE_TGA, base->GetWidth(), base->GetHeight(), 4, (const unsigned char* const)data, 0);
-
-        delete [] data;
-    }
     /**/
 
     if(modified)
@@ -1374,15 +1392,13 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
     return res;
 }
 
-bool PanelProperties::TextureButton(ResourceMaterial* material, ResourceMesh* mesh, uint texture, const char* name)
+bool PanelProperties::TextureButton(UID& uid, ResourceMesh* mesh, const char* name)
 {
     bool modified = false;
-    UID newUID = TextureButton(material->GetTextureRes(MaterialTexture(texture)), mesh, name, int(texture), modified);
-    if(newUID != material->GetTexture(MaterialTexture(texture)))
-    {
-        material->SetTexture(MaterialTexture(texture), newUID);
-        return true;
-    }
+    ResourceTexture* tex = static_cast<ResourceTexture*>(App->resources->Get(uid));
+    UID newUID = TextureButton(tex, mesh, name, int(uid), modified);
+    modified = modified || newUID != uid;
+    uid = newUID;
 
     return modified;
 }

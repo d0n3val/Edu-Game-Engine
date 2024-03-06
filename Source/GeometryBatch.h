@@ -57,6 +57,7 @@ class GeometryBatch
     typedef std::vector<PerInstance>                                InstanceList;
 
     uint                            attrib_flags = 0;
+    MaterialWorkFlow                materialWF = MetallicRoughness;
 
     std::unique_ptr<VertexArray>    vao;
     std::unique_ptr<Buffer>         ibo;
@@ -96,10 +97,11 @@ class GeometryBatch
     HashString                      tagName;
     bool                            bufferDirty = false;
     Program*                        skinningProgram = nullptr;
+    Program*                        skinningProgramNoTangents = nullptr;
 
 public:
 
-    explicit GeometryBatch(const HashString& tag, Program* program);
+    explicit GeometryBatch(const HashString& tag, Program* program, Program* programNoTangents);
     ~GeometryBatch();
    
     bool               CanAdd            (const ComponentMeshRenderer* object) const;

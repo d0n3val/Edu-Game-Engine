@@ -50,7 +50,7 @@ void ComponentMeshRenderer::OnSave(Config& config) const
 {
 	config.AddUID("MeshResource", mesh_resource);
 	config.AddBool("Visible", visible);
-	config.AddUInt("Root", rootGO->GetUID());
+	config.AddUInt("Root", rootGO ? rootGO->GetUID(): 0);
 
 	config.AddUID("MaterialResource", material_resource);
 	config.AddBool("DebugDrawTangent", debug_draw_tangent);
@@ -287,7 +287,7 @@ void ComponentMeshRenderer::UpdateCPUMorphTargets() const
 
             if (morph_weights[i] > 0.0f)
             {
-                for(uint j=0; j< morph_target.num_indices; ++j)
+                for(uint j=0; j< mesh->num_indices; ++j)
                 {
                     uint index = morph_target.src_indices[j];
                     vertices[index] += morph_target.src_vertices[index] * morph_weights[i];
@@ -309,7 +309,7 @@ void ComponentMeshRenderer::UpdateCPUMorphTargets() const
                 // Loas indices????
                 if (morph_weights[i] > 0.0f)
                 {
-                    for(uint j=0; j< morph_target.num_indices; ++j)
+                    for(uint j=0; j< mesh->GetNumIndices(); ++j)
                     {
                         uint index = morph_target.src_indices[j];
                         normals[index] += morph_target.src_normals[index] * morph_weights[i];

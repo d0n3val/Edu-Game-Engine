@@ -15,7 +15,7 @@ vec2 CartesianToEquirectangular(in vec3 dir)
     phi = atan(dir.z, dir.x); // between -PI , PI
     phi = phi/(2.0*PI)+0.5;
 
-    float theta = asin(dir.y);  // between -PI/ ,  PI/2
+    float theta = asin(dir.y);  // between -PI/2 ,  PI/2
     theta = theta/PI+0.5;
 
     return vec2(phi, theta);

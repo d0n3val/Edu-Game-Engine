@@ -236,25 +236,26 @@ bool ResourceMesh::LoadInMemory()
 
                     if(HasAttrib(ATTRIB_TANGENTS))
                     {
-                        morph.src_tangents = std::make_unique<float4[]>(num_vertices);
+                        morph.src_tangents = std::make_unique<float3[]>(num_vertices);
 
                         for(uint j=0; j< num_vertices; ++j)
                         {
                             read_stream >> morph.src_tangents[j].x >> morph.src_tangents[j].y >> morph.src_tangents[j].z;
-                            morph.src_tangents[j].w = 1.0f;
                         }
                     }
                 }
 
-                read_stream >> morph.num_indices;
-                morph.src_indices = std::make_unique<uint[]>(morph.num_indices);
+                morph.src_indices = std::make_unique<uint[]>(num_indices);
 
-                for(uint i=0; i< morph.num_indices; ++i)
+                for(uint i=0; i< num_indices; ++i)
                 {
                     read_stream >> morph.src_indices[i];
 
                     assert(morph.src_indices[i] < num_vertices);
                 }
+
+                read_stream >> morph.initWeight;
+                read_stream >> morph.offset;
             }
 
 
@@ -358,7 +359,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
     {
         for(uint i=0; i< num_vertices; ++i)
         {
-            write_stream << src_tangents[i].x << src_tangents[i].y << src_tangents[i].z << src_tangents[i].z;
+            write_stream << src_tangents[i].x << src_tangents[i].y << src_tangents[i].z << src_tangents[i].w;
         }
     }
 
@@ -415,12 +416,14 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
             }
         }
 
-        write_stream << morph.num_indices;
-        for(uint i=0; i< morph.num_indices; ++i)
+        for(uint i=0; i< num_indices; ++i)
         {
             assert(morph.src_indices[i] < num_vertices);
             write_stream << morph.src_indices[i];
         }
+
+        write_stream << morph.initWeight;
+        write_stream << morph.offset;
     }
 
     write_stream << bbox.minPoint.x << bbox.minPoint.y << bbox.minPoint.z;
@@ -441,12 +444,12 @@ bool ResourceMesh::Save(std::string& output) const
 }
 
 // ---------------------------------------------------------
-UID ResourceMesh::Import(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, const char* source_file, float scale)
+UID ResourceMesh::Import(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, uint32_t& weightCount, const char* source_file, float scale)
 {    
     ResourceMesh* m = static_cast<ResourceMesh*>(App->resources->CreateNewResource(Resource::mesh));
 
     m->name = mesh.name;
-    m->GenerateCPUBuffers(model, mesh, primitive, scale);
+    m->GenerateCPUBuffers(model, mesh, primitive, weightCount, scale);
     
     // TODO: Bones
     m->GenerateAttribInfo();
@@ -592,7 +595,7 @@ void ResourceMesh::GenerateAttribInfo()
     }
 }
 
-void ResourceMesh::GenerateCPUBuffers(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, float scale)
+void ResourceMesh::GenerateCPUBuffers(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, uint32_t& weightCount, float scale)
 {
     const auto& itPos = primitive.attributes.find("POSITION");
 
@@ -601,29 +604,63 @@ void ResourceMesh::GenerateCPUBuffers(const tinygltf::Model& model, const tinygl
         loadAccessor(src_vertices, num_vertices, model, itPos->second);
        
         uint numTexCoord = 0;
-        loadAccessor(src_texcoord0, numTexCoord, model, primitive, "TEXCOORD_0");
+        loadAccessor(src_texcoord0, numTexCoord, model, primitive.attributes, "TEXCOORD_0");
         SDL_assert(numTexCoord == 0 || numTexCoord == num_vertices);
 
         uint numNormals = 0;
-        loadAccessor(src_normals, numNormals, model, primitive, "NORMAL");
+        loadAccessor(src_normals, numNormals, model, primitive.attributes, "NORMAL");
         SDL_assert(numNormals == 0 || numNormals == num_vertices);
 
         uint numTangents = 0;
-        loadAccessor(src_tangents, numTangents, model, primitive, "TANGENT");
+        loadAccessor(src_tangents, numTangents, model, primitive.attributes, "TANGENT");
         SDL_assert(numTangents == 0 || numTangents == num_vertices);
 
         uint numJoints;
-        loadAccessor(src_bone_indices, numJoints, model, primitive, "JOINTS_0");
+        loadAccessor(src_bone_indices, numJoints, model, primitive.attributes, "JOINTS_0");
         SDL_assert(numJoints == 0 || numJoints == num_vertices);
 
         uint numWeights;
-        loadAccessor(src_bone_weights, numWeights, model, primitive, "WEIGHTS_0");
+        loadAccessor(src_bone_weights, numWeights, model, primitive.attributes, "WEIGHTS_0");
         SDL_assert(numWeights == 0 || numWeights == num_vertices);
 
         bbox.SetNegativeInfinity();
         bbox.Enclose(src_vertices.get(), num_vertices);
 
         loadAccessor(src_indices, num_indices, model, primitive.indices);
+    }
+
+    num_morph_targets = 0;
+    morph_targets = std::make_unique <MorphData[]>(primitive.targets.size());
+
+    // Load morph targets
+    for (const auto& target : primitive.targets)
+    {
+        auto itPos = target.find("POSITION");
+        if (itPos != target.end())
+        {
+            MorphData& data = morph_targets[num_morph_targets++];
+
+            uint numMorphVert;
+            loadAccessor(data.src_vertices, numMorphVert, model, itPos->second);
+            SDL_assert(numMorphVert == num_vertices);
+
+            uint numNormals = 0;
+            loadAccessor(data.src_normals, numNormals, model, target, "NORMAL");
+            SDL_assert(numNormals == num_vertices);
+
+            uint numTangents = 0;
+            loadAccessor(data.src_tangents, numTangents, model, target, "TANGENT");
+            SDL_assert(numTangents == 0 || numTangents == num_vertices);
+
+            uint numIndices = 0;
+            loadAccessor(data.src_indices, numIndices, model, primitive.indices);
+            SDL_assert(num_indices == numIndices);
+
+            data.initWeight = float(mesh.weights[weightCount]);
+            data.offset = weightCount;
+        }
+
+        ++weightCount;
     }
 }
 
@@ -744,20 +781,20 @@ void ResourceMesh::GenerateCPUBuffers(const aiMesh* mesh, float scale)
                 if (mesh->HasTangentsAndBitangents())
                 {
                     assert(mesh->mAnimMeshes[i]->mNormals != nullptr);
-                    data.src_tangents = std::make_unique<float4[]>(num_vertices);
+                    data.src_tangents = std::make_unique<float3[]>(num_vertices);
 
                     for (uint j = 0; j < num_vertices; ++j)
                     {
-                        data.src_tangents[j] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+                        data.src_tangents[j] = float3(0.0f, 0.0f, 0.0f);
                     }
                 }
             }
 
-            data.num_indices = uint(tmp_indices.size());
-            if(data.num_indices)
+            SDL_assert(num_indices = uint(tmp_indices.size()));
+            if(num_indices)
             {
                 data.src_indices = std::make_unique<uint[]>(tmp_indices.size());
-                memcpy(data.src_indices.get(), &tmp_indices[0], data.num_indices*sizeof(uint));
+                memcpy(data.src_indices.get(), &tmp_indices[0], num_indices*sizeof(uint));
             }
         }
     }

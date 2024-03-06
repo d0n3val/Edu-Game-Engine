@@ -528,7 +528,7 @@ GameObject* ModuleLevelManager::AddModel(UID id)
         {
             const ResourceModel::Node& node = model->GetNode(i);
 
-            GameObject* parent = i == 0 ? nullptr : gos[node.parent];
+            GameObject* parent = i == node.parent ? nullptr : gos[node.parent];
             GameObject* go = CreateGameObject(parent);
 
             gos.push_back(go);
@@ -567,10 +567,10 @@ GameObject* ModuleLevelManager::AddModel(UID id)
             }
         }
 
-        if(!gos.empty())
+        /*if (!gos.empty())
         {
             gos.front()->name = model->GetUserResName();
-        }
+        }*/
 
         model->Release();
     }

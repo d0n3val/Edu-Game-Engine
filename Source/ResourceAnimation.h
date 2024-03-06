@@ -29,12 +29,6 @@ public:
         uint                      num_rotations = 0;
     };
 
-    struct ValueWeights
-    {
-        uint                                      count = 0;
-        std::unique_ptr<std::pair<uint, float>[]> valueWeights;
-    };
-
     struct MorphChannel
     {
         MorphChannel() = default;
@@ -43,11 +37,11 @@ public:
         MorphChannel& operator=(const MorphChannel& o) = default;
         MorphChannel& operator=(MorphChannel&& o) = default;
 
-        typedef std::unique_ptr<float[]> WeightList;
-
-        
-        uint                            numKeys = 0;
-        std::unique_ptr<ValueWeights[]> weights;
+        std::unique_ptr<float[]>  weightTime;
+        std::unique_ptr<float[]>  weights;        
+        uint num_weights = 0;
+        uint numTime = 0;
+        uint numTargets = 0;
     };
 
 
@@ -61,7 +55,7 @@ public:
 
 	bool			Save			    () ;
     bool            Save                (std::string& output) const;
-	static bool     Import              (const char* full_path, unsigned first, unsigned last, float scale, std::string& output);
+	static bool     Import              (const char* full_path, unsigned first, unsigned last, float scale, std::vector<std::string>& outputs);
 
 	float           GetDuration         () const { return duration; }
 
@@ -74,7 +68,7 @@ public:
 
 private:
 
-    static bool     ImportGLTF(const char* full_path, unsigned first, unsigned last, float scale, std::string& output);
+    static bool     ImportGLTF(const char* full_path, unsigned first, unsigned last, float scale, std::vector<std::string>& output);
     static bool     ImportAssimp(const char* full_path, unsigned first, unsigned last, float scale, std::string& output);
     void            SaveToStream        (simple::mem_ostream<std::true_type>& write_stream) const;
 

@@ -22,6 +22,7 @@ class BatchManager
 
     BatchPool batches;
     std::unique_ptr<Program> skinningProgram;
+    std::unique_ptr<Program> skinningProgramNoTangents;
 
 public:
     BatchManager();

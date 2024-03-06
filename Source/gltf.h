@@ -88,10 +88,10 @@ inline void loadAccessor<unsigned>(std::unique_ptr<unsigned[]>& data, uint& coun
 }
 
 template <class T>
-inline void loadAccessor(std::unique_ptr<T[]>& data, uint& count, const tinygltf::Model& model, const tinygltf::Primitive& primitive, const char* accesorName)
+inline void loadAccessor(std::unique_ptr<T[]>& data, uint& count, const tinygltf::Model& model, const std::map<std::string, int>& attributes, const char* accesorName)
 {
-    const auto& it = primitive.attributes.find(accesorName);
-    if (it != primitive.attributes.end())
+    const auto& it = attributes.find(accesorName);
+    if (it != attributes.end())
     {
         loadAccessor(data, count, model, it->second);
     }

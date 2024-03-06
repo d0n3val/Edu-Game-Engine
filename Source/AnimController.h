@@ -5,6 +5,7 @@
 #include "HashString.h"
 
 #include <vector>
+#include <span>
 
 class AnimController
 {
@@ -22,28 +23,28 @@ class AnimController
 
     Instance* current = nullptr;
 
-    mutable std::vector<float> tmpWeights;
+    mutable std::vector<float> tmpWeights0, tmpWeights1;
 public:
 
     AnimController();
     ~AnimController();
 
-	void            Update              (unsigned elapsed);
+	void                    Update              (unsigned elapsed);
 
-	void            Play                (UID clip, bool loop, unsigned fade_time);
-	void            Stop                ();
+	void                    Play                (UID clip, bool loop, unsigned fade_time);
+	void                    Stop                ();
 
-    float           GetSpeed            () const { return current ? current->speed : 0.0f; }
-    void            SetSpeed            (float speed) { if(current) current->speed = speed; }
+    float                   GetSpeed            () const { return current ? current->speed : 0.0f; }
+    void                    SetSpeed            (float speed) { if(current) current->speed = speed; }
 
-	bool            GetTransform        (const std::string& channel_name, math::float3& position, Quat& rotation) const;
-    bool            GetWeights          (const std::string& morph_name, float* weights, uint num_weights) const;
+	bool                    GetTransform        (const std::string& channel_name, math::float3& position, Quat& rotation) const;
+    std::span<const float>  GetWeights          (const std::string& morph_name) const;
 
 private:
     void            UpdateInstance      (Instance* instance, unsigned elapsed);
     void            ReleaseInstance     (Instance* instance);
     bool            GetTransformInstance(Instance* instance, const std::string& channel_name, float3& position, Quat& rotation) const;
-    bool            GetWeightsInstance  (Instance* instance, const std::string& morph_name, float*& weights, uint num_weights, float lambda) const;
+    bool            GetWeightsInstance  (Instance* instance, const std::string& morph_name, float* weights, uint num_weights) const;
 };
 
 

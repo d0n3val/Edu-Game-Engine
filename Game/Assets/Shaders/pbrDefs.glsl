@@ -24,18 +24,27 @@ vec3 GetFresnel(vec3 dir0, vec3 dir1, const vec3 f0)
     return f0+(1-f0)*pow(1.0-cos_theta, 5.0);
 }
 
-// from filament
 float GGXNDF(float roughness, float NdotH)
 {
-    float a = NdotH*roughness;
-    float k = roughness/max(1.0-NdotH*NdotH+a*a, 0.001);
-    return k*k*(1.0/PI);
+    float roughnessSq = roughness * roughness;
+    float f = max((NdotH * NdotH) * (roughnessSq - 1.0) + 1.0, 0.001);
+    return roughnessSq / (PI * f * f);
 }
 
 float SMITHVSF(float NdotL, float NdotV, float roughness)
 {
-    // optimized version
-    return 0.5/mix(2.0*NdotL*NdotV, NdotL+NdotV, roughness);
+    float roughnessSq = roughness * roughness;
+
+    float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - roughnessSq) + roughnessSq);
+    float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - roughnessSq) + roughnessSq);
+
+    float GGX = GGXV + GGXL;
+    if (GGX > 0.0)
+    {
+        return 0.5 / GGX;
+    }
+
+    return 0.0;
 }
 
 vec3 GGXShadingSpec(const vec3 normal, const vec3 view_dir, const vec3 light_dir, 

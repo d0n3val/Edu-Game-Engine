@@ -7,6 +7,8 @@
 
 #include "Leaks.h"
 
+#include <algorithm>
+
 namespace
 {
 
@@ -58,7 +60,7 @@ void AnimController::UpdateInstance(Instance* instance, unsigned elapsed)
 
 	if (anim != nullptr && anim->GetDuration() > 0)
 	{
-        float me_elapsed = float(elapsed)*0.01f*instance->speed;
+        float me_elapsed = float(elapsed)*0.001f*instance->speed;
         me_elapsed = fmodf(me_elapsed, anim->GetDuration());
 		float to_end = anim->GetDuration() - instance->time;
 
@@ -125,17 +127,30 @@ void AnimController::ReleaseInstance(Instance* instance)
 	} while (instance != nullptr);
 }
 
-bool AnimController::GetWeights(const std::string& morph_name, float* weights, uint num_weights) const
+std::span<const float> AnimController::GetWeights(const std::string& morph_name) const
 {
+    tmpWeights0.clear();
+
     if (current != nullptr)
     {
-        return GetWeightsInstance(current, morph_name, weights, num_weights, 1.0f);
+        const ResourceAnimation* animation = static_cast<ResourceAnimation*>(App->resources->Get(current->clip));
+        
+        const ResourceAnimation::MorphChannel* morph_channel = animation->GetMorphChannel(morph_name);
+        if (morph_channel)
+        {
+            tmpWeights0.resize(animation->GetMorphChannel(morph_name)->numTargets, 0.0f);
+
+            if (GetWeightsInstance(current, morph_name, tmpWeights0.data(), uint(tmpWeights0.size())))
+            {
+                return std::span<const float>(tmpWeights0);
+            }
+        }
     }
 
-    return false;
+    return std::span<const float>(tmpWeights0); 
 }
 
-bool AnimController::GetWeightsInstance(Instance* instance, const std::string& morph_name, float*& weights, uint num_weights, float lambda) const
+bool AnimController::GetWeightsInstance(Instance* instance, const std::string& morph_name, float* weights, uint num_weights) const
 {
 	const ResourceAnimation* animation = static_cast<ResourceAnimation*>(App->resources->Get(instance->clip));
 
@@ -145,83 +160,64 @@ bool AnimController::GetWeightsInstance(Instance* instance, const std::string& m
 
         if(morph_channel != nullptr)
         {
-            assert(instance->time <= animation->GetDuration());
+            SDL_assert(instance->time <= animation->GetDuration());
+            SDL_assert(morph_channel->numTargets == num_weights);
 
-            float key          = float(instance->time*(morph_channel->numKeys-1))/float(animation->GetDuration());
-            unsigned key_index = unsigned(key);
-            float key_lambda   = key-float(key_index);
-
-            if(key_lambda > 0.0f)
+            if (morph_channel->numTime > 1)
             {
-                tmpWeights.clear();
-                tmpWeights.resize(num_weights, 0.0f);
-
-                ResourceAnimation::ValueWeights& first  = morph_channel->weights[key_index];
-                ResourceAnimation::ValueWeights& second = morph_channel->weights[key_index+1];
-
-                for (uint i = 0; i < first.count; ++i)
+                uint index = uint(std::upper_bound(morph_channel->weightTime.get(), morph_channel->weightTime.get() + morph_channel->numTime, instance->time) - morph_channel->weightTime.get());
+                if (index < morph_channel->numTime)
                 {
-                    std::pair<uint, float>& valueWeight = first.valueWeights[i];
-                    assert(valueWeight.first < num_weights);
-                    tmpWeights[valueWeight.first] = valueWeight.second;
-                }
 
-                for (uint i = 0; i < second.count; ++i)
+                    float lambda;
+                    if (index > 0)
+                    {
+                        lambda = (instance->time - morph_channel->weightTime[index - 1]) / (morph_channel->weightTime[index] - morph_channel->weightTime[index - 1]);
+
+                        for (uint i = 0; i < num_weights; ++i)
+                        {
+                            weights[i] = Interpolate(morph_channel->weights[(index - 1) * num_weights + i], morph_channel->weights[index * num_weights + i], lambda);
+                        }
+                    }
+                    else
+                    {
+                        lambda = instance->time / morph_channel->weightTime[index];
+
+                        for (uint i = 0; i < num_weights; ++i)
+                        {
+                            weights[i] = Interpolate(0.0f, morph_channel->weights[index * num_weights + i], lambda);
+                        }
+                    }
+                }
+                else
                 {
-                    std::pair<uint, float>& valueWeight = second.valueWeights[i];
-                    assert(valueWeight.first < num_weights);
-                    tmpWeights[valueWeight.first] = Interpolate(tmpWeights[valueWeight.first], valueWeight.second, key_lambda);
+                    for (uint i = 0; i < num_weights; ++i)
+                    {
+                        weights[i] = morph_channel->weights[(index - 1) * num_weights +i];
+                    }
                 }
-
-                for(uint i=0; i< num_weights; ++i)
-                {
-                    weights[i] = Interpolate(weights[i], tmpWeights[i], lambda);
-                }
-
-                /*
-                ResourceAnimation::ValueWeights& valueWeights = morph_channel->weights[key_index];
-                for (uint i = 0; i < valueWeights.count; ++i)
-                {                    
-                    float w0 = morph_channel->weights[i * morph_channel->num_keys + key_index];
-                    float w1 = morph_channel->weights[i * morph_channel->num_keys + key_index+1]; 
-                    weights[i] = Interpolate(weights[i], Interpolate(w0, w1, key_lambda), lambda);
-                }
-                */
             }
-            else
+            else if (morph_channel->numTime == 1)
             {
-                tmpWeights.clear();
-                tmpWeights.resize(num_weights, 0.0f);
-
-                ResourceAnimation::ValueWeights& first  = morph_channel->weights[key_index];
-
-                for (uint i = 0; i < first.count; ++i)
-                {
-                    std::pair<uint, float>& valueWeight = first.valueWeights[i];
-                    assert(valueWeight.first < num_weights);
-                    tmpWeights[valueWeight.first] = valueWeight.second;
-                }
-
-                for(uint i=0; i< num_weights; ++i)
-                {
-                    weights[i] = Interpolate(weights[i], tmpWeights[i], lambda);
-                }
-
-                /*
-                for(uint i=0; i< num_weights; ++i)
-                {
-                    weights[i] = Interpolate(weights[i], morph_channel->weights[i* morph_channel->num_keys+key_index], lambda);
-                }
-                */
+                for(uint i=0; i < num_weights; ++i) weights[i] = morph_channel->weights[0];
             }
 
-            if(instance->next != nullptr)
+            if (instance->next != nullptr)
             {
                 assert(instance->fade_duration > 0.0f);
 
-               float blend_lambda = float(instance->fade_time) / float(instance->fade_duration);
+                SDL_assert(static_cast<ResourceAnimation*>(App->resources->Get(instance->next->clip))->GetMorphChannel(morph_name)->numTargets == num_weights);
+                tmpWeights1.resize(num_weights);
 
-                GetWeightsInstance(instance->next, morph_name, weights, num_weights, blend_lambda*lambda);
+                if (GetWeightsInstance(instance->next, morph_name, tmpWeights1.data(), num_weights))
+                {
+                    float blend_lambda = float(instance->fade_time) / float(instance->fade_duration);
+
+                    for (uint i = 0; i < uint(tmpWeights1.size()); ++i)
+                    {
+                        weights[i] = Interpolate(tmpWeights1[i], weights[i], blend_lambda);
+                    }
+                }
             }
 
             return true;
@@ -253,25 +249,38 @@ bool AnimController::GetTransformInstance(Instance* instance, const std::string&
         {
             SDL_assert(instance->time <= animation->GetDuration());
 
-            auto sampleAnim = []<typename T>(T & result, const std::unique_ptr<T[]>&samples, const std::unique_ptr<float[]>&times, uint count, float time)
+            auto sampleAnim = []<typename T>(T & result, const std::unique_ptr<T[]>&samples, const std::unique_ptr<float[]>&times, uint count, float time, const T& defValue)
             {
-                if (count > 0)
+                if (count > 1)
                 {
-                    uint index = uint(std::lower_bound(times.get(), times.get() + count, time) - times.get());
-                    if (index + 1 < count)
+                    uint index = uint(std::upper_bound(times.get(), times.get() + count, time) - times.get());
+                    if (index < count)
                     {
-                        float lambda = (time - times[index]) / (times[index + 1] - times[index]);
-                        result = Interpolate(samples[index], samples[index + 1], lambda);
+                        float lambda;
+                        if (index > 0)
+                        {
+                            lambda = (time - times[index - 1]) / (times[index] - times[index - 1]);
+                            result = Interpolate(samples[index - 1], samples[index], lambda);
+                        }
+                        else
+                        {
+                            lambda = time / times[index];
+                            result = Interpolate(defValue, samples[index], lambda);
+                        }
                     }
                     else
                     {
-                        result = time >= times[count - 1] ? samples[count - 1] : samples[0];
+                        result = samples[count-1];
                     }
+                }
+                else if(count == 1)
+                {
+                    result = samples[0];
                 }
             };
 
-            sampleAnim(position, channel->positions, channel->posTime, channel->num_positions, instance->time);
-            sampleAnim(rotation, channel->rotations, channel->rotTime, channel->num_rotations, instance->time);
+            sampleAnim(position, channel->positions, channel->posTime, channel->num_positions, instance->time, float3::zero);
+            sampleAnim(rotation, channel->rotations, channel->rotTime, channel->num_rotations, instance->time, Quat::identity);
 
             if(instance->next != nullptr)
             {
