@@ -259,12 +259,15 @@ void ResourceModel::GenerateMeshes(const tinygltf::Model& model, const char* ful
 
         for (const auto& primitive : srcMesh.primitives)
         {
-            UID material = primitive.material >= 0 ? materials[primitive.material] : 0;
+            if (primitive.material >= 0)
+            {
+                UID material = materials[primitive.material];
 
-            uint32_t weightCount = 0;
-            MeshRenderer renderer = { ResourceMesh::Import(model, srcMesh, primitive, weightCount, full_path, scale), material };
-            
-            meshes.insert({ uint(i), renderer});
+                uint32_t weightCount = 0;
+                MeshRenderer renderer = { ResourceMesh::Import(model, srcMesh, primitive, weightCount, full_path, scale), material };
+
+                meshes.insert({ uint(i), renderer });
+            }
         }
     }
 }
@@ -320,7 +323,7 @@ void ResourceModel::GenerateSkins(const tinygltf::Model& model, const std::vecto
 }
 
 void ResourceModel::GenerateNodes(const tinygltf::Model& model, int nodeIndex, int parentIndex, const std::multimap<uint, MeshRenderer>& meshes, 
-                                  const std::vector<UID>& materials, std::vector<int>& nodeMapping, float scale)
+                                  const std::vector<UID>& materials, std::vector<int>& nodeMapping, float modelScale)
 {
     const tinygltf::Node& node = model.nodes[nodeIndex];
 
@@ -339,9 +342,9 @@ void ResourceModel::GenerateNodes(const tinygltf::Model& model, int nodeIndex, i
         float3 scale = float3::one;
         Quat rotation = Quat::identity;
 
-        if (node.translation.size() == 3) translation = float3(float(node.translation[0]), float(node.translation[1]), float(node.translation[2])) * scale;
+        if (node.translation.size() == 3) translation = float3(float(node.translation[0]), float(node.translation[1]), float(node.translation[2])) * modelScale;
         if (node.rotation.size() == 4) rotation = Quat(float(node.rotation[0]), float(node.rotation[1]), float(node.rotation[2]), float(node.rotation[3]));
-        if (node.scale.size() == 3) scale = float3(float(node.scale[0]), float(node.scale[1]), float(node.scale[2]));
+        if (node.scale.size() == 3) scale = float3(float(node.scale[0]), float(node.scale[1]), float(node.scale[2])) ;
 
         local = float4x4::FromTRS(translation, rotation, scale);
     }
@@ -368,7 +371,7 @@ void ResourceModel::GenerateNodes(const tinygltf::Model& model, int nodeIndex, i
 
     for (int childIndex : node.children)
     {
-        GenerateNodes(model, childIndex, parentIndex, meshes, materials, nodeMapping, scale);
+        GenerateNodes(model, childIndex, parentIndex, meshes, materials, nodeMapping, modelScale);
     }
 }
 

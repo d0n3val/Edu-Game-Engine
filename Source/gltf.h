@@ -64,7 +64,7 @@ inline void loadAccessor<unsigned>(std::unique_ptr<unsigned[]>& data, uint& coun
             {
                 for (uint j = 0; j < numComponents; ++j)
                 {
-                    data[i * numComponents + j] = reinterpret_cast<const short*>(bufferData)[j];
+                    data[i * numComponents + j] = reinterpret_cast<const uint16_t*>(bufferData)[j];
                 }
 
                 bufferData += bufferStride;

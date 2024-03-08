@@ -46,7 +46,7 @@ bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
 
     const ResourceMesh* meshRes = object->GetMeshRes();
     const ResourceMaterial* materialRes = object->GetMaterialRes();
-    if (meshRes->GetAttribs() == attrib_flags && materialRes->GetWorkFlow() == materialWF)
+    if (meshRes->GetAttribs() == attrib_flags && materialRes && materialRes->GetWorkFlow() == materialWF)
     {
         return true;
     }
@@ -450,9 +450,9 @@ void GeometryBatch::CreateMaterialBuffer()
             float2 secondary_offset;
             uint   materialType;
             uint padd1;
-            uint padd2;
+            float alpha_test;
             uint mapMask;
-            uint64_t handles[MR_TextureCount];
+            uint64_t handles[SG_TextureCount > MR_TextureCount ? SG_TextureCount : MR_TextureCount];
         };
 
         materialSSBO = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, sizeof(MaterialData) * objects.size(), nullptr, true);
@@ -471,6 +471,7 @@ void GeometryBatch::CreateMaterialBuffer()
             out.offset = material->GetUVOffset();
             out.secondary_tiling = material->GetSecondUVTiling();
             out.secondary_offset = material->GetSecondUVOffset();
+            out.alpha_test = material->GetAlphaTest();
             out.mapMask = material->GetMask();
             out.materialType = MetallicRoughness;
 

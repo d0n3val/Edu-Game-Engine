@@ -179,6 +179,7 @@ bool ResourceMesh::LoadInMemory()
             for(uint i=0; i< num_indices; ++i)
             {
                 read_stream >> src_indices[i];
+                SDL_assert(src_indices[i] < num_vertices);
             }
 
             if(HasAttrib(ATTRIB_BONE_INDICES))
@@ -367,6 +368,7 @@ void ResourceMesh::SaveToStream(simple::mem_ostream<std::true_type>& write_strea
 
     for(uint i=0; i< num_indices; ++i)
     {
+        SDL_assert(src_indices[i] < num_vertices);
         write_stream << src_indices[i];
     }
 
@@ -603,6 +605,11 @@ void ResourceMesh::GenerateCPUBuffers(const tinygltf::Model& model, const tinygl
     {        
         loadAccessor(src_vertices, num_vertices, model, itPos->second);
        
+        if (scale != 1.0f)
+        {
+            std::for_each_n(src_vertices.get(), num_vertices, [=](float3& vtx) {vtx *= scale;  });
+        }
+
         uint numTexCoord = 0;
         loadAccessor(src_texcoord0, numTexCoord, model, primitive.attributes, "TEXCOORD_0");
         SDL_assert(numTexCoord == 0 || numTexCoord == num_vertices);

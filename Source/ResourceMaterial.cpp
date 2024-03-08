@@ -31,6 +31,7 @@ overloaded(Ts...) -> overloaded<Ts...>;
 // ---------------------------------------------------------
 ResourceMaterial::ResourceMaterial(UID id) : Resource(id, Resource::Type::material)
 {
+    data = MetallicRoughData();
 }
 
 // ---------------------------------------------------------

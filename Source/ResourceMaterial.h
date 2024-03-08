@@ -75,7 +75,7 @@ private:
 
     typedef std::variant<SpecularGlossData, MetallicRoughData> MaterialData;
 
-    MaterialWorkFlow workFlow;
+    MaterialWorkFlow workFlow = MetallicRoughness;
     MaterialData     data;
 
     bool             double_sided           = false;
