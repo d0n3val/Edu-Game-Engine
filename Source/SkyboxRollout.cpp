@@ -58,12 +58,12 @@ void SkyboxRollout::DrawProperties(IBLData* skybox)
         TakeScreenshot(skybox, selected);
 
         ResourceTexture* info = skybox->GetEnvironmentRes().GetPtr<ResourceTexture>();
+        ImGui::BeginGroup();
+
         if (info)
         {
-            ImGui::BeginGroup();
             ImGui::Text("Texture:");
             ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_YELLOW);
-
             ImGui::SameLine();
             std::string file;
             App->fs->SplitFilePath(info->GetFile(), nullptr, &file);
@@ -77,14 +77,15 @@ void SkyboxRollout::DrawProperties(IBLData* skybox)
             {
                 info->SetColorSpace(linear ? ColorSpace_linear : ColorSpace_gamma);
             }
-
-            if (ImGui::SmallButton("Select Texture"))
-            {
-                selectTexture.Open(Resource::texture, "Skybox texture", 0);
-            }
-
-            ImGui::EndGroup();
         }
+
+        if (ImGui::SmallButton("Select Texture"))
+        {
+            selectTexture.Open(Resource::texture, "Skybox texture", 0);
+        }
+
+        ImGui::EndGroup();
+
         ImGui::Separator();
         ImGui::Combo("Cubemap", (int*)&selected, "Environment\0Diffuse\0Prefiltered\0");
         ImGui::Text(SelectionName[selected]);
