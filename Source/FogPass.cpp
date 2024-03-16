@@ -22,16 +22,36 @@ FogPass::FogPass()
 
 void FogPass::execute(Framebuffer *target, uint width, uint height)
 {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Fog");
+
     GBufferExportPass* exportPass = App->renderer->GetGBufferExportPass();
 
     if(App->hints->GetIntValue(ModuleHints::FOG_TYPE) == FOG_TYPE_DISTANCE)
 	{
+        
 		useDistanceProgram();
+        
+        struct FogData
+        {
+            float4 colour;
+            float2 curve;
+            float2 distRange;
+        } fogData;
 
-		distanceProg->BindUniform(DISTANCE_FOG_COLOUR, App->hints->GetFloat3Value(ModuleHints::DIST_FOG_COLOUR));
-        distanceProg->BindUniform(DISTANCE_FOG_MIN_DISTANCE, App->hints->GetFloatValue(ModuleHints::DIST_FOG_MIN));
-        distanceProg->BindUniform(DISTANCE_FOG_MAX_DISTANCE, App->hints->GetFloatValue(ModuleHints::DIST_FOG_MAX));
-        distanceProg->BindUniform(DISTANCE_FOG_CURVE, App->hints->GetFloat4Value(ModuleHints::DIST_FOG_CURVE));
+        if (!ubo)
+        {
+            ubo.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(fogData), nullptr));
+        }
+        float4 curve = App->hints->GetFloat4Value(ModuleHints::DIST_FOG_CURVE);
+
+        fogData.colour = float4(App->hints->GetFloat3Value(ModuleHints::DIST_FOG_COLOUR), 0.0f);
+        fogData.curve = float2(curve.x, curve.z);
+        fogData.distRange = float2(App->hints->GetFloatValue(ModuleHints::DIST_FOG_MIN), App->hints->GetFloatValue(ModuleHints::DIST_FOG_MAX));
+
+        ubo->InvalidateData();
+        ubo->SetData(0, sizeof(fogData), &fogData);
+
+        ubo->BindToPoint(DISTANCE_FOG_DATA);
 	}
 	else
 	{
@@ -64,6 +84,8 @@ void FogPass::execute(Framebuffer *target, uint width, uint height)
 
     vao->Unbind();
 	target->Unbind();
+    glPopDebugGroup();
+
 }
 
 void FogPass::useProgram()

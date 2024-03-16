@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "OGL.h"
 
 class Program;
 class Framebuffer;
@@ -16,7 +17,7 @@ class FogPass
     std::unique_ptr<Program> program;
     std::unique_ptr<Program> distanceProg;
     std::unique_ptr<VertexArray> vao;
-
+    std::unique_ptr<Buffer> ubo;
 public:
     FogPass();
 
