@@ -22,8 +22,7 @@ void sampleSSAO(inout PBR pbr)
     vec4 projectedPos = proj*view*vec4(fragment.geom.position, 1.0);
     vec2 uv  = (projectedPos.xy/projectedPos.w)*0.5+0.5;
 
-    float ssao = texture(ambientOcclusion, uv).r;
-    pbr.occlusion *= ssao;
+    pbr.occlusion *= texture(ssao, uv).r;
 #else
     pbr.occlusion = 1.0;
 #endif 

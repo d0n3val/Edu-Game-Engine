@@ -191,7 +191,7 @@ void getMetallicRoughnessMaterial(out PBR pbr, in Material material, in vec2 uv0
     vec3 baseColor = material.diffuseColor.rgb;
     float metalness = material.specularColor.r;
     float roughness = material.specularColor.g;
-    float normal_strength = material.specularColor.a;
+    float normal_strength = material.emissiveColor.a;
 
     pbr.alpha = material.diffuseColor.a;
     pbr.occlusion = material.specularColor.b;

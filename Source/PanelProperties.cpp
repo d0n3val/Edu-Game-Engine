@@ -1252,7 +1252,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         {
             modified = TextureButton(mrData.textures[MR_TextureNormal], mesh, "Normal") || modified;
 
-            if (ImGui::SliderFloat("Strength", &mrData.normal_strength, 0.0f, 10.0f))
+            if (ImGui::SliderFloat("Normal Strength", &mrData.normal_strength, 0.0f, 10.0f))
             {
                 modified = true;
             }
@@ -1278,7 +1278,7 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
         if (ImGui::CollapsingHeader("Occlusion", ImGuiTreeNodeFlags_DefaultOpen))
         {
             modified = TextureButton(mrData.textures[MR_TextureOcclusion], mesh, "Occlusion") || modified;
-            if (ImGui::SliderFloat("Strength", &mrData.occlusion_strength, 0.0f, 50.0f))
+            if (ImGui::SliderFloat("Occlusion Strength", &mrData.occlusion_strength, 0.0f, 50.0f))
             {
                 modified = true;
             }

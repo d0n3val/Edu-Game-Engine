@@ -7,6 +7,7 @@
 #include "ModuleLevelManager.h"
 #include "ModuleHints.h"
 #include "IBLData.h"
+#include "LightManager.h"
 #include "ScreenSpaceAO.h"
 #include "ShadowmapPass.h"
 #include "CascadeShadowPass.h"
@@ -39,6 +40,7 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
     bindShadows();
 
     App->renderer->GetCameraUBO()->Bind();
+    App->level->GetLightManager()->Bind();
     App->level->GetSkyBox()->Bind();
     App->renderer->GetScreenSpaceAO()->getResult()->Bind(SSAO_TEX_BINDING);
 
@@ -58,9 +60,12 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
 
 void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *target, uint width, uint height)
 {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Transparent - Forward");
+
     UseProgram();
 
     App->renderer->GetCameraUBO()->Bind();
+    App->level->GetLightManager()->Bind();
     App->level->GetSkyBox()->Bind();
     App->renderer->GetScreenSpaceAO()->getResult()->Bind(SSAO_TEX_BINDING);
 
@@ -82,6 +87,8 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
     {
         target->Unbind();
     }
+
+    glPopDebugGroup();
 }
 
 void ForwardPass::UseProgram()

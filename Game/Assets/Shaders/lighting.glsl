@@ -7,7 +7,6 @@
 
 #define MIN_ROUGHNESS 0.001
 
-layout(binding = AO_TEX_BINDING) uniform sampler2D ambientOcclusion;
 layout(binding = DIFFUSE_IBL_TEX_BINDING) uniform samplerCube     diffuseIBL;
 layout(binding = PREFILTERED_IBL_TEX_BINDING) uniform samplerCube prefilteredIBL;
 layout(binding = ENVIRONMENT_BRDF_TEX_BINDING) uniform sampler2D  environmentBRDF;
