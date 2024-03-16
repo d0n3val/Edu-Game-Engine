@@ -30,23 +30,24 @@ namespace
     enum CONVERSION_FLAGS : uint32_t
     {
         CONV_FLAGS_NONE = 0x0,
-        CONV_FLAGS_EXPAND = 0x1,      // Conversion requires expanded pixel size
-        CONV_FLAGS_NOALPHA = 0x2,      // Conversion requires setting alpha to known value
-        CONV_FLAGS_SWIZZLE = 0x4,      // BGR/RGB order swizzling required
-        CONV_FLAGS_PAL8 = 0x8,      // Has an 8-bit palette
-        CONV_FLAGS_888 = 0x10,     // Source is an 8:8:8 (24bpp) format
-        CONV_FLAGS_565 = 0x20,     // Source is a 5:6:5 (16bpp) format
-        CONV_FLAGS_5551 = 0x40,     // Source is a 5:5:5:1 (16bpp) format
-        CONV_FLAGS_4444 = 0x80,     // Source is a 4:4:4:4 (16bpp) format
-        CONV_FLAGS_44 = 0x100,    // Source is a 4:4 (8bpp) format
-        CONV_FLAGS_332 = 0x200,    // Source is a 3:3:2 (8bpp) format
-        CONV_FLAGS_8332 = 0x400,    // Source is a 8:3:3:2 (16bpp) format
-        CONV_FLAGS_A8P8 = 0x800,    // Has an 8-bit palette with an alpha channel
-        CONV_FLAGS_DX10 = 0x10000,  // Has the 'DX10' extension header
-        CONV_FLAGS_PMALPHA = 0x20000,  // Contains premultiplied alpha data
-        CONV_FLAGS_L8 = 0x40000,  // Source is a 8 luminance format
-        CONV_FLAGS_L16 = 0x80000,  // Source is a 16 luminance format
-        CONV_FLAGS_A8L8 = 0x100000, // Source is a 8:8 luminance format
+        CONV_FLAGS_EXPAND = 0x1,        // Conversion requires expanded pixel size
+        CONV_FLAGS_NOALPHA = 0x2,       // Conversion requires setting alpha to known value
+        CONV_FLAGS_SWIZZLE = 0x4,       // BGR/RGB order swizzling required
+        CONV_FLAGS_PAL8 = 0x8,          // Has an 8-bit palette
+        CONV_FLAGS_888 = 0x10,          // Source is an 8:8:8 (24bpp) format
+        CONV_FLAGS_565 = 0x20,          // Source is a 5:6:5 (16bpp) format
+        CONV_FLAGS_5551 = 0x40,         // Source is a 5:5:5:1 (16bpp) format
+        CONV_FLAGS_4444 = 0x80,         // Source is a 4:4:4:4 (16bpp) format
+        CONV_FLAGS_44 = 0x100,          // Source is a 4:4 (8bpp) format
+        CONV_FLAGS_332 = 0x200,         // Source is a 3:3:2 (8bpp) format
+        CONV_FLAGS_8332 = 0x400,        // Source is a 8:3:3:2 (16bpp) format
+        CONV_FLAGS_A8P8 = 0x800,        // Has an 8-bit palette with an alpha channel
+        CONF_FLAGS_11ON12 = 0x1000,     // D3D11on12 format
+        CONV_FLAGS_DX10 = 0x10000,      // Has the 'DX10' extension header
+        CONV_FLAGS_PMALPHA = 0x20000,   // Contains premultiplied alpha data
+        CONV_FLAGS_L8 = 0x40000,        // Source is a 8 luminance format
+        CONV_FLAGS_L16 = 0x80000,       // Source is a 16 luminance format
+        CONV_FLAGS_A8L8 = 0x100000,     // Source is a 8:8 luminance format
     };
 
     struct LegacyDDS
@@ -65,6 +66,19 @@ namespace
         { DXGI_FORMAT_BC2_UNORM,          CONV_FLAGS_PMALPHA,     DDSPF_DXT2 }, // D3DFMT_DXT2
         { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_PMALPHA,     DDSPF_DXT4 }, // D3DFMT_DXT4
 
+        // These DXT5 variants have various swizzled channels. They are returned 'as is' to the client as BC3.
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('A', '2', 'D', '5'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('x', 'G', 'B', 'R'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('R', 'x', 'B', 'G'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('R', 'B', 'x', 'G'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('x', 'R', 'B', 'G'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('R', 'G', 'x', 'B'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('x', 'G', 'x', 'R'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('G', 'X', 'R', 'B'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('G', 'R', 'X', 'B'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('R', 'X', 'G', 'B'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC3_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('B', 'R', 'G', 'X'), 0, 0, 0, 0, 0 } },
+
         { DXGI_FORMAT_BC4_UNORM,          CONV_FLAGS_NONE,        DDSPF_BC4_UNORM },
         { DXGI_FORMAT_BC4_SNORM,          CONV_FLAGS_NONE,        DDSPF_BC4_SNORM },
         { DXGI_FORMAT_BC5_UNORM,          CONV_FLAGS_NONE,        DDSPF_BC5_UNORM },
@@ -72,6 +86,7 @@ namespace
 
         { DXGI_FORMAT_BC4_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('A', 'T', 'I', '1'), 0, 0, 0, 0, 0 } },
         { DXGI_FORMAT_BC5_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('A', 'T', 'I', '2'), 0, 0, 0, 0, 0 } },
+        { DXGI_FORMAT_BC5_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('A', '2', 'X', 'Y'), 0, 0, 0, 0, 0 } },
 
         { DXGI_FORMAT_BC6H_UF16,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('B', 'C', '6', 'H'), 0, 0, 0, 0, 0 } },
         { DXGI_FORMAT_BC7_UNORM,          CONV_FLAGS_NONE,        { sizeof(DDS_PIXELFORMAT), DDS_FOURCC, MAKEFOURCC('B', 'C', '7', 'L'), 0, 0, 0, 0, 0 } },
@@ -176,74 +191,91 @@ namespace
 
         constexpr size_t MAP_SIZE = sizeof(g_LegacyDDSMap) / sizeof(LegacyDDS);
         size_t index = 0;
-        for (index = 0; index < MAP_SIZE; ++index)
+        if (ddpf.size == 0 && ddpf.flags == 0 && ddpf.fourCC != 0)
         {
-            const LegacyDDS* entry = &g_LegacyDDSMap[index];
+            // Handle some DDS files where the DDPF_PIXELFORMAT is mostly zero
+            for (index = 0; index < MAP_SIZE; ++index)
+            {
+                const LegacyDDS* entry = &g_LegacyDDSMap[index];
 
-            if ((ddpfFlags & DDS_FOURCC) && (entry->ddpf.flags & DDS_FOURCC))
-            {
-                // In case of FourCC codes, ignore any other bits in ddpf.flags
-                if (ddpf.fourCC == entry->ddpf.fourCC)
-                    break;
+                if (entry->ddpf.flags & DDS_FOURCC)
+                {
+                    if (ddpf.fourCC == entry->ddpf.fourCC)
+                        break;
+                }
             }
-            else if (ddpfFlags == entry->ddpf.flags)
+        }
+        else
+        {
+            for (index = 0; index < MAP_SIZE; ++index)
             {
-                if (entry->ddpf.flags & DDS_PAL8)
+                const LegacyDDS* entry = &g_LegacyDDSMap[index];
+
+                if ((ddpfFlags & DDS_FOURCC) && (entry->ddpf.flags & DDS_FOURCC))
                 {
-                    if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount)
+                    // In case of FourCC codes, ignore any other bits in ddpf.flags
+                    if (ddpf.fourCC == entry->ddpf.fourCC)
                         break;
                 }
-                else if (entry->ddpf.flags & DDS_ALPHA)
+                else if (ddpfFlags == entry->ddpf.flags)
                 {
-                    if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount
-                        && ddpf.ABitMask == entry->ddpf.ABitMask)
-                        break;
-                }
-                else if (entry->ddpf.flags & DDS_LUMINANCE)
-                {
-                    if (entry->ddpf.flags & DDS_ALPHAPIXELS)
+                    if (entry->ddpf.flags & DDS_PAL8)
                     {
-                        // LUMINANCEA
+                        if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount)
+                            break;
+                    }
+                    else if (entry->ddpf.flags & DDS_ALPHA)
+                    {
                         if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount
-                            && ddpf.RBitMask == entry->ddpf.RBitMask
                             && ddpf.ABitMask == entry->ddpf.ABitMask)
                             break;
                     }
-                    else
+                    else if (entry->ddpf.flags & DDS_LUMINANCE)
                     {
-                        // LUMINANCE
-                        if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount
-                            && ddpf.RBitMask == entry->ddpf.RBitMask)
-                            break;
+                        if (entry->ddpf.flags & DDS_ALPHAPIXELS)
+                        {
+                            // LUMINANCEA
+                            if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount
+                                && ddpf.RBitMask == entry->ddpf.RBitMask
+                                && ddpf.ABitMask == entry->ddpf.ABitMask)
+                                break;
+                        }
+                        else
+                        {
+                            // LUMINANCE
+                            if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount
+                                && ddpf.RBitMask == entry->ddpf.RBitMask)
+                                break;
+                        }
                     }
-                }
-                else if (entry->ddpf.flags & DDS_BUMPDUDV)
-                {
-                    if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount
-                        && ddpf.RBitMask == entry->ddpf.RBitMask
-                        && ddpf.GBitMask == entry->ddpf.GBitMask
-                        && ddpf.BBitMask == entry->ddpf.BBitMask
-                        && ddpf.ABitMask == entry->ddpf.ABitMask)
-                        break;
-                }
-                else if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount)
-                {
-                    if (entry->ddpf.flags & DDS_ALPHAPIXELS)
+                    else if (entry->ddpf.flags & DDS_BUMPDUDV)
                     {
-                        // RGBA
-                        if (ddpf.RBitMask == entry->ddpf.RBitMask
+                        if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount
+                            && ddpf.RBitMask == entry->ddpf.RBitMask
                             && ddpf.GBitMask == entry->ddpf.GBitMask
                             && ddpf.BBitMask == entry->ddpf.BBitMask
                             && ddpf.ABitMask == entry->ddpf.ABitMask)
                             break;
                     }
-                    else
+                    else if (ddpf.RGBBitCount == entry->ddpf.RGBBitCount)
                     {
-                        // RGB
-                        if (ddpf.RBitMask == entry->ddpf.RBitMask
-                            && ddpf.GBitMask == entry->ddpf.GBitMask
-                            && ddpf.BBitMask == entry->ddpf.BBitMask)
-                            break;
+                        if (entry->ddpf.flags & DDS_ALPHAPIXELS)
+                        {
+                            // RGBA
+                            if (ddpf.RBitMask == entry->ddpf.RBitMask
+                                && ddpf.GBitMask == entry->ddpf.GBitMask
+                                && ddpf.BBitMask == entry->ddpf.BBitMask
+                                && ddpf.ABitMask == entry->ddpf.ABitMask)
+                                break;
+                        }
+                        else
+                        {
+                            // RGB
+                            if (ddpf.RBitMask == entry->ddpf.RBitMask
+                                && ddpf.GBitMask == entry->ddpf.GBitMask
+                                && ddpf.BBitMask == entry->ddpf.BBitMask)
+                                break;
+                        }
                     }
                 }
             }
@@ -274,7 +306,6 @@ namespace
         return format;
     }
 
-
     //-------------------------------------------------------------------------------------
     // Decodes DDS header including optional DX10 extended header
     //-------------------------------------------------------------------------------------
@@ -283,12 +314,17 @@ namespace
         size_t size,
         DDS_FLAGS flags,
         _Out_ TexMetadata& metadata,
+        _Out_opt_ DDSMetaData* ddPixelFormat,
         _Inout_ uint32_t& convFlags) noexcept
     {
         if (!pSource)
             return E_INVALIDARG;
 
-        memset(&metadata, 0, sizeof(TexMetadata));
+        metadata = {};
+        if (ddPixelFormat)
+        {
+            *ddPixelFormat = {};
+        }
 
         if (size < (sizeof(DDS_HEADER) + sizeof(uint32_t)))
         {
@@ -305,10 +341,31 @@ namespace
         auto pHeader = reinterpret_cast<const DDS_HEADER*>(static_cast<const uint8_t*>(pSource) + sizeof(uint32_t));
 
         // Verify header to validate DDS file
-        if (pHeader->size != sizeof(DDS_HEADER)
-            || pHeader->ddspf.size != sizeof(DDS_PIXELFORMAT))
+        if (flags & DDS_FLAGS_PERMISSIVE)
         {
-            return E_FAIL;
+            if (pHeader->size != 24 /* Known variant */
+                && pHeader->size != sizeof(DDS_HEADER))
+            {
+                return HRESULT_E_NOT_SUPPORTED;
+            }
+        }
+        else if (pHeader->size != sizeof(DDS_HEADER))
+        {
+            return HRESULT_E_NOT_SUPPORTED;
+        }
+
+        if (flags & DDS_FLAGS_PERMISSIVE)
+        {
+            if (pHeader->ddspf.size != 0 /* Known variant */
+                && pHeader->ddspf.size != 24 /* Known variant */
+                && pHeader->ddspf.size != sizeof(DDS_PIXELFORMAT))
+            {
+                return HRESULT_E_NOT_SUPPORTED;
+            }
+        }
+        else if (pHeader->ddspf.size != sizeof(DDS_PIXELFORMAT))
+        {
+            return HRESULT_E_NOT_SUPPORTED;
         }
 
         metadata.mipLevels = pHeader->mipMapCount;
@@ -319,6 +376,13 @@ namespace
         if ((pHeader->ddspf.flags & DDS_FOURCC)
             && (MAKEFOURCC('D', 'X', '1', '0') == pHeader->ddspf.fourCC))
         {
+            if (pHeader->size != sizeof(DDS_HEADER)
+                || pHeader->ddspf.size != sizeof(DDS_PIXELFORMAT))
+            {
+                // We do not accept legacy DX9 'known variants' for modern "DX10" extension header files.
+                return E_FAIL;
+            }
+
             // Buffer must be big enough for both headers and magic value
             if (size < (sizeof(DDS_HEADER) + sizeof(uint32_t) + sizeof(DDS_HEADER_DXT10)))
             {
@@ -412,6 +476,14 @@ namespace
                 metadata.height = pHeader->height;
                 metadata.depth = pHeader->depth;
                 metadata.dimension = TEX_DIMENSION_TEXTURE3D;
+
+                if (flags & DDS_FLAGS_PERMISSIVE)
+                {
+                    // Allow cases where mipCount was computed incorrectly
+                    size_t maxMips = 0;
+                    std::ignore = Internal::CalculateMipLevels3D(metadata.width, metadata.height, metadata.depth, maxMips);
+                    metadata.mipLevels = std::min(metadata.mipLevels, maxMips);
+                }
             }
             else
             {
@@ -431,6 +503,14 @@ namespace
                 metadata.dimension = TEX_DIMENSION_TEXTURE2D;
 
                 // Note there's no way for a legacy Direct3D 9 DDS to express a '1D' texture
+
+                if (flags & DDS_FLAGS_PERMISSIVE)
+                {
+                    // Allow cases where mipCount was computed incorrectly
+                    size_t maxMips = 0;
+                    std::ignore = Internal::CalculateMipLevels(metadata.width, metadata.height, maxMips);
+                    metadata.mipLevels = std::min(metadata.mipLevels, maxMips);
+                }
             }
 
             metadata.format = GetDXGIFormat(*pHeader, pHeader->ddspf, flags, convFlags);
@@ -507,13 +587,20 @@ namespace
         // Special flag for handling 16bpp formats
         if (flags & DDS_FLAGS_NO_16BPP)
         {
-            switch (metadata.format)
+            switch (static_cast<int>(metadata.format))
             {
             case DXGI_FORMAT_B5G6R5_UNORM:
             case DXGI_FORMAT_B5G5R5A1_UNORM:
             case DXGI_FORMAT_B4G4R4A4_UNORM:
+            case WIN11_DXGI_FORMAT_A4B4G4R4_UNORM:
                 if (metadata.format == DXGI_FORMAT_B5G6R5_UNORM)
+                {
                     convFlags |= CONV_FLAGS_NOALPHA;
+                }
+                if (metadata.format == WIN11_DXGI_FORMAT_A4B4G4R4_UNORM)
+                {
+                    convFlags |= CONV_FLAGS_4444 | CONF_FLAGS_11ON12;
+                }
                 metadata.format = DXGI_FORMAT_R8G8B8A8_UNORM;
                 convFlags |= CONV_FLAGS_EXPAND;
                 break;
@@ -550,6 +637,19 @@ namespace
             {
                 return HRESULT_E_NOT_SUPPORTED;
             }
+        }
+
+        // Handle DDS-specific metadata
+        if (ddPixelFormat)
+        {
+            ddPixelFormat->size = pHeader->ddspf.size;
+            ddPixelFormat->flags = pHeader->ddspf.flags;
+            ddPixelFormat->fourCC = pHeader->ddspf.fourCC;
+            ddPixelFormat->RGBBitCount = pHeader->ddspf.RGBBitCount;
+            ddPixelFormat->RBitMask = pHeader->ddspf.RBitMask;
+            ddPixelFormat->GBitMask = pHeader->ddspf.GBitMask;
+            ddPixelFormat->BBitMask = pHeader->ddspf.BBitMask;
+            ddPixelFormat->ABitMask = pHeader->ddspf.ABitMask;
         }
 
         return S_OK;
@@ -606,7 +706,6 @@ HRESULT DirectX::EncodeDDSHeader(
         case DXGI_FORMAT_G8R8_G8B8_UNORM:       memcpy(&ddpf, &DDSPF_G8R8_G8B8, sizeof(DDS_PIXELFORMAT)); break;
         case DXGI_FORMAT_BC1_UNORM:             memcpy(&ddpf, &DDSPF_DXT1, sizeof(DDS_PIXELFORMAT)); break;
         case DXGI_FORMAT_BC2_UNORM:             memcpy(&ddpf, metadata.IsPMAlpha() ? (&DDSPF_DXT2) : (&DDSPF_DXT3), sizeof(DDS_PIXELFORMAT)); break;
-        case DXGI_FORMAT_BC3_UNORM:             memcpy(&ddpf, metadata.IsPMAlpha() ? (&DDSPF_DXT4) : (&DDSPF_DXT5), sizeof(DDS_PIXELFORMAT)); break;
         case DXGI_FORMAT_BC4_SNORM:             memcpy(&ddpf, &DDSPF_BC4_SNORM, sizeof(DDS_PIXELFORMAT)); break;
         case DXGI_FORMAT_BC5_SNORM:             memcpy(&ddpf, &DDSPF_BC5_SNORM, sizeof(DDS_PIXELFORMAT)); break;
         case DXGI_FORMAT_B5G6R5_UNORM:          memcpy(&ddpf, &DDSPF_R5G6B5, sizeof(DDS_PIXELFORMAT)); break;
@@ -618,6 +717,14 @@ HRESULT DirectX::EncodeDDSHeader(
         case DXGI_FORMAT_B8G8R8X8_UNORM:        memcpy(&ddpf, &DDSPF_X8R8G8B8, sizeof(DDS_PIXELFORMAT)); break; // DXGI 1.1
         case DXGI_FORMAT_B4G4R4A4_UNORM:        memcpy(&ddpf, &DDSPF_A4R4G4B4, sizeof(DDS_PIXELFORMAT)); break; // DXGI 1.2
         case DXGI_FORMAT_YUY2:                  memcpy(&ddpf, &DDSPF_YUY2, sizeof(DDS_PIXELFORMAT)); break; // DXGI 1.2
+
+        case DXGI_FORMAT_BC3_UNORM:
+            memcpy(&ddpf, metadata.IsPMAlpha() ? (&DDSPF_DXT4) : (&DDSPF_DXT5), sizeof(DDS_PIXELFORMAT));
+            if (flags & DDS_FLAGS_FORCE_DXT5_RXGB)
+            {
+                ddpf.fourCC = MAKEFOURCC('R', 'X', 'G', 'B');
+            }
+            break;
 
         // Legacy D3DX formats using D3DFMT enum value as FourCC
         case DXGI_FORMAT_R32G32B32A32_FLOAT:
@@ -1256,8 +1363,9 @@ namespace
         }
 
         size_t pixelSize, nimages;
-        if (!DetermineImageArray(metadata, cpFlags, nimages, pixelSize))
-            return HRESULT_E_ARITHMETIC_OVERFLOW;
+        HRESULT hr = DetermineImageArray(metadata, cpFlags, nimages, pixelSize);
+        if (FAILED(hr))
+            return hr;
 
         if ((nimages == 0) || (nimages != image.GetImageCount()))
         {
@@ -1367,7 +1475,15 @@ namespace
                             {
                                 if (convFlags & CONV_FLAGS_EXPAND)
                                 {
-                                    if (convFlags & (CONV_FLAGS_565 | CONV_FLAGS_5551 | CONV_FLAGS_4444))
+                                    if (convFlags & CONV_FLAGS_4444)
+                                    {
+                                        if (!ExpandScanline(pDest, dpitch, DXGI_FORMAT_R8G8B8A8_UNORM,
+                                            pSrc, spitch,
+                                            (convFlags & CONF_FLAGS_11ON12) ? WIN11_DXGI_FORMAT_A4B4G4R4_UNORM : DXGI_FORMAT_B4G4R4A4_UNORM,
+                                            tflags))
+                                            return E_FAIL;
+                                    }
+                                    else if (convFlags & (CONV_FLAGS_565 | CONV_FLAGS_5551))
                                     {
                                         if (!ExpandScanline(pDest, dpitch, DXGI_FORMAT_R8G8B8A8_UNORM,
                                             pSrc, spitch,
@@ -1460,7 +1576,15 @@ namespace
                             {
                                 if (convFlags & CONV_FLAGS_EXPAND)
                                 {
-                                    if (convFlags & (CONV_FLAGS_565 | CONV_FLAGS_5551 | CONV_FLAGS_4444))
+                                    if (convFlags & CONV_FLAGS_4444)
+                                    {
+                                        if (!ExpandScanline(pDest, dpitch, DXGI_FORMAT_R8G8B8A8_UNORM,
+                                            pSrc, spitch,
+                                            (convFlags & CONF_FLAGS_11ON12) ? WIN11_DXGI_FORMAT_A4B4G4R4_UNORM : DXGI_FORMAT_B4G4R4A4_UNORM,
+                                            tflags))
+                                            return E_FAIL;
+                                    }
+                                    else if (convFlags & (CONV_FLAGS_565 | CONV_FLAGS_5551))
                                     {
                                         if (!ExpandScanline(pDest, dpitch, DXGI_FORMAT_R8G8B8A8_UNORM,
                                             pSrc, spitch,
@@ -1567,11 +1691,22 @@ HRESULT DirectX::GetMetadataFromDDSMemory(
     DDS_FLAGS flags,
     TexMetadata& metadata) noexcept
 {
+    return GetMetadataFromDDSMemoryEx(pSource, size, flags, metadata, nullptr);
+}
+
+_Use_decl_annotations_
+HRESULT DirectX::GetMetadataFromDDSMemoryEx(
+    const void* pSource,
+    size_t size,
+    DDS_FLAGS flags,
+    TexMetadata& metadata,
+    DDSMetaData* ddPixelFormat) noexcept
+{
     if (!pSource || size == 0)
         return E_INVALIDARG;
 
     uint32_t convFlags = 0;
-    return DecodeDDSHeader(pSource, size, flags, metadata, convFlags);
+    return DecodeDDSHeader(pSource, size, flags, metadata, ddPixelFormat, convFlags);
 }
 
 _Use_decl_annotations_
@@ -1579,6 +1714,16 @@ HRESULT DirectX::GetMetadataFromDDSFile(
     const wchar_t* szFile,
     DDS_FLAGS flags,
     TexMetadata& metadata) noexcept
+{
+    return GetMetadataFromDDSFileEx(szFile, flags, metadata, nullptr);
+}
+
+_Use_decl_annotations_
+HRESULT DirectX::GetMetadataFromDDSFileEx(
+    const wchar_t* szFile,
+    DDS_FLAGS flags,
+    TexMetadata& metadata,
+    DDSMetaData* ddPixelFormat) noexcept
 {
     if (!szFile)
         return E_INVALIDARG;
@@ -1654,7 +1799,7 @@ HRESULT DirectX::GetMetadataFromDDSFile(
 #endif
 
     uint32_t convFlags = 0;
-    return DecodeDDSHeader(header, headerLen, flags, metadata, convFlags);
+    return DecodeDDSHeader(header, headerLen, flags, metadata, ddPixelFormat, convFlags);
 }
 
 
@@ -1669,6 +1814,18 @@ HRESULT DirectX::LoadFromDDSMemory(
     TexMetadata* metadata,
     ScratchImage& image) noexcept
 {
+    return LoadFromDDSMemoryEx(pSource, size, flags, metadata, nullptr, image);
+}
+
+_Use_decl_annotations_
+HRESULT DirectX::LoadFromDDSMemoryEx(
+    const void* pSource,
+    size_t size,
+    DDS_FLAGS flags,
+    TexMetadata* metadata,
+    DDSMetaData* ddPixelFormat,
+    ScratchImage& image) noexcept
+{
     if (!pSource || size == 0)
         return E_INVALIDARG;
 
@@ -1676,7 +1833,7 @@ HRESULT DirectX::LoadFromDDSMemory(
 
     uint32_t convFlags = 0;
     TexMetadata mdata;
-    HRESULT hr = DecodeDDSHeader(pSource, size, flags, mdata, convFlags);
+    HRESULT hr = DecodeDDSHeader(pSource, size, flags, mdata, ddPixelFormat, convFlags);
     if (FAILED(hr))
         return hr;
 
@@ -1741,6 +1898,17 @@ HRESULT DirectX::LoadFromDDSFile(
     TexMetadata* metadata,
     ScratchImage& image) noexcept
 {
+    return LoadFromDDSFileEx(szFile, flags, metadata, nullptr, image);
+}
+
+_Use_decl_annotations_
+HRESULT DirectX::LoadFromDDSFileEx(
+    const wchar_t* szFile,
+    DDS_FLAGS flags,
+    TexMetadata* metadata,
+    DDSMetaData* ddPixelFormat,
+    ScratchImage& image) noexcept
+{
     if (!szFile)
         return E_INVALIDARG;
 
@@ -1816,7 +1984,7 @@ HRESULT DirectX::LoadFromDDSFile(
 
     uint32_t convFlags = 0;
     TexMetadata mdata;
-    HRESULT hr = DecodeDDSHeader(header, headerLen, flags, mdata, convFlags);
+    HRESULT hr = DecodeDDSHeader(header, headerLen, flags, mdata, ddPixelFormat, convFlags);
     if (FAILED(hr))
         return hr;
 
@@ -2446,3 +2614,68 @@ HRESULT DirectX::SaveToDDSFile(
 
     return S_OK;
 }
+
+
+//--------------------------------------------------------------------------------------
+// Adapters for /Zc:wchar_t- clients
+
+#if defined(_MSC_VER) && !defined(_NATIVE_WCHAR_T_DEFINED)
+
+namespace DirectX
+{
+    HRESULT __cdecl GetMetadataFromDDSFile(
+        _In_z_ const __wchar_t* szFile,
+        _In_ DDS_FLAGS flags,
+        _Out_ TexMetadata& metadata) noexcept
+    {
+        return GetMetadataFromDDSFile(reinterpret_cast<const unsigned short*>(szFile), flags, metadata);
+    }
+
+    HRESULT __cdecl GetMetadataFromDDSFileEx(
+        _In_z_ const __wchar_t* szFile,
+        _In_ DDS_FLAGS flags,
+        _Out_ TexMetadata& metadata,
+        _Out_opt_ DDSMetaData* ddPixelFormat) noexcept
+    {
+        return GetMetadataFromDDSFileEx(reinterpret_cast<const unsigned short*>(szFile), flags, metadata, ddPixelFormat);
+    }
+
+    HRESULT __cdecl LoadFromDDSFile(
+        _In_z_ const __wchar_t* szFile,
+        _In_ DDS_FLAGS flags,
+        _Out_opt_ TexMetadata* metadata,
+        _Out_ ScratchImage& image) noexcept
+    {
+        return LoadFromDDSFile(reinterpret_cast<const unsigned short*>(szFile), flags, metadata, image);
+    }
+
+    HRESULT __cdecl LoadFromDDSFileEx(
+        _In_z_ const __wchar_t* szFile,
+        _In_ DDS_FLAGS flags,
+        _Out_opt_ TexMetadata* metadata,
+        _Out_opt_ DDSMetaData* ddPixelFormat,
+        _Out_ ScratchImage& image) noexcept
+    {
+        return LoadFromDDSFileEx(reinterpret_cast<const unsigned short*>(szFile), flags, metadata, ddPixelFormat, image);
+    }
+
+    HRESULT __cdecl SaveToDDSFile(
+        _In_ const Image& image,
+        _In_ DDS_FLAGS flags,
+        _In_z_ const __wchar_t* szFile) noexcept
+    {
+        return SaveToDDSFile(image, flags, reinterpret_cast<const unsigned short*>(szFile));
+    }
+
+    HRESULT __cdecl SaveToDDSFile(
+        _In_reads_(nimages) const Image* images,
+        _In_ size_t nimages,
+        _In_ const TexMetadata& metadata,
+        _In_ DDS_FLAGS flags,
+        _In_z_ const __wchar_t* szFile) noexcept
+    {
+        return SaveToDDSFile(images, nimages, metadata, flags, reinterpret_cast<const unsigned short*>(szFile));
+    }
+}
+
+#endif // !_NATIVE_WCHAR_T_DEFINED

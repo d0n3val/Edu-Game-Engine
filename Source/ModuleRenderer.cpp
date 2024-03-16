@@ -187,6 +187,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     }
 
     deferredResolve->execute(frameBuffer, width, height);
+
     deferredProxy->execute(frameBuffer, width, height);
 
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
@@ -217,7 +218,6 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     spotConePass->execute(render_list, frameBuffer, width, height);
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
-
     //fogPass->execute(frameBuffer, width, height);
 }
 
@@ -240,13 +240,15 @@ void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
 void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
 {
     // Set camera uniforms shared for all
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SelectionPass");
+
     App->programs->UseProgram("selection", 0);
 
-    glUniformMatrix4fv(App->programs->GetUniformLocation("proj"), 1, GL_TRUE, reinterpret_cast<const float*>(&proj));
-    glUniformMatrix4fv(App->programs->GetUniformLocation("view"), 1, GL_TRUE, reinterpret_cast<const float*>(&view));
+    cameraUBO->Bind();
 
-    //DrawNodes(render_list.GetOpaques(), &ModuleRenderer::DrawSelection);
-    //DrawNodes(render_list.GetTransparents(), &ModuleRenderer::DrawSelection);
+    App->renderer->GetBatchManager()->DoRender(render_list.GetOpaques(), 0);
+    App->renderer->GetBatchManager()->DoRender(render_list.GetTransparents(), 0);
+    glPopDebugGroup();
 }
 
 void ModuleRenderer::LoadDefaultShaders()
@@ -276,7 +278,7 @@ void ModuleRenderer::LoadDefaultShaders()
     const char* show_uv_macros[]       = { "#define TEXCOORD1 1 \n" }; 
     const unsigned num_uv_macros  = sizeof(show_uv_macros)/sizeof(const char*);
     App->programs->Load("show_uvs", "Assets/Shaders/show_uvs.vs", "Assets/Shaders/show_uvs.fs", show_uv_macros, num_uv_macros);
-    App->programs->Load("selection", "Assets/Shaders/selection.vs", "Assets/Shaders/selection.fs", nullptr, 0);
+    App->programs->Load("selection", "Assets/Shaders/defVS.glsl", "Assets/Shaders/selection.fs", nullptr, 0, false);
     App->programs->Load("showtexture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/fullscreenTextureFS.glsl", nullptr, 0);
     App->programs->Load("convert_texture", "Assets/Shaders/fullscreenVS.glsl", "Assets/Shaders/convertMetallicTextureFS.glsl", nullptr, 0);
 }

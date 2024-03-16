@@ -28,6 +28,7 @@ class SphereLight;
 class TubeLight;
 class IBLData;
 class LocalIBLLight;
+class ComponentMeshRenderer;
 
 class ModuleEditor : public Module
 {
@@ -50,7 +51,7 @@ public:
         SelSkybox
     };
 
-    typedef std::variant<GameObject*, DirLight*, PointLight*, SpotLight*, QuadLight*, SphereLight*, TubeLight*, LocalIBLLight*, IBLData*> SelectionVariant;
+    typedef std::variant<GameObject*, ComponentMeshRenderer*, DirLight*, PointLight*, SpotLight*, QuadLight*, SphereLight*, TubeLight*, LocalIBLLight*, IBLData*> SelectionVariant;
 
 
     enum TabPanelEnum

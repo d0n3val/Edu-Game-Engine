@@ -11,7 +11,6 @@ layout(location = UV0_ATTRIB_LOCATION) in vec2 vertex_uv0;
 layout(location = TANGENT_ATTRIB_LOCATION) in vec4 vertex_tangent;
 layout(location = UV1_ATTRIB_LOCATION) in vec2 vertex_uv1;
 
-
 readonly layout(std430, row_major, binding = MODEL_SSBO_BINDING) buffer Transforms
 {
     mat4 models[];
@@ -42,7 +41,8 @@ void TransformOutput(out GeomData geom)
     mat3 normalMat = transpose(inverse(mat3(model)));
 
     geom.position = (model*vec4(vertex_position, 1.0)).xyz;
-    geom.normal   = normalMat*vertex_normal;
-    geom.tangent   = normalMat*vertex_tangent.xyz;
-    geom.sign = vertex_tangent.w;
+
+    geom.normal = normalize(normalMat*vertex_normal);
+    geom.tangent = normalize(normalMat*vertex_tangent.xyz);
+    geom.bitangent = cross(geom.normal, geom.tangent) * vertex_tangent.w;
 }

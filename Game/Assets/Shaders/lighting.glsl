@@ -509,6 +509,7 @@ vec4 ShadingNoPoint(in PBR pbr)
     color += ShadingSphere(pbr);
     color += ShadingQuad(pbr);
     color += ShadingTube(pbr);
+    color.rgb += pbr.emissive;
 
     return vec4(color, pbr.alpha);
 }

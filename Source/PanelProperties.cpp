@@ -89,7 +89,7 @@ PanelProperties::~PanelProperties()
 void PanelProperties::Draw()
 {
     std::visit(overload {
-        [this](GameObject* go)      { DrawGameObject(go);      },
+        [this](GameObject* go)      { DrawGameObject(go, nullptr);      },
         [this](DirLight* light)     { DrawDirLight(light);     },
         [this](PointLight* light)   { DrawPointLight(light);   },
         [this](SpotLight* light)    { DrawSpotLight(light);    },
@@ -97,7 +97,8 @@ void PanelProperties::Draw()
         [this](SphereLight* light)  { DrawSphereLight(light);    },
         [this](TubeLight* light)       { DrawTubeLight(light);     },
         [this](LocalIBLLight* light)   { DrawLocalIBLLight(light); },
-        [this](IBLData* sky)         { skybox->DrawProperties(sky);}
+        [this](IBLData* sky)         { skybox->DrawProperties(sky);},
+        [this](ComponentMeshRenderer* renderer) { DrawGameObject(renderer->GetGameObject(), renderer); },
         }, App->editor->GetSelection());
 
     show_texture.Display();
@@ -435,7 +436,7 @@ void PanelProperties::DrawLocalIBLLight(LocalIBLLight *light)
 }
 
 // ---------------------------------------------------------
-void PanelProperties::DrawGameObject(GameObject* go)
+void PanelProperties::DrawGameObject(GameObject* go, Component* component)
 {
     if (ImGui::BeginMenu("Options"))
     {
@@ -534,9 +535,8 @@ void PanelProperties::DrawGameObject(GameObject* go)
         for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
         {
             ImGui::PushID(*it);
-            if (InitComponentDraw(*it, (*it)->GetTypeStr()))
+            if (InitComponentDraw(*it, (*it)->GetTypeStr(), component == nullptr || *it == component))
             {
-
                 switch ((*it)->GetType())
                 {
 					case Component::Types::MeshRenderer:
@@ -732,11 +732,11 @@ void PanelProperties::RecursiveDrawTree(const GameObject * go, const GameObject*
 	}
 }
 
-bool PanelProperties::InitComponentDraw(Component* component, const char * name)
+bool PanelProperties::InitComponentDraw(Component* component, const char * name, bool opened)
 {
 	bool ret = false;
 
-	if (ImGui::CollapsingHeader(name, ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader(name, opened ? ImGuiTreeNodeFlags_DefaultOpen : 0))
 	{
 		bool active = component->IsActive();
 		if(ImGui::Checkbox("Active", &active))
@@ -1283,6 +1283,11 @@ void PanelProperties::DrawMaterialResource(ResourceMaterial* material, ResourceM
                 modified = true;
             }
         }
+
+        if (modified)
+        {
+            material->SetMetallicRoughData(mrData);
+        }
     }
 
 
@@ -1304,7 +1309,7 @@ UID PanelProperties::TextureButton(ResourceTexture* texture, ResourceMesh* mesh,
 
     if(texture != nullptr)
     {
-		ImGui::PushID(texture);
+		ImGui::PushID(name);
         if(texture->GetMetadata().texType == TextureType_2D && ImGui::ImageButton(ImTextureID(size_t(texture->GetID())), size, ImVec2(0,1), ImVec2(1,0), ImColor(255, 255, 255, 128), ImColor(255, 255, 255, 128)))
         {
 			ImGui::PopID();
@@ -1399,6 +1404,12 @@ bool PanelProperties::TextureButton(UID& uid, ResourceMesh* mesh, const char* na
     UID newUID = TextureButton(tex, mesh, name, int(uid), modified);
     modified = modified || newUID != uid;
     uid = newUID;
+
+    if (modified)
+    {
+        int i = 0;
+        ++i;
+    }
 
     return modified;
 }

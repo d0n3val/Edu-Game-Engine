@@ -21,6 +21,7 @@
 #include "PlanarReflectionPass.h"
 #include "ScreenSpaceAO.h"
 #include "FxaaPass.h"
+#include "BatchManager.h"
 
 #include "GameObject.h"
 
@@ -151,17 +152,35 @@ void SceneViewport::Draw(ComponentCamera* camera, ComponentCamera* culling)
 void SceneViewport::PickSelection(ComponentCamera* camera, int mouse_x, int mouse_y)
 {
     selection_buffer.framebuffer->Bind();
-    glViewport(0, 0, fb_width, fb_height);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glViewport(0, 0, fb_width, fb_height);    
+    glClearColor(FLT_MAX, FLT_MAX, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     App->renderer->DrawForSelection(camera);
 
-    float selection_value;
-    glReadPixels(mouse_x, fb_height-mouse_y, 1, 1, GL_RED, GL_FLOAT, &selection_value);
-    unsigned uid = *((unsigned*)&selection_value);
+    float3 selection_value = float3::zero;
+    glReadPixels(mouse_x, fb_height-mouse_y, 1, 1, GL_RGB, GL_FLOAT, &selection_value);
+    
+    if (selection_value.x != FLT_MAX)
+    {
+        uint instanceIndex = uint(selection_value.x);
+        uint batchIndex = uint(selection_value.y);
 
-    App->editor->SetSelected(App->level->Find(uid));
+        ComponentMeshRenderer* renderer = App->renderer->GetBatchManager()->FindComponentMeshRenderer(batchIndex, instanceIndex);
+        if (renderer)
+        {
+            App->editor->SetSelected(renderer);
+        }
+        else
+        {
+            App->editor->ClearSelected();
+        }
+    }
+    else
+    {
+        App->editor->ClearSelected();
+    }
+
 }
 
 void SceneViewport::DrawSelection(ComponentCamera* camera, Framebuffer* framebuffer)
@@ -241,6 +260,7 @@ void SceneViewport::ShowTexture()
     {
         id = (void*)size_t(framebuffers[FRAMEBUFFER_POSTPROCESS].texture_color->Id());
     }
+
 
     ImGui::GetWindowDrawList()->AddImage(
             id,
@@ -348,7 +368,7 @@ void SceneViewport::GenerateFBOs(unsigned w, unsigned h)
         GenerateFBO(framebuffers[FRAMEBUFFER_POSTPROCESS], w, h, false, false, false);
 
         selection_buffer.framebuffer   = std::make_unique<Framebuffer>(); 
-        selection_buffer.texture_color = std::make_unique<Texture2D>(w, h, GL_R32F, GL_RED, GL_FLOAT, nullptr, false);
+        selection_buffer.texture_color = std::make_unique<Texture2D>(w, h, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
         selection_buffer.texture_depth = std::make_unique<Texture2D>(w, h, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
 
         selection_buffer.framebuffer->AttachColor(selection_buffer.texture_color.get());
@@ -717,6 +737,12 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera)
 {
     std::visit([this, camera](auto ptr) {DrawGuizmo(camera, ptr); }, App->editor->GetSelection());
 }
+
+void SceneViewport::DrawGuizmo(ComponentCamera* camera, ComponentMeshRenderer* renderer)
+{
+    // Intentionally blank
+}
+
 
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, AmbientLight* light)
 {

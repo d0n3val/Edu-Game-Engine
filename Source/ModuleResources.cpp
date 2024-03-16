@@ -667,7 +667,7 @@ bool ModuleResources::LoadDefaultSkybox()
 
     if (buffer != nullptr)
     {        
-        skybox->LoadFromBuffer(buffer, size, ColorSpace_gamma);
+        skybox->LoadFromBuffer(buffer, size);
         skybox->loaded++;
         skybox->file = "*Default Skybox*";
         skybox->exported_file = "*Default Skybox*";

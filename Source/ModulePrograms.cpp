@@ -173,26 +173,29 @@ void ModulePrograms::GenerateVariation(const char* name, unsigned variations)
 
 void ModulePrograms::Compile(const char** data,  char* shader_data, unsigned id, unsigned variations, char** macros, unsigned num_macros, bool version) const
 {
+    uint start = 0;
+
     if(version)
     {
         data[0] = "#version 440\n";
+        start = 1;
     }
 
 	for(unsigned i=0; i< num_macros; ++i)
 	{
 		if((variations & (1 << i)) != 0)
 		{
-			data[i+1] = (char*)macros[i];
+			data[i+start] = (char*)macros[i];
 		}
 		else
 		{
-			data[i+1] = "";
+			data[i+start] = "";
 		}
 	}
 
-    data[num_macros+1] = shader_data;
+    data[num_macros+start] = shader_data;
 
-    glShaderSource(id, num_macros+2, data, 0);
+    glShaderSource(id, num_macros+start+1, data, 0);
     glCompileShader(id);
 
     int res = GL_FALSE;

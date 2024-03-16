@@ -47,7 +47,7 @@ struct IWICImagingFactory;
 struct IWICMetadataQueryReader;
 #endif
 
-#define DIRECTX_TEX_VERSION 196
+#define DIRECTX_TEX_VERSION 203
 
 
 namespace DirectX
@@ -115,6 +115,9 @@ namespace DirectX
 
         CP_FLAGS_8BPP = 0x40000,
         // Override with a legacy 8 bits-per-pixel format size
+
+        CP_FLAGS_LIMIT_4GB = 0x10000000,
+        // Don't allow pixel allocations in excess of 4GB (always true for 32-bit)
     };
 
     HRESULT __cdecl ComputePitch(
@@ -124,6 +127,7 @@ namespace DirectX
     size_t __cdecl ComputeScanlines(_In_ DXGI_FORMAT fmt, _In_ size_t height) noexcept;
 
     DXGI_FORMAT __cdecl MakeSRGB(_In_ DXGI_FORMAT fmt) noexcept;
+    DXGI_FORMAT __cdecl MakeLinear(_In_ DXGI_FORMAT fmt) noexcept;
     DXGI_FORMAT __cdecl MakeTypeless(_In_ DXGI_FORMAT fmt) noexcept;
     DXGI_FORMAT __cdecl MakeTypelessUNORM(_In_ DXGI_FORMAT fmt) noexcept;
     DXGI_FORMAT __cdecl MakeTypelessFLOAT(_In_ DXGI_FORMAT fmt) noexcept;
@@ -171,7 +175,7 @@ namespace DirectX
         DXGI_FORMAT     format;
         TEX_DIMENSION   dimension;
 
-        size_t __cdecl ComputeIndex(_In_ size_t mip, _In_ size_t item, _In_ size_t slice) const noexcept;
+        size_t __cdecl ComputeIndex(size_t mip, size_t item, size_t slice) const noexcept;
             // Returns size_t(-1) to indicate an out-of-range error
 
         bool __cdecl IsCubemap() const noexcept { return (miscFlags & TEX_MISC_TEXTURECUBE) != 0; }
@@ -184,6 +188,24 @@ namespace DirectX
 
         bool __cdecl IsVolumemap() const noexcept { return (dimension == TEX_DIMENSION_TEXTURE3D); }
             // Helper for dimension
+
+        uint32_t __cdecl CalculateSubresource(size_t mip, size_t item) const noexcept;
+        uint32_t __cdecl CalculateSubresource(size_t mip, size_t item, size_t plane) const noexcept;
+            // Returns size_t(-1) to indicate an out-of-range error
+    };
+
+    struct DDSMetaData
+    {
+        uint32_t    size;           // DDPIXELFORMAT.dwSize
+        uint32_t    flags;          // DDPIXELFORMAT.dwFlags
+        uint32_t    fourCC;         // DDPIXELFORMAT.dwFourCC
+        uint32_t    RGBBitCount;    // DDPIXELFORMAT.dwRGBBitCount/dwYUVBitCount/dwAlphaBitDepth/dwLuminanceBitCount/dwBumpBitCount
+        uint32_t    RBitMask;       // DDPIXELFORMAT.dwRBitMask/dwYBitMask/dwLuminanceBitMask/dwBumpDuBitMask
+        uint32_t    GBitMask;       // DDPIXELFORMAT.dwGBitMask/dwUBitMask/dwBumpDvBitMask
+        uint32_t    BBitMask;       // DDPIXELFORMAT.dwBBitMask/dwVBitMask/dwBumpLuminanceBitMask
+        uint32_t    ABitMask;       // DDPIXELFORMAT.dwRGBAlphaBitMask/dwYUVAlphaBitMask/dwLuminanceAlphaBitMask
+
+        bool __cdecl IsDX10() const noexcept { return (fourCC == 0x30315844); }
     };
 
     enum DDS_FLAGS : unsigned long
@@ -211,6 +233,9 @@ namespace DirectX
         DDS_FLAGS_BAD_DXTN_TAILS = 0x40,
         // Some older DXTn DDS files incorrectly handle mipchain tails for blocks smaller than 4x4
 
+        DDS_FLAGS_PERMISSIVE = 0x80,
+        // Allow some file variants due to common bugs in the header written by various leagcy DDS writers
+
         DDS_FLAGS_FORCE_DX10_EXT = 0x10000,
         // Always use the 'DX10' header extension for DDS writer (i.e. don't try to write DX9 compatible DDS files)
 
@@ -219,6 +244,9 @@ namespace DirectX
 
         DDS_FLAGS_FORCE_DX9_LEGACY = 0x40000,
         // Force use of legacy header for DDS writer (will fail if unable to write as such)
+
+        DDS_FLAGS_FORCE_DXT5_RXGB = 0x80000,
+        // Force use of 'RXGB' instead of 'DXT5' for DDS write of BC3_UNORM data
 
         DDS_FLAGS_ALLOW_LARGE_FILES = 0x1000000,
         // Enables the loader to read large dimension .dds files (i.e. greater than known hardware requirements)
@@ -300,6 +328,17 @@ namespace DirectX
         _In_ DDS_FLAGS flags,
         _Out_ TexMetadata& metadata) noexcept;
 
+    HRESULT __cdecl GetMetadataFromDDSMemoryEx(
+        _In_reads_bytes_(size) const void* pSource, _In_ size_t size,
+        _In_ DDS_FLAGS flags,
+        _Out_ TexMetadata& metadata,
+        _Out_opt_ DDSMetaData* ddPixelFormat) noexcept;
+    HRESULT __cdecl GetMetadataFromDDSFileEx(
+        _In_z_ const wchar_t* szFile,
+        _In_ DDS_FLAGS flags,
+        _Out_ TexMetadata& metadata,
+        _Out_opt_ DDSMetaData* ddPixelFormat) noexcept;
+
     HRESULT __cdecl GetMetadataFromHDRMemory(
         _In_reads_bytes_(size) const void* pSource, _In_ size_t size,
         _Out_ TexMetadata& metadata) noexcept;
@@ -321,13 +360,13 @@ namespace DirectX
         _In_reads_bytes_(size) const void* pSource, _In_ size_t size,
         _In_ WIC_FLAGS flags,
         _Out_ TexMetadata& metadata,
-        _In_opt_ std::function<void __cdecl(IWICMetadataQueryReader*)> getMQR = nullptr);
+        _In_ std::function<void __cdecl(IWICMetadataQueryReader*)> getMQR = nullptr);
 
     HRESULT __cdecl GetMetadataFromWICFile(
         _In_z_ const wchar_t* szFile,
         _In_ WIC_FLAGS flags,
         _Out_ TexMetadata& metadata,
-        _In_opt_ std::function<void __cdecl(IWICMetadataQueryReader*)> getMQR = nullptr);
+        _In_ std::function<void __cdecl(IWICMetadataQueryReader*)> getMQR = nullptr);
 #endif
 
     // Compatability helpers
@@ -444,6 +483,19 @@ namespace DirectX
         _In_ DDS_FLAGS flags,
         _Out_opt_ TexMetadata* metadata, _Out_ ScratchImage& image) noexcept;
 
+    HRESULT __cdecl LoadFromDDSMemoryEx(
+        _In_reads_bytes_(size) const void* pSource, _In_ size_t size,
+        _In_ DDS_FLAGS flags,
+        _Out_opt_ TexMetadata* metadata,
+        _Out_opt_ DDSMetaData* ddPixelFormat,
+        _Out_ ScratchImage& image) noexcept;
+    HRESULT __cdecl LoadFromDDSFileEx(
+        _In_z_ const wchar_t* szFile,
+        _In_ DDS_FLAGS flags,
+        _Out_opt_ TexMetadata* metadata,
+        _Out_opt_ DDSMetaData* ddPixelFormat,
+        _Out_ ScratchImage& image) noexcept;
+
     HRESULT __cdecl SaveToDDSMemory(
         _In_ const Image& image,
         _In_ DDS_FLAGS flags,
@@ -492,31 +544,31 @@ namespace DirectX
         _In_reads_bytes_(size) const void* pSource, _In_ size_t size,
         _In_ WIC_FLAGS flags,
         _Out_opt_ TexMetadata* metadata, _Out_ ScratchImage& image,
-        _In_opt_ std::function<void __cdecl(IWICMetadataQueryReader*)> getMQR = nullptr);
+        _In_ std::function<void __cdecl(IWICMetadataQueryReader*)> getMQR = nullptr);
     HRESULT __cdecl LoadFromWICFile(
         _In_z_ const wchar_t* szFile, _In_ WIC_FLAGS flags,
         _Out_opt_ TexMetadata* metadata, _Out_ ScratchImage& image,
-        _In_opt_ std::function<void __cdecl(IWICMetadataQueryReader*)> getMQR = nullptr);
+        _In_ std::function<void __cdecl(IWICMetadataQueryReader*)> getMQR = nullptr);
 
     HRESULT __cdecl SaveToWICMemory(
         _In_ const Image& image, _In_ WIC_FLAGS flags, _In_ REFGUID guidContainerFormat,
         _Out_ Blob& blob, _In_opt_ const GUID* targetFormat = nullptr,
-        _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr);
+        _In_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr);
     HRESULT __cdecl SaveToWICMemory(
         _In_count_(nimages) const Image* images, _In_ size_t nimages,
         _In_ WIC_FLAGS flags, _In_ REFGUID guidContainerFormat,
         _Out_ Blob& blob, _In_opt_ const GUID* targetFormat = nullptr,
-        _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr);
+        _In_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr);
 
     HRESULT __cdecl SaveToWICFile(
         _In_ const Image& image, _In_ WIC_FLAGS flags, _In_ REFGUID guidContainerFormat,
         _In_z_ const wchar_t* szFile, _In_opt_ const GUID* targetFormat = nullptr,
-        _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr);
+        _In_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr);
     HRESULT __cdecl SaveToWICFile(
         _In_count_(nimages) const Image* images, _In_ size_t nimages,
         _In_ WIC_FLAGS flags, _In_ REFGUID guidContainerFormat,
         _In_z_ const wchar_t* szFile, _In_opt_ const GUID* targetFormat = nullptr,
-        _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr);
+        _In_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr);
 #endif // WIN32
 
     // Compatability helpers
@@ -574,8 +626,9 @@ namespace DirectX
         TEX_FILTER_RGB_COPY_RED = 0x1000,
         TEX_FILTER_RGB_COPY_GREEN = 0x2000,
         TEX_FILTER_RGB_COPY_BLUE = 0x4000,
-        // When converting RGB to R, defaults to using grayscale. These flags indicate copying a specific channel instead
-        // When converting RGB to RG, defaults to copying RED | GREEN. These flags control which channels are selected instead.
+        TEX_FILTER_RGB_COPY_ALPHA = 0x8000,
+        // When converting RGB(A) to R, defaults to using grayscale. These flags indicate copying a specific channel instead
+        // When converting RGB(A) to RG, defaults to copying RED | GREEN. These flags control which channels are selected instead.
 
         TEX_FILTER_DITHER = 0x10000,
         // Use ordered 4x4 dithering for any required conversions
@@ -621,12 +674,27 @@ namespace DirectX
     constexpr float TEX_THRESHOLD_DEFAULT = 0.5f;
         // Default value for alpha threshold used when converting to 1-bit alpha
 
+    struct ConvertOptions
+    {
+        TEX_FILTER_FLAGS filter;
+        float            threshold;
+    };
+
     HRESULT __cdecl Convert(
         _In_ const Image& srcImage, _In_ DXGI_FORMAT format, _In_ TEX_FILTER_FLAGS filter, _In_ float threshold,
         _Out_ ScratchImage& image) noexcept;
     HRESULT __cdecl Convert(
         _In_reads_(nimages) const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
         _In_ DXGI_FORMAT format, _In_ TEX_FILTER_FLAGS filter, _In_ float threshold, _Out_ ScratchImage& result) noexcept;
+
+    HRESULT __cdecl ConvertEx(
+        _In_ const Image& srcImage, _In_ DXGI_FORMAT format, _In_ const ConvertOptions& options,
+        _Out_ ScratchImage& image,
+        _In_ std::function<bool __cdecl(size_t, size_t)> statusCallBack = nullptr);
+    HRESULT __cdecl ConvertEx(
+        _In_reads_(nimages) const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
+        _In_ DXGI_FORMAT format, _In_ const ConvertOptions& options, _Out_ ScratchImage& result,
+        _In_ std::function<bool __cdecl(size_t, size_t)> statusCallBack = nullptr);
         // Convert the image to a new format
 
     HRESULT __cdecl ConvertToSinglePlane(_In_ const Image& srcImage, _Out_ ScratchImage& image) noexcept;
@@ -713,6 +781,16 @@ namespace DirectX
         // Compress is free to use multithreading to improve performance (by default it does not use multithreading)
     };
 
+    constexpr float TEX_ALPHA_WEIGHT_DEFAULT = 1.0f;
+        // Default value for alpha weight used for GPU BC7 compression
+
+    struct CompressOptions
+    {
+        TEX_COMPRESS_FLAGS flags;
+        float              threshold;
+        float              alphaWeight;
+    };
+
     HRESULT __cdecl Compress(
         _In_ const Image& srcImage, _In_ DXGI_FORMAT format, _In_ TEX_COMPRESS_FLAGS compress, _In_ float threshold,
         _Out_ ScratchImage& cImage) noexcept;
@@ -720,6 +798,15 @@ namespace DirectX
         _In_reads_(nimages) const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
         _In_ DXGI_FORMAT format, _In_ TEX_COMPRESS_FLAGS compress, _In_ float threshold, _Out_ ScratchImage& cImages) noexcept;
         // Note that threshold is only used by BC1. TEX_THRESHOLD_DEFAULT is a typical value to use
+
+    HRESULT __cdecl CompressEx(
+        _In_ const Image& srcImage, _In_ DXGI_FORMAT format, _In_ const CompressOptions& options,
+        _Out_ ScratchImage& cImage,
+        _In_ std::function<bool __cdecl(size_t, size_t)> statusCallBack = nullptr);
+    HRESULT __cdecl CompressEx(
+        _In_reads_(nimages) const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
+        _In_ DXGI_FORMAT format, _In_ const CompressOptions& options, _Out_ ScratchImage& cImages,
+        _In_ std::function<bool __cdecl(size_t, size_t)> statusCallBack = nullptr);
 
 #if defined(__d3d11_h__) || defined(__d3d11_x_h__)
     HRESULT __cdecl Compress(
@@ -729,6 +816,15 @@ namespace DirectX
         _In_ ID3D11Device* pDevice, _In_ const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
         _In_ DXGI_FORMAT format, _In_ TEX_COMPRESS_FLAGS compress, _In_ float alphaWeight, _Out_ ScratchImage& cImages) noexcept;
         // DirectCompute-based compression (alphaWeight is only used by BC7. 1.0 is the typical value to use)
+
+    HRESULT __cdecl CompressEx(
+        _In_ ID3D11Device* pDevice, _In_ const Image& srcImage, _In_ DXGI_FORMAT format, _In_ const CompressOptions& options,
+        _Out_ ScratchImage& image,
+        _In_ std::function<bool __cdecl(size_t, size_t)> statusCallBack = nullptr);
+    HRESULT __cdecl CompressEx(
+        _In_ ID3D11Device* pDevice, _In_ const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
+        _In_ DXGI_FORMAT format, _In_ const CompressOptions& options, _Out_ ScratchImage& cImages,
+        _In_ std::function<bool __cdecl(size_t, size_t)> statusCallBack = nullptr);
 #endif
 
     HRESULT __cdecl Decompress(_In_ const Image& cImage, _In_ DXGI_FORMAT format, _Out_ ScratchImage& image) noexcept;
@@ -856,6 +952,15 @@ namespace DirectX
         _Out_ size_t& required) noexcept;
 
     //---------------------------------------------------------------------------------
+    // Direct3D interop
+
+    enum CREATETEX_FLAGS : uint32_t
+    {
+        CREATETEX_DEFAULT = 0,
+        CREATETEX_FORCE_SRGB = 0x1,
+        CREATETEX_IGNORE_SRGB = 0x2,
+    };
+
     // Direct3D 11 functions
 #if defined(__d3d11_h__) || defined(__d3d11_x_h__)
     bool __cdecl IsSupportedTexture(_In_ ID3D11Device* pDevice, _In_ const TexMetadata& metadata) noexcept;
@@ -870,18 +975,17 @@ namespace DirectX
 
     HRESULT __cdecl CreateTextureEx(
         _In_ ID3D11Device* pDevice, _In_reads_(nimages) const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
-        _In_ D3D11_USAGE usage, _In_ unsigned int bindFlags, _In_ unsigned int cpuAccessFlags, _In_ unsigned int miscFlags, _In_ bool forceSRGB,
+        _In_ D3D11_USAGE usage, _In_ unsigned int bindFlags, _In_ unsigned int cpuAccessFlags, _In_ unsigned int miscFlags, _In_ CREATETEX_FLAGS flags,
         _Outptr_ ID3D11Resource** ppResource) noexcept;
 
     HRESULT __cdecl CreateShaderResourceViewEx(
         _In_ ID3D11Device* pDevice, _In_reads_(nimages) const Image* srcImages, _In_ size_t nimages, _In_ const TexMetadata& metadata,
-        _In_ D3D11_USAGE usage, _In_ unsigned int bindFlags, _In_ unsigned int cpuAccessFlags, _In_ unsigned int miscFlags, _In_ bool forceSRGB,
+        _In_ D3D11_USAGE usage, _In_ unsigned int bindFlags, _In_ unsigned int cpuAccessFlags, _In_ unsigned int miscFlags, _In_ CREATETEX_FLAGS flags,
         _Outptr_ ID3D11ShaderResourceView** ppSRV) noexcept;
 
     HRESULT __cdecl CaptureTexture(_In_ ID3D11Device* pDevice, _In_ ID3D11DeviceContext* pContext, _In_ ID3D11Resource* pSource, _Out_ ScratchImage& result) noexcept;
 #endif
 
-    //---------------------------------------------------------------------------------
     // Direct3D 12 functions
 #if defined(__d3d12_h__) || defined(__d3d12_x_h__) || defined(__XBOX_D3D12_X__)
     bool __cdecl IsSupportedTexture(_In_ ID3D12Device* pDevice, _In_ const TexMetadata& metadata) noexcept;
@@ -892,7 +996,7 @@ namespace DirectX
 
     HRESULT __cdecl CreateTextureEx(
         _In_ ID3D12Device* pDevice, _In_ const TexMetadata& metadata,
-        _In_ D3D12_RESOURCE_FLAGS resFlags, _In_ bool forceSRGB,
+        _In_ D3D12_RESOURCE_FLAGS resFlags, _In_ CREATETEX_FLAGS flags,
         _Outptr_ ID3D12Resource** ppResource) noexcept;
 
     HRESULT __cdecl PrepareUpload(
@@ -914,12 +1018,16 @@ namespace DirectX
 #pragma clang diagnostic ignored "-Wswitch-enum"
 #endif
 
+#ifdef  _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4619 4616 4061)
+#endif
 
 #include "DirectXTex.inl"
 
+#ifdef  _MSC_VER
 #pragma warning(pop)
+#endif
 
 #ifdef __clang__
 #pragma clang diagnostic pop

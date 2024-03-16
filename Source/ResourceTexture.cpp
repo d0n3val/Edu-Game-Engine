@@ -24,35 +24,51 @@
 
 namespace
 {
-    TextureFormat GetFormatFromDXGI(DXGI_FORMAT format)
+    TextureFormat GetFormatFromDXGI(DXGI_FORMAT format, ColorSpace& colorSpace)
     {
         switch (format)
         {
         case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+            colorSpace = ColorSpace_gamma;
+            return Texture_rgba;
         case DXGI_FORMAT_R8G8B8A8_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_rgba;
         case DXGI_FORMAT_R32G32B32A32_FLOAT:
+            colorSpace = ColorSpace_linear;
             return Texture_rgba32f;
         case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+            colorSpace = ColorSpace_gamma;
+            return Texture_bgra;
         case DXGI_FORMAT_B8G8R8A8_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_bgra;
         case DXGI_FORMAT_B5G6R5_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_bgr;
         case DXGI_FORMAT_R8_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_red;
         case DXGI_FORMAT_BC1_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_bc1;
         case DXGI_FORMAT_BC3_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_bc3;
         case DXGI_FORMAT_BC4_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_bc4;
         case DXGI_FORMAT_BC5_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_bc5;
         case DXGI_FORMAT_BC6H_SF16:
+            colorSpace = ColorSpace_linear;
             return Texture_bc6s;
         case DXGI_FORMAT_BC6H_UF16:
+            colorSpace = ColorSpace_linear;
             return Texture_bc6u;
         case DXGI_FORMAT_BC7_UNORM:
+            colorSpace = ColorSpace_linear;
             return Texture_bc7;
         }
 
@@ -124,7 +140,7 @@ bool ResourceTexture::LoadInMemory()
 	{
         char *buffer = head_buffer + sizeof(uint32_t);
 
-        glTexture.reset(TextureFromMemory(buffer, total_size - sizeof(uint32_t), metadata, colorSpace.value_or(ColorSpace_linear)));
+        glTexture.reset(TextureFromMemory(buffer, total_size - sizeof(uint32_t), metadata, formatColorSpace, colorSpace));
     }
 
     RELEASE_ARRAY(head_buffer);
@@ -267,7 +283,8 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
     uint output_size    = 0;
 
     TextureMetadata metadata;
-    Texture* texture = TextureFromMemory(buffer, size, metadata, ColorSpace_linear);
+    ColorSpace formatColorSpace;
+    Texture* texture = TextureFromMemory(buffer, size, metadata, formatColorSpace, std::optional<ColorSpace>());
 
     if(metadata.texType == TextureType_2D)
     {
@@ -327,15 +344,14 @@ bool ResourceTexture::ImportToCubemap(const void* buffer, uint size, std::string
 	return ret;
 }
 
-bool ResourceTexture::LoadFromBuffer(const void* buffer, uint size, ColorSpace space)
+bool ResourceTexture::LoadFromBuffer(const void* buffer, uint size)
 {
-    glTexture.reset(TextureFromMemory(buffer, size, metadata, space));
-    colorSpace = space;
+    glTexture.reset(TextureFromMemory(buffer, size, metadata, formatColorSpace, colorSpace));
 
     return true;
 }
 
-Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, TextureMetadata& metadata, ColorSpace space)
+Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, TextureMetadata& metadata, ColorSpace& formatSpace, std::optional<ColorSpace> colorSpace)
 {
     DirectX::ScratchImage image;
     Texture* result = nullptr;
@@ -345,7 +361,7 @@ Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, Textu
     if (res != S_OK) res = DirectX::LoadFromTGAMemory(buffer, size, DirectX::TGA_FLAGS_NONE, nullptr, image);
     if (res != S_OK) res = DirectX::LoadFromWICMemory(buffer, size, DirectX::WIC_FLAGS_NONE, nullptr, image);
 
-    metadata.format = res == S_OK ? GetFormatFromDXGI(image.GetMetadata().format) : Texture_unknown;
+    metadata.format = res == S_OK ? GetFormatFromDXGI(image.GetMetadata().format, formatSpace) : Texture_unknown;
 
     // TODO: Sampler parameters when using mipmaps
 
@@ -363,7 +379,7 @@ Texture* ResourceTexture::TextureFromMemory(const void *buffer, uint size, Textu
         case DirectX::TEX_DIMENSION_TEXTURE2D:
         {
             bool compressed = IsCompressed(metadata.format);
-            uint glInternal = GetGLInternalFormat(metadata.format, space);
+            uint glInternal = GetGLInternalFormat(metadata.format, colorSpace.value_or(formatSpace));
             uint glFormat = GetGLFormat(metadata.format);
             uint glType = GetGLType(metadata.format);
 

@@ -42,5 +42,5 @@ void CameraUBO::Update(ComponentCamera* camera)
 
 void CameraUBO::Bind()
 {
-    ubo->BindToPoint(CAMERA_UBO_BINDING);
+    if(ubo) ubo->BindToPoint(CAMERA_UBO_BINDING);
 }

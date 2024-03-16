@@ -381,7 +381,8 @@ bool ResourceModel::ImportGLTF(const char* full_path, float scale, std::string& 
     tinygltf::Model model;
     std::string error, warning;
 
-    if (gltfContext.LoadASCIIFromFile(&model, &error, &warning, full_path))
+    if (gltfContext.LoadASCIIFromFile(&model, &error, &warning, full_path) || 
+        gltfContext.LoadBinaryFromFile(&model, &error, &warning, full_path))
     {
         ResourceModel m(0);
 

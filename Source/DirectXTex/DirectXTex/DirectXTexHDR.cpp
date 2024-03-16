@@ -247,6 +247,11 @@ namespace
             return E_FAIL;
         }
 
+        if (height > UINT16_MAX)
+        {
+            return HRESULT_E_NOT_SUPPORTED;
+        }
+
         const char* ptr = orientation + 2;
         while (*ptr != 0 && *ptr != '-' && *ptr != '+')
             ++ptr;
@@ -279,12 +284,23 @@ namespace
             return E_FAIL;
         }
 
+        if (width > UINT16_MAX)
+        {
+            return HRESULT_E_NOT_SUPPORTED;
+        }
+
         info += len + 1;
         size -= len + 1;
 
         if (!width || !height)
         {
             return HRESULT_E_INVALID_DATA;
+        }
+
+        uint64_t sizeBytes = uint64_t(width) * uint64_t(height) * sizeof(float) * 4;
+        if (sizeBytes > UINT32_MAX)
+        {
+            return HRESULT_E_ARITHMETIC_OVERFLOW;
         }
 
         if (size == 0)
@@ -699,7 +715,7 @@ HRESULT DirectX::LoadFromHDRMemory(const void* pSource, size_t size, TexMetadata
     if (remaining == 0)
         return E_FAIL;
 
-    hr = image.Initialize2D(mdata.format, mdata.width, mdata.height, 1, 1);
+    hr = image.Initialize2D(mdata.format, mdata.width, mdata.height, 1, 1, CP_FLAGS_LIMIT_4GB);
     if (FAILED(hr))
         return hr;
 
@@ -1298,3 +1314,36 @@ HRESULT DirectX::SaveToHDRFile(const Image& image, const wchar_t* szFile) noexce
 
     return S_OK;
 }
+
+
+//--------------------------------------------------------------------------------------
+// Adapters for /Zc:wchar_t- clients
+
+#if defined(_MSC_VER) && !defined(_NATIVE_WCHAR_T_DEFINED)
+
+namespace DirectX
+{
+    HRESULT __cdecl GetMetadataFromHDRFile(
+        _In_z_ const __wchar_t* szFile,
+        _Out_ TexMetadata& metadata) noexcept
+    {
+        return GetMetadataFromHDRFile(reinterpret_cast<const unsigned short*>(szFile), metadata);
+    }
+
+    HRESULT __cdecl LoadFromHDRFile(
+        _In_z_ const __wchar_t* szFile,
+        _Out_opt_ TexMetadata* metadata,
+        _Out_ ScratchImage& image) noexcept
+    {
+        return LoadFromHDRFile(reinterpret_cast<const unsigned short*>(szFile), metadata, image);
+    }
+
+    HRESULT __cdecl SaveToHDRFile(
+        _In_ const Image& image,
+        _In_z_ const __wchar_t* szFile) noexcept
+    {
+        return SaveToHDRFile(image, reinterpret_cast<const unsigned short*>(szFile));
+    }
+}
+
+#endif // !_NATIVE_WCHAR_T_DEFINED

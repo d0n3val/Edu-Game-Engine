@@ -1430,7 +1430,7 @@ class TinyGLTF {
   ///
   /// Loads glTF binary asset from a file.
   /// Set warning message to `warn` for example it fails to load asserts.
-  /// Returns false and set error string to `err` if there's an error.
+  /// Returns false and set error string to `err` if there's an error.  
   ///
   bool LoadBinaryFromFile(Model *model, std::string *err, std::string *warn,
                           const std::string &filename,

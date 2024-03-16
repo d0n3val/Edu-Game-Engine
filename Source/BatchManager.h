@@ -28,8 +28,8 @@ public:
     BatchManager();
     ~BatchManager();
 
-    uint Add(const ComponentMeshRenderer* object, const HashString& tag);
-    void Remove(const ComponentMeshRenderer* object);
+    uint Add(ComponentMeshRenderer* object, const HashString& tag);
+    void Remove(ComponentMeshRenderer* object);
 
     void MarkForUpdate(const NodeList& objects);
     void DoUpdate();
@@ -37,6 +37,7 @@ public:
 
     void FillBatchNames(std::vector<HashString>& names) const;
     void OnMaterialModified(UID materialID);
+    ComponentMeshRenderer* FindComponentMeshRenderer(uint batchIndex, uint instanceIndex) const;
 private:
     void CreateSkinningProgram();
 };

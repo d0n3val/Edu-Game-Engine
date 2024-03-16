@@ -64,13 +64,13 @@ public:
     UID OpenResourceModal(int type, const char* popup_name);
 	const GameObject* PickGameObject(const GameObject* current) const;
 	void RecursiveDrawTree(const GameObject* go, const GameObject** selected) const;
-	bool InitComponentDraw(Component* component, const char * name);
+	bool InitComponentDraw(Component* component, const char * name, bool opened);
 
 	void DrawCameraComponent(ComponentCamera * component);
 
     const SkyboxRollout* getSkyboxEditor() const { return skybox.get(); }
 private:
-    void DrawGameObject(GameObject* go);
+    void DrawGameObject(GameObject* go, Component* component);
     void DrawDirLight(DirLight* light);
     void DrawPointLight(PointLight* light);
     void DrawSpotLight(SpotLight* light);

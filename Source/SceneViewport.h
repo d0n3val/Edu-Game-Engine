@@ -6,6 +6,7 @@
 #include "OGL.h"
 
 class ComponentCamera;
+class ComponentMeshRenderer;
 class GameObject;
 class PointLight;
 class SpotLight;
@@ -65,6 +66,8 @@ private:
     void    DrawGuizmo      (ComponentCamera* camera, AmbientLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, LocalIBLLight* light);
     void    DrawGuizmo      (ComponentCamera* camera, IBLData* skybox);
+    void    DrawGuizmo      (ComponentCamera* camera, ComponentMeshRenderer* renderer);
+
 
 
     void    PickSelection   (ComponentCamera* camera, int mouse_x, int mouse_y);

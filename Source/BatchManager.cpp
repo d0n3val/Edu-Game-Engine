@@ -15,7 +15,7 @@ BatchManager::~BatchManager()
 {
 }
 
-uint BatchManager::Add(const ComponentMeshRenderer* object, const HashString& tag)
+uint BatchManager::Add(ComponentMeshRenderer* object, const HashString& tag)
 {
     if(!skinningProgram)
     {
@@ -36,14 +36,14 @@ uint BatchManager::Add(const ComponentMeshRenderer* object, const HashString& ta
 
     if (batch_index == batches.size())
     {
-        batches.push_back(std::make_unique<GeometryBatch>(tag, skinningProgram.get(), skinningProgramNoTangents.get()));
+        batches.push_back(std::make_unique<GeometryBatch>(tag, batch_index, skinningProgram.get(), skinningProgramNoTangents.get()));
         batches.back()->Add(object);
     }
 
     return batch_index;
 }
 
-void BatchManager::Remove(const ComponentMeshRenderer* object)
+void BatchManager::Remove(ComponentMeshRenderer* object)
 {
     batches[object->GetBatchIndex()]->Remove(object);
 }
@@ -155,4 +155,14 @@ void BatchManager::CreateSkinningProgram()
         skinningProgram.release();
         skinningProgramNoTangents.release();
     }
+}
+
+ComponentMeshRenderer* BatchManager::FindComponentMeshRenderer(uint batchIndex, uint instanceIndex) const
+{
+    if (batchIndex < batches.size())
+    {
+        return batches[batchIndex]->FindObject(instanceIndex);
+    }
+
+    return nullptr;
 }

@@ -57,7 +57,7 @@ struct Material
     vec2      uv_secondary_tiling; // second tiling
     vec2      uv_secondary_offset; // second offset
     uint      type; 
-    uint      pad0; 
+    uint      batchIndex; 
     float     alphaTest;      
     uint      mask;           // mask
     sampler2D handles[MAP_COUNT];
@@ -136,7 +136,6 @@ void getSpecularGlossinessMaterial(out PBR pbr, in Material material, in vec2 uv
         has_tex_normal = true;
     }
     
-
     if((material.mask & DETAIL_MASK_FLAG) != 0)
     {
         float blend = sampleTexture(DETAIL_MASK_MAP_INDEX, uv0, material).a;
@@ -174,7 +173,7 @@ void getSpecularGlossinessMaterial(out PBR pbr, in Material material, in vec2 uv
 
     if(has_tex_normal)
     {
-        mat3 tbn = createTBN(geom.normal, geom.tangent, geom.sign);
+        mat3 tbn = mat3(normalize(geom.tangent), normalize(geom.bitangent), normalize(geom.normal));
         pbr.normal = normalize(tbn*tex_normal);
     }
     else
@@ -225,6 +224,7 @@ void getMetallicRoughnessMaterial(out PBR pbr, in Material material, in vec2 uv0
         pbr.emissive *= sampleTexture(EMISSIVE_MAP_INDEX, uv0, material).rgb;
     }
 
+
     pbr.diffuse    = baseColor*(1-metalness);
     pbr.specular   = mix(vec3(0.04), baseColor, metalness);
     pbr.smoothness = (1-roughness);
@@ -236,13 +236,13 @@ void getMetallicRoughnessMaterial(out PBR pbr, in Material material, in vec2 uv0
         tex_normal.xy *= normal_strength; 
         tex_normal = normalize(tex_normal);
 
-        mat3 tbn = createTBN(geom.normal, geom.tangent, geom.sign);
+        mat3 tbn = mat3(normalize(geom.tangent), normalize(geom.bitangent), normalize(geom.normal));
+
         pbr.normal = normalize(tbn*tex_normal);
     }
     else
     {
         pbr.normal = normalize(geom.normal);
-
     }
 
     pbr.position = geom.position;

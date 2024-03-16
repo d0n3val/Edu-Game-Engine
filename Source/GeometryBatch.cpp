@@ -20,9 +20,8 @@
 #include <algorithm>
 #include <SDL_assert.h>
 
-GeometryBatch::GeometryBatch(const HashString &tag, Program *program, Program *programNoTangents) : tagName(tag),
-                                                                                                    skinningProgram(program), 
-                                                                                                    skinningProgramNoTangents(programNoTangents)
+GeometryBatch::GeometryBatch(const HashString &tag, uint32_t index, Program *program, Program *programNoTangents) 
+: tagName(tag), batchIndex(index), skinningProgram(program), skinningProgramNoTangents(programNoTangents)
 {
 }
 
@@ -54,7 +53,7 @@ bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
     return false;
 }
 
-void GeometryBatch::Add(const ComponentMeshRenderer* object)
+void GeometryBatch::Add(ComponentMeshRenderer* object)
 {
     assert(CanAdd(object));
     assert(commands.empty());
@@ -337,7 +336,7 @@ void GeometryBatch::CreateVertexBuffers()
         }
         vbo[ATTRIB_TANGENTS]->Unmap();
 
-        attribs[ATTRIB_TANGENTS] = { TANGENT_ATTRIB_LOCATION, 3, GL_FLOAT, false, sizeof(float4), 0, 0};
+        attribs[ATTRIB_TANGENTS] = { TANGENT_ATTRIB_LOCATION, 4, GL_FLOAT, false, sizeof(float4), 0, 0};
     }
     else
     {
@@ -399,7 +398,7 @@ void GeometryBatch::CreateMaterialBuffer()
             float2 secondary_tiling;
             float2 secondary_offset;
             uint   materialType;
-            uint pad1;
+            uint   batchIndex;
             float alpha_test;
             uint mapMask;
             uint64_t handles[SG_TextureCount];
@@ -424,6 +423,7 @@ void GeometryBatch::CreateMaterialBuffer()
             out.alpha_test = material->GetAlphaTest();
             out.mapMask = material->GetMask();
             out.materialType = SpecularGlossiness;
+            out.batchIndex = batchIndex;
 
             for (uint i = 0; i < SG_TextureCount; ++i)
             {
@@ -449,8 +449,8 @@ void GeometryBatch::CreateMaterialBuffer()
             float2 secondary_tiling;
             float2 secondary_offset;
             uint   materialType;
-            uint padd1;
-            float alpha_test;
+            uint   batchIndex;
+            float  alpha_test;
             uint mapMask;
             uint64_t handles[SG_TextureCount > MR_TextureCount ? SG_TextureCount : MR_TextureCount];
         };
@@ -474,6 +474,7 @@ void GeometryBatch::CreateMaterialBuffer()
             out.alpha_test = material->GetAlphaTest();
             out.mapMask = material->GetMask();
             out.materialType = MetallicRoughness;
+            out.batchIndex = batchIndex;
 
             for (uint i = 0; i < MR_TextureCount; ++i)
             {
@@ -597,7 +598,7 @@ void GeometryBatch::CreateMorphBuffer()
 }
 
 
-void GeometryBatch::Render(const ComponentMeshRenderer* object)
+void GeometryBatch::Render(ComponentMeshRenderer* object)
 {
     if (bufferDirty)
     {
@@ -676,7 +677,7 @@ void GeometryBatch::DoRender(uint flags)
     }
 }
 
-void GeometryBatch::Remove(const ComponentMeshRenderer* object)
+void GeometryBatch::Remove(ComponentMeshRenderer* object)
 {
     assert(commands.empty());
 
@@ -691,7 +692,7 @@ void GeometryBatch::Remove(const ComponentMeshRenderer* object)
 	ClearRenderData();
 }
 
-void GeometryBatch::MarkForUpdate(const ComponentMeshRenderer *object)
+void GeometryBatch::MarkForUpdate(ComponentMeshRenderer *object)
 {
     SDL_assert(objects.find(object) != objects.end());
     modelUpdates.insert(object);
@@ -705,7 +706,7 @@ void GeometryBatch::UpdateSkinning()
 
     float4x4 *palette = skinningData[frameCount];
 
-    for (const ComponentMeshRenderer *object : modelUpdates)
+    for (ComponentMeshRenderer *object : modelUpdates)
     {
         auto it = objects.find(object);
         SDL_assert(it != objects.end());
@@ -783,7 +784,7 @@ void GeometryBatch::UpdateModels()
             weights = morphWeightsData[frameCount]; 
         }
 
-        for (const ComponentMeshRenderer *object : modelUpdates)
+        for (ComponentMeshRenderer *object : modelUpdates)
         {
             auto it = objects.find(object);
             if (it != objects.end())
@@ -803,11 +804,11 @@ void GeometryBatch::UpdateModels()
 
 void GeometryBatch::OnMaterialModified(UID materialID)
 {
-    std::vector<const ComponentMeshRenderer*> modifyList;
+    std::vector<ComponentMeshRenderer*> modifyList;
 
     modifyList.reserve(objects.size());
 
-    for (std::pair<const ComponentMeshRenderer *const, uint> &object : objects)
+    for (std::pair<ComponentMeshRenderer *const, uint> &object : objects)
     {
         if(object.first->GetMaterialUID() == materialID)
         {
@@ -815,13 +816,25 @@ void GeometryBatch::OnMaterialModified(UID materialID)
         }
     }
 
-    for(const ComponentMeshRenderer* object : modifyList)
+    for(ComponentMeshRenderer* object : modifyList)
     {
         Remove(object);
     }
 
-    for(const ComponentMeshRenderer* object : modifyList)
+    for(ComponentMeshRenderer* object : modifyList)
     {
         App->renderer->GetBatchManager()->Add(object, tagName);
     }
 }
+
+ComponentMeshRenderer* GeometryBatch::FindObject(uint instanceIndex) 
+{
+    for (auto it = objects.begin(); it != objects.end(); ++it)
+    {
+        if (it->second == instanceIndex)
+            return it->first;
+    }
+
+    return nullptr;
+}
+

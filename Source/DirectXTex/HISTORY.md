@@ -6,6 +6,97 @@ Release available for download on [GitHub](https://github.com/microsoft/DirectXT
 
 ## Release History
 
+### March 6, 2024
+* Xbox Auxiliary tiling/detiling code optimization
+
+### February 21, 2024
+* TGA reader now limited to 4 GB for maximum image size for security hardening
+* Project updates for improved logging of shader compilation errors and GDK validation
+* CMake project updates and refactor
+* Minor code review for Clang, MinGW, and Intel compilers
+* Auxiliary updated with LIBJPEG and LIBPNG implementations for use on WSL which lacks WIC
+* texassemble: new ``from-mips`` command
+* texconv: Updated to support Xbox extension functionality
+
+### December 31, 2023
+* TGA reader bug fix for offset boundary check
+* PPM/PFM reader bug fixes for bounds checking
+* Xbox-specific functionality added to Auxiliary folder
+* CMake project updates including pkg-config file generation
+* Code review
+
+### October 28, 2023
+* New ``DDS_PERMISSIVE_FLAG`` to allow reading of various DDS DX9 file variants
+  * *breaking change* required to accept reading *Unreal Tournament 2004* DDS files
+  * Allows cases where DDS_HEADER size is incorrectly set to 24
+  * Allows cases where DDPIXELFORMAT size is incorrectly set to 24
+  * Allows cases where DDS_HEADER.MipMapCount is set to the wrong value
+* texassemble/texconv/texdiag: ``-flist`` option updated to support filenames with spaces
+* texconv: ``-permissive`` switch added to opt-in use of new flag when reading DDS files
+
+### September 1, 2023
+* ``CompressEx`` and ``ConvertEx`` functions added with status callback and options structs
+* Added optional ``DDSMetaData`` return for Ex versions of DDS loader functions
+* Added ``TEX_ALPHA_WEIGHT_DEFAULT`` constant (set to 1.0)
+* DDS reader updated to support variant used by *Unreal Tournament 2004*
+* Fixed overvalidation bug with BC7 GPU compressor with SRGB formats
+* Retired ARM (32-bit) support for the UWP platform
+* CMake project updates
+
+### June 13, 2023
+* Added ``TEX_FILTER_RGB_COPY_ALPHA`` flag and support for ``DXGI_FORMAT_A4B4G4R4_UNORM``
+* DDS loader now supports 'swizzled' DXT5 variant FourCCs
+* CMake project updates
+* texconv: Added ``-f BC3n``,  ``-f DXT5nm``, and ``-f RXBG`` support; ``.ddx`` file extension; and ``-tgazeroalpha`` switch
+* texassemble/texconv/texdiag: Fix minor display issue with error messages
+* texassemble/texconv/texdiag: Supports Long Paths on Windows 10, Version 1607 or later
+
+### April 28, 2023
+* Updated D3DX12 internal copy with latest changes from DirectX-Headers GitHub
+* CMake project updates and fixes for clang/LLVM v16 warnings
+* texassemble/texconv/texdiag: Windows on ARM64 version
+
+### March 30, 2023
+* Fix for `SRGB_IN` / `SRGB_OUT` flag handling for GPU BC7 compressor
+* Fix to clamp negative values when encoding with the GPU BC6H compressor
+* GPU BC6H/BC7 encoder updated to make optional use of DirectCompute 5.0
+* CMake project updates
+* Code review
+* Retired VS 2017 legacy Xbox One XDK projects
+* texassemble/texconv/texdiag: Updated to support Windows or UNIX-style path separators
+
+### January 31, 2023
+* Fixed memory overwrite bug in **ConvertToSinglePlane** that can lead to a potential security issue for untrusted planar video format DDS files
+* Make sure ScratchImage zero-fills image memory
+* Fix DirectX12 GPU-validation warnings for texture loaders
+* Minor fix for non-Win32 builds
+* ddsview: Updated sample app with a ``-forcesrgb`` command-line switch
+
+### December 15, 2022
+* ARM/ARM64 platform fix for 16bpp pixel conversion
+* Updated D3DX12 internal copy with latest changes from DirectX-Headers GitHub
+* CMake project updated to require 3.20 or later
+* CMake and MSBuild project updates
+* Added Azure Dev Ops Pipeline YAML files
+* ``Auxiliary`` folder added with DirectXEXR.h/.cpp optional module
+* Test suite updated with CTest support
+* Spectre-mitigated libraries added to NuGet packages
+* texassemble: added commands *v-cross-fnz*, *h-tee*, and *cube-from-\**
+* texconv: Fixed minor printf output issue
+
+### October 17, 2022
+* Minor fix for ``CompileShaders.cmd`` to address additional 'paths with spaces' issues
+* Minor CMake and CMakePresets updates
+* Code review
+
+### July 29, 2022
+* Added ``MakeLinear`` DXGI_FORMAT utility function.
+* *breaking change* ``CreateTextureEx`` and ``CreateShaderResourceViewEx`` functions now use ``CREATETEX_FLAGS`` instead of a ``bool forceSRGB`` parameter.
+* Updates for MinGW ABI fixes for DirectX12 in the latest DirectX-Headers.
+* CMake and MSBuild project updates
+* Code review
+* `DDSTextureLoader11` and ``DDSTextureLoader12`` sync'd up with *DirectX Tool Kit* July 2022 changes.
+
 ### May 9, 2022
 * TGA reader updated to support 24-bit paletted uncompressed color-mapped images (used by a DCC application)
 * Added `IsBGR` utility method
@@ -252,7 +343,7 @@ Release available for download on [GitHub](https://github.com/microsoft/DirectXT
 ### July 26, 2017
 * Support for reading non-standard DDS files written by nVidia Texture Tools (NVTT)
 * Fix for **ComputeMSE** when using ``CMSE_IMAGE2_X2_BIAS``
-* Fix for WIC writer then codec target format requires a palette    
+* Fix for WIC writer then codec target format requires a palette
 * Code cleanup
 
 ### April 24, 2017

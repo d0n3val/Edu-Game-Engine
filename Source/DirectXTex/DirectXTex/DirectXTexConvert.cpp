@@ -378,14 +378,24 @@ void DirectX::Internal::CopyScanline(
 
             //-----------------------------------------------------------------------------
         case DXGI_FORMAT_B5G5R5A1_UNORM:
+        case DXGI_FORMAT_B4G4R4A4_UNORM:
+        case WIN11_DXGI_FORMAT_A4B4G4R4_UNORM:
             if (inSize >= 2 && outSize >= 2)
             {
+                uint16_t alpha;
+                if (format == DXGI_FORMAT_B4G4R4A4_UNORM)
+                    alpha = 0xF000;
+                else if (format == WIN11_DXGI_FORMAT_A4B4G4R4_UNORM)
+                    alpha = 0x000F;
+                else
+                    alpha = 0x8000;
+
                 if (pDestination == pSource)
                 {
                     auto dPtr = static_cast<uint16_t*>(pDestination);
                     for (size_t count = 0; count < (outSize - 1); count += 2)
                     {
-                        *(dPtr++) |= 0x8000;
+                        *(dPtr++) |= alpha;
                     }
                 }
                 else
@@ -395,7 +405,7 @@ void DirectX::Internal::CopyScanline(
                     const size_t size = std::min<size_t>(outSize, inSize);
                     for (size_t count = 0; count < (size - 1); count += 2)
                     {
-                        *(dPtr++) = uint16_t(*(sPtr++) | 0x8000);
+                        *(dPtr++) = uint16_t(*(sPtr++) | alpha);
                     }
                 }
             }
@@ -406,30 +416,8 @@ void DirectX::Internal::CopyScanline(
             memset(pDestination, 0xff, outSize);
             return;
 
-            //-----------------------------------------------------------------------------
-        case DXGI_FORMAT_B4G4R4A4_UNORM:
-            if (inSize >= 2 && outSize >= 2)
-            {
-                if (pDestination == pSource)
-                {
-                    auto dPtr = static_cast<uint16_t*>(pDestination);
-                    for (size_t count = 0; count < (outSize - 1); count += 2)
-                    {
-                        *(dPtr++) |= 0xF000;
-                    }
-                }
-                else
-                {
-                    const uint16_t * __restrict sPtr = static_cast<const uint16_t*>(pSource);
-                    uint16_t * __restrict dPtr = static_cast<uint16_t*>(pDestination);
-                    const size_t size = std::min<size_t>(outSize, inSize);
-                    for (size_t count = 0; count < (size - 1); count += 2)
-                    {
-                        *(dPtr++) = uint16_t(*(sPtr++) | 0xF000);
-                    }
-                }
-            }
-            return;
+        default:
+            break;
         }
     }
 
@@ -601,6 +589,9 @@ void DirectX::Internal::SwizzleScanline(
             }
         }
         break;
+
+    default:
+        break;
     }
 
     // Fall-through case is to just use memcpy (assuming this is not an in-place operation)
@@ -631,7 +622,7 @@ bool DirectX::Internal::ExpandScanline(
     assert(IsValid(outFormat) && !IsPlanar(outFormat) && !IsPalettized(outFormat));
     assert(IsValid(inFormat) && !IsPlanar(inFormat) && !IsPalettized(inFormat));
 
-    switch (inFormat)
+    switch (static_cast<int>(inFormat))
     {
     case DXGI_FORMAT_B5G6R5_UNORM:
         if (outFormat != DXGI_FORMAT_R8G8B8A8_UNORM)
@@ -700,6 +691,31 @@ bool DirectX::Internal::ExpandScanline(
                 uint32_t t2 = uint32_t(((t & 0x00f0) << 8) | ((t & 0x00f0) << 4));
                 uint32_t t3 = uint32_t(((t & 0x000f) << 20) | ((t & 0x000f) << 16));
                 uint32_t ta = (tflags & TEXP_SCANLINE_SETALPHA) ? 0xff000000 : uint32_t(((t & 0xf000) << 16) | ((t & 0xf000) << 12));
+
+                *(dPtr++) = t1 | t2 | t3 | ta;
+            }
+            return true;
+        }
+        return false;
+
+    case WIN11_DXGI_FORMAT_A4B4G4R4_UNORM:
+        if (outFormat != DXGI_FORMAT_R8G8B8A8_UNORM)
+            return false;
+
+        // DXGI_FORMAT_A4B4G4R4_UNORM -> DXGI_FORMAT_R8G8B8A8_UNORM
+        if (inSize >= 2 && outSize >= 4)
+        {
+            const uint16_t * __restrict sPtr = static_cast<const uint16_t*>(pSource);
+            uint32_t * __restrict dPtr = static_cast<uint32_t*>(pDestination);
+
+            for (size_t ocount = 0, icount = 0; ((icount < (inSize - 1)) && (ocount < (outSize - 3))); icount += 2, ocount += 4)
+            {
+                const uint16_t t = *(sPtr++);
+
+                uint32_t t1 = uint32_t(((t & 0xf000) >> 8) | ((t & 0xf000) >> 12));
+                uint32_t t2 = uint32_t((t & 0x0f00) | ((t & 0x0f00) << 4));
+                uint32_t t3 = uint32_t(((t & 0x00f0) << 16) | ((t & 0x00f0) << 12));
+                uint32_t ta = (tflags & TEXP_SCANLINE_SETALPHA) ? 0xff000000 : uint32_t(((t & 0x000f) << 28) | ((t & 0x000f) << 24));
 
                 *(dPtr++) = t1 | t2 | t3 | ta;
             }
@@ -1506,6 +1522,22 @@ _Use_decl_annotations_ bool DirectX::Internal::LoadScanline(
         }
         return false;
 
+    case WIN11_DXGI_FORMAT_A4B4G4R4_UNORM:
+        if (size >= sizeof(XMUNIBBLE4))
+        {
+            static const XMVECTORF32 s_Scale = { { { 1.f / 15.f, 1.f / 15.f, 1.f / 15.f, 1.f / 15.f } } };
+            const XMUNIBBLE4 * __restrict sPtr = static_cast<const XMUNIBBLE4*>(pSource);
+            for (size_t icount = 0; icount < (size - sizeof(XMUNIBBLE4) + 1); icount += sizeof(XMUNIBBLE4))
+            {
+                XMVECTOR v = XMLoadUNibble4(sPtr++);
+                v = XMVectorMultiply(v, s_Scale);
+                if (dPtr >= ePtr) break;
+                *(dPtr++) = XMVectorSwizzle<3, 2, 1, 0>(v);
+            }
+            return true;
+        }
+        return false;
+
     case XBOX_DXGI_FORMAT_R10G10B10_7E3_A2_FLOAT:
         // Xbox One specific 7e3 format
         if (size >= sizeof(XMUDECN4))
@@ -2068,7 +2100,11 @@ bool DirectX::Internal::StoreScanline(
             {
                 if (sPtr >= ePtr) break;
                 XMVECTOR v = XMVectorSwizzle<2, 1, 0, 3>(*sPtr++);
+#if defined(_M_ARM) || defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || __arm__ || __aarch64__
+                v = XMVectorMultiplyAdd(v, s_Scale, g_XMOneHalf);
+#else
                 v = XMVectorMultiply(v, s_Scale);
+#endif
                 XMStoreU565(dPtr++, v);
             }
             return true;
@@ -2079,12 +2115,19 @@ bool DirectX::Internal::StoreScanline(
         if (size >= sizeof(XMU555))
         {
             static const XMVECTORF32 s_Scale = { { { 31.f, 31.f, 31.f, 1.f } } };
+#if defined(_M_ARM) || defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || __arm__ || __aarch64__
+            static const XMVECTORF32 s_OneHalfXYZ = { { { 0.5f, 0.5f, 0.5f, 0.f } } };
+#endif
             XMU555 * __restrict dPtr = static_cast<XMU555*>(pDestination);
             for (size_t icount = 0; icount < (size - sizeof(XMU555) + 1); icount += sizeof(XMU555))
             {
                 if (sPtr >= ePtr) break;
                 XMVECTOR v = XMVectorSwizzle<2, 1, 0, 3>(*sPtr++);
+#if defined(_M_ARM) || defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || __arm__ || __aarch64__
+                v = XMVectorMultiplyAdd(v, s_Scale, s_OneHalfXYZ);
+#else
                 v = XMVectorMultiply(v, s_Scale);
+#endif
                 XMStoreU555(dPtr, v);
                 dPtr->w = (XMVectorGetW(v) > threshold) ? 1u : 0u;
                 ++dPtr;
@@ -2360,7 +2403,31 @@ bool DirectX::Internal::StoreScanline(
             {
                 if (sPtr >= ePtr) break;
                 XMVECTOR v = XMVectorSwizzle<2, 1, 0, 3>(*sPtr++);
+#if defined(_M_ARM) || defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || __arm__ || __aarch64__
+                v = XMVectorMultiplyAdd(v, s_Scale, g_XMOneHalf);
+#else
                 v = XMVectorMultiply(v, s_Scale);
+#endif
+                XMStoreUNibble4(dPtr++, v);
+            }
+            return true;
+        }
+        return false;
+
+    case WIN11_DXGI_FORMAT_A4B4G4R4_UNORM:
+        if (size >= sizeof(XMUNIBBLE4))
+        {
+            static const XMVECTORF32 s_Scale = { { { 15.f, 15.f, 15.f, 15.f } } };
+            XMUNIBBLE4 * __restrict dPtr = static_cast<XMUNIBBLE4*>(pDestination);
+            for (size_t icount = 0; icount < (size - sizeof(XMUNIBBLE4) + 1); icount += sizeof(XMUNIBBLE4))
+            {
+                if (sPtr >= ePtr) break;
+                XMVECTOR v = XMVectorSwizzle<3, 2, 1, 0>(*sPtr++);
+#if defined(_M_ARM) || defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || __arm__ || __aarch64__
+                v = XMVectorMultiplyAdd(v, s_Scale, g_XMOneHalf);
+#else
+                v = XMVectorMultiply(v, s_Scale);
+#endif
                 XMStoreUNibble4(dPtr++, v);
             }
             return true;
@@ -2436,8 +2503,11 @@ bool DirectX::Internal::StoreScanline(
             for (size_t icount = 0; icount < (size - sizeof(uint8_t) + 1); icount += sizeof(uint8_t))
             {
                 if (sPtr >= ePtr) break;
+#if defined(_M_ARM) || defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || __arm__ || __aarch64__
+                const XMVECTOR v = XMVectorMultiplyAdd(*sPtr++, s_Scale, g_XMOneHalf);
+#else
                 const XMVECTOR v = XMVectorMultiply(*sPtr++, s_Scale);
-
+#endif
                 XMUNIBBLE4 nibble;
                 XMStoreUNibble4(&nibble, v);
                 *dPtr = static_cast<uint8_t>(nibble.v);
@@ -2742,7 +2812,7 @@ bool DirectX::Internal::StoreScanlineLinear(
 
     assert((reinterpret_cast<uintptr_t>(pSource) & 0xF) == 0);
 
-    switch (format)
+    switch (static_cast<int>(format))
     {
     case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
     case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
@@ -2773,6 +2843,7 @@ bool DirectX::Internal::StoreScanlineLinear(
     case DXGI_FORMAT_B8G8R8A8_UNORM:
     case DXGI_FORMAT_B8G8R8X8_UNORM:
     case DXGI_FORMAT_B4G4R4A4_UNORM:
+    case WIN11_DXGI_FORMAT_A4B4G4R4_UNORM:
         break;
 
     default:
@@ -2813,7 +2884,7 @@ bool DirectX::Internal::LoadScanlineLinear(
     DXGI_FORMAT format,
     TEX_FILTER_FLAGS flags) noexcept
 {
-    switch (format)
+    switch (static_cast<int>(format))
     {
     case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
     case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
@@ -2844,6 +2915,7 @@ bool DirectX::Internal::LoadScanlineLinear(
     case DXGI_FORMAT_B8G8R8A8_UNORM:
     case DXGI_FORMAT_B8G8R8X8_UNORM:
     case DXGI_FORMAT_B4G4R4A4_UNORM:
+    case WIN11_DXGI_FORMAT_A4B4G4R4_UNORM:
         break;
 
     default:
@@ -2969,6 +3041,7 @@ namespace
         { XBOX_DXGI_FORMAT_R10G10B10_6E4_A2_FLOAT,  10, CONVF_FLOAT | CONVF_POS_ONLY | CONVF_R | CONVF_G | CONVF_B | CONVF_A },
         { XBOX_DXGI_FORMAT_R10G10B10_SNORM_A2_UNORM,10, CONVF_SNORM | CONVF_R | CONVF_G | CONVF_B | CONVF_A },
         { XBOX_DXGI_FORMAT_R4G4_UNORM,               4, CONVF_UNORM | CONVF_R | CONVF_G },
+        { WIN11_DXGI_FORMAT_A4B4G4R4_UNORM,          4, CONVF_UNORM | CONVF_BGR | CONVF_R | CONVF_G | CONVF_B | CONVF_A },
     };
 
 #pragma prefast( suppress : 25004, "Signature must match bsearch" );
@@ -3213,8 +3286,8 @@ void DirectX::Internal::ConvertScanline(
             {
                 // !CONVF_DEPTH -> CONVF_DEPTH
 
-                // RGB -> Depth (red channel)
-                switch (flags & (TEX_FILTER_RGB_COPY_RED | TEX_FILTER_RGB_COPY_GREEN | TEX_FILTER_RGB_COPY_BLUE))
+                // RGB -> Depth (red channel or other specified channel)
+                switch (flags & (TEX_FILTER_RGB_COPY_RED | TEX_FILTER_RGB_COPY_GREEN | TEX_FILTER_RGB_COPY_BLUE | TEX_FILTER_RGB_COPY_ALPHA))
                 {
                 case TEX_FILTER_RGB_COPY_GREEN:
                     {
@@ -3235,6 +3308,18 @@ void DirectX::Internal::ConvertScanline(
                         {
                             const XMVECTOR v = *ptr;
                             const XMVECTOR v1 = XMVectorSplatZ(v);
+                            *ptr++ = XMVectorSelect(v, v1, g_XMSelect1000);
+                        }
+                    }
+                    break;
+
+                case TEX_FILTER_RGB_COPY_ALPHA:
+                    {
+                        XMVECTOR* ptr = pBuffer;
+                        for (size_t i = 0; i < count; ++i)
+                        {
+                            const XMVECTOR v = *ptr;
+                            const XMVECTOR v1 = XMVectorSplatW(v);
                             *ptr++ = XMVectorSelect(v, v1, g_XMSelect1000);
                         }
                     }
@@ -3507,6 +3592,7 @@ void DirectX::Internal::ConvertScanline(
         if (((out->flags & CONVF_RGBA_MASK) == CONVF_A) && !(in->flags & CONVF_A))
         {
             // !CONVF_A -> A format
+            // We ignore TEX_FILTER_RGB_COPY_ALPHA since there's no input alpha channel.
             switch (flags & (TEX_FILTER_RGB_COPY_RED | TEX_FILTER_RGB_COPY_GREEN | TEX_FILTER_RGB_COPY_BLUE))
             {
             case TEX_FILTER_RGB_COPY_GREEN:
@@ -3602,8 +3688,8 @@ void DirectX::Internal::ConvertScanline(
         {
             if ((out->flags & CONVF_RGB_MASK) == CONVF_R)
             {
-                // RGB format -> R format
-                switch (flags & (TEX_FILTER_RGB_COPY_RED | TEX_FILTER_RGB_COPY_GREEN | TEX_FILTER_RGB_COPY_BLUE))
+                // RGB(A) format -> R format
+                switch (flags & (TEX_FILTER_RGB_COPY_RED | TEX_FILTER_RGB_COPY_GREEN | TEX_FILTER_RGB_COPY_BLUE | TEX_FILTER_RGB_COPY_ALPHA))
                 {
                 case TEX_FILTER_RGB_COPY_GREEN:
                     {
@@ -3624,6 +3710,18 @@ void DirectX::Internal::ConvertScanline(
                         {
                             const XMVECTOR v = *ptr;
                             const XMVECTOR v1 = XMVectorSplatZ(v);
+                            *ptr++ = XMVectorSelect(v, v1, g_XMSelect1110);
+                        }
+                    }
+                    break;
+
+                case TEX_FILTER_RGB_COPY_ALPHA:
+                    {
+                        XMVECTOR* ptr = pBuffer;
+                        for (size_t i = 0; i < count; ++i)
+                        {
+                            const XMVECTOR v = *ptr;
+                            const XMVECTOR v1 = XMVectorSplatW(v);
                             *ptr++ = XMVectorSelect(v, v1, g_XMSelect1110);
                         }
                     }
@@ -3657,37 +3755,83 @@ void DirectX::Internal::ConvertScanline(
             }
             else if ((out->flags & CONVF_RGB_MASK) == (CONVF_R | CONVF_G))
             {
-                // RGB format -> RG format
-                switch (static_cast<int>(flags & (TEX_FILTER_RGB_COPY_RED | TEX_FILTER_RGB_COPY_GREEN | TEX_FILTER_RGB_COPY_BLUE)))
+                if ((flags & TEX_FILTER_RGB_COPY_ALPHA) && (in->flags & CONVF_A))
                 {
-                case (static_cast<int>(TEX_FILTER_RGB_COPY_RED) | static_cast<int>(TEX_FILTER_RGB_COPY_BLUE)):
+                    // RGBA -> RG format
+                    switch (static_cast<int>(flags & (TEX_FILTER_RGB_COPY_RED | TEX_FILTER_RGB_COPY_GREEN | TEX_FILTER_RGB_COPY_BLUE | TEX_FILTER_RGB_COPY_ALPHA)))
                     {
-                        XMVECTOR* ptr = pBuffer;
-                        for (size_t i = 0; i < count; ++i)
+                    case (static_cast<int>(TEX_FILTER_RGB_COPY_RED) | static_cast<int>(TEX_FILTER_RGB_COPY_ALPHA)):
+                    default:
                         {
-                            const XMVECTOR v = *ptr;
-                            const XMVECTOR v1 = XMVectorSwizzle<0, 2, 0, 2>(v);
-                            *ptr++ = XMVectorSelect(v, v1, g_XMSelect1100);
+                            XMVECTOR* ptr = pBuffer;
+                            for (size_t i = 0; i < count; ++i)
+                            {
+                                const XMVECTOR v = *ptr;
+                                const XMVECTOR v1 = XMVectorSwizzle<0, 3, 0, 3>(v);
+                                *ptr++ = XMVectorSelect(v, v1, g_XMSelect1100);
+                            }
                         }
-                    }
-                    break;
+                        break;
 
-                case (static_cast<int>(TEX_FILTER_RGB_COPY_GREEN) | static_cast<int>(TEX_FILTER_RGB_COPY_BLUE)):
+                    case (static_cast<int>(TEX_FILTER_RGB_COPY_GREEN) | static_cast<int>(TEX_FILTER_RGB_COPY_ALPHA)):
+                        {
+                            XMVECTOR* ptr = pBuffer;
+                            for (size_t i = 0; i < count; ++i)
+                            {
+                                const XMVECTOR v = *ptr;
+                                const XMVECTOR v1 = XMVectorSwizzle<1, 3, 1, 3>(v);
+                                *ptr++ = XMVectorSelect(v, v1, g_XMSelect1100);
+                            }
+                        }
+                        break;
+
+                    case (static_cast<int>(TEX_FILTER_RGB_COPY_BLUE) | static_cast<int>(TEX_FILTER_RGB_COPY_ALPHA)):
+                        {
+                            XMVECTOR* ptr = pBuffer;
+                            for (size_t i = 0; i < count; ++i)
+                            {
+                                const XMVECTOR v = *ptr;
+                                const XMVECTOR v1 = XMVectorSwizzle<2, 3, 2, 3>(v);
+                                *ptr++ = XMVectorSelect(v, v1, g_XMSelect1100);
+                            }
+                        }
+                        break;
+                    }
+                }
+                else
+                {
+                    // RGB format -> RG format
+                    switch (static_cast<int>(flags & (TEX_FILTER_RGB_COPY_RED | TEX_FILTER_RGB_COPY_GREEN | TEX_FILTER_RGB_COPY_BLUE)))
                     {
-                        XMVECTOR* ptr = pBuffer;
-                        for (size_t i = 0; i < count; ++i)
+                    case (static_cast<int>(TEX_FILTER_RGB_COPY_RED) | static_cast<int>(TEX_FILTER_RGB_COPY_BLUE)):
                         {
-                            const XMVECTOR v = *ptr;
-                            const XMVECTOR v1 = XMVectorSwizzle<1, 2, 3, 0>(v);
-                            *ptr++ = XMVectorSelect(v, v1, g_XMSelect1100);
+                            XMVECTOR* ptr = pBuffer;
+                            for (size_t i = 0; i < count; ++i)
+                            {
+                                const XMVECTOR v = *ptr;
+                                const XMVECTOR v1 = XMVectorSwizzle<0, 2, 0, 2>(v);
+                                *ptr++ = XMVectorSelect(v, v1, g_XMSelect1100);
+                            }
                         }
-                    }
-                    break;
+                        break;
 
-                case (static_cast<int>(TEX_FILTER_RGB_COPY_RED) | static_cast<int>(TEX_FILTER_RGB_COPY_GREEN)):
-                default:
-                    // Leave data unchanged and the store will handle this...
-                    break;
+                    case (static_cast<int>(TEX_FILTER_RGB_COPY_GREEN) | static_cast<int>(TEX_FILTER_RGB_COPY_BLUE)):
+                        {
+                            XMVECTOR* ptr = pBuffer;
+                            for (size_t i = 0; i < count; ++i)
+                            {
+                                const XMVECTOR v = *ptr;
+                                const XMVECTOR v1 = XMVectorSwizzle<1, 2, 3, 0>(v);
+                                *ptr++ = XMVectorSelect(v, v1, g_XMSelect1100);
+                            }
+                        }
+                        break;
+
+                    case (static_cast<int>(TEX_FILTER_RGB_COPY_RED) | static_cast<int>(TEX_FILTER_RGB_COPY_GREEN)):
+                    default:
+                        // Leave data unchanged and the store will handle this...
+                        break;
+                    }
                 }
             }
         }
@@ -4310,6 +4454,56 @@ bool DirectX::Internal::StoreScanlineDither(
     case DXGI_FORMAT_B4G4R4A4_UNORM:
         STORE_SCANLINE(XMUNIBBLE4, g_Scale4pc, true, true, uint8_t, 0xF, y, true)
 
+    case WIN11_DXGI_FORMAT_A4B4G4R4_UNORM:
+        if (size >= sizeof(XMUNIBBLE4))
+        {
+            XMUNIBBLE4 * __restrict dest = static_cast<XMUNIBBLE4*>(pDestination);
+            for (size_t i = 0; i < count; ++i)
+            {
+                auto index = static_cast<ptrdiff_t>((y & 1) ? (count - i - 1) : i);
+                ptrdiff_t delta = (y & 1) ? -2 : 0;
+
+                XMVECTOR v = XMVectorSaturate(sPtr[index]);
+                v = XMVectorSwizzle<3, 2, 1, 0>(v);
+                v = XMVectorAdd(v, vError);
+                v = XMVectorMultiply(v, g_Scale4pc);
+
+                XMVECTOR target;
+                if (pDiffusionErrors)
+                {
+                    target = XMVectorRound(v);
+                    vError = XMVectorSubtract(v, target);
+                    vError = XMVectorDivide(vError, g_Scale4pc);
+
+                    // Distribute error to next scanline and next pixel
+                    pDiffusionErrors[index - delta] = XMVectorMultiplyAdd(g_ErrorWeight3, vError, pDiffusionErrors[index - delta]);
+                    pDiffusionErrors[index + 1] = XMVectorMultiplyAdd(g_ErrorWeight5, vError, pDiffusionErrors[index + 1]);
+                    pDiffusionErrors[index + 2 + delta] = XMVectorMultiplyAdd(g_ErrorWeight1, vError, pDiffusionErrors[index + 2 + delta]);
+                    vError = XMVectorMultiply(vError, g_ErrorWeight7);
+                }
+                else
+                {
+                    // Applied ordered dither
+                    target = XMVectorAdd(v, ordered[index & 3]);
+                    target = XMVectorRound(target);
+                }
+
+                target = XMVectorClamp(target, g_XMZero, g_Scale4pc);
+
+                XMFLOAT4A tmp;
+                XMStoreFloat4A(&tmp, target);
+
+                auto dPtr = &dest[index];
+                if (dPtr >= ePtr) break;
+                dPtr->x = uint8_t(static_cast<uint8_t>(tmp.x) & 0xF);
+                dPtr->y = uint8_t(static_cast<uint8_t>(tmp.y) & 0xF);
+                dPtr->z = uint8_t(static_cast<uint8_t>(tmp.z) & 0xF);
+                dPtr->w = uint8_t(static_cast<uint8_t>(tmp.w) & 0xF);
+            }
+            return true;
+        }
+        return false;
+
     case XBOX_DXGI_FORMAT_R10G10B10_SNORM_A2_UNORM:
         STORE_SCANLINE(XMXDECN4, g_Scale9pc, false, true, uint16_t, 0x3FF, y, false)
 
@@ -4610,7 +4804,8 @@ namespace
         _In_ TEX_FILTER_FLAGS filter,
         _In_ const Image& destImage,
         _In_ float threshold,
-        size_t z) noexcept
+        size_t z,
+        const std::function<bool __cdecl(size_t, size_t)>& statusCallback) noexcept
     {
         assert(srcImage.width == destImage.width);
         assert(srcImage.height == destImage.height);
@@ -4634,6 +4829,14 @@ namespace
 
             for (size_t h = 0; h < srcImage.height; ++h)
             {
+                if (statusCallback)
+                {
+                    if (!statusCallback(h, srcImage.height))
+                    {
+                       return E_ABORT;
+                    }
+                }
+
                 if (!LoadScanline(scanline.get(), width, pSrc, srcImage.rowPitch, srcImage.format))
                     return E_FAIL;
 
@@ -4657,6 +4860,14 @@ namespace
                 // Ordered dithering
                 for (size_t h = 0; h < srcImage.height; ++h)
                 {
+                    if (statusCallback)
+                    {
+                        if (!statusCallback(h, srcImage.height))
+                        {
+                            return E_ABORT;
+                        }
+                    }
+
                     if (!LoadScanline(scanline.get(), width, pSrc, srcImage.rowPitch, srcImage.format))
                         return E_FAIL;
 
@@ -4674,6 +4885,14 @@ namespace
                 // No dithering
                 for (size_t h = 0; h < srcImage.height; ++h)
                 {
+                    if (statusCallback)
+                    {
+                        if (!statusCallback(h, srcImage.height))
+                        {
+                            return E_ABORT;
+                        }
+                    }
+
                     if (!LoadScanline(scanline.get(), width, pSrc, srcImage.rowPitch, srcImage.format))
                         return E_FAIL;
 
@@ -4781,21 +5000,33 @@ namespace
         {
         case DXGI_FORMAT_NV12:
             assert(destImage.format == DXGI_FORMAT_YUY2);
+            if ((srcImage.width % 2) != 0 || (srcImage.height % 2) != 0)
+                return E_INVALIDARG;
+
             CONVERT_420_TO_422(uint8_t, XMUBYTEN4);
             return S_OK;
 
         case DXGI_FORMAT_P010:
             assert(destImage.format == DXGI_FORMAT_Y210);
+            if ((srcImage.width % 2) != 0 || (srcImage.height % 2) != 0)
+                return E_INVALIDARG;
+
             CONVERT_420_TO_422(uint16_t, XMUSHORTN4);
             return S_OK;
 
         case DXGI_FORMAT_P016:
             assert(destImage.format == DXGI_FORMAT_Y216);
+            if ((srcImage.width % 2) != 0 || (srcImage.height % 2) != 0)
+                return E_INVALIDARG;
+
             CONVERT_420_TO_422(uint16_t, XMUSHORTN4);
             return S_OK;
 
         case DXGI_FORMAT_NV11:
             assert(destImage.format == DXGI_FORMAT_YUY2);
+            if ((srcImage.width % 4) != 0)
+                return E_INVALIDARG;
+
             // Convert 4:1:1 to 4:2:2
             {
                 const size_t rowPitch = srcImage.rowPitch;
@@ -4862,6 +5093,21 @@ HRESULT DirectX::Convert(
     float threshold,
     ScratchImage& image) noexcept
 {
+    ConvertOptions options = {};
+    options.filter = filter;
+    options.threshold = threshold;
+
+    return ConvertEx(srcImage, format, options, image, nullptr);
+}
+
+_Use_decl_annotations_
+HRESULT DirectX::ConvertEx(
+    const Image& srcImage,
+    DXGI_FORMAT format,
+    const ConvertOptions& options,
+    ScratchImage& image,
+    std::function<bool __cdecl(size_t, size_t)> statusCallback)
+{
     if ((srcImage.format == format) || !IsValid(format))
         return E_INVALIDARG;
 
@@ -4888,20 +5134,38 @@ HRESULT DirectX::Convert(
         return E_POINTER;
     }
 
-    WICPixelFormatGUID pfGUID, targetGUID;
-    if (UseWICConversion(filter, srcImage.format, format, pfGUID, targetGUID))
+    if (statusCallback)
     {
-        hr = ConvertUsingWIC(srcImage, pfGUID, targetGUID, filter, threshold, *rimage);
+        if (!statusCallback(0, rimage->height))
+        {
+            image.Release();
+            return E_ABORT;
+        }
+    }
+
+    WICPixelFormatGUID pfGUID, targetGUID;
+    if (UseWICConversion(options.filter, srcImage.format, format, pfGUID, targetGUID))
+    {
+        hr = ConvertUsingWIC(srcImage, pfGUID, targetGUID, options.filter, options.threshold, *rimage);
     }
     else
     {
-        hr = ConvertCustom(srcImage, filter, *rimage, threshold, 0);
+        hr = ConvertCustom(srcImage, options.filter, *rimage, options.threshold, 0, statusCallback);
     }
 
     if (FAILED(hr))
     {
         image.Release();
         return hr;
+    }
+
+    if (statusCallback)
+    {
+        if (!statusCallback(rimage->height, rimage->height))
+        {
+            image.Release();
+            return E_ABORT;
+        }
     }
 
     return S_OK;
@@ -4921,6 +5185,23 @@ HRESULT DirectX::Convert(
     float threshold,
     ScratchImage& result) noexcept
 {
+    ConvertOptions options = {};
+    options.filter = filter;
+    options.threshold = threshold;
+
+    return ConvertEx(srcImages, nimages, metadata, format, options, result, nullptr);
+}
+
+_Use_decl_annotations_
+HRESULT DirectX::ConvertEx(
+    const Image* srcImages,
+    size_t nimages,
+    const TexMetadata& metadata,
+    DXGI_FORMAT format,
+    const ConvertOptions& options,
+    ScratchImage& result,
+    std::function<bool __cdecl(size_t, size_t)> statusCallback)
+{
     if (!srcImages || !nimages || (metadata.format == format) || !IsValid(format))
         return E_INVALIDARG;
 
@@ -4932,6 +5213,19 @@ HRESULT DirectX::Convert(
 
     if ((metadata.width > UINT32_MAX) || (metadata.height > UINT32_MAX))
         return E_INVALIDARG;
+
+    if (statusCallback
+        && nimages == 1
+        && !metadata.IsVolumemap()
+        && metadata.mipLevels == 1
+        && metadata.arraySize == 1)
+    {
+        // If progress reporting is requested when converting a single 1D or 2D image, call
+        // the ConvertEx overload that takes a single image.
+        // This provides a better user experience as progress will be reported as the image
+        // is being processed, instead of after processing has been completed.
+        return ConvertEx(srcImages[0], format, options, result, statusCallback);
+    }
 
     TexMetadata mdata2 = metadata;
     mdata2.format = format;
@@ -4952,8 +5246,17 @@ HRESULT DirectX::Convert(
         return E_POINTER;
     }
 
+    if (statusCallback)
+    {
+        if (!statusCallback(0, nimages))
+        {
+            result.Release();
+            return E_ABORT;
+        }
+    }
+
     WICPixelFormatGUID pfGUID, targetGUID;
-    const bool usewic = !metadata.IsPMAlpha() && UseWICConversion(filter, metadata.format, format, pfGUID, targetGUID);
+    const bool usewic = !metadata.IsPMAlpha() && UseWICConversion(options.filter, metadata.format, format, pfGUID, targetGUID);
 
     switch (metadata.dimension)
     {
@@ -4985,17 +5288,26 @@ HRESULT DirectX::Convert(
 
             if (usewic)
             {
-                hr = ConvertUsingWIC(src, pfGUID, targetGUID, filter, threshold, dst);
+                hr = ConvertUsingWIC(src, pfGUID, targetGUID, options.filter, options.threshold, dst);
             }
             else
             {
-                hr = ConvertCustom(src, filter, dst, threshold, 0);
+                hr = ConvertCustom(src, options.filter, dst, options.threshold, 0, nullptr);
             }
 
             if (FAILED(hr))
             {
                 result.Release();
                 return hr;
+            }
+
+            if (statusCallback)
+            {
+                if (!statusCallback(index, nimages))
+                {
+                    result.Release();
+                    return E_ABORT;
+                }
             }
         }
         break;
@@ -5038,17 +5350,26 @@ HRESULT DirectX::Convert(
 
                     if (usewic)
                     {
-                        hr = ConvertUsingWIC(src, pfGUID, targetGUID, filter, threshold, dst);
+                        hr = ConvertUsingWIC(src, pfGUID, targetGUID, options.filter, options.threshold, dst);
                     }
                     else
                     {
-                        hr = ConvertCustom(src, filter, dst, threshold, slice);
+                        hr = ConvertCustom(src, options.filter, dst, options.threshold, slice, nullptr);
                     }
 
                     if (FAILED(hr))
                     {
                         result.Release();
                         return hr;
+                    }
+
+                    if (statusCallback)
+                    {
+                        if (!statusCallback(index, nimages))
+                        {
+                            result.Release();
+                            return E_ABORT;
+                        }
                     }
                 }
 
@@ -5061,6 +5382,15 @@ HRESULT DirectX::Convert(
     default:
         result.Release();
         return E_FAIL;
+    }
+
+    if (statusCallback)
+    {
+        if (!statusCallback(nimages, nimages))
+        {
+            result.Release();
+            return E_ABORT;
+        }
     }
 
     return S_OK;

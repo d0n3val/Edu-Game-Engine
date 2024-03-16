@@ -94,7 +94,7 @@ public:
 
     Texture*                GetTexture   	() const { return glTexture.get(); }
     uint                    GetID        	() const { return glTexture ? uint(glTexture->Id()) : uint(0); }
-	ColorSpace              GetColorSpace   () const { return colorSpace.value_or(formatColorSpace);; }
+	ColorSpace              GetColorSpace   () const { return colorSpace.value_or(formatColorSpace); }
     const TextureMetadata&  GetMetadata     () const {return metadata;}
 	
     void                    SetColorSpace   (ColorSpace space) { colorSpace = space;}
@@ -102,7 +102,7 @@ public:
 	static bool             Import(const char* file, std::string& output_file, bool generateCubemap, bool generateMipmaps);
 	static bool             Import(const void* buffer, uint size, std::string& output_file, bool toCubemap, bool generateMipmaps);
 
-    bool                    LoadFromBuffer(const void* buffer, uint size, ColorSpace space);
+    bool                    LoadFromBuffer(const void* buffer, uint size);
     bool                    LoadCheckers();
     bool                    LoadFallback(ResourceTexture* resource, const float3& color);
     bool                    LoadRedImage(ResourceTexture* resource, uint widht, uint height);
@@ -116,7 +116,7 @@ private:
 	static bool ImportNoConvert(const void* buffer, uint size, std::string& output_file, bool generateMipmaps);
     static bool ImportToCubemap(const void* buffer, uint size, std::string& output_file, bool generateMipmaps);
 
-    static Texture* TextureFromMemory(const void* buffer, uint size, TextureMetadata& metadata, ColorSpace space);
+    static Texture* TextureFromMemory(const void* buffer, uint size, TextureMetadata& metadata, ColorSpace& formatSpace, std::optional<ColorSpace> colorSpace);
 
 private:
 

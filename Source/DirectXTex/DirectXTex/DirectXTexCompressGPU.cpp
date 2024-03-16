@@ -154,9 +154,14 @@ namespace
 
         assert(srcImage.pixels && destImage.pixels);
 
-        const DXGI_FORMAT format = gpubc->GetSourceFormat();
+        DXGI_FORMAT tformat = gpubc->GetSourceFormat();
+        if (compress & TEX_COMPRESS_SRGB_OUT)
+        {
+            tformat = MakeSRGB(tformat);
+        }
+        const DXGI_FORMAT sformat = (compress & TEX_COMPRESS_SRGB_IN) ? MakeSRGB(srcImage.format) : srcImage.format;
 
-        if (srcImage.format == format)
+        if (sformat == tformat)
         {
             // Input is already in our required source format
             return gpubc->Compress(srcImage, destImage);
@@ -169,7 +174,7 @@ namespace
 
             auto const srgb = GetSRGBFlags(compress);
 
-            switch (format)
+            switch (tformat)
             {
             case DXGI_FORMAT_R8G8B8A8_UNORM:
                 hr = ConvertToRGBA32(srcImage, image, false, srgb);
@@ -215,6 +220,40 @@ HRESULT DirectX::Compress(
     float alphaWeight,
     ScratchImage& image) noexcept
 {
+    CompressOptions options = {};
+    options.flags = compress;
+    options.alphaWeight = alphaWeight;
+
+    return CompressEx(pDevice, srcImage, format, options, image, nullptr);
+}
+
+_Use_decl_annotations_
+HRESULT DirectX::Compress(
+    ID3D11Device* pDevice,
+    const Image* srcImages,
+    size_t nimages,
+    const TexMetadata& metadata,
+    DXGI_FORMAT format,
+    TEX_COMPRESS_FLAGS compress,
+    float alphaWeight,
+    ScratchImage& cImages) noexcept
+{
+    CompressOptions options = {};
+    options.flags = compress;
+    options.alphaWeight = alphaWeight;
+
+    return CompressEx(pDevice, srcImages, nimages, metadata, format, options, cImages);
+}
+
+_Use_decl_annotations_
+HRESULT DirectX::CompressEx(
+    ID3D11Device* pDevice,
+    const Image& srcImage,
+    DXGI_FORMAT format,
+    const CompressOptions& options,
+    ScratchImage& image,
+    std::function<bool __cdecl(size_t, size_t)> statusCallback)
+{
     if (!pDevice || IsCompressed(srcImage.format) || !IsCompressed(format))
         return E_INVALIDARG;
 
@@ -231,7 +270,7 @@ HRESULT DirectX::Compress(
     if (FAILED(hr))
         return hr;
 
-    hr = gpubc->Prepare(srcImage.width, srcImage.height, compress, format, alphaWeight);
+    hr = gpubc->Prepare(srcImage.width, srcImage.height, options.flags, format, options.alphaWeight);
     if (FAILED(hr))
         return hr;
 
@@ -247,23 +286,45 @@ HRESULT DirectX::Compress(
         return E_POINTER;
     }
 
-    hr = GPUCompress(gpubc.get(), srcImage, *img, compress);
-    if (FAILED(hr))
-        image.Release();
+    if (statusCallback)
+    {
+        if (!statusCallback(0, 100))
+        {
+            image.Release();
+            return E_ABORT;
+        }
+    }
 
-    return hr;
+    hr = GPUCompress(gpubc.get(), srcImage, *img, options.flags);
+
+    if (FAILED(hr))
+    {
+        image.Release();
+        return hr;
+    }
+
+    if (statusCallback)
+    {
+        if (!statusCallback(100, 100))
+        {
+            image.Release();
+            return E_ABORT;
+        }
+    }
+
+    return S_OK;
 }
 
 _Use_decl_annotations_
-HRESULT DirectX::Compress(
+HRESULT DirectX::CompressEx(
     ID3D11Device* pDevice,
     const Image* srcImages,
     size_t nimages,
     const TexMetadata& metadata,
     DXGI_FORMAT format,
-    TEX_COMPRESS_FLAGS compress,
-    float alphaWeight,
-    ScratchImage& cImages) noexcept
+    const CompressOptions& options,
+    ScratchImage& cImages,
+    std::function<bool __cdecl(size_t, size_t)> statusCallback)
 {
     if (!pDevice || !srcImages || !nimages)
         return E_INVALIDARG;
@@ -306,6 +367,15 @@ HRESULT DirectX::Compress(
         return E_POINTER;
     }
 
+    if (statusCallback)
+    {
+        if (!statusCallback(0, nimages))
+        {
+            cImages.Release();
+            return E_ABORT;
+        }
+    }
+
     // Process images (ordered by size)
     switch (metadata.dimension)
     {
@@ -314,10 +384,11 @@ HRESULT DirectX::Compress(
         {
             size_t w = metadata.width;
             size_t h = metadata.height;
+            size_t progress = 0;
 
             for (size_t level = 0; level < metadata.mipLevels; ++level)
             {
-                hr = gpubc->Prepare(w, h, compress, format, alphaWeight);
+                hr = gpubc->Prepare(w, h, options.flags, format, options.alphaWeight);
                 if (FAILED(hr))
                 {
                     cImages.Release();
@@ -343,11 +414,20 @@ HRESULT DirectX::Compress(
                         return E_FAIL;
                     }
 
-                    hr = GPUCompress(gpubc.get(), src, dest[index], compress);
+                    hr = GPUCompress(gpubc.get(), src, dest[index], options.flags);
                     if (FAILED(hr))
                     {
                         cImages.Release();
                         return hr;
+                    }
+
+                    if (statusCallback)
+                    {
+                        if (!statusCallback(progress++, nimages))
+                        {
+                            cImages.Release();
+                            return E_ABORT;
+                        }
                     }
                 }
 
@@ -365,10 +445,11 @@ HRESULT DirectX::Compress(
             size_t w = metadata.width;
             size_t h = metadata.height;
             size_t d = metadata.depth;
+            size_t progress = 0;
 
             for (size_t level = 0; level < metadata.mipLevels; ++level)
             {
-                hr = gpubc->Prepare(w, h, compress, format, alphaWeight);
+                hr = gpubc->Prepare(w, h, options.flags, format, options.alphaWeight);
                 if (FAILED(hr))
                 {
                     cImages.Release();
@@ -394,11 +475,20 @@ HRESULT DirectX::Compress(
                         return E_FAIL;
                     }
 
-                    hr = GPUCompress(gpubc.get(), src, dest[index], compress);
+                    hr = GPUCompress(gpubc.get(), src, dest[index], options.flags);
                     if (FAILED(hr))
                     {
                         cImages.Release();
                         return hr;
+                    }
+
+                    if (statusCallback)
+                    {
+                        if (!statusCallback(progress++, nimages))
+                        {
+                            cImages.Release();
+                            return E_ABORT;
+                        }
                     }
                 }
 
@@ -416,6 +506,15 @@ HRESULT DirectX::Compress(
 
     default:
         return HRESULT_E_NOT_SUPPORTED;
+    }
+
+    if (statusCallback)
+    {
+        if (!statusCallback(nimages, nimages))
+        {
+            cImages.Release();
+            return E_ABORT;
+        }
     }
 
     return S_OK;

@@ -687,11 +687,16 @@ namespace
         _In_ ID3D12Resource* pSource,
         UINT64 srcPitch,
         const D3D12_RESOURCE_DESC& desc,
-        ComPtr<ID3D12Resource>& pStaging,
+        _COM_Outptr_ ID3D12Resource** pStaging,
         D3D12_RESOURCE_STATES beforeState,
         D3D12_RESOURCE_STATES afterState) noexcept
     {
-        if (!pCommandQ || !pSource)
+        if (pStaging)
+        {
+            *pStaging = nullptr;
+        }
+
+        if (!pCommandQ || !pSource || !pStaging)
             return E_INVALIDARG;
 
         if (desc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D)
@@ -709,7 +714,8 @@ namespace
         if (SUCCEEDED(hr) && sourceHeapProperties.Type == D3D12_HEAP_TYPE_READBACK)
         {
             // Handle case where the source is already a staging texture we can use directly
-            pStaging = pSource;
+            *pStaging = pSource;
+            pSource->AddRef();
             return S_OK;
         }
 
@@ -801,11 +807,11 @@ namespace
             D3D12_RESOURCE_STATE_COPY_DEST,
             nullptr,
             IID_ID3D12Resource,
-            reinterpret_cast<void**>(pStaging.ReleaseAndGetAddressOf()));
+            reinterpret_cast<void**>(pStaging));
         if (FAILED(hr))
             return hr;
 
-        assert(pStaging);
+        assert(*pStaging);
 
         // Transition the resource if necessary
         TransitionResource(commandList.Get(), pSource, beforeState, D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -818,7 +824,7 @@ namespace
         bufferFootprint.Footprint.RowPitch = static_cast<UINT>(srcPitch);
         bufferFootprint.Footprint.Format = desc.Format;
 
-        const CD3DX12_TEXTURE_COPY_LOCATION copyDest(pStaging.Get(), bufferFootprint);
+        const CD3DX12_TEXTURE_COPY_LOCATION copyDest(*pStaging, bufferFootprint);
         const CD3DX12_TEXTURE_COPY_LOCATION copySrc(copySource.Get(), 0);
 
         // Copy the texture
@@ -898,7 +904,12 @@ HRESULT DirectX::SaveDDSTextureToFile(
     pCommandQ->GetDevice(IID_ID3D12Device, reinterpret_cast<void**>(device.GetAddressOf()));
 
     // Get the size of the image
-    const auto desc = pSource->GetDesc();
+#if defined(_MSC_VER) || !defined(_WIN32)
+    auto const desc = pSource->GetDesc();
+#else
+    D3D12_RESOURCE_DESC tmpDesc;
+    auto const& desc = *pSource->GetDesc(&tmpDesc);
+#endif
 
     if (desc.Width > UINT32_MAX)
         return E_INVALIDARG;
@@ -924,7 +935,7 @@ HRESULT DirectX::SaveDDSTextureToFile(
         return HRESULT_E_ARITHMETIC_OVERFLOW;
 
     ComPtr<ID3D12Resource> pStaging;
-    HRESULT hr = CaptureTexture(device.Get(), pCommandQ, pSource, dstRowPitch, desc, pStaging, beforeState, afterState);
+    HRESULT hr = CaptureTexture(device.Get(), pCommandQ, pSource, dstRowPitch, desc, pStaging.GetAddressOf(), beforeState, afterState);
     if (FAILED(hr))
         return hr;
 
@@ -1121,7 +1132,12 @@ HRESULT DirectX::SaveWICTextureToFile(
     pCommandQ->GetDevice(IID_ID3D12Device, reinterpret_cast<void**>(device.GetAddressOf()));
 
     // Get the size of the image
-    const auto desc = pSource->GetDesc();
+#if defined(_MSC_VER) || !defined(_WIN32)
+    auto const desc = pSource->GetDesc();
+#else
+    D3D12_RESOURCE_DESC tmpDesc;
+    auto const& desc = *pSource->GetDesc(&tmpDesc);
+#endif
 
     if (desc.Width > UINT32_MAX)
         return E_INVALIDARG;
@@ -1147,7 +1163,7 @@ HRESULT DirectX::SaveWICTextureToFile(
         return HRESULT_E_ARITHMETIC_OVERFLOW;
 
     ComPtr<ID3D12Resource> pStaging;
-    HRESULT hr = CaptureTexture(device.Get(), pCommandQ, pSource, dstRowPitch, desc, pStaging, beforeState, afterState);
+    HRESULT hr = CaptureTexture(device.Get(), pCommandQ, pSource, dstRowPitch, desc, pStaging.GetAddressOf(), beforeState, afterState);
     if (FAILED(hr))
         return hr;
 

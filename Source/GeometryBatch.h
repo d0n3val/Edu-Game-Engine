@@ -52,8 +52,8 @@ class GeometryBatch
 
     typedef std::vector<DrawCommand>                                CommandList;
     typedef std::unordered_map<UID, MeshData>                       MeshList;
-    typedef std::unordered_map<const ComponentMeshRenderer*, uint>  ObjectList; // second is the instance index
-    typedef std::set<const ComponentMeshRenderer*>                  UpdateList;
+    typedef std::unordered_map<ComponentMeshRenderer*, uint>        ObjectList; // second is the instance index
+    typedef std::set<ComponentMeshRenderer*>                        UpdateList;
     typedef std::vector<PerInstance>                                InstanceList;
 
     uint                            attrib_flags = 0;
@@ -98,18 +98,19 @@ class GeometryBatch
     bool                            bufferDirty = false;
     Program*                        skinningProgram = nullptr;
     Program*                        skinningProgramNoTangents = nullptr;
+    uint32_t                        batchIndex = 0;
 
 public:
 
-    explicit GeometryBatch(const HashString& tag, Program* program, Program* programNoTangents);
+    explicit GeometryBatch(const HashString& tag, uint32_t index, Program* program, Program* programNoTangents);
     ~GeometryBatch();
    
     bool               CanAdd            (const ComponentMeshRenderer* object) const;
-    void               Add               (const ComponentMeshRenderer* object);
-    void               Remove            (const ComponentMeshRenderer* object);
+    void               Add               (ComponentMeshRenderer* object);
+    void               Remove            (ComponentMeshRenderer* object);
 
-    void               MarkForUpdate     (const ComponentMeshRenderer* object);
-    void               Render            (const ComponentMeshRenderer* object);
+    void               MarkForUpdate     (ComponentMeshRenderer* object);
+    void               Render            (ComponentMeshRenderer* object);
     void               DoRender          (uint flags);
     void               DoUpdate          ();
 
@@ -119,7 +120,7 @@ public:
 
     void               CreateRenderData  ();
     void               OnMaterialModified(UID materialID);
-    
+    ComponentMeshRenderer* FindObject(uint instanceIndex);
 private:
 
     void ClearRenderData      ();
