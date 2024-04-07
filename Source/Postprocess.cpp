@@ -19,7 +19,6 @@
 
 Postprocess::Postprocess()
 {
-    kawase = std::make_unique<DualKawaseBlur>();
 }
 
 Postprocess::~Postprocess()
@@ -117,6 +116,8 @@ void Postprocess::Init()
     glGenFramebuffers(1, &bloom_fbo);
     glGenFramebuffers(1, &bloom_blur_fbo_0);
     glGenFramebuffers(1, &bloom_blur_fbo_1);
+
+    kawase = std::make_unique<DualKawaseBlur>();
 }
 
 void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Framebuffer* fbo, unsigned width, unsigned height)
@@ -140,6 +141,8 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
     }
 
     kawase->execute(App->renderer->GetGBufferExportPass()->getEmissive(), GL_RGB32F, GL_RGB, GL_FLOAT, width, height);
+
+    glBindVertexArray(post_vao);
 
     fbo->Bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

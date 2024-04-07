@@ -568,36 +568,84 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 	}
 
 	int fogType = module->GetIntValue(ModuleHints::FOG_TYPE);
-	if(ImGui::Combo("Fog Type", &fogType, "Distance\0Height"))
+    const char* fogNames[] = { "Distance", "Height", "RayMarching"};
+	if(ImGui::Combo("Type of fog", &fogType, fogNames, sizeof(fogNames) / sizeof(char*)))
 	{
 		module->SetIntValue(ModuleHints::FOG_TYPE, fogType);
 	}
 
-    float3 fogColour = module->GetFloat3Value(ModuleHints::DIST_FOG_COLOUR);
-    if (ImGui::ColorEdit3("Distance Fog Colour", &fogColour[0]))
+    if (fogType == 0)
     {
-        module->SetFloat3Value(ModuleHints::DIST_FOG_COLOUR, fogColour);
+        if (ImGui::CollapsingHeader("Distance Fog", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float3 fogColour = module->GetFloat3Value(ModuleHints::DIST_FOG_COLOUR);
+            if (ImGui::ColorEdit3("Distance Fog Colour", &fogColour[0]))
+            {
+                module->SetFloat3Value(ModuleHints::DIST_FOG_COLOUR, fogColour);
+            }
+
+            float fogMin = module->GetFloatValue(ModuleHints::DIST_FOG_MIN);
+            if (ImGui::DragFloat("Distance Fog Min", &fogMin))
+            {
+                module->SetFloatValue(ModuleHints::DIST_FOG_MIN, fogMin);
+            }
+
+            float fogMax = module->GetFloatValue(ModuleHints::DIST_FOG_MAX);
+            if (ImGui::DragFloat("Distance Fog Max", &fogMax))
+            {
+                module->SetFloatValue(ModuleHints::DIST_FOG_MAX, fogMax);
+            }
+
+            float4 fogCurve = module->GetFloat4Value(ModuleHints::DIST_FOG_CURVE);
+            if (ImGui::Bezier("Distance Fog Curve", (float*)&fogCurve.x))
+            {
+                module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, fogCurve);
+            }
+        }
+    }
+    else if (fogType == 2)
+    {
+        if (ImGui::CollapsingHeader("RayMarching Fog", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float3 ambient = module->GetFloat3Value(ModuleHints::RAYMARCHING_AMBIENT_COLOUR);
+            if (ImGui::ColorEdit3("Ambient Colour", &ambient[0]))
+            {
+                module->SetFloat3Value(ModuleHints::RAYMARCHING_AMBIENT_COLOUR, ambient);
+            }
+
+            float extinction = module->GetFloatValue(ModuleHints::RAYMARCHING_EXTINCTION_COEFF);
+            if (ImGui::SliderFloat("Extinction", &extinction, 0.0f, 2.0f,"%.4f"))
+            {
+                module->SetFloatValue(ModuleHints::RAYMARCHING_EXTINCTION_COEFF, extinction);
+            }
+
+            float global = module->GetFloatValue(ModuleHints::RAYMARCHING_FOG_INTENSITY);
+            if (ImGui::SliderFloat("Fog Intensity", &global, 0.0f, 1.0f, "%.4f"))
+            {
+                module->SetFloatValue(ModuleHints::RAYMARCHING_FOG_INTENSITY, global);
+            }
+
+            float maxDistance = module->GetFloatValue(ModuleHints::RAYMARCHING_MAX_DISTANCE);
+            if (ImGui::SliderFloat("Max Distance", &maxDistance, 0.0f, 1000.0f, "%.1f"))
+            {
+                module->SetFloatValue(ModuleHints::RAYMARCHING_MAX_DISTANCE, maxDistance);
+            }
+
+            float noiseScale = module->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SCALE);
+            if (ImGui::SliderFloat("Noise Scale", &noiseScale, 0.0f, 100.0f, "%.2f"))
+            {
+                module->SetFloatValue(ModuleHints::RAYMARCHING_NOISE_SCALE, noiseScale);
+            }
+
+            float noiseSpeed = module->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SPEED);
+            if (ImGui::SliderFloat("Noise Speed", &noiseSpeed, 0.0f, 100.0f, "%.2f"))
+            {
+                module->SetFloatValue(ModuleHints::RAYMARCHING_NOISE_SPEED, noiseSpeed);
+            }
+        }
     }
 
-    float fogMin = module->GetFloatValue(ModuleHints::DIST_FOG_MIN);
-    if (ImGui::DragFloat("Distance Fog Min", &fogMin))
-    {
-        module->SetFloatValue(ModuleHints::DIST_FOG_MIN, fogMin);
-    }
-
-    float fogMax = module->GetFloatValue(ModuleHints::DIST_FOG_MAX);
-    if (ImGui::DragFloat("Distance Fog Max", &fogMax))
-    {
-        module->SetFloatValue(ModuleHints::DIST_FOG_MAX, fogMax);
-    }
-
-	float4 fogCurve = module->GetFloat4Value(ModuleHints::DIST_FOG_CURVE);
-	if (ImGui::Bezier("Distance Fog Curve", (float *)&fogCurve.x))
-	{
-		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, fogCurve);
-	}
-
-	if (ImGui::Button("EaseIn", ImVec2(55, 20)))
+    if (ImGui::Button("EaseIn", ImVec2(55, 20)))
 		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 1.0f, 0.0f));
 	ImGui::SameLine();
 	if (ImGui::Button("EaseOut", ImVec2(60, 20)))
@@ -605,6 +653,12 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 	ImGui::SameLine();
 	if (ImGui::Button("EaseInOut", ImVec2(70, 20)))
 		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0, 1.0f, 1.0f, 0.0f));
+
+    bool fogBlur = module->GetBoolValue(ModuleHints::DIST_FOG_BLUR);
+    if (ImGui::Checkbox("Fog Blur", &fogBlur))
+    {
+        module->SetBoolValue(ModuleHints::DIST_FOG_BLUR, fogBlur);
+    }
 }
 
 void PanelConfiguration::DrawModuleTextures()

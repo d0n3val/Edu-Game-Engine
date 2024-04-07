@@ -253,15 +253,17 @@ bool ResourceTexture::ImportNoConvert(const void * buffer, uint size, std::strin
         if (res == S_OK)
         {
             DirectX::Blob blob;            
-            ret = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob) == S_OK;
+            res = DirectX::SaveToDDSMemory(result->GetImages(), result->GetImageCount(), result->GetMetadata(), DirectX::DDS_FLAGS_NONE, blob);
             
-            if (ret)
+            if (res == S_OK)
             {
                 output_size = uint(blob.GetBufferSize());
                 output_buffer = new char[blob.GetBufferSize()+header_size];
                 memcpy(&reinterpret_cast<char*>(output_buffer)[header_size], blob.GetBufferPointer(), blob.GetBufferSize());
             }
         }
+
+        ret = res == S_OK;
     }
 
     if (ret)

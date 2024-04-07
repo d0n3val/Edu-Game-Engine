@@ -29,12 +29,16 @@ public:
     float           GetIntensity     () const { return intensity; }
     void            SetIntensity     (float i) { intensity = i; }
 
+    float           GetAnisotropy () const {return anisotropy;}
+    void            SetAnisotropy (float value) {anisotropy = value;}
+
 private:
 
     float3 color     = math::float3::one;
     float  polar     = PI/2.0f;
     float  azimuthal = PI/2.0f;
     float  intensity = 1.0f;
+    float  anisotropy = 0.0f;
 };
 
 #endif /* __DIRLIGHT_H__ */

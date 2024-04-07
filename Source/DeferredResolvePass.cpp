@@ -49,6 +49,7 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     exportPass->getEmissive()->Bind(GBUFFER_EMISSIVE_TEX_BINDING);
     exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
     exportPass->getNormal()->Bind(GBUFFER_NORMAL_TEX_BINDING);
+    exportPass->getDepth()->Bind(GBUFFER_DEPTH_TEX_BINDING);
     
 	ssao->getResult()->Bind(SSAO_TEX_BINDING);
 
@@ -86,14 +87,14 @@ bool DeferredResolvePass::generateProgram()
 {
 	std::unique_ptr<Shader> vertex, fragment;
 
-	vertex.reset(Shader::CreateVSFromFile("assets/shaders/fullscreenVS.glsl", 0, 0));
+    const char* defines[] = { "#define GEN_WORLD_POSITION\n" };
+	vertex.reset(Shader::CreateVSFromFile("assets/shaders/fullscreenVS.glsl", defines, 1));
 
 	bool ok = vertex->Compiled();
 
 	if (ok)
 	{
-
-        fragment.reset(Shader::CreateFSFromFile("assets/shaders/deferred.glsl", 0, 0));
+        fragment.reset(Shader::CreateFSFromFile("assets/shaders/deferred.glsl", defines, 1));
 
 		ok = fragment->Compiled();
 	}

@@ -134,6 +134,13 @@ void PanelProperties::DrawDirLight(DirLight* light)
         {
             light->SetPolar(polar);
         }
+
+        float anisotropy = light->GetAnisotropy();
+        if(ImGui::SliderFloat("anisotropy", &anisotropy, -1.0f, 1.0f, "%.4f"))
+        {
+            light->SetAnisotropy(anisotropy);
+        }
+
     }
 }
 
@@ -166,32 +173,18 @@ void PanelProperties::DrawPointLight(PointLight* light)
             light->SetRadius(radius);
         }
 
+        float anisotropy = light->GetAnisotropy();
+        if (ImGui::SliderFloat("anisotropy", &anisotropy, -1.0f, 1.0f, "%.4f"))
+        {
+            light->SetAnisotropy(anisotropy);
+        }
+
         bool enabled = light->GetEnabled();
         if(ImGui::Checkbox("Enabled", &enabled))
         {
             light->SetEnabled(enabled);
         }
 
-        if(ImGui::Button("Generate"))
-        {
-            float scale = 0.5f;
-            LightManager* lightManager = App->level->GetLightManager();
-            for(int i =0; i <10; ++i)
-            {
-                for(int j=0; j <10; ++j)
-                {
-                    for(int k=0; k < 10; ++k)
-                    {
-                        uint index = lightManager->AddPointLight();
-                        PointLight* light = lightManager->GetPointLight(index);
-                        light->SetPosition(float3(float(i), float(j), float(-k))*scale);
-                        light->SetRadius(scale*0.5f);
-                        light->SetColor(float3(1.0f, 1.0f, 1.0f));
-                        light->SetIntensity(10.0f);
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -236,6 +229,12 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
         if(ImGui::InputFloat("distance", &distance, 0.1f, 0.1f, "%.9f"))
         {
             light->SetDistance(distance);
+        }
+
+        float anisotropy = light->GetAnisotropy();
+        if (ImGui::SliderFloat("anisotropy", &anisotropy, -1.0f, 1.0f, "%.4f"))
+        {
+            light->SetAnisotropy(anisotropy);
         }
 
         bool enabled = light->GetEnabled();
@@ -296,6 +295,12 @@ void PanelProperties::DrawSphereLight(SphereLight *light)
             light->SetIntensity(intensity);
         }
 
+        float anisotropy = light->GetAnisotropy();
+        if (ImGui::SliderFloat("anisotropy", &anisotropy, -1.0f, 1.0f, "%.4f"))
+        {
+            light->SetAnisotropy(anisotropy);
+        }
+
         ImGui::Separator();
 
         App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
@@ -334,6 +339,12 @@ void PanelProperties::DrawTubeLight(TubeLight *light)
         }
 
         ImGui::Separator();
+        float anisotropy = light->GetAnisotropy();
+        if (ImGui::SliderFloat("anisotropy", &anisotropy, -1.0f, 1.0f, "%.4f"))
+        {
+            light->SetAnisotropy(anisotropy);
+        }
+
 
         App->renderer3D->viewport->GetScene()->DrawGuizmoProperties(light);
 

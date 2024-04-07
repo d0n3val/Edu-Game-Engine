@@ -325,11 +325,6 @@ void PanelResources::DrawResourcePopup(Resource::Type type)
             fileDialog.Open();
         }
 
-        if(type == Resource::texture && ImGui::MenuItem("Import Cubemap.."))
-        {
-            waiting_to_load = type;
-        }
-
         if(type == Resource::model && ImGui::MenuItem("Force save"))
         {
             App->resources->SaveTypedResources(type);

@@ -70,8 +70,6 @@ void ScreenSpaceAO::execute(uint width, uint height)
 
     App->renderer->GetCameraUBO()->Bind();
 
-
-
     vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
     vao->Unbind();

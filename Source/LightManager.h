@@ -19,6 +19,8 @@ class LightManager
     {
         float4 position;
         float4 colour;
+        float anisotropy;
+        int pad0, pad1, pad2;
     };
 
     struct QuadLightData
@@ -33,21 +35,22 @@ class LightManager
     struct TubeLightData
     {
         float4 pos0; // position + radius
-        float4 pos1;
+        float4 pos1; // position + anisotropy
         float4 colour; // color + attenuation radius
     };
 
     struct DirLightData
     {
-        float4 dir;
-        float4 color;
+        float4 dir; // dir + anisotropy
+        float4 color; // color + intensity
     };
 
     struct PointLightData
     {
-        float3 position;
-        float  radius;
-        float4 color;
+        float4 position; // position+radius
+        float4 color;    // color+intensity
+        float  anisotropy; 
+        int pad0, pad1, pad2;
     };
 
     struct IBLLightData
@@ -73,7 +76,7 @@ class LightManager
 
     struct SpotLightData
     {
-        float4 position;
+        float4 position; // position + anisotropy
         float4 direction;
         float4 color;
         float  distance;

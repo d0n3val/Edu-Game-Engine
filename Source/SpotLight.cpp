@@ -22,6 +22,7 @@ void SpotLight::Save(Config& config) const
     config.AddFloat("outter", outter);
 	config.AddFloat("distance", distance);
 	config.AddFloat("intensity", intensity);
+	config.AddFloat("anisotropy", anisotropy);
 	config.AddBool("Enabled", enabled);
 }
 
@@ -34,6 +35,7 @@ void SpotLight::Load(Config& config)
     outter    = config.GetFloat("outter", 0.0f);
 	distance  = config.GetFloat("distance", 1.0f);
     intensity = config.GetFloat("intensity", 1.0f);
+    anisotropy = config.GetFloat("anisotropy", 0.0f);
     enabled   = config.GetBool("Enabled", true);
 }
 

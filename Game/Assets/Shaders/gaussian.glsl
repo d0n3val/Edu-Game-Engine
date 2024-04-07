@@ -41,6 +41,6 @@ void main()
         result += textureLod(sourceTexture, uv + offset, sourceLod) * weight;
     }
     
-    color = vec4(result.rgb, 1.0);
+    color = vec4(result);
 }
 

@@ -19,6 +19,7 @@ void PointLight::Save(Config& config) const
 	config.AddFloat3("color", color);
 	config.AddFloat("radius", radius);
 	config.AddFloat("intensity", intensity);
+	config.AddFloat("anisotropy", anisotropy);
 	config.AddBool("Enabled", enabled);
 }
 
@@ -28,6 +29,7 @@ void PointLight::Load(Config& config)
 	color    = config.GetFloat3("color", float3::one);
 	radius 	 = config.GetFloat("radius", 1.0f);
     intensity = config.GetFloat("intensity", 1.0f);
+    anisotropy = config.GetFloat("anisotropy", 0.0f);
     enabled  = config.GetBool("Enabled", true);
 }
 

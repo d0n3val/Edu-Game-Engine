@@ -43,6 +43,9 @@ public:
     const Quat&     GetRotation     () const { return rotation;}
     void            SetRotation     (const Quat& q) { rotation = q;}
 
+    float           GetAnisotropy () const {return anisotropy;}
+    void            SetAnisotropy (float value) {anisotropy = value;}
+
 
 private:
     float3 position = float3::zero;
@@ -52,5 +55,6 @@ private:
     float intensity = 0.0f;
     float radius = 0.0f;
     float attRadius = 0.0f;
+    float anisotropy = 0.0f;
     bool enabled = true;
 };

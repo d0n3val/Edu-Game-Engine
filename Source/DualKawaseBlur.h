@@ -5,6 +5,7 @@
 class Program;
 class Framebuffer;
 class Texture2D;
+class VertexArray;
 
 class DualKawaseBlur
 {
@@ -14,6 +15,7 @@ class DualKawaseBlur
     std::unique_ptr<Texture2D>   intermediate;
     std::unique_ptr<Framebuffer> resultFB;
     std::unique_ptr<Texture2D>   result;
+    std::unique_ptr<VertexArray> vao;
     uint                         rWidth = 0;
     uint                         rHeight = 0;
     uint                         rInternal = 0;

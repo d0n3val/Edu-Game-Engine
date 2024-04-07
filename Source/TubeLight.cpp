@@ -21,6 +21,7 @@ void TubeLight::Save(Config &config) const
 	config.AddFloat("intensity", intensity);
 	config.AddFloat("radius", radius);
 	config.AddFloat("attenuation_radius", attRadius);
+	config.AddFloat("anisotropy", anisotropy);
 	config.AddBool("Enabled", enabled);
 }
 
@@ -35,6 +36,7 @@ void TubeLight::Load(Config &config)
     intensity  = config.GetFloat("intensity", 0.0f);
     radius     = config.GetFloat("radius", radius);
     attRadius  = config.GetFloat("attenuation_radius", attRadius);
+    anisotropy = config.GetFloat("anisotropy", 0.0f);
     enabled    = config.GetBool("Enabled", true);
 }
 

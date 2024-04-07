@@ -261,7 +261,7 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     }
 
     DirLightData* directionalPtr = directionalData[frameCount]; 
-    directionalPtr->dir = float4(directional->GetDir(), 0.0);
+    directionalPtr->dir = float4(directional->GetDir(), directional->GetAnisotropy());
     directionalPtr->color = float4(directional->GetColor(), directional->GetIntensity());
 
     if(uint(points.size()) > pointBufferSize || !pointLightSSBO[frameCount])
@@ -280,9 +280,9 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     {
         if(light->GetEnabled())
         {
-            pointPtr->points[enabledPointSize].position = light->GetPosition();
-            pointPtr->points[enabledPointSize].radius   = light->GetRadius();
-            pointPtr->points[enabledPointSize].color    = float4(light->GetColor(), light->GetIntensity());
+            pointPtr->points[enabledPointSize].position    = float4(light->GetPosition(), light->GetRadius());
+            pointPtr->points[enabledPointSize].color       = float4(light->GetColor(), light->GetIntensity());
+            pointPtr->points[enabledPointSize].anisotropy  = light->GetAnisotropy();
 
             ++enabledPointSize;
         }
@@ -305,7 +305,7 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     {
         if(light->GetEnabled())
         {
-            spotPtr->spots[enabledSpotSize].position    = float4(light->GetPosition(), 0.0);
+            spotPtr->spots[enabledSpotSize].position    = float4(light->GetPosition(), light->GetAnisotropy());
             spotPtr->spots[enabledSpotSize].direction   = float4(light->GetDirection(), 0.0f);
             spotPtr->spots[enabledSpotSize].color       = float4(light->GetColor(), 0.0f);
             spotPtr->spots[enabledSpotSize].distance    = light->GetDistance();
@@ -365,6 +365,7 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
         {
             spherePtr->spheres[enabledSphereSize].position    = float4(light->GetPosition(), light->GetRadius());
             spherePtr->spheres[enabledSphereSize].colour      = float4(light->GetColor()*light->GetIntensity(), light->GetLightRadius());
+            spherePtr->spheres[enabledSphereSize].anisotropy  = light->GetAnisotropy();
 
             ++enabledSphereSize;
         }
@@ -390,7 +391,7 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
         if(light->GetEnabled())
         {
             tubePtr->tubes[enabledTubeSize].pos0 = float4(light->GetPosition0(), light->GetRadius());
-            tubePtr->tubes[enabledTubeSize].pos1 = float4(light->GetPosition1(), 1.0);
+            tubePtr->tubes[enabledTubeSize].pos1 = float4(light->GetPosition1(), light->GetAnisotropy());
             tubePtr->tubes[enabledTubeSize].colour = float4(light->GetColor()*light->GetIntensity(), light->GetAttRadius());
 
             ++enabledTubeSize;

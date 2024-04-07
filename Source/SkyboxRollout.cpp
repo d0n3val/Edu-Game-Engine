@@ -76,6 +76,8 @@ void SkyboxRollout::DrawProperties(IBLData* skybox)
             if (ImGui::Checkbox("sRGB", &linear))
             {
                 info->SetColorSpace(linear ? ColorSpace_linear : ColorSpace_gamma);
+                info->ReleaseFromMemory();
+                info->LoadInMemory();
             }
         }
 

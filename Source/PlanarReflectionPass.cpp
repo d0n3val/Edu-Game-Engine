@@ -130,7 +130,7 @@ void PlanarReflectionPass::createFrameBuffer()
 
 void PlanarReflectionPass::Bind()
 {
-    planarTex->Bind(PLANAR_REFLECTION_BINDING);
+    if(planarTex) planarTex->Bind(PLANAR_REFLECTION_BINDING);
     
     float4x4 viewProj = planarCamera.frustum.ViewProjMatrix();
     glUniformMatrix4fv(PLANAR_REFLECTION_VIEWPROJ_LOCATION, 1, GL_TRUE, reinterpret_cast<float*>(&viewProj));

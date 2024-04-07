@@ -11,6 +11,7 @@
 
 DualKawaseBlur::DualKawaseBlur()
 {
+    vao = std::make_unique<VertexArray>();
 }
 
 DualKawaseBlur::~DualKawaseBlur()
@@ -30,6 +31,7 @@ void DualKawaseBlur::execute(const Texture2D *input, uint internal_format, uint 
     glViewport(0, 0, width / 2, height / 2);
     intermediateFB->Bind();
     input->Bind(DUALKAWASE_INPUT_BINDING);
+    vao->Bind();
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
@@ -41,6 +43,8 @@ void DualKawaseBlur::execute(const Texture2D *input, uint internal_format, uint 
     resultFB->Bind();
     intermediate->Bind(DUALKAWASE_INPUT_BINDING);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+    vao->Unbind();
+
     glPopDebugGroup();
 }
 

@@ -19,7 +19,7 @@ layout(location = PLANAR_REFLECTION_DISTORITION) uniform float planarDistortion;
 
 struct DirLight
 {
-    vec4 dir;
+    vec4 dir; // dir+anisotropy
     vec4 color;
 };
 
@@ -37,7 +37,7 @@ struct PointLight
 
 struct SpotLight
 {
-    vec4  position;
+    vec4  position; // position+anisotropy
     vec4  direction;
     vec4  color;
     float dist;
@@ -50,11 +50,13 @@ struct SphereLight
 {
     vec4 position; // position+radius
     vec4 color;    // rgb+light radius
+    float anisotropy;
+    int pad0, pad1, pad2;
 };
 
 struct QuadLight
 {
-    vec4 position;
+    vec4 position; // position+anisotropy
     vec4 up;
     vec4 right;
     vec4 color;

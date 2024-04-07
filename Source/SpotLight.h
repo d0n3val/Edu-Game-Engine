@@ -38,6 +38,9 @@ public:
     bool            GetEnabled      () const { return enabled; }
     void            SetEnabled      (bool e) { enabled = e; }
 
+    float           GetAnisotropy () const {return anisotropy;}
+    void            SetAnisotropy (float value) {anisotropy = value;}
+
 private:
 
     float3 color     = float3::one;
@@ -47,6 +50,7 @@ private:
     float  outter    = 0.0f;
     float  distance  = 1.0f;
     float  intensity = 1.0f;
+    float  anisotropy = 0.0f;
     bool   enabled   = true;
 };
 
