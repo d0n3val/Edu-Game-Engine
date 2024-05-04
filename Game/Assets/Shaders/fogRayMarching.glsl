@@ -8,13 +8,15 @@
 #include "/shaders/lighting.glsl"
 #include "/shaders/simplexNoise.glsl"
 
-#define NUM_STEPS 12
+#define NUM_STEPS 36
 
 layout(binding = GBUFFER_DEPTH_TEX_BINDING) uniform sampler2D depth;
+layout(binding = RAYMARCHING_BLUENOISE_TEX_BINDING) uniform sampler2D blueNoise;
 
 uniform layout(binding=RAYMARCHING_FOG_DENSITY_BINDING, rgba32f) writeonly image2D outputImg; 
 uniform layout(location=RAYMARCHING_WIDHT_LOCATION) int width;
 uniform layout(location=RAYMARCHING_HEIGHT_LOCATION) int height;
+uniform layout(location=RAYMACHING_BLUENOISE_UV_TILING_LOCATION) vec2 blueNoiseTiling;
 
 layout(std140, binding = RAYMARCHING_PARAMETERS_LOCATION) uniform Parameters 
 {
@@ -27,6 +29,14 @@ layout(std140, binding = RAYMARCHING_PARAMETERS_LOCATION) uniform Parameters
     float maxDistance;
     int pad0, pad1;
 };
+
+float sampleNoise(vec2 uv) // Interleaved gradient
+{
+    vec2 pixel = uv*vec2(width, height);
+    pixel += (float(frame) * 5.588238f);
+    return fract(52.9829189f * fract(0.06711056f*float(pixel.x) + 0.00583715f*float(pixel.y)));  
+
+}
 
 float calculateAnisotropy(float k, float cosTheta)
 {
@@ -125,7 +135,7 @@ void main()
         vec3 V = normalize(ray);
 
         vec3 result = vec3(0.0);
-        vec3 currentPos = view_pos.xyz;
+        vec3 currentPos = view_pos.xyz+marchingStep*sampleNoise(uv);
         float transmittance = 1.0;
 
         for(int i=0; i < NUM_STEPS; ++i)

@@ -1132,9 +1132,15 @@ UID ResourceMesh::LoadCylinder(const char* cylinder_name, float height, float ra
 
 UID ResourceMesh::LoadCone(const char* name, float height, float radius, unsigned slices, unsigned stacks, UID uid)
 {
+    float3 center(0.0f, 0.0f, 0.0f);
+    float3 normal(0.0f, -1.0f, 0.0f);
     par_shapes_mesh* mesh = par_shapes_create_cone(int(slices), int(stacks));
     par_shapes_rotate(mesh, -float(PAR_PI*0.5), (float*)&float3::unitX);
-	par_shapes_translate(mesh, 0.0f, -0.5f, 0.0f);
+	par_shapes_translate(mesh, 0.0f, -1.0f, 0.0f);
+    par_shapes_mesh* disk= par_shapes_create_parametric_disk(slices, stacks);
+    par_shapes_rotate(disk, float(PAR_PI * 0.5), (float*)&float3::unitX);
+    par_shapes_translate(disk, 0.0f, -1.0f, 0.0f);
+    par_shapes_merge(mesh, disk);
 
 	if (mesh)
 	{
@@ -1149,6 +1155,7 @@ UID ResourceMesh::LoadCone(const char* name, float height, float radius, unsigne
         uid = Generate(name, mesh, uid);
 
 		par_shapes_free_mesh(mesh);
+        par_shapes_free_mesh(disk);
 
 		return uid;
 	}

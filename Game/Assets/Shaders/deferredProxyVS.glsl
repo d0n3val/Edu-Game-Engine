@@ -7,19 +7,18 @@
 #include "/shaders/lighting.glsl"
 
 layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
-layout(location = DRAW_ID_ATTRIB_LOCATION) in int  draw_id_att;
 
 out vec2 uv;
 out flat int draw_id;
 
 void main()
 {
-    PointLight light = points[draw_id_att];
+    PointLight light = points[gl_InstanceID];
 
     vec4 clipping = proj*view*vec4(light.position.xyz+vertex_position*light.position.w, 1.0);
     uv = (clipping.xy/clipping.w)*0.5+0.5;
 
-    draw_id = draw_id_att;
+    draw_id = gl_InstanceID;
 
     gl_Position = clipping;
 

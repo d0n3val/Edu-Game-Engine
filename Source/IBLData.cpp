@@ -88,7 +88,7 @@ void IBLData::SetEnvironmentRes(UID uid)
     ResourceTexture *textureRes = handle.GetPtr<ResourceTexture>();
     if(textureRes && textureRes->GetMetadata().texType == TextureType_Cube)
     {
-        SetEnvironment(static_cast<TextureCube*>(textureRes->GetTexture()));
+        SetEnvironment(static_cast<TextureCube*>(textureRes->GetTexture()), textureRes->GetMetadata().width);
         envRes = handle;
     }
     else
@@ -101,22 +101,25 @@ void IBLData::generateEnvironment(const float3& position, const Quat& rotation, 
 {
     const int DEFAULT_IBL_SIZE = 512;
 
-    SetEnvironment(utils.LocalIBL(position, rotation, farPlane, resolution));
+    SetEnvironment(utils.LocalIBL(position, rotation, farPlane, resolution), resolution);
 }
 
-void IBLData::SetEnvironment(TextureCube* env, uint resolution, uint numSamples, uint roughnessLevels)
+void IBLData::SetEnvironment(TextureCube* env, uint cubemapSize, uint resolution, uint numSamples, uint roughnessLevels)
 {
     const int ENVIRONMENT_BRDF_RESOLUTION = 512;
     const int DIFFUSE_IBL_RESOLUTION = 512;
     const int PREFILTERED_IBL_RESOLUTION = 2048;
     const int PREFILTERED_IBL_LEVELS = 6; // 128x128
+    const int LOD_BIAS = 0;
 
     envRes = 0;
     environment = env;
     prefilteredLevels = PREFILTERED_IBL_LEVELS; 
 
-    prefilteredIBL.reset(utils.PrefilteredSpecular(environment, resolution, numSamples, roughnessLevels));
-    diffuseIBL.reset(utils.DiffuseIBL(environment, resolution, numSamples));
+    env->SetMinMaxFiler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+    env->GenerateMipmaps(0, log2f(float(cubemapSize))+1);
+    prefilteredIBL.reset(utils.PrefilteredSpecular(environment, cubemapSize, resolution, numSamples, roughnessLevels, LOD_BIAS));
+    diffuseIBL.reset(utils.DiffuseIBL(environment, cubemapSize, resolution, numSamples, LOD_BIAS));
 
     if(!environmentBRDF)
     {

@@ -35,9 +35,19 @@ mat3 computeTangetSpace(in vec3 normal)
     return mat3(right, up, normal);
 }
 
+// https://developer.nvidia.com/gpugems/gpugems3/part-iii-rendering/chapter-20-gpu-based-importance-sampling
+// https://cgg.mff.cuni.cz/~jaroslav/papers/2007-sketch-fis/Final_sap_0073.pdf
+float computeLod(float pdf, int numSamples, int width)
+{
+    // // note that 0.5 * log2 is equivalent to log4
+    return max(0.5 * log2( 6.0 * float(width) * float(width) / (float(numSamples) * pdf)), 0.0);
+}
+
 #ifdef DIFFUSE_IBL
 
 uniform int numSamples;
+uniform int cubemapSize;
+uniform int lodBias;
 
 vec3 hemisphereCosineSample(in vec2 rand)
 {
@@ -57,9 +67,13 @@ void main()
 
     for(int i = 0;  i < numSamples; ++i)
     {
-        vec3 dir = tangentSpace*hemisphereCosineSample(hammersley2D(i, numSamples));
+        vec3 dir  = hemisphereCosineSample(hammersley2D(i, numSamples));
+        float pdf = dir.z/PI;
+        float lod = computeLod(pdf, numSamples, cubemapSize);
 
-        irradiance += texture(skybox, dir).rgb;
+        dir.xyz   = tangentSpace*dir.xyz;
+
+        irradiance += textureLod(skybox, dir.xyz, lod+lodBias).rgb;
     }
 
     fragColor = vec4(irradiance/float(numSamples), 1.0);
@@ -87,6 +101,16 @@ vec3 hemisphereSampleGGX(in vec2 rand, float roughness)
 
 uniform float roughness;
 uniform int numSamples;
+uniform int cubemapSize;
+uniform int lodBias;
+
+float Sq(float value) {return value*value;}
+
+float D_GGX(float NdotH, float roughness) 
+{
+    float roughnessSq = roughness*roughness;
+    return roughnessSq/(PI*Sq(Sq(NdotH)*(roughnessSq-1)+1));
+}
 
 void main()
 {
@@ -99,12 +123,19 @@ void main()
 
     for( int i = 0; i < numSamples; ++i ) 
     {
-        vec3 H = normalize(tangentSpace*hemisphereSampleGGX( hammersley2D(i, numSamples), roughness));
+        vec3 dir = hemisphereSampleGGX( hammersley2D(i, numSamples), roughness);
+
+        // float pdf = D_GGX(NoH, roughness) * NoH / (4.0 * VoH);
+        // but since V = N => VoH == NoH
+        float pdf = D_GGX(dir.z, roughness)/4.0;
+        float lod = computeLod(pdf, numSamples, cubemapSize);
+
+        vec3 H = normalize(tangentSpace*dir);
         vec3 L = reflect(-V, H); 
         float NdotL = dot( N, L );
         if( NdotL > 0 ) 
         {
-            color += texture(skybox, L).rgb * NdotL;
+            color += textureLod(skybox, L, lod+lodBias).rgb * NdotL;
             weight += NdotL;
         }
     }
@@ -120,7 +151,8 @@ float SmithVSF(float NdotL, float NdotV, float roughness)
 {
     float GGXV = NdotL * (NdotV * (1.0 - roughness) + roughness);
     float GGXL = NdotV * (NdotL * (1.0 - roughness) + roughness);
-    return 0.5 / max(0.00001, (GGXV + GGXL));
+    return 0.5 / (GGXV + GGXL);
+    float roughnessSq = roughness * roughness;
 }
 
 void main()

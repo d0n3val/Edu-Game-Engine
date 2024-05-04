@@ -150,7 +150,7 @@ TextureCube* CubemapUtils::LocalIBL(const float3& position, const Quat& rotation
 
 }
 
-TextureCube *CubemapUtils::DiffuseIBL(TextureCube *texture, uint resolution, uint numSamples)
+TextureCube *CubemapUtils::DiffuseIBL(TextureCube *texture, uint cubemapSize, uint resolution, uint numSamples, uint lodBias)
 {
     if (!vao) Init();
 
@@ -176,6 +176,8 @@ TextureCube *CubemapUtils::DiffuseIBL(TextureCube *texture, uint resolution, uin
     diffuseIBL->Use();
     diffuseIBL->BindTextureFromName("skybox", 0, texture);
     diffuseIBL->BindUniformFromName("numSamples", int(numSamples));
+    diffuseIBL->BindUniformFromName("cubemapSize", int(cubemapSize));
+    diffuseIBL->BindUniformFromName("lodBias", int(lodBias));
 
     // Render each cube plane
     for(uint i=0; i<6; ++i)
@@ -204,7 +206,7 @@ TextureCube *CubemapUtils::DiffuseIBL(TextureCube *texture, uint resolution, uin
     return cubeMap;
 }
 
-TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint resolution, uint numSamples, uint prefilteredLevels)
+TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint cubemapSize, uint resolution, uint numSamples, uint prefilteredLevels, uint lodBias)
 {
     if (!vao) Init();
 
@@ -237,6 +239,9 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint resolu
         prefilteredIBL->Use();
         prefilteredIBL->BindTextureFromName("skybox", 0, texture);
         prefilteredIBL->BindUniformFromName("numSamples", int(numSamples));
+        prefilteredIBL->BindUniformFromName("cubemapSize", int(cubemapSize));
+        prefilteredIBL->BindUniformFromName("lodBias", int(lodBias));
+        prefilteredIBL->BindUniformFromName("roughness", float(roughness)/float(prefilteredLevels));
 
         // Render each cube plane
         for (uint i = 0; i < 6; ++i)
@@ -254,7 +259,8 @@ TextureCube* CubemapUtils::PrefilteredSpecular(TextureCube* texture, uint resolu
 
             prefilteredIBL->BindUniformFromName("proj", proj);
             prefilteredIBL->BindUniformFromName("view", view);
-            prefilteredIBL->BindUniformFromName("roughness", float(roughness)/float(prefilteredLevels));
+
+
 
             glDepthFunc(GL_ALWAYS);
             vao->Bind();

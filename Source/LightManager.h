@@ -78,7 +78,7 @@ class LightManager
     {
         float4 position; // position + anisotropy
         float4 direction;
-        float4 color;
+        float4 color; // colour+ outer angle
         float  distance;
         float  inner;
         float  outer;

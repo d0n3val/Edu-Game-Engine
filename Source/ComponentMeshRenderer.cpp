@@ -257,14 +257,15 @@ void ComponentMeshRenderer::UpdateSkinPalette(float4x4* palette) const
 
 	if(numBones > 0)
 	{
-        float4x4 rootT = rootGO && rootGO->GetParent() ? rootGO->GetParent()->GetGlobalTransformation().Inverted() : float4x4::identity;
+        float4x4 rootT = float4x4::identity;
 
         for(unsigned i=0; i < numBones; ++i)
         {
             const Bone& bone = bones[i];
             const GameObject* bone_node = bone.go;
 
-            palette[i] = bone_node ? rootT * bone_node->GetGlobalTransformation() * bone.bind :  float4x4::identity;
+            float4x4 transform = bone_node->GetGlobalTransformation();
+            palette[i] = bone_node ? rootT * transform * bone.bind :  float4x4::identity;
         }
     }
 

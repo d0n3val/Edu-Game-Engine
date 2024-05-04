@@ -14,7 +14,7 @@
 #include "Config.h"
 #include <string>
 
-#include "Leaks.h"
+#include "OpenGL.h"
 
 #define LAST_UID_FILE "LAST_UID"
 
@@ -54,6 +54,7 @@ bool ModuleResources::Start(Config * config)
     white_fallback->LoadFallback(white_fallback, float3(1.0f));
     black_fallback->LoadFallback(black_fallback, float3(0.0f));
 
+    LoadDefaultBlueNoise();
 	LoadDefaultSkybox();
     LoadDefaultSphere();
 	LoadDefaultPlane();
@@ -673,11 +674,42 @@ bool ModuleResources::LoadDefaultSkybox()
         skybox->exported_file = "*Default Skybox*";
         skybox->user_name = "*Default skybox*";
 
+        delete[] buffer;
+
         return true;
     }
 
 	return false;
 }
+
+bool ModuleResources::LoadDefaultBlueNoise()
+{
+    blueNoise = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture, 6));
+
+    char* buffer = nullptr;
+    //uint size = App->fs->Load("Assets/Textures/BlueNoise/512_512/LDR_LLL1_0.png", &buffer);
+    uint size = App->fs->Load("Assets/Textures/BlueNoise/512_512/LDR_RGB1_0.png", &buffer);
+
+
+    if (buffer != nullptr)
+    {
+        blueNoise->LoadFromBuffer(buffer, size);
+        blueNoise->loaded++;
+        blueNoise->file = "*Default BlueNoise*";
+        blueNoise->exported_file = "*Default BlueNoise*";
+        blueNoise->user_name = "*Default blue noise*";
+
+        blueNoise->GetTexture()->SetWrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
+
+
+        delete[] buffer;
+
+        return true;
+    }
+
+    return false;
+}
+
 
 bool ModuleResources::LoadDefaultRedImage()
 {
@@ -727,7 +759,7 @@ bool ModuleResources::LoadDefaultCylinder()
 
 bool ModuleResources::LoadDefaultCone()
 {
-	cone = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadCone("DefaultCylinder", 1.0f, 0.1f, 20, 20, UID(7))));
+	cone = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadCone("DefaultCone", 1.0f, 0.5f, 30, 25, UID(7))));
 
 	return cone != nullptr;
 }

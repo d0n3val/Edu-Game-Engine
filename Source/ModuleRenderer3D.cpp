@@ -127,7 +127,7 @@ bool ModuleRenderer3D::Init(Config* config)
         glDebugMessageCallback(&DebugMessageGL, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 #endif
-
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		//Use Vsync
 		bool set_vsync = config->GetBool("Vertical Sync", false);
 		vsync = !set_vsync; // force change

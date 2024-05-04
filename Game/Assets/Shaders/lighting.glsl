@@ -33,12 +33,14 @@ struct PointLight
 {
     vec4 position; // position+radius
     vec4 color;
+    float anisotropy;
+    int pad0, pad1, pad2;
 };
 
 struct SpotLight
 {
     vec4  position; // position+anisotropy
-    vec4  direction;
+    vec4  direction; // directio+radius
     vec4  color;
     float dist;
     float inner;
@@ -90,12 +92,14 @@ readonly layout(std430, binding = DIRLIGHT_SSBO_BINDING) buffer DirLightBuffer
 readonly layout(std430, binding = POINTLIGHT_SSBO_BINDING) buffer PointLights
 {
     uint       num_point;
+    int        pad0, pad1, pad2;
     PointLight points[];
 };
 
 readonly layout(std430, binding = SPOTLIGHT_SSBO_BINDING) buffer SpotLights
 {
     uint      num_spot;
+    int       pad3, pad4, pad5;
     SpotLight spots[];
 };
 
@@ -393,6 +397,16 @@ vec3 ShadingAmbient(in PBR pbr)
     return ShadingAmbientIBL(pbr, planarColor);
 }
 
+vec3 ShadingSpot(in PBR pbr, uint index)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
+
+    float shadow = min(1.0, pbr.shadow+0.5);
+
+    return Spot(pbr.position, pbr.normal, V, spots[index], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+}
+
 vec3 ShadingPoint(in PBR pbr, uint index)
 {
     vec3 V           = normalize(view_pos.xyz-pbr.position);
@@ -506,7 +520,7 @@ vec4 ShadingNoPoint(in PBR pbr)
 {
     vec3 color = ShadingAmbient(pbr);
     color += ShadingDirectional(pbr);
-    color += ShadingSpot(pbr);
+    //color += ShadingSpot(pbr);
     color += ShadingSphere(pbr);
     color += ShadingQuad(pbr);
     color += ShadingTube(pbr);

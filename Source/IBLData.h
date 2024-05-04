@@ -42,7 +42,7 @@ public:
     void               SetEnvironmentRes    (UID uid);
     ResHandle          GetEnvironmentRes() const { return envRes;  }
     
-    void               SetEnvironment       (TextureCube* env, uint resolution = 512, uint numSamples = 2048, uint roughnessLevels = 8);
+    void               SetEnvironment       (TextureCube* env, uint cubemapSize, uint resolution = 256, uint numSamples = 2048, uint roughnessLevels = 9);
     TextureCube*       GetEnvironment       ()        { return environment; }
     const TextureCube* GetEnvironment       () const  { return environment; } 
 

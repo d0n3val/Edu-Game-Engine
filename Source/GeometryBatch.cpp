@@ -789,8 +789,12 @@ void GeometryBatch::UpdateModels()
             auto it = objects.find(object);
             if (it != objects.end())
             {
-                transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
                 const PerInstance& instanceData = instances[it->second];
+
+                if (instanceData.numBones > 0)
+                    transforms[it->second] = float4x4::identity;
+                else
+                    transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
 
                 // morph targets
                 if (totalTargets)

@@ -258,6 +258,7 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     {
         directionalSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, sizeof(DirLightData), nullptr, true);
         directionalData[frameCount] = reinterpret_cast<DirLightData *>(directionalSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, sizeof(DirLightData)));
+        glObjectLabel(GL_BUFFER, directionalSSBO[frameCount]->Id(), -1, "DirectionalLightSSBO");
     }
 
     DirLightData* directionalPtr = directionalData[frameCount]; 
@@ -269,6 +270,8 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
         pointBufferSize = uint(points.size());
         pointLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, pointBufferSize * sizeof(PointLightData) + sizeof(int) * 4, nullptr, true);
         pointLightData[frameCount] = reinterpret_cast<PointLightSet*>(pointLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, pointBufferSize * sizeof(PointLightData) + sizeof(int) * 4));
+
+        glObjectLabel(GL_BUFFER, pointLightSSBO[frameCount]->Id(), -1, "PointLightSSBO");
     }
 
     PointLightSet* pointPtr = pointLightData[frameCount]; 
@@ -306,8 +309,8 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
         if(light->GetEnabled())
         {
             spotPtr->spots[enabledSpotSize].position    = float4(light->GetPosition(), light->GetAnisotropy());
-            spotPtr->spots[enabledSpotSize].direction   = float4(light->GetDirection(), 0.0f);
-            spotPtr->spots[enabledSpotSize].color       = float4(light->GetColor(), 0.0f);
+            spotPtr->spots[enabledSpotSize].direction   = float4(light->GetDirection(), tanf(light->GetOutterCutoff())*light->GetDistance());
+            spotPtr->spots[enabledSpotSize].color       = float4(light->GetColor(), light->GetOutterCutoff());
             spotPtr->spots[enabledSpotSize].distance    = light->GetDistance();
             spotPtr->spots[enabledSpotSize].inner       = cosf(light->GetInnerCutoff());
             spotPtr->spots[enabledSpotSize].outer       = cosf(light->GetOutterCutoff());

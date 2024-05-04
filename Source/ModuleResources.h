@@ -59,11 +59,13 @@ public:
     const ResourceTexture* GetWhiteFallback() const { return white_fallback; }
     const ResourceTexture* GetBlackFallback() const { return black_fallback; }
     const ResourceTexture* GetDefaultSkybox() const { return skybox; }
+    const ResourceTexture* GetDefaultBlueNoise() const { return blueNoise;  }
 
 	const ResourceMesh*    GetDefaultBox() const { return cube; }
 	const ResourceMesh*    GetDefaultSphere() const { return sphere; }
 	const ResourceMesh*    GetDefaultPlane() const { return plane; }
 	const ResourceMesh*    GetDefaultCylinder() const { return cylinder; }
+    const ResourceMesh*    GetDefaultCone() const {return cone; }
 
     const char* GetDirByType(Resource::Type type) const;
 
@@ -72,6 +74,7 @@ private:
 	void LoadUID();
 	void SaveUID() const;
     UID ImportSuccess(Resource::Type type, const char* file_name, const char* user_name, const std::string& output);
+    bool LoadDefaultBlueNoise();
     bool LoadDefaultSkybox();
 	bool LoadDefaultBox();
 	bool LoadDefaultSphere();
@@ -98,6 +101,7 @@ private:
     ResourceTexture* redImage = nullptr;
     ResourceTexture* white_fallback = nullptr;
     ResourceTexture* black_fallback = nullptr;
+    ResourceTexture* blueNoise = nullptr;
 };
 
 #endif // __MODULERESOURCES_H__

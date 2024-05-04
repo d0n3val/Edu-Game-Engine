@@ -267,11 +267,11 @@ bool ResourceAnimation::ImportGLTF(const char* full_path, unsigned first, unsign
                         }
                     }
                 }
-
-                output.push_back(std::string());
-                if (!res.Save(output.back()))
-                    return false;
             }
+
+            output.push_back(std::string());
+            if (!res.Save(output.back()))
+                return false;
         }
 
         return true;

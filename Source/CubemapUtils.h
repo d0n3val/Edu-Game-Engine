@@ -26,8 +26,8 @@ public:
     void         RenderCubemapLod       (const TextureCube* cubemap, const float4x4& proj, const float4x4& view, float lod) ;
 
     TextureCube* LocalIBL               (const float3& position, const Quat& rotation, float farPlane, uint resolution);
-    TextureCube* DiffuseIBL             (TextureCube* texture, uint resolution, uint numSamples);
-    TextureCube* PrefilteredSpecular    (TextureCube* texture, uint resolutioni, uint numSamples, uint prefilteredLevels);
+    TextureCube* DiffuseIBL             (TextureCube* texture, uint cubemapSize, uint resolution, uint numSamples, uint lodBias);
+    TextureCube* PrefilteredSpecular    (TextureCube* texture, uint cubemapSize, uint resolutioni, uint numSamples, uint prefilteredLevels, uint lodBias);
     Texture2D*   EnvironmentBRDF        (uint width, uint height);
 
     TextureCube* ConvertToCubemap   (Texture2D* texture, uint width, uint height);

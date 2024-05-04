@@ -6,6 +6,8 @@
 #include "Application.h"
 #include "ModuleHints.h"
 #include "ModuleRenderer.h"
+#include "ModuleResources.h"
+#include "ResourceTexture.h"
 #include "OpenGL.h"
 #include "OGL.h"
 #include "CameraUBO.h"
@@ -76,8 +78,14 @@ void FogPass::execute(Framebuffer *target, uint width, uint height)
 
         // Bindings
         result->BindImage(RAYMARCHING_FOG_DENSITY_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        const ResourceTexture* blueNoise = App->resources->GetDefaultBlueNoise();
+        float2 tiling = float2(float(width)/float(blueNoise->GetMetadata().width), float(height)/float(blueNoise->GetMetadata().height));
+
+        blueNoise->GetTexture()->Bind(RAYMARCHING_BLUENOISE_TEX_BINDING);
         rayMarchingProgram->BindUniform(RAYMARCHING_WIDHT_LOCATION, int(width));
         rayMarchingProgram->BindUniform(RAYMARCHING_HEIGHT_LOCATION, int(height));
+
+        rayMarchingProgram->BindUniform(RAYMACHING_BLUENOISE_UV_TILING_LOCATION, tiling);
         App->level->GetLightManager()->Bind();
         parametersUBO->BindToPoint(RAYMARCHING_PARAMETERS_LOCATION);
 
