@@ -155,7 +155,11 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[DIST_FOG_BLUR].type = TYPE_BOOL;
     hints[DIST_FOG_BLUR].value.bvalue = true;
 
-    hints[RAYMARCHING_AMBIENT_COLOUR].type = TYPE_FLOAT3; 
+
+    hints[RAYMARCHING_BLUR].type = TYPE_BOOL;
+    hints[RAYMARCHING_BLUR].value.bvalue = true;
+
+    hints[RAYMARCHING_AMBIENT_COLOUR].type = TYPE_FLOAT3;
     hints[RAYMARCHING_AMBIENT_COLOUR].value.f3value[0] = hints[RAYMARCHING_AMBIENT_COLOUR].value.f3value[1] = hints[RAYMARCHING_AMBIENT_COLOUR].value.f3value[2] = 0.0f;
 
     hints[RAYMARCHING_EXTINCTION_COEFF].type = TYPE_FLOAT;
@@ -223,8 +227,9 @@ void ModuleHints::Save(Config* config) const
     config->AddFloat("Distance Fog Min", hints[DIST_FOG_MIN].value.fvalue);
     config->AddFloat("Distance Fog Max", hints[DIST_FOG_MAX].value.fvalue);
     config->AddFloat4("Distance Fog Curve", float4(hints[DIST_FOG_CURVE].value.f4value));
-    config->AddBool("Distance Fog Blur", hints[DIST_FOG_CURVE].value.bvalue);
+    config->AddBool("Distance Fog Blur", hints[DIST_FOG_BLUR].value.bvalue);
 
+    config->AddBool("RayMarching Blur", hints[RAYMARCHING_BLUR].value.bvalue);
     config->AddFloat3("RayMarching Ambient", float3(hints[RAYMARCHING_AMBIENT_COLOUR].value.f3value));
     config->AddFloat("RayMarching Extinction", hints[RAYMARCHING_EXTINCTION_COEFF].value.fvalue);
     config->AddFloat("RayMarching Fog Intensity", hints[RAYMARCHING_FOG_INTENSITY].value.fvalue);
@@ -303,6 +308,8 @@ bool ModuleHints::Init(Config* config)
     hints[DIST_FOG_CURVE].value.f3value[3] = curve[3];
 
     hints[DIST_FOG_BLUR].value.bvalue = config->GetBool("Distance Fog Blur");
+
+    hints[RAYMARCHING_BLUR].value.bvalue = config->GetBool("RayMarching Blur");
 
     float3 ambient = config->GetFloat3("RayMarching Ambient");
     hints[RAYMARCHING_AMBIENT_COLOUR].value.f3value[0] = ambient[0];

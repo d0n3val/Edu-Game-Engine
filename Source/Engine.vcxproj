@@ -436,6 +436,7 @@
     <ClInclude Include="tinyspline\include\tinysplinecpp.h" />
     <ClInclude Include="TubeLight.h" />
     <ClInclude Include="Viewport.h" />
+    <ClInclude Include="VolumetricPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AnimController.cpp" />
@@ -650,6 +651,7 @@
     <ClCompile Include="tinyspline\include\tinysplinecpp.cpp" />
     <ClCompile Include="TubeLight.cpp" />
     <ClCompile Include="Viewport.cpp" />
+    <ClCompile Include="VolumetricPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\appveyor.yml" />

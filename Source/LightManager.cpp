@@ -308,13 +308,12 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     {
         if(light->GetEnabled())
         {
-            spotPtr->spots[enabledSpotSize].position    = float4(light->GetPosition(), light->GetAnisotropy());
-            spotPtr->spots[enabledSpotSize].direction   = float4(light->GetDirection(), tanf(light->GetOutterCutoff())*light->GetDistance());
-            spotPtr->spots[enabledSpotSize].color       = float4(light->GetColor(), light->GetOutterCutoff());
+            spotPtr->spots[enabledSpotSize].transform   = light->GetTransform().Transposed();
+            spotPtr->spots[enabledSpotSize].color       = float4(light->GetColor()*light->GetIntensity(), light->GetAnisotropy());
             spotPtr->spots[enabledSpotSize].distance    = light->GetDistance();
             spotPtr->spots[enabledSpotSize].inner       = cosf(light->GetInnerCutoff());
             spotPtr->spots[enabledSpotSize].outer       = cosf(light->GetOutterCutoff());
-            spotPtr->spots[enabledSpotSize].intensity   = light->GetIntensity();
+            spotPtr->spots[enabledSpotSize].radius      = tanf(light->GetOutterCutoff())*light->GetDistance();
 
             ++enabledSpotSize;
         }

@@ -39,13 +39,12 @@ struct PointLight
 
 struct SpotLight
 {
-    vec4  position; // position+anisotropy
-    vec4  direction; // directio+radius
-    vec4  color;
+    mat4  transform;
+    vec4  color; // color+anisotropy
     float dist;
     float inner;
     float outer;
-    float intensity;
+    float radius;
 };
 
 struct SphereLight
@@ -158,21 +157,20 @@ vec3 Point(const vec3 pos, const vec3 normal, const vec3 view_dir, const PointLi
 vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLight light, 
                    const vec3 diffuseColor, const vec3 specularColor, float roughness)
 {
-    vec3 light_dir    = light.position.xyz-pos;
+    vec3 light_dir    = light.transform[3].xyz-pos;
     float distance    = length(light_dir);
-    float projDist    = dot(light.direction.xyz, -light_dir);
+    float projDist    = dot(-light.transform[1].xyz, -light_dir);
     light_dir         = light_dir/distance;
     float lightDist   = light.dist;
     float inner       = light.inner;
     float outer       = light.outer;
-    float intensity   = light.intensity;
 
-    float cone        = GetCone(-light_dir, light.direction.xyz, inner, outer);
+    float cone        = GetCone(-light_dir, -light.transform[1].xyz, inner, outer);
 
     // epic falloff
     float att         = Sq(max(1.0-Sq(Sq(projDist/lightDist)), 0.0))/(Sq(projDist)+1);
 
-    return GGXShading(normal, view_dir, light_dir, light.color.rgb*intensity, diffuseColor, specularColor, roughness, att*cone);
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att*cone);
 }
 
 vec3 Sphere(const vec3 pos, const vec3 normal, vec3 view_dir, const vec3 light_pos, float sphere_radius, 

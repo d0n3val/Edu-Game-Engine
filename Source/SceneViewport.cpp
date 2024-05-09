@@ -541,7 +541,7 @@ void SceneViewport::DrawGuizmoProperties(PointLight* point)
 
 void SceneViewport::DrawGuizmoProperties(SpotLight* spot) 
 {
-    float4x4 model = float4x4::LookAt(spot->GetPosition(), spot->GetPosition()+spot->GetDirection(), float3::unitZ, float3::unitY, float3::unitY);
+    float4x4 model = spot->GetTransform();
     model.Transpose();
 
     ImGui::RadioButton("Translate", (int*)&guizmo_op, (int)ImGuizmo::TRANSLATE);
@@ -557,8 +557,8 @@ void SceneViewport::DrawGuizmoProperties(SpotLight* spot)
     {
         ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, (float*)&model);
 
-        spot->SetPosition(model.Row3(3));
-        spot->SetDirection(model.Row3(2));
+        model.Transpose();
+        spot->SetTransform(model);
     }
 
     ImGui::PushID("snap");
@@ -954,7 +954,7 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     ImGuizmo::BeginFrame();
     ImGuizmo::Enable(true);
 
-    float4x4 model = float4x4::LookAt(spot->GetPosition(), spot->GetPosition()+spot->GetDirection(), float3::unitZ, float3::unitY, float3::unitY);
+    float4x4 model = spot->GetTransform();
     model.Transpose();
 
     float4x4 delta;
@@ -966,17 +966,19 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
 
     if (ImGuizmo::IsUsing() && !delta.IsIdentity())
     {
-        spot->SetPosition(model.Row3(3));
-        spot->SetDirection(model.Row3(2));
+        model.Transpose();
+        spot->SetTransform(model);
     }
 
     float distance = spot->GetDistance();
 
-    float3 pos   = spot->GetPosition();
-    float3 dir   = spot->GetDirection();
+    float3 pos   = spot->GetTransform().Col3(3);
+    float3 dir   = -spot->GetTransform().Col3(1);
     float3 color = spot->GetColor();
     float angle  = spot->GetOutterCutoff();
-    float3 axis[] = { model.Row3(0), model.Row3(1), (model.Row3(0)+model.Row3(1)).Normalized(), (model.Row3(0)-model.Row3(1)).Normalized()};
+    float3 axis[] = { model.Row3(0), model.Row3(2), -model.Row3(0), -model.Row3(2),
+                      (model.Row3(0)+model.Row3(2)).Normalized(), -(model.Row3(0) + model.Row3(2)).Normalized(), 
+                      (model.Row3(0) - model.Row3(2)).Normalized(), -(model.Row3(0) - model.Row3(2)).Normalized() };
 
     dd::arrow(pos, pos+dir*(distance*0.1f), color, distance*0.01f);
     dd::line(pos, pos+dir*distance, color);
@@ -986,7 +988,7 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     for(uint i=0, count = sizeof(axis)/sizeof(float3); i < count; ++i)
     {
         dd::line(pos, pos+(dir+axis[i]*tan_a)*distance, color);
-        dd::line(pos, pos+(dir*distance-axis[i]*tan_a)*distance, color);
+        //dd::line(pos, pos+(dir*distance-axis[i]*tan_a)*distance, color);
     }
 }
 

@@ -27,7 +27,7 @@ layout(std140, binding = RAYMARCHING_PARAMETERS_LOCATION) uniform Parameters
     float noiseScale;
     float noiseSpeed;
     float maxDistance;
-    int pad0, pad1;
+    int pad0_, pad1_;
 };
 
 float sampleNoise(vec2 uv) // Interleaved gradient
@@ -72,22 +72,21 @@ vec3 calculateSpotLight(in vec3 pos, in vec3 V)
     {
         SpotLight light = spots[i];
 
-        vec3 light_dir  = light.position.xyz-pos;
-        float projDist  = dot(light.direction.xyz, -light_dir);
-        light_dir = normalize(light_dir);
+        vec3 light_dir  = light.transform[3].xyz-pos;
+        float projDist  = dot(-light.transform[1].xyz, -light_dir);
+        light_dir       = normalize(light_dir);
         float lightDist = light.dist;
-        float intensity = light.intensity;
 
-        float anisotropy = light.position.w;
-        float phase = calculateAnisotropy(anisotropy, dot(light_dir, V));
+        float anisotropy = light.color.w;
+        float phase      = calculateAnisotropy(anisotropy, dot(light_dir, V));
 
         float inner   = light.inner;
         float outer   = light.outer;
-        float cone    = GetCone(-light_dir, normalize(light.direction.xyz), inner, outer);
+        float cone    = GetCone(-light_dir, -normalize(light.transform[1].xyz), inner, outer);
         float att     = Sq(max(1.0-Sq(Sq(projDist/lightDist)), 0.0))/(Sq(projDist)+1);
 
 
-        color += light.color.rgb*intensity*cone*att*phase;
+        color += light.color.rgb*cone*att*phase;
     }
 
     return color;

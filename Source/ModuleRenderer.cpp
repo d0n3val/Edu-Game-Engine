@@ -15,6 +15,7 @@
 #include "ShadowmapPass.h"
 #include "CascadeShadowPass.h"
 #include "FogPass.h"
+#include "VolumetricPass.h"
 #include "LinePass.h"
 #include "ParticlePass.h"
 #include "DepthRangePass.h"
@@ -78,6 +79,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     shadowmapPass = std::make_unique<ShadowmapPass>();
     cascadeShadowPass = std::make_unique<CascadeShadowPass>();
     fogPass = std::make_unique<FogPass>();
+    volumetricPass = std::make_unique<VolumetricPass>();
     linePass = std::make_unique<LinePass>();
     particlePass = std::make_unique<ParticlePass>();
     depthRangePass = std::make_unique<DepthRangePass>();
@@ -219,6 +221,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
     //fogPass->execute(frameBuffer, width, height);
+    volumetricPass->execute(frameBuffer, width, height);
 }
 
 void ModuleRenderer::RenderVFX(ComponentCamera *camera, ComponentCamera *culling, Framebuffer *frameBuffer, unsigned width, unsigned height)

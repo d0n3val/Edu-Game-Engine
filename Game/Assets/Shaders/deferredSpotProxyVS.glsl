@@ -16,14 +16,12 @@ void main()
     SpotLight light = spots[gl_InstanceID];
 
     vec3 position = vertex_position;
+    // Scale
     position.y *= light.dist;
-    position.xz *= light.direction.w*2.0; 
-    position += light.position.xyz;
-    //position.xz *= light.color.w;
+    position.xz *= light.radius*2.0; 
 
-    // Rotation ? 
+    vec4 clipping = proj*view*light.transform*vec4(position, 1.0);
 
-    vec4 clipping = proj*view*vec4(position, 1.0);
     uv = (clipping.xy/clipping.w)*0.5+0.5;
 
     draw_id = gl_InstanceID;

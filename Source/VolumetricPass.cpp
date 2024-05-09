@@ -107,37 +107,27 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     vao->Unbind();
     frameBuffer->Unbind();
 
-    bool doBlur = App->hints->GetBoolValue(ModuleHints::DIST_FOG_BLUR);
+    bool doBlur = App->hints->GetBoolValue(ModuleHints::RAYMARCHING_BLUR);
     if (doBlur)
     {
-        if (!kawase)
-            kawase = std::make_unique<DualKawaseBlur>();
-        // if (!kawase2) kawase2 = std::make_unique<DualKawaseBlur>();
+        if (!kawase) kawase = std::make_unique<DualKawaseBlur>();
 
         kawase->execute(result.get(), GL_RGBA32F, GL_RGBA, GL_FLOAT, width, height);
-        // kawase2->execute(kawase->getResult(), GL_RGBA32F, GL_RGBA, GL_FLOAT, width, height);
-
-        useApplyProgram();
-        target->Bind();
-        glViewport(0, 0, width, height);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
-        vao->Bind();
-
-        kawase->getResult()->Bind(0);
-        result->Bind(1);
     }
-    else
+
+    useApplyProgram(doBlur);
+
+    if (doBlur)
     {
-        useApplyProgramNoBlur();
-        target->Bind();
-        glViewport(0, 0, width, height);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
-        vao->Bind();
-
-        result->Bind(1);
+        kawase->getResult()->Bind(0);
     }
+
+    result->Bind(1);
+    target->Bind();
+    glViewport(0, 0, width, height);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+    vao->Bind();
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -153,14 +143,92 @@ void VolumetricPass::useProgram()
 
         if(shader->Compiled())
         {
-            rayMarchingProgram = std::make_unique<Program>(shader.get());
+            program = std::make_unique<Program>(shader.get());
         }
 	}
 
 	if(program)
 	{
-		rayMarchingProgram->Use();
+        program->Use();
 	}
+}
+
+void VolumetricPass::useConeProgram()
+{
+    if (!coneProgram)
+    {
+        std::unique_ptr<Shader> vertex, fragment;
+
+        vertex.reset(Shader::CreateVSFromFile("assets/shaders/deferredSpotProxyVS.glsl", 0, 0));
+        fragment.reset(Shader::CreateFSFromFile("assets/shaders/rayMarchingSpotProxyFS.glsl", 0, 0));
+
+        if (vertex->Compiled() && fragment->Compiled())
+        {
+            coneProgram = std::make_unique<Program>(vertex.get(), fragment.get(), "DeferredConeProxy");
+            if (!coneProgram->Linked())
+            {
+                coneProgram.release();
+            }
+        }
+    }
+
+    if (coneProgram)
+    {
+        coneProgram->Use();
+    }
+}
+
+void VolumetricPass::useApplyProgram(bool doBlur)
+{
+    if (doBlur)
+    {
+        if (!applyProgram) generateApplyProgram(true);
+        if (applyProgram) applyProgram->Use();
+    }
+    else
+    {
+        if (!applyProgramNoBlur) generateApplyProgram(false);
+        if (applyProgramNoBlur) applyProgramNoBlur->Use();
+    }
+}
+
+void VolumetricPass::generateApplyProgram(bool doBlur)
+{
+    std::unique_ptr<Shader> vertex, fragment;
+
+    const char* defines[] = { doBlur ?  "#define BLUR 1\n" : "#define BLUR 0\n"  } ;
+
+    vertex.reset(Shader::CreateVSFromFile("assets/shaders/fullscreenVS.glsl", defines, 1));
+
+    bool ok = vertex->Compiled();
+
+    if (ok)
+    {
+        fragment.reset(Shader::CreateFSFromFile("assets/shaders/applyFog.glsl", defines, 1));
+
+        ok = fragment->Compiled();
+    }
+
+    if (ok)
+    {
+        Program* prog = new Program(vertex.get(), fragment.get(), "Apply Fog");
+
+        if (prog->Linked())
+        {
+            if (doBlur)
+            {
+                applyProgram.reset(prog);
+            }
+            else
+            {
+                applyProgramNoBlur.reset(prog);
+            }
+        }
+        else
+        {
+            delete prog;
+        }
+    }
 }
 
 void VolumetricPass::resizeFrameBuffer(uint width, uint height)
@@ -175,7 +243,6 @@ void VolumetricPass::resizeFrameBuffer(uint width, uint height)
         frameBuffer->ClearAttachments();
 
         result = std::make_unique<Texture2D>(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
-        rayMarchingResult = std::make_unique<Texture2D>(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
        
         frameBuffer->AttachColor(result.get(), 0, 0); 
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
@@ -184,3 +251,5 @@ void VolumetricPass::resizeFrameBuffer(uint width, uint height)
         fbHeight = height;
     }
 }
+
+

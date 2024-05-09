@@ -17,11 +17,9 @@ public:
     const float3&   GetColor        () const { return color; }
     void            SetColor        (const float3& c) { color = c; }
 
-    float3          GetPosition     () const { return position; }
-    void            SetPosition     (const float3& p) { position = p; }
-
-    float3          GetDirection     () const { return direction; }
-	void            SetDirection(const float3& d) { direction = d.Normalized();; }
+    float3          GetDirection     () const { return transform.Row3(1); }
+    void            SetTransform     (const float4x4& t) { transform = t; }
+    const float4x4& GetTransform    () const { return transform; }
 
     float           GetInnerCutoff   () const { return inner; }
     void            SetInnerCutoff   (float angle) { inner = angle; }
@@ -44,8 +42,7 @@ public:
 private:
 
     float3 color     = float3::one;
-    float3 position  = float3::zero;
-    float3 direction = -float3::unitY;
+    float4x4 transform = float3x3::identity;
     float  inner     = 0.0f;
     float  outter    = 0.0f;
     float  distance  = 1.0f;

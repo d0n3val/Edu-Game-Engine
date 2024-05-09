@@ -76,13 +76,12 @@ class LightManager
 
     struct SpotLightData
     {
-        float4 position; // position + anisotropy
-        float4 direction;
-        float4 color; // colour+ outer angle
+        float4x4 transform; // position + anisotropy
+        float4 color; // colour+ anisotropy
         float  distance;
         float  inner;
         float  outer;
-        float  intensity;
+        float  radius; // base radius
     };
 
     struct SpotLightSet
