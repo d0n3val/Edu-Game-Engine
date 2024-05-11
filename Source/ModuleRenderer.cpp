@@ -12,6 +12,7 @@
 #include "ScreenSpaceAO.h"
 #include "ForwardPass.h"
 #include "FxaaPass.h"
+#include "SpotShadowMapPass.h"
 #include "ShadowmapPass.h"
 #include "CascadeShadowPass.h"
 #include "FogPass.h"
@@ -76,6 +77,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     deferredProxy = std::make_unique<DeferredResolveProxy>();
     decalPass = std::make_unique<DeferredDecalPass>();
     fxaa = std::make_unique<FxaaPass>();
+    spotShadowMapPass  = std::make_unique<SpotShadowMapPass>();
     shadowmapPass = std::make_unique<ShadowmapPass>();
     cascadeShadowPass = std::make_unique<CascadeShadowPass>();
     fogPass = std::make_unique<FogPass>();
@@ -186,6 +188,13 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     {
         shadowmapPass->updateRenderList(culling->frustum, depthRangePass->getMinMaxDepth());
         shadowmapPass->execute( 3000, 3000);
+    }
+
+    LightManager* lightManager = App->level->GetLightManager();
+
+    if(lightManager->GetNumSpotLights() > 0)
+    {
+        spotShadowMapPass->execute(lightManager->GetSpotLight(0), 1024, 1024);
     }
 
     deferredResolve->execute(frameBuffer, width, height);

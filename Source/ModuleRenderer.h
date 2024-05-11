@@ -36,6 +36,7 @@ class LinePass;
 class DepthRangePass;
 class PlanarReflectionPass;
 class SpotConePass;
+class SpotShadowMapPass;
 class CameraUBO;
 
 
@@ -54,6 +55,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<FxaaPass>             fxaa;
     std::unique_ptr<FogPass>              fogPass;
     std::unique_ptr<VolumetricPass>       volumetricPass;
+    std::unique_ptr<SpotShadowMapPass>    spotShadowMapPass;
     std::unique_ptr<ShadowmapPass>        shadowmapPass;
     std::unique_ptr<CascadeShadowPass>    cascadeShadowPass;
     std::unique_ptr<LinePass>             linePass;

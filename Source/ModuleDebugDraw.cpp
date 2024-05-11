@@ -597,6 +597,8 @@ bool ModuleDebugDraw::CleanUp()
 
 void ModuleDebugDraw::Draw(ComponentCamera* camera, unsigned fbo, unsigned fb_width, unsigned fb_height)
 {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "DebugDraw");
+
 	math::float4x4 view = camera->GetViewMatrix();
 	math::float4x4 proj = camera->GetProjectionMatrix();
 
@@ -607,6 +609,7 @@ void ModuleDebugDraw::Draw(ComponentCamera* camera, unsigned fbo, unsigned fb_wi
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     dd::flush();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glPopDebugGroup();
 }
 
 

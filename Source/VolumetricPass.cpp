@@ -122,10 +122,16 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     glBlendFunc(GL_ONE, GL_ONE);
     vao->Bind();
 
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
+
+    glPopDebugGroup();
 }
 
 void VolumetricPass::useProgram()

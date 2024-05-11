@@ -427,6 +427,7 @@
     <ClInclude Include="SphereLight.h" />
     <ClInclude Include="SpotConePass.h" />
     <ClInclude Include="spotlight.h" />
+    <ClInclude Include="SpotShadowMapPass.h" />
     <ClInclude Include="StateViewport.h" />
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="Timer.h" />
@@ -594,6 +595,7 @@
     <ClCompile Include="SphereLight.cpp" />
     <ClCompile Include="SpotConePass.cpp" />
     <ClCompile Include="SpotLight.cpp" />
+    <ClCompile Include="SpotShadowMapPass.cpp" />
     <ClCompile Include="StateViewport.cpp" />
     <ClCompile Include="thekla_atlas\extern\poshlib\posh.c" />
     <ClCompile Include="thekla_atlas\src\nvcore\Debug.cpp" />
