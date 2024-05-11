@@ -10,6 +10,7 @@ layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
 
 out vec2 uv;
 out flat int draw_id;
+out vec3 worldPos;
 
 void main()
 {
@@ -20,7 +21,12 @@ void main()
     position.y *= light.dist;
     position.xz *= light.radius*2.0; 
 
-    vec4 clipping = proj*view*light.transform*vec4(position, 1.0);
+    // Rotation
+    vec4 pos = light.transform*vec4(position, 1.0);
+
+    worldPos = pos.xyz;
+
+    vec4 clipping = proj*view*pos;
 
     uv = (clipping.xy/clipping.w)*0.5+0.5;
 

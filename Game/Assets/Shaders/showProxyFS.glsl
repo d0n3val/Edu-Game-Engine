@@ -5,6 +5,7 @@
 
 in vec2 uv;
 in flat int draw_id;
+in vec3 worldPos;
 out vec4 color;
 
 void main()

@@ -978,7 +978,7 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     float angle  = spot->GetOutterCutoff();
     float3 axis[] = { model.Row3(0), model.Row3(2), -model.Row3(0), -model.Row3(2),
                       (model.Row3(0)+model.Row3(2)).Normalized(), -(model.Row3(0) + model.Row3(2)).Normalized(), 
-                      (model.Row3(0) - model.Row3(2)).Normalized(), -(model.Row3(0) - model.Row3(2)).Normalized() };
+                      (model.Row3(0)-model.Row3(2)).Normalized(), -(model.Row3(0) - model.Row3(2)).Normalized() };
 
     dd::arrow(pos, pos+dir*(distance*0.1f), color, distance*0.01f);
     dd::line(pos, pos+dir*distance, color);
@@ -988,7 +988,6 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
     for(uint i=0, count = sizeof(axis)/sizeof(float3); i < count; ++i)
     {
         dd::line(pos, pos+(dir+axis[i]*tan_a)*distance, color);
-        //dd::line(pos, pos+(dir*distance-axis[i]*tan_a)*distance, color);
     }
 }
 

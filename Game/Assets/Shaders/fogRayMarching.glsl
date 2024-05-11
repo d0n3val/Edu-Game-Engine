@@ -131,7 +131,7 @@ void main()
         vec3 marchingStep = ray/float(NUM_STEPS);
         float stepSize = length(marchingStep);
 
-        vec3 V = normalize(ray);
+        vec3 V = -invView[2].xyz;
 
         vec3 result = vec3(0.0);
         vec3 currentPos = view_pos.xyz+marchingStep*sampleNoise(uv);

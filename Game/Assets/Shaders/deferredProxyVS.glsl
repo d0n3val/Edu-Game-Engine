@@ -10,12 +10,15 @@ layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
 
 out vec2 uv;
 out flat int draw_id;
+out vec3 worldPos;
 
 void main()
 {
     PointLight light = points[gl_InstanceID];
 
-    vec4 clipping = proj*view*vec4(light.position.xyz+vertex_position*light.position.w, 1.0);
+    worldPos = light.position.xyz+vertex_position*light.position.w;
+
+    vec4 clipping = proj*view*vec4(worldPos, 1.0);
     uv = (clipping.xy/clipping.w)*0.5+0.5;
 
     draw_id = gl_InstanceID;

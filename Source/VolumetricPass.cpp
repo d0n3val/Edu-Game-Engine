@@ -8,6 +8,7 @@
 #include "ModuleRenderer.h"
 #include "ModuleResources.h"
 #include "ResourceTexture.h"
+#include "ResourceMesh.h"
 #include "OpenGL.h"
 #include "OGL.h"
 #include "CameraUBO.h"
@@ -15,6 +16,7 @@
 #include "DualKawaseBlur.h"
 #include "ModuleLevelManager.h"
 #include "LightManager.h"
+#include "IBLData.h"
 
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
@@ -35,9 +37,24 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
 
     resizeFrameBuffer(width, height);
 
+
     GBufferExportPass *exportPass = App->renderer->GetGBufferExportPass();
 
-    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "RayMarching");
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "VolumetricPass");
+
+    frameBuffer->Bind();
+    glViewport(0, 0, width, height);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Additive Blend
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+    glDepthMask(GL_FALSE);
+
+    useConeProgram();
+
+    App->level->GetSkyBox()->Bind();
+    App->level->GetLightManager()->Bind();
 
     struct Parameters
     {
@@ -67,45 +84,21 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     parametersUBO->InvalidateData();
     parametersUBO->SetData(0, sizeof(params), &params);
 
-    useProgram();
 
-    // Bindings
-    result->BindImage(RAYMARCHING_FOG_DENSITY_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
-    const ResourceTexture *blueNoise = App->resources->GetDefaultBlueNoise();
-    float2 tiling = float2(float(width) / float(blueNoise->GetMetadata().width), float(height) / float(blueNoise->GetMetadata().height));
-
-    blueNoise->GetTexture()->Bind(RAYMARCHING_BLUENOISE_TEX_BINDING);
     program->BindUniform(RAYMARCHING_WIDHT_LOCATION, int(width));
     program->BindUniform(RAYMARCHING_HEIGHT_LOCATION, int(height));
-
-    program->BindUniform(RAYMACHING_BLUENOISE_UV_TILING_LOCATION, tiling);
-    App->level->GetLightManager()->Bind();
     parametersUBO->BindToPoint(RAYMARCHING_PARAMETERS_LOCATION);
+    exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
 
-    int numWorkGroupsX = (width + (RAYMARCHING_GROUP_SIZE - 1)) / RAYMARCHING_GROUP_SIZE;
-    int numWorkGroupsY = (height + (RAYMARCHING_GROUP_SIZE - 1)) / RAYMARCHING_GROUP_SIZE;
+    glBindVertexArray(App->resources->GetDefaultCone()->GetVAO());
+    glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultCone()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
 
-    glDispatchCompute(numWorkGroupsX, numWorkGroupsY, 1);
-
-    glPopDebugGroup();
-
-    exportPass->getDepth()->Bind(GBUFFER_DEPTH_TEX_BINDING);
-    App->renderer->GetCameraUBO()->Bind();
-
-    frameBuffer->Bind();
-    glViewport(0, 0, width, height);
-
-    glDepthMask(GL_FALSE);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 
     if (!vao)
         vao = std::make_unique<VertexArray>();
 
-    vao->Bind();
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    vao->Unbind();
-    frameBuffer->Unbind();
 
     bool doBlur = App->hints->GetBoolValue(ModuleHints::RAYMARCHING_BLUR);
     if (doBlur)
@@ -242,9 +235,14 @@ void VolumetricPass::resizeFrameBuffer(uint width, uint height)
 
         frameBuffer->ClearAttachments();
 
+        // TODO: Scale
         result = std::make_unique<Texture2D>(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
-       
-        frameBuffer->AttachColor(result.get(), 0, 0); 
+
+        GBufferExportPass *gBuffer = App->renderer->GetGBufferExportPass();
+
+        frameBuffer->AttachColor(result.get(), 0, 0);
+        frameBuffer->AttachDepthStencil(gBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
+
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
         fbWidth  = width;
