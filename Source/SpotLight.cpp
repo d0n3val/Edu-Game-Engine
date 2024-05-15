@@ -2,8 +2,7 @@
 #include "SpotLight.h"
 
 #include "Config.h"
-
-#include "Leaks.h"
+#include "OGL.h"
 
 SpotLight::SpotLight()
 {
@@ -46,4 +45,11 @@ void SpotLight::Load(Config& config)
     enabled    = config.GetBool("Enabled", true);
 }
 
-
+void SpotLight::SetShadowSize(uint size)
+{
+    if(size != shadowSize)
+    {
+        shadowSize = size;
+        shadowTex = nullptr;
+    }
+}

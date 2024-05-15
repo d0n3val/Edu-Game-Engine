@@ -329,12 +329,12 @@ void Framebuffer::Clear(uint width, uint height)
 }
 */
 
-void Framebuffer::Bind() 
+void Framebuffer::Bind() const 
 {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 }
 
-void Framebuffer::Unbind() 
+void Framebuffer::Unbind()  const 
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

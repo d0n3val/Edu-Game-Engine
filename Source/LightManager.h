@@ -82,10 +82,10 @@ class LightManager
         float  inner;
         float  outer;
         float  radius; // base radius
-        int pad0, pad1, pad2;
+        int    pad0;
         int    hasShadow;
-        float4x4 shadowViewProj;
         uint64_t shadowMap;
+        float4x4 shadowViewProj;
     };
 
     struct SpotLightSet

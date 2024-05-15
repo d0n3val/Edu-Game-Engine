@@ -42,6 +42,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
     // spheres
     useSphereProgram();
     App->renderer->GetCameraUBO()->Bind();
+    App->level->GetLightManager()->Bind();
     exportPass->getAlbedo()->Bind(GBUFFER_ALBEDO_TEX_BINDING);
     exportPass->getSpecular()->Bind(GBUFFER_SPECULAR_TEX_BINDING);
     exportPass->getEmissive()->Bind(GBUFFER_EMISSIVE_TEX_BINDING);
@@ -57,6 +58,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
     // cones 
     useConeProgram();
     App->renderer->GetCameraUBO()->Bind();
+    App->level->GetLightManager()->Bind();
     exportPass->getAlbedo()->Bind(GBUFFER_ALBEDO_TEX_BINDING);
     exportPass->getSpecular()->Bind(GBUFFER_SPECULAR_TEX_BINDING);
     exportPass->getEmissive()->Bind(GBUFFER_EMISSIVE_TEX_BINDING);

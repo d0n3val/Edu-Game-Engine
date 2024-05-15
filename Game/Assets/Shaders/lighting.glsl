@@ -47,10 +47,10 @@ struct SpotLight
     float     inner;
     float     outer;
     float     radius;
-    int       spotPad0, spotPad1, spotPad2;
+    int       spotPad0;
     int       hasShadow;
-    mat4      shadowViewProj;
     sampler2D shadowMap;
+    mat4      shadowViewProj;
 };
 
 struct SphereLight

@@ -297,6 +297,8 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
         spotBufferSize[frameCount] = uint(spots.size());
         spotLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, spotBufferSize[frameCount] * sizeof(SpotLightData) + sizeof(int) * 4, nullptr, true);
         spotLightData[frameCount] = reinterpret_cast<SpotLightSet*>(spotLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, spotBufferSize[frameCount] * sizeof(SpotLightData) + sizeof(int) * 4));
+        glObjectLabel(GL_BUFFER, spotLightSSBO[frameCount]->Id(), -1, "SpotLightSSBO");
+
     }
 
     SpotLightSet* spotPtr = spotLightData[frameCount]; 

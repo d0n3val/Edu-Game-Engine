@@ -125,8 +125,8 @@ public:
     Framebuffer();
     ~Framebuffer();
 
-    void Unbind();
-    void Bind();
+    void Unbind() const;
+    void Bind() const;
   
     void ClearAttachments();
     void AttachColor(const Texture2D* texture, uint attachment = 0, uint mip_level = 0);

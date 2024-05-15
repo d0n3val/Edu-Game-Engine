@@ -4,6 +4,8 @@
 #include "Math.h"
 #include "OGL.h"
 
+#include <memory>
+
 class Config;
 
 class SpotLight
@@ -44,10 +46,13 @@ public:
     void            SetAnisotropy    (float value) {anisotropy = value;}
 
     const Texture*  GetShadowTex () const {return shadowTex;}
-    void            SetShadowTex (const Texture* texture) {shadowTex = texture;}
+    void            SetShadowTex (const Texture2D* texture) { shadowTex = texture;}
 
     const float4x4& GetShadowViewProj() const {return shadowViewProj;}
     void            SetShadowViewProj(const float4x4& viewProj) {shadowViewProj = viewProj;}
+
+    uint            GetShadowSize() const { return shadowSize;}
+    void            SetShadowSize(uint size);
 
 private:
 
@@ -59,9 +64,10 @@ private:
     float  minDist  = 0.1f;
     float  intensity = 1.0f;
     float  anisotropy = 0.0f;
-    const Texture* shadowTex  = nullptr;
     float4x4 shadowViewProj = float4x4::identity;
+    uint shadowSize = 256;
     bool   enabled   = true;
+    const Texture2D* shadowTex = nullptr;
 };
 
 #endif /* __SPOTLIGHT_H__ */

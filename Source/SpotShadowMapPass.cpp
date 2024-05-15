@@ -2,6 +2,7 @@
 
 #include "Application.h"
 #include "ModuleRenderer.h"
+#include "LightManager.h"
 #include "ModuleHints.h"
 #include "ModuleLevelManager.h"
 #include "BatchManager.h"
@@ -28,36 +29,65 @@ void SpotShadowMapPass::updateRenderList()
 
 void SpotShadowMapPass::execute(SpotLight* light, uint width, uint height)
 {
-    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SpotShadowMapPass");
 
-    createFramebuffer(width, height);
-    createProgram();
-    updateFrustum(light);
-    updateCameraUBO();
+    LightManager* lightManager = App->level->GetLightManager();
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    cameraUBO->BindToPoint(CAMERA_UBO_BINDING);
-    program->Use();
+    if(lightManager->GetNumSpotLights() > 0)
+    {
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SpotShadowMapPass");
 
-    frameBuffer->Bind();
-    glViewport(0, 0, width, height);
-    glClear(GL_DEPTH_BUFFER_BIT);
+        createProgram();
 
-    App->renderer->GetBatchManager()->DoRender(objects.GetOpaques(), 0);
+        program->Use();
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
 
-    if(!blur) blur = std::make_unique<GaussianBlur>();
-    blur->execute(varianceTex.get(), blurredTex.get(), GL_RG32F, GL_RG, GL_FLOAT, 0, width, height, 0, width, height);
+        if (!blur) blur = std::make_unique<GaussianBlur>();
 
-    light->SetShadowTex(blurredTex.get());
-    light->SetShadowViewProj(frustum.ViewProjMatrix());
+        generators.resize(lightManager->GetNumSpotLights());
 
-    glPopDebugGroup();
+        for (uint i = 0; i < lightManager->GetNumSpotLights(); ++i)
+        {
+            SpotLight *light = lightManager->GetSpotLight(i);
+
+            if(light->GetEnabled())
+            {
+                Generator &generator = generators[i];
+
+                uint shadowSize = light->GetShadowSize();
+
+                generator.createFramebuffer(shadowSize);
+                generator.updateFrustum(light);
+                generator.updateCameraUBO();
+
+                generator.getCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
+                generator.getFrameBuffer()->Bind();
+
+                glViewport(0, 0, shadowSize, shadowSize);
+                glClear(GL_DEPTH_BUFFER_BIT);
+
+                App->renderer->GetBatchManager()->DoRender(generator.getObjects().GetOpaques(), 0);
+
+                blur->execute(generator.getVarianceTex(), generator.getBlurredTex(), GL_RG32F, GL_RG, GL_FLOAT, 0, shadowSize, shadowSize, 0, shadowSize, shadowSize);
+
+                light->SetShadowTex(generator.getBlurredTex());
+                light->SetShadowViewProj(generator.getFrustum().ViewProjMatrix());
+            }
+            else
+            {
+                light->SetShadowTex(nullptr);
+                light->SetShadowViewProj(float4x4::identity);
+            }
+
+        }
+
+        glPopDebugGroup();
+    }
 }
 
-void SpotShadowMapPass::createFramebuffer(uint width, uint height)
+void SpotShadowMapPass::Generator::createFramebuffer(uint size)
 {
-    if (width != fbWidth || height != fbHeight)
+    if (size != fbSize)
     {
         if (!frameBuffer)
         {
@@ -66,21 +96,20 @@ void SpotShadowMapPass::createFramebuffer(uint width, uint height)
 
         frameBuffer->ClearAttachments();
 
-        depthTex = std::make_unique<Texture2D>(width, height, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
-        varianceTex = std::make_unique<Texture2D>(width, height, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
-        blurredTex = std::make_unique<Texture2D>(width, height, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
+        depthTex = std::make_unique<Texture2D>(size, size, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+        varianceTex = std::make_unique<Texture2D>(size, size, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
+        blurredTex = std::make_unique<Texture2D>(size, size, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
 
         frameBuffer->AttachColor(varianceTex.get(), 0, 0);
         frameBuffer->AttachDepthStencil(depthTex.get(), GL_DEPTH_ATTACHMENT);
 
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
-        fbWidth = width;
-        fbHeight = height;
+        fbSize = size;
     }
 }
 
-void SpotShadowMapPass::updateFrustum(const SpotLight* light)
+void SpotShadowMapPass::Generator::updateFrustum(const SpotLight* light)
 {
     // NOTE: Angle for quat inside circle
     float radius = tanf(light->GetOutterCutoff()) * light->GetMaxDistance();
@@ -114,7 +143,7 @@ void SpotShadowMapPass::updateFrustum(const SpotLight* light)
     objects.UpdateFrom(frustum, App->level->GetRoot(), RENDERLIST_OBJ_OPAQUE);
 }
 
-void SpotShadowMapPass::updateCameraUBO()
+void SpotShadowMapPass::Generator::updateCameraUBO()
 {
     struct CameraData
     {
