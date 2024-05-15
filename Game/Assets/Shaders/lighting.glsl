@@ -4,6 +4,7 @@
 #include "/shaders/common.glsl"
 #include "/shaders/pbrDefs.glsl"
 #include "/shaders/cameraDefs.glsl"
+#include "/shaders/spotShadows.glsl"
 
 #define MIN_ROUGHNESS 0.001
 
@@ -11,6 +12,7 @@ layout(binding = DIFFUSE_IBL_TEX_BINDING) uniform samplerCube     diffuseIBL;
 layout(binding = PREFILTERED_IBL_TEX_BINDING) uniform samplerCube prefilteredIBL;
 layout(binding = ENVIRONMENT_BRDF_TEX_BINDING) uniform sampler2D  environmentBRDF;
 layout(location = PREFILTERED_LOD_LEVELS_LOCATION) uniform int    prefilteredLevels;
+layout(location = IBL_INTENSITY_LOCATION) uniform float iblIntensity;
 layout(binding = PLANAR_REFLECTION_BINDING) uniform sampler2D planarReflections;
 layout(location = PLANAR_REFLECTION_VIEWPROJ_LOCATION) uniform mat4 planarViewProj;
 layout(location = PLANAR_REFLECTION_LOD_LEVELS_LOCATION) uniform int planarLevels;
@@ -39,12 +41,16 @@ struct PointLight
 
 struct SpotLight
 {
-    mat4  transform;
-    vec4  color; // color+anisotropy
-    float dist;
-    float inner;
-    float outer;
-    float radius;
+    mat4      transform;
+    vec4      color; // color+anisotropy
+    float     dist;
+    float     inner;
+    float     outer;
+    float     radius;
+    int       spotPad0, spotPad1, spotPad2;
+    int       hasShadow;
+    mat4      shadowViewProj;
+    sampler2D shadowMap;
 };
 
 struct SphereLight
@@ -76,7 +82,7 @@ struct IBLLight
     samplerCube diffuse;
     samplerCube prefiltered;
     mat4 toLocal;
-    vec4 position;
+    vec4 position; // position+intensity
     vec4 minParallax;
     vec4 maxParallax;
     vec4 minInfluence;
@@ -170,7 +176,13 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
     // epic falloff
     float att         = Sq(max(1.0-Sq(Sq(projDist/lightDist)), 0.0))/(Sq(projDist)+1);
 
-    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att*cone);
+    float shadow      = 1.0;
+    if(light.hasShadow != 0)
+    {
+        shadow = computeSpotShadow(light.shadowMap, light.shadowViewProj, pos);
+    }
+
+    return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att*cone*shadow);
 }
 
 vec3 Sphere(const vec3 pos, const vec3 normal, vec3 view_dir, const vec3 light_pos, float sphere_radius, 
@@ -304,16 +316,14 @@ vec3 parallaxCorrection(const vec3 localPos, const vec3 localR, const vec3 minBo
     return localPos+localR*dist;
 }
 
-vec3 evaluateIBL(in PBR pbr, in samplerCube difIBL, in samplerCube prefIBL, in float roughness, in float NdotV, in vec3 coord, in vec4 planarColor)
+vec3 evaluateIBL(in PBR pbr, in samplerCube difIBL, in samplerCube prefIBL, in float roughness, in float NdotV, in vec3 coord, in vec4 planarColor, float intensity)
 {
     vec3 irradiance = texture(difIBL, pbr.normal).rgb;
     vec3 radiance   = mix(textureLod(prefIBL, coord, roughness*(prefilteredLevels-1)).rgb, planarColor.rgb, planarColor.a);
     vec2 fab        = texture(environmentBRDF, vec2(NdotV, roughness)).rg;
     vec3 indirect   = (pbr.diffuse*(1-pbr.specular))*irradiance+radiance*(pbr.specular*fab.x+fab.y);
 
-    float shadow = min(1.0, pbr.shadow+0.25);
-
-    return indirect*pbr.occlusion*shadow;
+    return indirect*pbr.occlusion*intensity;
 }
 
 bool insideBox(const vec3 localPos, const vec3 minBox, const vec3 maxBox)
@@ -347,14 +357,14 @@ vec3 ShadingAmbientIBL(in PBR pbr, in vec4 planarColor)
 
             vec3 localR = mat3(ibl.toLocal)*R;
             vec3 coord = parallaxCorrection(localPos, localR, ibl.minParallax.xyz, ibl.maxParallax.xyz);
-            color += evaluateIBL(pbr, ibl.diffuse, ibl.prefiltered, roughness, NdotV, coord, planarColor)*weight;
+            color += evaluateIBL(pbr, ibl.diffuse, ibl.prefiltered, roughness, NdotV, coord, planarColor, ibl.position.w)*weight;
             totalWeight += weight;
         }
     }
 
     if(totalWeight == 0.0)
     {
-        color = evaluateIBL(pbr, diffuseIBL, prefilteredIBL, roughness, NdotV, R, planarColor);
+        color = evaluateIBL(pbr, diffuseIBL, prefilteredIBL, roughness, NdotV, R, planarColor, iblIntensity);
     }
     else
     {
@@ -400,9 +410,7 @@ vec3 ShadingSpot(in PBR pbr, uint index)
     vec3 V           = normalize(view_pos.xyz-pbr.position);
     float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
-    float shadow = min(1.0, pbr.shadow+0.5);
-
-    return Spot(pbr.position, pbr.normal, V, spots[index], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+    return Spot(pbr.position, pbr.normal, V, spots[index], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
 }
 
 vec3 ShadingPoint(in PBR pbr, uint index)

@@ -2,6 +2,7 @@
 #define __SPOTLIGHT_H__
 
 #include "Math.h"
+#include "OGL.h"
 
 class Config;
 
@@ -27,17 +28,26 @@ public:
     float           GetOutterCutoff  () const { return outter; }
     void            SetOutterCutoff  (float angle) { outter = angle; }
 
-    float           GetDistance      () const { return distance; }
-    void            SetDistance      (float r) { distance = r; }
+    float           GetMaxDistance      () const { return maxDist; }
+    void            SetMaxDistance      (float r) { maxDist = r; }
+
+    float           GetMinDistance      () const { return minDist; }
+    void            SetMinDistance      (float r) { minDist = r; }
 
     float           GetIntensity     () const { return intensity; }
     void            SetIntensity     (float i) { intensity = i; }
 
-    bool            GetEnabled      () const { return enabled; }
-    void            SetEnabled      (bool e) { enabled = e; }
+    bool            GetEnabled       () const { return enabled; }
+    void            SetEnabled       (bool e) { enabled = e; }
 
-    float           GetAnisotropy () const {return anisotropy;}
-    void            SetAnisotropy (float value) {anisotropy = value;}
+    float           GetAnisotropy    () const {return anisotropy;}
+    void            SetAnisotropy    (float value) {anisotropy = value;}
+
+    const Texture*  GetShadowTex () const {return shadowTex;}
+    void            SetShadowTex (const Texture* texture) {shadowTex = texture;}
+
+    const float4x4& GetShadowViewProj() const {return shadowViewProj;}
+    void            SetShadowViewProj(const float4x4& viewProj) {shadowViewProj = viewProj;}
 
 private:
 
@@ -45,9 +55,12 @@ private:
     float4x4 transform = float3x3::identity;
     float  inner     = 0.0f;
     float  outter    = 0.0f;
-    float  distance  = 1.0f;
+    float  maxDist  = 1.0f;
+    float  minDist  = 0.1f;
     float  intensity = 1.0f;
     float  anisotropy = 0.0f;
+    const Texture* shadowTex  = nullptr;
+    float4x4 shadowViewProj = float4x4::identity;
     bool   enabled   = true;
 };
 

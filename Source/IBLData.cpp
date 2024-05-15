@@ -31,6 +31,7 @@ IBLData::~IBLData()
 void IBLData::Load(const Config& config)
 {
     UID texture = config.GetUInt("Texture", 0);
+    intensity = config.GetFloat("intensity", 1.0f);
     if (texture)
     {
         SetEnvironmentRes(texture);
@@ -44,6 +45,7 @@ void IBLData::Load(const Config& config)
 void IBLData::Save(Config& config) const
 {
     config.AddUInt("Texture", uint(envRes.GetUID()));
+    config.AddFloat("intensity", intensity);
 }
 
 bool IBLData::DrawEnvironment(const float4x4& proj, const float4x4& view)  
@@ -51,13 +53,13 @@ bool IBLData::DrawEnvironment(const float4x4& proj, const float4x4& view)
     if(envRes)
     {
         const ResourceTexture* res = envRes.GetPtr<ResourceTexture>();
-        utils.RenderCubemap(static_cast<const TextureCube*>(res->GetTexture()), proj, view);
+        utils.RenderCubemap(static_cast<const TextureCube*>(res->GetTexture()), proj, view, intensity);
 
         return true;
     }
     else if (environment)
     {
-        utils.RenderCubemap(environment, proj, view);
+        utils.RenderCubemap(environment, proj, view, intensity);
 
         return true;
     }
@@ -69,7 +71,7 @@ void IBLData::DrawDiffuseIBL(const float4x4& proj, const float4x4& view)
 {
     if(diffuseIBL)
     {
-        utils.RenderCubemap(diffuseIBL.get(), proj, view);
+        utils.RenderCubemap(diffuseIBL.get(), proj, view, intensity);
     }
 }
 
@@ -77,7 +79,7 @@ void IBLData::DrawPrefilteredIBL(const float4x4& proj, const float4x4& view, flo
 {
     if (prefilteredIBL)
     {
-        utils.RenderCubemapLod(prefilteredIBL.get(), proj, view, float(prefilteredLevels-1) * roughness);
+        utils.RenderCubemapLod(prefilteredIBL.get(), proj, view, float(prefilteredLevels-1) * roughness, intensity);
     }
 }
 
@@ -117,7 +119,7 @@ void IBLData::SetEnvironment(TextureCube* env, uint cubemapSize, uint resolution
     prefilteredLevels = PREFILTERED_IBL_LEVELS; 
 
     env->SetMinMaxFiler(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-    env->GenerateMipmaps(0, log2f(float(cubemapSize))+1);
+    env->GenerateMipmaps(0, uint(log2f(float(cubemapSize)))+1);
     prefilteredIBL.reset(utils.PrefilteredSpecular(environment, cubemapSize, resolution, numSamples, roughnessLevels, LOD_BIAS));
     diffuseIBL.reset(utils.DiffuseIBL(environment, cubemapSize, resolution, numSamples, LOD_BIAS));
 
@@ -135,5 +137,6 @@ void IBLData::Bind()
         diffuseIBL->Bind(DIFFUSE_IBL_TEX_BINDING);
         prefilteredIBL->Bind(PREFILTERED_IBL_TEX_BINDING);
         environmentBRDF->Bind(ENVIRONMENT_BRDF_TEX_BINDING);
+        glUniform1f(IBL_INTENSITY_LOCATION, intensity);
     }
 }

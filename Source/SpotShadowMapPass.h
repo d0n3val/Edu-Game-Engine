@@ -5,12 +5,16 @@
 #include "OGL.h"
 
 class SpotLight;
+class GaussianBlur;
 
 class SpotShadowMapPass
 {
     std::unique_ptr<Framebuffer>  frameBuffer;
     std::unique_ptr<Texture2D>    depthTex;
+    std::unique_ptr<Texture2D>    varianceTex;
+    std::unique_ptr<Texture2D>    blurredTex;
     std::unique_ptr<Program>      program;
+    std::unique_ptr<GaussianBlur> blur;
     RenderList                    objects;
     Frustum                       frustum;
     std::unique_ptr<Buffer>       cameraUBO;
@@ -23,7 +27,7 @@ public:
     ~SpotShadowMapPass();
 
     void updateRenderList();
-    void execute(const SpotLight* light, uint width, uint height);
+    void execute(SpotLight* light, uint width, uint height);
 
 private:
     void createFramebuffer(uint width, uint height);

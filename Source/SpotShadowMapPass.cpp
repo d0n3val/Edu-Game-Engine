@@ -2,12 +2,14 @@
 
 #include "Application.h"
 #include "ModuleRenderer.h"
+#include "ModuleHints.h"
 #include "ModuleLevelManager.h"
 #include "BatchManager.h"
 #include "SpotShadowMapPass.h"
 #include "SpotLight.h"
 #include "DebugDraw.h"
 #include "OpenGL.h"
+#include "GaussianBlur.h"
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 SpotShadowMapPass::SpotShadowMapPass()
@@ -22,10 +24,9 @@ SpotShadowMapPass::~SpotShadowMapPass()
 
 void SpotShadowMapPass::updateRenderList()
 {
-
 }
 
-void SpotShadowMapPass::execute(const SpotLight* light, uint width, uint height)
+void SpotShadowMapPass::execute(SpotLight* light, uint width, uint height)
 {
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SpotShadowMapPass");
 
@@ -45,6 +46,12 @@ void SpotShadowMapPass::execute(const SpotLight* light, uint width, uint height)
 
     App->renderer->GetBatchManager()->DoRender(objects.GetOpaques(), 0);
 
+    if(!blur) blur = std::make_unique<GaussianBlur>();
+    blur->execute(varianceTex.get(), blurredTex.get(), GL_RG32F, GL_RG, GL_FLOAT, 0, width, height, 0, width, height);
+
+    light->SetShadowTex(blurredTex.get());
+    light->SetShadowViewProj(frustum.ViewProjMatrix());
+
     glPopDebugGroup();
 }
 
@@ -60,6 +67,10 @@ void SpotShadowMapPass::createFramebuffer(uint width, uint height)
         frameBuffer->ClearAttachments();
 
         depthTex = std::make_unique<Texture2D>(width, height, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);
+        varianceTex = std::make_unique<Texture2D>(width, height, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
+        blurredTex = std::make_unique<Texture2D>(width, height, GL_RG32F, GL_RG, GL_FLOAT, nullptr, false);
+
+        frameBuffer->AttachColor(varianceTex.get(), 0, 0);
         frameBuffer->AttachDepthStencil(depthTex.get(), GL_DEPTH_ATTACHMENT);
 
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
@@ -71,12 +82,25 @@ void SpotShadowMapPass::createFramebuffer(uint width, uint height)
 
 void SpotShadowMapPass::updateFrustum(const SpotLight* light)
 {
+    // NOTE: Angle for quat inside circle
+    float radius = tanf(light->GetOutterCutoff()) * light->GetMaxDistance();
+    float l = sqrtf(2.0)*radius;
+    float halfL = l/2.0f;
+    float angle = atan2f(halfL, light->GetMaxDistance());
+    
+    ///float innerAngle = atanf(radius*radius/light->GetDistance() * sqrtf(2.0f));
     frustum.type = FrustumType::PerspectiveFrustum;
     frustum.pos = light->GetTransform().TranslatePart();
     frustum.front = -light->GetTransform().Col3(1);
     frustum.up = light->GetTransform().Col3(2);
-    frustum.nearPlaneDistance = 0.1f;
-    frustum.farPlaneDistance = light->GetDistance();
+    frustum.nearPlaneDistance = light->GetMinDistance();
+    frustum.farPlaneDistance = light->GetMaxDistance();
+    //frustum.verticalFov = innerAngle * 2.0f;
+    //frustum.horizontalFov = innerAngle * 2.0f;
+
+    //frustum.verticalFov = angle * 2.0f;
+    //frustum.horizontalFov = angle * 2.0f;
+
     frustum.verticalFov = light->GetOutterCutoff() * 2.0f;
     frustum.horizontalFov = light->GetOutterCutoff() * 2.0f;
 
@@ -144,5 +168,4 @@ void SpotShadowMapPass::createProgram()
         }
     }
 }
-
 

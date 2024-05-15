@@ -225,10 +225,16 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
 
         ImGui::Separator();
 
-        float distance = light->GetDistance();
-        if(ImGui::InputFloat("distance", &distance, 0.1f, 0.1f, "%.9f"))
+        float distance = light->GetMaxDistance();
+        if(ImGui::InputFloat("max distance", &distance, 0.1f, 0.1f, "%.9f"))
         {
-            light->SetDistance(distance);
+            light->SetMaxDistance(distance);
+        }
+
+        distance = light->GetMinDistance();
+        if (ImGui::InputFloat("min distance", &distance, 0.1f, 0.1f, "%.9f"))
+        {
+            light->SetMinDistance(distance);
         }
 
         float anisotropy = light->GetAnisotropy();

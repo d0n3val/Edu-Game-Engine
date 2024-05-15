@@ -265,11 +265,11 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     directionalPtr->dir = float4(directional->GetDir(), directional->GetAnisotropy());
     directionalPtr->color = float4(directional->GetColor(), directional->GetIntensity());
 
-    if(uint(points.size()) > pointBufferSize || !pointLightSSBO[frameCount])
+    if(uint(points.size()) > pointBufferSize[frameCount] || !pointLightSSBO[frameCount])
     {
-        pointBufferSize = uint(points.size());
-        pointLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, pointBufferSize * sizeof(PointLightData) + sizeof(int) * 4, nullptr, true);
-        pointLightData[frameCount] = reinterpret_cast<PointLightSet*>(pointLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, pointBufferSize * sizeof(PointLightData) + sizeof(int) * 4));
+        pointBufferSize[frameCount] = uint(points.size());
+        pointLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, pointBufferSize[frameCount] * sizeof(PointLightData) + sizeof(int) * 4, nullptr, true);
+        pointLightData[frameCount] = reinterpret_cast<PointLightSet*>(pointLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, pointBufferSize[frameCount] * sizeof(PointLightData) + sizeof(int) * 4));
 
         glObjectLabel(GL_BUFFER, pointLightSSBO[frameCount]->Id(), -1, "PointLightSSBO");
     }
@@ -292,11 +292,11 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     }
     pointPtr->count = enabledPointSize;
 
-    if(uint(spots.size()) > spotBufferSize || !spotLightSSBO[frameCount])
+    if(uint(spots.size()) > spotBufferSize[frameCount] || !spotLightSSBO[frameCount])
     {
-        spotBufferSize = uint(spots.size());
-        spotLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, spotBufferSize * sizeof(SpotLightData) + sizeof(int) * 4, nullptr, true);
-        spotLightData[frameCount] = reinterpret_cast<SpotLightSet*>(spotLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, spotBufferSize * sizeof(SpotLightData) + sizeof(int) * 4));
+        spotBufferSize[frameCount] = uint(spots.size());
+        spotLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, spotBufferSize[frameCount] * sizeof(SpotLightData) + sizeof(int) * 4, nullptr, true);
+        spotLightData[frameCount] = reinterpret_cast<SpotLightSet*>(spotLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, spotBufferSize[frameCount] * sizeof(SpotLightData) + sizeof(int) * 4));
     }
 
     SpotLightSet* spotPtr = spotLightData[frameCount]; 
@@ -308,12 +308,15 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     {
         if(light->GetEnabled())
         {
-            spotPtr->spots[enabledSpotSize].transform   = light->GetTransform().Transposed();
-            spotPtr->spots[enabledSpotSize].color       = float4(light->GetColor()*light->GetIntensity(), light->GetAnisotropy());
-            spotPtr->spots[enabledSpotSize].distance    = light->GetDistance();
-            spotPtr->spots[enabledSpotSize].inner       = cosf(light->GetInnerCutoff());
-            spotPtr->spots[enabledSpotSize].outer       = cosf(light->GetOutterCutoff());
-            spotPtr->spots[enabledSpotSize].radius      = tanf(light->GetOutterCutoff())*light->GetDistance();
+            spotPtr->spots[enabledSpotSize].transform       = light->GetTransform().Transposed();
+            spotPtr->spots[enabledSpotSize].color           = float4(light->GetColor()*light->GetIntensity(), light->GetAnisotropy());
+            spotPtr->spots[enabledSpotSize].distance        = light->GetMaxDistance();
+            spotPtr->spots[enabledSpotSize].inner           = cosf(light->GetInnerCutoff());
+            spotPtr->spots[enabledSpotSize].outer           = cosf(light->GetOutterCutoff());
+            spotPtr->spots[enabledSpotSize].radius          = tanf(light->GetOutterCutoff())*light->GetMaxDistance();
+            spotPtr->spots[enabledSpotSize].hasShadow       = light->GetShadowTex() != nullptr ? 1 : 0;
+            spotPtr->spots[enabledSpotSize].shadowViewProj  = light->GetShadowViewProj().Transposed();
+            spotPtr->spots[enabledSpotSize].shadowMap       = light->GetShadowTex() ? light->GetShadowTex()->GetBindlessHandle() : 0;
 
             ++enabledSpotSize;
         }
@@ -321,11 +324,11 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
 
     spotPtr->count = enabledSpotSize;
 
-    if(uint(quads.size()) > quadBufferSize || !quadLightSSBO[frameCount])
+    if(uint(quads.size()) > quadBufferSize[frameCount] || !quadLightSSBO[frameCount])
     {
-        quadBufferSize = uint(quads.size());
-        quadLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, quadBufferSize * sizeof(QuadLightData) + sizeof(int) * 4, nullptr, true);
-        quadLightData[frameCount] = reinterpret_cast<QuadLightSet*>(quadLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, quadBufferSize * sizeof(QuadLightData) + sizeof(int) * 4));
+        quadBufferSize[frameCount] = uint(quads.size());
+        quadLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, quadBufferSize[frameCount] * sizeof(QuadLightData) + sizeof(int) * 4, nullptr, true);
+        quadLightData[frameCount] = reinterpret_cast<QuadLightSet*>(quadLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, quadBufferSize[frameCount] * sizeof(QuadLightData) + sizeof(int) * 4));
     }
 
     QuadLightSet* quadPtr = quadLightData[frameCount]; 
@@ -349,11 +352,11 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
 
     quadPtr->count = enabledQuadSize;
 
-    if(uint(spheres.size()) > sphereBufferSize || !sphereLightSSBO[frameCount])
+    if(uint(spheres.size()) > sphereBufferSize[frameCount] || !sphereLightSSBO[frameCount])
     {
-        sphereBufferSize = uint(spheres.size());
-        sphereLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, sphereBufferSize * sizeof(SphereLightData) + sizeof(int) * 4, nullptr, true);
-        sphereLightData[frameCount] = reinterpret_cast<SphereLightSet*>(sphereLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, sphereBufferSize * sizeof(SphereLightData) + sizeof(int) * 4));
+        sphereBufferSize[frameCount] = uint(spheres.size());
+        sphereLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, sphereBufferSize[frameCount] * sizeof(SphereLightData) + sizeof(int) * 4, nullptr, true);
+        sphereLightData[frameCount] = reinterpret_cast<SphereLightSet*>(sphereLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, sphereBufferSize[frameCount] * sizeof(SphereLightData) + sizeof(int) * 4));
     }
 
     SphereLightSet* spherePtr = sphereLightData[frameCount]; 
@@ -376,11 +379,11 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
     spherePtr->count = enabledSphereSize;
 
 
-    if(uint(tubes.size()) > tubeBufferSize || !tubeLightSSBO[frameCount])
+    if(uint(tubes.size()) > tubeBufferSize[frameCount] || !tubeLightSSBO[frameCount])
     {
-        tubeBufferSize = uint(tubes.size());
-        tubeLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, tubeBufferSize * sizeof(TubeLightData) + sizeof(int) * 4, nullptr, true);
-        tubeLightData[frameCount] = reinterpret_cast<TubeLightSet*>(tubeLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, tubeBufferSize * sizeof(TubeLightData) + sizeof(int) * 4));
+        tubeBufferSize[frameCount] = uint(tubes.size());
+        tubeLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, tubeBufferSize[frameCount] * sizeof(TubeLightData) + sizeof(int) * 4, nullptr, true);
+        tubeLightData[frameCount] = reinterpret_cast<TubeLightSet*>(tubeLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, tubeBufferSize[frameCount] * sizeof(TubeLightData) + sizeof(int) * 4));
     }
 
     TubeLightSet* tubePtr = tubeLightData[frameCount]; 
@@ -402,11 +405,11 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
 
     tubePtr->count = enabledTubeSize;
 
-    if(uint(ibls.size()) > iblBufferSize || !iblLightSSBO[frameCount])
+    if(uint(ibls.size()) > iblBufferSize[frameCount] || !iblLightSSBO[frameCount])
     {
-        iblBufferSize = uint(ibls.size());
-        iblLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, iblBufferSize * sizeof(IBLLightData) + sizeof(int) * 4, nullptr, true);
-        iblLightData[frameCount] = reinterpret_cast<IBLLightSet*>(iblLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, iblBufferSize * sizeof(IBLLightData) + sizeof(int) * 4));
+        iblBufferSize[frameCount] = uint(ibls.size());
+        iblLightSSBO[frameCount] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, iblBufferSize[frameCount] * sizeof(IBLLightData) + sizeof(int) * 4, nullptr, true);
+        iblLightData[frameCount] = reinterpret_cast<IBLLightSet*>(iblLightSSBO[frameCount]->MapRange(GL_MAP_WRITE_BIT, 0, iblBufferSize[frameCount] * sizeof(IBLLightData) + sizeof(int) * 4));
 
         glObjectLabel(GL_BUFFER, iblLightSSBO[frameCount]->Id(), -1, "iblLightSSBO");
 
@@ -431,7 +434,7 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
                 float4x4 toLocal = toGlobal;
                 toLocal.InverseOrthonormal();
 
-                iblPtr->ibls[enablediblSize].position = float4(light->GetPosition(), 0.0f);
+                iblPtr->ibls[enablediblSize].position = float4(light->GetPosition(), iblData.GetIntensity());
                 iblPtr->ibls[enablediblSize].toLocal = toLocal;
 
                 iblPtr->ibls[enablediblSize].minParallax = float4(light->GetParallaxAABB().minPoint, 0.0f);

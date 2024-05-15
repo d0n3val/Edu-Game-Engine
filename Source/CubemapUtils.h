@@ -22,8 +22,8 @@ class CubemapUtils
 public:
     CubemapUtils();
 
-    void         RenderCubemap          (const TextureCube* cubemap, const float4x4& proj, const float4x4& view) ;
-    void         RenderCubemapLod       (const TextureCube* cubemap, const float4x4& proj, const float4x4& view, float lod) ;
+    void         RenderCubemap          (const TextureCube* cubemap, const float4x4& proj, const float4x4& view, float intensity);
+    void         RenderCubemapLod       (const TextureCube* cubemap, const float4x4& proj, const float4x4& view, float lod, float intensity) ;
 
     TextureCube* LocalIBL               (const float3& position, const Quat& rotation, float farPlane, uint resolution);
     TextureCube* DiffuseIBL             (TextureCube* texture, uint cubemapSize, uint resolution, uint numSamples, uint lodBias);

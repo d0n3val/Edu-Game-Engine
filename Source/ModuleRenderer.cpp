@@ -194,7 +194,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
 
     if(lightManager->GetNumSpotLights() > 0)
     {
-        spotShadowMapPass->execute(lightManager->GetSpotLight(0), 1024, 1024);
+        spotShadowMapPass->execute(lightManager->GetSpotLight(0), 128, 128);
     }
 
     deferredResolve->execute(frameBuffer, width, height);
@@ -229,7 +229,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     spotConePass->execute(render_list, frameBuffer, width, height);
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
-    //fogPass->execute(frameBuffer, width, height);
+    fogPass->execute(frameBuffer, width, height);
     volumetricPass->execute(frameBuffer, width, height);
 }
 

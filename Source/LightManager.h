@@ -82,6 +82,10 @@ class LightManager
         float  inner;
         float  outer;
         float  radius; // base radius
+        int pad0, pad1, pad2;
+        int    hasShadow;
+        float4x4 shadowViewProj;
+        uint64_t shadowMap;
     };
 
     struct SpotLightSet
@@ -160,12 +164,12 @@ class LightManager
     TubeLightSet*               tubeLightData[2];
     IBLLightSet*                iblLightData[2];
 
-    uint                        pointBufferSize = 0;
-    uint                        spotBufferSize = 0;
-    uint                        quadBufferSize = 0;
-    uint                        sphereBufferSize = 0;
-    uint                        tubeBufferSize = 0;
-    uint                        iblBufferSize = 0;
+    uint                        pointBufferSize[2] = { 0, 0 };
+    uint                        spotBufferSize[2] = { 0, 0 };
+    uint                        quadBufferSize[2] = { 0, 0 };
+    uint                        sphereBufferSize[2] = { 0, 0 };
+    uint                        tubeBufferSize[2] = { 0, 0 };
+    uint                        iblBufferSize[2] = { 0, 0 };
     uint                        frameCount = 0;
     uint                        enabledPointSize = 0;
     uint                        enabledSpotSize = 0;

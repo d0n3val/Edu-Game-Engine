@@ -41,12 +41,6 @@
 #define SPECULAR_GLOSSINES_TYPE 0 
 #define METALLIC_ROUGHNESS_TYPE 0 
 
-struct TexHandle
-{
-    int index;
-    float slice;
-};
-
 struct Material
 {
     vec4      diffuseColor; // baseColor

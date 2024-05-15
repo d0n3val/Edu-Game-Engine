@@ -970,7 +970,7 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera, SpotLight* spot)
         spot->SetTransform(model);
     }
 
-    float distance = spot->GetDistance();
+    float distance = spot->GetMaxDistance();
 
     float3 pos   = spot->GetTransform().Col3(3);
     float3 dir   = -spot->GetTransform().Col3(1);

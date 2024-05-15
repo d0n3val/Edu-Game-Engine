@@ -12,7 +12,7 @@ protected:
 
     uint tex_target = 0;
     uint texture = 0;
-    uint64_t handle = 0;
+    mutable uint64_t handle = 0;
 
 public:
 
@@ -35,7 +35,7 @@ public:
     uint Id() const { return texture; }
     uint Target() const { return tex_target; }
 
-    uint64_t GetBindlessHandle();
+    uint64_t GetBindlessHandle() const ;
     void     MakeBindlessResident();
     void     MakeBindlessNonResident();
 };

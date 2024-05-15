@@ -70,15 +70,6 @@ void SkyboxRollout::DrawProperties(IBLData* skybox)
             ImGui::Text("%s", file.c_str());
             ImGui::PopStyleColor();
 
-            ImGui::SameLine();
-
-            bool linear = info->GetColorSpace() == ColorSpace_linear;
-            if (ImGui::Checkbox("sRGB", &linear))
-            {
-                info->SetColorSpace(linear ? ColorSpace_linear : ColorSpace_gamma);
-                info->ReleaseFromMemory();
-                info->LoadInMemory();
-            }
         }
 
         if (ImGui::SmallButton("Select Texture"))
@@ -99,6 +90,12 @@ void SkyboxRollout::DrawProperties(IBLData* skybox)
         if (skybox->GetEnvironmentBRDF() && selected == PrefilteredIBL)
         {
             ImGui::Image((ImTextureID)size_t(skybox->GetEnvironmentBRDF()->Id()), ImVec2(SCREENSHOT_SIZE, SCREENSHOT_SIZE), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255));
+        }
+
+        float intensity = skybox->GetIntensity();
+        if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f))
+        {
+            skybox->SetIntensity(intensity);
         }
     }
 

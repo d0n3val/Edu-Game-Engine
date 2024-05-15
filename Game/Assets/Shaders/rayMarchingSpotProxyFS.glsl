@@ -13,7 +13,7 @@ in flat int draw_id;
 in vec3 worldPos;
 out vec4 color;
 
-#define NUM_STEPS 8
+#define NUM_STEPS 16 // TODO: Configurable per light
 
 layout(binding = GBUFFER_POSITION_TEX_BINDING) uniform sampler2D position;
 uniform layout(location=RAYMARCHING_WIDHT_LOCATION) int width;
@@ -34,7 +34,7 @@ layout(std140, binding = RAYMARCHING_PARAMETERS_LOCATION) uniform Parameters
 float sampleNoise(vec2 uv) // Interleaved gradient
 {
     vec2 pixel = uv*vec2(width, height);
-    pixel += (float(frame) * 5.588238f);
+    pixel += (float(frame) * 5.588238f * 0.01);
     return fract(52.9829189f * fract(0.06711056f*float(pixel.x) + 0.00583715f*float(pixel.y)));  
 }
 
@@ -43,26 +43,6 @@ float calculateAnisotropy(float k, float cosTheta)
     k = max(min(k, 0.999), -0.999);
 
     return (1.0-Sq(k))/(4.0*PI*Sq(1-k*cosTheta));
-}
-
-vec3 calculatePointLight(in vec3 pos, in vec3 V)
-{
-    vec3 color = vec3(0.0);
-    for(uint i=0; i< num_point; ++i)
-    {
-        PointLight light = points[i];
-
-        float dist   = distance(light.position.xyz, pos);
-        float radius = light.position.w;
-        float intensity = light.color.a;
-        float att    = Sq(max(1.0-Sq(Sq(dist/radius)), 0.0))/(Sq(dist)+1);
-
-        // TODO: phase functions
-
-        color += light.color.rgb*intensity*att;
-    }
-
-    return color;
 }
 
 vec3 calculateSpotLight(in vec3 pos, in vec3 V)
@@ -81,10 +61,16 @@ vec3 calculateSpotLight(in vec3 pos, in vec3 V)
     float outer   = light.outer;
     float cone    = GetCone(-light_dir, -normalize(light.transform[1].xyz), inner, outer);
     float att     = Sq(max(1.0-Sq(Sq(projDist/lightDist)), 0.0))/(Sq(projDist)+1);
+    float shadow  = 1.0;
 
-    vec3 color = light.color.rgb*cone*att*phase;
+    if(light.hasShadow != 0)
+    {
+        shadow = computeSpotShadow(light.shadowMap, light.shadowViewProj, pos);
+    }
 
-    color += att*ambientColour.rgb*calculateAnisotropy(0.0, 0.0);
+    vec3 color = light.color.rgb*cone*att*shadow*phase;
+
+    color += cone*ambientColour.rgb*calculateAnisotropy(0.0, 0.0);
 
     return color;
 }
@@ -190,10 +176,10 @@ void main()
 
     vec3 result = vec3(0.0);
     vec3 currentPos = view_pos.xyz+rayDir*t0;
-    vec3 V = -invView[2].xyz; // TODO: This or ray direction ? 
+    vec3 V = rayDir; 
 
     // dithering
-    currentPos += marchingStep*sampleNoise(uv);
+    //currentPos += marchingStep*sampleNoise(uv);
 
     float transmittance = 1.0;
 
@@ -209,5 +195,5 @@ void main()
         currentPos += marchingStep;
     }
 
-    color = vec4(result, 1.0);
+    color = vec4(result*fogIntensity, 1.0);
 }

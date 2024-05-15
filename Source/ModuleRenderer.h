@@ -93,6 +93,7 @@ public:
     GBufferExportPass*      GetGBufferExportPass        () const { return exportGBuffer.get(); }
     FxaaPass*               GetFxaaPass                 () const { return fxaa.get(); }
     ShadowmapPass*          GetShadowmapPass            () const { return shadowmapPass.get(); }
+    SpotShadowMapPass*      GetSpotShadowMapPass        () const { return spotShadowMapPass.get(); }
     CascadeShadowPass*      GetCascadeShadowPass        () const { return cascadeShadowPass.get(); }
     PlanarReflectionPass*   GetPlanarPass               () const { return planarPass.get(); }
     CameraUBO*              GetCameraUBO                () const { return cameraUBO.get(); }

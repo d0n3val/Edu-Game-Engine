@@ -3,6 +3,7 @@
 #include "VolumetricPass.h"
 
 #include "GBufferExportPass.h"
+#include "SpotShadowMapPass.h"
 #include "Application.h"
 #include "ModuleHints.h"
 #include "ModuleRenderer.h"
@@ -39,11 +40,13 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
 
 
     GBufferExportPass *exportPass = App->renderer->GetGBufferExportPass();
+    SpotShadowMapPass *spotShadowMapPass = App->renderer->GetSpotShadowMapPass();
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "VolumetricPass");
 
     frameBuffer->Bind();
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, fbWidth, fbHeight);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Additive Blend
@@ -84,9 +87,8 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     parametersUBO->InvalidateData();
     parametersUBO->SetData(0, sizeof(params), &params);
 
-
-    program->BindUniform(RAYMARCHING_WIDHT_LOCATION, int(width));
-    program->BindUniform(RAYMARCHING_HEIGHT_LOCATION, int(height));
+    program->BindUniform(RAYMARCHING_WIDHT_LOCATION, int(fbWidth));
+    program->BindUniform(RAYMARCHING_HEIGHT_LOCATION, int(fbHeight));
     parametersUBO->BindToPoint(RAYMARCHING_PARAMETERS_LOCATION);
     exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
 
@@ -105,7 +107,7 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     {
         if (!kawase) kawase = std::make_unique<DualKawaseBlur>();
 
-        kawase->execute(result.get(), GL_RGBA32F, GL_RGBA, GL_FLOAT, width, height);
+        kawase->execute(result.get(), GL_RGBA32F, GL_RGBA, GL_FLOAT, fbWidth, fbHeight);
     }
 
     useApplyProgram(doBlur);
@@ -241,7 +243,7 @@ void VolumetricPass::resizeFrameBuffer(uint width, uint height)
 
         frameBuffer->ClearAttachments();
 
-        // TODO: Scale
+        // TODO: Can't scale due to depth buffer
         result = std::make_unique<Texture2D>(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
 
         GBufferExportPass *gBuffer = App->renderer->GetGBufferExportPass();

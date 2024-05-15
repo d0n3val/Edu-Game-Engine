@@ -60,7 +60,8 @@ void main()
     v.xyz = viewPos.xyz*0.5;
     v.w  = frame*0.4;
 
-    float factor = clamp(distanceFactor+distanceFactor*clamp(fbm(v, 3, 0.5, 0.8), 0.0, 1.0)*0.35, 0.0, 1.0);
+    //float factor = clamp(distanceFactor+distanceFactor*clamp(fbm(v, 3, 0.5, 0.8), 0.0, 1.0)*0.35, 0.0, 1.0);
+    float factor = clamp(distanceFactor, 0.0, 1.0);
     
     color = vec4(colour.rgb*factor, 1.0);
 }

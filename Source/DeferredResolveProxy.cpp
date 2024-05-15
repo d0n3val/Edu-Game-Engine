@@ -5,6 +5,7 @@
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "ModuleLevelManager.h"
+#include "SpotShadowMapPass.h"
 #include "IBLData.h"
 #include "GBufferExportPass.h"
 #include "ScreenSpaceAO.h"

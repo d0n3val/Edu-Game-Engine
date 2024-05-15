@@ -78,7 +78,7 @@ CubemapUtils::CubemapUtils()
 {
 }
 
-void CubemapUtils::RenderCubemap(const TextureCube* cubeMap, const float4x4& proj, const float4x4& view)  
+void CubemapUtils::RenderCubemap(const TextureCube* cubeMap, const float4x4& proj, const float4x4& view, float intensity)  
 {
     if(!vao) Init();
 
@@ -86,6 +86,7 @@ void CubemapUtils::RenderCubemap(const TextureCube* cubeMap, const float4x4& pro
     skybox->BindTextureFromName("skybox", 0, cubeMap);
     skybox->BindUniformFromName("proj", proj);
     skybox->BindUniformFromName("view", view);
+    skybox->BindUniformFromName("intensity", intensity);
 
     glDepthFunc(GL_LEQUAL);
     vao->Bind();
@@ -93,7 +94,7 @@ void CubemapUtils::RenderCubemap(const TextureCube* cubeMap, const float4x4& pro
     glDepthFunc(GL_LESS);
 }
 
-void CubemapUtils::RenderCubemapLod(const TextureCube* cubeMap, const float4x4& proj, const float4x4& view, float lod) 
+void CubemapUtils::RenderCubemapLod(const TextureCube* cubeMap, const float4x4& proj, const float4x4& view, float lod, float intensity) 
 {
     if(!vao) Init();
 
@@ -102,6 +103,7 @@ void CubemapUtils::RenderCubemapLod(const TextureCube* cubeMap, const float4x4& 
     skyboxLod->BindUniformFromName("proj", proj);
     skyboxLod->BindUniformFromName("view", view);
     skyboxLod->BindUniformFromName("lod", lod);
+    skyboxLod->BindUniformFromName("intensity", intensity);
 
     glDepthFunc(GL_ALWAYS);
     vao->Bind();

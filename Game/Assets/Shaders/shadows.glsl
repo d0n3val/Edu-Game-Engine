@@ -19,11 +19,6 @@ layout(location=SHADOW_VIEWPROJ_LOCATION) uniform mat4 shadowViewProj[NUM_CASCAD
 layout(location=SHADOW_BIAS_LOCATION) uniform float shadow_bias;
 layout(location=SHADOW_SLOPEBIAS_LOCATION) uniform float shadow_slopebias;
 
-struct ShadowData
-{
-    vec3 shadowCoord[NUM_CASCADES];
-};
-
 float computeShadow(in vec3 position)
 {
     for(uint i=0; i< NUM_CASCADES; ++i)
@@ -75,11 +70,6 @@ float computeShadow(in vec3 position)
 }
 
 #else  /* CASCADE */
-
-struct ShadowData
-{
-    vec3 shadowCoord;
-};
 
 #ifdef SHADOW_PCF
 layout(binding=SHADOWMAP_TEX_BINDING) uniform sampler2DShadow shadow_map;

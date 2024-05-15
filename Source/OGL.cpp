@@ -105,7 +105,7 @@ void Texture::Unbind(uint unit) const
     glBindTexture(tex_target, 0);
 }
 
-uint64_t Texture::GetBindlessHandle() 
+uint64_t Texture::GetBindlessHandle()const 
 {
     if(handle == 0)
     {

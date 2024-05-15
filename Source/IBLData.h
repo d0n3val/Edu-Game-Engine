@@ -14,14 +14,15 @@ class IBLData
     typedef std::unique_ptr<TextureCube> TextureCubePtr;
     typedef std::unique_ptr<Texture2D> Texture2DPtr;
 
-    CubemapUtils   utils;
-    ResHandle      envRes;
-	TextureCube*   environment = nullptr;
-    TextureCubePtr diffuseIBL;    
-    TextureCubePtr prefilteredIBL;
-    uint           prefilteredLevels = 0;
+    CubemapUtils        utils;
+    ResHandle           envRes;
+	TextureCube*        environment = nullptr;
+    TextureCubePtr      diffuseIBL;    
+    TextureCubePtr      prefilteredIBL;
+    uint                prefilteredLevels = 0;
+    float               intensity = 1.0f;
     static Texture2DPtr environmentBRDF;
-    static uint         refCount;
+    static uint          refCount;
 
 public:
 
@@ -54,4 +55,7 @@ public:
 
     uint               GetPrefilterdLevels  () const { return prefilteredLevels; }
     const Texture2D*   GetEnvironmentBRDF   () const { return environmentBRDF.get(); }
+
+    float              GetIntensity() const { return intensity;  }
+    void               SetIntensity(float value) { intensity = value; }
 };

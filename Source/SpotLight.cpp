@@ -22,7 +22,8 @@ void SpotLight::Save(Config& config) const
 	config.AddFloat3("color", color);
     config.AddFloat("inner", inner);
     config.AddFloat("outter", outter);
-	config.AddFloat("distance", distance);
+	config.AddFloat("distance", maxDist);
+	config.AddFloat("minDist", minDist);
 	config.AddFloat("intensity", intensity);
 	config.AddFloat("anisotropy", anisotropy);
 	config.AddBool("Enabled", enabled);
@@ -38,7 +39,8 @@ void SpotLight::Load(Config& config)
 	color      = config.GetFloat3("color", float3::one);
     inner      = config.GetFloat("inner", 0.0f);
     outter     = config.GetFloat("outter", 0.0f);
-	distance   = config.GetFloat("distance", 1.0f);
+	maxDist    = config.GetFloat("distance", 1.0f);
+	minDist    = config.GetFloat("minDist", 1.0f);
     intensity  = config.GetFloat("intensity", 1.0f);
     anisotropy = config.GetFloat("anisotropy", 0.0f);
     enabled    = config.GetBool("Enabled", true);
