@@ -10,7 +10,6 @@
 #include "SpotLight.h"
 #include "DebugDraw.h"
 #include "OpenGL.h"
-#include "GaussianBlur.h"
 #include "../Game/Assets/Shaders/LocationsAndBindings.h"
 
 SpotShadowMapPass::SpotShadowMapPass()
@@ -38,23 +37,21 @@ void SpotShadowMapPass::execute(SpotLight* light, uint width, uint height)
 
         createProgram();
 
-        program->Use();
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-
-        if (!blur) blur = std::make_unique<GaussianBlur>();
-
         generators.resize(lightManager->GetNumSpotLights());
 
         for (uint i = 0; i < lightManager->GetNumSpotLights(); ++i)
         {
             SpotLight *light = lightManager->GetSpotLight(i);
 
-            if(light->GetEnabled())
+            if(light->GetEnabled() && light->GetCastShadows())
             {
                 Generator &generator = generators[i];
 
                 uint shadowSize = light->GetShadowSize();
+
+                program->Use();
+                glEnable(GL_DEPTH_TEST);
+                glDepthFunc(GL_LESS);
 
                 generator.createFramebuffer(shadowSize);
                 generator.updateFrustum(light);
@@ -68,14 +65,15 @@ void SpotShadowMapPass::execute(SpotLight* light, uint width, uint height)
 
                 App->renderer->GetBatchManager()->DoRender(generator.getObjects().GetOpaques(), 0);
 
-                blur->execute(generator.getVarianceTex(), generator.getBlurredTex(), GL_RG32F, GL_RG, GL_FLOAT, 0, shadowSize, shadowSize, 0, shadowSize, shadowSize);
+                generator.blurTextures(shadowSize);
 
-                light->SetShadowTex(generator.getBlurredTex());
+                light->SetShadowDepth(generator.getShadowDepth());
+                light->SetShadowVariance(generator.getShadowVariance());
                 light->SetShadowViewProj(generator.getFrustum().ViewProjMatrix());
             }
             else
             {
-                light->SetShadowTex(nullptr);
+                light->SetShadowDepth(nullptr);
                 light->SetShadowViewProj(float4x4::identity);
             }
 
@@ -163,6 +161,16 @@ void SpotShadowMapPass::Generator::updateCameraUBO()
 
     cameraUBO->InvalidateData();
     cameraUBO->SetData(0, sizeof(CameraData), &cameraData);
+}
+
+void SpotShadowMapPass::Generator::blurTextures(uint shadowSize)
+{
+    if (!blur)
+    {
+        blur = std::make_unique<GaussianBlur>();
+    }
+
+    blur->execute(varianceTex.get(), blurredTex.get(), GL_RG32F, GL_RG, GL_FLOAT, 0, shadowSize, shadowSize, 0, shadowSize, shadowSize);
 }
 
 void SpotShadowMapPass::createProgram()

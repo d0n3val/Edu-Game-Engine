@@ -26,6 +26,7 @@ void SpotLight::Save(Config& config) const
 	config.AddFloat("intensity", intensity);
 	config.AddFloat("anisotropy", anisotropy);
 	config.AddBool("Enabled", enabled);
+	config.AddBool("Casts", castShadows);
 }
 
 void SpotLight::Load(Config& config)
@@ -43,6 +44,7 @@ void SpotLight::Load(Config& config)
     intensity  = config.GetFloat("intensity", 1.0f);
     anisotropy = config.GetFloat("anisotropy", 0.0f);
     enabled    = config.GetBool("Enabled", true);
+	castShadows = config.GetBool("Casts", true);
 }
 
 void SpotLight::SetShadowSize(uint size)
@@ -50,6 +52,6 @@ void SpotLight::SetShadowSize(uint size)
     if(size != shadowSize)
     {
         shadowSize = size;
-        shadowTex = nullptr;
+        shadowVariance = shadowDepth = nullptr;
     }
 }

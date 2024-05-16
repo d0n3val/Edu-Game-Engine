@@ -45,14 +45,20 @@ public:
     float           GetAnisotropy    () const {return anisotropy;}
     void            SetAnisotropy    (float value) {anisotropy = value;}
 
-    const Texture*  GetShadowTex () const {return shadowTex;}
-    void            SetShadowTex (const Texture2D* texture) { shadowTex = texture;}
+    const Texture*  GetShadowDepth () const {return shadowDepth;}
+    void            SetShadowDepth (const Texture2D* texture) { shadowDepth = texture;}
+
+    const Texture*  GetShadowVariance () const {return shadowVariance;}
+    void            SetShadowVariance (const Texture2D* texture) { shadowVariance = texture;}
 
     const float4x4& GetShadowViewProj() const {return shadowViewProj;}
     void            SetShadowViewProj(const float4x4& viewProj) {shadowViewProj = viewProj;}
 
     uint            GetShadowSize() const { return shadowSize;}
     void            SetShadowSize(uint size);
+
+    bool            GetCastShadows() const {return castShadows;}
+    void            SetCastShadows(bool cast)  {castShadows = cast;}
 
 private:
 
@@ -67,7 +73,9 @@ private:
     float4x4 shadowViewProj = float4x4::identity;
     uint shadowSize = 256;
     bool   enabled   = true;
-    const Texture2D* shadowTex = nullptr;
+    bool castShadows = true;
+    const Texture2D* shadowDepth = nullptr;
+    const Texture2D* shadowVariance = nullptr;
 };
 
 #endif /* __SPOTLIGHT_H__ */

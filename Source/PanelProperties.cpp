@@ -243,6 +243,18 @@ void PanelProperties::DrawSpotLight(SpotLight* light)
             light->SetAnisotropy(anisotropy);
         }
 
+        bool cast = light->GetCastShadows();
+        if(ImGui::Checkbox("Casts shadows", &cast))
+        {
+            light->SetCastShadows(cast);
+        }
+
+        int size = light->GetShadowSize();
+        if (ImGui::InputInt("Shadow size", &size))
+        {
+            light->SetShadowSize(size);
+        }
+
         bool enabled = light->GetEnabled();
         if(ImGui::Checkbox("Enabled", &enabled))
         {

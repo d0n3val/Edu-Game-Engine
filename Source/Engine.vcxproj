@@ -194,7 +194,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
-      <AdditionalLibraryDirectories>./glew-2.1.0/lib/Release/x64;./DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./glew-2.1.0/lib/Release/x64;./DirectXTex/DirectXTex/Bin/Desktop_2022_Win10/x64/Release;</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);DirectXTex.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

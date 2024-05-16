@@ -47,9 +47,10 @@ struct SpotLight
     float     inner;
     float     outer;
     float     radius;
-    int       spotPad0;
+    int       spotPad0, spotPad1, spotPad2;
     int       hasShadow;
-    sampler2D shadowMap;
+    sampler2D shadowDepth;
+    sampler2D shadowVariance;
     mat4      shadowViewProj;
 };
 
@@ -179,7 +180,7 @@ vec3 Spot(const vec3 pos, const vec3 normal, const vec3 view_dir, const SpotLigh
     float shadow      = 1.0;
     if(light.hasShadow != 0)
     {
-        shadow = computeSpotShadow(light.shadowMap, light.shadowViewProj, pos);
+        shadow = computeVarianceSpotShadow(light.shadowVariance, light.shadowViewProj, pos);
     }
 
     return GGXShading(normal, view_dir, light_dir, light.color.rgb, diffuseColor, specularColor, roughness, att*cone*shadow);

@@ -759,7 +759,7 @@ bool ModuleResources::LoadDefaultCylinder()
 
 bool ModuleResources::LoadDefaultCone()
 {
-	cone = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadCone("DefaultCone", 1.0f, 0.5f, 30, 25, UID(7))));
+	cone = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadCone("DefaultCone", 1.0f, 0.5f, 60, 40, UID(7))));
 
 	return cone != nullptr;
 }

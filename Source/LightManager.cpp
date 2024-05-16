@@ -316,9 +316,11 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
             spotPtr->spots[enabledSpotSize].inner           = cosf(light->GetInnerCutoff());
             spotPtr->spots[enabledSpotSize].outer           = cosf(light->GetOutterCutoff());
             spotPtr->spots[enabledSpotSize].radius          = tanf(light->GetOutterCutoff())*light->GetMaxDistance();
-            spotPtr->spots[enabledSpotSize].hasShadow       = light->GetShadowTex() != nullptr ? 1 : 0;
+            spotPtr->spots[enabledSpotSize].hasShadow       = light->GetShadowDepth() != nullptr ? 1 : 0;
             spotPtr->spots[enabledSpotSize].shadowViewProj  = light->GetShadowViewProj().Transposed();
-            spotPtr->spots[enabledSpotSize].shadowMap       = light->GetShadowTex() ? light->GetShadowTex()->GetBindlessHandle() : 0;
+            spotPtr->spots[enabledSpotSize].shadowDepth     = light->GetShadowDepth() ? light->GetShadowDepth()->GetBindlessHandle() : 0;
+            spotPtr->spots[enabledSpotSize].shadowVariance  = light->GetShadowVariance() ? light->GetShadowVariance()->GetBindlessHandle() : 0;
+
 
             ++enabledSpotSize;
         }

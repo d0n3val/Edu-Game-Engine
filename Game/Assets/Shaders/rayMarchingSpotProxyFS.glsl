@@ -13,7 +13,7 @@ in flat int draw_id;
 in vec3 worldPos;
 out vec4 color;
 
-#define NUM_STEPS 16 // TODO: Configurable per light
+#define NUM_STEPS 32 // TODO: Configurable per light
 
 layout(binding = GBUFFER_POSITION_TEX_BINDING) uniform sampler2D position;
 uniform layout(location=RAYMARCHING_WIDHT_LOCATION) int width;
@@ -34,7 +34,7 @@ layout(std140, binding = RAYMARCHING_PARAMETERS_LOCATION) uniform Parameters
 float sampleNoise(vec2 uv) // Interleaved gradient
 {
     vec2 pixel = uv*vec2(width, height);
-    pixel += (float(frame) * 5.588238f * 0.01);
+    pixel += (float(frame) * 5.588238f );
     return fract(52.9829189f * fract(0.06711056f*float(pixel.x) + 0.00583715f*float(pixel.y)));  
 }
 
@@ -65,7 +65,7 @@ vec3 calculateSpotLight(in vec3 pos, in vec3 V)
 
     if(light.hasShadow != 0)
     {
-        shadow = computeSpotShadow(light.shadowMap, light.shadowViewProj, pos);
+        shadow = computeSpotShadow(light.shadowDepth, light.shadowViewProj, pos);
     }
 
     vec3 color = light.color.rgb*cone*att*shadow*phase;
@@ -179,7 +179,7 @@ void main()
     vec3 V = rayDir; 
 
     // dithering
-    //currentPos += marchingStep*sampleNoise(uv);
+    currentPos += marchingStep*sampleNoise(uv);
 
     float transmittance = 1.0;
 

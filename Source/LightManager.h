@@ -82,9 +82,10 @@ class LightManager
         float  inner;
         float  outer;
         float  radius; // base radius
-        int    pad0;
+        int    pad0, pad1, pad2;
         int    hasShadow;
-        uint64_t shadowMap;
+        uint64_t shadowDepth;
+        uint64_t shadowVariance;
         float4x4 shadowViewProj;
     };
 
