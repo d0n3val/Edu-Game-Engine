@@ -20,6 +20,7 @@ class VolumetricPass
     std::unique_ptr<Buffer>         parametersUBO;
     std::unique_ptr<Framebuffer>    frameBuffer;
     std::unique_ptr<Texture2D>      result;
+    std::unique_ptr<Texture2D>      depth;
     std::unique_ptr<DualKawaseBlur> kawase;
 
 
@@ -27,6 +28,7 @@ class VolumetricPass
     uint fbHeight = 0;
 
     float frame = 0.0f;
+    float resultScale = 0.5f;
     Timer timer;
 
 public:
@@ -40,5 +42,5 @@ private:
     void useApplyProgram(bool blur);    
     void useConeProgram();
     void generateApplyProgram(bool blur);
-    void resizeFrameBuffer(uint width, uint height);
+    void resizeFrameBuffer(uint width, uint height, const Framebuffer* srcFB);
 };

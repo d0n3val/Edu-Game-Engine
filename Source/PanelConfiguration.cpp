@@ -602,21 +602,66 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
                 module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, fogCurve);
             }
         }
+
+        if (ImGui::Button("EaseIn", ImVec2(55, 20)))
+            module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 1.0f, 0.0f));
+        ImGui::SameLine();
+        if (ImGui::Button("EaseOut", ImVec2(60, 20)))
+            module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 0.0f, 1.f));
+        ImGui::SameLine();
+        if (ImGui::Button("EaseInOut", ImVec2(70, 20)))
+            module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0, 1.0f, 1.0f, 0.0f));
+
+        bool fogBlur = module->GetBoolValue(ModuleHints::DIST_FOG_BLUR);
+        if (ImGui::Checkbox("Fog Blur", &fogBlur))
+        {
+            module->SetBoolValue(ModuleHints::DIST_FOG_BLUR, fogBlur);
+        }
     }
-
-    if (ImGui::Button("EaseIn", ImVec2(55, 20)))
-		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 1.0f, 0.0f));
-	ImGui::SameLine();
-	if (ImGui::Button("EaseOut", ImVec2(60, 20)))
-		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 0.0f, 1.f));
-	ImGui::SameLine();
-	if (ImGui::Button("EaseInOut", ImVec2(70, 20)))
-		module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0, 1.0f, 1.0f, 0.0f));
-
-    bool fogBlur = module->GetBoolValue(ModuleHints::DIST_FOG_BLUR);
-    if (ImGui::Checkbox("Fog Blur", &fogBlur))
+    else if (fogType == 1)
     {
-        module->SetBoolValue(ModuleHints::DIST_FOG_BLUR, fogBlur);
+        if (ImGui::CollapsingHeader("Height Fog", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float fogDensity = module->GetFloatValue(ModuleHints::HEIGHT_FOG_GLOBAL_DENSITY);
+            if (ImGui::SliderFloat("Global Density", &fogDensity, 0.0f, 1.0f))
+            {
+                module->SetFloatValue(ModuleHints::HEIGHT_FOG_GLOBAL_DENSITY, fogDensity);
+            }
+
+            float densityFalloff = module->GetFloatValue(ModuleHints::HEIGHT_FOG_DENSITY_FALLOFF);
+            if (ImGui::SliderFloat("Density falloff", &densityFalloff, 0.0f, 1.0f))
+            {
+                module->SetFloatValue(ModuleHints::HEIGHT_FOG_DENSITY_FALLOFF, densityFalloff);
+            }
+
+            float3 fogColor = module->GetFloat3Value(ModuleHints::HEIGHT_FOG_COLOR);
+            if (ImGui::ColorEdit3("Color", (float*)& fogColor))
+            {
+                module->SetFloat3Value(ModuleHints::HEIGHT_FOG_COLOR, fogColor);
+            }
+
+            float3 fogSunColor = module->GetFloat3Value(ModuleHints::HEIGHT_FOG_SUN_COLOR);
+            if (ImGui::ColorEdit3("Sun Color", (float*) & fogSunColor))
+            {
+                module->SetFloat3Value(ModuleHints::HEIGHT_FOG_SUN_COLOR, fogSunColor);
+            }
+        }
+
+        if (ImGui::Button("EaseIn", ImVec2(55, 20)))
+            module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 1.0f, 0.0f));
+        ImGui::SameLine();
+        if (ImGui::Button("EaseOut", ImVec2(60, 20)))
+            module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0f, 0.0f, 0.0f, 1.f));
+        ImGui::SameLine();
+        if (ImGui::Button("EaseInOut", ImVec2(70, 20)))
+            module->SetFloat4Value(ModuleHints::DIST_FOG_CURVE, float4(0.0, 1.0f, 1.0f, 0.0f));
+
+        bool fogBlur = module->GetBoolValue(ModuleHints::DIST_FOG_BLUR);
+        if (ImGui::Checkbox("Fog Blur", &fogBlur))
+        {
+            module->SetBoolValue(ModuleHints::DIST_FOG_BLUR, fogBlur);
+        }
+    
     }
 
     if (ImGui::CollapsingHeader("Volumetric/RayMarching", ImGuiTreeNodeFlags_DefaultOpen))
@@ -639,10 +684,16 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
             module->SetFloatValue(ModuleHints::RAYMARCHING_FOG_INTENSITY, global);
         }
 
-        float maxDistance = module->GetFloatValue(ModuleHints::RAYMARCHING_MAX_DISTANCE);
-        if (ImGui::SliderFloat("Max Distance", &maxDistance, 0.0f, 1000.0f, "%.1f"))
+        float stepSize = module->GetFloatValue(ModuleHints::RAYMARCHING_STEP_SIZE);
+        if (ImGui::SliderFloat("Step Size", &stepSize, 0.0001f, 0.5f))
         {
-            module->SetFloatValue(ModuleHints::RAYMARCHING_MAX_DISTANCE, maxDistance);
+            module->SetFloatValue(ModuleHints::RAYMARCHING_STEP_SIZE, stepSize);
+        }
+
+        float attCorrection = module->GetFloatValue(ModuleHints::RAYMARCHING_ATT_CORRECTION);
+        if (ImGui::SliderFloat("Attenuation Correction", &attCorrection, 0.0001f, 10.0f))
+        {
+            module->SetFloatValue(ModuleHints::RAYMARCHING_ATT_CORRECTION, attCorrection);
         }
 
         float noiseScale = module->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SCALE);

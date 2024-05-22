@@ -155,6 +155,21 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[DIST_FOG_BLUR].type = TYPE_BOOL;
     hints[DIST_FOG_BLUR].value.bvalue = true;
 
+    hints[HEIGHT_FOG_GLOBAL_DENSITY].type = TYPE_FLOAT;
+    hints[HEIGHT_FOG_GLOBAL_DENSITY].value.fvalue = 0.1f;
+    hints[HEIGHT_FOG_DENSITY_FALLOFF].type = TYPE_FLOAT;
+    hints[HEIGHT_FOG_DENSITY_FALLOFF].value.fvalue = 0.1f;
+    
+    hints[HEIGHT_FOG_COLOR].type = TYPE_FLOAT3;
+    hints[HEIGHT_FOG_COLOR].value.f3value[0] = 0.5f;
+    hints[HEIGHT_FOG_COLOR].value.f3value[1] = 0.6f;
+    hints[HEIGHT_FOG_COLOR].value.f3value[2] = 0.7f;
+
+    hints[HEIGHT_FOG_SUN_COLOR].type = TYPE_FLOAT3;
+    hints[HEIGHT_FOG_SUN_COLOR].value.f3value[0] = 1.0f;
+    hints[HEIGHT_FOG_SUN_COLOR].value.f3value[1] = 0.9f;
+    hints[HEIGHT_FOG_SUN_COLOR].value.f3value[2] = 0.7f;
+
 
     hints[RAYMARCHING_BLUR].type = TYPE_BOOL;
     hints[RAYMARCHING_BLUR].value.bvalue = true;
@@ -168,8 +183,11 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[RAYMARCHING_FOG_INTENSITY].type = TYPE_FLOAT;
     hints[RAYMARCHING_FOG_INTENSITY].value.fvalue = 1.0f;
     
-    hints[RAYMARCHING_MAX_DISTANCE].type = TYPE_FLOAT;
-    hints[RAYMARCHING_MAX_DISTANCE].value.fvalue = 10000.0f;
+    hints[RAYMARCHING_STEP_SIZE].type = TYPE_FLOAT;
+    hints[RAYMARCHING_STEP_SIZE].value.fvalue = 0.05f;
+
+    hints[RAYMARCHING_ATT_CORRECTION].type = TYPE_FLOAT;
+    hints[RAYMARCHING_ATT_CORRECTION].value.fvalue = 1.0f;
     
     hints[RAYMARCHING_NOISE_SCALE].type = TYPE_FLOAT;
     hints[RAYMARCHING_NOISE_SCALE].value.fvalue = 0.0f;
@@ -229,11 +247,17 @@ void ModuleHints::Save(Config* config) const
     config->AddFloat4("Distance Fog Curve", float4(hints[DIST_FOG_CURVE].value.f4value));
     config->AddBool("Distance Fog Blur", hints[DIST_FOG_BLUR].value.bvalue);
 
+    config->AddFloat("Height Fog global density", hints[HEIGHT_FOG_GLOBAL_DENSITY].value.fvalue);
+    config->AddFloat("Height Fog density falloff", hints[HEIGHT_FOG_DENSITY_FALLOFF].value.fvalue);
+    config->AddFloat3("Height Fog color", float3(hints[HEIGHT_FOG_COLOR].value.f3value));
+    config->AddFloat3("Height Fog sun color", float3(hints[HEIGHT_FOG_SUN_COLOR].value.f3value));
+
     config->AddBool("RayMarching Blur", hints[RAYMARCHING_BLUR].value.bvalue);
     config->AddFloat3("RayMarching Ambient", float3(hints[RAYMARCHING_AMBIENT_COLOUR].value.f3value));
     config->AddFloat("RayMarching Extinction", hints[RAYMARCHING_EXTINCTION_COEFF].value.fvalue);
     config->AddFloat("RayMarching Fog Intensity", hints[RAYMARCHING_FOG_INTENSITY].value.fvalue);
-    config->AddFloat("RayMarching Max Distance", hints[RAYMARCHING_MAX_DISTANCE].value.fvalue);
+    config->AddFloat("RayMarching Step Size", hints[RAYMARCHING_STEP_SIZE].value.fvalue);
+    config->AddFloat("RayMarching Att Correction", hints[RAYMARCHING_ATT_CORRECTION].value.fvalue);
     config->AddFloat("RayMarching Noise Scale", hints[RAYMARCHING_NOISE_SCALE].value.fvalue);
     config->AddFloat("RayMarching Noise Speed", hints[RAYMARCHING_NOISE_SPEED].value.fvalue);
 
@@ -309,6 +333,17 @@ bool ModuleHints::Init(Config* config)
 
     hints[DIST_FOG_BLUR].value.bvalue = config->GetBool("Distance Fog Blur");
 
+    hints[HEIGHT_FOG_GLOBAL_DENSITY].value.fvalue = config->GetFloat("Height Fog global density");
+    hints[HEIGHT_FOG_DENSITY_FALLOFF].value.fvalue = config->GetFloat("Height Fog density falloff");
+    float3 color = config->GetFloat3("Height Fog color");
+    hints[HEIGHT_FOG_COLOR].value.f3value[0] = color[0];
+    hints[HEIGHT_FOG_COLOR].value.f3value[1] = color[1];
+    hints[HEIGHT_FOG_COLOR].value.f3value[2] = color[2];
+    color = config->GetFloat3("Height Fog sun color");
+    hints[HEIGHT_FOG_SUN_COLOR].value.f3value[0] = color[0];
+    hints[HEIGHT_FOG_SUN_COLOR].value.f3value[1] = color[1];
+    hints[HEIGHT_FOG_SUN_COLOR].value.f3value[2] = color[2];
+
     hints[RAYMARCHING_BLUR].value.bvalue = config->GetBool("RayMarching Blur");
 
     float3 ambient = config->GetFloat3("RayMarching Ambient");
@@ -319,7 +354,8 @@ bool ModuleHints::Init(Config* config)
     hints[RAYMARCHING_EXTINCTION_COEFF].value.fvalue = config->GetFloat("RayMarching Extinction");
     hints[RAYMARCHING_FOG_INTENSITY].value.fvalue = config->GetFloat("RayMarching Fog Intensity");
     
-    hints[RAYMARCHING_MAX_DISTANCE].value.fvalue = config->GetFloat("RayMarching Max Distance");
+    hints[RAYMARCHING_STEP_SIZE].value.fvalue = config->GetFloat("RayMarching Step Size");
+    hints[RAYMARCHING_ATT_CORRECTION].value.fvalue = config->GetFloat("RayMarching Att Correction");
     hints[RAYMARCHING_NOISE_SCALE].value.fvalue = config->GetFloat("RayMarching Noise Scale");
     hints[RAYMARCHING_NOISE_SPEED].value.fvalue = config->GetFloat("RayMarching Noise Speed");
 

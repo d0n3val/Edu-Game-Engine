@@ -54,6 +54,7 @@ bool ModuleResources::Start(Config * config)
     white_fallback->LoadFallback(white_fallback, float3(1.0f));
     black_fallback->LoadFallback(black_fallback, float3(0.0f));
 
+    LoadDefaultLoopNoise();
     LoadDefaultBlueNoise();
 	LoadDefaultSkybox();
     LoadDefaultSphere();
@@ -680,6 +681,33 @@ bool ModuleResources::LoadDefaultSkybox()
     }
 
 	return false;
+}
+
+bool ModuleResources::LoadDefaultLoopNoise()
+{
+    loopNoise = static_cast<ResourceTexture*>(CreateNewResource(Resource::texture, 6));
+
+    char* buffer = nullptr;
+    uint size = App->fs->Load("Assets/Textures/fog.png", &buffer);
+
+
+    if (buffer != nullptr)
+    {
+        loopNoise->LoadFromBuffer(buffer, size);
+        loopNoise->loaded++;
+        loopNoise->file = "*Default LoopNoise*";
+        loopNoise->exported_file = "*Default LoopNoise*";
+        loopNoise->user_name = "*Default loop noise*";
+
+        loopNoise->GetTexture()->SetWrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
+
+
+        delete[] buffer;
+
+        return true;
+    }
+
+    return false;
 }
 
 bool ModuleResources::LoadDefaultBlueNoise()

@@ -36,8 +36,7 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     timer.Start();
     frame = frame + dt;
 
-    resizeFrameBuffer(width, height);
-
+    resizeFrameBuffer(width, height, target);
 
     GBufferExportPass *exportPass = App->renderer->GetGBufferExportPass();
     SpotShadowMapPass *spotShadowMapPass = App->renderer->GetSpotShadowMapPass();
@@ -67,8 +66,9 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
         float frame;
         float noiseScale;
         float noiseSpeed;
-        float maxDistance;
-        int pad0, pad1;
+        float stepSize;
+        float attCorrection;
+        int pad0;
     } params;
 
     if (!parametersUBO)
@@ -80,7 +80,8 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     params.extinctionCoeff = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_EXTINCTION_COEFF);
     params.fogIntensity = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_FOG_INTENSITY);
     params.frame = frame;
-    params.maxDistance = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_MAX_DISTANCE);
+    params.stepSize = std::max(App->hints->GetFloatValue(ModuleHints::RAYMARCHING_STEP_SIZE), 0.001f);
+    params.attCorrection = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_ATT_CORRECTION);
     params.noiseScale = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SCALE);
     params.noiseSpeed = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SPEED);
 
@@ -91,6 +92,7 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     program->BindUniform(RAYMARCHING_HEIGHT_LOCATION, int(fbHeight));
     parametersUBO->BindToPoint(RAYMARCHING_PARAMETERS_LOCATION);
     exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
+    App->resources->GetDefaultLoopNoise()->GetTexture()->Bind(RAYMARCHING_NOISE_TEXTURE_BINDING);
 
     glBindVertexArray(App->resources->GetDefaultCone()->GetVAO());
     glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultCone()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
@@ -232,9 +234,12 @@ void VolumetricPass::generateApplyProgram(bool doBlur)
     }
 }
 
-void VolumetricPass::resizeFrameBuffer(uint width, uint height)
-{
-    if(width != fbWidth || height != fbHeight)
+void VolumetricPass::resizeFrameBuffer(uint width, uint height, const Framebuffer* srcFB)
+{   
+    uint newWidth = uint(width * resultScale);
+    uint newHeight = uint(height * resultScale);
+
+    if(newWidth != fbWidth || height != newHeight)
     {
         if (!frameBuffer)
         {
@@ -244,17 +249,34 @@ void VolumetricPass::resizeFrameBuffer(uint width, uint height)
         frameBuffer->ClearAttachments();
 
         // TODO: Can't scale due to depth buffer
-        result = std::make_unique<Texture2D>(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
-
-        GBufferExportPass *gBuffer = App->renderer->GetGBufferExportPass();
-
+        result = std::make_unique<Texture2D>(newWidth, newHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
         frameBuffer->AttachColor(result.get(), 0, 0);
-        frameBuffer->AttachDepthStencil(gBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
+
+        if (resultScale != 1.0f)
+        {
+            depth = std::make_unique<Texture2D>(newWidth, newHeight, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);            
+            frameBuffer->AttachDepthStencil(depth.get(), GL_DEPTH_ATTACHMENT);
+        }
+        else
+        {
+            GBufferExportPass* gBuffer = App->renderer->GetGBufferExportPass();
+            frameBuffer->AttachDepthStencil(gBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
+        }
 
         assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
-        fbWidth  = width;
-        fbHeight = height;
+        fbWidth  = newWidth;
+        fbHeight = newHeight;
+    }
+
+    if (resultScale != 1.0f)
+    {
+        glBindFramebuffer(GL_READ_BUFFER, srcFB->Id());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer->Id());
+        glReadBuffer(GL_DEPTH_ATTACHMENT);
+        glDrawBuffer(GL_DEPTH_ATTACHMENT);
+
+        glBlitFramebuffer(0, 0, width, height, 0, 0, fbWidth, fbHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     }
 }
 

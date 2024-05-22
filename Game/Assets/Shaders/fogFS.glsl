@@ -18,22 +18,29 @@ layout(location = FOG_SUN_COLOR) uniform vec3 fog_sun_color;
 in vec2 uv;
 out vec4 color;
 
+float applyFog(in float t,    // distance to point
+               in vec3  ro,   // camera position
+               in vec3  rd )  // camera to point vector
+{
+    return (a/b) * exp(-ro.y*b) * (1.0-exp(-t*rd.y*b))/rd.y;
+}
+
+
 void main()
 {
     float d = texture(depth, uv).r;
     vec3 position = getWorldPos(d, uv);
 
-    //vec4 positionSmp = texture(position, uv);
-    vec3 rayDir      = view_pos.xyz-position.xyz;
-    float pointDist  = length(rayDir);
-    rayDir /= pointDist;
+    vec3 rayDir           = position.xyz-view_pos.xyz;
+    float distToPoint     = length(rayDir);
+    vec3 rayDirNormalized = rayDir/distToPoint;
 
-    float fogAmount = min((a/b) * exp((view_pos.y)*b)*(1.0-exp(-pointDist*rayDir.y*b))/rayDir.y, 0.5);
+    float fogAmount = min(applyFog(distToPoint, view_pos.xyz, rayDirNormalized), 0.25); 
 
-    float sunAmount = max( dot( rayDir, directional.dir.xyz ), 0.0 );
-    vec3  fogColor  = mix( vec3(0.5,0.6,0.7), // bluish
-                           vec3(1.0,0.9,0.7), // yellowish
-                           pow(sunAmount,8.0) );
+    float sunAmount = 0.0; //max( dot( -rayDirNormalized, directional.dir.xyz ), 0.0 );
+    vec3  fogColor  = mix(fog_color, //vec3(0.5,0.6,0.7), // bluish
+                          fog_sun_color, //vec3(1.0,0.9,0.7), // yellowish
+                          pow(sunAmount,8.0) );
 
-    color = vec4(fogColor*fogAmout, 1.0);
+    color = vec4(fogColor*fogAmount, 1.0);
 }

@@ -66,7 +66,7 @@ void FogPass::execute(Framebuffer *target, uint width, uint height)
         params.extinctionCoeff = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_EXTINCTION_COEFF);
         params.fogIntensity = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_FOG_INTENSITY);
         params.frame = frame; 
-        params.maxDistance = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_MAX_DISTANCE);
+        params.maxDistance = 1000.0f;
         params.noiseScale = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SCALE);
         params.noiseSpeed = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SPEED);
 
@@ -129,10 +129,10 @@ void FogPass::execute(Framebuffer *target, uint width, uint height)
 	{
 		useProgram();
 
-		program->BindUniform(FOG_DENSITY_HEIGHT_FALLOFF_LOCATION, std::get<float>(App->hints->GetDHint(std::string("fog density falloff"), 0.01f)));
-		program->BindUniform(FOG_GLOGAL_DENSITY_LOCATION, std::get<float>(App->hints->GetDHint(std::string("fog global density"), 0.01f)));
-		program->BindUniform(FOG_COLOR, std::get<float3>(App->hints->GetDHint(std::string("fog color"), float3(0.5f, 0.6f, 0.7f))));
-		program->BindUniform(FOG_SUN_COLOR, std::get<float3>(App->hints->GetDHint(std::string("fog sun color"), float3(1.0f, 0.9f, 0.7f))));
+		program->BindUniform(FOG_DENSITY_HEIGHT_FALLOFF_LOCATION, App->hints->GetFloatValue(ModuleHints::HEIGHT_FOG_DENSITY_FALLOFF));
+		program->BindUniform(FOG_GLOGAL_DENSITY_LOCATION, App->hints->GetFloatValue(ModuleHints::HEIGHT_FOG_GLOBAL_DENSITY));
+		program->BindUniform(FOG_COLOR, App->hints->GetFloat3Value(ModuleHints::HEIGHT_FOG_COLOR));
+		program->BindUniform(FOG_SUN_COLOR, App->hints->GetFloat3Value(ModuleHints::HEIGHT_FOG_SUN_COLOR));
 	}
 
 	exportPass->getDepth()->Bind(GBUFFER_DEPTH_TEX_BINDING);

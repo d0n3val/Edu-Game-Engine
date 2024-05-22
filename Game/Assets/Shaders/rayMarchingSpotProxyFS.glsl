@@ -13,9 +13,8 @@ in flat int draw_id;
 in vec3 worldPos;
 out vec4 color;
 
-#define NUM_STEPS 32 // TODO: Configurable per light
-
 layout(binding = GBUFFER_POSITION_TEX_BINDING) uniform sampler2D position;
+layout(binding = RAYMARCHING_NOISE_TEXTURE_BINDING) uniform sampler2D noise;
 uniform layout(location=RAYMARCHING_WIDHT_LOCATION) int width;
 uniform layout(location=RAYMARCHING_HEIGHT_LOCATION) int height;
 
@@ -27,7 +26,8 @@ layout(std140, binding = RAYMARCHING_PARAMETERS_LOCATION) uniform Parameters
     float frame;
     float noiseScale;
     float noiseSpeed;
-    float maxDistance;
+    float stepSize; 
+    float attCorrection;
     int pad0_, pad1_;
 };
 
@@ -60,7 +60,7 @@ vec3 calculateSpotLight(in vec3 pos, in vec3 V)
     float inner   = light.inner;
     float outer   = light.outer;
     float cone    = GetCone(-light_dir, -normalize(light.transform[1].xyz), inner, outer);
-    float att     = Sq(max(1.0-Sq(Sq(projDist/lightDist)), 0.0))/(Sq(projDist)+1);
+    float att     = Sq(max(1.0-Sq(Sq(projDist/lightDist)), 0.0))/(attCorrection*Sq(projDist)+1);
     float shadow  = 1.0;
 
     if(light.hasShadow != 0)
@@ -82,12 +82,16 @@ vec3 calculateFogLighting(in vec3 pos, in vec3 V)
     return color;
 }
 
-float calculateFogDensity(in vec3 pos)
+float calculateFogDensity(vec3 pos)
 {
-    return max(snoise(vec4(pos, frame*noiseSpeed))*noiseScale, 0.0);
+    pos = pos/20;
+    vec2 newPos = pos.xz - (vec2(250.0)*floor(pos.xz/vec2(250.0))); // mod(x,y)
+    return max(texture(noise, newPos+frame*noiseSpeed).r*noiseScale, 0.0);
+
+    //return max(snoise(vec4(pos, ))*noiseScale, 0.0);
 }
 
-float calculateTransmittance(in float density, in float stepSize)
+float calculateTransmittance(in float density)
 {
     return max(exp(-extinctionCoeff*stepSize*density), 0.0);
 }
@@ -153,6 +157,7 @@ bool intersectCone(in vec3 rayOrig, in vec3 rayDir, in vec3 coneOrig, in vec3 co
 
 void main()
 {
+
     vec3 fragmentPos = texture(position, uv).xyz;
 
     vec3 rayDir     = fragmentPos-view_pos.xyz;
@@ -160,7 +165,6 @@ void main()
 
     // normalize
     rayDir = rayDir/fragDist;
-
     SpotLight spot  = spots[draw_id];
 
     float t0, t1;
@@ -171,8 +175,8 @@ void main()
     t0 = max(t0, 0.0);
     t1 = min(t1, fragDist);
 
-    vec3 marchingStep = rayDir*((t1-t0)/float(NUM_STEPS)); 
-    float stepSize = length(marchingStep);
+    float nSteps = ceil((t1-t0)/max(stepSize, 0.01));
+    vec3 marchingStep = rayDir*stepSize;
 
     vec3 result = vec3(0.0);
     vec3 currentPos = view_pos.xyz+rayDir*t0;
@@ -183,10 +187,10 @@ void main()
 
     float transmittance = 1.0;
 
-    for(int i=0; i < NUM_STEPS; ++i)
+    for(int i=0; i < nSteps; ++i)
     {
         float density = calculateFogDensity(currentPos);
-        transmittance *= calculateTransmittance(density, stepSize);
+        transmittance *= calculateTransmittance(density);
 
         vec3 inScattering = calculateFogLighting(currentPos, V);
 
