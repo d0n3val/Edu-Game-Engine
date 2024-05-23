@@ -133,11 +133,11 @@ bool ModuleRenderer3D::Init(Config* config)
 		vsync = !set_vsync; // force change
 		SetVSync(set_vsync);
 
-        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+        //glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
         glClearDepth(1.0f);
 		glClearStencil(0);
-		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+		//glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
 		
 		//Initialize clear color
@@ -151,6 +151,7 @@ bool ModuleRenderer3D::Init(Config* config)
 		glDepthFunc(GL_LESS);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
+
     }
 
 

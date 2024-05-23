@@ -9,8 +9,8 @@
 float computeSpotShadow(sampler2D shadowMap, in mat4 viewProj, in vec3 position)
 {
     vec4 coord = viewProj*vec4(position, 1.0);
-    coord.xyz /= coord.w;
-    coord.xy = coord.xy*0.5+0.5;
+    coord /= coord.w;
+    coord = coord*0.5+0.5;
 
     if(coord.x >= 0.0 && coord.x <= 1.0 && 
        coord.y >= 0.0 && coord.y <= 1.0 &&
@@ -31,8 +31,9 @@ float computeSpotShadow(sampler2D shadowMap, in mat4 viewProj, in vec3 position)
 float computeVarianceSpotShadow(sampler2D shadowMap, in mat4 viewProj, in vec3 position)
 {
     vec4 coord = viewProj*vec4(position, 1.0);
-    coord.xyz /= coord.w;
-    coord.xy = coord.xy*0.5+0.5;
+    coord /= coord.w;
+    coord = coord*0.5+0.5;
+
 
     if(coord.x >= 0.0 && coord.x <= 1.0 && 
        coord.y >= 0.0 && coord.y <= 1.0 &&
@@ -40,8 +41,9 @@ float computeVarianceSpotShadow(sampler2D shadowMap, in mat4 viewProj, in vec3 p
     {
         vec2 moments = texture(shadowMap, coord.xy).rg;
 
-        if(coord.z > moments.r)
+        if(coord.z > moments.r + 0.001)
         {
+
             float variance = max(moments.g - (moments.r*moments.r), 0.00002);
             float d = coord.z - moments.r;
             float p_max = variance / (variance + d*d); // factor used to interpolate between ambient and full litted 

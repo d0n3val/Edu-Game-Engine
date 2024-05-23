@@ -14,7 +14,7 @@ layout(std140, row_major, binding = CAMERA_UBO_BINDING) uniform Camera
 
 float getLinearZ(float depth)
 {
-    return -proj[3][2]/(proj[2][2]+depth);
+    return -proj[3][2]/(proj[2][2]+depth*2.0-1.0);
 }
 
 vec3 getWorldPos(float depth, vec2 texCoords)
