@@ -11,6 +11,7 @@
 #include "PlanarReflectionPass.h"
 #include "IBLData.h"
 #include "GBufferExportPass.h"
+#include "TileCullingPass.h"
 #include "ScreenSpaceAO.h"
 #include "LightManager.h"
 #include "OGL.h"
@@ -31,10 +32,13 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "DeferredResolve");
     GBufferExportPass* exportPass = App->renderer->GetGBufferExportPass();
 	ScreenSpaceAO* ssao = App->renderer->GetScreenSpaceAO();
+    TileCullingPass* tileCulling = App->renderer->GetTileCullingPass();
 
     useProgram();
 
     bindShadows();
+    program->BindUniform(DEFERRED_WIDTH_LOCATION, int(width));
+    program->BindUniform(DEFERRED_HEIGHT_LOCATION, int(height));
     App->renderer->GetCameraUBO()->Bind();
     App->level->GetLightManager()->Bind();
     App->renderer->GetPlanarPass()->Bind();
@@ -50,6 +54,8 @@ void DeferredResolvePass::execute(Framebuffer *target, uint width, uint height)
     exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
     exportPass->getNormal()->Bind(GBUFFER_NORMAL_TEX_BINDING);
     exportPass->getDepth()->Bind(GBUFFER_DEPTH_TEX_BINDING);
+    tileCulling->getPointLightList()->Bind(POINT_LIGHT_LIST_BINDING);
+    tileCulling->getSpotLightList()->Bind(SPOT_LIGHT_LIST_BINDING);
     
 	ssao->getResult()->Bind(SSAO_TEX_BINDING);
 

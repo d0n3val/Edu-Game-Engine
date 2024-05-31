@@ -108,6 +108,7 @@ public:
     TextureBuffer(Buffer* buffer, uint format);
 
     void Bind(uint unit) const;
+    void BindImage(uint unit, int level, bool layered, int layer, int access, int format);
     void Unbind(uint unit) const;
 
     uint Id() const { return id; }

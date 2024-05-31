@@ -15,6 +15,8 @@ layout(binding = GBUFFER_POSITION_TEX_BINDING) uniform sampler2D position;
 layout(binding = GBUFFER_DEPTH_TEX_BINDING) uniform sampler2D depth;
 layout(binding = GBUFFER_NORMAL_TEX_BINDING) uniform sampler2D normal;
 layout(binding = SSAO_TEX_BINDING) uniform sampler2D ssao;
+uniform layout(location=DEFERRED_WIDTH_LOCATION) int width;
+uniform layout(location=DEFERRED_HEIGHT_LOCATION) int height;
 
 in vec2 uv;
 out vec4 color;
@@ -35,16 +37,8 @@ void unpackGBuffer(out PBR pbr)
     pbr.emissive   = emissiveSmp.rgb;
     pbr.normal     = normalize(normalSmp.rgb*2.0-1.0);
 
-#ifdef GEN_WORLD_POSITION
-    float viewZ = -proj[3][2]/(proj[2][2]+texture(depth, uv).r);
-    float viewX = (uv.x*2.0-1.0)*(-viewZ)/proj[0][0];
-    float viewY = (uv.y*2.0-1.0)*(-viewZ)/proj[1][1];
-    vec3 viewPos = vec3(viewX, viewY, viewZ);
-    pbr.position = (invView*vec4(viewPos, 1.0)).xyz;
-#else
     vec4 positionSmp = texture(position, uv);
-    pbr.position   = positionSmp.rgb;
-#endif 
+    pbr.position   = getWorldPos(texture(depth, uv).r, uv); 
     pbr.smoothness = specularSmp.a;
     pbr.occlusion  = emissiveSmp.a;
     pbr.planarReflections = albedoSmp.a != 0.0 ? 1 : 0;
@@ -55,6 +49,12 @@ void sampleSSAO(inout PBR pbr)
     pbr.occlusion *= texture(ssao, uv).r;
 }
 
+int getTileIndex()
+{
+    ivec2 pixel = ivec2(uv*vec2(width, height)/vec2(TILE_CULLING_GROUP_SIZE, TILE_CULLING_GROUP_SIZE));
+    return TILE_INDEX(pixel.x, pixel.y, width);
+}
+
 void main()
 {
     PBR pbr;
@@ -63,7 +63,15 @@ void main()
     sampleSSAO(pbr);
 
     pbr.shadow = computeShadow(pbr.position);
-    //pbr.shadow = 1.0;
 
-    color = ShadingNoPoint(pbr);
+    color = ShadingNoPoint(pbr, getTileIndex());
+
+#if 0
+    int bufferOffset = getTileIndex()*MAX_NUM_LIGHTS_PER_TILE;
+    int lightIndex = texelFetch(spotLightList, int(bufferOffset)).r;
+    if(lightIndex < 0)
+        color.rgb = vec3(10000);
+    else 
+        color.rgb = vec3(0);
+#endif 
 }

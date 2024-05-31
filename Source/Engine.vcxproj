@@ -430,6 +430,7 @@
     <ClInclude Include="SpotShadowMapPass.h" />
     <ClInclude Include="StateViewport.h" />
     <ClInclude Include="ThreadPool.h" />
+    <ClInclude Include="TileCullingPass.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="PhysVehicle3D.h" />
     <ClInclude Include="tinygltf\tiny_gltf.h" />
@@ -647,6 +648,7 @@
     <ClCompile Include="thekla_atlas\src\nvmesh\weld\VertexWeld.cpp" />
     <ClCompile Include="thekla_atlas\src\thekla\thekla_atlas.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
+    <ClCompile Include="TileCullingPass.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="PhysVehicle3D.cpp" />
     <ClCompile Include="tinyspline\include\tinyspline.c" />

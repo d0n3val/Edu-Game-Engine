@@ -22,6 +22,7 @@
 #include "DepthRangePass.h"
 #include "SpotConePass.h"
 #include "PlanarReflectionPass.h"
+#include "TileCullingPass.h"
 #include "CameraUBO.h"
 
 #include "PostprocessShaderLocations.h"
@@ -87,6 +88,7 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     depthRangePass = std::make_unique<DepthRangePass>();
     planarPass = std::make_unique<PlanarReflectionPass>();
     spotConePass = std::make_unique<SpotConePass>();
+    tileCullingPass = std::make_unique<TileCullingPass>();
     cameraUBO = std::make_unique<CameraUBO>();
 }
 
@@ -175,6 +177,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     // Deferred
     exportGBuffer->execute(render_list, width, height);
 
+    tileCullingPass->execute();
     depthRangePass->execute(exportGBuffer->getDepth(), width, height);
 
     //decalPass->execute(camera, render_list, width, height);

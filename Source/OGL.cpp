@@ -298,6 +298,11 @@ void TextureBuffer::Bind(uint unit) const
     glBindTexture(GL_TEXTURE_BUFFER, id);
 }
 
+void TextureBuffer::BindImage(uint unit, int level, bool layered, int layer, int access, int format)
+{
+    glBindImageTexture(unit, id, level, layered, layer, access, format);
+}
+
 void TextureBuffer::Unbind(uint unit) const
 {
     glActiveTexture(GL_TEXTURE0+unit);

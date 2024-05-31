@@ -19,6 +19,9 @@ layout(location = PLANAR_REFLECTION_LOD_LEVELS_LOCATION) uniform int planarLevel
 layout(location = PLANAR_REFLECTION_NORMAL) uniform vec3 planarNormal;
 layout(location = PLANAR_REFLECTION_DISTORITION) uniform float planarDistortion;
 
+layout(binding=POINT_LIGHT_LIST_BINDING) uniform isamplerBuffer pointLightList;
+layout(binding=SPOT_LIGHT_LIST_BINDING) uniform isamplerBuffer spotLightList;
+
 struct DirLight
 {
     vec4 dir; // dir+anisotropy
@@ -133,6 +136,20 @@ readonly layout(std430, row_major, binding = IBLLIGHT_SSBO_BINDING) buffer IBLLi
     IBLLight ibls[];
 };
 
+vec4 getSpotLightSphere(in SpotLight light)
+{
+    vec3 lightPos = light.transform[3].xyz;
+    vec3 lightDir = -light.transform[1].xyz;
+
+    if(light.dist > light.radius)
+    {
+        float centerDist = (Sq(light.dist)-Sq(light.radius))/(2.0*light.dist);
+        vec3 center  = lightPos+lightDir*(light.dist-centerDist);
+        return vec4(center, light.dist-centerDist);
+    }
+
+    return vec4(lightPos+lightDir*light.dist, light.radius);
+}
 
 float GetCone(const vec3 light_dir, const vec3 cone_dir, float inner, float outer)
 {
@@ -419,9 +436,7 @@ vec3 ShadingPoint(in PBR pbr, uint index)
     vec3 V           = normalize(view_pos.xyz-pbr.position);
     float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
 
-    float shadow = min(1.0, pbr.shadow+0.5);
-
-    return Point(pbr.position, pbr.normal, V, points[index], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+    return Point(pbr.position, pbr.normal, V, points[index], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
 }
 
 vec3 ShadingPoint(in PBR pbr)
@@ -431,15 +446,39 @@ vec3 ShadingPoint(in PBR pbr)
 
     vec3 color = vec3(0.0);
 
-    float shadow = min(1.0, pbr.shadow+0.5);
-
     for(uint i=0; i< num_point; ++i)
     {
-        color += Point(pbr.position, pbr.normal, V, points[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+        color += Point(pbr.position, pbr.normal, V, points[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
     }
 
     return color;
 }
+
+vec3 ShadingPointFromTile(in PBR pbr, int tileIndex)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
+
+    vec3 color = vec3(0.0);
+
+    int bufferOffset = tileIndex*MAX_NUM_LIGHTS_PER_TILE;
+
+    for(uint i=0; i<MAX_NUM_LIGHTS_PER_TILE; ++i)
+    {
+        int lightIndex = texelFetch(pointLightList, int(bufferOffset+i)).r;
+        if(lightIndex >=0)
+        {
+            color += Point(pbr.position, pbr.normal, V, points[lightIndex], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return color;
+}
+
 
 vec3 ShadingSpot(in PBR pbr)
 {
@@ -453,6 +492,31 @@ vec3 ShadingSpot(in PBR pbr)
     for(uint i=0; i< num_spot; ++i)
     {
         color += Spot(pbr.position, pbr.normal, V, spots[i], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion*shadow;
+    }
+
+    return color;
+}
+
+vec3 ShadingSpotFromTile(in PBR pbr, int tileIndex)
+{
+    vec3 V           = normalize(view_pos.xyz-pbr.position);
+    float roughness  = max(Sq(1.0-pbr.smoothness), MIN_ROUGHNESS); 
+
+    vec3 color = vec3(0.0);
+
+    int bufferOffset = tileIndex*MAX_NUM_LIGHTS_PER_TILE;
+
+    for(uint i=0; i<MAX_NUM_LIGHTS_PER_TILE; ++i)
+    {
+        int lightIndex = texelFetch(spotLightList, int(bufferOffset+i)).r;
+        if(lightIndex >=0)
+        {
+            color += Spot(pbr.position, pbr.normal, V, spots[lightIndex], pbr.diffuse, pbr.specular, roughness)*pbr.occlusion;
+        }
+        else
+        {
+            break;
+        }
     }
 
     return color;
@@ -523,11 +587,12 @@ vec4 Shading(in PBR pbr)
     return vec4(color, pbr.alpha);
 }
 
-vec4 ShadingNoPoint(in PBR pbr)
+vec4 ShadingNoPoint(in PBR pbr, int tileIdx)
 {
     vec3 color = ShadingAmbient(pbr);
     color += ShadingDirectional(pbr);
-    //color += ShadingSpot(pbr);
+    color += ShadingSpotFromTile(pbr, tileIdx);
+    color += ShadingPointFromTile(pbr, tileIdx);
     color += ShadingSphere(pbr);
     color += ShadingQuad(pbr);
     color += ShadingTube(pbr);

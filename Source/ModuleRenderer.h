@@ -37,6 +37,7 @@ class DepthRangePass;
 class PlanarReflectionPass;
 class SpotConePass;
 class SpotShadowMapPass;
+class TileCullingPass;
 class CameraUBO;
 
 
@@ -63,6 +64,7 @@ class ModuleRenderer : public Module
     std::unique_ptr<DepthRangePass>       depthRangePass;
     std::unique_ptr<PlanarReflectionPass> planarPass;
     std::unique_ptr<SpotConePass>         spotConePass;
+    std::unique_ptr<TileCullingPass>      tileCullingPass;
     std::unique_ptr<CameraUBO>            cameraUBO;
     std::unique_ptr<Program>              primitiveProgram;
     std::unique_ptr<Program>              probeProgram;
@@ -96,6 +98,7 @@ public:
     SpotShadowMapPass*      GetSpotShadowMapPass        () const { return spotShadowMapPass.get(); }
     CascadeShadowPass*      GetCascadeShadowPass        () const { return cascadeShadowPass.get(); }
     PlanarReflectionPass*   GetPlanarPass               () const { return planarPass.get(); }
+    TileCullingPass*        GetTileCullingPass          () const { return tileCullingPass.get(); }
     CameraUBO*              GetCameraUBO                () const { return cameraUBO.get(); }
 
     Program*                GetPrimitivesProgram        () const { return primitiveProgram.get(); }

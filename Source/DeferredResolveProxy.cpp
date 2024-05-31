@@ -40,6 +40,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 	ScreenSpaceAO* ssao = App->renderer->GetScreenSpaceAO();
 
     // spheres
+#if 0
     useSphereProgram();
     App->renderer->GetCameraUBO()->Bind();
     App->level->GetLightManager()->Bind();
@@ -70,6 +71,7 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 
     glBindVertexArray(App->resources->GetDefaultCone()->GetVAO());
     glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultCone()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
+#endif 
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
@@ -79,16 +81,20 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 #ifdef DEBUG_RENDER
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//useDebugSphere();
+	useDebugSphere();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  //  glBindVertexArray(App->resources->GetDefaultSphere()->GetVAO());
-//    glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultSphere()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledPointLights());
+
+    glBindVertexArray(App->resources->GetDefaultSphere()->GetVAO());
+    //glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultSphere()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledPointLights());
 
     useDebugCone();
-    glBindVertexArray(App->resources->GetDefaultCone()->GetVAO());
-    glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultCone()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
+    //glBindVertexArray(App->resources->GetDefaultCone()->GetVAO());
+    //glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultCone()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
+    glBindVertexArray(App->resources->GetDefaultSphere()->GetVAO());
+    glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultSphere()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glDisable(GL_BLEND);
+	glDisable(GL_BLEND);
 #endif 
 
 	target->Unbind();

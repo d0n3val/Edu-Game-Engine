@@ -97,6 +97,13 @@ void GBufferExportPass::resizeFrameBuffer(uint width, uint height)
         positionTex = std::make_unique<Texture2D>(width, height, GL_RGB32F, GL_RGB, GL_FLOAT, nullptr, false);
         normalTex   = std::make_unique<Texture2D>(width, height, GL_RGB8, GL_RGB, GL_UNSIGNED_INT, nullptr, false);
 
+        glObjectLabel(GL_TEXTURE, albedoTex->Id(), -1, "G-Buffer-Albedo");
+        glObjectLabel(GL_TEXTURE, specularTex->Id(), -1, "G-Buffer-Specular");
+        glObjectLabel(GL_TEXTURE, emissiveTex->Id(), -1, "G-Buffer-Emissive");
+        glObjectLabel(GL_TEXTURE, depthTex->Id(), -1, "G-Buffer-Depth");
+        glObjectLabel(GL_TEXTURE, positionTex->Id(), -1, "G-Buffer-Position");
+        glObjectLabel(GL_TEXTURE, normalTex->Id(), -1, "G-Buffer-NOrmal");
+
         albedoTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         specularTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         emissiveTex->SetWrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);

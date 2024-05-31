@@ -62,7 +62,7 @@ readonly layout(std430, binding = MATERIAL_SSBO_BINDING) buffer Mats
     Material materials[];
 };
 
-layout(binding = MATERIAL_TEX_BINDING) uniform sampler2DArray textures[gl_MaxTextureImageUnits-8];
+layout(binding = MATERIAL_TEX_BINDING) uniform sampler2DArray textures[gl_MaxTextureImageUnits-10];
 
 vec4 sampleTexture(in uint textureIndex, in vec2 uv, in int matIndex)
 {

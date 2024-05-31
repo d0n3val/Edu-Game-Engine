@@ -39,6 +39,9 @@ public:
     Texture2D*   getPosition() const {return positionTex.get();}
     Texture2D*   getNormal() const {return normalTex.get();}
     Texture2D*   getDepth() const {return depthTex.get();}
+
+    uint         getWidth() const {return fbWidth;}
+    uint         getHeight() const {return fbHeight;}
     
 private:
 

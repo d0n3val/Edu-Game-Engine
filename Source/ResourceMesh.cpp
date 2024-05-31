@@ -1287,7 +1287,7 @@ UID ResourceMesh::Generate(const char* shape_name, par_shapes_mesh* shape, UID u
 
     bool ok = true;
 
-    if (m->GetUID() > RESERVED_RESOURCES)
+    if (uid > RESERVED_RESOURCES)
     {
         std::string output;
         ok = m->Save(shape_name, output);

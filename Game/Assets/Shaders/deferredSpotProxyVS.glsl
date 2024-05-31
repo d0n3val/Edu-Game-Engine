@@ -6,6 +6,8 @@
 #include "/shaders/cameraDefs.glsl"
 #include "/shaders/lighting.glsl"
 
+//#define RENDER_SPHERE
+
 layout(location = POSITION_ATTRIB_LOCATION) in vec3 vertex_position;
 
 out vec2 uv;
@@ -16,6 +18,7 @@ void main()
 {
     SpotLight light = spots[gl_InstanceID];
 
+#ifndef RENDER_SPHERE
     vec3 position = vertex_position;
     // Scale
     position.y *= light.dist;
@@ -23,10 +26,14 @@ void main()
 
     // Rotation
     vec4 pos = light.transform*vec4(position, 1.0);
-
     worldPos = pos.xyz;
+#else
+    vec4 sphere = getSpotLightSphere(light);
 
-    vec4 clipping = proj*view*pos;
+    worldPos = sphere.xyz+vertex_position*sphere.w;
+#endif 
+
+    vec4 clipping = proj*view*vec4(worldPos, 1.0);
 
     uv = (clipping.xy/clipping.w)*0.5+0.5;
 

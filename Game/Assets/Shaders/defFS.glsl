@@ -9,7 +9,11 @@
 #include "/shaders/vertexDefs.glsl"
 #include "/shaders/shadows.glsl"
 
+//#define DISABLE_SSAO
+
+#ifndef DISABLE_SSAO
 layout(binding = SSAO_TEX_BINDING) uniform sampler2D ssao;
+#endif
 
 in VertexOut fragment;
 in flat int draw_id;

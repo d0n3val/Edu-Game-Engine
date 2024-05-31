@@ -278,7 +278,6 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
 
     // point lights
     enabledPointSize = 0;
-
     for(const std::unique_ptr<PointLight>& light : points)
     {
         if(light->GetEnabled())
