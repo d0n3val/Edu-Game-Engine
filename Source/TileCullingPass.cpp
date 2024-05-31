@@ -35,18 +35,24 @@ void TileCullingPass::execute()
     int numTilesX = (width + (TILE_CULLING_GROUP_SIZE - 1)) / TILE_CULLING_GROUP_SIZE;
     int numTilesY = (height + (TILE_CULLING_GROUP_SIZE - 1)) / TILE_CULLING_GROUP_SIZE;
 
+    LightManager* lightManager = App->level->GetLightManager();
 
-    generateTextureBuffer(numTilesX, numTilesY);
+    int numPoint = int(lightManager->GetEnabledPointLights());
+    int numSpot = int(lightManager->GetEnabledSpotLights());
+    generateTextureBuffer(numTilesX, numTilesY, numPoint, numSpot);
 
     useProgram();
 
     exportPass->getDepth()->Bind(GBUFFER_DEPTH_TEX_BINDING);
     program->BindUniform(TILECULLING_WIDTH_LOCATION, int(width));
     program->BindUniform(TILECULLING_HEIGHT_LOCATION, int(height));
-    App->level->GetLightManager()->Bind();
+    program->BindUniform(TILECULLING_MAX_POINT_LIGHTS_LOCATION, numPoint);
+    program->BindUniform(TILECULLING_MAX_SPOT_LIGHTS_LOCATION, numSpot);
+    lightManager->Bind();
     App->renderer->GetCameraUBO()->Bind();
     pointListTex->BindImage(TILE_CULLING_POINTIMAGE_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_R32I);
     spotListTex->BindImage(TILE_CULLING_SPOTIMAGE_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_R32I);
+    volSpotListTex->BindImage(TILE_CULLING_VOLSPOTIMAGE_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_R32I);
     //dbgTex->BindImage(TILE_CULLING_DBGIMAGE_BINDING, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
 
     glDispatchCompute(numTilesX, numTilesY, 1);
@@ -74,23 +80,36 @@ void TileCullingPass::useProgram()
     }
 }
 
-void TileCullingPass::generateTextureBuffer(int tilesX, int tilesY)
+void TileCullingPass::generateTextureBuffer(int tilesX, int tilesY, int numPoints, int numSpots)
 {
-    uint size = tilesX * tilesY * MAX_NUM_LIGHTS_PER_TILE*sizeof(int32_t);
+    uint newPointSize = tilesX * tilesY * numPoints*sizeof(int32_t);
+    uint newSpotSize = tilesX * tilesY * numSpots*sizeof(int32_t);
 
 
-    if(size > bufferSize)
+    if(newPointSize > pointSize)
     {
-        pointListBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, GL_STATIC_DRAW, size, nullptr);
-        spotListBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, GL_STATIC_DRAW, size, nullptr);
+        pointListBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, GL_STATIC_DRAW, newPointSize, nullptr);
         pointListTex = std::make_unique<TextureBuffer>(pointListBuffer.get(), GL_R32I);
-        spotListTex = std::make_unique<TextureBuffer>(spotListBuffer.get(), GL_R32I);
-        bufferSize = size;
+        pointSize = newPointSize;
         
         glObjectLabel(GL_TEXTURE, pointListTex->Id(), -1, "PointLightList");
-        glObjectLabel(GL_TEXTURE, spotListTex->Id(), -1, "SpotLightList");
 
-        //dbgBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, GL_STATIC_DRAW, tilesX*tilesY*sizeof(float)*4, nullptr);
+    }
+
+    if(newSpotSize > spotSize)
+    {
+        spotListBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, GL_STATIC_DRAW, newSpotSize, nullptr);
+        volSpotListBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, GL_STATIC_DRAW, newSpotSize, nullptr);
+
+        spotListTex = std::make_unique<TextureBuffer>(spotListBuffer.get(), GL_R32I);
+        volSpotListTex = std::make_unique<TextureBuffer>(volSpotListBuffer.get(), GL_R32I);
+
+        spotSize = newSpotSize;
+
+        glObjectLabel(GL_TEXTURE, spotListTex->Id(), -1, "SpotLightList");
+        glObjectLabel(GL_TEXTURE, volSpotListTex->Id(), -1, "VolSpotLightList");
+
+        //dbgBuffer = std::make_unique<Buffer>(GL_TEXTURE_BUFFER, GL_STATIC_DRAW, tilesX*tilesY*numSpots*sizeof(float)*4, nullptr);
         //dbgTex = std::make_unique<TextureBuffer>(dbgBuffer.get(), GL_RGBA32F);
     }
 }

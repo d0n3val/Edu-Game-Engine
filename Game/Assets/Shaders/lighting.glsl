@@ -461,9 +461,9 @@ vec3 ShadingPointFromTile(in PBR pbr, int tileIndex)
 
     vec3 color = vec3(0.0);
 
-    int bufferOffset = tileIndex*MAX_NUM_LIGHTS_PER_TILE;
+    uint bufferOffset = tileIndex*num_point;
 
-    for(uint i=0; i<MAX_NUM_LIGHTS_PER_TILE; ++i)
+    for(uint i=0; i<num_point; ++i)
     {
         int lightIndex = texelFetch(pointLightList, int(bufferOffset+i)).r;
         if(lightIndex >=0)
@@ -504,9 +504,9 @@ vec3 ShadingSpotFromTile(in PBR pbr, int tileIndex)
 
     vec3 color = vec3(0.0);
 
-    int bufferOffset = tileIndex*MAX_NUM_LIGHTS_PER_TILE;
+    uint bufferOffset = tileIndex*num_spot;
 
-    for(uint i=0; i<MAX_NUM_LIGHTS_PER_TILE; ++i)
+    for(uint i=0; i<num_spot; ++i)
     {
         int lightIndex = texelFetch(spotLightList, int(bufferOffset+i)).r;
         if(lightIndex >=0)

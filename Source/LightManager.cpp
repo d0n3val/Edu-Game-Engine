@@ -320,7 +320,6 @@ void LightManager::UpdateGPUBuffers(bool disableIBL)
             spotPtr->spots[enabledSpotSize].shadowDepth     = light->GetShadowDepth() ? light->GetShadowDepth()->GetBindlessHandle() : 0;
             spotPtr->spots[enabledSpotSize].shadowVariance  = light->GetShadowVariance() ? light->GetShadowVariance()->GetBindlessHandle() : 0;
 
-
             ++enabledSpotSize;
         }
     }

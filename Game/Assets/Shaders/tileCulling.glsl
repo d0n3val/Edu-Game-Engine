@@ -10,14 +10,18 @@
 layout(binding = GBUFFER_DEPTH_TEX_BINDING) uniform sampler2D depth;
 uniform layout(location=TILECULLING_WIDTH_LOCATION) int width;
 uniform layout(location=TILECULLING_HEIGHT_LOCATION) int height;
+uniform layout(location=TILECULLING_MAX_POINT_LIGHTS_LOCATION ) int maxPointLights;
+uniform layout(location=TILECULLING_MAX_SPOT_LIGHTS_LOCATION ) int maxSpotLights;
 
 shared uint minZ;
 shared uint maxZ;
 shared uint pointsInTile;
 shared uint spotsInTile;
+shared uint volSpotsInTile;
 
 uniform layout(binding=TILE_CULLING_POINTIMAGE_BINDING, r32i) writeonly iimageBuffer pointList;
 uniform layout(binding=TILE_CULLING_SPOTIMAGE_BINDING, r32i) writeonly iimageBuffer spotList;
+uniform layout(binding=TILE_CULLING_VOLSPOTIMAGE_BINDING, r32i) writeonly iimageBuffer volSpotList;
 //uniform layout(binding=TILE_CULLING_DBGIMAGE_BINDING, rgba32f) imageBuffer dbgImage;
 
 
@@ -45,6 +49,7 @@ void main()
             maxZ = 0;
             pointsInTile = 0;
             spotsInTile = 0;
+            volSpotsInTile = 0;
         }
 
         barrier(); // ensure all barriers arrived to here (memory barrier is not needed)
@@ -55,8 +60,9 @@ void main()
         barrier(); // ensure all barriers arrived to here (memory barrier is not needed)
 
 
-        float viewMinZ = getLinearZ(uintBitsToFloat(minZ));
-        float viewMaxZ = getLinearZ(uintBitsToFloat(maxZ));
+        float viewMinZ    = getLinearZ(uintBitsToFloat(minZ));
+        float volViewMinZ = getLinearZ(0.0);
+        float viewMaxZ    = getLinearZ(uintBitsToFloat(maxZ));
 
         // Compute frustum planes    
 
@@ -98,14 +104,15 @@ void main()
             {
                 uint index = atomicAdd(pointsInTile, 1);
 
-                if(index < MAX_NUM_LIGHTS_PER_TILE)
+                if(index < maxPointLights)
                 {
-                    imageStore(pointList, int(tileIndex*MAX_NUM_LIGHTS_PER_TILE+index), ivec4(i));
+                    imageStore(pointList, int(tileIndex*maxPointLights+index), ivec4(i));
                 }
             }
 
-            //imageStore(dbgImage, tileIndex, vec4(viewMinZ, viewPos.z, radius, minDepth));
         }
+
+        bool inside = false;
 
         for(uint i=threadIndex;i<num_spot; i+=threadCount)
         {
@@ -118,18 +125,34 @@ void main()
                dot(viewPos, planes[1].xyz) < radius &&
                dot(viewPos, planes[2].xyz) < radius &&
                dot(viewPos, planes[3].xyz) < radius &&
-               (viewMinZ-viewPos.z) > -radius &&
-               (viewMaxZ-viewPos.z) < radius)
+              (viewMaxZ-viewPos.z) < radius) 
             {
-                uint index = atomicAdd(spotsInTile, 1);
 
-                if(index < MAX_NUM_LIGHTS_PER_TILE)
+                if((viewMinZ-viewPos.z) > -radius)
                 {
-                    imageStore(spotList, int(tileIndex*MAX_NUM_LIGHTS_PER_TILE+index), ivec4(i));
+                    uint index = atomicAdd(spotsInTile, 1);
+
+                    if(index < maxSpotLights)
+                    {
+                        imageStore(spotList, int(tileIndex*maxSpotLights+index), ivec4(i));
+                    }
                 }
+
+                if ((volViewMinZ-viewPos.z) > -radius)
+                {
+                    uint index = atomicAdd(volSpotsInTile, 1);
+
+                    if(index < maxSpotLights)
+                    {
+                        imageStore(volSpotList, int(tileIndex*maxSpotLights+index), ivec4(i));
+                        inside = true;
+                    }
+
+                }
+
             }
 
-            //imageStore(dbgImage, tileIndex, vec4(viewMinZ, viewPos.z, radius, minDepth));
+            //imageStore(dbgImage, tileIndex, vec4(viewMaxZ, viewPos.z, globalIdx.x, inside));
         }
 
         barrier();
@@ -137,8 +160,9 @@ void main()
         // Mark last with a -1
         if(gl_LocalInvocationIndex == 0)
         {
-            if(pointsInTile < MAX_NUM_LIGHTS_PER_TILE) imageStore(pointList, int(tileIndex*MAX_NUM_LIGHTS_PER_TILE+pointsInTile), ivec4(-1));
-            if(spotsInTile < MAX_NUM_LIGHTS_PER_TILE) imageStore(spotList, int(tileIndex*MAX_NUM_LIGHTS_PER_TILE+spotsInTile), ivec4(-1));
+            if(pointsInTile < maxPointLights) imageStore(pointList, int(tileIndex*maxPointLights+pointsInTile), ivec4(-1));
+            if(spotsInTile < maxSpotLights) imageStore(spotList, int(tileIndex*maxSpotLights+spotsInTile), ivec4(-1));
+            if(volSpotsInTile < maxSpotLights) imageStore(volSpotList, int(tileIndex*maxSpotLights+volSpotsInTile), ivec4(-1));
         }
     }
 }
