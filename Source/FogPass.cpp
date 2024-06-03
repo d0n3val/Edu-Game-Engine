@@ -82,7 +82,7 @@ void FogPass::execute(Framebuffer *target, uint width, uint height)
         float2 tiling = float2(float(width)/float(blueNoise->GetMetadata().width), float(height)/float(blueNoise->GetMetadata().height));
 
         blueNoise->GetTexture()->Bind(RAYMARCHING_BLUENOISE_TEX_BINDING);
-        rayMarchingProgram->BindUniform(RAYMARCHING_WIDHT_LOCATION, int(width));
+        rayMarchingProgram->BindUniform(RAYMARCHING_WIDTH_LOCATION, int(width));
         rayMarchingProgram->BindUniform(RAYMARCHING_HEIGHT_LOCATION, int(height));
 
         rayMarchingProgram->BindUniform(RAYMACHING_BLUENOISE_UV_TILING_LOCATION, tiling);

@@ -84,14 +84,14 @@ void DeferredResolveProxy::execute(Framebuffer *target, uint width, uint height)
 	useDebugSphere();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    glBindVertexArray(App->resources->GetDefaultSphere()->GetVAO());
+    //glBindVertexArray(App->resources->GetDefaultSphere()->GetVAO());
     //glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultSphere()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledPointLights());
 
     useDebugCone();
-    //glBindVertexArray(App->resources->GetDefaultCone()->GetVAO());
-    //glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultCone()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
-    glBindVertexArray(App->resources->GetDefaultSphere()->GetVAO());
-    glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultSphere()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
+    glBindVertexArray(App->resources->GetDefaultCone()->GetVAO());
+    glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultCone()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
+    //glBindVertexArray(App->resources->GetDefaultSphere()->GetVAO());
+    //glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultSphere()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_BLEND);

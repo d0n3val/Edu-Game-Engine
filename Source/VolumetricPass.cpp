@@ -45,66 +45,6 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "VolumetricPass");
 
-#if 0
-    frameBuffer->Bind();
-    glViewport(0, 0, fbWidth, fbHeight);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Additive Blend
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-    glDepthMask(GL_FALSE);
-
-    useConeProgram();
-
-    App->level->GetSkyBox()->Bind();
-    App->level->GetLightManager()->Bind();
-
-    struct Parameters
-    {
-        float4 ambientColour;
-        float extinctionCoeff;
-        float fogIntensity;
-        float frame;
-        float noiseScale;
-        float noiseSpeed;
-        float stepSize;
-        float attCorrection;
-        int pad0;
-    } params;
-
-    if (!parametersUBO)
-    {
-        parametersUBO.reset(new Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, sizeof(params), nullptr));
-    }
-
-    params.ambientColour = float4(App->hints->GetFloat3Value(ModuleHints::RAYMARCHING_AMBIENT_COLOUR), 1.0f);
-    params.extinctionCoeff = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_EXTINCTION_COEFF);
-    params.fogIntensity = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_FOG_INTENSITY);
-    params.frame = frame;
-    params.stepSize = std::max(App->hints->GetFloatValue(ModuleHints::RAYMARCHING_STEP_SIZE), 0.001f);
-    params.attCorrection = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_ATT_CORRECTION);
-    params.noiseScale = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SCALE);
-    params.noiseSpeed = App->hints->GetFloatValue(ModuleHints::RAYMARCHING_NOISE_SPEED);
-
-    parametersUBO->InvalidateData();
-    parametersUBO->SetData(0, sizeof(params), &params);
-
-    program->BindUniform(RAYMARCHING_WIDHT_LOCATION, int(fbWidth));
-    program->BindUniform(RAYMARCHING_HEIGHT_LOCATION, int(fbHeight));
-    parametersUBO->BindToPoint(RAYMARCHING_PARAMETERS_LOCATION);
-    exportPass->getPosition()->Bind(GBUFFER_POSITION_TEX_BINDING);
-    App->resources->GetDefaultLoopNoise()->GetTexture()->Bind(RAYMARCHING_NOISE_TEXTURE_BINDING);
-
-    glBindVertexArray(App->resources->GetDefaultCone()->GetVAO());
-    glDrawElementsInstanced(GL_TRIANGLES, App->resources->GetDefaultCone()->GetNumIndices(), GL_UNSIGNED_INT, nullptr, App->level->GetLightManager()->GetEnabledSpotLights());
-
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE);
-
-#else
-
     struct Parameters
     {
         float4 ambientColour;
@@ -137,7 +77,8 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
 
     useProgram();
 
-    program->BindUniform(RAYMARCHING_WIDHT_LOCATION, int(fbWidth));
+    program->BindUniform(RAYMARCHING_TILE_WIDTH_LOCATION, int(width));
+    program->BindUniform(RAYMARCHING_WIDTH_LOCATION, int(fbWidth));
     program->BindUniform(RAYMARCHING_HEIGHT_LOCATION, int(fbHeight));
     parametersUBO->BindToPoint(RAYMARCHING_PARAMETERS_LOCATION);
     exportPass->getDepth()->Bind(GBUFFER_DEPTH_TEX_BINDING);
@@ -145,13 +86,10 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     result->BindImage(RAYMARCHING_FOG_DENSITY_BINDING, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
     tileCulling->getVolSpotLightList()->Bind(VOLSPOT_LIGHT_LIST_BINDING);
 
-
     int numWorkGroupsX = (width + (RAYMARCHING_GROUP_SIZE - 1)) / RAYMARCHING_GROUP_SIZE;
     int numWorkGroupsY = (height + (RAYMARCHING_GROUP_SIZE - 1)) / RAYMARCHING_GROUP_SIZE;
 
     glDispatchCompute(numWorkGroupsX, numWorkGroupsY, 1);
-
-#endif
 
     if (!vao)
         vao = std::make_unique<VertexArray>();
@@ -292,7 +230,7 @@ void VolumetricPass::resizeFrameBuffer(uint width, uint height, const Framebuffe
     uint newWidth = uint(width * resultScale);
     uint newHeight = uint(height * resultScale);
 
-    if(newWidth != fbWidth || height != newHeight)
+    if(newWidth != fbWidth || height != fbHeight)
     {
         if (!frameBuffer)
         {

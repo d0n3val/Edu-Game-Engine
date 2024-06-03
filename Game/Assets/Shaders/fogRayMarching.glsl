@@ -9,13 +9,15 @@
 #include "/shaders/simplexNoise.glsl"
 
 #define SCREEN_SCALE 2
+//#define NUM_STEPS 32
 
 #define FLT_MAX 3.402823466e+38
 
 layout(binding = GBUFFER_DEPTH_TEX_BINDING) uniform sampler2D depth;
 layout(binding = RAYMARCHING_NOISE_TEXTURE_BINDING) uniform sampler2D noise;
 uniform layout(binding=RAYMARCHING_FOG_DENSITY_BINDING, rgba32f) writeonly image2D outputImg; 
-uniform layout(location=RAYMARCHING_WIDHT_LOCATION) int width;
+uniform layout(location=RAYMARCHING_TILE_WIDTH_LOCATION) int tileWidth;
+uniform layout(location=RAYMARCHING_WIDTH_LOCATION) int width;
 uniform layout(location=RAYMARCHING_HEIGHT_LOCATION) int height;
 
 layout(binding=VOLSPOT_LIGHT_LIST_BINDING) uniform isamplerBuffer volSpotLightList;
@@ -72,7 +74,7 @@ vec3 calculateSpotLight(in vec3 pos, in vec3 V, int index)
 
     vec3 color = light.color.rgb*cone*att*shadow*phase;
 
-    color += cone*ambientColour.rgb*calculateAnisotropy(0.0, 0.0);
+    //color += cone*ambientColour.rgb*calculateAnisotropy(0.0, 0.0);
 
     return color;
 }
@@ -107,9 +109,9 @@ float calculateFogDensity(vec3 pos)
     //return max(snoise(vec4(pos, ))*noiseScale, 0.0);
 }
 
-float calculateTransmittance(in float density)
+float calculateTransmittance(in float density, in float stepLen)
 {
-    return max(exp(-extinctionCoeff*stepSize*density), 0.0);
+    return max(exp(-extinctionCoeff*stepLen*density), 0.0);
 }
 
 // see https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html
@@ -208,8 +210,9 @@ bool intersectCones(int tileIndex, in vec3 rayPos, in vec3 rayDir, out float min
 
 int getTileIndex(ivec2 pixel)
 {
-    ivec2 tile = ivec2(vec2(pixel*SCREEN_SCALE)/vec2(TILE_CULLING_GROUP_SIZE, TILE_CULLING_GROUP_SIZE));
-    return TILE_INDEX(tile.x, tile.y, width*SCREEN_SCALE);
+    ivec2 tile = ivec2(pixel*SCREEN_SCALE)/ivec2(TILE_CULLING_GROUP_SIZE);
+
+    return TILE_INDEX(tile.x, tile.y, tileWidth);
 }
 
 layout(local_size_x = RAYMARCHING_GROUP_SIZE, local_size_y = RAYMARCHING_GROUP_SIZE, local_size_z = 1) in;
@@ -228,15 +231,10 @@ void main()
         vec3 rayDir     = fragmentPos-view_pos.xyz;
         float fragDist  = length(rayDir);
 
-        // TMP: render always cone 0
-        int draw_id = 0;
-
         // normalize
         rayDir = rayDir/fragDist;
-        SpotLight spot  = spots[draw_id];
 
         float t0, t1;
-        //bool intersects = intersectCone(view_pos.xyz, rayDir, spot.transform[3].xyz, -spot.transform[1].xyz, spot.dist, spot.radius, spot.outer, t0, t1);
         bool intersects = intersectCones(tileIndex, view_pos.xyz, rayDir, t0, t1);
 
         if(intersects)
@@ -244,8 +242,11 @@ void main()
             t0 = max(t0, 0.0);
             t1 = min(t1, fragDist);
 
-            float nSteps = ceil((t1-t0)/max(stepSize, 0.01));
-            vec3 marchingStep = rayDir*stepSize;
+            float stepLen = stepSize;
+            //float stepLen = (t1-t0)/float(NUM_STEPS);
+
+            float nSteps = ceil((t1-t0)/max(stepLen, 0.01));
+            vec3 marchingStep = rayDir*stepLen;
 
             vec3 result = vec3(0.0);
             vec3 currentPos = view_pos.xyz+rayDir*t0;
@@ -259,16 +260,22 @@ void main()
             for(int i=0; i < nSteps; ++i)
             {
                 float density = calculateFogDensity(currentPos);
-                transmittance *= calculateTransmittance(density);
-
                 vec3 inScattering = calculateFogLighting(currentPos, V, tileIndex);
 
-                result += transmittance*inScattering*stepSize;
+                if(dot(inScattering, inScattering) > 0.0)
+                {
+                    transmittance *= calculateTransmittance(density, stepLen);
+                    result += transmittance*inScattering*stepLen;
+                }
 
                 currentPos += marchingStep;
             }
 
             imageStore(outputImg, pixel, vec4(result*fogIntensity, tileIndex));
+        }
+        else
+        {
+            imageStore(outputImg, pixel, vec4(0.0, 0.0, 0.0, tileIndex));
         }
     }
 }

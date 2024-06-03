@@ -149,10 +149,7 @@ void main()
                     }
 
                 }
-
             }
-
-            //imageStore(dbgImage, tileIndex, vec4(viewMaxZ, viewPos.z, globalIdx.x, inside));
         }
 
         barrier();
