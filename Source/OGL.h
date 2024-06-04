@@ -143,7 +143,7 @@ public:
 
     void BlitTo(Framebuffer* target, uint src_x0, uint src_y0, 
                 uint src_x1, uint src_y1, uint dst_x0, uint dst_y0, 
-                uint dest_x1, uint dest_y1, uint flags, uint filter);
+                uint dest_x1, uint dest_y1, uint flags, uint filter) const;
 
     uint Id() const { return fbo; }
 

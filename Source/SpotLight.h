@@ -73,7 +73,7 @@ private:
     float4x4 shadowViewProj = float4x4::identity;
     uint shadowSize = 256;
     bool   enabled   = true;
-    bool castShadows = true;
+    bool castShadows = false;
     const Texture2D* shadowDepth = nullptr;
     const Texture2D* shadowVariance = nullptr;
 };

@@ -43,6 +43,10 @@ class CameraUBO;
 
 class ModuleRenderer : public Module
 {
+public:
+    enum { NUM_FLIGHT_FRAMES = 2 };
+
+private:
     RenderList render_list;
 
     std::unique_ptr<BatchManager>         batch_manager;
@@ -69,6 +73,8 @@ class ModuleRenderer : public Module
     std::unique_ptr<Program>              primitiveProgram;
     std::unique_ptr<Program>              probeProgram;
     std::unique_ptr<Program>              probeLodProgram;
+    uint                                 frameCount = 0;
+    void* sync[NUM_FLIGHT_FRAMES] = { nullptr, nullptr };
 
 public:
 
@@ -88,6 +94,8 @@ public:
     void                    DrawForSelection            (ComponentCamera* camera);
 
 	void                    DrawDebug                   () override;
+
+    uint                    GetFrameCount() const { return frameCount; }
 
     BatchManager*           GetBatchManager             () const { return batch_manager.get(); }
     Postprocess*            GetPostprocess              () const { return postProcess.get(); }

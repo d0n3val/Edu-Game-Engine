@@ -446,7 +446,7 @@ void Framebuffer::ClearStencil(int value)
 }
 
 void Framebuffer::BlitTo(Framebuffer* target, uint src_x0, uint src_y0, uint src_x1, uint src_y1, uint dst_x0, uint dst_y0, 
-                          uint dst_x1, uint dst_y1, uint flags, uint filter) 
+                          uint dst_x1, uint dst_y1, uint flags, uint filter)  const
 {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->Id());

@@ -99,6 +99,14 @@ bool ModuleRenderer::Init(Config* config /*= nullptr*/)
     LoadDefaultShaders();
     postProcess->Init();
 
+    for (int i = 0; i < NUM_FLIGHT_FRAMES; ++i)
+    {
+        if (sync[i])
+        {
+            glDeleteSync((GLsync)sync[i]);
+        }
+    }
+
     return true;
 }
 
@@ -108,6 +116,19 @@ ModuleRenderer::~ModuleRenderer()
 
 void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags)
 {
+    frameCount = (frameCount + 1) % NUM_FLIGHT_FRAMES;
+
+    if (sync[frameCount])
+    {
+        GLenum waitReturn;
+
+        do
+        {
+            waitReturn = glClientWaitSync((GLsync)sync[frameCount], GL_SYNC_FLUSH_COMMANDS_BIT, 1000);
+        } while (waitReturn == GL_TIMEOUT_EXPIRED);
+    }
+
+
     cameraUBO->Update(camera);
     App->level->GetLightManager()->UpdateGPUBuffers((flags & (DRAW_IBL)) != 0);
 
@@ -151,6 +172,13 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     App->level->GetLightManager()->Bind();
 
     RenderDeferred(camera, culling, frameBuffer, width, height, flags);
+
+    if (sync[frameCount])
+    {
+        glDeleteSync((GLsync)sync[frameCount]);
+    }
+
+    sync[frameCount] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
 
 void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
@@ -193,16 +221,11 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
         shadowmapPass->execute( 3000, 3000);
     }
 
-    LightManager* lightManager = App->level->GetLightManager();
-
-    if(lightManager->GetNumSpotLights() > 0)
-    {
-        spotShadowMapPass->execute(lightManager->GetSpotLight(0), 128, 128);
-    }
+    spotShadowMapPass->execute();
 
     deferredResolve->execute(frameBuffer, width, height);
 
-    deferredProxy->execute(frameBuffer, width, height);
+    //deferredProxy->execute(frameBuffer, width, height);
 
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);

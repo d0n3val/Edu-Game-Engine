@@ -26,7 +26,7 @@ void SpotShadowMapPass::updateRenderList()
 {
 }
 
-void SpotShadowMapPass::execute(SpotLight* light, uint width, uint height)
+void SpotShadowMapPass::execute()
 {
 
     LightManager* lightManager = App->level->GetLightManager();

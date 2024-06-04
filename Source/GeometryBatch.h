@@ -5,6 +5,7 @@
 #include "ResourceMesh.h"
 #include "OGL.h"
 #include "HashString.h"
+#include "ModuleRenderer.h"
 
 #include <memory>
 #include <vector>
@@ -48,7 +49,6 @@ class GeometryBatch
         uint baseInstance  = 0;
     }; 
 
-    enum { NUM_BUFFERS = 2 };
 
     typedef std::vector<DrawCommand>                                CommandList;
     typedef std::unordered_map<UID, MeshData>                       MeshList;
@@ -67,25 +67,23 @@ class GeometryBatch
     std::unique_ptr<Buffer>         tpose_tangents;
     std::unique_ptr<Buffer>         bone_indices;
     std::unique_ptr<Buffer>         bone_weights;
-    std::unique_ptr<Buffer>         transformSSBO[NUM_BUFFERS];
+    std::unique_ptr<Buffer>         transformSSBO[ModuleRenderer::NUM_FLIGHT_FRAMES];
     std::unique_ptr<Buffer>         materialSSBO;
-    std::unique_ptr<Buffer>         skinning[NUM_BUFFERS];
+    std::unique_ptr<Buffer>         skinning[ModuleRenderer::NUM_FLIGHT_FRAMES];
     std::unique_ptr<Buffer>         morphBuffer;
     std::unique_ptr<TextureBuffer>  morphTexture;
-    std::unique_ptr<Buffer>         morphWeights[NUM_BUFFERS];
+    std::unique_ptr<Buffer>         morphWeights[ModuleRenderer::NUM_FLIGHT_FRAMES];
     std::unique_ptr<Buffer>         commandBuffer;
 
-    float4x4*                       transformsData[NUM_BUFFERS];
-    float4x4*                       skinningData[NUM_BUFFERS];
-    float*                          morphWeightsData[NUM_BUFFERS];
-    void*                           sync[NUM_BUFFERS] = { nullptr, nullptr };
+    float4x4*                       transformsData[ModuleRenderer::NUM_FLIGHT_FRAMES];
+    float4x4*                       skinningData[ModuleRenderer::NUM_FLIGHT_FRAMES];
+    float*                          morphWeightsData[ModuleRenderer::NUM_FLIGHT_FRAMES];
 
     uint                            commandBufferSize = 0;
     uint                            totalVertices = 0;
     uint                            totalIndices = 0;
     uint                            totalBones = 0;
     uint                            totalTargets = 0;
-    uint                            frameCount = 0;
 
     MeshList                        meshes;
     ObjectList                      objects;

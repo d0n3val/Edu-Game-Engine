@@ -32,6 +32,8 @@ class SpotShadowMapPass
             varianceTex.swap(other.varianceTex);
             blurredTex.swap(other.blurredTex);
             cameraUBO.swap(other.cameraUBO);
+            blur.swap(other.blur);
+            fbSize = other.fbSize;
         }
 
         void createFramebuffer(uint size);
@@ -56,7 +58,7 @@ public:
     ~SpotShadowMapPass();
 
     void updateRenderList();
-    void execute(SpotLight* light, uint width, uint height);
+    void execute();
 
 private:
     void createProgram();

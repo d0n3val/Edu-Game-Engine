@@ -27,13 +27,6 @@ GeometryBatch::GeometryBatch(const HashString &tag, uint32_t index, Program *pro
 
 GeometryBatch::~GeometryBatch()
 {
-    for(int i=0; i< NUM_BUFFERS; ++i)
-    {
-        if (sync[frameCount])
-        {
-            glDeleteSync((GLsync)sync[frameCount]);
-        }
-    }
 }
 
 bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
@@ -364,7 +357,7 @@ void GeometryBatch::CreateVertexBuffers()
 
 void GeometryBatch::CreateTransformBuffer()
 {
-    for (uint i = 0; i < NUM_BUFFERS; ++i)
+    for (uint i = 0; i < ModuleRenderer::NUM_FLIGHT_FRAMES; ++i)
     {
         transformSSBO[i] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, objects.size() * sizeof(float4x4), nullptr, true);
         transformsData[i] = reinterpret_cast<float4x4*>(transformSSBO[i]->MapRange(GL_MAP_WRITE_BIT, 0, uint(objects.size() * sizeof(float4x4))));
@@ -523,7 +516,7 @@ void GeometryBatch::CreateInstanceBuffer()
 
     if (totalBones > 0 )
     {
-        for (uint i = 0; i < NUM_BUFFERS; ++i)
+        for (uint i = 0; i < ModuleRenderer::NUM_FLIGHT_FRAMES; ++i)
         {
             skinning[i] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalBones * sizeof(float4x4), nullptr, true);
             skinningData[i] = reinterpret_cast<float4x4*>(skinning[i]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalBones * sizeof(float4x4))));
@@ -532,7 +525,7 @@ void GeometryBatch::CreateInstanceBuffer()
 
     if (totalTargets > 0)
     {
-        for (uint i = 0; i < NUM_BUFFERS; ++i)
+        for (uint i = 0; i < ModuleRenderer::NUM_FLIGHT_FRAMES; ++i)
         {
             morphWeights[i] = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT, totalTargets * sizeof(float), nullptr, true);
             morphWeightsData[i] = reinterpret_cast<float*>(morphWeights[i]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalTargets * sizeof(float))));
@@ -623,18 +616,6 @@ void GeometryBatch::DoUpdate()
         CreateRenderData();
     }
 
-    frameCount = (frameCount + 1) % NUM_BUFFERS;
-
-    if (sync[frameCount])
-    {
-        GLenum waitReturn;
-
-        do
-        {
-            waitReturn = glClientWaitSync((GLsync)sync[frameCount], GL_SYNC_FLUSH_COMMANDS_BIT, 1000);
-        } while (waitReturn == GL_TIMEOUT_EXPIRED);
-    }
-
     UpdateModels();
 
     if(totalBones > 0 || totalTargets > 0) 
@@ -651,7 +632,7 @@ void GeometryBatch::DoRender(uint flags)
     {
         CreateCommandBuffer();
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MODEL_SSBO_BINDING, transformSSBO[frameCount]->Id());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MODEL_SSBO_BINDING, transformSSBO[App->renderer->GetFrameCount()]->Id());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, MATERIAL_SSBO_BINDING, materialSSBO->Id());
 
         commandBuffer->Bind();
@@ -667,13 +648,6 @@ void GeometryBatch::DoRender(uint flags)
         vao->Unbind();
 
         commands.clear();
-
-        if(sync[frameCount])
-        {
-            glDeleteSync((GLsync)sync[frameCount]);
-        }
-
-        sync[frameCount] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 }
 
@@ -704,7 +678,7 @@ void GeometryBatch::UpdateSkinning()
 
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Skinning");
 
-    float4x4 *palette = skinningData[frameCount];
+    float4x4 *palette = skinningData[App->renderer->GetFrameCount()];
 
     for (ComponentMeshRenderer *object : modelUpdates)
     {
@@ -733,7 +707,7 @@ void GeometryBatch::UpdateSkinning()
                 object->UpdateSkinPalette(&palette[instanceData.baseBone]);
 
                 // Bind buffers
-                program->BindSSBO(SKINNING_PALETTE_BINDING, skinning[frameCount].get(), instanceData.baseBone * sizeof(float4x4), instanceData.numBones * sizeof(float4x4));
+                program->BindSSBO(SKINNING_PALETTE_BINDING, skinning[App->renderer->GetFrameCount()].get(), instanceData.baseBone * sizeof(float4x4), instanceData.numBones * sizeof(float4x4));
                 program->BindSSBO(SKINNING_INDICES_BINDING, bone_indices.get(), meshData.baseVertex * sizeof(int)*4, meshData.vertexCount * sizeof(int) * 4);
                 program->BindSSBO(SKINNING_WEIGHTS_BINDING, bone_weights.get(), meshData.baseVertex * sizeof(float)*4, meshData.vertexCount * sizeof(float) * 4);
 
@@ -741,9 +715,9 @@ void GeometryBatch::UpdateSkinning()
 
             if(instanceData.numTargets > 0)
             {
-                memcpy(&morphWeightsData[frameCount][instanceData.baseTargetWeight], object->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
+                memcpy(&morphWeightsData[App->renderer->GetFrameCount()][instanceData.baseTargetWeight], object->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
 
-                program->BindSSBO(SKINNING_MORPH_WEIGHTS_BINDING, morphWeights[frameCount].get(), instanceData.baseTargetWeight*sizeof(float), instanceData.numTargets*sizeof(float));
+                program->BindSSBO(SKINNING_MORPH_WEIGHTS_BINDING, morphWeights[App->renderer->GetFrameCount()].get(), instanceData.baseTargetWeight*sizeof(float), instanceData.numTargets*sizeof(float));
                 morphTexture->Bind(SKINNING_MORPH_TARGET_BINDING);
             }
 
@@ -775,13 +749,13 @@ void GeometryBatch::UpdateModels()
 {
     if(!modelUpdates.empty())
     {
-        float4x4* transforms = transformsData[frameCount]; 
+        float4x4* transforms = transformsData[App->renderer->GetFrameCount()];
         float4x4* palette    = nullptr;
         float* weights       = nullptr;
 
         if (totalTargets > 0)
         {
-            weights = morphWeightsData[frameCount]; 
+            weights = morphWeightsData[App->renderer->GetFrameCount()];
         }
 
         for (ComponentMeshRenderer *object : modelUpdates)

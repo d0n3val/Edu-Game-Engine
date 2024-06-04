@@ -37,7 +37,7 @@ void VolumetricPass::execute(Framebuffer *target, uint width, uint height)
     timer.Start();
     frame = frame + dt;
 
-    resizeFrameBuffer(width, height, target);
+    resizeResult(width, height, target);
 
     GBufferExportPass *exportPass = App->renderer->GetGBufferExportPass();
     SpotShadowMapPass *spotShadowMapPass = App->renderer->GetSpotShadowMapPass();
@@ -225,48 +225,18 @@ void VolumetricPass::generateApplyProgram(bool doBlur)
     }
 }
 
-void VolumetricPass::resizeFrameBuffer(uint width, uint height, const Framebuffer* srcFB)
+void VolumetricPass::resizeResult(uint width, uint height, const Framebuffer* srcFB)
 {   
     uint newWidth = uint(width * resultScale);
     uint newHeight = uint(height * resultScale);
 
     if(newWidth != fbWidth || height != fbHeight)
     {
-        if (!frameBuffer)
-        {
-            frameBuffer = std::make_unique<Framebuffer>();
-        }
-
-        frameBuffer->ClearAttachments();
-
         // TODO: Can't scale due to depth buffer
         result = std::make_unique<Texture2D>(newWidth, newHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr, false);
-        frameBuffer->AttachColor(result.get(), 0, 0);
-
-        if (resultScale != 1.0f)
-        {
-            depth = std::make_unique<Texture2D>(newWidth, newHeight, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr, false);            
-            frameBuffer->AttachDepthStencil(depth.get(), GL_DEPTH_ATTACHMENT);
-        }
-        else
-        {
-            GBufferExportPass* gBuffer = App->renderer->GetGBufferExportPass();
-            frameBuffer->AttachDepthStencil(gBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
-        }
-
-        assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
 
         fbWidth  = newWidth;
         fbHeight = newHeight;
     }
 
-    if (resultScale != 1.0f)
-    {
-        glBindFramebuffer(GL_READ_BUFFER, srcFB->Id());
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer->Id());
-        glReadBuffer(GL_DEPTH_ATTACHMENT);
-        glDrawBuffer(GL_DEPTH_ATTACHMENT);
-
-        glBlitFramebuffer(0, 0, width, height, 0, 0, fbWidth, fbHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    }
 }
