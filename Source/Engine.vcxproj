@@ -234,6 +234,7 @@
     <ClInclude Include="Assimp\include\vector2.h" />
     <ClInclude Include="Assimp\include\vector3.h" />
     <ClInclude Include="Assimp\include\version.h" />
+    <ClInclude Include="BatchDrawCommands.h" />
     <ClInclude Include="BatchManager.h" />
     <ClInclude Include="BilinearBlur.h" />
     <ClInclude Include="Bullet\include\btBulletCollisionCommon.h" />
@@ -425,7 +426,6 @@
     <ClInclude Include="ShowTextureDlg.h" />
     <ClInclude Include="SkyboxRollout.h" />
     <ClInclude Include="SphereLight.h" />
-    <ClInclude Include="SpotConePass.h" />
     <ClInclude Include="spotlight.h" />
     <ClInclude Include="SpotShadowMapPass.h" />
     <ClInclude Include="StateViewport.h" />
@@ -443,6 +443,7 @@
   <ItemGroup>
     <ClCompile Include="AnimController.cpp" />
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="BatchDrawCommands.cpp" />
     <ClCompile Include="BatchManager.cpp" />
     <ClCompile Include="BilinearBlur.cpp" />
     <ClCompile Include="CameraUBO.cpp" />
@@ -594,7 +595,6 @@
     <ClCompile Include="ShowTextureDlg.cpp" />
     <ClCompile Include="SkyboxRollout.cpp" />
     <ClCompile Include="SphereLight.cpp" />
-    <ClCompile Include="SpotConePass.cpp" />
     <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="SpotShadowMapPass.cpp" />
     <ClCompile Include="StateViewport.cpp" />

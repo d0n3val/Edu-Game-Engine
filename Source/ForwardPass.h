@@ -3,24 +3,28 @@
 
 #include "RenderList.h"
 
+#include "BatchDrawCommands.h"
 #include <memory>
 
 class Program;
 class Framebuffer;
+class ComponentCamera;
 
 class ForwardPass
 {
 public:
 
 	std::unique_ptr<Program> program;
+    BatchDrawCommands opaqueCommands;
+    BatchDrawCommands transparentCommands;
 
 public:
 
 	ForwardPass();
 	~ForwardPass();
 
-	void executeOpaque(const RenderList& objects, Framebuffer *target, uint width, uint height);
-	void executeTransparent(const RenderList& objects, Framebuffer *target, uint width, uint height);
+	void executeOpaque(ComponentCamera* culling, Framebuffer *target, uint width, uint height);
+	void executeTransparent(ComponentCamera* culling, Framebuffer *target, uint width, uint height);
 
 private:
 

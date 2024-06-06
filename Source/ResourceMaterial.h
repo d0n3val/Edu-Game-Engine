@@ -100,7 +100,6 @@ public:
     bool                        Save                ();
 
     static UID                  Import              (const tinygltf::Model& model, const tinygltf::Material& material, const char* file);
-    //static UID                  Import              (const aiMaterial* material, const char* source_file);
 
     MaterialWorkFlow            GetWorkFlow         () const {return workFlow; }
     const SpecularGlossData&    GetSpecularGlossData() const {return std::get<SpecularGlossData>(data); }

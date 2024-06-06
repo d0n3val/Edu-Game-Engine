@@ -9,9 +9,11 @@
 #include "LightManager.h"
 #include "IBLData.h"
 #include "BatchManager.h"
+#include "GeometryBatch.h"
 #include "RenderList.h"
 #include "ShadowmapPass.h"
 #include "CascadeShadowPass.h"
+#include "ComponentCamera.h"
 #include "OGL.h"
 #include "OpenGL.h"
 #include "CameraUBO.h"
@@ -28,9 +30,17 @@ GBufferExportPass::~GBufferExportPass()
 {
 }
 
-void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height)
+void GBufferExportPass::execute(ComponentCamera* culling, uint width, uint height)
 {
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "ExportGBuffer");
+
+    BatchManager* batchManager = App->renderer->GetBatchManager();
+
+    float4 planes[6];
+    culling->GetPlanes(planes);
+
+    batchManager->DoFrustumCulling(drawCommands, planes, culling->GetPos(), true);
+
     resizeFrameBuffer(width, height);
 
     glDisable(GL_BLEND);
@@ -50,7 +60,10 @@ void GBufferExportPass::execute(const RenderList &nodes, uint width, uint height
     frameBuffer->Bind();
     glViewport(0, 0, width, height);
     
-    App->renderer->GetBatchManager()->DoRender(nodes.GetOpaques(), 0);
+    
+    batchManager->DoRenderCommands(drawCommands);
+
+    //batchManager->DoRender(nodes.GetOpaques(), 0);
 
     frameBuffer->Unbind();
     glPopDebugGroup();

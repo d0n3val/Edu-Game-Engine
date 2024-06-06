@@ -1,12 +1,15 @@
 #ifndef _GBUFFEREXPORT_PASS_H_
 #define _GBUFFEREXPORT_PASS_H_
 
+#include "BatchDrawCommands.h"
 #include <memory>
 
 class Framebuffer;
 class RenderList;
 class Texture2D;
+class Buffer;
 class Program;
+class ComponentCamera;
 
 class GBufferExportPass
 {
@@ -22,6 +25,9 @@ class GBufferExportPass
     std::unique_ptr<Program>     program;
     std::unique_ptr<Program>     programCascade;
 
+    BatchDrawCommands            drawCommands;
+
+
     uint                         fbWidth = 0;
     uint                         fbHeight = 0;
 
@@ -30,7 +36,7 @@ public:
     GBufferExportPass();
     ~GBufferExportPass();
 
-    void execute(const RenderList& nodes, uint width, uint height);
+    void execute(ComponentCamera* culling, uint width, uint height);
 
     Framebuffer* getFB() const {return frameBuffer.get(); }
     Texture2D*   getAlbedo() const {return albedoTex.get();}

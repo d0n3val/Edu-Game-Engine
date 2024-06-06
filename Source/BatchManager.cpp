@@ -3,6 +3,7 @@
 #include "BatchManager.h"
 #include "GeometryBatch.h"
 #include "ComponentMeshRenderer.h"
+#include "BatchDrawCommands.h"
 #include "GameObject.h"
 
 #include "OpenGL.h"
@@ -17,9 +18,14 @@ BatchManager::~BatchManager()
 
 uint BatchManager::Add(ComponentMeshRenderer* object, const HashString& tag)
 {
-    if(!skinningProgram)
+    if(!programs.skinningProgram)
     {
         CreateSkinningProgram();
+    }
+
+    if(!programs.culling)
+    {
+        CreateFrustumCullingProgram();
     }
 
     uint batch_index = 0;
@@ -36,7 +42,7 @@ uint BatchManager::Add(ComponentMeshRenderer* object, const HashString& tag)
 
     if (batch_index == batches.size())
     {
-        batches.push_back(std::make_unique<GeometryBatch>(tag, batch_index, skinningProgram.get(), skinningProgramNoTangents.get()));
+        batches.push_back(std::make_unique<GeometryBatch>(tag, batch_index, &programs));
         batches.back()->Add(object);
     }
 
@@ -46,6 +52,31 @@ uint BatchManager::Add(ComponentMeshRenderer* object, const HashString& tag)
 void BatchManager::Remove(ComponentMeshRenderer* object)
 {
     batches[object->GetBatchIndex()]->Remove(object);
+}
+
+void BatchManager::DoFrustumCulling(BatchDrawCommands &drawCommands, const float4 *planes, const float3& cameraPos, bool opaque)
+{
+    if (drawCommands.getNumBatches() < uint(batches.size()))
+    {
+        drawCommands.resize(uint(batches.size()));
+    }
+
+    for(auto& batch : batches)
+    {
+        if ((batch->GetRenderMode() == RENDER_OPAQUE) == opaque)
+        {
+            batch->DoFrustumCulling(drawCommands, planes, cameraPos);
+        }
+    }
+}
+
+void BatchManager::DoRenderCommands(BatchDrawCommands &drawCommands)
+{
+    for(auto& batch : batches)
+    {
+        batch->DoRenderCommands(drawCommands);
+    }
+
 }
 
 void BatchManager::DoRender(const NodeList &objects, uint flags)
@@ -94,16 +125,6 @@ void BatchManager::DoRender(const NodeList &objects, uint flags)
     }
 }
 
-void BatchManager::MarkForUpdate(const NodeList& objects)
-{
-    for(const TRenderInfo& info : objects)
-    {
-        if(info.mesh && info.mesh->GetBatchIndex() != UINT_MAX)
-        {
-            batches[info.mesh->GetBatchIndex()]->MarkForUpdate(info.mesh);
-        }
-    }
-}
 
 void BatchManager::DoUpdate()
 {
@@ -134,6 +155,30 @@ void BatchManager::OnMaterialModified(UID materialID)
     }
 }
 
+void BatchManager::CreateFrustumCullingProgram()
+{
+    const char* defines[] = { "#define TRANSPARENTS\n" };
+
+    std::unique_ptr<Shader> shader = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/frustumCulling.glsl");
+    std::unique_ptr<Shader> shaderTransparents = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/frustumCulling.glsl", &defines[0], 1);
+
+    bool ok = shader->Compiled();
+
+    if(ok)
+    {        
+        programs.culling = std::make_unique<Program>(shader.get());
+        programs.cullingTransparent = std::make_unique<Program>(shaderTransparents.get());
+
+        ok = programs.culling->Linked() && programs.cullingTransparent->Linked();
+    }
+
+    if(!ok)
+    {
+        programs.culling.release();
+        programs.cullingTransparent.release();
+    }
+}
+
 void BatchManager::CreateSkinningProgram()
 {
     const char* defines[] = { "#define NO_TANGENTS\n"};
@@ -144,16 +189,16 @@ void BatchManager::CreateSkinningProgram()
 
     if(ok)
     {        
-        skinningProgram = std::make_unique<Program>(shader.get());
-        skinningProgramNoTangents = std::make_unique<Program>(shaderNoTangents.get());
+        programs.skinningProgram = std::make_unique<Program>(shader.get());
+        programs.skinningProgramNoTangents = std::make_unique<Program>(shaderNoTangents.get());
 
-        ok = skinningProgram->Linked() && skinningProgramNoTangents->Linked();
+        ok = programs.skinningProgram->Linked() && programs.skinningProgramNoTangents->Linked();
     }
 
     if(!ok)
     {
-        skinningProgram.release();
-        skinningProgramNoTangents.release();
+        programs.skinningProgram.release();
+        programs.skinningProgramNoTangents.release();
     }
 }
 

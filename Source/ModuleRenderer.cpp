@@ -20,7 +20,6 @@
 #include "LinePass.h"
 #include "ParticlePass.h"
 #include "DepthRangePass.h"
-#include "SpotConePass.h"
 #include "PlanarReflectionPass.h"
 #include "TileCullingPass.h"
 #include "CameraUBO.h"
@@ -87,7 +86,6 @@ ModuleRenderer::ModuleRenderer() : Module("renderer")
     particlePass = std::make_unique<ParticlePass>();
     depthRangePass = std::make_unique<DepthRangePass>();
     planarPass = std::make_unique<PlanarReflectionPass>();
-    spotConePass = std::make_unique<SpotConePass>();
     tileCullingPass = std::make_unique<TileCullingPass>();
     cameraUBO = std::make_unique<CameraUBO>();
 }
@@ -132,11 +130,6 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     cameraUBO->Update(camera);
     App->level->GetLightManager()->UpdateGPUBuffers((flags & (DRAW_IBL)) != 0);
 
-    render_list.UpdateFrom(culling->frustum, App->level->GetRoot()); 
-
-    batch_manager->MarkForUpdate(render_list.GetOpaques());
-    batch_manager->MarkForUpdate(render_list.GetTransparents());
-
     if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
     {
         cascadeShadowPass->updateRenderList(culling->frustum);
@@ -144,23 +137,16 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
         for (uint i = 0; i < CascadeShadowPass::CASCADE_COUNT; ++i)
         {
             const RenderList& renderList = cascadeShadowPass->getRenderList(i);
-
-            batch_manager->MarkForUpdate(renderList.GetOpaques());
-            batch_manager->MarkForUpdate(renderList.GetTransparents());
         }
     }
     else
     {
         shadowmapPass->updateRenderList(culling->frustum, float2(-1.0f, 1.0f));
-        batch_manager->MarkForUpdate(shadowmapPass->getRenderList().GetOpaques());
-        batch_manager->MarkForUpdate(shadowmapPass->getRenderList().GetTransparents());
     }
 
     if(std::get<bool>(App->hints->GetDHint(std::string("Planar reflection enabled"), true)))
     {
         planarPass->updateRenderList(camera);
-        batch_manager->MarkForUpdate(planarPass->getRenderList().GetOpaques());
-        batch_manager->MarkForUpdate(planarPass->getRenderList().GetTransparents());
     }
 
     batch_manager->DoUpdate();
@@ -181,14 +167,14 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     sync[frameCount] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
 
-void ModuleRenderer::RenderForward(ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height)
+void ModuleRenderer::RenderForward(ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height)
 {
     frameBuffer->Bind();
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    forward->executeOpaque(render_list, nullptr, width, height);
-    forward->executeTransparent(render_list, nullptr, width, height);
+    forward->executeOpaque(culling, nullptr, width, height);
+    forward->executeTransparent(culling, nullptr, width, height);
     frameBuffer->Unbind();
 
 
@@ -203,7 +189,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     // TODO: Update batch transforms and skinning / morphing for 2 cameras, render and shadows
     
     // Deferred
-    exportGBuffer->execute(render_list, width, height);
+    exportGBuffer->execute(culling, width, height);
 
     tileCullingPass->execute();
     depthRangePass->execute(exportGBuffer->getDepth(), width, height);
@@ -232,7 +218,7 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     
     // Forward Transparent
     frameBuffer->Bind();
-    forward->executeTransparent(render_list, nullptr, width, height);
+    forward->executeTransparent(culling, nullptr, width, height);
     frameBuffer->Unbind();
 
     RenderVFX(camera, culling, frameBuffer, width, height);
@@ -252,7 +238,6 @@ void ModuleRenderer::RenderDeferred(ComponentCamera* camera, ComponentCamera* cu
     Texture2D nullTex(GL_TEXTURE_2D, 0);
     frameBuffer->AttachDepthStencil(&nullTex, GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
-    spotConePass->execute(render_list, frameBuffer, width, height);
     frameBuffer->AttachDepthStencil(exportGBuffer->getDepth(), GL_DEPTH_ATTACHMENT);
     assert(frameBuffer->Check() == GL_FRAMEBUFFER_COMPLETE);
     fogPass->execute(frameBuffer, width, height);
@@ -270,8 +255,7 @@ void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
 	float4x4 proj   = camera->GetProjectionMatrix();	
 	float4x4 view   = camera->GetViewMatrix();
 
-    render_list.UpdateFrom(camera->frustum, App->level->GetRoot());
-
+    
     SelectionPass(proj, view);
 }
 
@@ -284,8 +268,6 @@ void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
 
     cameraUBO->Bind();
 
-    App->renderer->GetBatchManager()->DoRender(render_list.GetOpaques(), 0);
-    App->renderer->GetBatchManager()->DoRender(render_list.GetTransparents(), 0);
     glPopDebugGroup();
 }
 
@@ -355,8 +337,6 @@ void ModuleRenderer::DebugDrawOBB(const NodeList& objects)
 
 void ModuleRenderer::DebugDrawOBB()
 {
-    DebugDrawOBB(render_list.GetOpaques());
-    DebugDrawOBB(render_list.GetTransparents());
 }
 
 void ModuleRenderer::DebugDrawAnimation()

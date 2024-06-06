@@ -198,7 +198,7 @@ void RenderList::CollectMeshRenderers(const float3& camera_pos, GameObject* go, 
 
         if(render.mesh->GetVisible() && ((objType & RENDERLIST_OBJ_AVOID_PLANAR_REFLECTIONS) == 0 || (render.mesh->GetMaterialRes() && !render.mesh->GetMaterialRes()->GetPlanarReflections())))
         {
-            if(render.mesh->RenderMode() == ComponentMeshRenderer::RENDER_OPAQUE )
+            if(render.mesh->RenderMode() == RENDER_OPAQUE )
               
             {
                 if((objType & RENDERLIST_OBJ_OPAQUE) != 0)

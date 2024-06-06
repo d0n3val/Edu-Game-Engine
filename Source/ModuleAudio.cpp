@@ -372,7 +372,7 @@ void ModuleAudio::SetFXVolume(float new_fx_volume)
 
 void ModuleAudio::UpdateAudio()	const
 {
-	RecursiveUpdateAudio(App->level->GetRoot());
+	//RecursiveUpdateAudio(App->level->GetRoot());
 
 	/*
 	// While in debug, make the debug camera the listener
@@ -386,6 +386,7 @@ void ModuleAudio::UpdateAudio()	const
 
 void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
 {
+	/*
 	for(ComponentAudioListener* listener : listeners)
 	{
 		UpdateListener(listener);
@@ -396,7 +397,6 @@ void ModuleAudio::RecursiveUpdateAudio(GameObject* go) const
 		UpdateSource(source);
 	}
 
-	/*
 	for (list<Component*>::iterator it = go->components.begin(); it != go->components.end(); ++it)
 	{
 		if ((*it)->IsActive() == false)

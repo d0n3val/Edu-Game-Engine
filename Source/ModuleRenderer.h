@@ -47,7 +47,6 @@ public:
     enum { NUM_FLIGHT_FRAMES = 2 };
 
 private:
-    RenderList render_list;
 
     std::unique_ptr<BatchManager>         batch_manager;
     std::unique_ptr<Postprocess>          postProcess;
@@ -67,7 +66,6 @@ private:
     std::unique_ptr<ParticlePass>         particlePass;
     std::unique_ptr<DepthRangePass>       depthRangePass;
     std::unique_ptr<PlanarReflectionPass> planarPass;
-    std::unique_ptr<SpotConePass>         spotConePass;
     std::unique_ptr<TileCullingPass>      tileCullingPass;
     std::unique_ptr<CameraUBO>            cameraUBO;
     std::unique_ptr<Program>              primitiveProgram;
@@ -113,7 +111,7 @@ public:
 
 private:
 
-    void                RenderForward               (ComponentCamera* camera, Framebuffer* frameBuffer, unsigned width, unsigned height);
+    void                RenderForward               (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
     void                RenderDeferred              (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height, uint flags);
     void                RenderVFX                   (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
 

@@ -10,17 +10,15 @@ class ResourceMaterial;
 class BatchManager;
 class DefaultShader;
 
+enum ERenderMode
+{
+    RENDER_OPAQUE = 0,
+    RENDER_TRANSPARENT,
+    RENDER_COUNT
+};
+
 class ComponentMeshRenderer : public Component
 {
-public:
-
-    enum ERenderMode
-    {
-        RENDER_OPAQUE = 0,
-        RENDER_TRANSPARENT,
-        RENDER_COUNT
-    };
-    
 public:
     explicit ComponentMeshRenderer(GameObject* go);
     ~ComponentMeshRenderer();

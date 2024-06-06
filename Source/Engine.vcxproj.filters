@@ -784,9 +784,6 @@
     <ClInclude Include="ComponentSpotCone.h">
       <Filter>Game Objects\Components</Filter>
     </ClInclude>
-    <ClInclude Include="SpotConePass.h">
-      <Filter>Helpers\RenderPasses</Filter>
-    </ClInclude>
     <ClInclude Include="tinygltf\tiny_gltf.h">
       <Filter>3rd Party\tinygltf</Filter>
     </ClInclude>
@@ -798,6 +795,9 @@
     </ClInclude>
     <ClInclude Include="TileCullingPass.h">
       <Filter>Helpers\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="BatchDrawCommands.h">
+      <Filter>Helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1434,9 +1434,6 @@
     <ClCompile Include="ComponentSpotCone.cpp">
       <Filter>Game Objects\Components</Filter>
     </ClCompile>
-    <ClCompile Include="SpotConePass.cpp">
-      <Filter>Helpers\RenderPasses</Filter>
-    </ClCompile>
     <ClCompile Include="VolumetricPass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
     </ClCompile>
@@ -1445,6 +1442,9 @@
     </ClCompile>
     <ClCompile Include="TileCullingPass.cpp">
       <Filter>Helpers\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="BatchDrawCommands.cpp">
+      <Filter>Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

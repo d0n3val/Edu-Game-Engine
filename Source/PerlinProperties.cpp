@@ -20,14 +20,6 @@ PerlinProperties::PerlinProperties()
 
     perlin_fb->AttachColor(perlin_text.get());
 
-    std::unique_ptr<Shader> perlin_vs(Shader::CreateVSFromFile("assets/shaders/fullscreenVS.glsl"));
-    std::unique_ptr<Shader> perlin_fs(Shader::CreateFSFromFile("assets/shaders/perlinFS.glsl"));
-
-    if(perlin_vs->Compiled() && perlin_fs->Compiled())
-    {
-        perlin_prog = std::make_unique<Program>(perlin_vs.get(), perlin_fs.get(), "Perlin program");
-    }
-
     timer.Start();
 }
 
@@ -75,11 +67,11 @@ void PerlinProperties::GenerateTexture(FractalNoiseCfg& info)
         for (uint i = 0; i < TEXTURE_SIZE; ++i)
         {
             float3 v(float(i) / float(TEXTURE_SIZE), float(j) / float(TEXTURE_SIZE), frame);
-            float f = Clamp(FractalNoise(info, v)*0.5f+0.5f, 0.0f, 1.0f);
-            tex_data[(j * TEXTURE_SIZE  + i)*4 + 0] = (unsigned char)(f * 255);
-            tex_data[(j * TEXTURE_SIZE  + i)*4 + 1] = (unsigned char)(f * 255);
-            tex_data[(j * TEXTURE_SIZE  + i)*4 + 2] = (unsigned char)(f * 255);
-            tex_data[(j * TEXTURE_SIZE  + i)*4 + 3] = 255;
+            float f = Clamp(FractalNoise(info, v) * 0.5f + 0.5f, 0.0f, 1.0f);
+            tex_data[(j * TEXTURE_SIZE + i) * 4 + 0] = (unsigned char)(f * 255);
+            tex_data[(j * TEXTURE_SIZE + i) * 4 + 1] = (unsigned char)(f * 255);
+            tex_data[(j * TEXTURE_SIZE + i) * 4 + 2] = (unsigned char)(f * 255);
+            tex_data[(j * TEXTURE_SIZE + i) * 4 + 3] = 255;
         }
     }
 
@@ -89,6 +81,17 @@ void PerlinProperties::GenerateTexture(FractalNoiseCfg& info)
     //perlin_fb->Clear(TEXTURE_SIZE, TEXTURE_SIZE);
     perlin_fb->Bind();
     glViewport(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
+
+    if (!perlin_prog)
+    {
+        std::unique_ptr<Shader> perlin_vs(Shader::CreateVSFromFile("assets/shaders/fullscreenVS.glsl"));
+        std::unique_ptr<Shader> perlin_fs(Shader::CreateFSFromFile("assets/shaders/perlinFS.glsl"));
+
+        if (perlin_vs->Compiled() && perlin_fs->Compiled())
+        {
+            perlin_prog = std::make_unique<Program>(perlin_vs.get(), perlin_fs.get(), "Perlin program");
+        }
+    }
 
     perlin_prog->Use();
 

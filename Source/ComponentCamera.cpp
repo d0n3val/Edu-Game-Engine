@@ -206,3 +206,11 @@ float4x4 ComponentCamera::GetProjectionMatrix() const
 	//return float4x4::D3DPerspProjRH(frustum.nearPlaneDistance, frustum.farPlaneDistance, frustum.NearPlaneWidth(), frustum.NearPlaneHeight());
 }
 
+void ComponentCamera::GetPlanes(float4* planes) const
+{
+    Plane tmp[6];
+    frustum.GetPlanes(tmp);
+    for (uint i = 0; i < 6; ++i) planes[i] = float4(tmp[i].normal, tmp[i].d);
+
+}
+

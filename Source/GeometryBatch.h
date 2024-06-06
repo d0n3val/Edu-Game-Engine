@@ -6,6 +6,7 @@
 #include "OGL.h"
 #include "HashString.h"
 #include "ModuleRenderer.h"
+#include "ComponentMeshRenderer.h"
 
 #include <memory>
 #include <vector>
@@ -13,6 +14,17 @@
 #include <set>
 
 class ComponentMeshRenderer;
+class BatchDrawCommands;
+struct BatchPrograms;
+
+struct DrawCommand
+{
+    uint count = 0;
+    uint instanceCount = 0;
+    uint firstIndex = 0;
+    uint baseVertex = 0;
+    uint baseInstance = 0;
+};
 
 class GeometryBatch
 {
@@ -40,26 +52,26 @@ class GeometryBatch
         uint tangentsStride   = 0;
     };
 
-    struct DrawCommand
+    struct PerInstanceGPU
     {
-        uint count         = 0;
-        uint instanceCount = 0;
-        uint firstIndex    = 0;
-        uint baseVertex    = 0;
-        uint baseInstance  = 0;
-    }; 
-
+        uint indexCount = 0;
+        uint baseIndex = 0;
+        uint baseVertex = 0;
+        uint baseInstance = 0;
+        float4 sphere = float4::zero;
+    };
 
     typedef std::vector<DrawCommand>                                CommandList;
     typedef std::unordered_map<UID, MeshData>                       MeshList;
     typedef std::unordered_map<ComponentMeshRenderer*, uint>        ObjectList; // second is the instance index
-    typedef std::set<ComponentMeshRenderer*>                        UpdateList;
     typedef std::vector<PerInstance>                                InstanceList;
 
     uint                            attrib_flags = 0;
     MaterialWorkFlow                materialWF = MetallicRoughness;
 
     std::unique_ptr<VertexArray>    vao;
+    std::unique_ptr<Buffer>         instanceBuffer;
+    std::unique_ptr<Buffer>         distanceBuffer;
     std::unique_ptr<Buffer>         ibo;
     std::unique_ptr<Buffer>         vbo[ATTRIB_COUNT];
     std::unique_ptr<Buffer>         tpose_positions;
@@ -90,24 +102,22 @@ class GeometryBatch
     InstanceList                    instances;
 
     CommandList                     commands;
-    UpdateList                      modelUpdates;
 
     HashString                      tagName;
     bool                            bufferDirty = false;
-    Program*                        skinningProgram = nullptr;
-    Program*                        skinningProgramNoTangents = nullptr;
+    BatchPrograms*                  programs;
     uint32_t                        batchIndex = 0;
+    ERenderMode                     renderMode = RENDER_OPAQUE;
 
 public:
 
-    explicit GeometryBatch(const HashString& tag, uint32_t index, Program* program, Program* programNoTangents);
+    explicit GeometryBatch(const HashString& tag, uint32_t index, BatchPrograms* programs);
     ~GeometryBatch();
    
     bool               CanAdd            (const ComponentMeshRenderer* object) const;
     void               Add               (ComponentMeshRenderer* object);
     void               Remove            (ComponentMeshRenderer* object);
 
-    void               MarkForUpdate     (ComponentMeshRenderer* object);
     void               Render            (ComponentMeshRenderer* object);
     void               DoRender          (uint flags);
     void               DoUpdate          ();
@@ -115,10 +125,15 @@ public:
     bool               HasCommands       () const { return !commands.empty();  }
     bool               IsEmpty           () const { return objects.empty(); }
     const HashString&  GetTagName        () const { return tagName; }
+    ERenderMode        GetRenderMode     () const { return renderMode; }
 
     void               CreateRenderData  ();
     void               OnMaterialModified(UID materialID);
     ComponentMeshRenderer* FindObject(uint instanceIndex);
+    unsigned            GetNumObjects() const { return unsigned(objects.size()); }
+
+    void                DoFrustumCulling(BatchDrawCommands& drawCommands, const float4* planes, const float3& cameraPos);
+    void                DoRenderCommands(BatchDrawCommands& drawCommands);
 private:
 
     void ClearRenderData      ();

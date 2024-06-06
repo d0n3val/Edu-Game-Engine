@@ -44,6 +44,8 @@ public:
     float3   GetFront() const { return frustum.front; }
 	float3   GetPos() const { return frustum.pos; }
 
+    void     GetPlanes(float4* planes) const;
+
 public:
 	Frustum frustum;
 };

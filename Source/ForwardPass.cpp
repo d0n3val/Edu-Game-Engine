@@ -12,6 +12,7 @@
 #include "ShadowmapPass.h"
 #include "CascadeShadowPass.h"
 #include "CameraUBO.h"
+#include "ComponentCamera.h"
 
 #include "OGL.h"
 #include "OpenGL.h"
@@ -29,9 +30,14 @@ ForwardPass::~ForwardPass()
 {
 }
 
-void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, uint width, uint height)
+void ForwardPass::executeOpaque(ComponentCamera* culling, Framebuffer *target, uint width, uint height)
 {
     ShadowmapPass* shadowMap = App->renderer->GetShadowmapPass();
+
+    float4 planes[6];
+    culling->GetPlanes(planes);
+
+    App->renderer->GetBatchManager()->DoFrustumCulling(opaqueCommands, planes, culling->GetPos(), true);
 
     UseProgram();
 
@@ -50,7 +56,10 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
         glViewport(0, 0, width, height);
     }
 
-    App->renderer->GetBatchManager()->DoRender(objects.GetOpaques(), BR_FLAG_KEEP_ORDER);
+
+    App->renderer->GetBatchManager()->DoRenderCommands(opaqueCommands);
+
+    //App->renderer->GetBatchManager()->DoRender(objects.GetOpaques(), BR_FLAG_KEEP_ORDER);
 
     if (target)
     {
@@ -58,9 +67,14 @@ void ForwardPass::executeOpaque(const RenderList &objects, Framebuffer *target, 
     }
 }
 
-void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *target, uint width, uint height)
+void ForwardPass::executeTransparent(ComponentCamera* culling, Framebuffer *target, uint width, uint height)
 {
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Transparent - Forward");
+
+    float4 planes[6];
+    culling->GetPlanes(planes);
+
+    App->renderer->GetBatchManager()->DoFrustumCulling(transparentCommands, planes, culling->GetPos(), false);
 
     UseProgram();
 
@@ -79,7 +93,7 @@ void ForwardPass::executeTransparent(const RenderList &objects, Framebuffer *tar
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    App->renderer->GetBatchManager()->DoRender(objects.GetTransparents(), BR_FLAG_KEEP_ORDER);
+    App->renderer->GetBatchManager()->DoRenderCommands(transparentCommands);
 
     glDisable(GL_BLEND);
 

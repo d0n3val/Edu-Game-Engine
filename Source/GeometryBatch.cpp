@@ -8,6 +8,7 @@
 #include "ModuleResources.h"
 #include "GameObject.h"
 #include "BatchManager.h"
+#include "BatchDrawCommands.h"
 
 #include "ResourceTexture.h"
 
@@ -20,8 +21,8 @@
 #include <algorithm>
 #include <SDL_assert.h>
 
-GeometryBatch::GeometryBatch(const HashString &tag, uint32_t index, Program *program, Program *programNoTangents) 
-: tagName(tag), batchIndex(index), skinningProgram(program), skinningProgramNoTangents(programNoTangents)
+GeometryBatch::GeometryBatch(const HashString &tag, uint32_t index, BatchPrograms* prg) 
+: tagName(tag), batchIndex(index), programs(prg)
 {
 }
 
@@ -38,7 +39,8 @@ bool GeometryBatch::CanAdd(const ComponentMeshRenderer* object) const
 
     const ResourceMesh* meshRes = object->GetMeshRes();
     const ResourceMaterial* materialRes = object->GetMaterialRes();
-    if (meshRes->GetAttribs() == attrib_flags && materialRes && materialRes->GetWorkFlow() == materialWF)
+    if (meshRes->GetAttribs() == attrib_flags && materialRes && materialRes->GetWorkFlow() == materialWF && 
+        object->RenderMode() == renderMode)
     {
         return true;
     }
@@ -87,7 +89,6 @@ void GeometryBatch::CreateRenderData()
         }
 
         bufferDirty = false;
-        modelUpdates.clear();
     }
 }
 
@@ -377,6 +378,55 @@ void GeometryBatch::CreateCommandBuffer()
     }
 }
 
+void GeometryBatch::DoFrustumCulling(BatchDrawCommands& drawCommands, const float4* planes, const float3& cameraPos)
+{
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Frustum Culling");
+
+    Program* program = renderMode == RENDER_OPAQUE ? programs->culling.get() : programs->cullingTransparent.get();
+
+    program->Use();
+    program->BindUniform(NUM_INSTANCES_LOCATION, int(objects.size()));
+    for (uint i = 0; i < 6; ++i)
+    {
+        program->BindUniform(FRUSTUM_PLANES_LOCATION + i, planes[i]);
+    }
+
+    transformSSBO[App->renderer->GetFrameCount()]->BindToPoint(MODEL_SSBO_BINDING);
+    instanceBuffer->BindToPoint(DRAWINSTAANCE_SSBO_BINDING);
+
+    if(renderMode == RENDER_TRANSPARENT)
+    {
+        distanceBuffer->BindToPoint(DISTANCES_SSBO_BINDING);
+        program->BindUniform(CAMERA_POS_LOCATION, cameraPos);
+    }
+
+    drawCommands.resizeBatch(batchIndex, uint(objects.size()));
+    drawCommands.bindToPoints(batchIndex, DRAWCOMMAND_SSBO_BINDING, COMAMNDCOUNT_SSBO_BINDING);
+
+    int numWorkGroups = (int(objects.size()) + (FRUSTUM_CULLING_GROUP_SIZE - 1)) / FRUSTUM_CULLING_GROUP_SIZE;
+
+    glDispatchCompute(numWorkGroups, 1, 1);
+    glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
+
+    glPopDebugGroup();
+}
+
+
+void GeometryBatch::DoRenderCommands(BatchDrawCommands &drawCommands)
+{
+    if (drawCommands.getMaxCommands(batchIndex) > 0)
+    {
+        transformSSBO[App->renderer->GetFrameCount()]->BindToPoint(MODEL_SSBO_BINDING);
+        materialSSBO->BindToPoint(MATERIAL_SSBO_BINDING);
+
+        drawCommands.bindIndirectBuffers(batchIndex);
+
+        vao->Bind();
+        glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, 0, drawCommands.getMaxCommands(batchIndex), 0);
+        vao->Unbind();
+    }
+}
+
 void GeometryBatch::CreateMaterialBuffer()
 {
     if(materialWF == SpecularGlossiness)
@@ -485,6 +535,10 @@ void GeometryBatch::CreateMaterialBuffer()
 
 void GeometryBatch::CreateInstanceBuffer()
 {
+    instanceBuffer = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, GL_MAP_WRITE_BIT, objects.size() * sizeof(PerInstanceGPU), nullptr, true);
+    distanceBuffer = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, 0, objects.size() * sizeof(float), nullptr, true);
+    PerInstanceGPU* instanceData = reinterpret_cast<PerInstanceGPU*>(instanceBuffer->Map(GL_WRITE_ONLY));
+
     instances.resize(objects.size());
     
     totalBones = 0;
@@ -510,6 +564,16 @@ void GeometryBatch::CreateInstanceBuffer()
         out.normalsStride    = numVertices;
         out.tangentsStride   = numVertices*2;
 
+        AABB bbox;
+        object.first->GetBoundingBox(bbox);
+        Sphere bsphere = bbox.MinimalEnclosingSphere();
+
+        instanceData[object.second].indexCount      = meshData.indexCount;
+        instanceData[object.second].baseIndex       = meshData.baseIndex;
+        instanceData[object.second].baseVertex      = meshData.baseVertex;
+        instanceData[object.second].baseInstance    = object.second;
+        instanceData[object.second].sphere          = float4(bsphere.pos, bsphere.r);
+
         totalBones        += numBones;
         totalTargets      += meshData.numTargets;
     }
@@ -531,6 +595,8 @@ void GeometryBatch::CreateInstanceBuffer()
             morphWeightsData[i] = reinterpret_cast<float*>(morphWeights[i]->MapRange(GL_MAP_WRITE_BIT, 0, uint(totalTargets * sizeof(float))));
         }
     }
+
+    instanceBuffer->Unmap();
 }
 
 void GeometryBatch::CreateMorphBuffer()
@@ -622,8 +688,6 @@ void GeometryBatch::DoUpdate()
     {
         UpdateSkinning();
     }
-
-    modelUpdates.clear();
 }
 
 void GeometryBatch::DoRender(uint flags)
@@ -666,12 +730,6 @@ void GeometryBatch::Remove(ComponentMeshRenderer* object)
 	ClearRenderData();
 }
 
-void GeometryBatch::MarkForUpdate(ComponentMeshRenderer *object)
-{
-    SDL_assert(objects.find(object) != objects.end());
-    modelUpdates.insert(object);
-}
-
 void GeometryBatch::UpdateSkinning()
 {
     SDL_assert(totalBones > 0 || totalTargets > 0);
@@ -680,18 +738,15 @@ void GeometryBatch::UpdateSkinning()
 
     float4x4 *palette = skinningData[App->renderer->GetFrameCount()];
 
-    for (ComponentMeshRenderer *object : modelUpdates)
+    for (const auto& object : objects)
     {
-        auto it = objects.find(object);
-        SDL_assert(it != objects.end());
+        const ResourceMesh *meshRes = object.first->GetMeshRes();
+        const PerInstance& instanceData = instances[object.second];
+        const MeshData &meshData = meshes[object.first->GetMeshUID()];
 
-        const ResourceMesh *meshRes = object->GetMeshRes();
-
-        if (it != objects.end())
+        if (instanceData.numBones > 0 || instanceData.numTargets > 0)
         {
-            const PerInstance& instanceData = instances[it->second];
-            const MeshData &meshData = meshes[object->GetMeshUID()];
-            Program* program = meshRes->HasAttrib(ATTRIB_TANGENTS) ? skinningProgram : skinningProgramNoTangents;
+            Program* program = meshRes->HasAttrib(ATTRIB_TANGENTS) ? programs->skinningProgram.get() : programs->skinningProgramNoTangents.get();
 
             program->Use();
 
@@ -704,78 +759,71 @@ void GeometryBatch::UpdateSkinning()
 
             if (instanceData.numBones > 0)
             {
-                object->UpdateSkinPalette(&palette[instanceData.baseBone]);
+                object.first->UpdateSkinPalette(&palette[instanceData.baseBone]);
 
                 // Bind buffers
                 program->BindSSBO(SKINNING_PALETTE_BINDING, skinning[App->renderer->GetFrameCount()].get(), instanceData.baseBone * sizeof(float4x4), instanceData.numBones * sizeof(float4x4));
-                program->BindSSBO(SKINNING_INDICES_BINDING, bone_indices.get(), meshData.baseVertex * sizeof(int)*4, meshData.vertexCount * sizeof(int) * 4);
-                program->BindSSBO(SKINNING_WEIGHTS_BINDING, bone_weights.get(), meshData.baseVertex * sizeof(float)*4, meshData.vertexCount * sizeof(float) * 4);
+                program->BindSSBO(SKINNING_INDICES_BINDING, bone_indices.get(), meshData.baseVertex * sizeof(int) * 4, meshData.vertexCount * sizeof(int) * 4);
+                program->BindSSBO(SKINNING_WEIGHTS_BINDING, bone_weights.get(), meshData.baseVertex * sizeof(float) * 4, meshData.vertexCount * sizeof(float) * 4);
 
             }
 
-            if(instanceData.numTargets > 0)
+            if (instanceData.numTargets > 0)
             {
-                memcpy(&morphWeightsData[App->renderer->GetFrameCount()][instanceData.baseTargetWeight], object->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
+                memcpy(&morphWeightsData[App->renderer->GetFrameCount()][instanceData.baseTargetWeight], object.first->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
 
-                program->BindSSBO(SKINNING_MORPH_WEIGHTS_BINDING, morphWeights[App->renderer->GetFrameCount()].get(), instanceData.baseTargetWeight*sizeof(float), instanceData.numTargets*sizeof(float));
+                program->BindSSBO(SKINNING_MORPH_WEIGHTS_BINDING, morphWeights[App->renderer->GetFrameCount()].get(), instanceData.baseTargetWeight * sizeof(float), instanceData.numTargets * sizeof(float));
                 morphTexture->Bind(SKINNING_MORPH_TARGET_BINDING);
             }
 
-            if (instanceData.numBones > 0 || instanceData.numTargets > 0)
+            program->BindSSBO(SKINNING_POSITIONS_BINDING, tpose_positions.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+            program->BindSSBO(SKINNING_INNORMALS_BINDING, tpose_normals.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+            program->BindSSBO(SKINNING_INTANGENTS_BINDING, tpose_tangents.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+
+            program->BindSSBO(SKINNING_OUTPOSITIONS_BINDING, vbo[ATTRIB_POSITIONS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+            program->BindSSBO(SKINNING_OUTNORMALS_BINDING, vbo[ATTRIB_NORMALS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
+
+            if (meshRes->HasAttrib(ATTRIB_TANGENTS))
             {
-                program->BindSSBO(SKINNING_POSITIONS_BINDING, tpose_positions.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-                program->BindSSBO(SKINNING_INNORMALS_BINDING, tpose_normals.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-                program->BindSSBO(SKINNING_INTANGENTS_BINDING, tpose_tangents.get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-
-                program->BindSSBO(SKINNING_OUTPOSITIONS_BINDING, vbo[ATTRIB_POSITIONS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-                program->BindSSBO(SKINNING_OUTNORMALS_BINDING, vbo[ATTRIB_NORMALS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-
-                if (meshRes->HasAttrib(ATTRIB_TANGENTS))
-                {
-                    program->BindSSBO(SKINNING_OUTTANGENTS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
-                }
+                program->BindSSBO(SKINNING_OUTTANGENTS_BINDING, vbo[ATTRIB_TANGENTS].get(), meshData.baseVertex * sizeof(float4), meshData.vertexCount * sizeof(float4));
             }
 
             int numWorkGroups = (meshData.vertexCount + (SKINNING_GROUP_SIZE - 1)) / SKINNING_GROUP_SIZE;
             glDispatchCompute(numWorkGroups, 1, 1);
         }
+
+        
     }
 
-    glPopDebugGroup();
+    glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
+    glPopDebugGroup();
 }
 
 void GeometryBatch::UpdateModels()
 {
-    if(!modelUpdates.empty())
+    float4x4* transforms = transformsData[App->renderer->GetFrameCount()];
+    float4x4* palette    = nullptr;
+    float* weights       = nullptr;
+
+    if (totalTargets > 0)
     {
-        float4x4* transforms = transformsData[App->renderer->GetFrameCount()];
-        float4x4* palette    = nullptr;
-        float* weights       = nullptr;
+        weights = morphWeightsData[App->renderer->GetFrameCount()];
+    }
 
-        if (totalTargets > 0)
+    for (const auto& object : objects)
+    {
+        const PerInstance& instanceData = instances[object.second];
+
+        if (instanceData.numBones > 0)
+            transforms[object.second] = float4x4::identity;
+        else
+            transforms[object.second] = object.first->GetGameObject()->GetGlobalTransformation();
+
+        // morph targets
+        if (totalTargets)
         {
-            weights = morphWeightsData[App->renderer->GetFrameCount()];
-        }
-
-        for (ComponentMeshRenderer *object : modelUpdates)
-        {
-            auto it = objects.find(object);
-            if (it != objects.end())
-            {
-                const PerInstance& instanceData = instances[it->second];
-
-                if (instanceData.numBones > 0)
-                    transforms[it->second] = float4x4::identity;
-                else
-                    transforms[it->second] = object->GetGameObject()->GetGlobalTransformation();
-
-                // morph targets
-                if (totalTargets)
-                {
-                    memcpy(&weights[instanceData.baseTargetWeight], object->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
-                }
-            }
+            memcpy(&weights[instanceData.baseTargetWeight], object.first->GetMorphTargetWeights(), sizeof(float) * instanceData.numTargets);
         }
     }
 }

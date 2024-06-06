@@ -922,12 +922,12 @@ void PanelProperties::DrawMeshRendererComponent(ComponentMeshRenderer* component
 
     ImGui::Separator();
 
-    const char* names[ComponentMeshRenderer::RENDER_COUNT] = { "Opaque", "Transparent" };
+    const char* names[RENDER_COUNT] = { "Opaque", "Transparent" };
 
     int index = int(component->RenderMode());
-    if(ImGui::Combo("Render mode", &index, names, int(ComponentMeshRenderer::RENDER_COUNT)))
+    if(ImGui::Combo("Render mode", &index, names, int(RENDER_COUNT)))
     {
-		component->SetRenderMode(ComponentMeshRenderer::ERenderMode(index));
+		component->SetRenderMode(ERenderMode(index));
     }
 
     ImGui::Separator();
