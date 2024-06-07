@@ -133,11 +133,6 @@ void ModuleRenderer::Draw(ComponentCamera* camera, ComponentCamera* culling, Fra
     if (App->hints->GetBoolValue(ModuleHints::ENABLE_CASCADE_SHADOW))
     {
         cascadeShadowPass->updateRenderList(culling->frustum);
-
-        for (uint i = 0; i < CascadeShadowPass::CASCADE_COUNT; ++i)
-        {
-            const RenderList& renderList = cascadeShadowPass->getRenderList(i);
-        }
     }
     else
     {

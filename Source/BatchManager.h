@@ -23,6 +23,8 @@ struct BatchPrograms
     std::unique_ptr<Program> skinningProgramNoTangents;
     std::unique_ptr<Program> culling;
     std::unique_ptr<Program> cullingTransparent;
+    std::unique_ptr<Program> sortOdd;
+    std::unique_ptr<Program> sortEven;
 };
 
 class BatchManager
@@ -41,7 +43,7 @@ public:
     void Remove(ComponentMeshRenderer* object);
 
     void DoFrustumCulling(BatchDrawCommands& drawCommands, const float4* planes, const float3& cameraPos, bool opaque);
-    void DoRenderCommands(BatchDrawCommands& drawCommands);
+    void DoRenderCommands(const BatchDrawCommands& drawCommands);
 
     void DoUpdate();
     void DoRender(const NodeList& objects, uint flags);
@@ -52,6 +54,7 @@ public:
 private:
     void CreateSkinningProgram();
     void CreateFrustumCullingProgram();
+    void CreateSortProgram();
 };
 
 #endif /* _BATCHMANAGER_H_ */

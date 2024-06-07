@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "ModuleHints.h"
 
+#include "OGL.h"
+
 CascadeShadowPass::CascadeShadowPass()
 {
 }

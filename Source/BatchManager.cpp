@@ -28,6 +28,11 @@ uint BatchManager::Add(ComponentMeshRenderer* object, const HashString& tag)
         CreateFrustumCullingProgram();
     }
 
+    if(!programs.sortOdd)
+    {
+        CreateSortProgram();
+    }
+
     uint batch_index = 0;
 
     for (; batch_index < batches.size(); ++batch_index)
@@ -70,7 +75,7 @@ void BatchManager::DoFrustumCulling(BatchDrawCommands &drawCommands, const float
     }
 }
 
-void BatchManager::DoRenderCommands(BatchDrawCommands &drawCommands)
+void BatchManager::DoRenderCommands(const BatchDrawCommands &drawCommands)
 {
     for(auto& batch : batches)
     {
@@ -155,6 +160,31 @@ void BatchManager::OnMaterialModified(UID materialID)
     }
 }
 
+void BatchManager::CreateSortProgram()
+{
+    const char* defines[] = { "#define ODD\n" };
+
+    std::unique_ptr<Shader> shaderOdd = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/odd_even_sort.glsl", &defines[0], 1);
+    std::unique_ptr<Shader> shaderEven = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/odd_even_sort.glsl");
+
+    bool ok = shaderOdd->Compiled() && shaderEven->Compiled();
+
+    if(ok)
+    {        
+        programs.sortOdd = std::make_unique<Program>(shaderOdd.get());
+        programs.sortEven = std::make_unique<Program>(shaderEven.get());
+
+        ok = programs.sortOdd->Linked() && programs.sortEven->Linked();
+    }
+
+    if(!ok)
+    {
+        programs.sortOdd.release();
+        programs.sortEven.release();
+    }
+
+}
+
 void BatchManager::CreateFrustumCullingProgram()
 {
     const char* defines[] = { "#define TRANSPARENTS\n" };
@@ -162,7 +192,7 @@ void BatchManager::CreateFrustumCullingProgram()
     std::unique_ptr<Shader> shader = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/frustumCulling.glsl");
     std::unique_ptr<Shader> shaderTransparents = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/frustumCulling.glsl", &defines[0], 1);
 
-    bool ok = shader->Compiled();
+    bool ok = shader->Compiled() && shaderTransparents->Compiled();
 
     if(ok)
     {        

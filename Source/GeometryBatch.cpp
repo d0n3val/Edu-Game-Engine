@@ -57,6 +57,7 @@ void GeometryBatch::Add(ComponentMeshRenderer* object)
     {
         attrib_flags = object->GetMeshRes()->GetAttribs();
         materialWF = object->GetMaterialRes()->GetWorkFlow();
+        renderMode = object->RenderMode();
     }
 
     meshes[object->GetMeshUID()].refCount++;
@@ -380,6 +381,11 @@ void GeometryBatch::CreateCommandBuffer()
 
 void GeometryBatch::DoFrustumCulling(BatchDrawCommands& drawCommands, const float4* planes, const float3& cameraPos)
 {
+    if (bufferDirty)
+    {
+        CreateRenderData();
+    }
+
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Frustum Culling");
 
     Program* program = renderMode == RENDER_OPAQUE ? programs->culling.get() : programs->cullingTransparent.get();
@@ -412,8 +418,10 @@ void GeometryBatch::DoFrustumCulling(BatchDrawCommands& drawCommands, const floa
 }
 
 
-void GeometryBatch::DoRenderCommands(BatchDrawCommands &drawCommands)
+void GeometryBatch::DoRenderCommands(const BatchDrawCommands &drawCommands)
 {
+    SDL_assert(!bufferDirty);
+
     if (drawCommands.getMaxCommands(batchIndex) > 0)
     {
         transformSSBO[App->renderer->GetFrameCount()]->BindToPoint(MODEL_SSBO_BINDING);

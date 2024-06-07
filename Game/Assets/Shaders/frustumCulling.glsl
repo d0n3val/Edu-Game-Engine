@@ -73,6 +73,7 @@ void main()
            dot(pos, planes[2].xyz) < radius &&
            dot(pos, planes[3].xyz) < radius)
         {
+
             int cmdIndex = atomicAdd(count, 1);
             
             commands[cmdIndex].indexCount    = instances[index].indexCount;

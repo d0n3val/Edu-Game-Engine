@@ -36,10 +36,10 @@ void BatchDrawCommands::resizeBatch(uint index, uint maxNumCommands)
     }
 }
 
-void BatchDrawCommands::bindToPoints(uint index, uint commandPoint, uint countPoint)
+void BatchDrawCommands::bindToPoints(uint index, uint commandPoint, uint countPoint) const
 {
     SDL_assert(index < batches.size());
-    BatchData& data = batches[index];
+    const BatchData& data = batches[index];
 
     *reinterpret_cast<int *>(data.drawCount->Map(GL_WRITE_ONLY)) = 0;
     data.drawCount->Unmap();
@@ -48,10 +48,10 @@ void BatchDrawCommands::bindToPoints(uint index, uint commandPoint, uint countPo
     data.drawCount->BindToPoint(countPoint);
 }
 
-void BatchDrawCommands::bindIndirectBuffers(uint index)
+void BatchDrawCommands::bindIndirectBuffers(uint index) const 
 {
     SDL_assert(index < batches.size());
-    BatchData& data = batches[index];
+    const BatchData& data = batches[index];
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, data.drawCommands->Id());
     glBindBuffer(GL_PARAMETER_BUFFER, data.drawCount->Id());

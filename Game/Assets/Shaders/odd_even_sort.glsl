@@ -4,6 +4,16 @@
 #include "/shaders/common.glsl"
 #include "/shaders/LocationsAndBindings.h"
 
+struct DrawCommand
+{
+    uint indexCount;
+    uint instanceCount;
+    uint baseIndex;
+    uint baseVertex;
+    uint baseInstance;
+}; 
+
+
 layout(std430, row_major, binding = DRAWCOMMAND_SSBO_BINDING) buffer DrawCommands
 {
     DrawCommand commands[];
@@ -12,16 +22,16 @@ layout(std430, row_major, binding = DRAWCOMMAND_SSBO_BINDING) buffer DrawCommand
 layout(std430, binding = DISTANCES_SSBO_BINDING ) buffer Distances
 {
     float cameraDistances[];
-}
+};
 
-writeonly layout(std430, binding = COMAMNDCOUNT_SSBO_BINDING) buffer ParameterBuffer 
+readonly layout(std430, binding = COMAMNDCOUNT_SSBO_BINDING) buffer ParameterBuffer 
 {
     int count;
 };
 
 void swap(inout DrawCommand a, inout DrawCommand b)
 {
-    float tmp = a;
+    DrawCommand tmp = a;
     a = b;
     b = tmp;
 }

@@ -44,7 +44,7 @@ public:
     void resize(uint batchCount) { batches.resize(batchCount);}
 
     void resizeBatch(uint index, uint maxNumCommads);
-    void bindToPoints(uint index, uint commandPoint, uint countPoint);
-    void bindIndirectBuffers(uint index);
+    void bindToPoints(uint index, uint commandPoint, uint countPoint) const;
+    void bindIndirectBuffers(uint index) const;
     uint getMaxCommands(uint index) const {return batches[index].maxNumCommands;}
 };

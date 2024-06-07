@@ -222,7 +222,11 @@ void ShadowmapPass::updateRenderList(const Frustum& culling, const float2& depth
     Plane obbPlanes[6];
     lightOBB.GetFacePlanes(obbPlanes);
 
-    objects.UpdateFrom(obbPlanes, frustum.pos, App->level->GetRoot(), RENDERLIST_OBJ_OPAQUE);
+    float4 planes[6];
+    for(int i=0; i< 6; ++i) planes[i] = float4(obbPlanes[i].normal, obbPlanes[i].d);
+
+    
+    App->renderer->GetBatchManager()->DoFrustumCulling(drawCommands, planes, culling.pos, true);
 }
 
 void ShadowmapPass::render()
@@ -235,5 +239,5 @@ void ShadowmapPass::render()
     glViewport(0, 0, fbWidth, fbHeight);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    App->renderer->GetBatchManager()->DoRender(objects.GetOpaques(), 0);
+    App->renderer->GetBatchManager()->DoRenderCommands(drawCommands);
 }

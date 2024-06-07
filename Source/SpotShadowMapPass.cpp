@@ -45,7 +45,9 @@ void SpotShadowMapPass::execute()
 
             if(light->GetEnabled() && light->GetCastShadows())
             {
-                Generator &generator = generators[i];
+                Generator& generator = generators[i];
+
+                generator.updateFrustum(light);
 
                 uint shadowSize = light->GetShadowSize();
 
@@ -54,7 +56,6 @@ void SpotShadowMapPass::execute()
                 glDepthFunc(GL_LESS);
 
                 generator.createFramebuffer(shadowSize);
-                generator.updateFrustum(light);
                 generator.updateCameraUBO();
 
                 generator.getCameraUBO()->BindToPoint(CAMERA_UBO_BINDING);
@@ -63,7 +64,7 @@ void SpotShadowMapPass::execute()
                 glViewport(0, 0, shadowSize, shadowSize);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
-                App->renderer->GetBatchManager()->DoRender(generator.getObjects().GetOpaques(), 0);
+                App->renderer->GetBatchManager()->DoRenderCommands(generator.getDrawCommands());
 
                 generator.blurTextures(shadowSize);
 
@@ -110,18 +111,18 @@ void SpotShadowMapPass::Generator::createFramebuffer(uint size)
 void SpotShadowMapPass::Generator::updateFrustum(const SpotLight* light)
 {
     // NOTE: Angle for quat inside circle
-    float radius = tanf(light->GetOutterCutoff()) * light->GetMaxDistance();
-    float l = sqrtf(2.0)*radius;
-    float halfL = l/2.0f;
-    float angle = atan2f(halfL, light->GetMaxDistance());
+    //float radius = tanf(light->GetOutterCutoff()) * light->GetMaxDistance();
+    //float l = sqrtf(2.0)*radius;
+    //float halfL = l/2.0f;
+    //float angle = atan2f(halfL, light->GetMaxDistance());
     
-    ///float innerAngle = atanf(radius*radius/light->GetDistance() * sqrtf(2.0f));
     frustum.type = FrustumType::PerspectiveFrustum;
     frustum.pos = light->GetTransform().TranslatePart();
     frustum.front = -light->GetTransform().Col3(1);
     frustum.up = light->GetTransform().Col3(2);
     frustum.nearPlaneDistance = light->GetMinDistance();
     frustum.farPlaneDistance = light->GetMaxDistance();
+
     //frustum.verticalFov = innerAngle * 2.0f;
     //frustum.horizontalFov = innerAngle * 2.0f;
 
@@ -131,6 +132,7 @@ void SpotShadowMapPass::Generator::updateFrustum(const SpotLight* light)
     frustum.verticalFov = light->GetOutterCutoff() * 2.0f;
     frustum.horizontalFov = light->GetOutterCutoff() * 2.0f;
 
+
     /*
     float4x4 matrix = frustum.ProjectionMatrix() * frustum.ViewMatrix();
     matrix.Inverse();
@@ -138,7 +140,13 @@ void SpotShadowMapPass::Generator::updateFrustum(const SpotLight* light)
     dd::line(frustum.pos, frustum.pos + frustum.front * frustum.farPlaneDistance, dd::colors::Red);
     */
 
-    objects.UpdateFrom(frustum, App->level->GetRoot(), RENDERLIST_OBJ_OPAQUE);
+    Plane tmp[6];
+    frustum.GetPlanes(&tmp[0]);
+    float4 planes[6];
+
+    for(int i=0; i< 6; ++i) planes[i] = float4(tmp[i].normal, tmp[i].d);
+
+    App->renderer->GetBatchManager()->DoFrustumCulling(drawCommands, planes, frustum.pos, true);
 }
 
 void SpotShadowMapPass::Generator::updateCameraUBO()

@@ -133,7 +133,7 @@ public:
     unsigned            GetNumObjects() const { return unsigned(objects.size()); }
 
     void                DoFrustumCulling(BatchDrawCommands& drawCommands, const float4* planes, const float3& cameraPos);
-    void                DoRenderCommands(BatchDrawCommands& drawCommands);
+    void                DoRenderCommands(const BatchDrawCommands& drawCommands);
 private:
 
     void ClearRenderData      ();
