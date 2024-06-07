@@ -10,7 +10,7 @@ struct DrawInstance
     uint baseIndex;
     uint baseVertex;
     uint baseInstance;
-    vec4 sphere;
+    vec4 obb[8];
 };
 
 struct DrawCommand
@@ -46,6 +46,8 @@ uniform layout(location=FRUSTUM_PLANES_LOCATION) vec4 planes[6];
 
 uniform layout(location= NUM_INSTANCES_LOCATION) int numInstances;
 
+uniform layout(location = CAMERA_POS_LOCATION) vec3 cameraPos;
+
 #ifdef TRANSPARENTS
 
 writeonly layout(std430, binding = DISTANCES_SSBO_BINDING) buffer Distances
@@ -53,9 +55,27 @@ writeonly layout(std430, binding = DISTANCES_SSBO_BINDING) buffer Distances
     float cameraDistances[];
 };
 
-uniform layout(location = CAMERA_POS_LOCATION) vec3 cameraPos;
-
 #endif 
+
+bool inFrustum(in vec3 points[8])
+{
+    int isOut;
+    for (int i = 0; i < 6; ++i)
+    {
+        isOut = 0;
+        for (int k = 0; k < 8; ++k)
+        {
+            if(dot(planes[i].xyz, points[k])-planes[i].w  >= 0.0f )
+                isOut++;
+        }
+
+        if (isOut == 8)
+            return false;
+    }
+
+    return true;
+}
+
 
 
 layout(local_size_x = FRUSTUM_CULLING_GROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
@@ -65,15 +85,20 @@ void main()
 
     if(index < numInstances)
     {
-        vec3 pos = instances[index].sphere.xyz+models[index][3].xyz;
-        float radius = instances[index].sphere.w;
+        mat4 transform = models[index];
 
-        if(dot(pos, planes[0].xyz) < radius &&
-           dot(pos, planes[1].xyz) < radius &&
-           dot(pos, planes[2].xyz) < radius &&
-           dot(pos, planes[3].xyz) < radius)
+        vec3 points[8];
+        vec3 pos = vec3(0.0);
+        for(uint i=0; i< 8; ++i) 
         {
+            points[i] = (transform*instances[index].obb[i]).xyz;
+            pos += points[i];
+        }
 
+        pos = pos/8;
+
+        if(inFrustum(points))
+        {
             int cmdIndex = atomicAdd(count, 1);
             
             commands[cmdIndex].indexCount    = instances[index].indexCount;

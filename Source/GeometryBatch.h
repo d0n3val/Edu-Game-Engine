@@ -58,7 +58,7 @@ class GeometryBatch
         uint baseIndex = 0;
         uint baseVertex = 0;
         uint baseInstance = 0;
-        float4 sphere = float4::zero;
+        float4 obb[8];
     };
 
     typedef std::vector<DrawCommand>                                CommandList;

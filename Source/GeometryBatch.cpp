@@ -386,52 +386,76 @@ void GeometryBatch::DoFrustumCulling(BatchDrawCommands& drawCommands, const floa
         CreateRenderData();
     }
 
-    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Frustum Culling");
-
-    Program* program = renderMode == RENDER_OPAQUE ? programs->culling.get() : programs->cullingTransparent.get();
-
-    program->Use();
-    program->BindUniform(NUM_INSTANCES_LOCATION, int(objects.size()));
-    for (uint i = 0; i < 6; ++i)
+    if (!objects.empty())
     {
-        program->BindUniform(FRUSTUM_PLANES_LOCATION + i, planes[i]);
-    }
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Frustum Culling");
 
-    transformSSBO[App->renderer->GetFrameCount()]->BindToPoint(MODEL_SSBO_BINDING);
-    instanceBuffer->BindToPoint(DRAWINSTAANCE_SSBO_BINDING);
+        Program* program = renderMode == RENDER_OPAQUE ? programs->culling.get() : programs->cullingTransparent.get();
 
-    if(renderMode == RENDER_TRANSPARENT)
-    {
-        distanceBuffer->BindToPoint(DISTANCES_SSBO_BINDING);
+        program->Use();
+        program->BindUniform(NUM_INSTANCES_LOCATION, int(objects.size()));
+        for (uint i = 0; i < 6; ++i)
+        {
+            program->BindUniform(FRUSTUM_PLANES_LOCATION + i, planes[i]);
+        }
+
+        transformSSBO[App->renderer->GetFrameCount()]->BindToPoint(MODEL_SSBO_BINDING);
+        instanceBuffer->BindToPoint(DRAWINSTAANCE_SSBO_BINDING);
         program->BindUniform(CAMERA_POS_LOCATION, cameraPos);
+
+        if (renderMode == RENDER_TRANSPARENT)
+        {
+            distanceBuffer->BindToPoint(DISTANCES_SSBO_BINDING);
+        }
+
+        drawCommands.resizeBatch(batchIndex, uint(objects.size()));
+        drawCommands.bindToPoints(batchIndex, DRAWCOMMAND_SSBO_BINDING, COMAMNDCOUNT_SSBO_BINDING);
+
+        int numWorkGroups = (int(objects.size()) + (FRUSTUM_CULLING_GROUP_SIZE - 1)) / FRUSTUM_CULLING_GROUP_SIZE;
+
+        glDispatchCompute(numWorkGroups, 1, 1);
+
+        if (renderMode == RENDER_TRANSPARENT)
+        {
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Transparent Sort");
+            Program* sort[2] = { programs->sortOdd.get(), programs->sortEven.get() };
+
+            for (int i = 0; i < drawCommands.getMaxCommands(batchIndex); ++i)
+            {
+                Program* current = sort[i % 2];
+
+                current->Use();
+                glDispatchCompute(numWorkGroups, 1, 1);
+                glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            }
+
+            glPopDebugGroup();
+        }
+
+        glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
+
+        glPopDebugGroup();
     }
-
-    drawCommands.resizeBatch(batchIndex, uint(objects.size()));
-    drawCommands.bindToPoints(batchIndex, DRAWCOMMAND_SSBO_BINDING, COMAMNDCOUNT_SSBO_BINDING);
-
-    int numWorkGroups = (int(objects.size()) + (FRUSTUM_CULLING_GROUP_SIZE - 1)) / FRUSTUM_CULLING_GROUP_SIZE;
-
-    glDispatchCompute(numWorkGroups, 1, 1);
-    glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
-
-    glPopDebugGroup();
 }
 
 
 void GeometryBatch::DoRenderCommands(const BatchDrawCommands &drawCommands)
 {
-    SDL_assert(!bufferDirty);
-
-    if (drawCommands.getMaxCommands(batchIndex) > 0)
+    if (!objects.empty())
     {
-        transformSSBO[App->renderer->GetFrameCount()]->BindToPoint(MODEL_SSBO_BINDING);
-        materialSSBO->BindToPoint(MATERIAL_SSBO_BINDING);
+        if (drawCommands.getMaxCommands(batchIndex) > 0)
+        {
+            SDL_assert(!bufferDirty);
 
-        drawCommands.bindIndirectBuffers(batchIndex);
+            transformSSBO[App->renderer->GetFrameCount()]->BindToPoint(MODEL_SSBO_BINDING);
+            materialSSBO->BindToPoint(MATERIAL_SSBO_BINDING);
 
-        vao->Bind();
-        glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, 0, drawCommands.getMaxCommands(batchIndex), 0);
-        vao->Unbind();
+            drawCommands.bindIndirectBuffers(batchIndex);
+
+            vao->Bind();
+            glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, 0, drawCommands.getMaxCommands(batchIndex), 0);
+            vao->Unbind();
+        }
     }
 }
 
@@ -572,15 +596,20 @@ void GeometryBatch::CreateInstanceBuffer()
         out.normalsStride    = numVertices;
         out.tangentsStride   = numVertices*2;
 
-        AABB bbox;
-        object.first->GetBoundingBox(bbox);
-        Sphere bsphere = bbox.MinimalEnclosingSphere();
-
         instanceData[object.second].indexCount      = meshData.indexCount;
         instanceData[object.second].baseIndex       = meshData.baseIndex;
         instanceData[object.second].baseVertex      = meshData.baseVertex;
         instanceData[object.second].baseInstance    = object.second;
-        instanceData[object.second].sphere          = float4(bsphere.pos, bsphere.r);
+
+        AABB bbox;
+        bbox.SetNegativeInfinity();
+        object.first->GetBoundingBox(bbox);
+        OBB  oriented = bbox;
+
+        for (int i = 0; i < 8; ++i)
+        {
+            instanceData[object.second].obb[i] = float4(oriented.CornerPoint(i), 1.0f);
+        }
 
         totalBones        += numBones;
         totalTargets      += meshData.numTargets;

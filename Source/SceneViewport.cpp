@@ -741,6 +741,31 @@ void SceneViewport::DrawGuizmo(ComponentCamera* camera)
 void SceneViewport::DrawGuizmo(ComponentCamera* camera, ComponentMeshRenderer* renderer)
 {
     // Intentionally blank
+    //DrawGuizmo(camera, renderer->GetGameObject());
+    
+    AABB bbox;    
+    bbox.SetNegativeInfinity();
+    renderer->GetBoundingBox(bbox);
+    OBB global = bbox;
+    global.Transform(renderer->GetGameObject()->GetGlobalTransformation());
+
+    /*
+    Sphere sphere;
+    sphere.pos = float3::zero;
+    sphere.r = 0.0f;
+    sphere.Enclose(global);
+
+    dd::sphere(sphere.pos, dd::colors::Yellow, sphere.r);
+    */
+
+    float3 points[8];
+    global.GetCornerPoints(points);
+    std::swap(points[2], points[5]);
+    std::swap(points[3], points[4]);
+    std::swap(points[4], points[5]);
+    std::swap(points[6], points[7]);
+    dd::box(points, dd::colors::Yellow);
+
 }
 
 

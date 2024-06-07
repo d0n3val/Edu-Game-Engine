@@ -116,8 +116,6 @@ private:
     void                RenderVFX                   (ComponentCamera* camera, ComponentCamera* culling, Framebuffer* frameBuffer, unsigned width, unsigned height);
 
 
-    void                SelectionPass               (const float4x4& proj, const float4x4& view);
-
     void                LoadDefaultShaders          ();
 
     void                DrawSelection               (const TRenderInfo& render_info);

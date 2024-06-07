@@ -144,6 +144,15 @@ void RenderList::CollectObjects(const Plane* camera_planes, const float3& camera
 
         OBB global_bounding = local_bounding.Transform(transform);
         inside = Intersects(camera_planes, global_bounding);
+
+        /*
+        Sphere bsphere = local_bounding.MinimalEnclosingSphere();
+        float3 spherePos = bsphere.pos + transform.Col3(3);
+        for (int i = 0; i < 6; ++i)
+        {
+            inside = inside && (spherePos - camera_pos).Dot(camera_planes[i].normal) < camera_planes[i].d;
+        }
+        */
     }
 
     if (inside)

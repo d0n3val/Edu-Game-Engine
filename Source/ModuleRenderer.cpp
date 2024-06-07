@@ -246,25 +246,26 @@ void ModuleRenderer::RenderVFX(ComponentCamera *camera, ComponentCamera *culling
 }
 
 void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
-{
-	float4x4 proj   = camera->GetProjectionMatrix();	
-	float4x4 view   = camera->GetViewMatrix();
-
-    
-    SelectionPass(proj, view);
-}
-
-void ModuleRenderer::SelectionPass(const float4x4& proj, const float4x4& view)
-{
+{    
     // Set camera uniforms shared for all
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "SelectionPass");
+
+    float4 planes[6];
+    camera->GetPlanes(planes);
+
+    BatchDrawCommands drawCommands;
+    batch_manager->DoFrustumCulling(drawCommands, planes, camera->GetPos(), true);
 
     App->programs->UseProgram("selection", 0);
 
     cameraUBO->Bind();
 
+    batch_manager->DoRenderCommands(drawCommands);
+
     glPopDebugGroup();
+
 }
+
 
 void ModuleRenderer::LoadDefaultShaders()
 {
@@ -361,11 +362,13 @@ void ModuleRenderer::DebugDrawHierarchy(const GameObject* go)
 
     if(go->GetParent())
     {
-        const float4x4& parent_transform = go->GetParent()->GetGlobalTransformation();
+        //const float4x4& parent_transform = go->GetParent()->GetGlobalTransformation();
 
-        dd::line(parent_transform.TranslatePart(), transform.TranslatePart(), dd::colors::Blue, 0, false);
+        //dd::line(parent_transform.TranslatePart(), transform.TranslatePart(), dd::colors::Blue, 0, false);
 		//dd::axisTriad(transform, 1.3f,  13.f, 0, false);
     }
+
+    
 
     for(std::list<GameObject*>::const_iterator it = go->childs.begin(), end = go->childs.end(); it != end; ++it)
     {
