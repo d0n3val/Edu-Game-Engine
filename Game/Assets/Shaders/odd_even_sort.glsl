@@ -13,7 +13,6 @@ struct DrawCommand
     uint baseInstance;
 }; 
 
-
 layout(std430, row_major, binding = DRAWCOMMAND_SSBO_BINDING) buffer DrawCommands
 {
     DrawCommand commands[];

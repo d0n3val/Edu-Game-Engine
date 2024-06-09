@@ -39,8 +39,6 @@ void GBufferExportPass::execute(ComponentCamera* culling, uint width, uint heigh
     float4 planes[6];
     culling->GetPlanes(planes);
 
-    RenderList objects;
-    objects.UpdateFrom(culling->frustum, App->level->GetRoot());
     batchManager->DoFrustumCulling(drawCommands, planes, culling->GetPos(), true);
 
     resizeFrameBuffer(width, height);

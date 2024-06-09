@@ -59,6 +59,10 @@ private:
     NodeList spotCones;
 
 public:
+    RenderList()
+    {
+
+    }
 
     void Clear();
     void UpdateFrom(const Frustum& frustum, QuadtreeNode* quadtree, uint objTypes = RENDERLIST_OBJ_ALL);

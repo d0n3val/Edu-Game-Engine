@@ -253,14 +253,16 @@ void ModuleRenderer::DrawForSelection(ComponentCamera* camera)
     float4 planes[6];
     camera->GetPlanes(planes);
 
-    BatchDrawCommands drawCommands;
-    batch_manager->DoFrustumCulling(drawCommands, planes, camera->GetPos(), true);
+    BatchDrawCommands opaque, transparent;
+    batch_manager->DoFrustumCulling(opaque, planes, camera->GetPos(), true);
+    batch_manager->DoFrustumCulling(transparent, planes, camera->GetPos(), false);
 
     App->programs->UseProgram("selection", 0);
 
     cameraUBO->Bind();
 
-    batch_manager->DoRenderCommands(drawCommands);
+    batch_manager->DoRenderCommands(opaque);
+    batch_manager->DoRenderCommands(transparent);
 
     glPopDebugGroup();
 

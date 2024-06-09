@@ -140,7 +140,7 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
         glDrawArrays(GL_TRIANGLES, 0, 6); 
     }
 
-    kawase->execute(App->renderer->GetGBufferExportPass()->getEmissive(), GL_RGB32F, GL_RGB, GL_FLOAT, width, height);
+    kawase->execute(App->renderer->GetGBufferExportPass()->getEmissive(), GL_RGB32F, GL_RGB, GL_FLOAT, width, height, 3);
 
     glBindVertexArray(post_vao);
 
@@ -170,6 +170,9 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
         glBindTexture(GL_TEXTURE_2D, kawase->getResult()->Id());
         glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
     }
+
+    // Set exposure normalization
+    glUniform1f(2, 1.2f*powf(2.0, App->hints->GetFloatValue(ModuleHints::EXPOSURE)));
 
     glDrawArrays(GL_TRIANGLES, 0, 6); 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

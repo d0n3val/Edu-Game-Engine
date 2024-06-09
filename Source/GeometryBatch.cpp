@@ -405,6 +405,10 @@ void GeometryBatch::DoFrustumCulling(BatchDrawCommands& drawCommands, const floa
 
         if (renderMode == RENDER_TRANSPARENT)
         {
+            if(!indirectBuffer)
+            {
+                indirectBuffer = std::make_unique<Buffer>(GL_SHADER_STORAGE_BUFFER, 0, sizeof(uint)*3, nullptr, true);
+            }
             distanceBuffer->BindToPoint(DISTANCES_SSBO_BINDING);
         }
 
@@ -414,10 +418,17 @@ void GeometryBatch::DoFrustumCulling(BatchDrawCommands& drawCommands, const floa
         int numWorkGroups = (int(objects.size()) + (FRUSTUM_CULLING_GROUP_SIZE - 1)) / FRUSTUM_CULLING_GROUP_SIZE;
 
         glDispatchCompute(numWorkGroups, 1, 1);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
         if (renderMode == RENDER_TRANSPARENT)
         {
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Transparent Sort");
+
+            programs->sortIndirectParams->Use();
+            indirectBuffer->BindToPoint(INDIRECT_SSBO_BINDING);
+            glDispatchCompute(1, 1, 1);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
             Program* sort[2] = { programs->sortOdd.get(), programs->sortEven.get() };
 
             for (int i = 0; i < drawCommands.getMaxCommands(batchIndex); ++i)
@@ -425,7 +436,9 @@ void GeometryBatch::DoFrustumCulling(BatchDrawCommands& drawCommands, const floa
                 Program* current = sort[i % 2];
 
                 current->Use();
-                glDispatchCompute(numWorkGroups, 1, 1);
+                glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, indirectBuffer->Id());
+
+                glDispatchComputeIndirect(0);
                 glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
             }
 

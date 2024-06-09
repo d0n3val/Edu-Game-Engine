@@ -195,6 +195,8 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[RAYMARCHING_NOISE_SPEED].type = TYPE_FLOAT;
     hints[RAYMARCHING_NOISE_SPEED].value.fvalue = 1.0f;
 
+    hints[EXPOSURE].type = TYPE_FLOAT;
+    hints[EXPOSURE].value.fvalue = 0.0f;
 }
 
 ModuleHints::~ModuleHints()
@@ -260,6 +262,7 @@ void ModuleHints::Save(Config* config) const
     config->AddFloat("RayMarching Att Correction", hints[RAYMARCHING_ATT_CORRECTION].value.fvalue);
     config->AddFloat("RayMarching Noise Scale", hints[RAYMARCHING_NOISE_SCALE].value.fvalue);
     config->AddFloat("RayMarching Noise Speed", hints[RAYMARCHING_NOISE_SPEED].value.fvalue);
+    config->AddFloat("Exposure", hints[EXPOSURE].value.fvalue);
 
     Config dHintsCfg = config->AddSection("DHits");
 
@@ -358,6 +361,7 @@ bool ModuleHints::Init(Config* config)
     hints[RAYMARCHING_ATT_CORRECTION].value.fvalue = config->GetFloat("RayMarching Att Correction");
     hints[RAYMARCHING_NOISE_SCALE].value.fvalue = config->GetFloat("RayMarching Noise Scale");
     hints[RAYMARCHING_NOISE_SPEED].value.fvalue = config->GetFloat("RayMarching Noise Speed");
+    hints[EXPOSURE].value.fvalue = config->GetFloat("Exposure");
 
     Config dHintsCfg = config->GetSection("DHits");
     json_object_t* dHintsRoot = dHintsCfg.GetRoot();

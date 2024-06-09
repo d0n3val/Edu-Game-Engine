@@ -164,6 +164,7 @@ void BatchManager::CreateSortProgram()
 {
     const char* defines[] = { "#define ODD\n" };
 
+    std::unique_ptr<Shader> shaderIndirect = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/sort_indirect_params.glsl");
     std::unique_ptr<Shader> shaderOdd = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/odd_even_sort.glsl", &defines[0], 1);
     std::unique_ptr<Shader> shaderEven = std::make_unique<Shader>(GL_COMPUTE_SHADER, "assets/shaders/odd_even_sort.glsl");
 
@@ -171,14 +172,16 @@ void BatchManager::CreateSortProgram()
 
     if(ok)
     {        
+        programs.sortIndirectParams = std::make_unique<Program>(shaderIndirect.get());
         programs.sortOdd = std::make_unique<Program>(shaderOdd.get());
         programs.sortEven = std::make_unique<Program>(shaderEven.get());
 
-        ok = programs.sortOdd->Linked() && programs.sortEven->Linked();
+        ok = programs.sortOdd->Linked() && programs.sortEven->Linked() && programs.sortIndirectParams;
     }
 
     if(!ok)
     {
+        programs.sortIndirectParams.release();
         programs.sortOdd.release();
         programs.sortEven.release();
     }

@@ -716,6 +716,11 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
 
     }
 
+    float exposure = module->GetFloatValue(ModuleHints::EXPOSURE);
+    if(ImGui::SliderFloat("Exposure", &exposure, -10.0f, 10.0f))
+    {
+        module->SetFloatValue(ModuleHints::EXPOSURE, exposure);
+    }
 
 }
 

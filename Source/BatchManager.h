@@ -23,6 +23,7 @@ struct BatchPrograms
     std::unique_ptr<Program> skinningProgramNoTangents;
     std::unique_ptr<Program> culling;
     std::unique_ptr<Program> cullingTransparent;
+    std::unique_ptr<Program> sortIndirectParams;
     std::unique_ptr<Program> sortOdd;
     std::unique_ptr<Program> sortEven;
 };

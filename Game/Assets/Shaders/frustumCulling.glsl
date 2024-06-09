@@ -42,6 +42,7 @@ writeonly layout(std430, binding = COMAMNDCOUNT_SSBO_BINDING) buffer ParameterBu
     int count;
 };
 
+
 uniform layout(location=FRUSTUM_PLANES_LOCATION) vec4 planes[6];
 
 uniform layout(location= NUM_INSTANCES_LOCATION) int numInstances;
@@ -106,10 +107,6 @@ void main()
             commands[cmdIndex].baseIndex     = instances[index].baseIndex;
             commands[cmdIndex].baseVertex    = instances[index].baseVertex;
             commands[cmdIndex].baseInstance  = index;
-
-#ifdef TRANSPARENTS
-            cameraDistances[cmdIndex] = distance(cameraPos, pos);
-#endif 
         }
     }
 

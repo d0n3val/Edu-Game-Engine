@@ -10,6 +10,8 @@ layout(location=0) uniform sampler2D screen_texture;
 layout(location=1) uniform sampler2D bloom_texture;
 #endif
 
+layout(location=2) uniform float exposureNormalization;
+
 layout(location=0) subroutine uniform ToneMapping tonemap;
 
 vec3 ACESFilm(in vec3 x)
@@ -62,15 +64,15 @@ layout(index=3) subroutine(ToneMapping) vec3 no_tonemap(const vec3 hdr)
        
 void main()
 {
-    vec4 hdr = texture(screen_texture, uv);
+    vec3 hdr = texture(screen_texture, uv).rgb*exposureNormalization;
 
 #if BLOOM
     vec4 bloom = texture(bloom_texture, uv);
 
-    hdr.rgb += bloom.rgb;
+    hdr += bloom.rgb;
 #endif
 
-    vec3 mapped = tonemap(hdr.rgb);
+    vec3 mapped = tonemap(hdr);
 
     // \todo: original filmic tonemapping from 
     // https://www.slideshare.net/ozlael/hable-john-uncharted2-hdr-lighting and

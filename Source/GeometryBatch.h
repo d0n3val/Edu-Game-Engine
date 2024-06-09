@@ -72,6 +72,7 @@ class GeometryBatch
     std::unique_ptr<VertexArray>    vao;
     std::unique_ptr<Buffer>         instanceBuffer;
     std::unique_ptr<Buffer>         distanceBuffer;
+    std::unique_ptr<Buffer>         indirectBuffer;
     std::unique_ptr<Buffer>         ibo;
     std::unique_ptr<Buffer>         vbo[ATTRIB_COUNT];
     std::unique_ptr<Buffer>         tpose_positions;

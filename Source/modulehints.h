@@ -67,6 +67,7 @@ public:
         RAYMARCHING_NOISE_SCALE,
         RAYMARCHING_NOISE_SPEED,
         RAYMARCHING_BLUR,
+        EXPOSURE,
 		COUNT
 	};
 

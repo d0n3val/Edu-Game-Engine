@@ -18,53 +18,82 @@ DualKawaseBlur::~DualKawaseBlur()
 {
 }
 
-void DualKawaseBlur::execute(const Texture2D *input, uint internal_format, uint format, uint type, uint width, uint height)
+void DualKawaseBlur::execute(const Texture2D *input, uint internal_format, uint format, uint type, uint width, uint height, uint steps)
 {
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "DualKawaseBlur");
     createPrograms();
-    createFramebuffers(internal_format, format, type, width, height);
+    createFramebuffers(internal_format, format, type, width, height, steps);
 
-    // downscale
-    downscaleProg->Use();
+    if (!intermediates.empty())
+    {
+        vao->Bind();
 
-    // 1
-    glViewport(0, 0, width / 2, height / 2);
-    intermediateFB->Bind();
-    input->Bind(DUALKAWASE_INPUT_BINDING);
-    vao->Bind();
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+        // downscale
+        downscaleProg->Use();
+        input->Bind(DUALKAWASE_INPUT_BINDING);
 
+        for (const auto& intermediate : intermediates)
+        {
+            intermediate.fb->Bind();
+            glViewport(0, 0, intermediate.width, intermediate.height);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    // upscale
-    upscaleProg->Use();
+            intermediate.texture->Bind(DUALKAWASE_INPUT_BINDING);
+        }
 
-    // 1
-    glViewport(0, 0, width, height);
-    resultFB->Bind();
-    intermediate->Bind(DUALKAWASE_INPUT_BINDING);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    vao->Unbind();
+        // upscale
+        upscaleProg->Use();
+
+        for (auto it = intermediates.rbegin(); (it + 1) != intermediates.rend(); ++it)
+        {
+            const Intermediate& current = *it;
+            const Intermediate& next = *(it + 1);
+            next.fb->Bind();
+            glViewport(0, 0, next.width, next.height);
+
+            current.texture->Bind(DUALKAWASE_INPUT_BINDING);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+
+        resultFB->Bind();
+        glViewport(0, 0, width, height);
+        intermediates.front().texture->Bind(DUALKAWASE_INPUT_BINDING);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        vao->Unbind();
+    }
 
     glPopDebugGroup();
 }
 
-void DualKawaseBlur::createFramebuffers(uint internal_format, uint format, uint type, uint width, uint height)
+void DualKawaseBlur::createFramebuffers(uint internal_format, uint format, uint type, uint width, uint height, uint steps)
 {
-    if (internal_format != rInternal || format != rFormat || type != rType || width != rWidth || height != rHeight)
+    if (internal_format != rInternal || format != rFormat || type != rType || width != rWidth || height != rHeight || steps != intermediates.size())
     {
-        uint intermediateW = width /2;
-        uint intermediateH = height /2 ;
+        intermediates.clear();
+        intermediates.reserve(steps);
 
-        intermediate = std::make_unique<Texture2D>(intermediateW, intermediateH, internal_format, format, type, nullptr, false);
-
-        if (!intermediateFB)
+        uint intermediateW = width;
+        uint intermediateH = height;
+        for(uint i=0; i< steps; ++i)
         {
-            intermediateFB = std::make_unique<Framebuffer>();
-        }
+            intermediateW = intermediateW  >> 1;
+            intermediateH = intermediateH  >> 1;
 
-        intermediateFB->ClearAttachments();
-        intermediateFB->AttachColor(intermediate.get(), 0, 0);
-        assert(intermediateFB->Check() == GL_FRAMEBUFFER_COMPLETE);
+            Intermediate data;
+
+            data.width = intermediateW;
+            data.height = intermediateH;
+            data.texture  = std::make_unique<Texture2D>(intermediateW, intermediateH, internal_format, format, type, nullptr, false);
+
+            data.fb = std::make_unique<Framebuffer>();
+
+            data.fb->ClearAttachments();
+            data.fb->AttachColor(data.texture.get(), 0, 0);
+            assert(data.fb->Check() == GL_FRAMEBUFFER_COMPLETE);
+
+            intermediates.push_back(std::move(data));
+        }
 
         result = std::make_unique<Texture2D>(width, height, internal_format, format, type, nullptr, false);
 
