@@ -4,12 +4,12 @@
 #include "/shaders/common.glsl"
 #include "/shaders/LocationsAndBindings.h"
 
-struct DrawInstance
+struct PerInstance
 {
     uint indexCount;
     uint baseIndex;
     uint baseVertex;
-    uint baseInstance;
+    uint numBones;
     vec4 obb[8];
 };
 
@@ -29,7 +29,7 @@ readonly layout(std430, row_major, binding = MODEL_SSBO_BINDING) buffer Transfor
 
 readonly layout(std430, binding = DRAWINSTAANCE_SSBO_BINDING) buffer Instances
 {
-    DrawInstance instances[];
+    PerInstance instances[];
 };
 
 writeonly layout(std430, row_major, binding = DRAWCOMMAND_SSBO_BINDING) buffer DrawCommands
@@ -89,14 +89,10 @@ void main()
         mat4 transform = models[index];
 
         vec3 points[8];
-        vec3 pos = vec3(0.0);
         for(uint i=0; i< 8; ++i) 
         {
             points[i] = (transform*instances[index].obb[i]).xyz;
-            pos += points[i];
         }
-
-        pos = pos/8;
 
         if(inFrustum(points))
         {

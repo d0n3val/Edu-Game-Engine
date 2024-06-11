@@ -460,6 +460,7 @@ void GeometryBatch::DoRenderCommands(const BatchDrawCommands &drawCommands)
         {
             SDL_assert(!bufferDirty);
 
+            instanceBuffer->BindToPoint(DRAWINSTAANCE_SSBO_BINDING);
             transformSSBO[App->renderer->GetFrameCount()]->BindToPoint(MODEL_SSBO_BINDING);
             materialSSBO->BindToPoint(MATERIAL_SSBO_BINDING);
 
@@ -612,7 +613,7 @@ void GeometryBatch::CreateInstanceBuffer()
         instanceData[object.second].indexCount      = meshData.indexCount;
         instanceData[object.second].baseIndex       = meshData.baseIndex;
         instanceData[object.second].baseVertex      = meshData.baseVertex;
-        instanceData[object.second].baseInstance    = object.second;
+        instanceData[object.second].numBones        = numBones;
 
         AABB bbox;
         bbox.SetNegativeInfinity();
@@ -865,10 +866,7 @@ void GeometryBatch::UpdateModels()
     {
         const PerInstance& instanceData = instances[object.second];
 
-        if (instanceData.numBones > 0)
-            transforms[object.second] = float4x4::identity;
-        else
-            transforms[object.second] = object.first->GetGameObject()->GetGlobalTransformation();
+        transforms[object.second] = object.first->GetGameObject()->GetGlobalTransformation();
 
         // morph targets
         if (totalTargets)

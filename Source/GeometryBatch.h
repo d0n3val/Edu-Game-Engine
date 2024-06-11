@@ -57,7 +57,7 @@ class GeometryBatch
         uint indexCount = 0;
         uint baseIndex = 0;
         uint baseVertex = 0;
-        uint baseInstance = 0;
+        uint numBones = 0;
         float4 obb[8];
     };
 
