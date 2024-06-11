@@ -61,6 +61,7 @@ bool ModuleResources::Start(Config * config)
 	LoadDefaultPlane();
     LoadDefaultCylinder();
     LoadDefaultCone();
+    LoadDefaultLUT();
     //LoadDefaultRedImage();
 
 	//LoadDefaultBox();
@@ -790,4 +791,80 @@ bool ModuleResources::LoadDefaultCone()
 	cone = static_cast<ResourceMesh*>(Get(ResourceMesh::LoadCone("DefaultCone", 1.0f, 0.5f, 60, 40, UID(7))));
 
 	return cone != nullptr;
+}
+
+bool ModuleResources::LoadDefaultLUT()
+{
+    uint size = 0;
+    float* lutData = nullptr;
+    //if(LoadCubeLUT("Assets/LUTs/vibrant.CUBE", lutData, size))
+    if (LoadCubeLUT("Assets/LUTs/purple11-free-luts-pack/Once upon a time.CUBE", lutData, size))    
+    //if (LoadCubeLUT("Assets/LUTs/Shutterstock Free  LUTs/SoftBlackAndWhite.CUBE", lutData, size))        
+    {
+        lut = std::make_unique<Texture3D>(size, size, size, GL_RGB, GL_RGB, GL_FLOAT, lutData, false);
+        lut->SetWrapping(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool ModuleResources::LoadCubeLUT(const char *file_path, float*& lut_data, uint& size)
+{
+    FILE* file = NULL;
+    fopen_s(&file, file_path, "r");
+    if (file == NULL)
+    {
+        LOG("Could not open %s file \n", file);
+        return false;
+    }
+
+    lut_data = nullptr;
+    size = 0;
+
+    // Iterate through lines
+    while (!feof(file))
+    {
+        char line[128];
+        if (fscanf(file, "%128[^\n]\n", line) == 0)
+        {
+            break;
+        }
+
+        //if (strcmp(line, "#LUT size") == 0)
+        if (sscanf(line, "LUT_3D_SIZE %d", &size))
+        {
+            // Read LUT size
+            //fscanf(file, "%s %i\n", &line, &size);
+            lut_data = new float[size * size * size * 3];
+            break;
+        }
+    }
+
+    if (size > 0)
+    {
+        uint row = 0;
+
+        while (!feof(file))
+        {
+            char line[128];
+            if (fscanf(file, "%128[^\n]\n", line) == 0)
+            {
+                break;
+            }
+
+            float r, g, b;
+            if (sscanf(line, "%f %f %f\n", &r, &g, &b) == 3)
+            {
+                lut_data[row * 3 + 0] = r;
+                lut_data[row * 3 + 1] = g;
+                lut_data[row * 3 + 2] = b;
+                row++;
+            }
+        }
+        fclose(file);
+    }
+
+    return true;
 }

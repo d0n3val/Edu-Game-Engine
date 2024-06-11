@@ -1,6 +1,7 @@
 #ifndef _POSTPRO_H_
 #define _POSTPRO_H_
 
+#include "Timer.h"
 #include<memory>
 
 class Program;
@@ -23,6 +24,8 @@ class Postprocess
     uint bloom_height     = 0;
     std::unique_ptr<DualKawaseBlur> kawase;
 
+    float frame = 0.0f;
+    Timer timer;
 public:
 
     Postprocess();

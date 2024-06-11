@@ -134,6 +134,12 @@ ModuleHints::ModuleHints() : Module("Render Hints")
     hints[ENABLE_BLOOM].type                      = TYPE_BOOL; 
     hints[ENABLE_BLOOM].value.bvalue              = true;
 
+    hints[ENABLE_LUT].type                        = TYPE_BOOL; 
+    hints[ENABLE_LUT].value.bvalue                = true;
+
+    hints[BLOOM_INTENSITY].type                   = TYPE_FLOAT; 
+    hints[BLOOM_INTENSITY].value.fvalue           = 1.0f;
+
     hints[SHOW_PARTICLE_BILLBOARDS].type          = TYPE_BOOL;
     hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue  = false;
 
@@ -197,6 +203,17 @@ ModuleHints::ModuleHints() : Module("Render Hints")
 
     hints[EXPOSURE].type = TYPE_FLOAT;
     hints[EXPOSURE].value.fvalue = 0.0f;
+
+    hints[ABERRATION_OFFSET].type = TYPE_FLOAT3;
+    hints[ABERRATION_OFFSET].value.f3value[0] = 0.015f;
+    hints[ABERRATION_OFFSET].value.f3value[1] = 0.008f;
+    hints[ABERRATION_OFFSET].value.f3value[2] = -0.008f;
+
+    hints[ABERRATION_BLOOM_OFFSET].type = TYPE_FLOAT3;
+    hints[ABERRATION_BLOOM_OFFSET].value.f3value[0] = 0.025f;
+    hints[ABERRATION_BLOOM_OFFSET].value.f3value[1] = 0.01f;
+    hints[ABERRATION_BLOOM_OFFSET].value.f3value[2] = -0.01f;
+
 }
 
 ModuleHints::~ModuleHints()
@@ -239,6 +256,8 @@ void ModuleHints::Save(Config* config) const
     config->AddBool("Enable msaa", hints[ENABLE_MSAA].value.bvalue);
     config->AddBool("Enable gamma", hints[ENABLE_GAMMA].value.bvalue);
     config->AddBool("Enable bloom", hints[ENABLE_BLOOM].value.bvalue);
+    config->AddBool("Enable LUT", hints[ENABLE_LUT].value.bvalue);
+    config->AddFloat("Bloom intensity", hints[BLOOM_INTENSITY].value.fvalue);
 
     config->AddBool("Show billboards", hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue);
 
@@ -263,6 +282,9 @@ void ModuleHints::Save(Config* config) const
     config->AddFloat("RayMarching Noise Scale", hints[RAYMARCHING_NOISE_SCALE].value.fvalue);
     config->AddFloat("RayMarching Noise Speed", hints[RAYMARCHING_NOISE_SPEED].value.fvalue);
     config->AddFloat("Exposure", hints[EXPOSURE].value.fvalue);
+
+    config->AddFloat3("Aberration offset", float3(hints[ABERRATION_OFFSET].value.f3value));
+    config->AddFloat3("Aberration bloom offset", float3(hints[ABERRATION_BLOOM_OFFSET].value.f3value));
 
     Config dHintsCfg = config->AddSection("DHits");
 
@@ -316,6 +338,8 @@ bool ModuleHints::Init(Config* config)
     hints[ENABLE_MSAA].value.bvalue = config->GetBool("Enable msaa", true);
     hints[ENABLE_GAMMA].value.bvalue = config->GetBool("Enable gamma", true);
     hints[ENABLE_BLOOM].value.bvalue = config->GetBool("Enable bloom", true);
+    hints[ENABLE_LUT].value.bvalue = config->GetBool("Enable LUT", true);
+    hints[BLOOM_INTENSITY].value.fvalue = config->GetFloat("Bloom intensity", 1.0f);
 
     hints[SHOW_PARTICLE_BILLBOARDS].value.bvalue = config->GetBool("Show billboards", false);
     
@@ -362,6 +386,16 @@ bool ModuleHints::Init(Config* config)
     hints[RAYMARCHING_NOISE_SCALE].value.fvalue = config->GetFloat("RayMarching Noise Scale");
     hints[RAYMARCHING_NOISE_SPEED].value.fvalue = config->GetFloat("RayMarching Noise Speed");
     hints[EXPOSURE].value.fvalue = config->GetFloat("Exposure");
+
+    float3 offset = config->GetFloat3("Aberration offset", float3(0.015f, 0.008f, -0.008f));
+    hints[ABERRATION_OFFSET].value.f3value[0] = offset.x;
+    hints[ABERRATION_OFFSET].value.f3value[1] = offset.y;
+    hints[ABERRATION_OFFSET].value.f3value[2] = offset.z;
+
+    offset = config->GetFloat3("Aberration bloom offset", float3(0.025f, 0.1f, -0.1f));
+    hints[ABERRATION_BLOOM_OFFSET].value.f3value[0] = offset.x;
+    hints[ABERRATION_BLOOM_OFFSET].value.f3value[1] = offset.y;
+    hints[ABERRATION_BLOOM_OFFSET].value.f3value[2] = offset.z;
 
     Config dHintsCfg = config->GetSection("DHits");
     json_object_t* dHintsRoot = dHintsCfg.GetRoot();

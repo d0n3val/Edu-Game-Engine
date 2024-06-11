@@ -431,7 +431,7 @@ void GeometryBatch::DoFrustumCulling(BatchDrawCommands& drawCommands, const floa
 
             Program* sort[2] = { programs->sortOdd.get(), programs->sortEven.get() };
 
-            for (int i = 0; i < drawCommands.getMaxCommands(batchIndex); ++i)
+            for (uint i = 0; i < drawCommands.getMaxCommands(batchIndex); ++i)
             {
                 Program* current = sort[i % 2];
 

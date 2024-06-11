@@ -429,6 +429,31 @@ void PanelConfiguration::DrawModuleHints(ModuleHints * module)
         module->SetBoolValue(ModuleHints::ENABLE_BLOOM, enable);
     }
 
+    enable = module->GetBoolValue(ModuleHints::ENABLE_LUT);
+    if(ImGui::Checkbox("Enable LUT", &enable))
+    {
+        module->SetBoolValue(ModuleHints::ENABLE_LUT, enable);
+    }
+
+
+    float intensity = module->GetFloatValue(ModuleHints::BLOOM_INTENSITY);
+    if(ImGui::SliderFloat("Bloom intensity", &intensity, 0.0f, 1.0f))
+    {
+        module->SetFloatValue(ModuleHints::BLOOM_INTENSITY, intensity);
+    }
+
+    float3 offset = module->GetFloat3Value(ModuleHints::ABERRATION_OFFSET);
+    if(ImGui::SliderFloat3("Aberration offset", &offset.x, -0.1f, 0.1f, "%.5f"))
+    {
+        module->SetFloat3Value(ModuleHints::ABERRATION_OFFSET, offset);
+    }
+
+    offset = module->GetFloat3Value(ModuleHints::ABERRATION_BLOOM_OFFSET);
+    if(ImGui::SliderFloat3("Aberration bloom offset", &offset.x, -0.1f, 0.1f, "%.5f"))
+    {
+        module->SetFloat3Value(ModuleHints::ABERRATION_BLOOM_OFFSET, offset);
+    }
+
     int tonemapping = module->GetIntValue(ModuleHints::TONEMAPPING);
     const char* names[] = { "Uncharted 2", "Reinhard", "ACES", "None" };
     if(ImGui::Combo("Tonemapping", &tonemapping, names, sizeof(names)/sizeof(char*)))

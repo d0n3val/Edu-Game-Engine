@@ -61,6 +61,23 @@ public:
     static Texture2D* CreateDefaultRGBA(uint width, uint height, void* data = nullptr, bool mipmaps = false);
 };
 
+class Texture3D : public Texture
+{
+public:
+    Texture3D(const Texture3D&) = delete;
+    Texture3D& operator=(const Texture3D&) = delete;
+
+    explicit Texture3D(uint target);
+    Texture3D(uint target, uint tex);
+    Texture3D(uint width, uint height, uint depth, uint internalFormat, uint format, uint type, void* data, bool mipmaps);
+
+    void SetData(uint width, uint height, uint depth, uint mip_level, uint internalFormat, uint format, uint type, void* data);
+    void SetDefaultRGBAData(uint width, uint height, uint depth, void* data);
+
+    static Texture3D* CreateDefaultRGBA(uint width, uint height, uint depth, void* data = nullptr, bool mipmaps = false);
+    static Texture3D* CreateDefaultRGB(uint width, uint height, uint depth, void* data = nullptr, bool mipmaps = false);
+};
+
 class Texture2DArray : public Texture
 {
     uint width   = 0;

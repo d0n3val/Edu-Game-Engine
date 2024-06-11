@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "modulehints.h"
 #include "ModulePrograms.h"
+#include "ModuleResources.h"
 #include "Application.h"
 #include "ModuleRenderer.h"
 #include "GBufferExportPass.h"
@@ -122,6 +123,10 @@ void Postprocess::Init()
 
 void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Framebuffer* fbo, unsigned width, unsigned height)
 {
+    float dt = (float)timer.Read() / 1000.0f;
+    timer.Start();
+    frame = frame + dt;
+
     bool msaa  = App->hints->GetBoolValue(ModuleHints::ENABLE_MSAA);
 
     glBindVertexArray(post_vao);
@@ -148,8 +153,10 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     bool enableBloom = App->hints->GetBoolValue(ModuleHints::ENABLE_BLOOM);
+    bool enableLut = App->hints->GetBoolValue(ModuleHints::ENABLE_LUT);
     int flags = enableBloom ? 1 : 0;
     flags = flags | (App->hints->GetBoolValue(ModuleHints::ENABLE_GAMMA) ? 1 << 1 : 0);
+    flags = flags | (enableLut ? 1 << 2 : 0);
 
     App->programs->UseProgram("postprocess", flags);
 
@@ -169,10 +176,23 @@ void Postprocess::Execute(const Texture2D* screen, const Texture2D* depth, Frame
         //glBindTexture(GL_TEXTURE_2D, bloom_blur_tex_1);
         glBindTexture(GL_TEXTURE_2D, kawase->getResult()->Id());
         glUniform1i(BLOOM_TEXTURE_LOCATION, 1); 
+
+        glUniform1f(3, App->hints->GetFloatValue(ModuleHints::BLOOM_INTENSITY));
+    }
+
+    if(enableLut)
+    {
+        App->resources->GetDefaultLUT()->Bind(5);
     }
 
     // Set exposure normalization
     glUniform1f(2, 1.2f*powf(2.0, App->hints->GetFloatValue(ModuleHints::EXPOSURE)));
+
+    float3 offset = App->hints->GetFloat3Value(ModuleHints::ABERRATION_OFFSET);
+    glUniform3f(4, offset.x, offset.y, offset.z);
+
+    offset = App->hints->GetFloat3Value(ModuleHints::ABERRATION_BLOOM_OFFSET);
+    glUniform3f(5, offset.x, offset.y, offset.z);
 
     glDrawArrays(GL_TRIANGLES, 0, 6); 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

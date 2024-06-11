@@ -6,6 +6,7 @@
 #include "Resource.h"
 #include <map>
 #include <vector>
+#include <memory>
 
 #define RESERVED_RESOURCES 7 // cube/sphere/cylinde/cone/pyramid primitives + checker texture
 
@@ -13,6 +14,7 @@ class Resource;
 class LoaderAnimation;
 class ResourceMesh;
 class ResourceTexture;
+class Texture3D;
 
 class ModuleResources : public Module
 {
@@ -61,6 +63,7 @@ public:
     const ResourceTexture* GetDefaultSkybox() const { return skybox; }
     const ResourceTexture* GetDefaultBlueNoise() const { return blueNoise;  }
     const ResourceTexture* GetDefaultLoopNoise() const { return loopNoise;  }
+    const Texture3D*       GetDefaultLUT() const { return lut.get();}
 
 	const ResourceMesh*    GetDefaultBox() const { return cube; }
 	const ResourceMesh*    GetDefaultSphere() const { return sphere; }
@@ -84,6 +87,8 @@ private:
 	bool LoadDefaultPlane();
     bool LoadDefaultCylinder();
 	bool LoadDefaultCone();
+    bool LoadDefaultLUT();
+    bool LoadCubeLUT(const char* file_path, float*& lut_data, uint& size);
 
 private:
 	std::string asset_folder;
@@ -105,6 +110,7 @@ private:
     ResourceTexture* black_fallback = nullptr;
     ResourceTexture* blueNoise = nullptr;
     ResourceTexture* loopNoise = nullptr;
+    std::unique_ptr<Texture3D> lut;
 };
 
 #endif // __MODULERESOURCES_H__

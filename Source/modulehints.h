@@ -48,6 +48,8 @@ public:
         ENABLE_MSAA,
         ENABLE_GAMMA,
         ENABLE_BLOOM,
+        ENABLE_LUT,
+        BLOOM_INTENSITY,
         SHOW_PARTICLE_BILLBOARDS,
         FOG_TYPE,
         DIST_FOG_COLOUR,
@@ -68,6 +70,8 @@ public:
         RAYMARCHING_NOISE_SPEED,
         RAYMARCHING_BLUR,
         EXPOSURE,
+        ABERRATION_OFFSET,
+        ABERRATION_BLOOM_OFFSET,
 		COUNT
 	};
 

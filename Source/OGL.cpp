@@ -191,6 +191,49 @@ Texture2D* Texture2D::CreateDefaultRGBA(uint width, uint height, void* data, boo
     return new Texture2D(width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
 }
 
+Texture3D::Texture3D(uint target) : Texture(target)
+{
+}
+
+Texture3D::Texture3D(uint target, uint tex) : Texture(target, tex)
+{
+
+}
+
+Texture3D::Texture3D(uint width, uint height, uint depth, uint internalFormat, uint format, uint type, void *data, bool mipmaps) : Texture(GL_TEXTURE_3D)
+{
+    glBindTexture(tex_target, texture);
+    glTexImage3D(tex_target, 0, internalFormat, width, height, depth, 0, format, type, data);
+
+    DefaultInitializeTexture(mipmaps);
+
+    glBindTexture(tex_target, 0);
+
+}
+
+void Texture3D::SetData(uint width, uint height, uint depth, uint mip_level, uint internalFormat, uint format, uint type, void *data)
+{
+    glBindTexture(tex_target, texture);
+    glTexImage3D(tex_target, mip_level, internalFormat, width, height, depth, 0, format, type, data);
+    glBindTexture(tex_target, 0);
+}
+
+void Texture3D::SetDefaultRGBAData(uint width, uint height, uint depth, void *data)
+{
+    SetData(width, height, depth, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+}
+
+Texture3D* Texture3D::CreateDefaultRGBA(uint width, uint height, uint depth, void *data, bool mipmaps)
+{
+    return new Texture3D(width, height, depth, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data, mipmaps);
+}
+
+Texture3D* Texture3D::CreateDefaultRGB(uint width, uint height, uint depth, void *data, bool mipmaps)
+{
+    return new Texture3D(width, height, depth, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, data, mipmaps);
+}
+
 Texture2DArray::Texture2DArray(uint mipLevels, uint _width, uint _height, uint _depth, uint internal_format): Texture(GL_TEXTURE_2D_ARRAY)
 {
     width  = _width;

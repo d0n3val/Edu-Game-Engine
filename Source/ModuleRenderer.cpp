@@ -277,7 +277,7 @@ void ModuleRenderer::LoadDefaultShaders()
     App->programs->Load("default", "Assets/Shaders/defaultVS.glsl", "Assets/Shaders/defaultFS.glsl", default_macros, num_default_macros);
     App->programs->Load("default_batch", "Assets/Shaders/default_batch.vs", "Assets/Shaders/default_batch.fs", default_macros, num_default_macros);
 
-    const char* macros[]		  = { "#define BLOOM 1 \n", "#define GAMMA 1\n" }; 
+    const char* macros[]		  = { "#define BLOOM 1 \n", "#define GAMMA 1\n", "#define LUT 1\n" }; 
     const unsigned num_macros     = sizeof(macros)/sizeof(const char*);
 
     App->programs->Load("postprocess", "Assets/Shaders/postprocess.vs", "Assets/Shaders/postprocess.fs", macros, num_macros);
